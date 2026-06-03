@@ -1,5 +1,5 @@
 import type { ExperienceItem } from "@/i18n/types";
-import { formatDateTime, deriveDisplayStatus } from "@/lib/event-mapper";
+import { formatDateTime, deriveDisplayStatus } from "@/lib/event-display";
 import type { EventExtras } from "@/lib/event-extras";
 
 export type PreviewEventData = {

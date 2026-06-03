@@ -13,7 +13,6 @@ export default async function EditEventPage({ params }: Props) {
   const db = getDb();
   const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
   if (!event) notFound();
-
   return (
     <div>
       <h1 className="mb-8 font-serif text-3xl text-burgundy">Edit experience</h1>

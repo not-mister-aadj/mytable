@@ -1,0 +1,64 @@
+import type { Locale } from "@/i18n/config";
+import type { ExperienceItem } from "@/i18n/types";
+import type { RouteMapPoint } from "@/data/experience-route-map";
+import { getRouteMapPoints } from "@/data/experience-route-map";
+import type { ExperienceVenue } from "@/i18n/types";
+import { getExperienceType } from "@/lib/experience-types";
+import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
+import {
+  parseTypeContent,
+  type ExperienceTypeContent,
+} from "@/lib/experience-type-content.types";
+
+export type { ExperienceTypeContent, TypeRoutePoint } from "@/lib/experience-type-content.types";
+export { parseTypeContent } from "@/lib/experience-type-content.types";
+
+export async function getTypeContent(
+  typeSlug: string,
+): Promise<ExperienceTypeContent> {
+  const row = await getExperienceType(typeSlug);
+  return parseTypeContent(row?.content ?? {});
+}
+
+export function mergeTypeContentIntoItem(
+  item: ExperienceItem,
+  content: ExperienceTypeContent,
+  locale: Locale,
+): ExperienceItem {
+  const lang = locale === "nl" ? "nl" : "en";
+  const customDescription =
+    lang === "nl" ? content.atmosphereTextNl : content.atmosphereTextEn;
+  const customFaq = lang === "nl" ? content.faqNl : content.faqEn;
+
+  return {
+    ...item,
+    atmosphereTags:
+      item.atmosphereTags?.length
+        ? item.atmosphereTags
+        : content.defaultAtmosphereTags,
+    customDescription: customDescription || item.customDescription,
+    customFaq: customFaq?.length ? customFaq : item.customFaq,
+    galleryImages: content.galleryImages?.length
+      ? content.galleryImages
+      : item.galleryImages,
+  };
+}
+
+export async function resolveEventRoutePoints(
+  typeSlug: string,
+  city: string,
+  venues: ExperienceVenue[],
+  legacyExperienceId: string,
+): Promise<RouteMapPoint[]> {
+  const content = await getTypeContent(typeSlug ?? DEFAULT_EXPERIENCE_TYPE);
+  if (content.routePoints?.length) {
+    return content.routePoints.map((p) => ({
+      label: p.label,
+      lat: p.lat,
+      lng: p.lng,
+    }));
+  }
+  const names = venues.map((v) => v.name);
+  if (names.length === 0) return [];
+  return getRouteMapPoints(legacyExperienceId, city, names);
+}

@@ -4,8 +4,10 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
+import type { ExperienceVenue } from "@/i18n/types";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { getMoodContent } from "@/lib/experience-detail";
+import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getExperienceVenues } from "@/data/experience-venues";
 import { getRouteMapPoints } from "@/data/experience-route-map";
 import { BookingCard } from "./BookingCard";
@@ -37,6 +39,10 @@ interface ExperiencePageContentProps {
   related: EnrichedExperience[];
   dict: Dictionary;
   locale: Locale;
+  /** From DB-linked venues; when omitted, uses catalog fallback */
+  eventVenues?: ExperienceVenue[];
+  /** Route from experience type; when omitted, computed client-side */
+  routePoints?: RouteMapPoint[];
 }
 
 export function ExperiencePageContent({
@@ -44,15 +50,22 @@ export function ExperiencePageContent({
   related,
   dict,
   locale,
+  eventVenues,
+  routePoints: routePointsProp,
 }: ExperiencePageContentProps) {
   const page = dict.experiencePage;
   const mood = getMoodContent(dict, experience.mood);
-  const venues = getExperienceVenues(experience.id, experience.mood);
-  const routePoints = getRouteMapPoints(
-    experience.id,
-    experience.city,
-    venues.map((v) => v.name),
-  );
+  const venues =
+    eventVenues && eventVenues.length > 0
+      ? eventVenues
+      : getExperienceVenues(experience.id, experience.mood);
+  const routePoints =
+    routePointsProp ??
+    getRouteMapPoints(
+      experience.id,
+      experience.city,
+      venues.map((v) => v.name),
+    );
   const stickySentinelRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -75,11 +88,13 @@ export function ExperiencePageContent({
         sentinelRef={stickySentinelRef}
       />
 
-      <VenueLineup
-        title={page.venuesTitle}
-        subtitle={page.venuesSubtitle}
-        venues={venues}
-      />
+      {venues.length > 0 ? (
+        <VenueLineup
+          title={page.venuesTitle}
+          subtitle={page.venuesSubtitle}
+          venues={venues}
+        />
+      ) : null}
 
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">

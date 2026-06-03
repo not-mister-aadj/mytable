@@ -1,6 +1,5 @@
 import { EventEditor } from "@/components/admin/EventEditor";
 import { requireAdmin } from "@/lib/admin-auth";
-
 export default async function NewEventPage() {
   await requireAdmin();
   return (

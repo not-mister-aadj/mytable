@@ -6,9 +6,16 @@ import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
 import {
   getAllExperienceSlugs,
+  getExperienceByDbId,
   getExperienceBySlug,
   getRelatedExperiences,
 } from "@/lib/experiences";
+import { resolveEventRoutePoints } from "@/lib/experience-type-content";
+import { getEventVenues } from "@/lib/venues";
+import type { ExperienceVenue } from "@/i18n/types";
+import type { RouteMapPoint } from "@/data/experience-route-map";
+import { getRouteMapPoints } from "@/data/experience-route-map";
+import { getExperienceVenues as getCatalogVenues } from "@/data/experience-venues";
 import {
   getExperienceTagline,
   getMoodContent,
@@ -59,6 +66,28 @@ export default async function ExperienceDetailPage({ params }: Props) {
   const dict = await getDictionaryWithAgenda(locale);
   const related = await getRelatedExperiences(locale, experience);
 
+  let eventVenues: ExperienceVenue[] | undefined;
+  let routePoints: RouteMapPoint[] | undefined;
+  if (experience.eventDbId) {
+    const row = await getExperienceByDbId(experience.eventDbId);
+    if (row) {
+      eventVenues = await getEventVenues(row, locale, experience.id);
+      routePoints = await resolveEventRoutePoints(
+        row.experienceType,
+        row.city,
+        eventVenues,
+        experience.id,
+      );
+    }
+  } else {
+    const venues = getCatalogVenues(experience.id, experience.mood);
+    routePoints = getRouteMapPoints(
+      experience.id,
+      experience.city,
+      venues.map((v) => v.name),
+    );
+  }
+
   return (
     <>
       <Header dict={dict.header} locale={locale} />
@@ -68,6 +97,8 @@ export default async function ExperienceDetailPage({ params }: Props) {
           related={related}
           dict={dict}
           locale={locale}
+          eventVenues={eventVenues}
+          routePoints={routePoints}
         />
         <NewsletterCTA dict={dict.newsletter} />
       </main>

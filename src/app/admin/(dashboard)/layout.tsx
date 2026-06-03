@@ -29,6 +29,15 @@ export default async function AdminDashboardLayout({
             <Link href={adminPath("/events")} className="hover:text-burgundy">
               Tafels
             </Link>
+            <Link href={adminPath("/venues")} className="hover:text-burgundy">
+              Venues
+            </Link>
+            <Link
+              href={adminPath("/experience-types")}
+              className="hover:text-burgundy"
+            >
+              Types
+            </Link>
             <Link href={adminPath("/bookings")} className="hover:text-burgundy">
               Boekingen
             </Link>

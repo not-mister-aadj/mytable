@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { eq } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { formatDateTime } from "@/lib/event-mapper";
+import { formatDateTime } from "@/lib/event-display";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";

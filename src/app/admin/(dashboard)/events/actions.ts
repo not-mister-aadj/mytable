@@ -7,6 +7,11 @@ import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { parseEventExtras } from "@/lib/event-extras";
+import {
+  DEFAULT_EXPERIENCE_TYPE,
+  getExperienceTypeDefinition,
+  isValidExperienceType,
+} from "@/lib/experience-types";
 import { redirect } from "next/navigation";
 
 export type EventFormState = {
@@ -24,6 +29,7 @@ export type EventFormState = {
   taglineEn: string;
   categoryNl: string;
   categoryEn: string;
+  experienceType: string;
   extras: ReturnType<typeof parseEventExtras>;
 };
 
@@ -52,6 +58,7 @@ function parseForm(data: FormData): EventFormState {
     taglineEn: String(data.get("taglineEn") ?? "").trim(),
     categoryNl: String(data.get("categoryNl") ?? "PROEVERIJ").trim(),
     categoryEn: String(data.get("categoryEn") ?? "TASTING").trim(),
+    experienceType: String(data.get("experienceType") ?? DEFAULT_EXPERIENCE_TYPE).trim(),
     extras,
   };
 }
@@ -71,6 +78,13 @@ function toEventValues(form: EventFormState) {
   ) {
     throw new Error("Vul alle verplichte velden in.");
   }
+  const experienceType = isValidExperienceType(form.experienceType)
+    ? form.experienceType
+    : DEFAULT_EXPERIENCE_TYPE;
+  const typeDef = getExperienceTypeDefinition(experienceType);
+  const { venueIds: _removed, ...extrasClean } = form.extras;
+  void _removed;
+
   return {
     slug: form.slug,
     city: form.city,
@@ -86,7 +100,10 @@ function toEventValues(form: EventFormState) {
     taglineEn: form.taglineEn || null,
     categoryNl: form.categoryNl,
     categoryEn: form.categoryEn,
-    extras: form.extras as Record<string, unknown>,
+    experienceType,
+    mood: typeDef?.mood ?? "tastings",
+    venueId: null,
+    extras: extrasClean as Record<string, unknown>,
     updatedAt: new Date(),
   };
 }
@@ -184,8 +201,8 @@ export async function duplicateEventAction(id: string) {
       capacity: source.capacity,
       spotsSold: 0,
       femaleOnly: source.femaleOnly,
+      experienceType: source.experienceType ?? "wine-tasting",
       mood: source.mood,
-      venueId: source.venueId,
       imageUrl: source.imageUrl,
       nameNl: `${source.nameNl} (copy)`,
       nameEn: `${source.nameEn} (copy)`,

@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { Event } from "@/db/schema";
+import { adminPath } from "@/lib/admin-url";
+import {
+  DEFAULT_EXPERIENCE_TYPE,
+  EXPERIENCE_TYPE_DEFINITIONS,
+  type ExperienceTypeSlug,
+} from "@/lib/experience-type-definitions";
 import {
   createEventAction,
   updateEventAction,
@@ -19,7 +26,6 @@ import {
 import { AtmosphereTags } from "./AtmosphereTags";
 import { LivePreviewPanel } from "./LivePreviewPanel";
 import { MediaPicker } from "./MediaPicker";
-import { MediaLibrary } from "./MediaLibrary";
 import { OccupancyBar } from "./OccupancyBar";
 import type { PreviewEventData } from "./event-preview";
 
@@ -65,8 +71,10 @@ export function EventEditor({ event }: { event?: Event }) {
   const [taglineNl, setTaglineNl] = useState(event?.taglineNl ?? "");
   const [taglineEn, setTaglineEn] = useState(event?.taglineEn ?? "");
   const [categoryNl, setCategoryNl] = useState(event?.categoryNl ?? "PROEVERIJ");
+  const [experienceType, setExperienceType] = useState<ExperienceTypeSlug>(
+    (event?.experienceType as ExperienceTypeSlug) ?? DEFAULT_EXPERIENCE_TYPE,
+  );
   const [extras, setExtras] = useState<EventExtras>(initialExtras);
-  const [galleryOpen, setGalleryOpen] = useState(false);
   const [previewLocale, setPreviewLocale] = useState<"nl" | "en">("nl");
 
   const action = isEdit
@@ -126,6 +134,33 @@ export function EventEditor({ event }: { event?: Event }) {
           <input type="hidden" name="extras" value={serializeEventExtras(extras)} />
 
           <Section title="Basics">
+            <label className="block text-sm">
+              <span className="font-medium text-wine">Type ervaring</span>
+              <select
+                name="experienceType"
+                value={experienceType}
+                onChange={(e) =>
+                  setExperienceType(e.target.value as ExperienceTypeSlug)
+                }
+                className="mt-1.5 w-full rounded-xl border border-border-subtle bg-cream px-4 py-2.5"
+              >
+                {EXPERIENCE_TYPE_DEFINITIONS.map((t) => (
+                  <option key={t.slug} value={t.slug}>
+                    {t.nameNl}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="text-sm text-wine/60">
+              Restaurants voor dit type:{" "}
+              <Link
+                href={adminPath(`/experience-types/${experienceType}`)}
+                className="text-burgundy underline"
+              >
+                beheer venues →
+              </Link>
+              . Geldt voor elke {EXPERIENCE_TYPE_DEFINITIONS.find((t) => t.slug === experienceType)?.nameNl ?? "event"}.
+            </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Naam (NL)" value={nameNl} onChange={setNameNl} name="nameNl" required />
               <Field
@@ -215,59 +250,20 @@ export function EventEditor({ event }: { event?: Event }) {
               />
               Girls only
             </label>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <TextArea
-                label="Sfeertekst (NL)"
-                value={extras.atmosphereTextNl ?? ""}
-                onChange={(v) => updateExtras({ atmosphereTextNl: v })}
-                rows={4}
-              />
-              <TextArea
-                label="Sfeertekst (EN)"
-                value={extras.atmosphereTextEn ?? ""}
-                onChange={(v) => updateExtras({ atmosphereTextEn: v })}
-                rows={4}
-              />
-            </div>
+            <p className="text-sm text-wine/60">
+              Over-tekst, gallery en FAQ:{" "}
+              <Link
+                href={adminPath(`/experience-types/${experienceType}`)}
+                className="text-burgundy underline"
+              >
+                beheer bij type →
+              </Link>
+            </p>
           </Section>
 
           <Section title="Visuals">
-            <MediaPicker value={imageUrl} onChange={setImageUrl} label="Hero image" />
+            <MediaPicker value={imageUrl} onChange={setImageUrl} label="Hero image (per event)" />
             <input type="hidden" name="imageUrl" value={imageUrl} />
-            <div className="mt-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-wine">Gallery</span>
-                <button
-                  type="button"
-                  onClick={() => setGalleryOpen(true)}
-                  className="text-sm text-burgundy underline"
-                >
-                  Add images
-                </button>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(extras.galleryImages ?? []).map((url) => (
-                  <div
-                    key={url}
-                    className="relative h-16 w-16 overflow-hidden rounded-lg border border-border-subtle"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt="" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateExtras({
-                          galleryImages: extras.galleryImages?.filter((u) => u !== url),
-                        })
-                      }
-                      className="absolute right-0 top-0 bg-red-900/80 px-1 text-xs text-cream"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
           </Section>
 
           <Section title="Booking">
@@ -377,19 +373,6 @@ export function EventEditor({ event }: { event?: Event }) {
         </div>
         <LivePreviewPanel data={previewData} />
       </div>
-
-      <MediaLibrary
-        open={galleryOpen}
-        onClose={() => setGalleryOpen(false)}
-        multi
-        selected={extras.galleryImages ?? []}
-        onSelect={(url) => {
-          const current = extras.galleryImages ?? [];
-          if (!current.includes(url)) {
-            updateExtras({ galleryImages: [...current, url] });
-          }
-        }}
-      />
     </div>
   );
 }

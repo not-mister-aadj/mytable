@@ -20,6 +20,8 @@ export type EventExtras = {
   faqNl?: EventFaqItem[];
   faqEn?: EventFaqItem[];
   galleryImages?: string[];
+  /** Linked venue UUIDs (order = display order on event page) */
+  venueIds?: string[];
 };
 
 export const emptyEventExtras = (): EventExtras => ({});
@@ -39,6 +41,9 @@ export function parseEventExtras(raw: unknown): EventExtras {
     faqEn: Array.isArray(o.faqEn) ? (o.faqEn as EventFaqItem[]) : undefined,
     galleryImages: Array.isArray(o.galleryImages)
       ? o.galleryImages.filter((u): u is string => typeof u === "string")
+      : undefined,
+    venueIds: Array.isArray(o.venueIds)
+      ? o.venueIds.filter((id): id is string => typeof id === "string")
       : undefined,
   };
 }

@@ -22,6 +22,20 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "refunded",
 ]);
 
+/** Fixed content per experience format (e.g. all wine tastings share venues) */
+export const experienceTypes = pgTable("experience_types", {
+  slug: text("slug").primaryKey(),
+  nameNl: text("name_nl").notNull(),
+  nameEn: text("name_en").notNull(),
+  mood: text("mood").notNull().default("tastings"),
+  venueIds: jsonb("venue_ids").$type<string[]>().notNull().default([]),
+  /** Page copy, gallery, map — shared by all events of this type */
+  content: jsonb("content").$type<Record<string, unknown>>().notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const venues = pgTable("venues", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -52,6 +66,7 @@ export const events = pgTable("events", {
   capacity: integer("capacity").notNull().default(14),
   spotsSold: integer("spots_sold").notNull().default(0),
   femaleOnly: boolean("female_only").notNull().default(false),
+  experienceType: text("experience_type").notNull().default("wine-tasting"),
   mood: text("mood").notNull().default("tastings"),
   venueId: uuid("venue_id").references(() => venues.id),
   imageUrl: text("image_url").notNull(),
@@ -106,6 +121,7 @@ export const bookingEvents = pgTable("booking_events", {
     .defaultNow(),
 });
 
+export type ExperienceType = typeof experienceTypes.$inferSelect;
 export type Venue = typeof venues.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;

@@ -23,6 +23,20 @@ USE_DB_EVENTS=true
 NEXT_PUBLIC_USE_DB_EVENTS=true
 ```
 
+## Venues & experience types
+
+**Venues** (Dashboard → Venues): restaurants/locaties met naam, stad, foto, beschrijving.
+
+**Types** (Dashboard → Types → **Wijnproeverij**): vast per type (geldt voor **elke** wijnproeverij):
+
+- **Venues** — restaurants/locaties  
+- **Paginatekst** — over de ervaring, gallery, FAQ, standaard sfeer-tags  
+- **Kaart / route** — optioneel (meestal leeg bij wijnproeverij; auto-kaart rond venues in event-stad)
+
+Bij een nieuwe tafel: alleen datum, stad, prijs, hero, tagline, girls only. Rest komt van het type.
+
+Op de eventpagina: venues gefilterd op **event-stad** waar mogelijk.
+
 ## Media library (Supabase Storage)
 
 1. Supabase → **Storage** → New bucket **`media`** → **Public**.

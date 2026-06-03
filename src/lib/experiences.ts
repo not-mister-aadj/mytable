@@ -30,7 +30,11 @@ async function fetchPublishedFromDb(
     )
     .orderBy(events.startsAt);
 
-  return rows.map((row) => enrichDbEvent(row, locale));
+  const results: Awaited<ReturnType<typeof enrichDbEvent>>[] = [];
+  for (const row of rows) {
+    results.push(await enrichDbEvent(row, locale));
+  }
+  return results;
 }
 
 function fetchFromCatalog(locale: Locale): EnrichedExperience[] {

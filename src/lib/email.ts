@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import type { Booking, Event } from "@/db/schema";
-import { formatDateTime } from "@/lib/event-mapper";
+import { formatDateTime } from "@/lib/event-display";
 import type { Locale } from "@/i18n/config";
 
 function getResend() {

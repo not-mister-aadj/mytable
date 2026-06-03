@@ -19,5 +19,5 @@ export const images = {
   wineBar:
     "https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=600&q=80",
   restaurantInterior:
-    "https://images.unsplash.com/photo-1600891964096-920202967dea?w=600&q=80",
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80",
 } as const;

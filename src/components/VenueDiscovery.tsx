@@ -17,22 +17,25 @@ export function VenueDiscovery({ dict }: VenueDiscoveryProps) {
         />
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {dict.categories.map((category) => (
+          {dict.places.map((place) => (
             <div
-              key={category.title}
+              key={`${place.name}-${place.city}`}
               className="group relative aspect-[3/4] overflow-hidden rounded-2xl"
             >
               <Image
-                src={category.image}
-                alt={category.title}
+                src={place.image}
+                alt={`${place.name}, ${place.city}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width: 768px) 50vw, 25vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-wine/90 via-wine/20 to-transparent" />
-              <h3 className="absolute bottom-5 left-5 font-serif text-xl font-medium">
-                {category.title}
-              </h3>
+              <div className="absolute bottom-5 left-5 right-5">
+                <h3 className="font-serif text-xl font-medium leading-tight">
+                  {place.name}
+                </h3>
+                <p className="mt-1 text-sm text-cream/75">{place.city}</p>
+              </div>
             </div>
           ))}
         </div>

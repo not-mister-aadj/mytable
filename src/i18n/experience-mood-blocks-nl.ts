@@ -53,12 +53,12 @@ export const tastingFlowNl: ExperienceFlowStep[] = [
   {
     title: "Ontvangst & intro",
     description:
-      "Je wordt verwelkomd met een eerste glas en een korte uitleg over de proef.",
+      "Je wordt verwelkomd met een eerste glas. De host legt kort uit wat de chef voor de tafel heeft bedacht.",
   },
   {
-    title: "Proeverij in stappen",
+    title: "Chef's special aan tafel",
     description:
-      "Je proeft meerdere wijnen en bites in een rustig tempo, met ruimte voor vragen.",
+      "Het restaurant serveert specials voor de hele groep — wijn en bites die bij elkaar passen, op eigen tempo.",
   },
   {
     title: "Gesprekken aan tafel",
@@ -66,9 +66,9 @@ export const tastingFlowNl: ExperienceFlowStep[] = [
       "De tafel is klein genoeg voor intimiteit en groot genoeg voor nieuwe ontmoetingen.",
   },
   {
-    title: "Afsluiten met proost",
+    title: "Afsluiten zonder haast",
     description:
-      "We eindigen met een laatste glas. Wie wil blijft nog even napraten.",
+      "Reken op twee tot drie uur. Wie wil blijft nog even napraten aan de bar.",
   },
 ];
 
@@ -118,26 +118,28 @@ export const mysteryFlowNl: ExperienceFlowStep[] = [
   },
 ];
 
-export const wineWalkQuotesNl: ExperienceGuestQuote[] = [
+export const tastingQuotesNl: ExperienceGuestQuote[] = [
   {
     quote:
-      "Ik kwam alleen en ging weg met drie nieuwe favoriete plekken in Rotterdam.",
-    name: "Sophie",
-    age: 34,
+      "Eén restaurant, geen gedoe. De chef's specials waren verrassend en de tafel voelde meteen gezellig.",
+    name: "Anna",
+    age: 31,
   },
   {
     quote:
-      "Het voelde totaal niet ongemakkelijk. Gewoon een leuke zondag met goede gesprekken.",
-    name: "Mark",
-    age: 41,
+      "Girls only-avond was precies goed: ruim twee uur, eigen tempo, en gesprekken die vanzelf kwamen.",
+    name: "Petra",
+    age: 45,
   },
   {
     quote:
-      "We wilden iets anders doen dan standaard uit eten. Dit voelde echt als een ervaring.",
-    name: "Elise & Tom",
+      "We gingen voor de wijn en bleven hangen voor de gesprekken. Zou zo weer doen.",
+    name: "Kim & Sam",
     detail: "Duo",
   },
 ];
+
+export const wineWalkQuotesNl: ExperienceGuestQuote[] = tastingQuotesNl;
 
 export const sharedDinnerQuotesNl: ExperienceGuestQuote[] = [
   {
@@ -154,34 +156,13 @@ export const sharedDinnerQuotesNl: ExperienceGuestQuote[] = [
   },
   {
     quote:
-      "Het menu was verrassend goed en de gesprekken liepen vanzelf door tot laat.",
+      "De chef's specials waren verrassend goed en de gesprekken liepen vanzelf door tot laat.",
     name: "Noor",
     age: 33,
   },
 ];
 
-export const tastingQuotesNl: ExperienceGuestQuote[] = [
-  {
-    quote:
-      "Geen saaie proefles, wel echt leren proeven terwijl je gezellig aan tafel zit.",
-    name: "Anna",
-    age: 31,
-  },
-  {
-    quote:
-      "Perfecte zondagmiddag: niet te lang, niet te kort, en fijne mensen om je heen.",
-    name: "Peter",
-    age: 45,
-  },
-  {
-    quote:
-      "We gingen voor de wijn en bleven hangen voor de gesprekken. Zou zo weer doen.",
-    name: "Kim & Sam",
-    detail: "Duo",
-  },
-];
-
-export const sundayQuotesNl: ExperienceGuestQuote[] = wineWalkQuotesNl;
+export const sundayQuotesNl: ExperienceGuestQuote[] = tastingQuotesNl;
 export const mysteryQuotesNl: ExperienceGuestQuote[] = sharedDinnerQuotesNl;
 
 export const rotterdamRouteStopsNl = [

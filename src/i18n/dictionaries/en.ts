@@ -1,12 +1,15 @@
 import type { Dictionary } from "../types";
 import { images } from "@/data/images";
+import { getCatalogExperiences } from "@/data/experience-catalog";
 import { experiencePageEn } from "../experience-page-en";
+
+const catalogEn = getCatalogExperiences("en");
 
 export const en: Dictionary = {
   meta: {
-    title: "MyTable — Good taste. Great company.",
+    title: "MyTable · Good taste. Great company.",
     description:
-      "Join curated tables, dinners, tastings, and city experiences designed around good food, good drinks, and relaxed social connection.",
+      "Wine tastings at one table in one restaurant. Girls only or mixed group. Pick your table and come.",
   },
   header: {
     nav: {
@@ -25,22 +28,17 @@ export const en: Dictionary = {
     headlineLine1: "Good taste.",
     headlineLine2: "Great company.",
     subheadline:
-      "Join curated tables, dinners, tastings, and city experiences designed around good food, good drinks, and relaxed social connection.",
-    ctaPrimary: "View agenda",
+      "Wine tasting at one restaurant. We handle everything around the table. You show up and enjoy.",
+    ctaPrimary: "Pick your table",
     microcopy:
-      "Come solo, bring a friend, or book together. We create the setting. You enjoy the table.",
+      "Girls only or mixed group. Solo, with friends, or on a date.",
     nextTableLabel: "Next table",
-    nextTableTitle: "Sunday Wine Walk",
-    nextTableCity: "Rotterdam",
-    nextTableTime: "12:00–17:00",
-    nextTableIncluded: "Wine + bites included",
-    nextTableStatus: "Few seats left",
     imageAlt: "People enjoying wine and food together at the table",
   },
   valueStrip: [
     "Curated venues",
-    "Good food & drinks",
-    "Come solo or together",
+    "Food and wine in sync",
+    "Solo or your own table",
     "Relaxed social atmosphere",
   ],
   featuredCarousel: {
@@ -51,59 +49,34 @@ export const en: Dictionary = {
     cta: "View all upcoming tables",
     cards: [
       {
-        id: "featured-tasting",
-        title: "Wine & bites tasting",
+        id: "featured-tasting-girls",
+        title: "Wine tasting · girls only",
         city: "Amsterdam",
-        date: "Sunday 19 May",
-        caption: "Warm light, good wine, new faces.",
-        category: "Tasting",
-        image:
-          images.wineGlasses,
+        date: "Sunday 23 June",
+        caption: "One restaurant, chef's special, women only.",
+        category: "Girls only",
+        image: images.wineGlasses,
         icon: "wine",
       },
       {
-        id: "featured-dinner",
-        title: "Dinner with strangers",
-        city: "Den Haag",
-        date: "Thursday 23 May",
-        caption: "Laughter, sharing, one shared table.",
-        category: "Shared dinner",
-        image:
-          "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
-        icon: "dinner",
-      },
-      {
-        id: "featured-long-table",
-        title: "Long table dinner",
+        id: "featured-tasting-mixed",
+        title: "Wine tasting · mixed group",
         city: "Rotterdam",
-        date: "Sunday 26 May",
-        caption: "Candlelight and conversation that flows.",
-        category: "Dinner",
-        image:
-          "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-        icon: "table",
+        date: "Sunday 16 June",
+        caption: "Join a mixed table — solo or together.",
+        category: "Mixed group",
+        image: images.wineBar,
+        icon: "wine",
       },
       {
-        id: "featured-wine-walk",
-        title: "Sunday wine walk",
+        id: "featured-tasting-utrecht",
+        title: "Wine tasting · girls only",
         city: "Utrecht",
-        date: "Sunday 2 June",
-        caption: "The city in golden hour, glass in hand.",
-        category: "Wine walk",
-        image:
-          "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80",
-        icon: "walk",
-      },
-      {
-        id: "featured-mystery",
-        title: "Mystery restaurant night",
-        city: "Amsterdam",
-        date: "Friday 7 June",
-        caption: "A toast to an evening you won't expect.",
-        category: "Mystery",
-        image:
-          "https://images.unsplash.com/photo-1528605248649-88c107e84a98?w=800&q=80",
-        icon: "mystery",
+        date: "Sunday 22 June",
+        caption: "Two to three hours of tasting and talk at your pace.",
+        category: "Girls only",
+        image: images.restaurantInterior,
+        icon: "wine",
       },
     ],
   },
@@ -117,105 +90,23 @@ export const en: Dictionary = {
       soldOut: "Sold out",
       new: "New",
     },
-    femaleOnlyBadge: "Women only",
+    femaleOnlyBadge: "Girls only",
     reserveCta: "Reserve your seat",
     viewAllCta: "View all upcoming tables",
-    items: [
-      {
-        id: "women-wine-walk",
-        city: "Utrecht",
-        experienceName: "Wine Walk — women only",
-        category: "WINE WALK",
-        dateTime: "Sunday 22 June · 13:00–17:00",
-        price: 52,
-        status: "new",
-        mood: "wineWalks",
-        image: images.wineBar,
-        femaleOnly: true,
-      },
-      {
-        id: "sunday-wine-walk",
-        city: "Rotterdam",
-        experienceName: "Sunday Wine Walk",
-        category: "WINE WALK",
-        tagline:
-          "A relaxed Sunday afternoon of wine, beautiful spots, and good company.",
-        dateTime: "Sunday 16 June · 12:00–17:00",
-        price: 49,
-        status: "almostFull",
-        mood: "wineWalks",
-        image: images.wineGlasses,
-      },
-      {
-        id: "dinner-with-strangers",
-        city: "Den Haag",
-        experienceName: "Dinner with Strangers",
-        category: "SHARED DINNER",
-        dateTime: "Thursday 20 June · 19:00–22:00",
-        price: 39,
-        status: "almostFull",
-        mood: "sharedDinners",
-        image: images.restaurantDining,
-      },
-      {
-        id: "wine-bites-tasting",
-        city: "Amsterdam",
-        experienceName: "Wine & Bites Tasting",
-        category: "TASTING",
-        dateTime: "Sunday 23 June · 14:00–16:30",
-        price: 45,
-        status: "soldOut",
-        mood: "tastings",
-        image: images.wineBar,
-      },
-      {
-        id: "long-table-lunch",
-        city: "Rotterdam",
-        experienceName: "Long Table Lunch",
-        category: "LONG TABLE",
-        dateTime: "Sunday 30 June · 13:00–16:00",
-        price: 55,
-        status: "almostFull",
-        mood: "sundayTables",
-        image: images.longTable,
-      },
-      {
-        id: "mystery-restaurant",
-        city: "Utrecht",
-        experienceName: "Mystery Restaurant Night",
-        category: "MYSTERY TABLE",
-        dateTime: "Friday 5 July · 19:30–22:30",
-        price: 42,
-        status: "almostFull",
-        mood: "mysteryTables",
-        image: images.cheers,
-      },
-      {
-        id: "social-brunch-club",
-        city: "Amsterdam",
-        experienceName: "Social Brunch Club",
-        category: "BRUNCH",
-        dateTime: "Sunday 7 July · 11:30–14:00",
-        price: 35,
-        status: "almostFull",
-        mood: "sundayTables",
-        image: images.brunch,
-      },
-    ],
+    items: catalogEn,
   },
   agenda: {
     hero: {
       title: "Find a table that fits you.",
       subtitle:
-        "From wine walks to long tables and shared dinners. Choose the atmosphere that suits you.",
+        "Wine tastings at one restaurant. Choose girls only or a mixed group.",
       supportLine: "Come alone, bring someone, or simply pull up a chair.",
     },
-    tabsAriaLabel: "Choose a mood",
+    tabsAriaLabel: "Choose a group",
     tabs: [
-      { id: "all", label: "All Tables" },
-      { id: "wineWalks", label: "Wine Walks" },
-      { id: "sharedDinners", label: "Shared Dinners" },
-      { id: "tastings", label: "Tastings" },
+      { id: "all", label: "All tables" },
+      { id: "girlsOnly", label: "Girls only" },
+      { id: "mixed", label: "Mixed group" },
     ],
     grid: {
       title: "Tables you won't want to miss",
@@ -224,7 +115,7 @@ export const en: Dictionary = {
     },
     empty: {
       title: "No tables found",
-      text: "There are no tables for this mood yet. Try another category or view all tables.",
+      text: "There are no tables for this group yet. Try another category or view all tables.",
       showAllCities: "Show all tables",
     },
     status: {
@@ -233,176 +124,29 @@ export const en: Dictionary = {
       soldOut: "Sold out",
       new: "New",
     },
-    femaleOnlyBadge: "Women only",
+    femaleOnlyBadge: "Girls only",
     reserveCta: "Reserve your seat",
-    items: [
-      {
-        id: "women-wine-walk",
-        city: "Utrecht",
-        experienceName: "Wine Walk — women only",
-        category: "WINE WALK",
-        dateTime: "Sunday 22 June · 13:00–17:00",
-        price: 52,
-        status: "new",
-        mood: "wineWalks",
-        image: images.wineBar,
-        femaleOnly: true,
-      },
-      {
-        id: "sunday-wine-walk",
-        city: "Rotterdam",
-        experienceName: "Sunday Wine Walk",
-        category: "WINE WALK",
-        tagline:
-          "A relaxed Sunday afternoon of wine, beautiful spots, and good company.",
-        dateTime: "Sunday 16 June · 12:00–17:00",
-        price: 49,
-        status: "almostFull",
-        mood: "wineWalks",
-        image: images.wineGlasses,
-      },
-      {
-        id: "dinner-with-strangers",
-        city: "Den Haag",
-        experienceName: "Dinner with Strangers",
-        category: "SHARED DINNER",
-        dateTime: "Thursday 20 June · 19:00–22:00",
-        price: 39,
-        status: "almostFull",
-        mood: "sharedDinners",
-        image: images.restaurantDining,
-      },
-      {
-        id: "wine-bites-tasting",
-        city: "Amsterdam",
-        experienceName: "Wine & Bites Tasting",
-        category: "TASTING",
-        dateTime: "Sunday 23 June · 14:00–16:30",
-        price: 45,
-        status: "soldOut",
-        mood: "tastings",
-        image: images.wineBar,
-      },
-      {
-        id: "long-table-lunch",
-        city: "Rotterdam",
-        experienceName: "Long Table Lunch",
-        category: "LONG TABLE",
-        dateTime: "Sunday 30 June · 13:00–16:00",
-        price: 55,
-        status: "almostFull",
-        mood: "sundayTables",
-        image: images.longTable,
-      },
-      {
-        id: "mystery-restaurant",
-        city: "Utrecht",
-        experienceName: "Mystery Restaurant Night",
-        category: "MYSTERY TABLE",
-        dateTime: "Friday 5 July · 19:30–22:30",
-        price: 42,
-        status: "almostFull",
-        mood: "mysteryTables",
-        image: images.cheers,
-      },
-      {
-        id: "social-brunch-club",
-        city: "Amsterdam",
-        experienceName: "Social Brunch Club",
-        category: "BRUNCH",
-        dateTime: "Sunday 7 July · 11:30–14:00",
-        price: 35,
-        status: "almostFull",
-        mood: "sundayTables",
-        image: images.brunch,
-      },
-      {
-        id: "wine-walk-amsterdam",
-        city: "Amsterdam",
-        experienceName: "Sunday Wine Walk",
-        category: "WINE WALK",
-        dateTime: "Sunday 9 June · 12:00–17:00",
-        price: 49,
-        status: "almostFull",
-        mood: "wineWalks",
-        image: images.cityWalk,
-      },
-      {
-        id: "dinner-rotterdam",
-        city: "Rotterdam",
-        experienceName: "Dinner with Strangers",
-        category: "SHARED DINNER",
-        dateTime: "Friday 14 June · 19:00–22:00",
-        price: 39,
-        status: "soldOut",
-        mood: "sharedDinners",
-        image: images.restaurantDining,
-      },
-      {
-        id: "tasting-den-haag",
-        city: "Den Haag",
-        experienceName: "Wine & Bites Tasting",
-        category: "TASTING",
-        dateTime: "Saturday 15 June · 14:00–16:30",
-        price: 45,
-        status: "almostFull",
-        mood: "tastings",
-        image: images.wineGlasses,
-      },
-      {
-        id: "brunch-rotterdam",
-        city: "Rotterdam",
-        experienceName: "Social Brunch Club",
-        category: "BRUNCH",
-        dateTime: "Sunday 9 June · 11:30–14:00",
-        price: 35,
-        status: "almostFull",
-        mood: "sundayTables",
-        image: images.brunch,
-      },
-      {
-        id: "long-table-amsterdam",
-        city: "Amsterdam",
-        experienceName: "Long Table Dinner",
-        category: "LONG TABLE",
-        dateTime: "Thursday 27 June · 19:00–22:30",
-        price: 59,
-        status: "new",
-        mood: "sharedDinners",
-        image: images.longTable,
-      },
-      {
-        id: "mystery-den-haag",
-        city: "Den Haag",
-        experienceName: "Mystery Restaurant Night",
-        category: "MYSTERY TABLE",
-        dateTime: "Friday 12 July · 19:30–22:30",
-        price: 42,
-        status: "soldOut",
-        mood: "mysteryTables",
-        image: images.cheers,
-      },
-    ],
+    items: catalogEn,
   },
   concept: {
     title: "More than just a reservation.",
     subtitle:
-      "MyTable is built around atmosphere, conversation, and discovery. Some experiences happen around one shared table. Others move through the city. The format changes, but the feeling stays the same: tasteful places, relaxed people, and an easy reason to get together.",
+      "Wine tasting at one restaurant, chef's special for the group, and an evening at your own pace. We handle everything around the table. You come to enjoy.",
     cards: [
       {
-        title: "Come solo or together",
+        title: "One restaurant, one table",
         description:
-          "You can join by yourself, bring a friend, or book as a small group.",
+          "No stops across the city. You taste and dine at one carefully chosen venue.",
       },
       {
-        title: "Curated social setting",
+        title: "Chef's special",
         description:
-          "We design the table, pacing, and atmosphere so conversation feels natural.",
+          "The chef prepares specials for everyone at the table — wine and food that match.",
       },
       {
-        title: "No awkward networking",
+        title: "Girls only or mixed",
         description:
-          "This is not business networking or speed dating. It is simply a better way to enjoy good places with good people.",
+          "Choose a women-only table, or join a mixed group — solo, with friends, or on a date.",
       },
     ],
   },
@@ -410,75 +154,57 @@ export const en: Dictionary = {
     title: "How MyTable works",
     steps: [
       {
-        title: "Pick your experience",
+        title: "Pick your table",
         description:
-          "Choose a dinner, tasting, walk, brunch, or shared table.",
+          "Girls only or mixed group. Wine tasting at one restaurant.",
       },
       {
-        title: "Reserve your seat",
-        description: "Come solo, with a friend, or as a small group.",
+        title: "Reserve your spot",
+        description:
+          "For friends, a date, solo, or a seat at a table that's already set.",
       },
       {
         title: "Arrive at the table",
         description:
-          "We share everything you need before the experience starts.",
+          "You get the where and when. We handle the venue, the vibe, and every detail around it.",
       },
       {
-        title: "Enjoy good company",
+        title: "Enjoy the evening",
         description:
-          "Meet people naturally over food, drinks, and conversation.",
+          "Chef's special, good wine, and company — two to three hours at your own pace.",
       },
     ],
   },
   venueDiscovery: {
-    title: "Places worth discovering.",
+    title: "Places for wine and food",
     subtitle:
-      "We partner with restaurants, wine bars, and hidden city spots that care about atmosphere, quality, and hospitality.",
-    categories: [
+      "Real addresses across the Netherlands, from Rotterdam to Maastricht. WijnSpijs partner venues where wine and food come together.",
+    places: [
       {
-        title: "Wine bars",
-        image:
-          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
+        name: "Proef bij Platenburg",
+        city: "Rotterdam",
+        image: images.restaurantDining,
       },
       {
-        title: "Restaurants",
-        image:
-          "https://images.unsplash.com/photo-1600891964096-920202967dea?w=600&q=80",
+        name: "Karaf",
+        city: "Utrecht",
+        image: images.wineBar,
       },
       {
-        title: "Hidden city spots",
-        image:
-          "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&q=80",
+        name: "UMAMI by Han",
+        city: "Amsterdam",
+        image: images.restaurantInterior,
       },
       {
-        title: "Long tables",
-        image:
-          "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=80",
+        name: "Stadsherberg de Poshoorn",
+        city: "Maastricht",
+        image: images.wineGlasses,
       },
     ],
   },
   testimonials: {
-    title: "What people come for",
-    items: [
-      {
-        quote:
-          "I came alone and left with three people I actually wanted to see again.",
-        name: "Sophie",
-        age: 34,
-      },
-      {
-        quote:
-          "It felt relaxed from the first glass. Good food, nice people, no awkwardness.",
-        name: "Mark",
-        age: 42,
-      },
-      {
-        quote:
-          "I loved discovering a new restaurant without having to organize anything myself.",
-        name: "Elise",
-        age: 39,
-      },
-    ],
+    eyebrow: "What our guests say",
+    title: "Real stories from the table",
   },
   venueCta: {
     title: "Bring MyTable to your venue.",
@@ -499,20 +225,20 @@ export const en: Dictionary = {
       {
         title: "Create repeat discovery",
         description:
-          "Give people a reason to return — and to bring others to your door.",
+          "Give people a reason to return, and to bring others to your door.",
       },
     ],
   },
   newsletter: {
     title: "Be first at the table.",
     subtitle:
-      "Get early access to new tables, tastings, walks, and restaurant experiences in your city.",
+      "Get early access to new wine tastings and tables in your city.",
     emailLabel: "Email",
     emailPlaceholder: "Your email",
     cityLabel: "City",
     cta: "Join the list",
     success:
-      "Thank you. You're on the list — we'll be in touch when the next table opens in your city.",
+      "Thank you. You're on the list. We'll be in touch when the next table opens in your city.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
   },
   faq: {
@@ -536,7 +262,7 @@ export const en: Dictionary = {
       {
         question: "What is included?",
         answer:
-          "It depends on the experience. Each event card clearly shows what is included, such as wine, bites, dinner, brunch, or tasting elements.",
+          "Wine tasting, chef's special bites, and a host at the table. Each event card shows exactly what is included.",
       },
       {
         question: "Do I need to know anything about wine?",
@@ -546,12 +272,12 @@ export const en: Dictionary = {
       {
         question: "Are the groups curated?",
         answer:
-          "The atmosphere is curated. Depending on the format, we may arrange tables, pacing, and group settings to keep the experience relaxed and social.",
+          "Yes. You choose girls only or a mixed group. We keep groups small at one table so the atmosphere stays relaxed.",
       },
       {
         question: "When do I get the details?",
         answer:
-          "You receive the practical details before the experience starts. Some mystery formats reveal the exact venue closer to the date.",
+          "You receive the restaurant, time, and practical info by email after you book.",
       },
       {
         question: "Can restaurants partner with MyTable?",

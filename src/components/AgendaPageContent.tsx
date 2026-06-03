@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Dictionary, AgendaTabKey } from "@/i18n/types";
-import { filterAgendaItems } from "@/lib/agenda";
+import { filterAgendaItems, sortAgendaTimeline } from "@/lib/agenda";
 import { enrichExperience } from "@/lib/experience-detail";
 import { EmotionalTabs } from "./agenda/EmotionalTabs";
 import { EmptyAgendaState } from "./agenda/EmptyAgendaState";
@@ -22,8 +22,8 @@ export function AgendaPageContent({
   const [activeTab, setActiveTab] = useState<AgendaTabKey>("all");
 
   const items = useMemo(
-    () => dict.items.map(enrichExperience),
-    [dict.items],
+    () => sortAgendaTimeline(dict.items.map(enrichExperience), locale),
+    [dict.items, locale],
   );
 
   const filteredItems = useMemo(

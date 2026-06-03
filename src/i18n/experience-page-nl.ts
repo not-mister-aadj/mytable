@@ -1,17 +1,6 @@
 import type { ExperiencePageLabels } from "./types";
 import { images } from "@/data/images";
-import {
-  mysteryFlowNl,
-  mysteryQuotesNl,
-  sharedDinnerFlowNl,
-  sharedDinnerQuotesNl,
-  sundayFlowNl,
-  sundayQuotesNl,
-  tastingFlowNl,
-  tastingQuotesNl,
-  wineWalkFlowNl,
-  wineWalkQuotesNl,
-} from "./experience-mood-blocks-nl";
+import { tastingFlowNl, tastingQuotesNl } from "./experience-mood-blocks-nl";
 
 export const experiencePageNl: ExperiencePageLabels = {
   viewTableCta: "Bekijk tafel",
@@ -26,9 +15,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   aboutTitle: "Over deze ervaring",
   expectTitle: "Wat kun je verwachten?",
   flowTitle: "Hoe verloopt de ervaring?",
-  venuesTitle: "Ontdek de plekken aan tafel",
+  venuesTitle: "Waar je aan tafel schuift",
   venuesSubtitle:
-    "Van verborgen wijnbars tot restaurants met karakter. Iedere stop draait om sfeer, smaak en goed gezelschap.",
+    "Eén partnerrestaurant per avond. De chef bereidt specials voor de groep — wijn en spijs op één plek.",
   guestQuotesTitle: "Wat gasten zeggen",
   routeTitle: "Een middag door {city}",
   routeMapEyebrow: "Zoek op de kaart",
@@ -45,9 +34,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   practicalTitle: "Praktische info",
   faqTitle: "Veelgestelde vragen",
   relatedTitle: "Meer tafels om te ontdekken",
-  finalCtaHeadline: "Schuif aan bij een tafel die je zondag beter maakt.",
+  finalCtaHeadline: "Schuif aan bij een tafel met goede wijn en gezelschap.",
   finalCtaSubheadline:
-    "Goede wijn, mooie plekken en gesprekken die vanzelf ontstaan.",
+    "Chef's special, één restaurant en gesprekken die vanzelf ontstaan.",
   finalCtaPrimary: "Reserveer je plek",
   finalCtaSecondary: "Bekijk andere tafels",
   bookingDate: "Datum",
@@ -83,16 +72,16 @@ export const experiencePageNl: ExperiencePageLabels = {
     groupSize: "Groepsgrootte",
   },
   practicalValues: {
-    dietary: "Geef het door bij boeken, wij stemmen af met de locatie",
+    dietary:
+      "Geef het door bij boeken. De chef past de specials aan waar dat kan.",
     solo: "Alleen aankomen is heel normaal en juist welkom",
     cancellation:
       "Gratis annuleren tot 48 uur van tevoren, daarna wordt het bedrag omgezet in tegoed",
-    weather:
-      "Bij regen passen we de route aan. Alleen bij extreem weer wijzigen we het programma.",
+    weather: "De proeverij vindt plaats binnen in het restaurant.",
     arrival:
       "Kom 10 minuten voor starttijd. De host verwelkomt je en wijst de groep aan.",
     routeReveal:
-      "De volledige route en adressen ontvang je per e-mail na bevestiging van je boeking.",
+      "Het restaurant en adres ontvang je per e-mail na bevestiging van je boeking.",
     groupSize: "Kleine groepen, meestal 8 tot 14 gasten per tafel",
   },
   spotsByStatus: {
@@ -102,198 +91,46 @@ export const experiencePageNl: ExperiencePageLabels = {
     new: "Nieuw in ons aanbod",
   },
   moods: {
-    wineWalks: {
-      tagline:
-        "Een ontspannen zondagmiddag vol wijn, mooie plekken en goed gezelschap.",
-      experienceFlow: wineWalkFlowNl,
-      guestQuotes: wineWalkQuotesNl,
-      description:
-        "Een wijnwandeling bij MyTable is geen rondleiding met script, maar een ontspannen middag door de stad. Je loopt langs zorgvuldig gekozen wijnbarretjes en plekken met karakter, proeft bij elke stop iets lekkers en schuift steeds even aan bij een tafel vol nieuw gezelschap. Het tempo is rustig, de sfeer is warm en er is altijd ruimte voor een goed gesprek.",
-      whatToExpect: [
-        {
-          title: "Start met een welkomstdrankje",
-          description:
-            "We beginnen samen met een glas en een korte intro, zodat iedereen meteen op zijn gemak is.",
-        },
-        {
-          title: "Drie tot vier proefmomenten",
-          description:
-            "Onderweg proef je wijnen en bijpassende bites bij locaties die we persoonlijk hebben uitgekozen.",
-        },
-        {
-          title: "Rustig wandeltempo",
-          description:
-            "Geen haast, geen marathon. We nemen de tijd om te proeven, te praten en de stad te zien.",
-        },
-        {
-          title: "Mix van alleenkomers en duo's",
-          description:
-            "De groep is altijd een fijne mix. Je hoeft niemand te kennen om je meteen thuis te voelen.",
-        },
-        {
-          title: "Host die alles regelt",
-          description:
-            "Onze host begeleidt de route, introduceert de locaties en zorgt dat de sfeer los en luchtig blijft.",
-        },
-        {
-          title: "Afsluiten met proost",
-          description:
-            "We eindigen met een laatste glas en vaak blijven mensen nog even napraten. Geen verplicht programma daarna.",
-        },
-      ],
-      socialParagraphs: [
-        "Wijnwandelingen zijn misschien wel onze meest ontspannen tafels. Je staat niet stil aan één lange tafel, maar beweegt door de stad en maakt onderweg steeds nieuwe contacten. Dat maakt het makkelijk om in gesprek te raken, zonder dat het geforceerd voelt.",
-        "Veel deelnemers komen alleen en gaan weg met nieuwe favoriete plekken in de stad. Soms wisselen mensen contactgegevens uit, soms niet. Beide is prima. Het gaat om een middag waar je je goed voelt, met goede wijn en gezellig gezelschap.",
-      ],
-      gallery: [
-        images.cityWalk,
-        images.wineGlasses,
-        images.wineBar,
-        images.cheers,
-        images.heroMain,
-        images.restaurantInterior,
-      ],
-      duration: "Ongeveer 4 uur",
-      included: "Wijnproeverijen, bites en begeleiding door de stad",
-      walkingDistance: "Ongeveer 3 km, rustig tempo met regelmatige stops",
-      faq: [
-        {
-          question: "Moet ik veel wijnkennis hebben?",
-          answer:
-            "Helemaal niet. We proeven toegankelijk en legen graag uit wat je proeft, zonder dat het een les wordt.",
-        },
-        {
-          question: "Wat als ik alleen kom?",
-          answer:
-            "Perfect. Veel deelnemers komen solo en vinden dat juist fijn. Onze hosts zorgen dat iedereen snel aansluit.",
-        },
-        {
-          question: "Zijn de locaties rolstoeltoegankelijk?",
-          answer:
-            "Dat verschilt per route. Mail ons vooraf als je specifieke wensen hebt, dan kijken we mee naar de beste optie.",
-        },
-        {
-          question: "Wat gebeurt er bij slecht weer?",
-          answer:
-            "Bij regen passen we de route aan waar nodig. We gaan alleen bij extreem weer over op een alternatief programma.",
-        },
-      ],
-    },
-    sharedDinners: {
-      tagline: "Eén tafel, nieuwe gezichten, een avond vol smaak",
-      experienceFlow: sharedDinnerFlowNl,
-      guestQuotes: sharedDinnerQuotesNl,
-      description:
-        "Bij een gedeeld diner schuif je aan bij één lange tafel in een restaurant dat we zorgvuldig hebben gekozen. Het menu is doordacht, de sfeer is warm en de avond draait om goed eten en open gesprekken. Je hoeft niemand te kennen. Wij zorgen voor de setting, jij geniet van de tafel.",
-      whatToExpect: [
-        {
-          title: "Welkomstdrankje bij aankomst",
-          description:
-            "Je begint met een glas in de hand, zodat de avond meteen ontspannen van start gaat.",
-        },
-        {
-          title: "Gedeeld menu",
-          description:
-            "Het restaurant serveert een menu dat past bij de sfeer van de avond, met aandacht voor seizoen en smaak.",
-        },
-        {
-          title: "Lange tafel, open opstelling",
-          description:
-            "Iedereen zit aan dezelfde tafel. Geen vaste plaatsen, geen speeches, gewoon een avond samen.",
-        },
-        {
-          title: "Mix van alleenkomers en duo's",
-          description:
-            "De groep is bewust samengesteld zodat gesprekken vanzelf ontstaan en niemand aan de zijkant blijft hangen.",
-        },
-        {
-          title: "Host aanwezig",
-          description:
-            "Onze host verwelkomt iedereen, introduceert het concept kort en houdt de sfeer luchtig zonder het te sturen.",
-        },
-        {
-          title: "Ruimte om door te praten",
-          description:
-            "Na het dessert is er geen harde eindtijd. Wie wil blijft nog even zitten, wie wil gaat op tijd weg.",
-        },
-      ],
-      socialParagraphs: [
-        "Gedeelde diners zijn bedoeld voor mensen die zin hebben in een mooie avond uit, met eten dat de moeite waard is en gezelschap dat vanzelf meekomt. Het voelt als uit eten gaan met vrienden, alleen ken je ze nog niet.",
-        "We houden de groepen bewust klein genoeg voor intimiteit, maar groot genoeg voor variatie. Niemand hoeft te netwerken. Het enige wat we vragen is openheid voor een goed gesprek en een lege maag.",
-      ],
-      gallery: [
-        images.restaurantDining,
-        images.longTable,
-        images.cheers,
-        images.restaurantInterior,
-        images.heroMain,
-        images.wineGlasses,
-      ],
-      duration: "Ongeveer 3 uur",
-      included: "Welkomstdrankje, driegangenmenu en koffie of thee",
-      faq: [
-        {
-          question: "Kan ik dieetwensen doorgeven?",
-          answer:
-            "Ja, geef het door bij boeken. Wij stemmen af met het restaurant zodat er rekening mee wordt gehouden.",
-        },
-        {
-          question: "Hoe groot is de groep?",
-          answer:
-            "Meestal tussen de 10 en 16 personen. Klein genoeg voor echte gesprekken, groot genoeg voor variatie.",
-        },
-        {
-          question: "Wat als ik iemand niet aardig vind?",
-          answer:
-            "Dat kan gebeuren, net als in het echte leven. De tafel is lang genoeg om je plek te vinden en de sfeer blijft ontspannen.",
-        },
-        {
-          question: "Is de prijs inclusief drank?",
-          answer:
-            "Welkomstdrankje en koffie of thee zijn inbegrepen. Extra wijn of cocktails bestel je zelf aan tafel.",
-        },
-      ],
-    },
     tastings: {
-      tagline: "Proeven, leren en lachen aan een intieme tafel",
+      tagline: "Wijnproeverij aan één tafel — girls only of gemengde groep",
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "Onze proeverijen zijn kleinschalige sessies in wijnbarren en restaurants waar smaak centraal staat. Je proeft meerdere wijnen of combinaties met bites, krijgt context zonder collegegevoel en ontmoet mensen die net als jij nieuwsgierig zijn naar goede smaken. Het is gezellig, informeel en altijd met aandacht voor kwaliteit.",
+        "MyTable start met wijnproeverijen in één restaurant. Je schuift aan bij een kleine groep, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten — meestal twee tot drie uur.",
       whatToExpect: [
         {
-          title: "Intieme groepsgrootte",
+          title: "Eén restaurant, één tafel",
           description:
-            "We werken met kleine groepen zodat iedereen kan proeven, vragen stellen en meedoen aan het gesprek.",
+            "Geen stops door de stad. Alles speelt zich af op één plek die we zorgvuldig kiezen.",
         },
         {
-          title: "Gecureerde proefselectie",
+          title: "Chef's special voor de groep",
           description:
-            "Elke proeverij heeft een thema, bijvoorbeeld een regio, druivenras of seizoenspairing met bites.",
+            "De chef maakt specials voor iedereen aan tafel. Wijn en spijs zijn op elkaar afgestemd.",
+        },
+        {
+          title: "Girls only of gemengd",
+          description:
+            "Kies een tafel die bij je past: alleen voor vrouwen, of een gemengde groep waar iedereen welkom is.",
         },
         {
           title: "Toegankelijke uitleg",
           description:
-            "Onze host of sommelier deelt achtergrond en tips zonder dat het een examen wordt.",
+            "Onze host deelt achtergrond over de wijnen zonder dat het een examen wordt.",
         },
         {
-          title: "Bijpassende bites",
+          title: "Op eigen tempo",
           description:
-            "Bij elke proeverij horen kleine gerechtjes die de smaken versterken en de avond compleet maken.",
+            "Reken op twee tot drie uur. Geen strak schema — ruimte om te proeven, praten en na te genieten.",
         },
         {
-          title: "Ruimte voor vragen",
+          title: "Aanpassen op verzoek",
           description:
-            "Geen domme vragen. Iedereen proeft anders en dat maakt het juist interessant.",
-        },
-        {
-          title: "Ontspannen afsluiting",
-          description:
-            "Na de laatste proef is er tijd om na te praten, na te bestellen of gewoon te genieten van de sfeer.",
+            "Dieetwensen of voorkeuren? Meld het bij boeken, dan stemmen we met de chef af waar mogelijk.",
         },
       ],
       socialParagraphs: [
-        "Proeverijen trekken mensen aan die houden van ontdekken. Het gesprek gaat van smaak naar favoriete plekken in de stad, en vaak verder. Omdat je aan een tafel zit in plaats van door een zaal te lopen, voelt alles persoonlijk en warm.",
+        "Proeverijen trekken mensen aan die houden van ontdekken zonder gedoe. Het gesprek gaat van smaak naar favoriete plekken in de stad, en vaak verder. Omdat je de hele avond op één plek blijft, voelt alles rustig en persoonlijk.",
         "Of je nu veel proeft of voor het eerst serieus naar wijn kijkt, iedereen start op gelijke hoogte. Het gaat om nieuwsgierigheid, niet om kennis. Daardoor ontstaan gesprekken die verder gaan dan alleen wat er in je glas zit.",
       ],
       gallery: [
@@ -304,178 +141,33 @@ export const experiencePageNl: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
-      duration: "Ongeveer 2,5 uur",
-      included: "Proeverij van wijnen en bijpassende bites",
+      duration: "2 tot 3 uur, op eigen tempo",
+      included: "Wijnproeverij, chef's special bites en host aan tafel",
       faq: [
         {
-          question: "Hoeveel glazen proef ik?",
+          question: "Wat is het verschil tussen girls only en gemengd?",
           answer:
-            "Dat verschilt per sessie, meestal tussen de vijf en zeven proefmomenten met bijpassende bites.",
+            "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom — solo, met vrienden of op date.",
         },
         {
-          question: "Kan ik als niet-drinker meedoen?",
+          question: "Wat is een chef's special?",
           answer:
-            "Mail ons vooraf. Sommige sessies bieden alcoholvrije alternatieven, afhankelijk van het thema.",
-        },
-        {
-          question: "Is er eten inbegrepen?",
-          answer:
-            "Ja, bites zijn onderdeel van de proeverij. Het is geen volledig diner, maar je gaat niet met lege maag naar huis.",
-        },
-        {
-          question: "Waar vinden proeverijen plaats?",
-          answer:
-            "In wijnbarren en restaurants die we persoonlijk selecteren. De exacte locatie staat op je boekingsbevestiging.",
-        },
-      ],
-    },
-    sundayTables: {
-      tagline: "Zondagse tafels, lang lunchgenot en lichte sfeer",
-      experienceFlow: sundayFlowNl,
-      guestQuotes: sundayQuotesNl,
-      description:
-        "Sunday Tables zijn onze langzame zondagen aan tafel. Denk aan een lange lunch of brunch in een mooie zaal, met seizoensgerechten, goede koffie en de rustige energie die alleen een zondag kan geven. Je schuift aan bij mensen die zin hebben in een middag zonder haast, met ruimte voor gesprek en lekker eten.",
-      whatToExpect: [
-        {
-          title: "Lange tafel in daglicht",
-          description:
-            "We kiezen locaties met veel licht en een warme, uitnodigende sfeer die past bij een lazy Sunday.",
-        },
-        {
-          title: "Seizoensmenu of brunch",
-          description:
-            "Het menu wisselt per editie, altijd met aandacht voor frisse smaken en mooie presentatie.",
-        },
-        {
-          title: "Koffie, thee en welkom",
-          description:
-            "Je start met iets warms in de hand terwijl iedereen binnenkomt en plaatsneemt.",
-        },
-        {
-          title: "Ontspannen tempo",
-          description:
-            "Geen strak schema. Gerechten komen rustig op tafel, zodat je kunt genieten en praten.",
-        },
-        {
-          title: "Mix van gezelschap",
-          description:
-            "Alleenkomers, vrienden en duo's delen de tafel. De sfeer is open en laagdrempelig.",
-        },
-        {
-          title: "Zachte afsluiting",
-          description:
-            "Na het dessert is er ruimte om door te praten of de middag rustig af te sluiten.",
-        },
-      ],
-      socialParagraphs: [
-        "Zondagtafels voelen als een uitnodiging om even te vertragen. Mensen komen vaak rechtstreeks uit hun weekend en schuiven aan zonder verwachtingen. Het is de perfecte tafel als je zin hebt in gezelligheid zonder de drukte van een vrijdagavond.",
-        "Omdat het overdag is, voelt alles lichter. Gesprekken gaan over reizen, favoriete plekken, wat je at afgelopen week. Het is sociaal, maar nooit zwaar. Precies hoe een zondag hoort te voelen.",
-      ],
-      gallery: [
-        images.brunch,
-        images.longTable,
-        images.restaurantDining,
-        images.cheers,
-        images.heroMain,
-        images.restaurantInterior,
-      ],
-      duration: "Ongeveer 3 uur",
-      included: "Welkomstdrankje, shared lunch of brunch en koffie of thee",
-      faq: [
-        {
-          question: "Is dit een brunch of een lunch?",
-          answer:
-            "Dat verschilt per editie. Op de detailpagina en in je bevestiging lees je precies wat er op het menu staat.",
-        },
-        {
-          question: "Kan ik met kinderen komen?",
-          answer:
-            "Onze Sunday Tables zijn gericht op volwassenen. Neem contact op als je een speciale vraag hebt.",
-        },
-        {
-          question: "Hoe laat begint het?",
-          answer:
-            "Meestal rond het middaguur. De exacte starttijd staat op je boekingsbevestiging.",
-        },
-        {
-          question: "Wat als ik te laat ben?",
-          answer:
-            "Meld het ons even. We proberen je te laten aansluiten, maar het menu loopt soms door volgens planning.",
-        },
-      ],
-    },
-    mysteryTables: {
-      tagline: "De locatie blijft verrassing, de sfeer niet",
-      experienceFlow: mysteryFlowNl,
-      guestQuotes: mysteryQuotesNl,
-      description:
-        "Bij een Mystery Table weet je van tevoren niet waar je eet, maar wel dat het de moeite waard is. Wij selecteren een restaurant dat past bij de avond, onthullen de locatie kort voor aanvang en zorgen voor een tafel vol nieuw gezelschap. Het voelt als een mini-avontuur, met alle comfort van een MyTable-ervaring.",
-      whatToExpect: [
-        {
-          title: "Locatie onthuld vlak van tevoren",
-          description:
-            "Je ontvangt de details enkele dagen voor de avond, genoeg tijd om je voor te bereiden zonder het mysterie te verliezen.",
-        },
-        {
-          title: "Gecureerd restaurant",
-          description:
-            "Elke mystery-locatie is door ons bezocht en past bij onze standaard voor sfeer, kwaliteit en service.",
-        },
-        {
-          title: "Gedeeld diner aan één tafel",
-          description:
-            "Je eet samen met de groep aan een lange tafel, net als bij onze andere dinerervaringen.",
-        },
-        {
-          title: "Thema of stijl per editie",
-          description:
-            "Soms is het een verrassende keuken, soms een verborgen parel. Elke avond heeft een eigen karakter.",
-        },
-        {
-          title: "Host die het geheim bewaakt",
-          description:
-            "Tot de onthulling weet alleen ons team waar je naartoe gaat. Jij hoeft alleen maar te verschijnen.",
-        },
-        {
-          title: "Avond vol verwachting",
-          description:
-            "Het mysterie maakt de avond luchtig. Mensen praten over gissingen en genieten samen van de verrassing.",
-        },
-      ],
-      socialParagraphs: [
-        "Mystery Tables zijn voor mensen die graag iets onverwachts doen, maar wel met zekerheid over kwaliteit. Het geheim zorgt voor een speels begin van de avond, en zodra je binnenstapt voelt alles vertrouwd.",
-        "Veel deelnemers komen met open houding en gaan naar huis met een nieuwe favoriete plek die ze zelf misschien nooit hadden gevonden. Dat is precies waarom we dit format maken, verrassing met goede smaak.",
-      ],
-      gallery: [
-        images.mysteryDinner,
-        images.restaurantInterior,
-        images.cheers,
-        images.restaurantDining,
-        images.wineBar,
-        images.heroMain,
-      ],
-      duration: "Ongeveer 3 uur",
-      included: "Welkomstdrankje, driegangenmenu en locatieverrassing",
-      faq: [
-        {
-          question: "Wanneer hoor ik waar het is?",
-          answer:
-            "Meestal drie tot vijf dagen voor de avond. Je ontvangt een mail met adres, tijd en praktische tips.",
+            "De chef bereidt gerechten en pairings speciaal voor jouw tafel. Geen standaard à-la-carte, wel iets dat bij de wijn en de groep past.",
         },
         {
           question: "Kan ik dieetwensen doorgeven?",
           answer:
-            "Ja, geef het door bij boeken. Wij kiezen een locatie die daarmee kan werken en stemmen af met het restaurant.",
+            "Ja. Geef het bij boeken door. De chef past de specials aan waar dat kan.",
         },
         {
-          question: "Wat als ik de keuken niet lekker vind?",
+          question: "Hoeveel glazen proef ik?",
           answer:
-            "We variëren stijlen per editie. Kijk naar eerdere edities of mail ons als je specifieke voorkeuren hebt.",
+            "Meestal tussen de vijf en zeven proefmomenten met bijpassende bites van de chef.",
         },
         {
-          question: "Is het veilig om alleen te komen?",
+          question: "Waar vindt de proeverij plaats?",
           answer:
-            "Absoluut. Veel deelnemers komen solo. Je bent nooit alleen op straat, en aan tafel ben je direct onderdeel van de groep.",
+            "In één partnerrestaurant per stad. De exacte locatie staat op je boekingsbevestiging.",
         },
       ],
     },

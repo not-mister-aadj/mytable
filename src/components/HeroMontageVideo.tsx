@@ -24,13 +24,23 @@ export function HeroMontageVideo({ alt }: HeroMontageVideoProps) {
     setEnabled(!reduceMotion);
   }, []);
 
+  const clipCount = heroMontage.length;
+
   const advance = useCallback(() => {
+    if (clipCount === 0) return;
     setVisible(false);
     window.setTimeout(() => {
-      setClipIndex((i) => (i + 1) % heroMontage.length);
+      setClipIndex((i) => (i + 1) % clipCount);
       setVisible(true);
     }, FADE_MS);
-  }, []);
+  }, [clipCount]);
+
+  useEffect(() => {
+    if (clipCount === 0) return;
+    if (clipIndex >= clipCount) {
+      setClipIndex(clipIndex % clipCount);
+    }
+  }, [clipIndex, clipCount]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -44,19 +54,20 @@ export function HeroMontageVideo({ alt }: HeroMontageVideoProps) {
     }
   }, [clipIndex, enabled]);
 
-  const clip = heroMontage[clipIndex];
+  const activeIndex = clipCount > 0 ? clipIndex % clipCount : 0;
+  const clip = clipCount > 0 ? heroMontage[activeIndex] : null;
 
   return (
     <div className="absolute inset-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={enabled ? clip.poster : POSTER}
+        src={enabled && clip ? clip.poster : POSTER}
         alt={alt}
         className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-          enabled ? "opacity-0" : "opacity-100"
+          enabled && clip ? "opacity-0" : "opacity-100"
         }`}
       />
-      {enabled ? (
+      {enabled && clip ? (
         <video
           ref={videoRef}
           key={clip.src}

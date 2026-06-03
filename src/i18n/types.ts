@@ -4,15 +4,9 @@ export type ExperienceStatusKey =
   | "soldOut"
   | "new";
 
-export type AgendaTabKey =
-  | "all"
-  | "wineWalks"
-  | "sharedDinners"
-  | "tastings"
-  | "sundayTables"
-  | "mysteryTables";
+export type AgendaTabKey = "all" | "girlsOnly" | "mixed";
 
-export type ExperienceMoodKey = Exclude<AgendaTabKey, "all">;
+export type ExperienceMoodKey = "tastings";
 
 export interface ExperienceExpectItem {
   title: string;
@@ -136,7 +130,7 @@ export interface ExperienceItem {
   price: number;
   status: ExperienceStatusKey;
   image: string;
-  mood: AgendaTabKey;
+  mood: ExperienceMoodKey;
   /** Pink-styled card with women-only badge */
   femaleOnly?: boolean;
 }
@@ -171,11 +165,6 @@ export interface Dictionary {
     ctaPrimary: string;
     microcopy: string;
     nextTableLabel: string;
-    nextTableTitle: string;
-    nextTableCity: string;
-    nextTableTime: string;
-    nextTableIncluded: string;
-    nextTableStatus: string;
     imageAlt: string;
   };
   valueStrip: string[];
@@ -238,11 +227,11 @@ export interface Dictionary {
   venueDiscovery: {
     title: string;
     subtitle: string;
-    categories: { title: string; image: string }[];
+    places: { name: string; city: string; image: string }[];
   };
   testimonials: {
+    eyebrow: string;
     title: string;
-    items: { quote: string; name: string; age: number }[];
   };
   venueCta: {
     title: string;

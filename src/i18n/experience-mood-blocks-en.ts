@@ -53,12 +53,12 @@ export const tastingFlowEn: ExperienceFlowStep[] = [
   {
     title: "Welcome & intro",
     description:
-      "You're greeted with a first glass and a brief overview of the tasting.",
+      "You're greeted with a first glass. The host briefly explains what the chef has planned for the table.",
   },
   {
-    title: "Tasting in steps",
+    title: "Chef's special at the table",
     description:
-      "You sample several wines and bites at a calm pace, with room for questions.",
+      "The restaurant serves specials for the whole group — wine and bites that match, at your own pace.",
   },
   {
     title: "Table conversation",
@@ -66,9 +66,9 @@ export const tastingFlowEn: ExperienceFlowStep[] = [
       "The group is intimate enough to connect and varied enough to feel lively.",
   },
   {
-    title: "Toast to close",
+    title: "Close without rushing",
     description:
-      "We end with a final glass. Those who want to stay often chat a bit longer.",
+      "Plan for two to three hours. Those who want to often chat a bit longer at the bar.",
   },
 ];
 
@@ -118,26 +118,28 @@ export const mysteryFlowEn: ExperienceFlowStep[] = [
   },
 ];
 
-export const wineWalkQuotesEn: ExperienceGuestQuote[] = [
+export const tastingQuotesEn: ExperienceGuestQuote[] = [
   {
     quote:
-      "I came alone and left with three new favourite spots in Rotterdam.",
-    name: "Sophie",
-    age: 34,
+      "One restaurant, no fuss. The chef's specials were a surprise and the table felt welcoming right away.",
+    name: "Anna",
+    age: 31,
   },
   {
     quote:
-      "It didn't feel awkward at all. Just a lovely Sunday with great conversation.",
-    name: "Mark",
-    age: 41,
+      "The girls-only evening was just right: well over two hours, our own pace, and conversation that flowed naturally.",
+    name: "Petra",
+    age: 45,
   },
   {
     quote:
-      "We wanted something different from a usual dinner out. This felt like a real experience.",
-    name: "Elise & Tom",
+      "We came for the wine and stayed for the conversation. Would do it again.",
+    name: "Kim & Sam",
     detail: "Couple",
   },
 ];
+
+export const wineWalkQuotesEn: ExperienceGuestQuote[] = tastingQuotesEn;
 
 export const sharedDinnerQuotesEn: ExperienceGuestQuote[] = [
   {
@@ -154,34 +156,13 @@ export const sharedDinnerQuotesEn: ExperienceGuestQuote[] = [
   },
   {
     quote:
-      "The menu was surprisingly good and conversation kept going until late.",
+      "The chef's specials were surprisingly good and conversation kept going until late.",
     name: "Noor",
     age: 33,
   },
 ];
 
-export const tastingQuotesEn: ExperienceGuestQuote[] = [
-  {
-    quote:
-      "Not a boring wine class, but real tasting while you're happily at the table.",
-    name: "Anna",
-    age: 31,
-  },
-  {
-    quote:
-      "Perfect Sunday afternoon: not too long, not too short, and lovely people around you.",
-    name: "Peter",
-    age: 45,
-  },
-  {
-    quote:
-      "We came for the wine and stayed for the conversation. Would do it again.",
-    name: "Kim & Sam",
-    detail: "Couple",
-  },
-];
-
-export const sundayQuotesEn: ExperienceGuestQuote[] = wineWalkQuotesEn;
+export const sundayQuotesEn: ExperienceGuestQuote[] = tastingQuotesEn;
 export const mysteryQuotesEn: ExperienceGuestQuote[] = sharedDinnerQuotesEn;
 
 export const rotterdamRouteStopsEn = [

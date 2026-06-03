@@ -90,6 +90,7 @@ export function ExperiencePageContent({
                 labels={page}
                 statusLabels={dict.agenda.status}
                 reserveCta={dict.agenda.reserveCta}
+                locale={locale}
                 className="mt-10"
               />
             </motion.div>
@@ -177,6 +178,7 @@ export function ExperiencePageContent({
                 labels={page}
                 statusLabels={dict.agenda.status}
                 reserveCta={dict.agenda.reserveCta}
+                locale={locale}
               />
             </div>
           </div>

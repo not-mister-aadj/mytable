@@ -135,6 +135,11 @@ export interface ExperienceItem {
   mood: ExperienceMoodKey;
   /** Pink-styled card with women-only badge */
   femaleOnly?: boolean;
+  /** From database when USE_DB_EVENTS=true */
+  capacity?: number;
+  spotsSold?: number;
+  /** UUID for checkout / admin */
+  eventDbId?: string;
 }
 
 export interface AgendaTab {

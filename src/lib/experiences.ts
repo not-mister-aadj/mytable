@@ -1,26 +1,80 @@
 import type { Locale } from "@/i18n/config";
+import { getCatalogExperiences } from "@/data/experience-catalog";
 import { getDictionary } from "@/i18n/get-dictionary";
-import type { ExperienceItem } from "@/i18n/types";
+import { eq, and, gte, or, sql } from "drizzle-orm";
+import { events } from "@/db/schema";
+import { getDb, isDbConfigured } from "@/db/index";
+import { useDbEvents } from "@/lib/env";
+import { enrichDbEvent } from "@/lib/event-mapper";
 import { enrichExperience, type EnrichedExperience } from "./experience-detail";
 
-/** Canonical list: agenda is the single source of truth */
-export function getAllExperiences(locale: Locale): EnrichedExperience[] {
-  return getDictionary(locale).agenda.items.map(enrichExperience);
+async function fetchPublishedFromDb(
+  locale: Locale,
+): Promise<EnrichedExperience[]> {
+  const db = getDb();
+  const now = new Date();
+  const rows = await db
+    .select()
+    .from(events)
+    .where(
+      and(
+        eq(events.workflowStatus, "published"),
+        or(
+          gte(events.startsAt, now),
+          and(
+            sql`${events.endsAt} IS NOT NULL`,
+            gte(events.endsAt, now),
+          ),
+        ),
+      ),
+    )
+    .orderBy(events.startsAt);
+
+  return rows.map((row) => enrichDbEvent(row, locale));
 }
 
-export function getExperienceBySlug(
+function fetchFromCatalog(locale: Locale): EnrichedExperience[] {
+  return getCatalogExperiences(locale).map(enrichExperience);
+}
+
+/** Canonical list: agenda / homepage */
+export async function getAllExperiences(
+  locale: Locale,
+): Promise<EnrichedExperience[]> {
+  if (useDbEvents() && isDbConfigured()) {
+    try {
+      return await fetchPublishedFromDb(locale);
+    } catch (err) {
+      console.error("[experiences] DB fetch failed, falling back to catalog", err);
+    }
+  }
+  return fetchFromCatalog(locale);
+}
+
+export async function getExperienceBySlug(
   locale: Locale,
   slug: string,
-): EnrichedExperience | undefined {
-  return getAllExperiences(locale).find((item) => item.slug === slug);
+): Promise<EnrichedExperience | undefined> {
+  const all = await getAllExperiences(locale);
+  return all.find((item) => item.slug === slug);
 }
 
-export function getRelatedExperiences(
+export async function getExperienceByDbId(
+  id: string,
+): Promise<import("@/db/schema").Event | undefined> {
+  if (!isDbConfigured()) return undefined;
+  const db = getDb();
+  const [row] = await db.select().from(events).where(eq(events.id, id)).limit(1);
+  return row;
+}
+
+export async function getRelatedExperiences(
   locale: Locale,
   current: EnrichedExperience,
   limit = 3,
-): EnrichedExperience[] {
-  return getAllExperiences(locale)
+): Promise<EnrichedExperience[]> {
+  const all = await getAllExperiences(locale);
+  return all
     .filter((item) => item.slug !== current.slug)
     .filter(
       (item) =>
@@ -31,6 +85,16 @@ export function getRelatedExperiences(
     .slice(0, limit);
 }
 
-export function getAllExperienceSlugs(locale: Locale): string[] {
-  return getAllExperiences(locale).map((item) => item.slug);
+export async function getAllExperienceSlugs(locale: Locale): Promise<string[]> {
+  const all = await getAllExperiences(locale);
+  return all.map((item) => item.slug);
+}
+
+/** Sync agenda items for dictionary merge */
+export async function getAgendaItems(locale: Locale) {
+  return getAllExperiences(locale);
+}
+
+export function getCatalogAgendaItems(locale: Locale) {
+  return getDictionary(locale).agenda.items;
 }

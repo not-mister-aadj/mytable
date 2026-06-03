@@ -39,7 +39,7 @@ export function ExperienceHero({
   const tagline = getExperienceTagline(experience, mood);
   const { date, time } = splitDateTime(experience.dateTime);
   const priceLabel = formatPerPerson(experience.price, labels.perPerson);
-  const spots = getSpotsLeft(experience.status);
+  const spots = getSpotsLeft(experience);
 
   const pills = [
     date,

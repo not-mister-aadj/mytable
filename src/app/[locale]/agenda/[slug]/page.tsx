@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { NewsletterCTA } from "@/components/agenda/NewsletterCTA";
 import { isValidLocale, type Locale } from "@/i18n/config";
-import { getDictionary } from "@/i18n/get-dictionary";
+import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
 import {
   getAllExperienceSlugs,
   getExperienceBySlug,
@@ -20,12 +20,15 @@ type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) return {};
-  const experience = getExperienceBySlug(locale, slug);
+  const experience = await getExperienceBySlug(locale, slug);
   if (!experience) return {};
-  const dict = getDictionary(locale);
+  const dict = await getDictionaryWithAgenda(locale);
   const mood = getMoodContent(dict, experience.mood);
   return {
     title: `${experience.experienceName}, ${experience.city} | MyTable`,
@@ -34,21 +37,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  if (process.env.USE_DB_EVENTS === "true") return [];
   const locales: Locale[] = ["nl", "en"];
-  return locales.flatMap((locale) =>
-    getAllExperienceSlugs(locale).map((slug) => ({ locale, slug })),
-  );
+  const params: { locale: string; slug: string }[] = [];
+  for (const locale of locales) {
+    const slugs = await getAllExperienceSlugs(locale);
+    for (const slug of slugs) {
+      params.push({ locale, slug });
+    }
+  }
+  return params;
 }
 
 export default async function ExperienceDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
 
-  const experience = getExperienceBySlug(locale, slug);
+  const experience = await getExperienceBySlug(locale, slug);
   if (!experience) notFound();
 
-  const dict = getDictionary(locale);
-  const related = getRelatedExperiences(locale, experience);
+  const dict = await getDictionaryWithAgenda(locale);
+  const related = await getRelatedExperiences(locale, experience);
 
   return (
     <>

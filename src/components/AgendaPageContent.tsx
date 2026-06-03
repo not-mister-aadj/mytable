@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Dictionary, AgendaTabKey } from "@/i18n/types";
+import type { Dictionary, AgendaTabKey, ExperienceItem } from "@/i18n/types";
 import { filterAgendaItems, sortAgendaTimeline } from "@/lib/agenda";
 import { enrichExperience } from "@/lib/experience-detail";
 import { EmotionalTabs } from "./agenda/EmotionalTabs";
@@ -12,18 +12,20 @@ interface AgendaPageContentProps {
   dict: Dictionary["agenda"];
   pageLabels: Dictionary["experiencePage"];
   locale: import("@/i18n/config").Locale;
+  items: ExperienceItem[];
 }
 
 export function AgendaPageContent({
   dict,
   pageLabels,
   locale,
+  items: agendaItems,
 }: AgendaPageContentProps) {
   const [activeTab, setActiveTab] = useState<AgendaTabKey>("all");
 
   const items = useMemo(
-    () => sortAgendaTimeline(dict.items.map(enrichExperience), locale),
-    [dict.items, locale],
+    () => sortAgendaTimeline(agendaItems.map(enrichExperience), locale),
+    [agendaItems, locale],
   );
 
   const filteredItems = useMemo(

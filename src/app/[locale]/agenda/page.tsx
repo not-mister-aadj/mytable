@@ -4,7 +4,7 @@ import { AgendaPageContent } from "@/components/AgendaPageContent";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { isValidLocale } from "@/i18n/config";
-import { getDictionary } from "@/i18n/get-dictionary";
+import { getDictionary, getDictionaryWithAgenda } from "@/i18n/get-dictionary";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -30,7 +30,7 @@ export default async function AgendaPage({ params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
 
-  const dict = getDictionary(locale);
+  const dict = await getDictionaryWithAgenda(locale);
 
   return (
     <>
@@ -42,6 +42,7 @@ export default async function AgendaPage({ params }: Props) {
             dict={dict.agenda}
             pageLabels={dict.experiencePage}
             locale={locale}
+            items={dict.agenda.items}
           />
         </div>
         <NewsletterCTA dict={dict.newsletter} />

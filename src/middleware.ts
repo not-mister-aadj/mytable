@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { defaultLocale, type Locale } from "./i18n/config";
+import { getAdminUrl, isAdminHost, usesAdminSubdomain } from "@/lib/admin-url";
+import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
 function resolveLocale(pathname: string): Locale | null {
   if (pathname === "/en" || pathname.startsWith("/en/")) return "en";
@@ -8,8 +10,46 @@ function resolveLocale(pathname: string): Locale | null {
   return null;
 }
 
-export function middleware(request: NextRequest) {
+function handleAdminSubdomain(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    (pathname.includes(".") && !pathname.startsWith("/api"))
+  ) {
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/api")) {
+    return updateSupabaseSession(request);
+  }
+
+  if (pathname.startsWith("/admin")) {
+    const stripped = pathname.slice("/admin".length) || "/";
+    return NextResponse.redirect(new URL(stripped, request.url));
+  }
+
+  const rewritePath = pathname === "/" ? "/admin" : `/admin${pathname}`;
+  return updateSupabaseSession(request, { rewritePath });
+}
+
+export async function middleware(request: NextRequest) {
+  const hostname = request.nextUrl.hostname;
+  const { pathname } = request.nextUrl;
+
+  if (isAdminHost(hostname)) {
+    return handleAdminSubdomain(request);
+  }
+
+  if (usesAdminSubdomain() && pathname.startsWith("/admin")) {
+    const subPath = pathname.slice("/admin".length) || "/";
+    return NextResponse.redirect(new URL(subPath, getAdminUrl()));
+  }
+
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/auth")) {
+    return updateSupabaseSession(request);
+  }
 
   if (
     pathname.startsWith("/_next") ||

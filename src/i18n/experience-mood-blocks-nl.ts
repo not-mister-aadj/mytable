@@ -58,7 +58,7 @@ export const tastingFlowNl: ExperienceFlowStep[] = [
   {
     title: "Chef's special aan tafel",
     description:
-      "Het restaurant serveert specials voor de hele groep — wijn en bites die bij elkaar passen, op eigen tempo.",
+      "Het restaurant serveert specials voor de hele groep, wijn en bites die bij elkaar passen, op eigen tempo.",
   },
   {
     title: "Gesprekken aan tafel",

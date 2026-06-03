@@ -30,8 +30,8 @@ const catalog: CatalogEntry[] = [
     femaleOnly: true,
     image: images.wineBar,
     tagline: {
-      nl: "Eén restaurant, één tafel — alleen voor vrouwen die van wijn en goed gezelschap houden.",
-      en: "One restaurant, one table — for women who love wine and good company.",
+      nl: "Eén restaurant, één tafel, alleen voor vrouwen die van wijn en goed gezelschap houden.",
+      en: "One restaurant, one table, for women who love wine and good company.",
     },
   },
   {
@@ -47,8 +47,8 @@ const catalog: CatalogEntry[] = [
     status: "almostFull",
     image: images.wineGlasses,
     tagline: {
-      nl: "Schuif aan bij een gemengde tafel in één restaurant — solo, met vrienden of op date.",
-      en: "Join a mixed table at one restaurant — solo, with friends, or on a date.",
+      nl: "Schuif aan bij een gemengde tafel in één restaurant, solo, met vrienden of op date.",
+      en: "Join a mixed table at one restaurant, solo, with friends, or on a date.",
     },
   },
   {

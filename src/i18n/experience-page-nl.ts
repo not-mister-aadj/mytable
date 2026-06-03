@@ -8,7 +8,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   agendaCta: "Bekijk agenda",
   heroTrustBar: "★★★★★ 4.8 · 1200+ gasten aan tafel sinds 2024",
   heroTrustFooter:
-    "Gratis annuleren tot 48 uur van tevoren · Kleine groepen · Gehoste ervaring",
+    "Alles vooraf betaald · Gratis ruilen tot 48 uur van tevoren · Dieetwensen mogelijk",
   heroSpotsHint: "Nog {count} plekken voor deze datum",
   pillSoloTogether: "Kom alleen of samen",
   perPerson: "€{price} per persoon",
@@ -17,7 +17,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   flowTitle: "Hoe verloopt de ervaring?",
   venuesTitle: "Waar je aan tafel schuift",
   venuesSubtitle:
-    "Eén partnerrestaurant per avond. De chef bereidt specials voor de groep — wijn en spijs op één plek.",
+    "Eén partnerrestaurant per avond. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
   guestQuotesTitle: "Wat gasten zeggen",
   routeTitle: "Een middag door {city}",
   routeMapEyebrow: "Zoek op de kaart",
@@ -27,9 +27,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   routeOpenInApple: "Open route in Kaarten",
   routeMapSetupHint:
     "Voorkeursweergave: Apple Kaarten (MapKit). Voeg credentials toe voor de volledige kaart.",
-  socialTitle: "Geen ongemakkelijke networking. Gewoon een goede tafel.",
+  socialTitle: "Je komt voor wijn en gezelligheid. Niet om te netwerken.",
   socialSubtitle:
-    "MyTable draait om ontspannen ontmoetingen, goede gesprekken en een tafel waar iedereen zich welkom voelt.",
+    "Een kleine groep aan één tafel, met ruimte om te proeven, lachen en praten op je eigen tempo.",
   galleryTitle: "Sfeerimpressie",
   practicalTitle: "Praktische info",
   faqTitle: "Veelgestelde vragen",
@@ -47,10 +47,10 @@ export const experiencePageNl: ExperiencePageLabels = {
   spotsLeftBadge: "Nog {count} plekken beschikbaar",
   bookingViewsLabel: "{count} mensen bekeken deze tafel deze week",
   bookingTrustBullets: [
-    "Gratis annuleren tot 48 uur vooraf",
-    "Kleine groepen & ontspannen sfeer",
+    "Alles vooraf betaald",
+    "Gratis ruilen tot 48 uur van tevoren",
+    "Dieetwensen mogelijk",
     "Kom alleen of samen",
-    "Gehoste ervaring",
   ],
   trustLines: [
     "Gecureerde locaties en hosts",
@@ -64,7 +64,8 @@ export const experiencePageNl: ExperiencePageLabels = {
     included: "Inbegrepen",
     dietary: "Dieetwensen",
     solo: "Alleen komen",
-    cancellation: "Annuleren",
+    payment: "Betaling",
+    exchange: "Ruilen",
     walking: "Wandelafstand",
     weather: "Weer",
     arrival: "Aankomst",
@@ -75,9 +76,11 @@ export const experiencePageNl: ExperiencePageLabels = {
     dietary:
       "Geef het door bij boeken. De chef past de specials aan waar dat kan.",
     solo: "Alleen aankomen is heel normaal en juist welkom",
-    cancellation:
-      "Gratis annuleren tot 48 uur van tevoren, daarna wordt het bedrag omgezet in tegoed",
-    weather: "De proeverij vindt plaats binnen in het restaurant.",
+    payment: "Alles betaal je vooraf bij het reserveren.",
+    exchange:
+      "Gratis ruilen naar een andere datum tot 48 uur voor de start. Annuleren is niet mogelijk.",
+    weather:
+      "Meestal binnen in het restaurant. Bij mooi weer en een beschikbaar terras kan de tafel daar plaatsvinden.",
     arrival:
       "Kom 10 minuten voor starttijd. De host verwelkomt je en wijst de groep aan.",
     routeReveal:
@@ -92,11 +95,11 @@ export const experiencePageNl: ExperiencePageLabels = {
   },
   moods: {
     tastings: {
-      tagline: "Wijnproeverij aan één tafel — girls only of gemengde groep",
+      tagline: "Wijnproeverij aan één tafel, girls only of gemengde groep",
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "MyTable start met wijnproeverijen in één restaurant. Je schuift aan bij een kleine groep, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten — meestal twee tot drie uur.",
+        "MyTable start met wijnproeverijen in één restaurant. Je schuift aan bij een kleine groep, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten, meestal twee tot drie uur.",
       whatToExpect: [
         {
           title: "Eén restaurant, één tafel",
@@ -121,7 +124,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           title: "Op eigen tempo",
           description:
-            "Reken op twee tot drie uur. Geen strak schema — ruimte om te proeven, praten en na te genieten.",
+            "Reken op twee tot drie uur. Geen strak schema, ruimte om te proeven, praten en na te genieten.",
         },
         {
           title: "Aanpassen op verzoek",
@@ -130,8 +133,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Proeverijen trekken mensen aan die houden van ontdekken zonder gedoe. Het gesprek gaat van smaak naar favoriete plekken in de stad, en vaak verder. Omdat je de hele avond op één plek blijft, voelt alles rustig en persoonlijk.",
-        "Of je nu veel proeft of voor het eerst serieus naar wijn kijkt, iedereen start op gelijke hoogte. Het gaat om nieuwsgierigheid, niet om kennis. Daardoor ontstaan gesprekken die verder gaan dan alleen wat er in je glas zit.",
+        "Je schuift aan bij mensen die ook zin hebben in een avond uit. Soms alleen, soms met vrienden of op date. Het is superleuk als de chef je verrast met de volgende special of het glas dat erbij past, en het gesprek loopt vanzelf.",
+        "Je hoeft niets te bewijzen en niemand zit er voor zakelijke contacten. Of je nu veel van wijn weet of vooral nieuwsgierig bent: iedereen proeft, eet en praat op gelijke hoogte. De hele avond op één plek maakt het rustig en persoonlijk.",
       ],
       gallery: [
         images.wineBar,
@@ -147,7 +150,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Wat is het verschil tussen girls only en gemengd?",
           answer:
-            "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom — solo, met vrienden of op date.",
+            "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom, solo, met vrienden of op date.",
         },
         {
           question: "Wat is een chef's special?",
@@ -160,14 +163,19 @@ export const experiencePageNl: ExperiencePageLabels = {
             "Ja. Geef het bij boeken door. De chef past de specials aan waar dat kan.",
         },
         {
-          question: "Hoeveel glazen proef ik?",
+          question: "Kan ik bijbestellen?",
           answer:
-            "Meestal tussen de vijf en zeven proefmomenten met bijpassende bites van de chef.",
+            "Aan tafel kun je vaak extra bestellen, bijvoorbeeld een extra gang, bite of glas. Sommige partnerlocaties verkopen ook de volledige fles van een wijn die je lekker vond. Dat verschilt per restaurant; de host of bediening legt het je uit.",
         },
         {
           question: "Waar vindt de proeverij plaats?",
           answer:
             "In één partnerrestaurant per stad. De exacte locatie staat op je boekingsbevestiging.",
+        },
+        {
+          question: "Kan ik annuleren of ruilen?",
+          answer:
+            "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren. Mail ons als je wilt ruilen.",
         },
       ],
     },

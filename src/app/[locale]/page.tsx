@@ -1,6 +1,5 @@
 import { ConceptSection } from "@/components/ConceptSection";
 import { ExperiencesSection } from "@/components/ExperiencesSection";
-import { FeaturedTablesCarousel } from "@/components/FeaturedTablesCarousel";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -52,7 +51,6 @@ export default async function Home({ params }: Props) {
       <Header dict={dict.header} locale={locale} />
       <main>
         <Hero dict={dict.hero} agendaHref={agendaHref} nextEvent={nextEvent} />
-        <FeaturedTablesCarousel dict={dict.featuredCarousel} />
         <ValueStrip items={dict.valueStrip} />
         <ExperiencesSection
           dict={dict.experiences}

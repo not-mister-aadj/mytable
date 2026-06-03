@@ -99,7 +99,8 @@ export interface ExperiencePageLabels {
     included: string;
     dietary: string;
     solo: string;
-    cancellation: string;
+    payment: string;
+    exchange: string;
     walking: string;
     weather: string;
     arrival: string;
@@ -109,7 +110,8 @@ export interface ExperiencePageLabels {
   practicalValues: {
     dietary: string;
     solo: string;
-    cancellation: string;
+    payment: string;
+    exchange: string;
     weather: string;
     arrival: string;
     routeReveal: string;
@@ -168,22 +170,6 @@ export interface Dictionary {
     imageAlt: string;
   };
   valueStrip: string[];
-  featuredCarousel: {
-    eyebrow: string;
-    title: string;
-    subtitle: string;
-    cta: string;
-    cards: {
-      id: string;
-      title: string;
-      city: string;
-      date: string;
-      caption?: string;
-      category: string;
-      image: string;
-      icon: "wine" | "dinner" | "table" | "walk" | "mystery";
-    }[];
-  };
   experiences: {
     title: string;
     subtitle: string;

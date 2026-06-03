@@ -7,7 +7,7 @@ const tastingVenues: ExperienceVenue[] = [
     area: "Centrum",
     atmosphere: "Chef's special",
     description:
-      "Eén locatie, één tafel. De chef bereidt specials voor de groep — wijn en spijs die bij elkaar passen.",
+      "Eén locatie, één tafel. De chef bereidt specials voor de groep, wijn en spijs die bij elkaar passen.",
     image: images.restaurantInterior,
   },
 ];

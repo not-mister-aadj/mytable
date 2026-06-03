@@ -31,7 +31,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Elise",
     detail: "Den Haag",
     quote:
-      "Fijn dat alles op één plek was. Een restaurant in mijn straat dat ik altijd zag maar nooit was binnengegaan — tot nu.",
+      "Fijn dat alles op één plek was. Een restaurant in mijn straat dat ik altijd zag maar nooit was binnengegaan, tot nu.",
     initials: "E",
     avatar: "rose",
   },
@@ -194,7 +194,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Elise",
     detail: "The Hague",
     quote:
-      "Nice that everything was in one place. A restaurant on my street I'd always noticed but never gone into — until now.",
+      "Nice that everything was in one place. A restaurant on my street I'd always noticed but never gone into, until now.",
     initials: "E",
     avatar: "rose",
   },

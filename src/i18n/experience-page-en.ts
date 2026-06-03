@@ -8,7 +8,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   agendaCta: "View agenda",
   heroTrustBar: "★★★★★ 4.8 · 1200+ guests at the table since 2024",
   heroTrustFooter:
-    "Free cancellation up to 48 hours before · Small groups · Hosted experience",
+    "Pay in full when you book · Free date exchange up to 48 hours before · Dietary needs welcome",
   heroSpotsHint: "{count} spots left for this date",
   pillSoloTogether: "Come alone or together",
   perPerson: "€{price} per person",
@@ -17,7 +17,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   flowTitle: "How the evening flows",
   venuesTitle: "Where you join the table",
   venuesSubtitle:
-    "One partner restaurant per evening. The chef prepares specials for the group — wine and food in one place.",
+    "One partner restaurant per evening. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
   guestQuotesTitle: "What guests say",
   routeTitle: "An afternoon through {city}",
   routeMapEyebrow: "Find on the map",
@@ -27,9 +27,9 @@ export const experiencePageEn: ExperiencePageLabels = {
   routeOpenInApple: "Open route in Maps",
   routeMapSetupHint:
     "Preferred view: Apple Maps (MapKit). Add credentials for the full map embed.",
-  socialTitle: "No awkward networking. Just a good table.",
+  socialTitle: "You're here for wine and good company. Not to network.",
   socialSubtitle:
-    "MyTable is about relaxed meetings, good conversation, and a table where everyone feels welcome.",
+    "A small group at one table, with room to taste, laugh, and talk at your own pace.",
   galleryTitle: "Atmosphere",
   practicalTitle: "Practical info",
   faqTitle: "Frequently asked questions",
@@ -47,10 +47,10 @@ export const experiencePageEn: ExperiencePageLabels = {
   spotsLeftBadge: "{count} spots still available",
   bookingViewsLabel: "{count} people viewed this table this week",
   bookingTrustBullets: [
-    "Free cancellation up to 48 hours before",
-    "Small groups & relaxed atmosphere",
+    "Pay in full when you book",
+    "Free date exchange up to 48 hours before",
+    "Dietary needs welcome",
     "Come alone or together",
-    "Hosted experience",
   ],
   trustLines: [
     "Curated venues and hosts",
@@ -64,7 +64,8 @@ export const experiencePageEn: ExperiencePageLabels = {
     included: "Included",
     dietary: "Dietary needs",
     solo: "Coming alone",
-    cancellation: "Cancellation",
+    payment: "Payment",
+    exchange: "Exchanges",
     walking: "Walking distance",
     weather: "Weather",
     arrival: "Arrival",
@@ -75,9 +76,11 @@ export const experiencePageEn: ExperiencePageLabels = {
     dietary:
       "Tell us when you book. The chef adjusts the specials where possible.",
     solo: "Arriving alone is completely normal and welcome",
-    cancellation:
-      "Free cancellation up to 48 hours before; after that the amount becomes credit",
-    weather: "The tasting takes place indoors at the restaurant.",
+    payment: "Everything is paid in full when you reserve.",
+    exchange:
+      "Free exchange to another date up to 48 hours before start. Cancellations are not available.",
+    weather:
+      "Usually indoors at the restaurant. In fine weather, when a terrace is available, the table may be seated outside.",
     arrival:
       "Arrive 10 minutes before start. The host welcomes you and seats the group.",
     routeReveal:
@@ -86,17 +89,17 @@ export const experiencePageEn: ExperiencePageLabels = {
   },
   spotsByStatus: {
     available: "Plenty of seats still available",
-    almostFull: "Only a few spots left — book soon",
+    almostFull: "Only a few spots left, book soon",
     soldOut: "This table is sold out",
     new: "New in our lineup",
   },
   moods: {
     tastings: {
-      tagline: "Wine tasting at one table — girls only or mixed group",
+      tagline: "Wine tasting at one table, girls only or mixed group",
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
-        "MyTable starts with wine tastings at a single restaurant. You join a small group, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture — just context and room to enjoy at your own pace, usually two to three hours.",
+        "MyTable starts with wine tastings at a single restaurant. You join a small group, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace, usually two to three hours.",
       whatToExpect: [
         {
           title: "One restaurant, one table",
@@ -121,7 +124,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           title: "Your own pace",
           description:
-            "Plan for two to three hours. No tight schedule — time to taste, talk, and linger.",
+            "Plan for two to three hours. No tight schedule, time to taste, talk, and linger.",
         },
         {
           title: "Adjustments on request",
@@ -130,8 +133,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Tastings attract people who like discovery without hassle. Conversation moves from flavour to favourite spots in the city, and often beyond. Because you stay in one place all evening, everything feels calm and personal.",
-        "Whether you taste a lot or are new to wine, everyone starts on equal footing. It's about curiosity, not expertise. That's how conversations go beyond what's in your glass.",
+        "You join people who want a proper night out. Sometimes solo, sometimes with friends or on a date. It's great fun when the chef surprises you with the next special or the pour that goes with it, and conversation flows on its own.",
+        "Nobody is there to prove anything or make business contacts. Whether you know a lot about wine or are simply curious, everyone tastes, eats, and chats on equal footing. One place for the whole evening keeps it calm and personal.",
       ],
       gallery: [
         images.wineBar,
@@ -147,12 +150,12 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "What's the difference between girls only and mixed?",
           answer:
-            "Girls only means only women join the table. Mixed groups welcome everyone — solo, with friends, or on a date.",
+            "Girls only means only women join the table. Mixed groups welcome everyone, solo, with friends, or on a date.",
         },
         {
           question: "What is a chef's special?",
           answer:
-            "The chef prepares dishes and pairings specifically for your table — not standard à la carte, but matched to the wine and the group.",
+            "The chef prepares dishes and pairings specifically for your table, not standard à la carte, but matched to the wine and the group.",
         },
         {
           question: "Can I share dietary requirements?",
@@ -160,14 +163,19 @@ export const experiencePageEn: ExperiencePageLabels = {
             "Yes. Tell us when you book. The chef adjusts the specials where possible.",
         },
         {
-          question: "How many pours are included?",
+          question: "Can I order more?",
           answer:
-            "Usually between five and seven tasting moments with matching bites from the chef.",
+            "At the table you can often order extras, such as another course, bite, or glass. Some partner venues also sell the full bottle of a wine you enjoyed. It varies by restaurant; the host or staff will explain what's possible.",
         },
         {
           question: "Where does the tasting take place?",
           answer:
             "At one partner restaurant per city. The exact venue is on your booking confirmation.",
+        },
+        {
+          question: "Can I cancel or exchange?",
+          answer:
+            "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book. Email us if you want to exchange.",
         },
       ],
     },

@@ -13,7 +13,7 @@ export const nl: Dictionary = {
   },
   header: {
     nav: {
-      experiences: "Ervaringen",
+      experiences: "Beschikbare tafels",
       howItWorks: "Zo werkt het",
       forVenues: "Voor locaties",
       faq: "FAQ",
@@ -41,45 +41,6 @@ export const nl: Dictionary = {
     "Solo of eigen tafel",
     "Ontspannen sfeer",
   ],
-  featuredCarousel: {
-    eyebrow: "DE LEUKSTE TAFELS VAN NEDERLAND",
-    title: "Bekijk de tafels die je niet wilt missen",
-    subtitle:
-      "Sfeer, mensen, gesprekken en mooie plekken. Dit is MyTable.",
-    cta: "Bekijk alle aankomende tafels",
-    cards: [
-      {
-        id: "featured-tasting-girls",
-        title: "Wijnproeverij · girls only",
-        city: "Amsterdam",
-        date: "Zondag 23 juni",
-        caption: "Eén restaurant, chef's special, alleen voor vrouwen.",
-        category: "Girls only",
-        image: images.wineGlasses,
-        icon: "wine",
-      },
-      {
-        id: "featured-tasting-mixed",
-        title: "Wijnproeverij · gemengd",
-        city: "Rotterdam",
-        date: "Zondag 16 juni",
-        caption: "Schuif aan bij een gemengde tafel — solo of samen.",
-        category: "Gemengde groep",
-        image: images.wineBar,
-        icon: "wine",
-      },
-      {
-        id: "featured-tasting-utrecht",
-        title: "Wijnproeverij · girls only",
-        city: "Utrecht",
-        date: "Zondag 22 juni",
-        caption: "Twee tot drie uur proeven en praten op eigen tempo.",
-        category: "Girls only",
-        image: images.restaurantInterior,
-        icon: "wine",
-      },
-    ],
-  },
   experiences: {
     title: "Bekijk de tafels die je niet wilt missen",
     subtitle:
@@ -142,12 +103,12 @@ export const nl: Dictionary = {
       {
         title: "Chef's special",
         description:
-          "De chef bereidt specials voor iedereen aan tafel — wijn en spijs die bij elkaar passen.",
+          "De chef bereidt specials voor iedereen aan tafel, wijn en spijs die bij elkaar passen.",
       },
       {
         title: "Girls only of gemengd",
         description:
-          "Kies een tafel alleen voor vrouwen, of schuif aan bij een gemengde groep — solo, met vrienden of op date.",
+          "Kies een tafel alleen voor vrouwen, of schuif aan bij een gemengde groep, solo, met vrienden of op date.",
       },
     ],
   },
@@ -172,7 +133,7 @@ export const nl: Dictionary = {
       {
         title: "Geniet van de avond",
         description:
-          "Chef's special, goede wijn en gezelschap — twee tot drie uur op eigen tempo.",
+          "Chef's special, goede wijn en gezelschap, twee tot drie uur op eigen tempo.",
       },
     ],
   },
@@ -246,44 +207,59 @@ export const nl: Dictionary = {
     title: "Veelgestelde vragen",
     items: [
       {
-        question: "Kan ik alleen komen?",
+        question: "Wat is MyTable?",
         answer:
-          "Ja. Veel mensen komen alleen. MyTable is ontworpen om dat normaal en ontspannen te laten voelen.",
+          "Wijnproeverijen aan één tafel in één partnerrestaurant. Je kiest een tafel (girls only of gemengde groep), reserveert je plek en schuift aan bij een kleine groep. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid.",
       },
       {
-        question: "Kan ik vrienden meenemen?",
+        question: "Wat is het verschil tussen girls only en gemengd?",
         answer:
-          "Ja. Je kunt alleen boeken, met een vriend komen of als kleine groep.",
+          "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom: solo, met vrienden of op date. Het concept is hetzelfde, alleen de samenstelling van de groep verschilt.",
       },
       {
-        question: "Is dit een dating-event?",
+        question: "Kan ik alleen komen of iemand meenemen?",
         answer:
-          "Nee. MyTable draait om goed eten, drinken en sociale verbinding. Het is geen dating of netwerken.",
+          "Beide kan. Veel gasten komen solo; anderen boeken voor zichzelf en een vriend(in), of schuiven aan bij een tafel die al staat. Het voelt normaal en ontspannen.",
       },
       {
-        question: "Wat is inbegrepen?",
+        question: "Wat is een chef's special en wat is inbegrepen?",
         answer:
-          "Wijnproeverij, chef's special bites en een host aan tafel. Op elke eventkaart staat precies wat is inbegrepen.",
+          "Geen vast à-la-carte-menu: de chef bereidt gerechten en pairings speciaal voor jouw tafel, passend bij de wijnproeverij. Meestal inbegrepen: proeverij, chef's special bites en een host aan tafel. Op elke tafelkaart staat precies wat je krijgt. Reken op twee tot drie uur op eigen tempo.",
       },
       {
-        question: "Moet ik iets van wijn weten?",
+        question: "Moet ik veel van wijn weten?",
         answer:
-          "Nee. Je hebt alleen nieuwsgierigheid en zin in een goede tijd nodig.",
+          "Nee. Nieuwsgierigheid is genoeg. Onze host deelt context over de wijnen zonder dat het een les wordt.",
       },
       {
-        question: "Zijn de groepen gecureerd?",
+        question: "Kan ik dieetwensen doorgeven?",
         answer:
-          "Ja. Je kiest girls only of een gemengde groep. We werken met kleine groepen aan één tafel zodat de sfeer ontspannen blijft.",
+          "Ja. Geef het door bij het reserveren. De chef past de specials aan waar dat kan.",
       },
       {
-        question: "Wanneer krijg ik de details?",
+        question: "Waar vindt de proeverij plaats?",
         answer:
-          "Je ontvangt restaurant, tijd en praktische info per e-mail na je boeking.",
+          "In één partnerrestaurant, geen route door de stad. De stad staat op de tafelkaart. Na je boeking stuur je per e-mail het restaurant, de tijd en praktische info.",
       },
       {
-        question: "Kunnen restaurants samenwerken met MyTable?",
+        question: "Hoe werkt betalen en ruilen?",
         answer:
-          "Ja. Restaurants en wijnbars kunnen contact opnemen om samenwerking te verkennen.",
+          "Alles betaal je vooraf bij het reserveren. Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Mail ons als je wilt ruilen.",
+      },
+      {
+        question: "Kan ik bijbestellen aan tafel?",
+        answer:
+          "Vaak wel: een extra gang, glas of bite. Sommige partnerlocaties verkopen ook de volledige fles van een wijn die je lekker vond. Dat verschilt per restaurant.",
+      },
+      {
+        question: "Is dit dating of netwerken?",
+        answer:
+          "Nee. Het gaat om een ontspannen moment aan tafel met wijn, eten en gezellig gesprek. Geen zakelijke contacten en geen verplicht smalltalk.",
+      },
+      {
+        question: "Kunnen restaurants partner worden?",
+        answer:
+          "Ja. Restaurants en wijnbars kunnen via Voor locaties contact opnemen om samenwerking te verkennen.",
       },
     ],
   },
@@ -291,7 +267,7 @@ export const nl: Dictionary = {
   footer: {
     tagline: "Goede smaak. Goed gezelschap.",
     links: {
-      experiences: "Ervaringen",
+      experiences: "Beschikbare tafels",
       howItWorks: "Zo werkt het",
       forVenues: "Voor locaties",
       faq: "FAQ",

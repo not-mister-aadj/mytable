@@ -13,7 +13,7 @@ export const en: Dictionary = {
   },
   header: {
     nav: {
-      experiences: "Experiences",
+      experiences: "Available tables",
       howItWorks: "How it works",
       forVenues: "For venues",
       faq: "FAQ",
@@ -41,45 +41,6 @@ export const en: Dictionary = {
     "Solo or your own table",
     "Relaxed social atmosphere",
   ],
-  featuredCarousel: {
-    eyebrow: "THE FINEST TABLES IN THE NETHERLANDS",
-    title: "See the tables you won't want to miss",
-    subtitle:
-      "Atmosphere, people, conversation, and beautiful places. This is MyTable.",
-    cta: "View all upcoming tables",
-    cards: [
-      {
-        id: "featured-tasting-girls",
-        title: "Wine tasting · girls only",
-        city: "Amsterdam",
-        date: "Sunday 23 June",
-        caption: "One restaurant, chef's special, women only.",
-        category: "Girls only",
-        image: images.wineGlasses,
-        icon: "wine",
-      },
-      {
-        id: "featured-tasting-mixed",
-        title: "Wine tasting · mixed group",
-        city: "Rotterdam",
-        date: "Sunday 16 June",
-        caption: "Join a mixed table — solo or together.",
-        category: "Mixed group",
-        image: images.wineBar,
-        icon: "wine",
-      },
-      {
-        id: "featured-tasting-utrecht",
-        title: "Wine tasting · girls only",
-        city: "Utrecht",
-        date: "Sunday 22 June",
-        caption: "Two to three hours of tasting and talk at your pace.",
-        category: "Girls only",
-        image: images.restaurantInterior,
-        icon: "wine",
-      },
-    ],
-  },
   experiences: {
     title: "See the tables you won't want to miss",
     subtitle:
@@ -141,12 +102,12 @@ export const en: Dictionary = {
       {
         title: "Chef's special",
         description:
-          "The chef prepares specials for everyone at the table — wine and food that match.",
+          "The chef prepares specials for everyone at the table, wine and food that match.",
       },
       {
         title: "Girls only or mixed",
         description:
-          "Choose a women-only table, or join a mixed group — solo, with friends, or on a date.",
+          "Choose a women-only table, or join a mixed group, solo, with friends, or on a date.",
       },
     ],
   },
@@ -171,7 +132,7 @@ export const en: Dictionary = {
       {
         title: "Enjoy the evening",
         description:
-          "Chef's special, good wine, and company — two to three hours at your own pace.",
+          "Chef's special, good wine, and company, two to three hours at your own pace.",
       },
     ],
   },
@@ -245,44 +206,59 @@ export const en: Dictionary = {
     title: "FAQ",
     items: [
       {
-        question: "Can I come alone?",
+        question: "What is MyTable?",
         answer:
-          "Yes. Many people join solo. MyTable is designed to make that feel normal and relaxed.",
+          "Wine tastings at one table in one partner restaurant. You pick a table (girls only or mixed group), reserve your spot, and join a small group. We handle everything around the table; you come for good wine, chef's specials, and good company.",
       },
       {
-        question: "Can I bring friends?",
+        question: "What is the difference between girls only and mixed?",
         answer:
-          "Yes. You can book alone, with a friend, or as a small group.",
+          "Girls only tables are for women only. Mixed groups welcome everyone: solo, with friends, or on a date. The concept is the same; only who sits at the table differs.",
       },
       {
-        question: "Is this a dating event?",
+        question: "Can I come alone or bring someone?",
         answer:
-          "No. MyTable is about good food, drinks, and social connection. It is not positioned as dating or networking.",
+          "Both work. Many guests come solo; others book for themselves and a friend, or join a table that is already set up. It feels normal and relaxed.",
       },
       {
-        question: "What is included?",
+        question: "What is a chef's special and what is included?",
         answer:
-          "Wine tasting, chef's special bites, and a host at the table. Each event card shows exactly what is included.",
+          "Not a fixed à la carte menu: the chef prepares dishes and pairings especially for your table, matched to the wine tasting. Usually included: tasting, chef's special bites, and a host at the table. Each table card shows exactly what you get. Plan on two to three hours at your own pace.",
       },
       {
-        question: "Do I need to know anything about wine?",
+        question: "Do I need to know a lot about wine?",
         answer:
-          "No. You only need curiosity and an appetite for a good time.",
+          "No. Curiosity is enough. Our host shares context about the wines without turning it into a lesson.",
       },
       {
-        question: "Are the groups curated?",
+        question: "Can I share dietary requirements?",
         answer:
-          "Yes. You choose girls only or a mixed group. We keep groups small at one table so the atmosphere stays relaxed.",
+          "Yes. Tell us when you book. The chef adapts the specials where possible.",
       },
       {
-        question: "When do I get the details?",
+        question: "Where does the tasting take place?",
         answer:
-          "You receive the restaurant, time, and practical info by email after you book.",
+          "At one partner restaurant, no route through the city. The city is on the table card. After booking, we email the restaurant, time, and practical details.",
       },
       {
-        question: "Can restaurants partner with MyTable?",
+        question: "How do payment and exchanges work?",
         answer:
-          "Yes. Restaurants and wine bars can contact us to explore collaborations.",
+          "Everything is paid in full when you book. Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Email us if you want to exchange.",
+      },
+      {
+        question: "Can I order more at the table?",
+        answer:
+          "Often yes: an extra course, glass, or bite. Some partner venues also sell the full bottle of a wine you enjoyed. It varies by restaurant.",
+      },
+      {
+        question: "Is this dating or networking?",
+        answer:
+          "No. It is relaxed time at the table with wine, food, and easy conversation. No business networking and no forced small talk.",
+      },
+      {
+        question: "Can restaurants become a partner?",
+        answer:
+          "Yes. Restaurants and wine bars can reach out via For venues to explore working together.",
       },
     ],
   },
@@ -290,7 +266,7 @@ export const en: Dictionary = {
   footer: {
     tagline: "Good taste. Great company.",
     links: {
-      experiences: "Experiences",
+      experiences: "Available tables",
       howItWorks: "How it works",
       forVenues: "For venues",
       faq: "FAQ",

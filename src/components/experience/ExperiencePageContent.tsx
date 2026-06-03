@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
@@ -15,6 +16,7 @@ import { ExperienceFinalCta } from "./ExperienceFinalCta";
 import { ExperienceFlow } from "./ExperienceFlow";
 import { ExperienceGallery } from "./ExperienceGallery";
 import { ExperienceHero } from "./ExperienceHero";
+import { ExperienceStickyBookingBar } from "./ExperienceStickyBookingBar";
 import { GuestQuotes } from "./GuestQuotes";
 import { PracticalInfo } from "./PracticalInfo";
 import { RelatedExperiences } from "./RelatedExperiences";
@@ -51,6 +53,7 @@ export function ExperiencePageContent({
     experience.city,
     venues.map((v) => v.name),
   );
+  const stickySentinelRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -62,6 +65,14 @@ export function ExperiencePageContent({
         labels={page}
         locale={locale}
         reserveCta={dict.agenda.reserveCta}
+      />
+      <div ref={stickySentinelRef} className="h-px w-full" aria-hidden />
+
+      <ExperienceStickyBookingBar
+        experience={experience}
+        labels={page}
+        reserveCta={dict.agenda.reserveCta}
+        sentinelRef={stickySentinelRef}
       />
 
       <VenueLineup

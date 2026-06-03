@@ -75,7 +75,8 @@ export function PracticalInfo({
     { icon: "group", label: labels.practicalLabels.groupSize, value: labels.practicalValues.groupSize },
     { icon: "diet", label: labels.practicalLabels.dietary, value: labels.practicalValues.dietary },
     { icon: "solo", label: labels.practicalLabels.solo, value: labels.practicalValues.solo },
-    { icon: "cancel", label: labels.practicalLabels.cancellation, value: labels.practicalValues.cancellation },
+    { icon: "included", label: labels.practicalLabels.payment, value: labels.practicalValues.payment },
+    { icon: "cancel", label: labels.practicalLabels.exchange, value: labels.practicalValues.exchange },
     { icon: "weather", label: labels.practicalLabels.weather, value: labels.practicalValues.weather },
     { icon: "route", label: labels.practicalLabels.routeReveal, value: labels.practicalValues.routeReveal },
     ...(mood.walkingDistance

@@ -98,7 +98,9 @@ export function ExperiencePageContent({
             <motion.div {...fade}>
               <ExperienceDescription
                 title={page.aboutTitle}
-                description={mood.description}
+                description={
+                  experience.customDescription ?? mood.description
+                }
               />
             </motion.div>
 
@@ -123,7 +125,11 @@ export function ExperiencePageContent({
             <motion.div {...fade}>
               <ExperienceGallery
                 title={page.galleryTitle}
-                images={mood.gallery}
+                images={
+                  experience.galleryImages?.length
+                    ? experience.galleryImages
+                    : mood.gallery
+                }
                 experienceName={experience.experienceName}
               />
             </motion.div>
@@ -157,7 +163,14 @@ export function ExperiencePageContent({
             </motion.div>
 
             <motion.div {...fade}>
-              <ExperienceFaq title={page.faqTitle} items={mood.faq} />
+              <ExperienceFaq
+                title={page.faqTitle}
+                items={
+                  experience.customFaq?.length
+                    ? experience.customFaq
+                    : mood.faq
+                }
+              />
             </motion.div>
 
             <motion.div {...fade}>

@@ -1,14 +1,12 @@
-import { EventForm } from "@/components/admin/EventForm";
+import { EventEditor } from "@/components/admin/EventEditor";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export default async function NewEventPage() {
   await requireAdmin();
   return (
     <div>
-      <h1 className="font-serif text-3xl text-burgundy">Nieuwe tafel</h1>
-      <div className="mt-8">
-        <EventForm />
-      </div>
+      <h1 className="mb-8 font-serif text-3xl text-burgundy">New experience</h1>
+      <EventEditor />
     </div>
   );
 }

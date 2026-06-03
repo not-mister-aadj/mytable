@@ -23,13 +23,18 @@ USE_DB_EVENTS=true
 NEXT_PUBLIC_USE_DB_EVENTS=true
 ```
 
+## Media library (Supabase Storage)
+
+1. Supabase → **Storage** → New bucket **`media`** → **Public**.
+2. Upload via admin editor → **Kies uit library**.
+
 ## Admin (Google)
 
 1. **Google Cloud Console** ([console.cloud.google.com](https://console.cloud.google.com)):
    - Project → APIs & Services → Credentials → **Create OAuth client ID**
    - Type: **Web application**
    - Authorized redirect URIs: kopieer uit Supabase (stap 2), bijv.  
-     `https://bwxpzxysaecjeqrazxz.supabase.co/auth/v1/callback`
+     `https://bwxpzxyzsaecjeqrazxz.supabase.co/auth/v1/callback`
 2. **Supabase → Authentication → Providers → Google**: aan, plak Client ID + Client Secret.
 3. **Authentication → URL configuration**:
    - Site URL (lokaal): `http://localhost:3001`
@@ -64,3 +69,13 @@ Alleen e-mails in `ADMIN_EMAILS` komen in `/admin`; andere Google-accounts krijg
 | `npm run db:push` | Schema naar Supabase |
 | `npm run db:seed` | Catalog → events tabel |
 | `npm run dev` | Site op poort 3001 |
+| `npx vercel login` | Eenmalig, voor env-sync |
+| `.\scripts\push-vercel-env.ps1` | `.env.local` → Vercel (production + preview) |
+
+## Vercel environment variables
+
+Handmatig in **Project → Settings → Environment Variables**, of via script hierboven.
+
+Verplicht (productie): `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SERVICE_ROLE_KEY`, `USE_DB_EVENTS`, `NEXT_PUBLIC_USE_DB_EVENTS`, `ADMIN_EMAILS`, `NEXT_PUBLIC_SITE_URL=https://mytable.club`, `NEXT_PUBLIC_ADMIN_URL=https://dashboard.mytable.club`, `ADMIN_HOST=dashboard.mytable.club`.
+
+Optioneel later: `STRIPE_*`, `RESEND_API_KEY`, `EMAIL_FROM`.

@@ -62,6 +62,7 @@ export const events = pgTable("events", {
   categoryNl: text("category_nl").notNull().default("PROEVERIJ"),
   categoryEn: text("category_en").notNull().default("TASTING"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
+  extras: jsonb("extras").$type<Record<string, unknown>>().default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

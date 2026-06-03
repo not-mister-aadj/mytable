@@ -47,7 +47,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(subPath, getAdminUrl()));
   }
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/auth")) {
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/admin")
+  ) {
     return updateSupabaseSession(request);
   }
 

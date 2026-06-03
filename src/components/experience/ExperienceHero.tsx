@@ -112,6 +112,24 @@ export function ExperienceHero({
           {tagline}
         </motion.p>
 
+        {experience.atmosphereTags && experience.atmosphereTags.length > 0 ? (
+          <motion.ul
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.22 }}
+            className="mt-4 flex flex-wrap gap-2"
+          >
+            {experience.atmosphereTags.map((tag) => (
+              <li
+                key={tag}
+                className="rounded-full bg-gold/20 px-3 py-1 text-xs font-medium text-cream"
+              >
+                {tag}
+              </li>
+            ))}
+          </motion.ul>
+        ) : null}
+
         <motion.ul
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

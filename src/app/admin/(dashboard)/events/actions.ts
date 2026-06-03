@@ -6,6 +6,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
+import { parseEventExtras } from "@/lib/event-extras";
 import { redirect } from "next/navigation";
 
 export type EventFormState = {
@@ -13,7 +14,7 @@ export type EventFormState = {
   city: string;
   startsAt: string;
   endsAt: string;
-  priceCents: string;
+  priceEuros: string;
   capacity: string;
   femaleOnly: boolean;
   imageUrl: string;
@@ -23,15 +24,25 @@ export type EventFormState = {
   taglineEn: string;
   categoryNl: string;
   categoryEn: string;
+  extras: ReturnType<typeof parseEventExtras>;
 };
 
 function parseForm(data: FormData): EventFormState {
+  let extras = emptyExtras();
+  try {
+    extras = parseEventExtras(
+      JSON.parse(String(data.get("extras") ?? "{}")),
+    );
+  } catch {
+    extras = emptyExtras();
+  }
+
   return {
     slug: String(data.get("slug") ?? "").trim(),
     city: String(data.get("city") ?? "").trim(),
     startsAt: String(data.get("startsAt") ?? ""),
     endsAt: String(data.get("endsAt") ?? ""),
-    priceCents: String(data.get("priceCents") ?? ""),
+    priceEuros: String(data.get("priceEuros") ?? ""),
     capacity: String(data.get("capacity") ?? "14"),
     femaleOnly: data.get("femaleOnly") === "on",
     imageUrl: String(data.get("imageUrl") ?? "").trim(),
@@ -41,13 +52,23 @@ function parseForm(data: FormData): EventFormState {
     taglineEn: String(data.get("taglineEn") ?? "").trim(),
     categoryNl: String(data.get("categoryNl") ?? "PROEVERIJ").trim(),
     categoryEn: String(data.get("categoryEn") ?? "TASTING").trim(),
+    extras,
   };
 }
 
+function emptyExtras() {
+  return parseEventExtras({});
+}
+
 function toEventValues(form: EventFormState) {
-  const priceCents = Number.parseInt(form.priceCents, 10);
+  const priceEuros = Number.parseFloat(form.priceEuros.replace(",", "."));
   const capacity = Number.parseInt(form.capacity, 10);
-  if (!form.slug || !form.city || !form.startsAt || !Number.isFinite(priceCents)) {
+  if (
+    !form.slug ||
+    !form.city ||
+    !form.startsAt ||
+    !Number.isFinite(priceEuros)
+  ) {
     throw new Error("Vul alle verplichte velden in.");
   }
   return {
@@ -55,7 +76,7 @@ function toEventValues(form: EventFormState) {
     city: form.city,
     startsAt: new Date(form.startsAt),
     endsAt: form.endsAt ? new Date(form.endsAt) : null,
-    priceCents,
+    priceCents: Math.round(priceEuros * 100),
     capacity: Number.isFinite(capacity) ? capacity : 14,
     femaleOnly: form.femaleOnly,
     imageUrl: form.imageUrl || "/images/wine-bar.jpg",
@@ -65,6 +86,7 @@ function toEventValues(form: EventFormState) {
     taglineEn: form.taglineEn || null,
     categoryNl: form.categoryNl,
     categoryEn: form.categoryEn,
+    extras: form.extras as Record<string, unknown>,
     updatedAt: new Date(),
   };
 }
@@ -139,3 +161,44 @@ export async function deleteEventAction(id: string) {
   await db.delete(events).where(eq(events.id, id));
   redirect(adminPath("/events"));
 }
+
+export async function duplicateEventAction(id: string) {
+  await requireAdmin();
+  if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
+  const db = getDb();
+  const [source] = await db.select().from(events).where(eq(events.id, id)).limit(1);
+  if (!source) throw new Error("Event niet gevonden");
+
+  const suffix = Date.now().toString(36);
+  const newSlug = `${source.slug}-copy-${suffix}`.slice(0, 120);
+
+  const [row] = await db
+    .insert(events)
+    .values({
+      slug: newSlug,
+      city: source.city,
+      startsAt: source.startsAt,
+      endsAt: source.endsAt,
+      priceCents: source.priceCents,
+      currency: source.currency,
+      capacity: source.capacity,
+      spotsSold: 0,
+      femaleOnly: source.femaleOnly,
+      mood: source.mood,
+      venueId: source.venueId,
+      imageUrl: source.imageUrl,
+      nameNl: `${source.nameNl} (copy)`,
+      nameEn: `${source.nameEn} (copy)`,
+      taglineNl: source.taglineNl,
+      taglineEn: source.taglineEn,
+      categoryNl: source.categoryNl,
+      categoryEn: source.categoryEn,
+      extras: source.extras ?? {},
+      workflowStatus: "draft",
+      publishedAt: null,
+    })
+    .returning();
+
+  redirect(adminPath(`/events/${row.id}/edit`));
+}
+

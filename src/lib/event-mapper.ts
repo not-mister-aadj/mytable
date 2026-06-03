@@ -3,6 +3,7 @@ import type { ExperienceItem, ExperienceStatusKey } from "@/i18n/types";
 import type { Event } from "@/db/schema";
 import { getExperienceSlug } from "@/data/experience-slugs";
 import type { EnrichedExperience } from "./experience-detail";
+import { parseEventExtras } from "@/lib/event-extras";
 
 const WEEKDAYS_NL = [
   "Zondag",
@@ -99,6 +100,10 @@ export function mapDbEventToExperienceItem(
   const lang = locale === "nl" ? "nl" : "en";
   const startsAt = new Date(row.startsAt);
   const endsAt = row.endsAt ? new Date(row.endsAt) : null;
+  const extras = parseEventExtras(row.extras);
+  const customDescription =
+    lang === "nl" ? extras.atmosphereTextNl : extras.atmosphereTextEn;
+  const customFaq = lang === "nl" ? extras.faqNl : extras.faqEn;
   return {
     id: row.legacyId ?? row.id,
     slug: row.slug,
@@ -119,6 +124,12 @@ export function mapDbEventToExperienceItem(
     capacity: row.capacity,
     spotsSold: row.spotsSold,
     eventDbId: row.id,
+    atmosphereTags: extras.atmosphereTags,
+    customDescription: customDescription || undefined,
+    customFaq: customFaq?.length ? customFaq : undefined,
+    galleryImages: extras.galleryImages?.length
+      ? extras.galleryImages
+      : undefined,
   };
 }
 

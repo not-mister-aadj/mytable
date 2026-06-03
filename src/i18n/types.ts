@@ -140,6 +140,10 @@ export interface ExperienceItem {
   spotsSold?: number;
   /** UUID for checkout / admin */
   eventDbId?: string;
+  atmosphereTags?: string[];
+  customDescription?: string;
+  customFaq?: ExperienceFaqItem[];
+  galleryImages?: string[];
 }
 
 export interface AgendaTab {

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { EventForm } from "@/components/admin/EventForm";
+import { EventEditor } from "@/components/admin/EventEditor";
 import { events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -16,10 +16,8 @@ export default async function EditEventPage({ params }: Props) {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl text-burgundy">Tafel bewerken</h1>
-      <div className="mt-8">
-        <EventForm event={event} />
-      </div>
+      <h1 className="mb-8 font-serif text-3xl text-burgundy">Edit experience</h1>
+      <EventEditor event={event} />
     </div>
   );
 }

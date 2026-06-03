@@ -13,7 +13,7 @@ function LoginForm() {
 
   const errorText =
     error === "unauthorized"
-      ? "Dit Google-account heeft geen toegang. Alleen beheerders op de allowlist kunnen inloggen."
+      ? "Geen toegang met dit account."
       : error === "auth"
         ? "Inloggen mislukt. Probeer het opnieuw."
         : null;
@@ -46,10 +46,6 @@ function LoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-cream px-4">
       <div className="w-full max-w-md rounded-3xl border border-border-subtle bg-beige p-8 shadow-lg">
         <h1 className="font-serif text-2xl text-burgundy">MyTable Admin</h1>
-        <p className="mt-2 text-sm text-wine/70">
-          Log in met je beheerders-Gmail. Alleen toegestane accounts krijgen toegang.
-        </p>
-
         {errorText ? (
           <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-900">
             {errorText}
@@ -69,10 +65,6 @@ function LoginForm() {
         {message ? (
           <p className="mt-4 text-sm text-wine/80">{message}</p>
         ) : null}
-
-        <p className="mt-6 text-xs text-wine/50">
-          Toegang alleen voor e-mailadressen in ADMIN_EMAILS (.env).
-        </p>
       </div>
     </div>
   );

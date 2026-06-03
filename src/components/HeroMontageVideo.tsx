@@ -24,7 +24,7 @@ export function HeroMontageVideo({ alt }: HeroMontageVideoProps) {
     setEnabled(!reduceMotion);
   }, []);
 
-  const clipCount = heroMontage.length;
+  const clipCount: number = heroMontage.length;
 
   const advance = useCallback(() => {
     if (clipCount === 0) return;

@@ -1,0 +1,86 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import type { Dictionary } from "@/i18n/types";
+import { Button } from "./ui/Button";
+import { SectionHeading } from "./ui/SectionHeading";
+
+interface NewsletterSignupProps {
+  dict: Dictionary["newsletter"];
+}
+
+export function NewsletterSignup({ dict }: NewsletterSignupProps) {
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitted(true);
+  }
+
+  return (
+    <section id="newsletter" className="scroll-mt-24 py-16 sm:py-24">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="overflow-hidden rounded-3xl border border-border-subtle bg-burgundy px-6 py-12 text-cream shadow-[0_24px_60px_rgba(90,15,27,0.2)] sm:px-12 sm:py-16">
+          <div className="mx-auto max-w-xl text-center">
+            <SectionHeading
+              title={dict.title}
+              subtitle={dict.subtitle}
+              align="center"
+              className="[&_h2]:text-cream [&_p]:text-cream/80"
+            />
+
+            {submitted ? (
+              <p className="mt-8 text-lg text-cream/90" role="status">
+                {dict.success}
+              </p>
+            ) : (
+              <form
+                onSubmit={handleSubmit}
+                className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-center"
+              >
+                <div className="flex-1 text-left sm:max-w-xs">
+                  <label htmlFor="email" className="sr-only">
+                    {dict.emailLabel}
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder={dict.emailPlaceholder}
+                    className="w-full rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream placeholder:text-cream/50 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                  />
+                </div>
+                <div className="flex-1 text-left sm:max-w-[180px]">
+                  <label htmlFor="city" className="sr-only">
+                    {dict.cityLabel}
+                  </label>
+                  <select
+                    id="city"
+                    name="city"
+                    required
+                    defaultValue={dict.cities[0]}
+                    className="w-full appearance-none rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                  >
+                    {dict.cities.map((city) => (
+                      <option key={city} value={city} className="text-wine">
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  className="shrink-0 bg-cream text-burgundy hover:bg-beige"
+                >
+                  {dict.cta}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

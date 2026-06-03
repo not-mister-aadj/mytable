@@ -1,0 +1,64 @@
+"use client";
+
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { agendaPath, type Locale } from "@/i18n/config";
+import { images } from "@/data/images";
+import { Button } from "../ui/Button";
+
+interface ExperienceFinalCtaProps {
+  headline: string;
+  subheadline: string;
+  primaryCta: string;
+  secondaryCta: string;
+  locale: Locale;
+}
+
+export function ExperienceFinalCta({
+  headline,
+  subheadline,
+  primaryCta,
+  secondaryCta,
+  locale,
+}: ExperienceFinalCtaProps) {
+  return (
+    <section className="relative mt-8 overflow-hidden rounded-3xl sm:mt-12">
+      <div className="absolute inset-0">
+        <Image
+          src={images.cheers}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(max-width: 1280px) 100vw, 1280px"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-wine/90 via-wine/75 to-wine/50" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="relative px-6 py-16 text-cream sm:px-12 sm:py-20 lg:px-16"
+      >
+        <h2 className="max-w-xl font-serif text-3xl font-medium leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+          {headline}
+        </h2>
+        <p className="mt-4 max-w-lg text-base leading-relaxed text-cream/80 sm:text-lg">
+          {subheadline}
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button href="#booking" variant="primary" className="bg-cream text-wine hover:bg-beige">
+            {primaryCta}
+          </Button>
+          <Button
+            href={agendaPath(locale)}
+            variant="outline"
+            className="border-cream/40 text-cream hover:bg-cream hover:text-wine"
+          >
+            {secondaryCta}
+          </Button>
+        </div>
+      </motion.div>
+    </section>
+  );
+}

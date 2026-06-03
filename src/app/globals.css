@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #f7f1e8;
+  --burgundy: #5a0f1b;
+  --wine: #2b0d12;
+  --gold: #c59a5b;
+  --beige: #fff8ef;
+  --rose: #e8a4b8;
+  --rose-deep: #9d4d6f;
+  --rose-soft: #f8e8ef;
+  --border-subtle: rgba(90, 15, 27, 0.12);
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-burgundy: var(--burgundy);
+  --color-wine: var(--wine);
+  --color-gold: var(--gold);
+  --color-beige: var(--beige);
+  --color-rose: var(--rose);
+  --color-rose-deep: var(--rose-deep);
+  --color-rose-soft: var(--rose-soft);
+  --color-border-subtle: var(--border-subtle);
+  --font-serif: var(--font-cormorant);
+  --font-sans: var(--font-dm-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--wine);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+::selection {
+  background: rgba(90, 15, 27, 0.15);
+  color: var(--wine);
+}

@@ -74,8 +74,7 @@ export interface ExperiencePageLabels {
   routeMapEyebrow: string;
   routeMapTitle: string;
   routeSubtitle: string;
-  routeOpenInApple: string;
-  routeMapSetupHint: string;
+  routeMapCaption: string;
   socialTitle: string;
   socialSubtitle: string;
   galleryTitle: string;

@@ -5,12 +5,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { canReserve, formatPerPerson } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
+import {
+  displayAtmosphereTags,
+  resolveFemaleOnly,
+} from "@/lib/event-extras";
 import { Button } from "../ui/Button";
 
 interface ExperienceStickyBookingBarProps {
   experience: ExperienceItem;
   labels: Dictionary["experiencePage"];
   reserveCta: string;
+  femaleOnlyBadge: string;
   sentinelRef: RefObject<HTMLElement | null>;
 }
 
@@ -70,12 +75,22 @@ export function ExperienceStickyBookingBar({
   experience,
   labels,
   reserveCta,
+  femaleOnlyBadge,
   sentinelRef,
 }: ExperienceStickyBookingBarProps) {
   const [visible, setVisible] = useState(false);
   const { date, time } = splitDateTime(experience.dateTime);
   const priceLine = formatPerPerson(experience.price, labels.perPerson);
   const isSoldOut = !canReserve(experience);
+  const isFemaleOnly = resolveFemaleOnly(
+    experience.femaleOnly,
+    experience.atmosphereTags,
+  );
+  const visibleTags = displayAtmosphereTags(
+    experience.atmosphereTags,
+    experience.femaleOnly,
+  );
+  const hasTags = isFemaleOnly || visibleTags.length > 0;
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -99,7 +114,11 @@ export function ExperienceStickyBookingBar({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-x-0 top-[4.25rem] z-[48] border-b border-border-subtle bg-cream/95 shadow-sm backdrop-blur-md"
+          className={`fixed inset-x-0 top-[4.25rem] z-[48] border-b shadow-sm backdrop-blur-md ${
+            isFemaleOnly
+              ? "border-rose/25 bg-rose-soft/95"
+              : "border-border-subtle bg-cream/95"
+          }`}
           role="region"
           aria-label={experience.experienceName}
         >
@@ -124,6 +143,27 @@ export function ExperienceStickyBookingBar({
                   </span>
                   <MetaItem icon="price">{priceLine}</MetaItem>
                 </div>
+                {hasTags ? (
+                  <ul className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {isFemaleOnly ? (
+                      <li className="rounded-full bg-rose px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream sm:text-xs">
+                        {femaleOnlyBadge}
+                      </li>
+                    ) : null}
+                    {visibleTags.map((tag) => (
+                      <li
+                        key={tag}
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium sm:text-xs ${
+                          isFemaleOnly
+                            ? "bg-rose/15 text-rose-deep"
+                            : "bg-wine/8 text-wine/75"
+                        }`}
+                      >
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
 
               <Button
@@ -131,7 +171,7 @@ export function ExperienceStickyBookingBar({
                 variant="primary"
                 className={`w-full shrink-0 px-5 py-2.5 text-sm sm:w-auto ${
                   isSoldOut ? "pointer-events-none opacity-50" : ""
-                }`}
+                } ${isFemaleOnly ? "bg-rose hover:bg-rose-deep" : ""}`}
               >
                 {reserveCta}
               </Button>

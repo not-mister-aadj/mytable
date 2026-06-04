@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import type { Locale } from "@/i18n/config";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 
 const ExperienceRouteMap = dynamic(
@@ -25,22 +24,18 @@ interface CityRouteProps {
   mapEyebrow: string;
   mapTitle: string;
   subtitle: string;
-  openMapsLabel: string;
-  mapSetupHint: string;
+  mapCaption: string;
   city: string;
   points: RouteMapPoint[];
-  locale: Locale;
 }
 
 export function CityRoute({
   mapEyebrow,
   mapTitle,
   subtitle,
-  openMapsLabel,
-  mapSetupHint,
+  mapCaption,
   city,
   points,
-  locale,
 }: CityRouteProps) {
   const heading = mapTitle.replace("{city}", city);
 
@@ -64,12 +59,7 @@ export function CityRoute({
         </div>
 
         <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[1.75rem] border border-border-subtle/80 shadow-[0_24px_60px_rgba(43,13,18,0.08)]">
-          <ExperienceRouteMap
-            points={points}
-            locale={locale}
-            openMapsLabel={openMapsLabel}
-            mapSetupHint={mapSetupHint}
-          />
+          <ExperienceRouteMap points={points} caption={mapCaption} />
         </div>
 
         <ol className="mx-auto mt-8 flex max-w-4xl flex-wrap justify-center gap-x-6 gap-y-3">

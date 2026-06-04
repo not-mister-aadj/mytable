@@ -26,13 +26,12 @@ export const experiencePageEn: ExperiencePageLabels = {
     "One partner restaurant per evening. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
   guestQuotesTitle: "What guests say",
   routeTitle: "An afternoon through {city}",
-  routeMapEyebrow: "Find on the map",
-  routeMapTitle: "A walk past these restaurants",
+  routeMapEyebrow: "A feel for the route",
+  routeMapTitle: "Past these spots in {city}",
   routeSubtitle:
-    "You walk at an easy pace past carefully chosen stops. The full route arrives after booking.",
-  routeOpenInApple: "Open route in Maps",
-  routeMapSetupHint:
-    "Preferred view: Apple Maps (MapKit). Add credentials for the full map embed.",
+    "Get a sense of the vibe and neighbourhood upfront. Exact stops and addresses arrive in your confirmation email after booking.",
+  routeMapCaption:
+    "Map for inspiration only — not for navigation. All locations follow in your confirmation email.",
   socialTitle: "A night out, your way.",
   socialSubtitle:
     "Your own table, come solo, or join others — you choose how social it gets.",

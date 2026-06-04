@@ -26,13 +26,12 @@ export const experiencePageNl: ExperiencePageLabels = {
     "Eén partnerrestaurant per avond. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
   guestQuotesTitle: "Wat gasten zeggen",
   routeTitle: "Een middag door {city}",
-  routeMapEyebrow: "Zoek op de kaart",
-  routeMapTitle: "Een wandeling langs deze restaurants",
+  routeMapEyebrow: "Een indruk van de route",
+  routeMapTitle: "Langs deze plekken in {city}",
   routeSubtitle:
-    "Je loopt op ontspannen tempo langs zorgvuldig gekozen stops. De exacte route ontvang je na boeking.",
-  routeOpenInApple: "Open route in Kaarten",
-  routeMapSetupHint:
-    "Voorkeursweergave: Apple Kaarten (MapKit). Voeg credentials toe voor de volledige kaart.",
+    "Zo krijg je alvast een beeld van de sfeer en de buurt. De exacte stops en adressen sturen we je na je boeking per mail.",
+  routeMapCaption:
+    "Kaart ter impressie — geen navigatie. Alle locaties volgen in je bevestigingsmail.",
   socialTitle: "Een avond uit, op jouw manier.",
   socialSubtitle:
     "Eigen tafel, alleen komen of aanschuiven bij anderen — jij kiest hoe gezellig het wordt.",

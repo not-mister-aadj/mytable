@@ -95,6 +95,7 @@ export function ExperiencePageContent({
           experience={experience}
           labels={page}
           reserveCta={dict.agenda.reserveCta}
+          femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
           sentinelRef={stickySentinelRef}
         />
       )}
@@ -167,11 +168,9 @@ export function ExperiencePageContent({
                   mapEyebrow={page.routeMapEyebrow}
                   mapTitle={page.routeMapTitle}
                   subtitle={page.routeSubtitle}
-                  openMapsLabel={page.routeOpenInApple}
-                  mapSetupHint={page.routeMapSetupHint}
+                  mapCaption={page.routeMapCaption}
                   city={experience.city}
                   points={routePoints}
-                  locale={locale}
                 />
               </motion.div>
             ) : null}

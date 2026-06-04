@@ -6,6 +6,11 @@ import { venues } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { parseEventExtras } from "@/lib/event-extras";
 import {
+  coerceImageSettings,
+  DEFAULT_VENUE_IMAGE,
+  parseImageSettings,
+} from "@/lib/image-settings";
+import {
   DEFAULT_EXPERIENCE_TYPE,
   getExperienceTypeDefinition,
   getVenueIdsForExperienceType,
@@ -17,12 +22,18 @@ export function venueToExperienceVenue(venue: Venue, locale: Locale): Experience
     locale === "nl"
       ? venue.descriptionNl ?? venue.descriptionEn ?? ""
       : venue.descriptionEn ?? venue.descriptionNl ?? "";
+  const imageSettings =
+    parseImageSettings(venue.imageMeta) ??
+    coerceImageSettings(venue.imageUrl, "venue");
+  const imageUrl = imageSettings?.url ?? venue.imageUrl;
+
   return {
     name: venue.name,
     area: venue.area ?? venue.city,
     atmosphere: venue.atmosphere ?? "",
     description,
-    image: venue.imageUrl ?? "/images/restaurant-interior.jpg",
+    image: imageUrl ?? DEFAULT_VENUE_IMAGE,
+    imageSettings: imageSettings ?? undefined,
   };
 }
 

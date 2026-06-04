@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
+import { PositionedImage } from "@/components/ui/PositionedImage";
 import type { ExperienceVenue } from "@/i18n/types";
 
 interface VenueLineupProps {
@@ -39,10 +39,10 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
               className="group w-[min(85vw,320px)] shrink-0 overflow-hidden rounded-3xl border border-cream/10 bg-cream/5 backdrop-blur-sm"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
+                <PositionedImage
                   src={venue.image}
                   alt={venue.name}
-                  fill
+                  settings={venue.imageSettings}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                   sizes="320px"
                 />

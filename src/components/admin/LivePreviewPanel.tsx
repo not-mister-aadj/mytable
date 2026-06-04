@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import { PositionedImage } from "@/components/ui/PositionedImage";
+import { aspectRatioToCss } from "@/lib/image-settings";
 import { motion } from "framer-motion";
 import type { PreviewEventData } from "./event-preview";
 import {
@@ -106,20 +107,27 @@ function CardPreview({
   data: PreviewEventData;
 }) {
   const img = experience.cardImage ?? experience.image;
+  const cardSettings = experience.cardImageSettings;
   return (
     <>
-      <div className="relative aspect-[16/10] w-full">
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          aspectRatio: aspectRatioToCss(
+            cardSettings?.aspectRatio ?? "16:10",
+          ),
+        }}
+      >
         {img ? (
-          <Image
+          <PositionedImage
             src={img}
             alt={experience.experienceName}
-            fill
-            className="object-cover"
+            settings={cardSettings}
             sizes="400px"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-wine/10 text-sm text-wine/40">
-            Card image
+          <div className="flex h-full min-h-[120px] items-center justify-center bg-wine/10 text-sm text-wine/40">
+            Kies afbeelding
           </div>
         )}
         <span className="absolute right-3 top-3">
@@ -168,12 +176,18 @@ function DetailPreview({
 }) {
   return (
     <>
-      <div className="relative aspect-[4/3] w-full">
-        <Image
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          aspectRatio: aspectRatioToCss(
+            experience.heroImageSettings?.aspectRatio ?? "21:9",
+          ),
+        }}
+      >
+        <PositionedImage
           src={experience.image}
           alt={experience.experienceName}
-          fill
-          className="object-cover"
+          settings={experience.heroImageSettings}
           sizes="400px"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-wine/90 via-wine/40 to-transparent" />

@@ -30,6 +30,19 @@ import { MediaPicker } from "./MediaPicker";
 import { OccupancyBar } from "./OccupancyBar";
 import { VenuePicker } from "./VenuePicker";
 import type { PreviewEventData } from "./event-preview";
+import { coerceImageSettings, isUsableImageUrl } from "@/lib/image-settings";
+
+function loadInitialExtras(event?: Event): EventExtras {
+  if (!event) return emptyEventExtras();
+  const e = parseEventExtras(event.extras);
+  if (!e.heroImage && isUsableImageUrl(event.imageUrl)) {
+    e.heroImage = coerceImageSettings(event.imageUrl, "hero");
+  }
+  if (!e.cardImage && e.cardImageUrl) {
+    e.cardImage = coerceImageSettings(e.cardImageUrl, "agenda-card");
+  }
+  return e;
+}
 
 const STEPS = [
   "Type",
@@ -89,9 +102,7 @@ export function EventEditor({
   initialType?: string;
 }) {
   const isEdit = Boolean(event);
-  const initialExtras = event
-    ? parseEventExtras(event.extras)
-    : emptyEventExtras();
+  const initialExtras = loadInitialExtras(event);
 
   const startType: ExperienceTypeSlug =
     event && isValidExperienceType(event.experienceType)
@@ -118,9 +129,7 @@ export function EventEditor({
   );
   const [capacity, setCapacity] = useState(String(event?.capacity ?? 14));
   const [femaleOnly, setFemaleOnly] = useState(event?.femaleOnly ?? false);
-  const [imageUrl, setImageUrl] = useState(
-    event?.imageUrl ?? "/images/wine-bar.jpg",
-  );
+  const [imageUrl, setImageUrl] = useState(event?.imageUrl ?? "");
   const [taglineNl, setTaglineNl] = useState(event?.taglineNl ?? "");
   const [taglineEn, setTaglineEn] = useState(event?.taglineEn ?? "");
   const [categoryNl, setCategoryNl] = useState(
@@ -384,8 +393,14 @@ export function EventEditor({
                 onChange={(v) => updateExtras({ cardTextEn: v || undefined })}
               />
               <MediaPicker
-                value={extras.cardImageUrl ?? ""}
-                onChange={(v) => updateExtras({ cardImageUrl: v || undefined })}
+                usage="agenda-card"
+                value={extras.cardImage}
+                onChange={(v) =>
+                  updateExtras({
+                    cardImage: v,
+                    cardImageUrl: v?.url,
+                  })
+                }
                 label="Kaartafbeelding"
               />
             </Section>
@@ -419,18 +434,34 @@ export function EventEditor({
                   name="taglineEn"
                 />
               </div>
-              <MediaPicker value={imageUrl} onChange={setImageUrl} label="Hero-afbeelding" />
+              <MediaPicker
+                usage="hero"
+                value={extras.heroImage}
+                onChange={(v) => {
+                  updateExtras({ heroImage: v });
+                  setImageUrl(v?.url ?? "");
+                }}
+                label="Hero-afbeelding"
+              />
               <input type="hidden" name="imageUrl" value={imageUrl} />
               <MediaPicker
-                value={extras.galleryImages?.[0] ?? ""}
-                onChange={(url) => {
-                  const rest = extras.galleryImages?.slice(1) ?? [];
+                usage="gallery"
+                value={extras.galleryImageSettings?.[0]}
+                onChange={(v) => {
+                  const rest = extras.galleryImageSettings?.slice(1) ?? [];
+                  const next = v ? [v, ...rest] : rest;
                   updateExtras({
-                    galleryImages: url ? [url, ...rest] : rest.length ? rest : undefined,
+                    galleryImageSettings: next.length ? next : undefined,
+                    galleryImages: next.map((g) => g.url),
                   });
                 }}
-                label="Galerij (eerste afbeelding)"
+                label="Sfeerimpressie (eerste afbeelding)"
               />
+              {(extras.galleryImageSettings?.length ?? 0) > 1 ? (
+                <p className="text-xs text-wine/50">
+                  {extras.galleryImageSettings!.length} afbeeldingen in galerij
+                </p>
+              ) : null}
             </Section>
           ) : null}
 

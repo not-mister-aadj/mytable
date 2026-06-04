@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { PositionedImage } from "@/components/ui/PositionedImage";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import type { Dictionary, ExperienceItem, ExperienceMoodContent } from "@/i18n/types";
@@ -54,11 +54,10 @@ export function ExperienceHero({
       className="relative min-h-[62vh] overflow-hidden sm:min-h-[70vh]"
     >
       <motion.div className="absolute inset-0 scale-105" style={{ y: imageY }}>
-        <Image
+        <PositionedImage
           src={experience.image}
           alt={`${experience.experienceName}, ${experience.city}`}
-          fill
-          className="object-cover"
+          settings={experience.heroImageSettings}
           priority
           sizes="100vw"
         />

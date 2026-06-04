@@ -7,6 +7,7 @@ import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { parseEventExtras } from "@/lib/event-extras";
+import { DEFAULT_EVENT_IMAGE, isUsableImageUrl } from "@/lib/image-settings";
 import {
   DEFAULT_EXPERIENCE_TYPE,
   getExperienceTypeDefinition,
@@ -91,7 +92,9 @@ function toEventValues(form: EventFormState) {
     priceCents: Math.round(priceEuros * 100),
     capacity: Number.isFinite(capacity) ? capacity : 14,
     femaleOnly: form.femaleOnly,
-    imageUrl: form.imageUrl || "/images/wine-bar.jpg",
+    imageUrl:
+      form.extras.heroImage?.url ||
+      (isUsableImageUrl(form.imageUrl) ? form.imageUrl : DEFAULT_EVENT_IMAGE),
     nameNl: form.nameNl,
     nameEn: form.nameEn,
     taglineNl: form.taglineNl || null,

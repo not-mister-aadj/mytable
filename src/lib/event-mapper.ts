@@ -12,10 +12,16 @@ import {
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import {
   displayNamesFromEvent,
+  resolveHeroImageSettings,
   resolvePageSections,
   typeSlugFromEvent,
 } from "@/lib/resolve-experience-content";
 import { getExperienceTypeDefinition } from "@/lib/experience-type-definitions";
+import {
+  coerceImageSettings,
+  DEFAULT_EVENT_IMAGE,
+  isUsableImageUrl,
+} from "@/lib/image-settings";
 
 export function mapDbEventToExperienceItem(
   row: Event,
@@ -37,6 +43,15 @@ export function mapDbEventToExperienceItem(
   const startsAt = new Date(row.startsAt);
   const endsAt = row.endsAt ? new Date(row.endsAt) : null;
 
+  const heroSettings = resolveHeroImageSettings(extras, row.imageUrl);
+  const cardSettings =
+    extras.cardImage ??
+    coerceImageSettings(extras.cardImageUrl, "agenda-card");
+
+  const heroUrl =
+    heroSettings?.url ??
+    (isUsableImageUrl(row.imageUrl) ? row.imageUrl : DEFAULT_EVENT_IMAGE);
+
   return {
     id: row.legacyId ?? row.id,
     slug: row.slug,
@@ -44,7 +59,9 @@ export function mapDbEventToExperienceItem(
     experienceName: names.experienceName,
     cardTitle: names.cardTitle,
     cardText: names.cardText,
-    cardImage: names.cardImage,
+    cardImage: cardSettings?.url,
+    cardImageSettings: cardSettings,
+    heroImageSettings: heroSettings,
     category: names.category,
     experienceType: typeSlug,
     pageSections: resolvePageSections(typeSlug, locale, extras),
@@ -56,7 +73,7 @@ export function mapDbEventToExperienceItem(
       row.publishedAt ? new Date(row.publishedAt) : null,
     ),
     mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
-    image: row.imageUrl,
+    image: heroUrl,
     femaleOnly: row.femaleOnly,
     tagline: names.tagline,
     capacity: row.capacity,
@@ -65,9 +82,8 @@ export function mapDbEventToExperienceItem(
     atmosphereTags: extras.atmosphereTags,
     customDescription: customDescription || undefined,
     customFaq: customFaq?.length ? customFaq : undefined,
-    galleryImages: extras.galleryImages?.length
-      ? extras.galleryImages
-      : undefined,
+    galleryImages: extras.galleryImageSettings?.map((g) => g.url),
+    galleryImageSettings: extras.galleryImageSettings,
   };
 }
 
@@ -87,5 +103,8 @@ export async function enrichDbEvent(
     cardTitle: item.cardTitle,
     cardText: item.cardText,
     cardImage: item.cardImage,
+    cardImageSettings: item.cardImageSettings,
+    heroImageSettings: item.heroImageSettings,
+    galleryImageSettings: item.galleryImageSettings,
   };
 }

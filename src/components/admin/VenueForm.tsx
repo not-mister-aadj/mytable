@@ -8,6 +8,11 @@ import {
 } from "@/app/admin/(dashboard)/venues/actions";
 import { MediaPicker } from "./MediaPicker";
 import { useState } from "react";
+import {
+  coerceImageSettings,
+  parseImageSettings,
+} from "@/lib/image-settings";
+import type { ImageSettings } from "@/lib/image-settings";
 
 export function VenueForm({ venue }: { venue?: Venue }) {
   const isEdit = Boolean(venue);
@@ -15,8 +20,10 @@ export function VenueForm({ venue }: { venue?: Venue }) {
     ? updateVenueAction.bind(null, venue!.id)
     : createVenueAction;
 
-  const [imageUrl, setImageUrl] = useState(
-    venue?.imageUrl ?? "/images/restaurant-interior.jpg",
+  const [imageSettings, setImageSettings] = useState<ImageSettings | undefined>(
+    () =>
+      parseImageSettings(venue?.imageMeta) ??
+      coerceImageSettings(venue?.imageUrl, "venue"),
   );
 
   return (
@@ -45,8 +52,18 @@ export function VenueForm({ venue }: { venue?: Venue }) {
             defaultValue={venue?.longitude ?? ""}
           />
         </div>
-        <MediaPicker value={imageUrl} onChange={setImageUrl} label="Foto" />
-        <input type="hidden" name="imageUrl" value={imageUrl} />
+        <MediaPicker
+          usage="venue"
+          label="Foto"
+          value={imageSettings}
+          onChange={setImageSettings}
+        />
+        <input type="hidden" name="imageUrl" value={imageSettings?.url ?? ""} />
+        <input
+          type="hidden"
+          name="imageMeta"
+          value={imageSettings ? JSON.stringify(imageSettings) : ""}
+        />
         <TextArea
           label="Beschrijving (NL)"
           name="descriptionNl"

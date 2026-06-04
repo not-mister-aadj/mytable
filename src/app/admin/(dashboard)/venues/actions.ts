@@ -6,6 +6,8 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { redirect } from "next/navigation";
+import { parseImageSettings } from "@/lib/image-settings";
+import { DEFAULT_VENUE_IMAGE } from "@/lib/image-settings";
 
 function parseVenueForm(data: FormData) {
   const name = String(data.get("name") ?? "").trim();
@@ -13,6 +15,16 @@ function parseVenueForm(data: FormData) {
   const descriptionNl = String(data.get("descriptionNl") ?? "").trim();
   const descriptionEn = String(data.get("descriptionEn") ?? "").trim();
   const imageUrl = String(data.get("imageUrl") ?? "").trim();
+  let imageMeta: Record<string, unknown> | null = null;
+  try {
+    const raw = String(data.get("imageMeta") ?? "").trim();
+    if (raw) {
+      const parsed = parseImageSettings(JSON.parse(raw));
+      if (parsed) imageMeta = parsed as unknown as Record<string, unknown>;
+    }
+  } catch {
+    imageMeta = null;
+  }
   const area = String(data.get("area") ?? "").trim();
   const atmosphere = String(data.get("atmosphere") ?? "").trim();
   const address = String(data.get("address") ?? "").trim();
@@ -31,7 +43,8 @@ function parseVenueForm(data: FormData) {
     address: address || null,
     descriptionNl,
     descriptionEn: descriptionEn || descriptionNl,
-    imageUrl: imageUrl || "/images/restaurant-interior.jpg",
+    imageUrl: imageUrl || DEFAULT_VENUE_IMAGE,
+    imageMeta,
     latitude: latitude || null,
     longitude: longitude || null,
   };

@@ -6,6 +6,12 @@ import { getExperienceTypeDefinition } from "@/lib/experience-type-definitions";
 import { getVenueSectionLabels } from "@/lib/experience-template-defaults";
 import { experiencePageNl } from "@/i18n/experience-page-nl";
 import { experiencePageEn } from "@/i18n/experience-page-en";
+import {
+  coerceImageSettings,
+  DEFAULT_EVENT_IMAGE,
+  isUsableImageUrl,
+} from "@/lib/image-settings";
+import { resolveHeroImageSettings } from "@/lib/resolve-experience-content";
 
 export type PreviewEventData = {
   nameNl: string;
@@ -50,6 +56,11 @@ export function buildCardPreviewExperience(
   const cardText =
     locale === "nl" ? extras.cardTextNl : extras.cardTextEn;
 
+  const cardSettings =
+    extras.cardImage ??
+    coerceImageSettings(extras.cardImageUrl, "agenda-card");
+  const cardUrl = cardSettings?.url;
+
   return {
     id: "preview",
     slug: "preview",
@@ -63,8 +74,9 @@ export function buildCardPreviewExperience(
     price: data.priceEuros || 0,
     status: deriveDisplayStatus(capacity, spotsSold, null),
     mood: (typeDef?.mood ?? "tastings") as ExperienceMoodKey,
-    image: extras.cardImageUrl || data.imageUrl || "/images/wine-bar.jpg",
-    cardImage: extras.cardImageUrl || data.imageUrl,
+    image: cardUrl ?? "",
+    cardImage: cardUrl,
+    cardImageSettings: cardSettings,
     femaleOnly: data.femaleOnly,
     capacity,
     spotsSold,
@@ -97,6 +109,11 @@ export function buildDetailPreviewExperience(
       ? extras.heroTitleNl || data.nameNl
       : extras.heroTitleEn || data.nameEn || data.nameNl;
 
+  const heroSettings = resolveHeroImageSettings(extras, data.imageUrl);
+  const heroUrl =
+    heroSettings?.url ??
+    (isUsableImageUrl(data.imageUrl) ? data.imageUrl : DEFAULT_EVENT_IMAGE);
+
   return {
     id: "preview",
     slug: "preview",
@@ -118,7 +135,9 @@ export function buildDetailPreviewExperience(
     price: data.priceEuros || 0,
     status: deriveDisplayStatus(capacity, spotsSold, null),
     mood: moodKey,
-    image: data.imageUrl || "/images/wine-bar.jpg",
+    image: heroUrl,
+    heroImageSettings: heroSettings,
+    cardImageSettings: extras.cardImage,
     femaleOnly: data.femaleOnly,
     capacity,
     spotsSold,
@@ -130,9 +149,8 @@ export function buildDetailPreviewExperience(
         ? extras.sectionOverrides.faqNl
         : extras.sectionOverrides.faqEn
       : extras.faqNl,
-    galleryImages: extras.galleryImages?.length
-      ? extras.galleryImages
-      : mood.gallery,
+    galleryImages: extras.galleryImageSettings?.map((g) => g.url),
+    galleryImageSettings: extras.galleryImageSettings,
   };
 }
 

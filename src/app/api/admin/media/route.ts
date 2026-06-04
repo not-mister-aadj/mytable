@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { createSupabaseAdminClient, MEDIA_BUCKET } from "@/lib/supabase/admin";
+import {
+  ALLOWED_IMAGE_MIME,
+  MAX_IMAGE_BYTES,
+  validateImageFile,
+} from "@/lib/image-settings";
 
 export async function GET() {
   const denied = await requireAdminApi();
@@ -29,7 +34,9 @@ export async function GET() {
         } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path);
         const tag =
           typeof f.metadata?.tag === "string" ? f.metadata.tag : undefined;
-        return { path, url: publicUrl, name: path, tag };
+        const createdAt =
+          typeof f.created_at === "string" ? f.created_at : undefined;
+        return { path, url: publicUrl, name: path, tag, createdAt };
       });
 
     return NextResponse.json({ items });
@@ -49,21 +56,36 @@ export async function POST(request: Request) {
   const file = form.get("file");
   const tag = String(form.get("tag") ?? "").trim();
 
-  if (!(file instanceof File) || file.size === 0) {
-    return NextResponse.json({ error: "No file" }, { status: 400 });
+  if (!(file instanceof File)) {
+    return NextResponse.json({ error: "Geen bestand gekozen." }, { status: 400 });
+  }
+  const validationError = validateImageFile(file);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const safeExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext)
     ? ext
     : "jpg";
+  const mime =
+    file.type && ALLOWED_IMAGE_MIME.includes(file.type as (typeof ALLOWED_IMAGE_MIME)[number])
+      ? file.type
+      : `image/${safeExt === "jpg" ? "jpeg" : safeExt}`;
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
 
   try {
     const supabase = createSupabaseAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
+    if (buffer.length > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: "Afbeelding is te groot (max 10 MB)." },
+        { status: 400 },
+      );
+    }
+
     const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, buffer, {
-      contentType: file.type || `image/${safeExt}`,
+      contentType: mime,
       upsert: false,
       metadata: tag ? { tag } : undefined,
     });

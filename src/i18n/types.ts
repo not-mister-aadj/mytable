@@ -6,6 +6,8 @@ export type ExperienceStatusKey =
 
 export type AgendaTabKey = "all" | "girlsOnly" | "mixed";
 
+import type { ImageSettings } from "@/lib/image-settings";
+
 export type ExperienceMoodKey = "tastings" | "wineWalk" | "chefsSpecial";
 
 export interface ExperienceExpectItem {
@@ -24,6 +26,7 @@ export interface ExperienceVenue {
   atmosphere: string;
   description: string;
   image: string;
+  imageSettings?: ImageSettings;
 }
 
 export interface ExperienceFlowStep {
@@ -136,6 +139,8 @@ export interface ExperienceItem {
   cardTitle?: string;
   cardText?: string;
   cardImage?: string;
+  cardImageSettings?: ImageSettings;
+  heroImageSettings?: ImageSettings;
   category: string;
   experienceType?: string;
   pageSections?: ExperiencePageSectionLabels;
@@ -155,6 +160,7 @@ export interface ExperienceItem {
   customDescription?: string;
   customFaq?: ExperienceFaqItem[];
   galleryImages?: string[];
+  galleryImageSettings?: ImageSettings[];
 }
 
 export interface AgendaTab {

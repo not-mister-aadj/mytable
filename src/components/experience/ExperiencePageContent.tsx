@@ -149,6 +149,7 @@ export function ExperiencePageContent({
                     ? experience.galleryImages
                     : mood.gallery
                 }
+                imageSettings={experience.galleryImageSettings}
                 experienceName={experience.experienceName}
               />
             </motion.div>

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
+import { PositionedImage } from "@/components/ui/PositionedImage";
 
 const statusBadgeStyles: Record<
   ExperienceItem["status"],
@@ -32,6 +32,10 @@ export function ExperienceCard({
 }: ExperienceCardProps) {
   const isSoldOut = experience.status === "soldOut";
   const isFemaleOnly = experience.femaleOnly === true;
+  const cardSettings = experience.cardImageSettings;
+  const cardSrc =
+    cardSettings?.url ?? experience.cardImage ?? experience.image;
+  const hasCardImage = Boolean(cardSrc);
 
   return (
     <Link
@@ -42,16 +46,25 @@ export function ExperienceCard({
           : "border-border-subtle"
       }`}
     >
-      <div className="relative aspect-[16/10] overflow-hidden">
-        <Image
-          src={experience.cardImage ?? experience.image}
-          alt={`${experience.cardTitle ?? experience.experienceName}, ${experience.city}`}
-          fill
-          className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] ${
-            isSoldOut ? "opacity-75 saturate-[0.85]" : ""
-          } ${isFemaleOnly ? "saturate-[1.05]" : ""}`}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
+      <div
+        className="relative overflow-hidden"
+        style={{ aspectRatio: cardSettings?.aspectRatio?.replace(":", " / ") ?? "16 / 10" }}
+      >
+        {hasCardImage ? (
+          <PositionedImage
+            src={cardSrc}
+            alt={`${experience.cardTitle ?? experience.experienceName}, ${experience.city}`}
+            settings={cardSettings}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] ${
+              isSoldOut ? "opacity-75 saturate-[0.85]" : ""
+            } ${isFemaleOnly ? "saturate-[1.05]" : ""}`}
+          />
+        ) : (
+          <div className="flex h-full min-h-[160px] items-center justify-center bg-wine/5 text-sm text-wine/40">
+            Afbeelding volgt
+          </div>
+        )}
         <div
           className={`absolute inset-0 bg-gradient-to-t transition-opacity duration-300 ${
             isFemaleOnly
@@ -104,12 +117,10 @@ export function ExperienceCard({
           </p>
           <span
             className={`shrink-0 text-sm font-medium transition-colors ${
-              isSoldOut
-                ? "text-wine/40"
-                : "text-burgundy group-hover:text-wine"
+              isSoldOut ? "text-wine/40" : "text-burgundy group-hover:text-wine"
             }`}
           >
-            {viewTableCta} →
+            {isSoldOut ? statusLabels.soldOut : viewTableCta}
           </span>
         </div>
       </div>

@@ -10,6 +10,10 @@ import { isValidExperienceType } from "@/lib/experience-type-definitions";
 import { getVenueSectionLabels } from "@/lib/experience-template-defaults";
 import type { EventExtras } from "@/lib/event-extras";
 import { getMoodContent } from "@/lib/experience-detail";
+import {
+  coerceImageSettings,
+  isUsableImageUrl,
+} from "@/lib/image-settings";
 
 export function resolvePageSections(
   typeSlug: string,
@@ -84,11 +88,15 @@ export function displayNamesFromEvent(
       ? row.taglineNl ?? undefined
       : row.taglineEn ?? undefined;
 
+  const cardSettings =
+    extras.cardImage ??
+    coerceImageSettings(extras.cardImageUrl, "agenda-card");
+
   return {
     experienceName: heroTitle,
     cardTitle,
     cardText,
-    cardImage: extras.cardImageUrl || row.imageUrl,
+    cardImage: cardSettings?.url,
     category: cardCategory,
     tagline,
   };
@@ -99,4 +107,15 @@ export function typeSlugFromEvent(
 ): ExperienceTypeSlug {
   const slug = experienceType ?? "";
   return isValidExperienceType(slug) ? slug : "wine-tasting";
+}
+
+export function resolveHeroImageSettings(
+  extras: EventExtras,
+  imageUrl: string,
+) {
+  if (extras.heroImage) return extras.heroImage;
+  if (isUsableImageUrl(imageUrl)) {
+    return coerceImageSettings(imageUrl, "hero");
+  }
+  return undefined;
 }

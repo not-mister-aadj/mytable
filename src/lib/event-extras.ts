@@ -1,3 +1,10 @@
+import type { ImageSettings } from "@/lib/image-settings";
+import {
+  coerceImageSettings,
+  parseGalleryImages,
+  parseImageSettings,
+} from "@/lib/image-settings";
+
 export const ATMOSPHERE_TAG_OPTIONS = [
   "Girls only",
   "Mixed group",
@@ -24,13 +31,13 @@ export type EventSectionOverrides = {
 
 export type EventExtras = {
   atmosphereTags?: string[];
-  /** Legacy; prefer sectionOverrides.aboutNl */
   atmosphereTextNl?: string;
   atmosphereTextEn?: string;
   faqNl?: EventFaqItem[];
   faqEn?: EventFaqItem[];
+  /** @deprecated use galleryImageSettings */
   galleryImages?: string[];
-  /** Linked venue UUIDs (order = display / route order) */
+  galleryImageSettings?: ImageSettings[];
   venueIds?: string[];
   cardTitleNl?: string;
   cardTitleEn?: string;
@@ -38,7 +45,11 @@ export type EventExtras = {
   cardCategoryEn?: string;
   cardTextNl?: string;
   cardTextEn?: string;
+  /** @deprecated use cardImage */
   cardImageUrl?: string;
+  cardImage?: ImageSettings;
+  /** @deprecated url duplicated on events.imageUrl */
+  heroImage?: ImageSettings;
   heroTitleNl?: string;
   heroTitleEn?: string;
   sectionOverrides?: EventSectionOverrides;
@@ -65,6 +76,17 @@ export function parseEventExtras(raw: unknown): EventExtras {
     };
   }
 
+  const cardImage =
+    parseImageSettings(o.cardImage) ??
+    coerceImageSettings(o.cardImageUrl, "agenda-card");
+
+  const heroImage = parseImageSettings(o.heroImage);
+
+  let galleryImageSettings = parseGalleryImages(o.galleryImageSettings);
+  if (galleryImageSettings.length === 0 && Array.isArray(o.galleryImages)) {
+    galleryImageSettings = parseGalleryImages(o.galleryImages);
+  }
+
   return {
     atmosphereTags: Array.isArray(o.atmosphereTags)
       ? o.atmosphereTags.filter((t): t is string => typeof t === "string")
@@ -75,9 +97,9 @@ export function parseEventExtras(raw: unknown): EventExtras {
       typeof o.atmosphereTextEn === "string" ? o.atmosphereTextEn : undefined,
     faqNl: Array.isArray(o.faqNl) ? (o.faqNl as EventFaqItem[]) : undefined,
     faqEn: Array.isArray(o.faqEn) ? (o.faqEn as EventFaqItem[]) : undefined,
-    galleryImages: Array.isArray(o.galleryImages)
-      ? o.galleryImages.filter((u): u is string => typeof u === "string")
-      : undefined,
+    galleryImages: galleryImageSettings.map((g) => g.url),
+    galleryImageSettings:
+      galleryImageSettings.length > 0 ? galleryImageSettings : undefined,
     venueIds: Array.isArray(o.venueIds)
       ? o.venueIds.filter((id): id is string => typeof id === "string")
       : undefined,
@@ -92,7 +114,9 @@ export function parseEventExtras(raw: unknown): EventExtras {
     cardTextNl: typeof o.cardTextNl === "string" ? o.cardTextNl : undefined,
     cardTextEn: typeof o.cardTextEn === "string" ? o.cardTextEn : undefined,
     cardImageUrl:
-      typeof o.cardImageUrl === "string" ? o.cardImageUrl : undefined,
+      typeof o.cardImageUrl === "string" ? o.cardImageUrl : cardImage?.url,
+    cardImage,
+    heroImage,
     heroTitleNl:
       typeof o.heroTitleNl === "string" ? o.heroTitleNl : undefined,
     heroTitleEn:

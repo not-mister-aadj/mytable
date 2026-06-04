@@ -32,6 +32,10 @@ export type PreviewEventData = {
   workflowStatus?: "draft" | "published" | "cancelled";
   extras: EventExtras;
   previewLocale?: "nl" | "en";
+  /** Saved event — enables iframe preview with real viewport width */
+  eventId?: string;
+  /** Changes after save to refresh iframe */
+  previewRevision?: number;
 };
 
 export function buildCardPreviewExperience(

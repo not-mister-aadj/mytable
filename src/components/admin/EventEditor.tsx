@@ -205,6 +205,10 @@ export function EventEditor({
       workflowStatus: event?.workflowStatus,
       extras,
       previewLocale,
+      eventId: event?.id,
+      previewRevision: event?.updatedAt
+        ? new Date(event.updatedAt).getTime()
+        : 0,
     }),
     [
       nameNl,
@@ -217,6 +221,7 @@ export function EventEditor({
       priceEuros,
       capacity,
       event,
+      event?.updatedAt,
       imageUrl,
       categoryNl,
       categoryEn,

@@ -128,7 +128,7 @@ export function LivePreviewPanel({
           href="#preview"
         />
       </div>
-    ) : (
+    ) : data.eventId ? null : (
       <AdminDetailPreview data={data} allVenues={allVenues} />
     );
 
@@ -166,12 +166,17 @@ export function LivePreviewPanel({
                 mode={viewport}
                 mobileSize={mobileSize}
                 className="max-w-full"
+                eventId={data.eventId}
+                locale={locale}
+                previewRevision={data.previewRevision}
               >
-                <AdminDetailPreview
-                  data={data}
-                  allVenues={allVenues}
-                  expanded
-                />
+                {!data.eventId ? (
+                  <AdminDetailPreview
+                    data={data}
+                    allVenues={allVenues}
+                    expanded
+                  />
+                ) : null}
               </PreviewDeviceFrame>
             </div>
           </div>,
@@ -220,9 +225,21 @@ export function LivePreviewPanel({
           layout
           className="flex w-full justify-center overflow-y-auto rounded-2xl border border-border-subtle bg-wine/[0.03] p-3 shadow-lg max-h-[85vh]"
         >
-          <PreviewDeviceFrame mode={viewport} mobileSize={mobileSize}>
+          <PreviewDeviceFrame
+            mode={viewport}
+            mobileSize={mobileSize}
+            eventId={mode === "detail" ? data.eventId : undefined}
+            locale={locale}
+            previewRevision={data.previewRevision}
+          >
             {previewContent}
           </PreviewDeviceFrame>
+          {mode === "detail" && data.eventId ? (
+            <p className="text-center text-[10px] text-wine/45">
+              Mobiele/desktop preview = opgeslagen versie (1:1 met website). Sla
+              op om te vernieuwen.
+            </p>
+          ) : null}
         </motion.div>
       </div>
     </>

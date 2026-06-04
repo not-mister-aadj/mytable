@@ -102,7 +102,7 @@ export const experiencePageNl: ExperiencePageLabels = {
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "MyTable start met wijnproeverijen in één restaurant. Je schuift aan bij een kleine groep, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten, meestal twee tot drie uur.",
+        "Je schuift aan tafel, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten, meestal twee tot drie uur.",
       whatToExpect: [
         {
           title: "Eén restaurant, één tafel",

@@ -102,7 +102,7 @@ export const experiencePageEn: ExperiencePageLabels = {
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
-        "MyTable starts with wine tastings at a single restaurant. You join a small group, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace, usually two to three hours.",
+        "You sit down at the table, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace, usually two to three hours.",
       whatToExpect: [
         {
           title: "One restaurant, one table",

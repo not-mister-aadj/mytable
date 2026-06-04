@@ -7,9 +7,9 @@ const catalogEn = getCatalogExperiences("en");
 
 export const en: Dictionary = {
   meta: {
-    title: "MyTable · Good taste. Great company.",
+    title: "MyTable · Good food. Fine wines. Great tables.",
     description:
-      "Wine tastings at one table in one restaurant. Girls only or mixed group. Pick your table and come.",
+      "From wine tastings to chef's specials: discover social tables at special venues across the Netherlands.",
   },
   header: {
     nav: {

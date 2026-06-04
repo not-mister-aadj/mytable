@@ -7,9 +7,9 @@ const catalogNl = getCatalogExperiences("nl");
 
 export const nl: Dictionary = {
   meta: {
-    title: "MyTable · Goede smaak. Goed gezelschap.",
+    title: "MyTable · Goed eten. Mooie wijnen. Gezellige tafels.",
     description:
-      "Wijnproeverijen aan één tafel in één restaurant. Girls only of gemengde groep. Kies je tafel en kom langs.",
+      "Van wijnproeverijen tot chef's specials: ontdek sociale tafels op bijzondere locaties door heel Nederland.",
   },
   header: {
     nav: {

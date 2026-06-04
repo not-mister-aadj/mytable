@@ -10,6 +10,23 @@ import { motion } from "framer-motion";
 import type { PreviewEventData } from "./event-preview";
 import { buildCardPreviewExperience } from "./event-preview";
 import { AdminDetailPreview } from "./AdminDetailPreview";
+import { PreviewDeviceFrame } from "./PreviewDeviceFrame";
+import {
+  DEFAULT_MOBILE_PREVIEW_SIZE,
+  MOBILE_PREVIEW_FRAMES,
+  type MobilePreviewSize,
+} from "./mobile-preview-frames";
+
+const MOBILE_SIZE_STORAGE_KEY = "mytable-admin-mobile-preview-size";
+
+function readStoredMobileSize(): MobilePreviewSize {
+  if (typeof window === "undefined") return DEFAULT_MOBILE_PREVIEW_SIZE;
+  const raw = localStorage.getItem(MOBILE_SIZE_STORAGE_KEY);
+  if (raw && raw in MOBILE_PREVIEW_FRAMES) {
+    return raw as MobilePreviewSize;
+  }
+  return DEFAULT_MOBILE_PREVIEW_SIZE;
+}
 
 export function LivePreviewPanel({
   data,
@@ -19,6 +36,9 @@ export function LivePreviewPanel({
   allVenues?: Venue[];
 }) {
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
+  const [mobileSize, setMobileSize] = useState<MobilePreviewSize>(
+    DEFAULT_MOBILE_PREVIEW_SIZE,
+  );
   const [mode, setMode] = useState<"card" | "detail">("card");
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -26,9 +46,16 @@ export function LivePreviewPanel({
   const dict = locale === "en" ? en : nl;
   const card = useMemo(() => buildCardPreviewExperience(data), [data]);
 
-  const widthClass = viewport === "mobile" ? "mx-auto w-[320px]" : "w-full";
-
   const closeFullscreen = useCallback(() => setFullscreen(false), []);
+
+  useEffect(() => {
+    setMobileSize(readStoredMobileSize());
+  }, []);
+
+  const selectMobileSize = useCallback((size: MobilePreviewSize) => {
+    setMobileSize(size);
+    localStorage.setItem(MOBILE_SIZE_STORAGE_KEY, size);
+  }, []);
 
   useEffect(() => {
     if (!fullscreen) return;
@@ -48,30 +75,68 @@ export function LivePreviewPanel({
     };
   }, [fullscreen]);
 
+  const mobileSizeToggle =
+    viewport === "mobile" ? (
+      <div className="flex rounded-full border border-border-subtle bg-cream p-0.5 text-xs">
+        {(Object.keys(MOBILE_PREVIEW_FRAMES) as MobilePreviewSize[]).map(
+          (key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => selectMobileSize(key)}
+              className={`rounded-full px-2.5 py-1 ${mobileSize === key ? "bg-burgundy text-cream" : "text-wine/70"}`}
+              title={MOBILE_PREVIEW_FRAMES[key].device}
+            >
+              {MOBILE_PREVIEW_FRAMES[key].label}
+            </button>
+          ),
+        )}
+      </div>
+    ) : null;
+
   const viewportToggle = (
-    <div className="flex rounded-full border border-border-subtle bg-cream p-0.5 text-xs">
-      <button
-        type="button"
-        onClick={() => setViewport("desktop")}
-        className={`rounded-full px-3 py-1 ${viewport === "desktop" ? "bg-burgundy text-cream" : "text-wine/70"}`}
-      >
-        Desktop
-      </button>
-      <button
-        type="button"
-        onClick={() => setViewport("mobile")}
-        className={`rounded-full px-3 py-1 ${viewport === "mobile" ? "bg-burgundy text-cream" : "text-wine/70"}`}
-      >
-        Mobile
-      </button>
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex rounded-full border border-border-subtle bg-cream p-0.5 text-xs">
+        <button
+          type="button"
+          onClick={() => setViewport("desktop")}
+          className={`rounded-full px-3 py-1 ${viewport === "desktop" ? "bg-burgundy text-cream" : "text-wine/70"}`}
+        >
+          Desktop
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewport("mobile")}
+          className={`rounded-full px-3 py-1 ${viewport === "mobile" ? "bg-burgundy text-cream" : "text-wine/70"}`}
+        >
+          Mobiel
+        </button>
+      </div>
+      {mobileSizeToggle}
     </div>
   );
+
+  const previewContent =
+    mode === "card" ? (
+      <div className="p-3 [&_a]:pointer-events-none">
+        <ExperienceCard
+          experience={card}
+          statusLabels={dict.agenda.status}
+          femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
+          reserveCta={dict.experiences.reserveCta}
+          viewTableCta={dict.experiencePage.viewTableCta}
+          href="#preview"
+        />
+      </div>
+    ) : (
+      <AdminDetailPreview data={data} allVenues={allVenues} />
+    );
 
   const fullscreenOverlay =
     fullscreen && typeof document !== "undefined"
       ? createPortal(
           <div
-            className="fixed inset-0 z-[200] flex flex-col bg-cream"
+            className="fixed inset-0 z-[200] flex flex-col bg-wine/10"
             role="dialog"
             aria-modal="true"
             aria-label="Detailpagina preview"
@@ -96,20 +161,18 @@ export function LivePreviewPanel({
                 </button>
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <div
-                className={
-                  viewport === "mobile"
-                    ? "mx-auto w-full max-w-[390px] shadow-xl"
-                    : "w-full"
-                }
+            <div className="flex min-h-0 flex-1 items-start justify-center overflow-y-auto p-4 sm:p-8">
+              <PreviewDeviceFrame
+                mode={viewport}
+                mobileSize={mobileSize}
+                className="max-w-full"
               >
                 <AdminDetailPreview
                   data={data}
                   allVenues={allVenues}
                   expanded
                 />
-              </div>
+              </PreviewDeviceFrame>
             </div>
           </div>,
           document.body,
@@ -123,7 +186,7 @@ export function LivePreviewPanel({
       <div className="sticky top-24 flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-serif text-lg text-burgundy">Live preview</h3>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex rounded-full border border-border-subtle bg-cream p-0.5 text-xs">
               <button
                 type="button"
@@ -155,22 +218,11 @@ export function LivePreviewPanel({
 
         <motion.div
           layout
-          className={`max-h-[85vh] w-full overflow-y-auto rounded-2xl border border-border-subtle bg-cream shadow-lg ${widthClass}`}
+          className="flex w-full justify-center overflow-y-auto rounded-2xl border border-border-subtle bg-wine/[0.03] p-3 shadow-lg max-h-[85vh]"
         >
-          {mode === "card" ? (
-            <div className="p-3 [&_a]:pointer-events-none">
-              <ExperienceCard
-                experience={card}
-                statusLabels={dict.agenda.status}
-                femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
-                reserveCta={dict.experiences.reserveCta}
-                viewTableCta={dict.experiencePage.viewTableCta}
-                href="#preview"
-              />
-            </div>
-          ) : (
-            <AdminDetailPreview data={data} allVenues={allVenues} />
-          )}
+          <PreviewDeviceFrame mode={viewport} mobileSize={mobileSize}>
+            {previewContent}
+          </PreviewDeviceFrame>
         </motion.div>
       </div>
     </>

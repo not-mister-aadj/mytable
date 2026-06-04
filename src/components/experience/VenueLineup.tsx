@@ -64,7 +64,12 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
                 <h3 className="font-serif text-2xl font-medium text-cream">
                   {venue.name}
                 </h3>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-gold">
+                {venue.address ? (
+                  <p className="mt-1 text-sm text-cream/65">{venue.address}</p>
+                ) : null}
+                <p
+                  className={`text-xs font-medium uppercase tracking-wider text-gold ${venue.address ? "mt-1.5" : "mt-1"}`}
+                >
                   {venue.area}
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-cream/70">

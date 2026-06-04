@@ -23,6 +23,8 @@ export interface ExperienceFaqItem {
 export interface ExperienceVenue {
   kind?: "venue" | "locationTbd";
   name: string;
+  /** Straat + huisnummer, uit venue admin */
+  address?: string;
   area: string;
   atmosphere: string;
   description: string;

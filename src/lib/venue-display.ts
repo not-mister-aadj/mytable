@@ -22,6 +22,7 @@ export function venueToExperienceVenue(
 
   return {
     name: venue.name,
+    address: venue.address?.trim() || undefined,
     area: venue.area ?? venue.city,
     atmosphere: venue.atmosphere ?? "",
     description,

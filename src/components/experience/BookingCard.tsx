@@ -14,6 +14,7 @@ import {
   getViewsThisWeek,
 } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
+import { resolveFemaleOnly } from "@/lib/event-extras";
 import { useDbEvents } from "@/lib/use-db-events";
 
 interface BookingCardProps {
@@ -47,6 +48,10 @@ export function BookingCard({
   const [dietaryNotes, setDietaryNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isFemaleOnly = resolveFemaleOnly(
+    experience.femaleOnly,
+    experience.atmosphereTags,
+  );
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault();
@@ -82,16 +87,34 @@ export function BookingCard({
   return (
     <motion.aside
       layout
-      className={`rounded-3xl border border-border-subtle bg-beige p-6 shadow-[0_20px_50px_rgba(43,13,18,0.1)] sm:p-7 ${className}`}
+      className={`rounded-3xl border p-6 shadow-[0_20px_50px_rgba(43,13,18,0.1)] sm:p-7 ${
+        isFemaleOnly
+          ? "border-rose/40 bg-rose-soft ring-1 ring-rose/25 shadow-[0_20px_50px_rgba(157,77,111,0.14)]"
+          : "border-border-subtle bg-beige"
+      } ${className}`}
     >
-      <p className="font-serif text-3xl font-medium text-burgundy">{priceLine}</p>
+      <p
+        className={`font-serif text-3xl font-medium ${
+          isFemaleOnly ? "text-rose-deep" : "text-burgundy"
+        }`}
+      >
+        {priceLine}
+      </p>
 
       {spotsLeft !== null && spotsLeft > 0 ? (
-        <span className="mt-4 inline-block rounded-full bg-burgundy px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream">
+        <span
+          className={`mt-4 inline-block rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream ${
+            isFemaleOnly ? "bg-rose" : "bg-burgundy"
+          }`}
+        >
           {formatSpotsBadge(labels.spotsLeftBadge, spotsLeft)}
         </span>
       ) : (
-        <span className="mt-4 inline-block rounded-full bg-burgundy/90 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream">
+        <span
+          className={`mt-4 inline-block rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream ${
+            isFemaleOnly ? "bg-rose/90" : "bg-burgundy/90"
+          }`}
+        >
           {statusLabels.soldOut}
         </span>
       )}
@@ -100,7 +123,11 @@ export function BookingCard({
         {labels.spotsByStatus[experience.status]}
       </p>
 
-      <dl className="mt-6 space-y-3 border-t border-border-subtle pt-6 text-sm">
+      <dl
+        className={`mt-6 space-y-3 border-t pt-6 text-sm ${
+          isFemaleOnly ? "border-rose/20" : "border-border-subtle"
+        }`}
+      >
         <div className="flex justify-between gap-4">
           <dt className="text-wine/55">{labels.bookingDate}</dt>
           <dd className="text-right font-medium text-wine">{date}</dd>
@@ -123,7 +150,11 @@ export function BookingCard({
             {[0, 1, 2, 3].map((i) => (
               <span
                 key={i}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-beige bg-gradient-to-br from-burgundy/80 to-wine text-[10px] font-bold text-cream"
+                className={`inline-flex h-7 w-7 items-center justify-center rounded-full border-2 text-[10px] font-bold text-cream ${
+                  isFemaleOnly
+                    ? "border-rose-soft bg-gradient-to-br from-rose to-rose-deep"
+                    : "border-beige bg-gradient-to-br from-burgundy/80 to-wine"
+                }`}
               >
                 {["S", "M", "E", "T"][i]}
               </span>
@@ -186,7 +217,11 @@ export function BookingCard({
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-burgundy px-6 py-3 text-sm font-medium text-cream disabled:opacity-50"
+            className={`w-full rounded-full px-6 py-3 text-sm font-medium text-cream disabled:opacity-50 ${
+              isFemaleOnly
+                ? "bg-rose hover:bg-rose-deep"
+                : "bg-burgundy hover:bg-wine"
+            }`}
           >
             {loading ? "Doorsturen…" : reserveCta}
           </button>
@@ -194,19 +229,28 @@ export function BookingCard({
       ) : (
         <a
           href="#newsletter"
-          className={`mt-6 flex w-full items-center justify-center rounded-full bg-burgundy px-6 py-3 text-sm font-medium text-cream ${isSoldOut ? "pointer-events-none opacity-50" : ""}`}
+          className={`mt-6 flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-medium text-cream ${
+            isFemaleOnly ? "bg-rose hover:bg-rose-deep" : "bg-burgundy"
+          } ${isSoldOut ? "pointer-events-none opacity-50" : ""}`}
         >
           {reserveCta}
         </a>
       )}
 
-      <ul className="mt-6 space-y-2.5 border-t border-border-subtle pt-6">
+      <ul
+        className={`mt-6 space-y-2.5 border-t pt-6 ${
+          isFemaleOnly ? "border-rose/20" : "border-border-subtle"
+        }`}
+      >
         {labels.bookingTrustBullets.map((line) => (
           <li
             key={line}
             className="flex items-start gap-2 text-sm text-wine/70"
           >
-            <span className="mt-0.5 text-gold" aria-hidden>
+            <span
+              className={`mt-0.5 ${isFemaleOnly ? "text-rose-deep" : "text-gold"}`}
+              aria-hidden
+            >
               ✓
             </span>
             {line}

@@ -33,9 +33,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   routeOpenInApple: "Open route in Kaarten",
   routeMapSetupHint:
     "Voorkeursweergave: Apple Kaarten (MapKit). Voeg credentials toe voor de volledige kaart.",
-  socialTitle: "Een fijne avond met anderen. Zonder netwerkdruk.",
+  socialTitle: "Een avond uit, op jouw manier.",
   socialSubtitle:
-    "Kleine groep, ontspannen tempo — ruimte om te genieten, lachen en praten zoals jij dat wilt.",
+    "Eigen tafel, alleen komen of aanschuiven bij anderen — jij kiest hoe gezellig het wordt.",
   galleryTitle: "Sfeerimpressie",
   practicalTitle: "Praktische info",
   faqTitle: "Veelgestelde vragen",
@@ -139,8 +139,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Alleen komen, met vrienden of iemand meenemen: alles kan. De avond heeft een duidelijk kader, maar binnen dat kader bepaal jij je tempo.",
-        "Niemand hoeft iets te bewijzen of zit er voor zakelijke contacten. Je deelt een tafel met nieuwsgierige mensen; gesprekken ontstaan vanzelf terwijl je proeft, eet en ontspant.",
+        "Boek je eigen tafel met vrienden, kom alleen of schuif aan bij mensen die ook zin hebben in een gezellige avond.",
+        "Proeven, lachen, bijpraten — zonder gedoe. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
       ],
       gallery: [
         images.wineBar,
@@ -218,8 +218,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Onderweg ontmoet je dezelfde groep bij verschillende momenten. Dat houdt het luchtig: even iets nieuws, dan weer tijd om bij te praten.",
-        "Geen verplichte smalltalk of zakelijke vibe. Je beweegt, proeft en lacht op een tempo dat voor iedereen werkt.",
+        "Met je eigen groep of gewoon meelopen — onderweg kom je andere mensen tegen die ook zin hebben in een leuke middag.",
+        "Lopen, proeven, lachen. Geen saaie rondleiding: fijne stops en ruimte om te praten wanneer jij daar zin in hebt.",
       ],
       gallery: [
         images.wineBar,
@@ -293,8 +293,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Je schuift aan bij mensen die ook zin hebben in een avond uit. Het programma geeft houvast; de rest komt vanzelf.",
-        "Klein genoeg om elkaar echt te zien, ontspannen genoeg om niet te hoeven presteren. Nieuwsgierig of al ervaren: iedereen zit op gelijk niveau.",
+        "Eigen tafel met je vrienden of erbij gaan zitten — beide kan. Lekker eten, goede sfeer, mensen die ook zin hebben in een avond uit.",
+        "Klein genoeg om het gezellig te houden, relaxed genoeg om gewoon jezelf te zijn. Of je nu veel of weinig weet van wijn: iedereen doet lekker mee.",
       ],
       gallery: [
         images.restaurantDining,

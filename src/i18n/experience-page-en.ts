@@ -33,9 +33,9 @@ export const experiencePageEn: ExperiencePageLabels = {
   routeOpenInApple: "Open route in Maps",
   routeMapSetupHint:
     "Preferred view: Apple Maps (MapKit). Add credentials for the full map embed.",
-  socialTitle: "A good evening with others. No networking pressure.",
+  socialTitle: "A night out, your way.",
   socialSubtitle:
-    "Small group, easy pace — room to enjoy, laugh, and talk your way.",
+    "Your own table, come solo, or join others — you choose how social it gets.",
   galleryTitle: "Atmosphere",
   practicalTitle: "Practical info",
   faqTitle: "Frequently asked questions",
@@ -139,8 +139,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Come solo, with friends, or with a date — all good. The evening has a clear shape, but inside that you set your own pace.",
-        "Nobody needs to prove anything or make business contacts. You share a table with curious people; conversation happens naturally while you taste, eat, and unwind.",
+        "Book your own table with friends, come alone, or pull up a chair with people who want a fun evening out.",
+        "Taste, laugh, catch up — no fuss. Nobody's grading your wine knowledge; everyone's just curious.",
       ],
       gallery: [
         images.wineBar,
@@ -218,8 +218,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Along the way you meet the same group at different moments. That keeps it light: something new, then time to catch up again.",
-        "No forced small talk or corporate vibe. You move, taste, and laugh at a pace that works for everyone.",
+        "With your own group or just along for the walk — you'll meet others who want a good afternoon out.",
+        "Walk, taste, laugh. Not a dull tour: great stops and time to chat whenever you feel like it.",
       ],
       gallery: [
         images.wineBar,
@@ -293,8 +293,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "You join people who want a proper night out. The program gives structure; the rest follows naturally.",
-        "Small enough to actually connect, relaxed enough not to perform. Curious or experienced — everyone is on equal footing.",
+        "Your own table with friends or pull up a chair — both work. Great food, good vibes, people who want a night out.",
+        "Small enough to stay cozy, relaxed enough to just be yourself. Wine newbie or fan — everyone's welcome.",
       ],
       gallery: [
         images.restaurantDining,

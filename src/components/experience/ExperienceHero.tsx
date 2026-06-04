@@ -86,20 +86,8 @@ export function ExperienceHero({
           sizes="100vw"
         />
       </motion.div>
-      <div
-        className={`absolute inset-0 bg-gradient-to-t ${
-          isFemaleOnly
-            ? "from-rose-deep/90 via-rose/50 to-wine/35"
-            : "from-wine/92 via-wine/55 to-wine/30"
-        }`}
-      />
-      <div
-        className={`absolute inset-0 bg-gradient-to-r ${
-          isFemaleOnly
-            ? "from-rose-deep/70 via-rose/30 to-transparent"
-            : "from-wine/65 via-wine/25 to-transparent"
-        }`}
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-wine/92 via-wine/55 to-wine/30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-wine/65 via-wine/25 to-transparent" />
 
       <div
         className={
@@ -121,9 +109,7 @@ export function ExperienceHero({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className={`mt-6 text-xs font-semibold uppercase tracking-[0.28em] ${
-            isFemaleOnly ? "text-rose-soft" : "text-gold"
-          }`}
+          className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-gold"
         >
           {experience.category}
         </motion.p>
@@ -133,7 +119,7 @@ export function ExperienceHero({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.08 }}
-            className="mt-4 inline-flex rounded-full bg-rose px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream shadow-sm"
+            className="mt-4 w-fit self-start rounded-full bg-rose px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream shadow-sm"
           >
             {femaleOnlyBadge}
           </motion.span>
@@ -176,9 +162,7 @@ export function ExperienceHero({
             {visibleTags.map((tag) => (
               <li
                 key={tag}
-                className={`rounded-full px-3 py-1 text-xs font-medium text-cream ${
-                  isFemaleOnly ? "bg-rose/30" : "bg-gold/20"
-                }`}
+                className="rounded-full bg-gold/20 px-3 py-1 text-xs font-medium text-cream"
               >
                 {tag}
               </li>

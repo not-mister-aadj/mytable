@@ -28,10 +28,10 @@ export const en: Dictionary = {
     headlineLine1: "Good taste.",
     headlineLine2: "Great company.",
     subheadline:
-      "Wine tasting at one restaurant. We handle everything around the table. You show up and enjoy.",
+      "We handle everything at the table. You show up and enjoy — from wine tastings and chef's specials to wine walks.",
     ctaPrimary: "Pick your table",
     microcopy:
-      "Girls only, or a date, wine, or solo at the table — friends welcome too.",
+      "With friends, on a date, or solo: we'll seat you at a welcoming table — mixed group or girls only.",
     nextTableLabel: "Next table",
     imageAlt: "People enjoying wine and food together at the table",
   },

@@ -28,10 +28,10 @@ export const nl: Dictionary = {
     headlineLine1: "Goede smaak.",
     headlineLine2: "Goed gezelschap.",
     subheadline:
-      "Wijnproeverij in één restaurant. Wij regelen alles rond de tafel. Jij komt genieten.",
+      "Wij regelen alles rond de tafel. Jij komt genieten. Van wijnproeverijen en chef-specials tot wijnwalks.",
     ctaPrimary: "Kies je tafel",
     microcopy:
-      "Girls only, of date, wijn of solo aan tafel — met vrienden mag ook.",
+      "Met vrienden, op date of alleen: wij zorgen voor een gezellige groep — gemengd of girls only.",
     nextTableLabel: "Volgende tafel",
     imageAlt: "Mensen die samen aan tafel van wijn en eten genieten",
   },

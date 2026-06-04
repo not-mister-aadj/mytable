@@ -17,6 +17,83 @@ import {
 } from "@/lib/experience-types";
 import { getExperienceVenues } from "@/data/experience-venues";
 
+/** Columns safe when image_meta / lat-lng migrations not applied yet */
+const venueSelectCore = {
+  id: venues.id,
+  name: venues.name,
+  city: venues.city,
+  area: venues.area,
+  address: venues.address,
+  atmosphere: venues.atmosphere,
+  descriptionNl: venues.descriptionNl,
+  descriptionEn: venues.descriptionEn,
+  imageUrl: venues.imageUrl,
+  createdAt: venues.createdAt,
+};
+
+type VenueCoreRow = {
+  id: string;
+  name: string;
+  city: string;
+  area: string | null;
+  address: string | null;
+  atmosphere: string | null;
+  descriptionNl: string | null;
+  descriptionEn: string | null;
+  imageUrl: string | null;
+  createdAt: Date;
+};
+
+function withOptionalVenueFields(
+  row: VenueCoreRow,
+  extra?: Partial<Pick<Venue, "imageMeta" | "latitude" | "longitude">>,
+): Venue {
+  return {
+    ...row,
+    imageMeta: extra?.imageMeta ?? null,
+    latitude: extra?.latitude ?? null,
+    longitude: extra?.longitude ?? null,
+  };
+}
+
+function isMissingVenueColumnError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes("image_meta") ||
+    msg.includes("latitude") ||
+    msg.includes("longitude")
+  );
+}
+
+async function selectAllVenuesRows(db: ReturnType<typeof getDb>): Promise<Venue[]> {
+  try {
+    return await db.select().from(venues).orderBy(asc(venues.city), asc(venues.name));
+  } catch (error) {
+    if (!isMissingVenueColumnError(error)) throw error;
+    const rows = await db
+      .select(venueSelectCore)
+      .from(venues)
+      .orderBy(asc(venues.city), asc(venues.name));
+    return rows.map((r) => withOptionalVenueFields(r));
+  }
+}
+
+async function selectVenuesByIdsRows(
+  db: ReturnType<typeof getDb>,
+  ids: string[],
+): Promise<Venue[]> {
+  try {
+    return await db.select().from(venues).where(inArray(venues.id, ids));
+  } catch (error) {
+    if (!isMissingVenueColumnError(error)) throw error;
+    const rows = await db
+      .select(venueSelectCore)
+      .from(venues)
+      .where(inArray(venues.id, ids));
+    return rows.map((r) => withOptionalVenueFields(r));
+  }
+}
+
 export function venueToExperienceVenue(venue: Venue, locale: Locale): ExperienceVenue {
   const description =
     locale === "nl"
@@ -40,7 +117,7 @@ export function venueToExperienceVenue(venue: Venue, locale: Locale): Experience
 export async function fetchVenuesByIds(ids: string[]): Promise<Venue[]> {
   if (!ids.length || !isDbConfigured()) return [];
   const db = getDb();
-  const rows = await db.select().from(venues).where(inArray(venues.id, ids));
+  const rows = await selectVenuesByIdsRows(db, ids);
   const byId = new Map(rows.map((v) => [v.id, v]));
   return ids.map((id) => byId.get(id)).filter((v): v is Venue => Boolean(v));
 }
@@ -48,14 +125,24 @@ export async function fetchVenuesByIds(ids: string[]): Promise<Venue[]> {
 export async function getAllVenues(): Promise<Venue[]> {
   if (!isDbConfigured()) return [];
   const db = getDb();
-  return db.select().from(venues).orderBy(asc(venues.city), asc(venues.name));
+  return selectAllVenuesRows(db);
 }
 
 export async function getVenueById(id: string): Promise<Venue | undefined> {
   if (!isDbConfigured()) return undefined;
   const db = getDb();
-  const [row] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
-  return row;
+  try {
+    const [row] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
+    return row;
+  } catch (error) {
+    if (!isMissingVenueColumnError(error)) throw error;
+    const [row] = await db
+      .select(venueSelectCore)
+      .from(venues)
+      .where(eq(venues.id, id))
+      .limit(1);
+    return row ? withOptionalVenueFields(row) : undefined;
+  }
 }
 
 function filterVenuesForEventCity(venueRows: Venue[], eventCity: string): Venue[] {
@@ -65,7 +152,7 @@ function filterVenuesForEventCity(venueRows: Venue[], eventCity: string): Venue[
   return inCity.length > 0 ? inCity : venueRows;
 }
 
-/** Venues from experience type (all wine tastings, etc.); legacy per-event override as fallback */
+/** Venues from experience type; per-event venueIds override as fallback */
 export async function getEventVenues(
   event: Event,
   locale: Locale,

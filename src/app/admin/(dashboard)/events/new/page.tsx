@@ -7,7 +7,12 @@ type Props = { searchParams: Promise<{ type?: string }> };
 export default async function NewEventPage({ searchParams }: Props) {
   await requireAdmin();
   const { type } = await searchParams;
-  const allVenues = await getAllVenues();
+  let allVenues: Awaited<ReturnType<typeof getAllVenues>> = [];
+  try {
+    allVenues = await getAllVenues();
+  } catch (error) {
+    console.error("[admin/events/new] getAllVenues failed:", error);
+  }
   return (
     <div>
       <h1 className="mb-8 font-serif text-3xl text-burgundy">Nieuwe tafel</h1>

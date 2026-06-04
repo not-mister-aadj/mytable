@@ -1,40 +1,30 @@
 import type { Locale } from "@/i18n/config";
 import { getCatalogExperiences } from "@/data/experience-catalog";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { eq, and, gte, or, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { useDbEvents } from "@/lib/env";
-import { enrichDbEvent } from "@/lib/event-mapper";
+import {
+  enrichPublishedRows,
+  getDbExperienceBySlug,
+  getPublishedSlugs,
+  getRelatedPublishedExperiences,
+} from "@/lib/experience-data";
+import { publishedUpcomingEventsWhere } from "@/lib/published-events-filter";
 import { enrichExperience, type EnrichedExperience } from "./experience-detail";
 
 async function fetchPublishedFromDb(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
   const db = getDb();
-  const now = new Date();
   const rows = await db
     .select()
     .from(events)
-    .where(
-      and(
-        eq(events.workflowStatus, "published"),
-        or(
-          gte(events.startsAt, now),
-          and(
-            sql`${events.endsAt} IS NOT NULL`,
-            gte(events.endsAt, now),
-          ),
-        ),
-      ),
-    )
+    .where(publishedUpcomingEventsWhere())
     .orderBy(events.startsAt);
 
-  const results: Awaited<ReturnType<typeof enrichDbEvent>>[] = [];
-  for (const row of rows) {
-    results.push(await enrichDbEvent(row, locale));
-  }
-  return results;
+  return enrichPublishedRows(rows, locale);
 }
 
 function fetchFromCatalog(locale: Locale): EnrichedExperience[] {
@@ -59,7 +49,11 @@ export async function getExperienceBySlug(
   locale: Locale,
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
-  const all = await getAllExperiences(locale);
+  if (useDbEvents() && isDbConfigured()) {
+    const fromDb = await getDbExperienceBySlug(locale, slug);
+    if (fromDb) return fromDb;
+  }
+  const all = fetchFromCatalog(locale);
   return all.find((item) => item.slug === slug);
 }
 
@@ -77,7 +71,19 @@ export async function getRelatedExperiences(
   current: EnrichedExperience,
   limit = 3,
 ): Promise<EnrichedExperience[]> {
-  const all = await getAllExperiences(locale);
+  if (useDbEvents() && isDbConfigured()) {
+    try {
+      const related = await getRelatedPublishedExperiences(
+        locale,
+        current,
+        limit,
+      );
+      if (related.length > 0) return related;
+    } catch (err) {
+      console.error("[experiences] related fetch failed", err);
+    }
+  }
+  const all = fetchFromCatalog(locale);
   return all
     .filter((item) => item.slug !== current.slug)
     .filter(
@@ -90,7 +96,14 @@ export async function getRelatedExperiences(
 }
 
 export async function getAllExperienceSlugs(locale: Locale): Promise<string[]> {
-  const all = await getAllExperiences(locale);
+  if (useDbEvents() && isDbConfigured()) {
+    try {
+      return await getPublishedSlugs();
+    } catch (err) {
+      console.error("[experiences] slug list failed", err);
+    }
+  }
+  const all = fetchFromCatalog(locale);
   return all.map((item) => item.slug);
 }
 

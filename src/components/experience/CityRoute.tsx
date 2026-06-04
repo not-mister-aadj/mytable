@@ -1,9 +1,25 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import type { RouteMapPoint } from "@/data/experience-route-map";
-import { ExperienceRouteMap } from "./ExperienceRouteMap";
+
+const ExperienceRouteMap = dynamic(
+  () =>
+    import("./ExperienceRouteMap").then((mod) => mod.ExperienceRouteMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-[min(52vw,420px)] min-h-[280px] items-center justify-center bg-wine/5 text-sm text-wine/45"
+        aria-hidden
+      >
+        Kaart laden…
+      </div>
+    ),
+  },
+);
 
 interface CityRouteProps {
   mapEyebrow: string;

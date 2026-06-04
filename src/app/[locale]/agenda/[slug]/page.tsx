@@ -3,15 +3,21 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { NewsletterCTA } from "@/components/agenda/NewsletterCTA";
 import { isValidLocale, type Locale } from "@/i18n/config";
-import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
+import { getDictionary } from "@/i18n/get-dictionary";
 import {
   getAllExperienceSlugs,
-  getExperienceByDbId,
   getExperienceBySlug,
   getRelatedExperiences,
 } from "@/lib/experiences";
-import { resolveEventRoutePoints } from "@/lib/experience-type-content";
+import { getPublishedEventRowBySlug, getPublishedSlugs } from "@/lib/experience-data";
+import {
+  getTypeContent,
+  routePointsFromTypeContent,
+} from "@/lib/experience-type-content";
 import { getEventVenues, getVenueRouteCoords } from "@/lib/venues";
+import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
+import { useDbEvents } from "@/lib/env";
+import { isDbConfigured } from "@/db/index";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getRouteMapPoints } from "@/data/experience-route-map";
@@ -27,7 +33,6 @@ type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -35,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isValidLocale(locale)) return {};
   const experience = await getExperienceBySlug(locale, slug);
   if (!experience) return {};
-  const dict = await getDictionaryWithAgenda(locale);
+  const dict = getDictionary(locale);
   const mood = getMoodContent(dict, experience.mood);
   return {
     title: `${experience.experienceName}, ${experience.city} | MyTable`,
@@ -44,8 +49,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-  if (process.env.USE_DB_EVENTS === "true") return [];
   const locales: Locale[] = ["nl", "en"];
+
+  if (useDbEvents() && isDbConfigured()) {
+    try {
+      const slugs = await getPublishedSlugs();
+      return locales.flatMap((locale) =>
+        slugs.map((slug) => ({ locale, slug })),
+      );
+    } catch (err) {
+      console.error("[agenda/slug] static params failed", err);
+    }
+  }
+
   const params: { locale: string; slug: string }[] = [];
   for (const locale of locales) {
     const slugs = await getAllExperienceSlugs(locale);
@@ -60,28 +76,35 @@ export default async function ExperienceDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
 
+  const dict = getDictionary(locale);
   const experience = await getExperienceBySlug(locale, slug);
   if (!experience) notFound();
 
-  const dict = await getDictionaryWithAgenda(locale);
-  const related = await getRelatedExperiences(locale, experience);
+  const [related, row] = await Promise.all([
+    getRelatedExperiences(locale, experience),
+    experience.eventDbId
+      ? getPublishedEventRowBySlug(slug)
+      : Promise.resolve(undefined),
+  ]);
 
   let eventVenues: ExperienceVenue[] | undefined;
   let routePoints: RouteMapPoint[] | undefined;
-  if (experience.eventDbId) {
-    const row = await getExperienceByDbId(experience.eventDbId);
-    if (row) {
-      eventVenues = await getEventVenues(row, locale, experience.id);
-      const venueCoords = await getVenueRouteCoords(row);
-      routePoints = await resolveEventRoutePoints(
-        row.experienceType,
+
+  if (row) {
+      const [venues, venueCoords, typeContent] = await Promise.all([
+        getEventVenues(row, locale, experience.id),
+        getVenueRouteCoords(row),
+        getTypeContent(row.experienceType ?? DEFAULT_EXPERIENCE_TYPE),
+      ]);
+      eventVenues = venues;
+      routePoints = routePointsFromTypeContent(
+        typeContent,
         row.city,
-        eventVenues,
+        venues,
         experience.id,
         venueCoords.length > 0 ? venueCoords : undefined,
       );
-    }
-  } else {
+  } else if (!experience.eventDbId) {
     const venues = getCatalogVenues(experience.id, experience.mood);
     routePoints = getRouteMapPoints(
       experience.id,

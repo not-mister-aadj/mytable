@@ -3,6 +3,7 @@ import type { ExperienceItem } from "@/i18n/types";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getRouteMapPoints } from "@/data/experience-route-map";
 import type { ExperienceVenue } from "@/i18n/types";
+import { cache } from "react";
 import { getExperienceType } from "@/lib/experience-types";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import {
@@ -13,11 +14,37 @@ import {
 export type { ExperienceTypeContent, TypeRoutePoint } from "@/lib/experience-type-content.types";
 export { parseTypeContent } from "@/lib/experience-type-content.types";
 
-export async function getTypeContent(
-  typeSlug: string,
-): Promise<ExperienceTypeContent> {
-  const row = await getExperienceType(typeSlug);
-  return parseTypeContent(row?.content ?? {});
+export const getTypeContent = cache(
+  async (typeSlug: string): Promise<ExperienceTypeContent> => {
+    const row = await getExperienceType(typeSlug);
+    return parseTypeContent(row?.content ?? {});
+  },
+);
+
+export function routePointsFromTypeContent(
+  content: ExperienceTypeContent,
+  city: string,
+  venues: ExperienceVenue[],
+  legacyExperienceId: string,
+  venueCoords?: { label: string; lat: number; lng: number }[],
+): RouteMapPoint[] {
+  if (venueCoords?.length) {
+    return venueCoords.map((p) => ({
+      label: p.label,
+      lat: p.lat,
+      lng: p.lng,
+    }));
+  }
+  if (content.routePoints?.length) {
+    return content.routePoints.map((p) => ({
+      label: p.label,
+      lat: p.lat,
+      lng: p.lng,
+    }));
+  }
+  const names = venues.map((v) => v.name);
+  if (names.length === 0) return [];
+  return getRouteMapPoints(legacyExperienceId, city, names);
 }
 
 export function mergeTypeContentIntoItem(
@@ -51,22 +78,12 @@ export async function resolveEventRoutePoints(
   legacyExperienceId: string,
   venueCoords?: { label: string; lat: number; lng: number }[],
 ): Promise<RouteMapPoint[]> {
-  if (venueCoords?.length) {
-    return venueCoords.map((p) => ({
-      label: p.label,
-      lat: p.lat,
-      lng: p.lng,
-    }));
-  }
   const content = await getTypeContent(typeSlug ?? DEFAULT_EXPERIENCE_TYPE);
-  if (content.routePoints?.length) {
-    return content.routePoints.map((p) => ({
-      label: p.label,
-      lat: p.lat,
-      lng: p.lng,
-    }));
-  }
-  const names = venues.map((v) => v.name);
-  if (names.length === 0) return [];
-  return getRouteMapPoints(legacyExperienceId, city, names);
+  return routePointsFromTypeContent(
+    content,
+    city,
+    venues,
+    legacyExperienceId,
+    venueCoords,
+  );
 }

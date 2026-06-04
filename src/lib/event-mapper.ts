@@ -5,10 +5,9 @@ import type { Event } from "@/db/schema";
 import { getExperienceSlug } from "@/data/experience-slugs";
 import type { EnrichedExperience } from "./experience-detail";
 import { parseEventExtras } from "@/lib/event-extras";
-import {
-  getTypeContent,
-  mergeTypeContentIntoItem,
-} from "@/lib/experience-type-content";
+import { mergeTypeContentIntoItem } from "@/lib/experience-type-content";
+import type { ExperienceTypeContent } from "@/lib/experience-type-content.types";
+import { getTypeContent } from "@/lib/experience-type-content";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import {
   displayNamesFromEvent,
@@ -87,13 +86,12 @@ export function mapDbEventToExperienceItem(
   };
 }
 
-export async function enrichDbEvent(
+export function enrichDbEventWithContent(
   row: Event,
   locale: Locale,
-): Promise<EnrichedExperience> {
+  typeContent: ExperienceTypeContent,
+): EnrichedExperience {
   const item = mapDbEventToExperienceItem(row, locale);
-  const typeSlug = row.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
-  const typeContent = await getTypeContent(typeSlug);
   const merged = mergeTypeContentIntoItem(item, typeContent, locale);
   return {
     ...merged,
@@ -107,4 +105,13 @@ export async function enrichDbEvent(
     heroImageSettings: item.heroImageSettings,
     galleryImageSettings: item.galleryImageSettings,
   };
+}
+
+export async function enrichDbEvent(
+  row: Event,
+  locale: Locale,
+): Promise<EnrichedExperience> {
+  const typeSlug = row.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
+  const typeContent = await getTypeContent(typeSlug);
+  return enrichDbEventWithContent(row, locale, typeContent);
 }

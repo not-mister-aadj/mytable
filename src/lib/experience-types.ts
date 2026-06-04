@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { cache } from "react";
+import { eq, inArray } from "drizzle-orm";
 import { experienceTypes } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import {
@@ -41,9 +42,22 @@ export async function ensureExperienceTypesSeeded() {
   }
 }
 
+/** At most once per request */
+export const ensureExperienceTypesSeededCached = cache(ensureExperienceTypesSeeded);
+
+export async function getExperienceTypesBySlugs(slugs: string[]) {
+  if (!isDbConfigured() || slugs.length === 0) return [];
+  await ensureExperienceTypesSeededCached();
+  const db = getDb();
+  return db
+    .select()
+    .from(experienceTypes)
+    .where(inArray(experienceTypes.slug, slugs));
+}
+
 export async function getExperienceType(slug: string) {
   if (!isDbConfigured()) return undefined;
-  await ensureExperienceTypesSeeded();
+  await ensureExperienceTypesSeededCached();
   const db = getDb();
   const [row] = await db
     .select()
@@ -55,7 +69,7 @@ export async function getExperienceType(slug: string) {
 
 export async function getAllExperienceTypes() {
   if (!isDbConfigured()) return [];
-  await ensureExperienceTypesSeeded();
+  await ensureExperienceTypesSeededCached();
   const db = getDb();
   return db.select().from(experienceTypes);
 }

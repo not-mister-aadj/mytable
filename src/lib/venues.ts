@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq, inArray, asc } from "drizzle-orm";
 import type { Locale } from "@/i18n/config";
 import type { ExperienceVenue } from "@/i18n/types";
@@ -114,12 +115,18 @@ export function venueToExperienceVenue(venue: Venue, locale: Locale): Experience
   };
 }
 
-export async function fetchVenuesByIds(ids: string[]): Promise<Venue[]> {
+async function fetchVenuesByIdsUncached(ids: string[]): Promise<Venue[]> {
   if (!ids.length || !isDbConfigured()) return [];
   const db = getDb();
   const rows = await selectVenuesByIdsRows(db, ids);
   const byId = new Map(rows.map((v) => [v.id, v]));
   return ids.map((id) => byId.get(id)).filter((v): v is Venue => Boolean(v));
+}
+
+export const fetchVenuesByIdsCached = cache(fetchVenuesByIdsUncached);
+
+export async function fetchVenuesByIds(ids: string[]): Promise<Venue[]> {
+  return fetchVenuesByIdsCached(ids);
 }
 
 export async function getAllVenues(): Promise<Venue[]> {
@@ -169,7 +176,7 @@ export async function getEventVenues(
   }
 
   if (ids.length > 0) {
-    const rows = await fetchVenuesByIds(ids);
+    const rows = await fetchVenuesByIdsCached(ids);
     const filtered = filterVenuesForEventCity(rows, event.city);
     if (filtered.length > 0) {
       return filtered.map((v) => venueToExperienceVenue(v, locale));
@@ -189,7 +196,7 @@ export async function getVenueRouteCoords(
   const extras = parseEventExtras(event.extras);
   const ids = extras.venueIds ?? [];
   if (!ids.length) return [];
-  const rows = await fetchVenuesByIds(ids);
+  const rows = await fetchVenuesByIdsCached(ids);
   return rows
     .map((v) => {
       const lat = v.latitude ? Number.parseFloat(v.latitude) : NaN;

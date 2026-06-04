@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { VenueRow } from "@/components/admin/VenueRow";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getAllVenues } from "@/lib/venues";
@@ -26,33 +26,7 @@ export default async function AdminVenuesPage() {
             Nog geen restaurants of locaties. Voeg je eerste venue toe.
           </p>
         ) : (
-          rows.map((v) => (
-            <Link
-              key={v.id}
-              href={adminPath(`/venues/${v.id}/edit`)}
-              className="flex items-center gap-4 rounded-2xl border border-border-subtle bg-beige p-4 transition hover:border-burgundy/30"
-            >
-              <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl">
-                <Image
-                  src={v.imageUrl ?? "/images/restaurant-interior.jpg"}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-serif text-lg text-burgundy">{v.name}</p>
-                <p className="text-sm text-wine/70">
-                  {v.city}
-                  {v.area ? ` · ${v.area}` : ""}
-                </p>
-                <p className="mt-1 line-clamp-2 text-sm text-wine/50">
-                  {v.descriptionNl}
-                </p>
-              </div>
-            </Link>
-          ))
+          rows.map((v) => <VenueRow key={v.id} venue={v} />)
         )}
       </div>
     </div>

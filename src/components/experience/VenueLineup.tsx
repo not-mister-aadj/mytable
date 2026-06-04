@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { PositionedImage } from "@/components/ui/PositionedImage";
 import type { ExperienceVenue } from "@/i18n/types";
+import { isLocationTbdVenue } from "@/lib/location-tbd-venue";
 import { LocationTbdVenueCard } from "./LocationTbdVenueCard";
 
 interface VenueLineupProps {
@@ -31,7 +32,7 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
 
         <div className="-mx-5 mt-12 flex gap-5 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
           {venues.map((venue, index) =>
-            venue.kind === "locationTbd" ? (
+            isLocationTbdVenue(venue) ? (
               <LocationTbdVenueCard
                 key={`location-tbd-${index}`}
                 venue={venue}

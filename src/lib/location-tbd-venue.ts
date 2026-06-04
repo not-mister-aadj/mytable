@@ -1,11 +1,29 @@
 import type { Locale } from "@/i18n/config";
 import type { ExperienceVenue } from "@/i18n/types";
+import { images } from "@/data/images";
+import { coerceImageSettings } from "@/lib/image-settings";
 
 /** Sentinel id stored in event extras.venueIds — not a database row */
 export const LOCATION_TBD_VENUE_ID = "mytable:location-tbd";
 
+const LOCATION_TBD_IMAGE = images.cityWalk;
+
 export function isLocationTbdVenueId(id: string): boolean {
-  return id === LOCATION_TBD_VENUE_ID;
+  const normalized = normalizeVenueId(id);
+  return normalized === LOCATION_TBD_VENUE_ID;
+}
+
+/** Map legacy / trimmed ids to the canonical sentinel */
+export function normalizeVenueId(id: string): string {
+  const trimmed = id.trim();
+  if (
+    trimmed === LOCATION_TBD_VENUE_ID ||
+    trimmed === "location-tbd" ||
+    trimmed.endsWith(":location-tbd")
+  ) {
+    return LOCATION_TBD_VENUE_ID;
+  }
+  return trimmed;
 }
 
 export function filterMapVenueIds(ids: string[]): string[] {
@@ -39,15 +57,21 @@ export function locationTbdPickerCopy(locale: Locale = "nl") {
   return copy[locale];
 }
 
+export function isLocationTbdVenue(venue: ExperienceVenue): boolean {
+  return venue.kind === "locationTbd";
+}
+
 export function locationTbdExperienceVenue(locale: Locale): ExperienceVenue {
   const c = copy[locale];
+  const imageSettings = coerceImageSettings(LOCATION_TBD_IMAGE, "venue");
   return {
     kind: "locationTbd",
     name: c.name,
     area: c.area,
     atmosphere: c.atmosphere,
     description: c.description,
-    image: "",
+    image: imageSettings?.url ?? LOCATION_TBD_IMAGE,
+    imageSettings: imageSettings ?? undefined,
     title: c.title,
   };
 }

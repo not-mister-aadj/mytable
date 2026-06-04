@@ -6,6 +6,7 @@ import { parseStoredCoords } from "@/lib/geocode";
 import {
   isLocationTbdVenueId,
   locationTbdExperienceVenue,
+  normalizeVenueId,
 } from "@/lib/location-tbd-venue";
 import { venueToExperienceVenue } from "@/lib/venue-display";
 import type { PreviewEventData } from "./event-preview";
@@ -20,10 +21,11 @@ export function buildPreviewVenues(
   const locale: Locale = data.previewLocale ?? "nl";
   return ids
     .map((id) => {
-      if (isLocationTbdVenueId(id)) {
+      const normalizedId = normalizeVenueId(id);
+      if (isLocationTbdVenueId(normalizedId)) {
         return locationTbdExperienceVenue(locale);
       }
-      const venue = allVenues.find((v) => v.id === id);
+      const venue = allVenues.find((v) => v.id === normalizedId);
       return venue ? venueToExperienceVenue(venue, locale) : null;
     })
     .filter((v): v is ExperienceVenue => v !== null);
@@ -39,8 +41,9 @@ export function buildPreviewRoutePoints(
 
   const points: RouteMapPoint[] = [];
   for (const id of ids) {
-    if (isLocationTbdVenueId(id)) continue;
-    const venue = allVenues.find((v) => v.id === id);
+    const normalizedId = normalizeVenueId(id);
+    if (isLocationTbdVenueId(normalizedId)) continue;
+    const venue = allVenues.find((v) => v.id === normalizedId);
     if (!venue) continue;
     const coords = parseStoredCoords(venue.latitude, venue.longitude);
     if (!coords) continue;

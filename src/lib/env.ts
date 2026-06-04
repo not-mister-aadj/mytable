@@ -1,5 +1,8 @@
 export function useDbEvents(): boolean {
-  return process.env.USE_DB_EVENTS === "true" && Boolean(process.env.DATABASE_URL);
+  const enabled =
+    process.env.USE_DB_EVENTS === "true" ||
+    process.env.NEXT_PUBLIC_USE_DB_EVENTS === "true";
+  return enabled && Boolean(process.env.DATABASE_URL);
 }
 
 export { getSiteUrl } from "@/lib/admin-url";

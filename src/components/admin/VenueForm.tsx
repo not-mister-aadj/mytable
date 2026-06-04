@@ -76,7 +76,18 @@ export function VenueForm({ venue }: { venue?: Venue }) {
       </form>
 
       {isEdit ? (
-        <form action={deleteVenueAction.bind(null, venue!.id)}>
+        <form
+          action={deleteVenueAction.bind(null, venue!.id)}
+          onSubmit={(e) => {
+            if (
+              !confirm(
+                `Weet je zeker dat je "${venue!.name}" wilt verwijderen? De venue wordt losgekoppeld van events en experience types.`,
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
+        >
           <button
             type="submit"
             className="rounded-full border border-red-800/30 px-5 py-2 text-sm text-red-900"

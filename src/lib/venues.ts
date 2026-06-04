@@ -17,6 +17,7 @@ import { getExperienceVenues } from "@/data/experience-venues";
 import {
   isLocationTbdVenueId,
   locationTbdExperienceVenue,
+  normalizeVenueId,
 } from "@/lib/location-tbd-venue";
 
 /** Columns safe when image_meta / lat-lng migrations not applied yet */
@@ -146,7 +147,8 @@ async function orderedExperienceVenues(
 
   return ids
     .map((id) => {
-      if (isLocationTbdVenueId(id)) {
+      const normalizedId = normalizeVenueId(id);
+      if (isLocationTbdVenueId(normalizedId)) {
         return locationTbdExperienceVenue(locale);
       }
       const row = byId.get(id);
@@ -157,7 +159,7 @@ async function orderedExperienceVenues(
 
 async function resolveEventVenueIds(event: Event): Promise<string[]> {
   const extras = parseEventExtras(event.extras);
-  if (extras.venueIds?.length) {
+  if (Array.isArray(extras.venueIds)) {
     return extras.venueIds;
   }
   const typeSlug = event.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
@@ -173,12 +175,18 @@ export async function getEventVenues(
   locale: Locale,
   legacyExperienceId?: string,
 ): Promise<ExperienceVenue[]> {
+  const extras = parseEventExtras(event.extras);
+  const hasExplicitVenueIds = Array.isArray(extras.venueIds);
   const typeSlug = event.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
   const ids = await resolveEventVenueIds(event);
 
   if (ids.length > 0) {
     const venues = await orderedExperienceVenues(ids, locale);
     if (venues.length > 0) return venues;
+  }
+
+  if (hasExplicitVenueIds) {
+    return [];
   }
 
   const typeDef = getExperienceTypeDefinition(typeSlug);

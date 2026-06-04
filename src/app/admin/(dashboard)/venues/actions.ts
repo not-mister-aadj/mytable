@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { venues } from "@/db/schema";
+import { events, experienceTypes, venues } from "@/db/schema";
+import { parseEventExtras } from "@/lib/event-extras";
 import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -69,10 +70,50 @@ export async function updateVenueAction(id: string, formData: FormData) {
   redirect(adminPath(`/venues/${id}/edit?saved=1`));
 }
 
+async function detachVenueFromReferences(
+  db: ReturnType<typeof getDb>,
+  venueId: string,
+) {
+  await db.update(events).set({ venueId: null }).where(eq(events.venueId, venueId));
+
+  const eventRows = await db
+    .select({ id: events.id, extras: events.extras })
+    .from(events);
+  for (const row of eventRows) {
+    const extras = parseEventExtras(row.extras);
+    if (!extras.venueIds?.includes(venueId)) continue;
+    const venueIds = extras.venueIds.filter((vid) => vid !== venueId);
+    await db
+      .update(events)
+      .set({
+        extras: { ...(row.extras ?? {}), venueIds },
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, row.id));
+  }
+
+  const typeRows = await db.select().from(experienceTypes);
+  for (const typeRow of typeRows) {
+    const ids = typeRow.venueIds ?? [];
+    if (!ids.includes(venueId)) continue;
+    await db
+      .update(experienceTypes)
+      .set({
+        venueIds: ids.filter((vid) => vid !== venueId),
+        updatedAt: new Date(),
+      })
+      .where(eq(experienceTypes.slug, typeRow.slug));
+  }
+}
+
 export async function deleteVenueAction(id: string) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
+  const [venue] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
+  if (!venue) throw new Error("Venue niet gevonden");
+
+  await detachVenueFromReferences(db, id);
   await db.delete(venues).where(eq(venues.id, id));
   redirect(adminPath("/venues"));
 }

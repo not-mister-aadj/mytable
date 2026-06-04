@@ -12,6 +12,7 @@ import type { EventExtras } from "@/lib/event-extras";
 import { getMoodContent } from "@/lib/experience-detail";
 import {
   coerceImageSettings,
+  createImageSettings,
   isUsableImageUrl,
 } from "@/lib/image-settings";
 
@@ -114,6 +115,9 @@ export function resolveHeroImageSettings(
   imageUrl: string,
 ) {
   if (extras.heroImage) return extras.heroImage;
+  if (extras.cardImage) {
+    return createImageSettings(extras.cardImage.url, "hero", extras.cardImage);
+  }
   if (isUsableImageUrl(imageUrl)) {
     return coerceImageSettings(imageUrl, "hero");
   }

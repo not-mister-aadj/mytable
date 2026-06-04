@@ -49,7 +49,7 @@ const copy = {
     atmosphere: "Soon",
     title: "Not all locations are known yet",
     description:
-      "We're still finalizing the lineup. Know one — or have a great spot yourself?",
+      "We're still finalizing the lineup. Know a great spot, or have one yourself?",
   },
 } as const;
 

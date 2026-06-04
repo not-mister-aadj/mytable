@@ -23,16 +23,16 @@ export const experiencePageEn: ExperiencePageLabels = {
   flowTitle: "How the evening flows",
   venuesTitle: "Where you join the table",
   venuesSubtitle:
-    "One partner restaurant per evening. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
+    "Visit one of our partner restaurants. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
   guestQuotesTitle: "What guests say",
   routeTitle: "An afternoon through {city}",
   routeMapEyebrow: "A feel for the route",
   routeMapTitle: "Past these spots in {city}",
   routeSubtitle:
-    "Get a feel for the vibe and neighbourhood. All stops and addresses are on this page — we'll email them again one day before.",
+    "Get a feel for the vibe and neighbourhood. All stops and addresses are on this page. We'll email them again one day before.",
   socialTitle: "A night out, your way.",
   socialSubtitle:
-    "Your own table, come solo, or join others — you choose how social it gets.",
+    "Your own table, come solo, or join others. You choose how social it gets.",
   galleryTitle: "Atmosphere",
   practicalTitle: "Practical info",
   faqTitle: "Frequently asked questions",
@@ -137,7 +137,7 @@ export const experiencePageEn: ExperiencePageLabels = {
       ],
       socialParagraphs: [
         "Book your own table with friends, come alone, or pull up a chair with people who want a fun evening out.",
-        "Taste, laugh, catch up — no fuss. Nobody's grading your wine knowledge; everyone's just curious.",
+        "Taste, laugh, catch up without the fuss. Nobody's grading your wine knowledge; everyone's just curious.",
       ],
       gallery: [
         images.wineBar,
@@ -215,7 +215,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "With your own group or just along for the walk — you'll meet others who want a good afternoon out.",
+        "With your own group or just along for the walk. You'll meet others who want a good afternoon out.",
         "Walk, taste, laugh. Not a dull tour: great stops and time to chat whenever you feel like it.",
       ],
       gallery: [
@@ -290,8 +290,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Your own table with friends or pull up a chair — both work. Great food, good vibes, people who want a night out.",
-        "Small enough to stay cozy, relaxed enough to just be yourself. Wine newbie or fan — everyone's welcome.",
+        "Your own table with friends or pull up a chair: both work. Great food, good vibes, people who want a night out.",
+        "Small enough to stay cozy, relaxed enough to just be yourself. Wine newbie or fan, everyone's welcome.",
       ],
       gallery: [
         images.restaurantDining,

@@ -65,9 +65,9 @@ export function mergeTypeContentIntoItem(
         : content.defaultAtmosphereTags,
     customDescription: customDescription || item.customDescription,
     customFaq: customFaq?.length ? customFaq : item.customFaq,
-    galleryImages: content.galleryImages?.length
-      ? content.galleryImages
-      : item.galleryImages,
+    galleryImages: item.galleryImages?.length
+      ? item.galleryImages
+      : content.galleryImages,
   };
 }
 

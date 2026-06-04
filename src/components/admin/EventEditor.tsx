@@ -31,6 +31,7 @@ import { AtmosphereTags } from "./AtmosphereTags";
 import { EventTypePicker } from "./EventTypePicker";
 import { AdminEditorSplit } from "./AdminEditorSplit";
 import { LivePreviewPanel } from "./LivePreviewPanel";
+import { EventGalleryEditor } from "./EventGalleryEditor";
 import { MediaPicker } from "./MediaPicker";
 import { OccupancyBar } from "./OccupancyBar";
 import { VenuePicker } from "./VenuePicker";
@@ -542,24 +543,15 @@ export function EventEditor({
                 label="Hero-afbeelding"
               />
               <input type="hidden" name="imageUrl" value={imageUrl} />
-              <MediaPicker
-                usage="gallery"
-                value={extras.galleryImageSettings?.[0]}
-                onChange={(v) => {
-                  const rest = extras.galleryImageSettings?.slice(1) ?? [];
-                  const next = v ? [v, ...rest] : rest;
+              <EventGalleryEditor
+                images={extras.galleryImageSettings ?? []}
+                onChange={(next) =>
                   updateExtras({
-                    galleryImageSettings: next.length ? next : undefined,
-                    galleryImages: next.map((g) => g.url),
-                  });
-                }}
-                label="Sfeerimpressie (eerste afbeelding)"
+                    galleryImageSettings: next,
+                    galleryImages: next?.map((g) => g.url),
+                  })
+                }
               />
-              {(extras.galleryImageSettings?.length ?? 0) > 1 ? (
-                <p className="text-xs text-wine/50">
-                  {extras.galleryImageSettings!.length} afbeeldingen in galerij
-                </p>
-              ) : null}
             </Section>
           ) : null}
 

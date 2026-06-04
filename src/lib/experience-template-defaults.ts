@@ -84,13 +84,13 @@ export function getVenueSectionLabels(typeSlug: ExperienceTypeSlug, locale: "nl"
         subtitle:
           typeSlug === "chefs-special"
             ? "Voor Chef's Special werken we samen met restaurants die iets bijzonders willen serveren. Je schuift aan bij een geselecteerde plek waar de chef of het team een menu samenstelt voor de avond."
-            : "Eén partnerrestaurant per avond. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
+            : "Bezoek een van onze partnerrestaurants. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
       }
     : {
         title: "Where you take your seat",
         subtitle:
           typeSlug === "chefs-special"
             ? "For Chef's Special we work with restaurants that want to serve something special. You join a selected venue where the chef or team puts together a menu for the evening."
-            : "One partner restaurant per evening. Great fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
+            : "Visit one of our partner restaurants. Great fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
       };
 }

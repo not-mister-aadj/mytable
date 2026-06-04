@@ -23,16 +23,16 @@ export const experiencePageNl: ExperiencePageLabels = {
   flowTitle: "Hoe verloopt de ervaring?",
   venuesTitle: "Waar je aan tafel schuift",
   venuesSubtitle:
-    "Eén partnerrestaurant per avond. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
+    "Bezoek een van onze partnerrestaurants. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
   guestQuotesTitle: "Wat gasten zeggen",
   routeTitle: "Een middag door {city}",
   routeMapEyebrow: "Een indruk van de route",
   routeMapTitle: "Langs deze plekken in {city}",
   routeSubtitle:
-    "Zo krijg je alvast een beeld van de sfeer en de buurt. Alle stops en adressen staan op deze pagina — een dag van tevoren mailen we je ze nog even.",
+    "Zo krijg je alvast een beeld van de sfeer en de buurt. Alle stops en adressen staan op deze pagina. Een dag van tevoren mailen we je ze nog even.",
   socialTitle: "Een avond uit, op jouw manier.",
   socialSubtitle:
-    "Eigen tafel, alleen komen of aanschuiven bij anderen — jij kiest hoe gezellig het wordt.",
+    "Eigen tafel, alleen komen of aanschuiven bij anderen. Jij kiest hoe gezellig het wordt.",
   galleryTitle: "Sfeerimpressie",
   practicalTitle: "Praktische info",
   faqTitle: "Veelgestelde vragen",
@@ -137,7 +137,7 @@ export const experiencePageNl: ExperiencePageLabels = {
       ],
       socialParagraphs: [
         "Boek je eigen tafel met vrienden, kom alleen of schuif aan bij mensen die ook zin hebben in een gezellige avond.",
-        "Proeven, lachen, bijpraten — zonder gedoe. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
+        "Proeven, lachen, bijpraten zonder gedoe. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
       ],
       gallery: [
         images.wineBar,
@@ -215,7 +215,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Met je eigen groep of gewoon meelopen — onderweg kom je andere mensen tegen die ook zin hebben in een leuke middag.",
+        "Met je eigen groep of gewoon meelopen. Onderweg kom je andere mensen tegen die ook zin hebben in een leuke middag.",
         "Lopen, proeven, lachen. Geen saaie rondleiding: fijne stops en ruimte om te praten wanneer jij daar zin in hebt.",
       ],
       gallery: [
@@ -290,7 +290,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Eigen tafel met je vrienden of erbij gaan zitten — beide kan. Lekker eten, goede sfeer, mensen die ook zin hebben in een avond uit.",
+        "Eigen tafel met je vrienden of erbij gaan zitten: beide kan. Lekker eten, goede sfeer, mensen die ook zin hebben in een avond uit.",
         "Klein genoeg om het gezellig te houden, relaxed genoeg om gewoon jezelf te zijn. Of je nu veel of weinig weet van wijn: iedereen doet lekker mee.",
       ],
       gallery: [

@@ -10,7 +10,7 @@ import {
   buildDetailPreviewExperience,
   type PreviewEventData,
 } from "./event-preview";
-import { buildPreviewVenues } from "./preview-venues";
+import { buildPreviewRoutePoints, buildPreviewVenues } from "./preview-venues";
 
 export function AdminDetailPreview({
   data,
@@ -35,6 +35,11 @@ export function AdminDetailPreview({
     [data, allVenues],
   );
 
+  const routePoints = useMemo(
+    () => buildPreviewRoutePoints(data, allVenues),
+    [data, allVenues],
+  );
+
   return (
     <div className="bg-cream [&_a]:pointer-events-none">
       <ExperiencePageContent
@@ -43,6 +48,7 @@ export function AdminDetailPreview({
         dict={dict}
         locale={locale}
         eventVenues={eventVenues.length > 0 ? eventVenues : undefined}
+        routePoints={routePoints.length > 0 ? routePoints : undefined}
         previewMode={!expanded}
       />
     </div>

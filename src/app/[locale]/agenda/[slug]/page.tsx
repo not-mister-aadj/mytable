@@ -9,7 +9,8 @@ import {
   getExperienceBySlug,
   getRelatedExperiences,
 } from "@/lib/experiences";
-import { getPublishedEventRowBySlug, getPublishedSlugs } from "@/lib/experience-data";
+import { getPublishedSlugs } from "@/lib/experience-data";
+import { getExperienceByDbId } from "@/lib/experiences";
 import {
   getTypeContent,
   routePointsFromTypeContent,
@@ -80,17 +81,16 @@ export default async function ExperienceDetailPage({ params }: Props) {
   const experience = await getExperienceBySlug(locale, slug);
   if (!experience) notFound();
 
-  const [related, row] = await Promise.all([
-    getRelatedExperiences(locale, experience),
-    experience.eventDbId
-      ? getPublishedEventRowBySlug(slug)
-      : Promise.resolve(undefined),
-  ]);
+  const related = await getRelatedExperiences(locale, experience);
 
   let eventVenues: ExperienceVenue[] | undefined;
   let routePoints: RouteMapPoint[] | undefined;
 
-  if (row) {
+  const row = experience.eventDbId
+    ? await getExperienceByDbId(experience.eventDbId)
+    : undefined;
+
+  if (row?.workflowStatus === "published") {
       const [venues, venueCoords, typeContent] = await Promise.all([
         getEventVenues(row, locale, experience.id),
         getVenueRouteCoords(row),

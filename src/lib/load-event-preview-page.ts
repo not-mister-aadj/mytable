@@ -5,7 +5,6 @@ import { getRelatedExperiences } from "@/lib/experiences";
 import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { enrichDbEvent } from "@/lib/event-mapper";
-import { getPublishedEventRowBySlug } from "@/lib/experience-data";
 import {
   getTypeContent,
   routePointsFromTypeContent,
@@ -33,35 +32,32 @@ export async function loadEventPreviewPageData(
   const dict = getDictionary(locale);
   const experience = await enrichDbEvent(row, locale);
 
-  const [related, publishedRow] = await Promise.all([
-    getRelatedExperiences(locale, experience),
-    getPublishedEventRowBySlug(row.slug),
-  ]);
+  const related = await getRelatedExperiences(locale, experience);
 
   let eventVenues;
   let routePoints;
 
-  const venueRow = publishedRow ?? row;
-  if (venueRow) {
-    const [venues, venueCoords, typeContent] = await Promise.all([
-      getEventVenues(venueRow, locale, experience.id),
-      getVenueRouteCoords(venueRow),
-      getTypeContent(venueRow.experienceType ?? DEFAULT_EXPERIENCE_TYPE),
-    ]);
-    eventVenues = venues;
-    routePoints = routePointsFromTypeContent(
-      typeContent,
-      venueRow.city,
-      venues,
-      experience.id,
-      venueCoords.length > 0 ? venueCoords : undefined,
-    );
-  } else {
-    const venues = getCatalogVenues(experience.id, experience.mood);
+  const [venues, venueCoords, typeContent] = await Promise.all([
+    getEventVenues(row, locale, experience.id),
+    getVenueRouteCoords(row),
+    getTypeContent(row.experienceType ?? DEFAULT_EXPERIENCE_TYPE),
+  ]);
+  eventVenues = venues;
+  routePoints = routePointsFromTypeContent(
+    typeContent,
+    row.city,
+    venues,
+    experience.id,
+    venueCoords.length > 0 ? venueCoords : undefined,
+  );
+
+  if (venues.length === 0 && routePoints.length === 0) {
+    const catalogVenues = getCatalogVenues(experience.id, experience.mood);
+    eventVenues = catalogVenues;
     routePoints = getRouteMapPoints(
       experience.id,
       experience.city,
-      venues.map((v) => v.name),
+      catalogVenues.map((v) => v.name),
     );
   }
 

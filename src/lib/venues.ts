@@ -129,35 +129,43 @@ export async function getVenueById(id: string): Promise<Venue | undefined> {
   }
 }
 
-function filterVenuesForEventCity(venueRows: Venue[], eventCity: string): Venue[] {
-  const inCity = venueRows.filter(
-    (v) => v.city.toLowerCase() === eventCity.toLowerCase(),
-  );
-  return inCity.length > 0 ? inCity : venueRows;
+async function orderedExperienceVenues(
+  ids: string[],
+  locale: Locale,
+): Promise<ExperienceVenue[]> {
+  if (!ids.length) return [];
+  const rows = await fetchVenuesByIdsCached(ids);
+  const byId = new Map(rows.map((v) => [v.id, v]));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((v): v is Venue => Boolean(v))
+    .map((v) => venueToExperienceVenue(v, locale));
 }
 
-/** Venues from experience type; per-event venueIds override as fallback */
+async function resolveEventVenueIds(event: Event): Promise<string[]> {
+  const extras = parseEventExtras(event.extras);
+  if (extras.venueIds?.length) {
+    return extras.venueIds;
+  }
+  const typeSlug = event.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
+  const typeIds = await getVenueIdsForExperienceType(typeSlug);
+  if (typeIds.length > 0) return typeIds;
+  if (event.venueId) return [event.venueId];
+  return [];
+}
+
+/** Per-event venueIds (in order); else defaults from experience type */
 export async function getEventVenues(
   event: Event,
   locale: Locale,
   legacyExperienceId?: string,
 ): Promise<ExperienceVenue[]> {
   const typeSlug = event.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
-  const extras = parseEventExtras(event.extras);
-  let ids = extras.venueIds?.length
-    ? extras.venueIds
-    : await getVenueIdsForExperienceType(typeSlug);
-
-  if (ids.length === 0 && event.venueId) {
-    ids = [event.venueId];
-  }
+  const ids = await resolveEventVenueIds(event);
 
   if (ids.length > 0) {
-    const rows = await fetchVenuesByIdsCached(ids);
-    const filtered = filterVenuesForEventCity(rows, event.city);
-    if (filtered.length > 0) {
-      return filtered.map((v) => venueToExperienceVenue(v, locale));
-    }
+    const venues = await orderedExperienceVenues(ids, locale);
+    if (venues.length > 0) return venues;
   }
 
   const typeDef = getExperienceTypeDefinition(typeSlug);
@@ -191,11 +199,16 @@ async function coordsForVenue(
 export async function getVenueRouteCoords(
   event: Event,
 ): Promise<{ label: string; lat: number; lng: number }[]> {
-  const extras = parseEventExtras(event.extras);
-  const ids = extras.venueIds ?? [];
+  const ids = await resolveEventVenueIds(event);
   if (!ids.length) return [];
+
   const rows = await fetchVenuesByIdsCached(ids);
-  const points = await Promise.all(rows.map((v) => coordsForVenue(v)));
+  const byId = new Map(rows.map((v) => [v.id, v]));
+  const ordered = ids
+    .map((id) => byId.get(id))
+    .filter((v): v is Venue => Boolean(v));
+
+  const points = await Promise.all(ordered.map((v) => coordsForVenue(v)));
   return points.filter(
     (p): p is { label: string; lat: number; lng: number } => p !== null,
   );

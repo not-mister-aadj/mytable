@@ -6,19 +6,19 @@ import {
 } from "@/lib/image-settings";
 
 export const GIRLS_ONLY_ATMOSPHERE_TAG = "Girls only";
+export const PREMIUM_ATMOSPHERE_TAG = "Premium";
 
 export const ATMOSPHERE_TAG_OPTIONS = [
   GIRLS_ONLY_ATMOSPHERE_TAG,
-  "Mixed group",
-  "Relaxed",
-  "Social",
-  "Cozy",
-  "Premium",
-  "Newcomer friendly",
-  "Active",
+  PREMIUM_ATMOSPHERE_TAG,
 ] as const;
 
 export type AtmosphereTag = (typeof ATMOSPHERE_TAG_OPTIONS)[number];
+
+export function sanitizeAtmosphereTags(tags: string[]): AtmosphereTag[] {
+  const allowed = new Set<string>(ATMOSPHERE_TAG_OPTIONS);
+  return tags.filter((t): t is AtmosphereTag => allowed.has(t));
+}
 
 export type EventFaqItem = { question: string; answer: string };
 
@@ -112,7 +112,9 @@ export function parseEventExtras(raw: unknown): EventExtras {
 
   return {
     atmosphereTags: Array.isArray(o.atmosphereTags)
-      ? o.atmosphereTags.filter((t): t is string => typeof t === "string")
+      ? sanitizeAtmosphereTags(
+          o.atmosphereTags.filter((t): t is string => typeof t === "string"),
+        )
       : undefined,
     atmosphereTextNl:
       typeof o.atmosphereTextNl === "string" ? o.atmosphereTextNl : undefined,

@@ -1,4 +1,5 @@
 import type { EventFaqItem } from "@/lib/event-extras";
+import { sanitizeAtmosphereTags } from "@/lib/event-extras";
 
 export type TypeRoutePoint = { label: string; lat: number; lng: number };
 
@@ -37,7 +38,9 @@ export function parseTypeContent(raw: unknown): ExperienceTypeContent {
           )
       : undefined,
     defaultAtmosphereTags: Array.isArray(o.defaultAtmosphereTags)
-      ? o.defaultAtmosphereTags.filter((t): t is string => typeof t === "string")
+      ? sanitizeAtmosphereTags(
+          o.defaultAtmosphereTags.filter((t): t is string => typeof t === "string"),
+        )
       : undefined,
   };
 }

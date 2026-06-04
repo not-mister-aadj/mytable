@@ -31,7 +31,7 @@ export const en: Dictionary = {
       "We handle everything at the table. You show up and enjoy — from wine tastings and chef's specials to wine walks.",
     ctaPrimary: "Pick your table",
     microcopy:
-      "With friends, on a date, or solo. Pick a mixed table or girls only.",
+      "Book your own table, or join solo and meet others. With friends, on a date, or alone.",
     nextTableLabel: "Next table",
     imageAlt: "People enjoying wine and food together at the table",
   },

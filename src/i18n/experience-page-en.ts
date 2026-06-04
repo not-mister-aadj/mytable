@@ -115,9 +115,9 @@ export const experiencePageEn: ExperiencePageLabels = {
             "The chef creates specials for everyone at the table. Wine and food are matched.",
         },
         {
-          title: "Girls only or mixed",
+          title: "Book your own table or join one",
           description:
-            "Pick a table that fits: women only, or a mixed group where everyone is welcome.",
+            "Reserve for friends or a date, or come solo and join others who are up for a relaxed evening.",
         },
         {
           title: "Accessible guidance",

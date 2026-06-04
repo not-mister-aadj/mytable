@@ -115,9 +115,9 @@ export const experiencePageNl: ExperiencePageLabels = {
             "De chef maakt specials voor iedereen aan tafel. Wijn en spijs zijn op elkaar afgestemd.",
         },
         {
-          title: "Girls only of gemengd",
+          title: "Maak je eigen tafel of sluit aan",
           description:
-            "Kies een tafel die bij je past: alleen voor vrouwen, of een gemengde groep waar iedereen welkom is.",
+            "Boek een plek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige avond.",
         },
         {
           title: "Toegankelijke uitleg",

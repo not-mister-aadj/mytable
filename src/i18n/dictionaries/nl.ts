@@ -31,7 +31,7 @@ export const nl: Dictionary = {
       "Wij regelen alles rond de tafel. Jij komt genieten. Van wijnproeverijen en chef-specials tot wijnwalks.",
     ctaPrimary: "Kies je tafel",
     microcopy:
-      "Met vrienden, op date of alleen. Kies een gemengde tafel of girls only.",
+      "Boek je eigen tafel, of schuif solo aan bij anderen. Met vrienden, op date, of alleen.",
     nextTableLabel: "Volgende tafel",
     imageAlt: "Mensen die samen aan tafel van wijn en eten genieten",
   },

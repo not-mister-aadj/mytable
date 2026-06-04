@@ -16,6 +16,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: dict.meta.title,
     description: dict.meta.description,
+    icons: {
+      icon: [{ url: "/icon.png", type: "image/png" }],
+      apple: [{ url: "/apple-icon.png", type: "image/png" }],
+      shortcut: "/icon.png",
+    },
   };
 }
 

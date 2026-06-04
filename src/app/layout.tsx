@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
+
+export const metadata: Metadata = {
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+    shortcut: "/icon.png",
+  },
+};
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",

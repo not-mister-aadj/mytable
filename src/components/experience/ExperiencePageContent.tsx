@@ -85,6 +85,7 @@ export function ExperiencePageContent({
         labels={page}
         locale={locale}
         reserveCta={dict.agenda.reserveCta}
+        femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
         previewMode={previewMode}
       />
       <div ref={stickySentinelRef} className="h-px w-full" aria-hidden />

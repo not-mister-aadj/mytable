@@ -21,7 +21,9 @@ import {
 import { validateEventForm } from "@/lib/event-form-validation";
 import {
   emptyEventExtras,
+  GIRLS_ONLY_ATMOSPHERE_TAG,
   parseEventExtras,
+  resolveFemaleOnly,
   serializeEventExtras,
   type EventExtras,
 } from "@/lib/event-extras";
@@ -131,7 +133,9 @@ export function EventEditor({
     event ? String(event.priceCents / 100) : "49",
   );
   const [capacity, setCapacity] = useState(String(event?.capacity ?? 14));
-  const [femaleOnly, setFemaleOnly] = useState(event?.femaleOnly ?? false);
+  const [femaleOnly, setFemaleOnly] = useState(() =>
+    resolveFemaleOnly(event?.femaleOnly, initialExtras.atmosphereTags),
+  );
   const [imageUrl, setImageUrl] = useState(event?.imageUrl ?? "");
   const [taglineNl, setTaglineNl] = useState(event?.taglineNl ?? "");
   const [taglineEn, setTaglineEn] = useState(event?.taglineEn ?? "");
@@ -409,7 +413,22 @@ export function EventEditor({
                   name="femaleOnly"
                   value="on"
                   checked={femaleOnly}
-                  onChange={(e) => setFemaleOnly(e.target.checked)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFemaleOnly(checked);
+                    const tags = extras.atmosphereTags ?? [];
+                    if (checked && !tags.includes(GIRLS_ONLY_ATMOSPHERE_TAG)) {
+                      updateExtras({
+                        atmosphereTags: [...tags, GIRLS_ONLY_ATMOSPHERE_TAG],
+                      });
+                    } else if (!checked) {
+                      updateExtras({
+                        atmosphereTags: tags.filter(
+                          (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+                        ),
+                      });
+                    }
+                  }}
                   className="rounded"
                 />
                 Girls only
@@ -419,7 +438,10 @@ export function EventEditor({
                 <div className="mt-2">
                   <AtmosphereTags
                     selected={extras.atmosphereTags ?? []}
-                    onChange={(tags) => updateExtras({ atmosphereTags: tags })}
+                    onChange={(tags) => {
+                      setFemaleOnly(tags.includes(GIRLS_ONLY_ATMOSPHERE_TAG));
+                      updateExtras({ atmosphereTags: tags });
+                    }}
                   />
                 </div>
               </div>

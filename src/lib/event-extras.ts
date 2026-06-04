@@ -5,8 +5,10 @@ import {
   parseImageSettings,
 } from "@/lib/image-settings";
 
+export const GIRLS_ONLY_ATMOSPHERE_TAG = "Girls only";
+
 export const ATMOSPHERE_TAG_OPTIONS = [
-  "Girls only",
+  GIRLS_ONLY_ATMOSPHERE_TAG,
   "Mixed group",
   "Relaxed",
   "Social",
@@ -56,6 +58,27 @@ export type EventExtras = {
 };
 
 export const emptyEventExtras = (): EventExtras => ({});
+
+/** DB flag or Girls only sfeer-tag */
+export function resolveFemaleOnly(
+  femaleOnly: boolean | undefined,
+  atmosphereTags?: string[],
+): boolean {
+  return (
+    femaleOnly === true ||
+    (atmosphereTags?.includes(GIRLS_ONLY_ATMOSPHERE_TAG) ?? false)
+  );
+}
+
+/** Tags shown as pills (Girls only uses card/hero badge + styling instead). */
+export function displayAtmosphereTags(
+  atmosphereTags: string[] | undefined,
+  femaleOnly: boolean | undefined,
+): string[] {
+  const tags = atmosphereTags ?? [];
+  if (!resolveFemaleOnly(femaleOnly, tags)) return tags;
+  return tags.filter((t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG);
+}
 
 export function parseEventExtras(raw: unknown): EventExtras {
   if (!raw || typeof raw !== "object") return {};

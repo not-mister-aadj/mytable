@@ -1,6 +1,9 @@
 import type { ExperienceItem, ExperienceMoodKey } from "@/i18n/types";
 import { formatDateTime, deriveDisplayStatus } from "@/lib/event-display";
-import type { EventExtras } from "@/lib/event-extras";
+import {
+  resolveFemaleOnly,
+  type EventExtras,
+} from "@/lib/event-extras";
 import type { ExperienceTypeSlug } from "@/lib/experience-type-definitions";
 import { getExperienceTypeDefinition } from "@/lib/experience-type-definitions";
 import { getVenueSectionLabels } from "@/lib/experience-template-defaults";
@@ -64,6 +67,10 @@ export function buildCardPreviewExperience(
     extras.cardImage ??
     coerceImageSettings(extras.cardImageUrl, "agenda-card");
   const cardUrl = cardSettings?.url;
+  const isFemaleOnly = resolveFemaleOnly(
+    data.femaleOnly,
+    extras.atmosphereTags,
+  );
 
   return {
     id: "preview",
@@ -81,11 +88,11 @@ export function buildCardPreviewExperience(
     image: cardUrl ?? "",
     cardImage: cardUrl,
     cardImageSettings: cardSettings,
-    femaleOnly: data.femaleOnly,
+    femaleOnly: isFemaleOnly,
     capacity,
     spotsSold,
     tagline: locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
-    atmosphereTags: data.extras.atmosphereTags,
+    atmosphereTags: extras.atmosphereTags,
   };
 }
 
@@ -117,6 +124,10 @@ export function buildDetailPreviewExperience(
   const heroUrl =
     heroSettings?.url ??
     (isUsableImageUrl(data.imageUrl) ? data.imageUrl : DEFAULT_EVENT_IMAGE);
+  const isFemaleOnly = resolveFemaleOnly(
+    data.femaleOnly,
+    extras.atmosphereTags,
+  );
 
   return {
     id: "preview",
@@ -142,7 +153,7 @@ export function buildDetailPreviewExperience(
     image: heroUrl,
     heroImageSettings: heroSettings,
     cardImageSettings: extras.cardImage,
-    femaleOnly: data.femaleOnly,
+    femaleOnly: isFemaleOnly,
     capacity,
     spotsSold,
     tagline: locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,

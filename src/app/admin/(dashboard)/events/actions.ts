@@ -6,7 +6,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
-import { parseEventExtras } from "@/lib/event-extras";
+import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
 import {
   formatEventSaveError,
   validateEventForm,
@@ -98,7 +98,10 @@ function toEventValues(form: EventFormState) {
     endsAt: form.endsAt ? new Date(form.endsAt) : null,
     priceCents: Math.round(priceEuros * 100),
     capacity: Number.isFinite(capacity) ? capacity : 14,
-    femaleOnly: form.femaleOnly,
+    femaleOnly: resolveFemaleOnly(
+      form.femaleOnly,
+      form.extras.atmosphereTags,
+    ),
     imageUrl:
       form.extras.heroImage?.url ||
       (isUsableImageUrl(form.imageUrl) ? form.imageUrl : DEFAULT_EVENT_IMAGE),

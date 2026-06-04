@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { PositionedImage } from "@/components/ui/PositionedImage";
+import {
+  displayAtmosphereTags,
+  resolveFemaleOnly,
+} from "@/lib/event-extras";
 
 const statusBadgeStyles: Record<
   ExperienceItem["status"],
@@ -31,7 +35,14 @@ export function ExperienceCard({
   href,
 }: ExperienceCardProps) {
   const isSoldOut = experience.status === "soldOut";
-  const isFemaleOnly = experience.femaleOnly === true;
+  const isFemaleOnly = resolveFemaleOnly(
+    experience.femaleOnly,
+    experience.atmosphereTags,
+  );
+  const visibleTags = displayAtmosphereTags(
+    experience.atmosphereTags,
+    experience.femaleOnly,
+  );
   const cardSettings = experience.cardImageSettings;
   const cardSrc =
     cardSettings?.url ?? experience.cardImage ?? experience.image;
@@ -108,6 +119,23 @@ export function ExperienceCard({
           <p className="mt-2 text-sm leading-relaxed text-wine/65 line-clamp-2">
             {experience.cardText}
           </p>
+        ) : null}
+
+        {visibleTags.length > 0 ? (
+          <ul className="mt-3 flex flex-wrap gap-1.5">
+            {visibleTags.map((tag) => (
+              <li
+                key={tag}
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  isFemaleOnly
+                    ? "bg-rose/15 text-rose-deep"
+                    : "bg-wine/8 text-wine/70"
+                }`}
+              >
+                {tag}
+              </li>
+            ))}
+          </ul>
         ) : null}
 
         <p className="mt-3 text-sm text-wine/60">{experience.dateTime}</p>

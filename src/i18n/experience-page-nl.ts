@@ -33,9 +33,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   routeOpenInApple: "Open route in Kaarten",
   routeMapSetupHint:
     "Voorkeursweergave: Apple Kaarten (MapKit). Voeg credentials toe voor de volledige kaart.",
-  socialTitle: "Je komt voor wijn en gezelligheid. Niet om te netwerken.",
+  socialTitle: "Een fijne avond met anderen. Zonder netwerkdruk.",
   socialSubtitle:
-    "Een kleine groep aan één tafel, met ruimte om te proeven, lachen en praten op je eigen tempo.",
+    "Kleine groep, ontspannen tempo — ruimte om te genieten, lachen en praten zoals jij dat wilt.",
   galleryTitle: "Sfeerimpressie",
   practicalTitle: "Praktische info",
   faqTitle: "Veelgestelde vragen",
@@ -139,8 +139,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Je schuift aan bij mensen die ook zin hebben in een avond uit. Soms alleen, soms met vrienden of op date. Het is superleuk als de chef je verrast met de volgende special of het glas dat erbij past, en het gesprek loopt vanzelf.",
-        "Je hoeft niets te bewijzen en niemand zit er voor zakelijke contacten. Of je nu veel van wijn weet of vooral nieuwsgierig bent: iedereen proeft, eet en praat op gelijke hoogte. De hele avond op één plek maakt het rustig en persoonlijk.",
+        "Alleen komen, met vrienden of iemand meenemen: alles kan. De avond heeft een duidelijk kader, maar binnen dat kader bepaal jij je tempo.",
+        "Niemand hoeft iets te bewijzen of zit er voor zakelijke contacten. Je deelt een tafel met nieuwsgierige mensen; gesprekken ontstaan vanzelf terwijl je proeft, eet en ontspant.",
       ],
       gallery: [
         images.wineBar,
@@ -218,8 +218,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Je komt voor wijn en gezelligheid. Niet om te netwerken.",
-        "De wandeling geeft structuur, maar de sfeer blijft ontspannen. Gesprekken wisselen vanzelf als je van plek naar plek gaat.",
+        "Onderweg ontmoet je dezelfde groep bij verschillende momenten. Dat houdt het luchtig: even iets nieuws, dan weer tijd om bij te praten.",
+        "Geen verplichte smalltalk of zakelijke vibe. Je beweegt, proeft en lacht op een tempo dat voor iedereen werkt.",
       ],
       gallery: [
         images.wineBar,
@@ -293,8 +293,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Je komt voor wijn en gezelligheid. Niet om te netwerken.",
-        "Je schuift aan bij mensen die ook zin hebben in een avond uit. Het menu geeft structuur, het gesprek loopt vanzelf.",
+        "Je schuift aan bij mensen die ook zin hebben in een avond uit. Het programma geeft houvast; de rest komt vanzelf.",
+        "Klein genoeg om elkaar echt te zien, ontspannen genoeg om niet te hoeven presteren. Nieuwsgierig of al ervaren: iedereen zit op gelijk niveau.",
       ],
       gallery: [
         images.restaurantDining,

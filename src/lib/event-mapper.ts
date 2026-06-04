@@ -4,7 +4,7 @@ import { deriveDisplayStatus, formatDateTime } from "@/lib/event-display";
 import type { Event } from "@/db/schema";
 import { getExperienceSlug } from "@/data/experience-slugs";
 import type { EnrichedExperience } from "./experience-detail";
-import { parseEventExtras } from "@/lib/event-extras";
+import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
 import { mergeTypeContentIntoItem } from "@/lib/experience-type-content";
 import type { ExperienceTypeContent } from "@/lib/experience-type-content.types";
 import { getTypeContent } from "@/lib/experience-type-content";
@@ -73,7 +73,7 @@ export function mapDbEventToExperienceItem(
     ),
     mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
     image: heroUrl,
-    femaleOnly: row.femaleOnly,
+    femaleOnly: resolveFemaleOnly(row.femaleOnly, extras.atmosphereTags),
     tagline: names.tagline,
     capacity: row.capacity,
     spotsSold: row.spotsSold,

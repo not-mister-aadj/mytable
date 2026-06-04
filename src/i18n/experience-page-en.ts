@@ -33,9 +33,9 @@ export const experiencePageEn: ExperiencePageLabels = {
   routeOpenInApple: "Open route in Maps",
   routeMapSetupHint:
     "Preferred view: Apple Maps (MapKit). Add credentials for the full map embed.",
-  socialTitle: "You're here for wine and good company. Not to network.",
+  socialTitle: "A good evening with others. No networking pressure.",
   socialSubtitle:
-    "A small group at one table, with room to taste, laugh, and talk at your own pace.",
+    "Small group, easy pace — room to enjoy, laugh, and talk your way.",
   galleryTitle: "Atmosphere",
   practicalTitle: "Practical info",
   faqTitle: "Frequently asked questions",
@@ -139,8 +139,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "You join people who want a proper night out. Sometimes solo, sometimes with friends or on a date. It's great fun when the chef surprises you with the next special or the pour that goes with it, and conversation flows on its own.",
-        "Nobody is there to prove anything or make business contacts. Whether you know a lot about wine or are simply curious, everyone tastes, eats, and chats on equal footing. One place for the whole evening keeps it calm and personal.",
+        "Come solo, with friends, or with a date — all good. The evening has a clear shape, but inside that you set your own pace.",
+        "Nobody needs to prove anything or make business contacts. You share a table with curious people; conversation happens naturally while you taste, eat, and unwind.",
       ],
       gallery: [
         images.wineBar,
@@ -218,8 +218,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "You come for wine and good company. Not to network.",
-        "The walk gives structure, but the mood stays relaxed. Conversations shift naturally as you move from place to place.",
+        "Along the way you meet the same group at different moments. That keeps it light: something new, then time to catch up again.",
+        "No forced small talk or corporate vibe. You move, taste, and laugh at a pace that works for everyone.",
       ],
       gallery: [
         images.wineBar,
@@ -293,8 +293,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "You come for wine and good company. Not to network.",
-        "You join people who want a proper night out. The menu gives structure; conversation flows on its own.",
+        "You join people who want a proper night out. The program gives structure; the rest follows naturally.",
+        "Small enough to actually connect, relaxed enough not to perform. Curious or experienced — everyone is on equal footing.",
       ],
       gallery: [
         images.restaurantDining,

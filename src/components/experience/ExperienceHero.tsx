@@ -12,6 +12,10 @@ import {
   getSpotsLeft,
 } from "@/lib/experience-booking";
 import { getExperienceTagline, splitDateTime } from "@/lib/experience-detail";
+import {
+  displayAtmosphereTags,
+  resolveFemaleOnly,
+} from "@/lib/event-extras";
 import { Button } from "../ui/Button";
 
 interface ExperienceHeroProps {
@@ -20,6 +24,7 @@ interface ExperienceHeroProps {
   labels: Dictionary["experiencePage"];
   locale: Locale;
   reserveCta: string;
+  femaleOnlyBadge: string;
   previewMode?: boolean;
 }
 
@@ -29,8 +34,17 @@ export function ExperienceHero({
   labels,
   locale,
   reserveCta,
+  femaleOnlyBadge,
   previewMode = false,
 }: ExperienceHeroProps) {
+  const isFemaleOnly = resolveFemaleOnly(
+    experience.femaleOnly,
+    experience.atmosphereTags,
+  );
+  const visibleTags = displayAtmosphereTags(
+    experience.atmosphereTags,
+    experience.femaleOnly,
+  );
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -72,8 +86,20 @@ export function ExperienceHero({
           sizes="100vw"
         />
       </motion.div>
-      <div className="absolute inset-0 bg-gradient-to-t from-wine/92 via-wine/55 to-wine/30" />
-      <div className="absolute inset-0 bg-gradient-to-r from-wine/65 via-wine/25 to-transparent" />
+      <div
+        className={`absolute inset-0 bg-gradient-to-t ${
+          isFemaleOnly
+            ? "from-rose-deep/90 via-rose/50 to-wine/35"
+            : "from-wine/92 via-wine/55 to-wine/30"
+        }`}
+      />
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${
+          isFemaleOnly
+            ? "from-rose-deep/70 via-rose/30 to-transparent"
+            : "from-wine/65 via-wine/25 to-transparent"
+        }`}
+      />
 
       <div
         className={
@@ -95,10 +121,23 @@ export function ExperienceHero({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-gold"
+          className={`mt-6 text-xs font-semibold uppercase tracking-[0.28em] ${
+            isFemaleOnly ? "text-rose-soft" : "text-gold"
+          }`}
         >
           {experience.category}
         </motion.p>
+
+        {isFemaleOnly ? (
+          <motion.span
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.08 }}
+            className="mt-4 inline-flex rounded-full bg-rose px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream shadow-sm"
+          >
+            {femaleOnlyBadge}
+          </motion.span>
+        ) : null}
 
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
@@ -127,17 +166,19 @@ export function ExperienceHero({
           {tagline}
         </motion.p>
 
-        {experience.atmosphereTags && experience.atmosphereTags.length > 0 ? (
+        {visibleTags.length > 0 ? (
           <motion.ul
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.22 }}
             className="mt-4 flex flex-wrap gap-2"
           >
-            {experience.atmosphereTags.map((tag) => (
+            {visibleTags.map((tag) => (
               <li
                 key={tag}
-                className="rounded-full bg-gold/20 px-3 py-1 text-xs font-medium text-cream"
+                className={`rounded-full px-3 py-1 text-xs font-medium text-cream ${
+                  isFemaleOnly ? "bg-rose/30" : "bg-gold/20"
+                }`}
               >
                 {tag}
               </li>

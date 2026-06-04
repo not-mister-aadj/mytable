@@ -15,9 +15,12 @@ import { buildPreviewVenues } from "./preview-venues";
 export function AdminDetailPreview({
   data,
   allVenues = [],
+  expanded = false,
 }: {
   data: PreviewEventData;
   allVenues?: Venue[];
+  /** Fullscreen: match public page layout (taller hero, sticky bar) */
+  expanded?: boolean;
 }) {
   const locale = data.previewLocale ?? "nl";
   const dict = locale === "en" ? en : nl;
@@ -40,7 +43,7 @@ export function AdminDetailPreview({
         dict={dict}
         locale={locale}
         eventVenues={eventVenues.length > 0 ? eventVenues : undefined}
-        previewMode
+        previewMode={!expanded}
       />
     </div>
   );

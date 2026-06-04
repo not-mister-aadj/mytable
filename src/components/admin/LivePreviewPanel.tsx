@@ -68,7 +68,7 @@ export function LivePreviewPanel({
 
       <motion.div
         layout
-        className={`mx-auto max-h-[85vh] overflow-y-auto rounded-2xl border border-border-subtle bg-cream shadow-lg ${widthClass}`}
+        className={`max-h-[85vh] w-full overflow-y-auto rounded-2xl border border-border-subtle bg-cream shadow-lg ${widthClass}`}
       >
         {mode === "card" ? (
           <div className="p-3 [&_a]:pointer-events-none">

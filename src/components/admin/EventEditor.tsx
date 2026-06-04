@@ -27,6 +27,7 @@ import {
 } from "@/lib/event-extras";
 import { AtmosphereTags } from "./AtmosphereTags";
 import { EventTypePicker } from "./EventTypePicker";
+import { AdminEditorSplit } from "./AdminEditorSplit";
 import { LivePreviewPanel } from "./LivePreviewPanel";
 import { MediaPicker } from "./MediaPicker";
 import { OccupancyBar } from "./OccupancyBar";
@@ -272,8 +273,32 @@ export function EventEditor({
     );
   }
 
+  const previewColumn = (
+    <>
+      <div className="mb-3 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setPreviewLocale("nl")}
+          className={`rounded-full px-3 py-1 text-xs ${previewLocale === "nl" ? "bg-burgundy text-cream" : "text-wine/60"}`}
+        >
+          NL
+        </button>
+        <button
+          type="button"
+          onClick={() => setPreviewLocale("en")}
+          className={`rounded-full px-3 py-1 text-xs ${previewLocale === "en" ? "bg-burgundy text-cream" : "text-wine/60"}`}
+        >
+          EN
+        </button>
+      </div>
+      <LivePreviewPanel data={previewData} allVenues={allVenues} />
+    </>
+  );
+
   return (
-    <div className="grid gap-10 xl:grid-cols-[1fr_360px]">
+    <AdminEditorSplit
+      preview={previewColumn}
+      form={
       <div className="space-y-8">
         <nav className="flex flex-wrap gap-2">
           {STEPS.slice(isEdit ? 1 : 0).map((label, i) => {
@@ -634,27 +659,8 @@ export function EventEditor({
           </Section>
         ) : null}
       </div>
-
-      <div>
-        <div className="mb-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPreviewLocale("nl")}
-            className={`rounded-full px-3 py-1 text-xs ${previewLocale === "nl" ? "bg-burgundy text-cream" : "text-wine/60"}`}
-          >
-            NL
-          </button>
-          <button
-            type="button"
-            onClick={() => setPreviewLocale("en")}
-            className={`rounded-full px-3 py-1 text-xs ${previewLocale === "en" ? "bg-burgundy text-cream" : "text-wine/60"}`}
-          >
-            EN
-          </button>
-        </div>
-        <LivePreviewPanel data={previewData} allVenues={allVenues} />
-      </div>
-    </div>
+      }
+    />
   );
 }
 

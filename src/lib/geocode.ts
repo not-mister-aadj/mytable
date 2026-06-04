@@ -29,6 +29,7 @@ export async function geocodeVenueAddress(
         Accept: "application/json",
         "User-Agent": "MyTable/1.0 (venue geocoding; https://mytable.club)",
       },
+      signal: AbortSignal.timeout(8_000),
       next: { revalidate: 0 },
     });
     if (!res.ok) return null;

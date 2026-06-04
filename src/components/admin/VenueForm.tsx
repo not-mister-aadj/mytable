@@ -7,7 +7,7 @@ import {
   deleteVenueAction,
 } from "@/app/admin/(dashboard)/venues/actions";
 import { MediaPicker } from "./MediaPicker";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import {
   coerceImageSettings,
   parseImageSettings,
@@ -16,9 +16,13 @@ import type { ImageSettings } from "@/lib/image-settings";
 
 export function VenueForm({ venue }: { venue?: Venue }) {
   const isEdit = Boolean(venue);
-  const action = isEdit
-    ? updateVenueAction.bind(null, venue!.id)
-    : createVenueAction;
+
+  const [saveState, submitAction, isSaving] = useActionState(
+    isEdit
+      ? updateVenueAction.bind(null, venue!.id)
+      : createVenueAction,
+    { error: null },
+  );
 
   const [imageSettings, setImageSettings] = useState<ImageSettings | undefined>(
     () =>
@@ -28,7 +32,10 @@ export function VenueForm({ venue }: { venue?: Venue }) {
 
   return (
     <div className="max-w-2xl space-y-8">
-      <form action={action} className="space-y-6 rounded-2xl border border-border-subtle bg-beige p-6">
+      <form
+        action={submitAction}
+        className="space-y-6 rounded-2xl border border-border-subtle bg-beige p-6"
+      >
         <Field label="Naam" name="name" defaultValue={venue?.name} required />
         <Field label="Stad" name="city" defaultValue={venue?.city ?? "Den Haag"} required />
         <Field label="Wijk / gebied" name="area" defaultValue={venue?.area ?? ""} />
@@ -67,11 +74,19 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           name="descriptionEn"
           defaultValue={venue?.descriptionEn ?? ""}
         />
+
+        {saveState.error ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+            {saveState.error}
+          </p>
+        ) : null}
+
         <button
           type="submit"
-          className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream"
+          disabled={isSaving}
+          className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream disabled:opacity-60"
         >
-          {isEdit ? "Opslaan" : "Venue aanmaken"}
+          {isSaving ? "Opslaan…" : isEdit ? "Opslaan" : "Venue aanmaken"}
         </button>
       </form>
 

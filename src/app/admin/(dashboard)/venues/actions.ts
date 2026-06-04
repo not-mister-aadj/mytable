@@ -2,16 +2,57 @@
 
 import { eq } from "drizzle-orm";
 import { events, experienceTypes, venues } from "@/db/schema";
+import type { Venue } from "@/db/schema";
 import { parseEventExtras } from "@/lib/event-extras";
 import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { parseImageSettings } from "@/lib/image-settings";
 import { DEFAULT_VENUE_IMAGE } from "@/lib/image-settings";
-import { geocodeVenueAddress } from "@/lib/geocode";
+import {
+  geocodeVenueAddress,
+  parseStoredCoords,
+  type GeocodeResult,
+} from "@/lib/geocode";
+import { formatEventSaveError } from "@/lib/event-form-validation";
 
-async function parseVenueForm(data: FormData) {
+export type VenueSaveState = {
+  error: string | null;
+};
+
+const initialSaveState: VenueSaveState = { error: null };
+
+function venueAddressKey(city: string, address: string | null) {
+  return `${city.trim().toLowerCase()}|${(address ?? "").trim().toLowerCase()}`;
+}
+
+async function resolveVenueCoords(
+  city: string,
+  address: string | null,
+  existing?: Venue,
+): Promise<GeocodeResult | null> {
+  const unchanged =
+    existing &&
+    venueAddressKey(city, address) ===
+      venueAddressKey(existing.city, existing.address);
+
+  if (unchanged) {
+    return parseStoredCoords(existing.latitude, existing.longitude);
+  }
+
+  const fresh = await geocodeVenueAddress(city, address);
+  if (fresh) return fresh;
+
+  if (existing) {
+    return parseStoredCoords(existing.latitude, existing.longitude);
+  }
+
+  return null;
+}
+
+async function parseVenueForm(data: FormData, existing?: Venue) {
   const name = String(data.get("name") ?? "").trim();
   const city = String(data.get("city") ?? "").trim();
   const descriptionNl = String(data.get("descriptionNl") ?? "").trim();
@@ -35,7 +76,7 @@ async function parseVenueForm(data: FormData) {
     throw new Error("Naam, stad en beschrijving (NL) zijn verplicht.");
   }
 
-  const coords = await geocodeVenueAddress(city, address || null);
+  const coords = await resolveVenueCoords(city, address || null, existing);
 
   return {
     name,
@@ -52,22 +93,52 @@ async function parseVenueForm(data: FormData) {
   };
 }
 
-export async function createVenueAction(formData: FormData) {
+async function persistCreateVenue(formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const values = await parseVenueForm(formData);
   const db = getDb();
   const [row] = await db.insert(venues).values(values).returning();
-  redirect(adminPath(`/venues/${row.id}/edit`));
+  redirect(adminPath(`/venues/${row.id}/edit?saved=1`));
 }
 
-export async function updateVenueAction(id: string, formData: FormData) {
+async function persistUpdateVenue(id: string, formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
-  const values = await parseVenueForm(formData);
   const db = getDb();
+  const [existing] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
+  if (!existing) throw new Error("Venue niet gevonden");
+
+  const values = await parseVenueForm(formData, existing);
   await db.update(venues).set(values).where(eq(venues.id, id));
   redirect(adminPath(`/venues/${id}/edit?saved=1`));
+}
+
+export async function createVenueAction(
+  _prevState: VenueSaveState,
+  formData: FormData,
+): Promise<VenueSaveState> {
+  try {
+    await persistCreateVenue(formData);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    return { error: formatEventSaveError(error) };
+  }
+  return initialSaveState;
+}
+
+export async function updateVenueAction(
+  id: string,
+  _prevState: VenueSaveState,
+  formData: FormData,
+): Promise<VenueSaveState> {
+  try {
+    await persistUpdateVenue(id, formData);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    return { error: formatEventSaveError(error) };
+  }
+  return initialSaveState;
 }
 
 async function detachVenueFromReferences(

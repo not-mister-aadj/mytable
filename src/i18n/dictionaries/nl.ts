@@ -113,9 +113,9 @@ export const nl: Dictionary = {
           "De chef bereidt specials voor iedereen aan tafel, wijn en spijs die bij elkaar passen.",
       },
       {
-        title: "Girls only of gemengd",
+        title: "Maak je eigen tafel of sluit aan",
         description:
-          "Kies een tafel alleen voor vrouwen, of schuif aan bij een gemengde groep, solo, met vrienden of op date.",
+          "Boek een plek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige avond.",
       },
     ],
   },

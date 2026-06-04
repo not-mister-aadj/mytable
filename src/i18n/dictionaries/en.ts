@@ -112,9 +112,9 @@ export const en: Dictionary = {
           "The chef prepares specials for everyone at the table, wine and food that match.",
       },
       {
-        title: "Girls only or mixed",
+        title: "Book your own table or join one",
         description:
-          "Choose a women-only table, or join a mixed group, solo, with friends, or on a date.",
+          "Reserve for friends or a date, or come solo and join others who are up for a relaxed evening.",
       },
     ],
   },

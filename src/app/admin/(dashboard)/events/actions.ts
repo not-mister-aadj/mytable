@@ -7,12 +7,17 @@ import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { parseEventExtras } from "@/lib/event-extras";
+import {
+  formatEventSaveError,
+  validateEventForm,
+} from "@/lib/event-form-validation";
 import { DEFAULT_EVENT_IMAGE, isUsableImageUrl } from "@/lib/image-settings";
 import {
   DEFAULT_EXPERIENCE_TYPE,
   getExperienceTypeDefinition,
   isValidExperienceType,
 } from "@/lib/experience-types";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 
 export type EventFormState = {
@@ -34,12 +39,17 @@ export type EventFormState = {
   extras: ReturnType<typeof parseEventExtras>;
 };
 
+export type EventSaveState = {
+  error: string | null;
+};
+
+const initialSaveState: EventSaveState = { error: null };
+
 function parseForm(data: FormData): EventFormState {
   let extras = emptyExtras();
+  const extrasRaw = String(data.get("extras") ?? "{}").trim();
   try {
-    extras = parseEventExtras(
-      JSON.parse(String(data.get("extras") ?? "{}")),
-    );
+    extras = parseEventExtras(JSON.parse(extrasRaw || "{}"));
   } catch {
     extras = emptyExtras();
   }
@@ -69,16 +79,13 @@ function emptyExtras() {
 }
 
 function toEventValues(form: EventFormState) {
+  const validationError = validateEventForm(form);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
   const priceEuros = Number.parseFloat(form.priceEuros.replace(",", "."));
   const capacity = Number.parseInt(form.capacity, 10);
-  if (
-    !form.slug ||
-    !form.city ||
-    !form.startsAt ||
-    !Number.isFinite(priceEuros)
-  ) {
-    throw new Error("Vul alle verplichte velden in.");
-  }
   const experienceType = isValidExperienceType(form.experienceType)
     ? form.experienceType
     : DEFAULT_EXPERIENCE_TYPE;
@@ -109,9 +116,11 @@ function toEventValues(form: EventFormState) {
   };
 }
 
-export async function createEventAction(formData: FormData) {
+async function persistNewEvent(formData: FormData) {
   await requireAdmin();
-  if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
+  if (!isDbConfigured()) {
+    throw new Error("Database niet geconfigureerd");
+  }
   const form = parseForm(formData);
   const values = toEventValues(form);
   const db = getDb();
@@ -122,12 +131,14 @@ export async function createEventAction(formData: FormData) {
       workflowStatus: "draft",
     })
     .returning();
-  redirect(adminPath(`/events/${row.id}/edit`));
+  redirect(adminPath(`/events/${row.id}/edit?saved=1`));
 }
 
-export async function updateEventAction(id: string, formData: FormData) {
+async function persistUpdateEvent(id: string, formData: FormData) {
   await requireAdmin();
-  if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
+  if (!isDbConfigured()) {
+    throw new Error("Database niet geconfigureerd");
+  }
   const form = parseForm(formData);
   const values = toEventValues(form);
   const db = getDb();
@@ -140,6 +151,33 @@ export async function updateEventAction(id: string, formData: FormData) {
     revalidateEventPaths(row.slug);
   }
   redirect(adminPath(`/events/${id}/edit?saved=1`));
+}
+
+export async function createEventAction(
+  _prevState: EventSaveState,
+  formData: FormData,
+): Promise<EventSaveState> {
+  try {
+    await persistNewEvent(formData);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    return { error: formatEventSaveError(error) };
+  }
+  return initialSaveState;
+}
+
+export async function updateEventAction(
+  id: string,
+  _prevState: EventSaveState,
+  formData: FormData,
+): Promise<EventSaveState> {
+  try {
+    await persistUpdateEvent(id, formData);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    return { error: formatEventSaveError(error) };
+  }
+  return initialSaveState;
 }
 
 export async function publishEventAction(id: string) {
@@ -219,4 +257,3 @@ export async function duplicateEventAction(id: string) {
 
   redirect(adminPath(`/events/${row.id}/edit`));
 }
-

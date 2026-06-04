@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Event, Venue } from "@/db/schema";
 import { adminPath, getSiteUrl } from "@/lib/admin-url";
@@ -16,7 +16,9 @@ import {
   publishEventAction,
   unpublishEventAction,
   deleteEventAction,
+  type EventFormState,
 } from "@/app/admin/(dashboard)/events/actions";
+import { validateEventForm } from "@/lib/event-form-validation";
 import {
   emptyEventExtras,
   parseEventExtras,
@@ -141,9 +143,46 @@ export function EventEditor({
   const [extras, setExtras] = useState<EventExtras>(initialExtras);
   const [previewLocale, setPreviewLocale] = useState<"nl" | "en">("nl");
 
-  const action = isEdit
-    ? updateEventAction.bind(null, event!.id)
-    : createEventAction;
+  const [saveState, submitAction, isSaving] = useActionState(
+    isEdit
+      ? updateEventAction.bind(null, event!.id)
+      : createEventAction,
+    { error: null },
+  );
+  const [localError, setLocalError] = useState<string | null>(null);
+  const saveError = localError ?? saveState.error;
+
+  function buildFormSnapshot(): EventFormState {
+    return {
+      slug,
+      city,
+      startsAt,
+      endsAt,
+      priceEuros,
+      capacity,
+      femaleOnly,
+      imageUrl,
+      nameNl,
+      nameEn,
+      taglineNl,
+      taglineEn,
+      categoryNl,
+      categoryEn,
+      experienceType,
+      extras,
+    };
+  }
+
+  function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const validationError = validateEventForm(buildFormSnapshot());
+    if (validationError) {
+      e.preventDefault();
+      setLocalError(validationError);
+      setStep(1);
+      return;
+    }
+    setLocalError(null);
+  }
 
   const previewData: PreviewEventData = useMemo(
     () => ({
@@ -256,8 +295,15 @@ export function EventEditor({
           })}
         </nav>
 
-        <form action={action} className="space-y-8">
-          <input type="hidden" name="extras" value={serializeEventExtras(extras)} />
+        <form action={submitAction} onSubmit={handleFormSubmit} className="space-y-8">
+          <textarea
+            name="extras"
+            readOnly
+            tabIndex={-1}
+            aria-hidden
+            className="pointer-events-none absolute h-0 w-0 opacity-0"
+            value={serializeEventExtras(extras)}
+          />
           <input type="hidden" name="experienceType" value={experienceType} />
           <input type="hidden" name="nameNl" value={nameNl} />
           <input type="hidden" name="nameEn" value={nameEn} />
@@ -505,6 +551,12 @@ export function EventEditor({
             </Section>
           ) : null}
 
+          {saveError ? (
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+              {saveError}
+            </p>
+          ) : null}
+
           <div className="flex flex-wrap gap-3">
             {step > (isEdit ? 1 : 0) ? (
               <button
@@ -526,9 +578,10 @@ export function EventEditor({
             ) : null}
             <button
               type="submit"
-              className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream"
+              disabled={isSaving}
+              className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream disabled:opacity-60"
             >
-              {isEdit ? "Opslaan" : "Concept opslaan"}
+              {isSaving ? "Opslaan…" : isEdit ? "Opslaan" : "Concept opslaan"}
             </button>
           </div>
         </form>

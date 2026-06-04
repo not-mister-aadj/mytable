@@ -39,7 +39,7 @@ const copy = {
     atmosphere: "Binnenkort",
     title: "Nog niet alle locaties zijn bekend",
     description:
-      "We zijn nog bezig met de definitieve selectie. De exacte stop en adres sturen we je per mail. Ken jij een leuke plek? Laat het ons weten.",
+      "We zijn nog bezig met de definitieve selectie. Ken of ben jij een leuke plek?",
   },
   en: {
     pickerLabel: "Location not yet announced",
@@ -49,7 +49,7 @@ const copy = {
     atmosphere: "Soon",
     title: "Not all locations are known yet",
     description:
-      "We're still finalizing the lineup. The exact stop and address will arrive by email. Know a great spot? Get in touch.",
+      "We're still finalizing the lineup. Know one — or have a great spot yourself?",
   },
 } as const;
 

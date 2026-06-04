@@ -14,6 +14,7 @@ export function EventsList({ events }: { events: Event[] }) {
   const [city, setCity] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [time, setTime] = useState<TimeFilter>("upcoming");
+  const [filterNow] = useState(() => Date.now());
 
   const cities = useMemo(() => {
     const set = new Set(events.map((e) => e.city));
@@ -22,11 +23,12 @@ export function EventsList({ events }: { events: Event[] }) {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const now = Date.now();
     return events.filter((e) => {
       if (city !== "all" && e.city !== city) return false;
-      if (time === "upcoming" && new Date(e.startsAt).getTime() < now) return false;
-      if (time === "past" && new Date(e.startsAt).getTime() >= now) return false;
+      if (time === "upcoming" && new Date(e.startsAt).getTime() < filterNow)
+        return false;
+      if (time === "past" && new Date(e.startsAt).getTime() >= filterNow)
+        return false;
       if (status === "published" && e.workflowStatus !== "published") return false;
       if (status === "draft" && e.workflowStatus !== "draft") return false;
       if (status === "soldOut" && e.spotsSold < e.capacity) return false;
@@ -41,7 +43,7 @@ export function EventsList({ events }: { events: Event[] }) {
       }
       return true;
     });
-  }, [events, search, city, status, time]);
+  }, [events, search, city, status, time, filterNow]);
 
   return (
     <div>

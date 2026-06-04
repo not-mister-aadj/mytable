@@ -168,8 +168,3 @@ export function buildDetailPreviewExperience(
     galleryImageSettings: extras.galleryImageSettings,
   };
 }
-
-/** @deprecated use buildCardPreviewExperience */
-export function buildPreviewExperience(data: PreviewEventData): ExperienceItem {
-  return buildCardPreviewExperience(data);
-}

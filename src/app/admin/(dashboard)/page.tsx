@@ -17,7 +17,8 @@ export default async function AdminDashboardPage() {
   }
 
   const db = getDb();
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
 
   const [revenue] = await db
     .select({

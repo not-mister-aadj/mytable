@@ -1,9 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import type { Event, Venue } from "@/db/schema";
-import { adminPath, getSiteUrl } from "@/lib/admin-url";
+import { getSiteUrl } from "@/lib/admin-url";
 import {
   DEFAULT_EXPERIENCE_TYPE,
   type ExperienceTypeSlug,
@@ -176,13 +175,22 @@ export function EventEditor({
     initialFlags.customCardText,
   );
 
-  const uiFlags: EventEditorUiFlags = {
-    customCardTitle,
-    customHeroTitle,
-    separateHeroImage,
-    customTagline,
-    customCardText,
-  };
+  const uiFlags: EventEditorUiFlags = useMemo(
+    () => ({
+      customCardTitle,
+      customHeroTitle,
+      separateHeroImage,
+      customTagline,
+      customCardText,
+    }),
+    [
+      customCardTitle,
+      customHeroTitle,
+      separateHeroImage,
+      customTagline,
+      customCardText,
+    ],
+  );
 
   const normalizedExtras = useMemo(
     () => normalizeEventExtras(extras, uiFlags),

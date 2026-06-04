@@ -40,7 +40,7 @@ export default async function ExperienceTypePage({ params, searchParams }: Props
       <p className="mt-2 text-sm text-wine/70">{def.descriptionNl}</p>
       {saved ? (
         <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
-          Opgeslagen — geldt voor alle {row.nameNl} events.
+          Opgeslagen. Geldt voor alle {row.nameNl} events.
         </p>
       ) : null}
       <div className="mt-8">

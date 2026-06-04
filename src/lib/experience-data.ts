@@ -4,7 +4,7 @@ import type { Locale } from "@/i18n/config";
 import { events } from "@/db/schema";
 import type { Event } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { useDbEvents } from "@/lib/env";
+import { isDbEventsEnabled } from "@/lib/env";
 import { enrichDbEventWithContent } from "@/lib/event-mapper";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
@@ -100,7 +100,7 @@ export async function getRelatedPublishedExperiences(
   current: EnrichedExperience,
   limit = 3,
 ): Promise<EnrichedExperience[]> {
-  if (!useDbEvents() || !isDbConfigured()) return [];
+  if (!isDbEventsEnabled() || !isDbConfigured()) return [];
 
   const db = getDb();
   const categoryColumn =
@@ -134,7 +134,7 @@ export async function getDbExperienceBySlug(
   locale: Locale,
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
-  if (!useDbEvents() || !isDbConfigured()) return undefined;
+  if (!isDbEventsEnabled() || !isDbConfigured()) return undefined;
   try {
     return await getPublishedExperienceBySlug(locale, slug);
   } catch (err) {

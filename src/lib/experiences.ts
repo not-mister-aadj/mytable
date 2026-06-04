@@ -4,7 +4,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { eq } from "drizzle-orm";
 import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { useDbEvents } from "@/lib/env";
+import { isDbEventsEnabled } from "@/lib/env";
 import {
   enrichPublishedRows,
   getDbExperienceBySlug,
@@ -35,7 +35,7 @@ function fetchFromCatalog(locale: Locale): EnrichedExperience[] {
 export async function getAllExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  if (useDbEvents() && isDbConfigured()) {
+  if (isDbEventsEnabled() && isDbConfigured()) {
     try {
       return await fetchPublishedFromDb(locale);
     } catch (err) {
@@ -49,7 +49,7 @@ export async function getExperienceBySlug(
   locale: Locale,
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
-  if (useDbEvents() && isDbConfigured()) {
+  if (isDbEventsEnabled() && isDbConfigured()) {
     const fromDb = await getDbExperienceBySlug(locale, slug);
     if (fromDb) return fromDb;
   }
@@ -71,7 +71,7 @@ export async function getRelatedExperiences(
   current: EnrichedExperience,
   limit = 3,
 ): Promise<EnrichedExperience[]> {
-  if (useDbEvents() && isDbConfigured()) {
+  if (isDbEventsEnabled() && isDbConfigured()) {
     try {
       const related = await getRelatedPublishedExperiences(
         locale,
@@ -96,7 +96,7 @@ export async function getRelatedExperiences(
 }
 
 export async function getAllExperienceSlugs(locale: Locale): Promise<string[]> {
-  if (useDbEvents() && isDbConfigured()) {
+  if (isDbEventsEnabled() && isDbConfigured()) {
     try {
       return await getPublishedSlugs();
     } catch (err) {

@@ -33,7 +33,7 @@ export function filterMapVenueIds(ids: string[]): string[] {
 const copy = {
   nl: {
     pickerLabel: "Locatie nog niet bekend",
-    pickerHint: "Placeholder tussen stops — verschijnt niet op de kaart",
+    pickerHint: "Placeholder tussen stops. Verschijnt niet op de kaart.",
     name: "Nog niet bekend",
     area: "Volgt nog",
     atmosphere: "Binnenkort",
@@ -43,7 +43,7 @@ const copy = {
   },
   en: {
     pickerLabel: "Location not yet announced",
-    pickerHint: "Placeholder between stops — not shown on the map",
+    pickerHint: "Placeholder between stops. Not shown on the map.",
     name: "To be announced",
     area: "Coming soon",
     atmosphere: "Soon",

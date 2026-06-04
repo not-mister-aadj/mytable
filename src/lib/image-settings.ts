@@ -55,12 +55,7 @@ export function aspectRatioToCss(ratio: ImageAspectRatio): string {
   return ratio.replace(":", " / ");
 }
 
-export function focalToObjectPosition(
-  focal: ImageFocalPoint,
-  zoom = 1,
-): string {
-  const z = Math.min(2, Math.max(1, zoom));
-  const offset = (z - 1) * 15;
+export function focalToObjectPosition(focal: ImageFocalPoint): string {
   const x = Math.min(100, Math.max(0, focal.x));
   const y = Math.min(100, Math.max(0, focal.y));
   return `${x}% ${y}%`;
@@ -69,12 +64,11 @@ export function focalToObjectPosition(
 export function imageSettingsStyle(
   settings?: ImageSettings | null,
 ): { objectPosition: string; transform?: string } {
-  if (!settings) return { objectPosition: focalToObjectPosition(DEFAULT_FOCAL, 1) };
+  if (!settings) return { objectPosition: focalToObjectPosition(DEFAULT_FOCAL) };
   const zoom = settings.zoom ?? 1;
   return {
     objectPosition: focalToObjectPosition(
       settings.focalPoint ?? DEFAULT_FOCAL,
-      zoom,
     ),
     ...(zoom > 1 ? { transform: `scale(${zoom})` } : {}),
   };

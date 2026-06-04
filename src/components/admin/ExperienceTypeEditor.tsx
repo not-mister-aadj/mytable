@@ -81,7 +81,7 @@ export function ExperienceTypeEditor({
       <section className="rounded-2xl border border-border-subtle bg-beige p-6">
         <h2 className="font-serif text-xl text-burgundy">Paginatekst</h2>
         <p className="mt-2 text-sm text-wine/70">
-          Over de ervaring, gallery en FAQ — zelfde tekst op elke {experienceType.nameNl}.
+          Over de ervaring, gallery en FAQ. Zelfde tekst op elke {experienceType.nameNl}.
         </p>
         <div className="mt-4">
           <label className="text-sm font-medium text-wine">Standaard sfeer-tags</label>
@@ -206,7 +206,7 @@ export function ExperienceTypeEditor({
         type="submit"
         className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream"
       >
-        Opslaan — alle {experienceType.nameNl}
+        Opslaan (alle {experienceType.nameNl})
       </button>
 
       <MediaLibrary

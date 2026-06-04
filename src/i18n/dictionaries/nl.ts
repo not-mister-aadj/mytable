@@ -60,7 +60,7 @@ export const nl: Dictionary = {
     hero: {
       title: "Vind een tafel die bij je past.",
       subtitle:
-        "Wijnproeverijen in één restaurant. Girls only, of kom voor wijn en gezelschap — op date, solo of met vrienden.",
+        "Wijnproeverijen in één restaurant. Girls only, of kom voor wijn en gezelschap: op date, solo of met vrienden.",
       supportLine:
         "Kom alleen, neem iemand mee, of schuif gewoon aan.",
     },
@@ -73,7 +73,7 @@ export const nl: Dictionary = {
     tabHints: {
       all: "",
       girlsOnly:
-        "Eén tafel, alleen vrouwen — dezelfde proeverij, andere sfeer.",
+        "Eén tafel, alleen vrouwen. Dezelfde proeverij, andere sfeer.",
       mixed:
         "Iedereen welkom. Kom voor de wijn, een date, met vrienden of gewoon alleen.",
     },

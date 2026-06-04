@@ -4,7 +4,7 @@ import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { getMaxSeatsPerOrder, getSiteUrl } from "@/lib/env";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
-import { isValidLocale, type Locale } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
 

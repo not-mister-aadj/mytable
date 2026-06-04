@@ -17,7 +17,7 @@ import {
 } from "@/lib/experience-type-content";
 import { getEventVenues, getVenueRouteCoords } from "@/lib/venues";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
-import { useDbEvents } from "@/lib/env";
+import { isDbEventsEnabled } from "@/lib/env";
 import { isDbConfigured } from "@/db/index";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { RouteMapPoint } from "@/data/experience-route-map";
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export async function generateStaticParams() {
   const locales: Locale[] = ["nl", "en"];
 
-  if (useDbEvents() && isDbConfigured()) {
+  if (isDbEventsEnabled() && isDbConfigured()) {
     try {
       const slugs = await getPublishedSlugs();
       return locales.flatMap((locale) =>

@@ -34,7 +34,7 @@ export function ExperienceCard({
   experience,
   statusLabels,
   femaleOnlyBadge,
-  reserveCta,
+  reserveCta: _reserveCta,
   viewTableCta,
   href,
   locale = "nl",

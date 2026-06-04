@@ -1,4 +1,4 @@
-import type { ExperienceItem, ExperienceStatusKey } from "@/i18n/types";
+import type { ExperienceItem } from "@/i18n/types";
 import { showViewCount } from "@/lib/env";
 
 export function getSpotsLeft(experience: ExperienceItem): number | null {

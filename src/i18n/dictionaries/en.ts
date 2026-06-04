@@ -28,7 +28,7 @@ export const en: Dictionary = {
     headlineLine1: "Good taste.",
     headlineLine2: "Great company.",
     subheadline:
-      "We handle everything at the table. You show up and enjoy — from wine tastings and chef's specials to wine walks.",
+      "We handle everything at the table. You show up and enjoy: from wine tastings and chef's specials to wine walks.",
     ctaPrimary: "Pick your table",
     microcopy:
       "Book your own table, or join solo and meet others. With friends, on a date, or alone.",
@@ -60,7 +60,7 @@ export const en: Dictionary = {
     hero: {
       title: "Find a table that fits you.",
       subtitle:
-        "Wine tastings at one restaurant. Girls only, or come for wine and company — on a date, solo, or with friends.",
+        "Wine tastings at one restaurant. Girls only, or come for wine and company: on a date, solo, or with friends.",
       supportLine: "Come alone, bring someone, or simply pull up a chair.",
     },
     tabsAriaLabel: "Choose your evening",
@@ -72,7 +72,7 @@ export const en: Dictionary = {
     tabHints: {
       all: "",
       girlsOnly:
-        "One table, women only — same tasting, a different vibe.",
+        "One table, women only. Same tasting, a different vibe.",
       mixed:
         "Everyone welcome. Come for the wine, a date, friends, or dining solo.",
     },

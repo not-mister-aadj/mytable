@@ -15,7 +15,7 @@ import {
 } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
 import { resolveFemaleOnly } from "@/lib/event-extras";
-import { useDbEvents } from "@/lib/use-db-events";
+import { isDbEventsEnabled } from "@/lib/env";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -40,7 +40,7 @@ export function BookingCard({
   const views = getViewsThisWeek(experience.id);
   const priceLine = formatPerPerson(experience.price, labels.perPerson);
   const eventDbId = getEventIdForCheckout(experience);
-  const dbCheckoutEnabled = useDbEvents() && Boolean(eventDbId);
+  const dbCheckoutEnabled = isDbEventsEnabled() && Boolean(eventDbId);
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");

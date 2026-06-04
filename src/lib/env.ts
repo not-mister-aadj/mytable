@@ -1,7 +1,11 @@
-export function useDbEvents(): boolean {
+/** True when published events should load from Postgres (server or client). */
+export function isDbEventsEnabled(): boolean {
   const enabled =
     process.env.USE_DB_EVENTS === "true" ||
     process.env.NEXT_PUBLIC_USE_DB_EVENTS === "true";
+  if (typeof window !== "undefined") {
+    return enabled;
+  }
   return enabled && Boolean(process.env.DATABASE_URL);
 }
 

@@ -23,7 +23,8 @@ export default async function BookingConfirmedPage({
   if (!isValidLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
-  let title = locale === "nl" ? "Bedankt voor je boeking" : "Thank you for your booking";
+  const title =
+    locale === "nl" ? "Bedankt voor je boeking" : "Thank you for your booking";
   let detail = "";
 
   if (sessionId && isDbConfigured() && isStripeConfigured()) {

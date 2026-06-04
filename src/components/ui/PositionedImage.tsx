@@ -28,7 +28,7 @@ export function PositionedImage({
   const focal = settings?.focalPoint ?? DEFAULT_FOCAL;
   const zoom = settings?.zoom ?? 1;
   const style: CSSProperties = {
-    objectPosition: focalToObjectPosition(focal, zoom),
+    objectPosition: focalToObjectPosition(focal),
     ...(zoom > 1
       ? {
           transform: `scale(${zoom})`,

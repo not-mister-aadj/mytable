@@ -18,6 +18,7 @@ function handleAdminSubdomain(request: NextRequest) {
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/icon") ||
     pathname.startsWith("/apple-icon") ||
+    pathname.startsWith("/apple-touch-icon") ||
     (pathname.includes(".") && !pathname.startsWith("/api"))
   ) {
     return NextResponse.next();
@@ -62,6 +63,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.startsWith("/icon") ||
     pathname.startsWith("/apple-icon") ||
+    pathname.startsWith("/apple-touch-icon") ||
     pathname.startsWith("/favicon") ||
     pathname.includes(".")
   ) {
@@ -93,6 +95,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon|icon.png|apple-icon|apple-icon.png).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon|icon.png|apple-icon|apple-icon.png|apple-touch-icon.png).*)",
   ],
 };

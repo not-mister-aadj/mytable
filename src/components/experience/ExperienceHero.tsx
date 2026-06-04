@@ -20,6 +20,7 @@ interface ExperienceHeroProps {
   labels: Dictionary["experiencePage"];
   locale: Locale;
   reserveCta: string;
+  previewMode?: boolean;
 }
 
 export function ExperienceHero({
@@ -28,13 +29,18 @@ export function ExperienceHero({
   labels,
   locale,
   reserveCta,
+  previewMode = false,
 }: ExperienceHeroProps) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
   });
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
+  const imageY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    previewMode ? ["0%", "0%"] : ["0%", "12%"],
+  );
 
   const tagline = getExperienceTagline(experience, mood);
   const { date, time } = splitDateTime(experience.dateTime);
@@ -51,7 +57,11 @@ export function ExperienceHero({
   return (
     <section
       ref={ref}
-      className="relative min-h-[62vh] overflow-hidden sm:min-h-[70vh]"
+      className={
+        previewMode
+          ? "relative min-h-[min(52vh,420px)] overflow-hidden sm:min-h-[min(58vh,480px)]"
+          : "relative min-h-[62vh] overflow-hidden sm:min-h-[70vh]"
+      }
     >
       <motion.div className="absolute inset-0 scale-105" style={{ y: imageY }}>
         <PositionedImage
@@ -65,7 +75,13 @@ export function ExperienceHero({
       <div className="absolute inset-0 bg-gradient-to-t from-wine/92 via-wine/55 to-wine/30" />
       <div className="absolute inset-0 bg-gradient-to-r from-wine/65 via-wine/25 to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[62vh] max-w-7xl flex-col justify-end px-5 pb-12 pt-32 sm:min-h-[70vh] sm:px-8 sm:pb-16 lg:px-10">
+      <div
+        className={
+          previewMode
+            ? "relative mx-auto flex min-h-[min(52vh,420px)] max-w-7xl flex-col justify-end px-5 pb-10 pt-24 sm:min-h-[min(58vh,480px)] sm:px-8 sm:pb-12 lg:px-10"
+            : "relative mx-auto flex min-h-[62vh] max-w-7xl flex-col justify-end px-5 pb-12 pt-32 sm:min-h-[70vh] sm:px-8 sm:pb-16 lg:px-10"
+        }
+      >
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

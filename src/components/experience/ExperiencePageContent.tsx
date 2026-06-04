@@ -43,6 +43,8 @@ interface ExperiencePageContentProps {
   eventVenues?: ExperienceVenue[];
   /** Route from experience type; when omitted, computed client-side */
   routePoints?: RouteMapPoint[];
+  /** Admin live preview: same layout, no sticky bar / related / scroll chrome */
+  previewMode?: boolean;
 }
 
 export function ExperiencePageContent({
@@ -52,6 +54,7 @@ export function ExperiencePageContent({
   locale,
   eventVenues,
   routePoints: routePointsProp,
+  previewMode = false,
 }: ExperiencePageContentProps) {
   const page = dict.experiencePage;
   const mood = getMoodContent(dict, experience.mood);
@@ -74,7 +77,7 @@ export function ExperiencePageContent({
 
   return (
     <>
-      <ScrollProgress />
+      {previewMode ? null : <ScrollProgress />}
 
       <ExperienceHero
         experience={experience}
@@ -82,15 +85,18 @@ export function ExperiencePageContent({
         labels={page}
         locale={locale}
         reserveCta={dict.agenda.reserveCta}
+        previewMode={previewMode}
       />
       <div ref={stickySentinelRef} className="h-px w-full" aria-hidden />
 
-      <ExperienceStickyBookingBar
-        experience={experience}
-        labels={page}
-        reserveCta={dict.agenda.reserveCta}
-        sentinelRef={stickySentinelRef}
-      />
+      {previewMode ? null : (
+        <ExperienceStickyBookingBar
+          experience={experience}
+          labels={page}
+          reserveCta={dict.agenda.reserveCta}
+          sentinelRef={stickySentinelRef}
+        />
+      )}
 
       {venues.length > 0 ? (
         <VenueLineup
@@ -217,12 +223,14 @@ export function ExperiencePageContent({
           </div>
         </div>
 
-        <RelatedExperiences
-          title={page.relatedTitle}
-          items={related}
-          locale={locale}
-          dict={dict}
-        />
+        {previewMode ? null : (
+          <RelatedExperiences
+            title={page.relatedTitle}
+            items={related}
+            locale={locale}
+            dict={dict}
+          />
+        )}
       </div>
     </>
   );

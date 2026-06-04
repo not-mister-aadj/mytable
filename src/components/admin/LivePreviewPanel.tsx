@@ -1,36 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { PositionedImage } from "@/components/ui/PositionedImage";
-import { aspectRatioToCss } from "@/lib/image-settings";
+import { useMemo, useState } from "react";
+import type { Venue } from "@/db/schema";
+import { ExperienceCard } from "@/components/ExperienceCard";
+import { nl } from "@/i18n/dictionaries/nl";
+import { en } from "@/i18n/dictionaries/en";
 import { motion } from "framer-motion";
 import type { PreviewEventData } from "./event-preview";
-import {
-  buildCardPreviewExperience,
-  buildDetailPreviewExperience,
-} from "./event-preview";
-import { OccupancyBar } from "./OccupancyBar";
-import { StatusPill, getEventListStatus } from "./StatusPill";
-import type { Event } from "@/db/schema";
-import { experiencePageNl } from "@/i18n/experience-page-nl";
-import { getExperienceTypeDefinition } from "@/lib/experience-type-definitions";
+import { buildCardPreviewExperience } from "./event-preview";
+import { AdminDetailPreview } from "./AdminDetailPreview";
 
-export function LivePreviewPanel({ data }: { data: PreviewEventData }) {
+export function LivePreviewPanel({
+  data,
+  allVenues = [],
+}: {
+  data: PreviewEventData;
+  allVenues?: Venue[];
+}) {
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
   const [mode, setMode] = useState<"card" | "detail">("card");
 
-  const card = buildCardPreviewExperience(data);
-  const detail = buildDetailPreviewExperience(data);
-  const typeDef = getExperienceTypeDefinition(data.experienceType);
-  const mood =
-    experiencePageNl.moods[typeDef?.mood ?? "tastings"];
-
-  const mockEvent = {
-    workflowStatus: data.workflowStatus ?? "draft",
-    spotsSold: data.spotsSold ?? 0,
-    capacity: data.capacity ?? 14,
-  } as Event;
-  const status = getEventListStatus(mockEvent);
+  const locale = data.previewLocale ?? "nl";
+  const dict = locale === "en" ? en : nl;
+  const card = useMemo(() => buildCardPreviewExperience(data), [data]);
 
   const widthClass = viewport === "mobile" ? "w-[320px]" : "w-full";
 
@@ -76,183 +68,23 @@ export function LivePreviewPanel({ data }: { data: PreviewEventData }) {
 
       <motion.div
         layout
-        className={`mx-auto max-h-[80vh] overflow-y-auto rounded-2xl border border-border-subtle bg-cream shadow-lg ${widthClass}`}
+        className={`mx-auto max-h-[85vh] overflow-y-auto rounded-2xl border border-border-subtle bg-cream shadow-lg ${widthClass}`}
       >
         {mode === "card" ? (
-          <CardPreview
-            experience={card}
-            status={status}
-            data={data}
-          />
+          <div className="p-3 [&_a]:pointer-events-none">
+            <ExperienceCard
+              experience={card}
+              statusLabels={dict.agenda.status}
+              femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
+              reserveCta={dict.experiences.reserveCta}
+              viewTableCta={dict.experiencePage.viewTableCta}
+              href="#preview"
+            />
+          </div>
         ) : (
-          <DetailPreview
-            experience={detail}
-            mood={mood}
-            status={status}
-            data={data}
-          />
+          <AdminDetailPreview data={data} allVenues={allVenues} />
         )}
       </motion.div>
     </div>
-  );
-}
-
-function CardPreview({
-  experience,
-  status,
-  data,
-}: {
-  experience: ReturnType<typeof buildCardPreviewExperience>;
-  status: ReturnType<typeof getEventListStatus>;
-  data: PreviewEventData;
-}) {
-  const img = experience.cardImage ?? experience.image;
-  const cardSettings = experience.cardImageSettings;
-  return (
-    <>
-      <div
-        className="relative w-full overflow-hidden"
-        style={{
-          aspectRatio: aspectRatioToCss(
-            cardSettings?.aspectRatio ?? "16:10",
-          ),
-        }}
-      >
-        {img ? (
-          <PositionedImage
-            src={img}
-            alt={experience.experienceName}
-            settings={cardSettings}
-            sizes="400px"
-          />
-        ) : (
-          <div className="flex h-full min-h-[120px] items-center justify-center bg-wine/10 text-sm text-wine/40">
-            Kies afbeelding
-          </div>
-        )}
-        <span className="absolute right-3 top-3">
-          <StatusPill status={status} />
-        </span>
-      </div>
-      <div className="space-y-2 p-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">
-          {experience.category}
-        </p>
-        <h4 className="font-serif text-2xl text-wine">{experience.city}</h4>
-        <p className="font-medium text-wine/90">
-          {experience.cardTitle ?? experience.experienceName}
-        </p>
-        {experience.cardText ? (
-          <p className="text-xs leading-relaxed text-wine/65 line-clamp-3">
-            {experience.cardText}
-          </p>
-        ) : null}
-        <p className="text-xs text-wine/60">{experience.dateTime}</p>
-        <div className="flex items-center justify-between">
-          <span className="font-serif text-lg text-burgundy">
-            €{experience.price}
-          </span>
-        </div>
-        <OccupancyBar
-          sold={data.spotsSold ?? 0}
-          capacity={data.capacity ?? 14}
-          compact
-        />
-      </div>
-    </>
-  );
-}
-
-function DetailPreview({
-  experience,
-  mood,
-  status,
-  data,
-}: {
-  experience: ReturnType<typeof buildDetailPreviewExperience>;
-  mood: (typeof experiencePageNl.moods)["tastings"];
-  status: ReturnType<typeof getEventListStatus>;
-  data: PreviewEventData;
-}) {
-  return (
-    <>
-      <div
-        className="relative w-full overflow-hidden"
-        style={{
-          aspectRatio: aspectRatioToCss(
-            experience.heroImageSettings?.aspectRatio ?? "21:9",
-          ),
-        }}
-      >
-        <PositionedImage
-          src={experience.image}
-          alt={experience.experienceName}
-          settings={experience.heroImageSettings}
-          sizes="400px"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-wine/90 via-wine/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">
-            {experience.category}
-          </p>
-          <h4 className="font-serif text-xl text-cream leading-tight">
-            {experience.experienceName}
-          </h4>
-          <p className="text-sm text-cream/80">
-            {experience.city} · {experience.dateTime}
-          </p>
-          {experience.tagline ? (
-            <p className="mt-1 text-xs text-cream/70 line-clamp-2">
-              {experience.tagline}
-            </p>
-          ) : null}
-        </div>
-      </div>
-      <div className="space-y-4 p-4 text-sm">
-        <div className="flex items-center justify-between">
-          <StatusPill status={status} />
-          <span className="font-serif text-lg text-burgundy">
-            €{experience.price}
-          </span>
-        </div>
-        <OccupancyBar
-          sold={data.spotsSold ?? 0}
-          capacity={data.capacity ?? 14}
-          compact
-        />
-        {experience.pageSections ? (
-          <section>
-            <h5 className="font-serif text-base text-burgundy">
-              {experience.pageSections.venuesTitle}
-            </h5>
-            <p className="mt-1 text-xs text-wine/70 line-clamp-4">
-              {experience.pageSections.venuesSubtitle}
-            </p>
-            <p className="mt-2 text-xs text-wine/50">
-              {data.extras.venueIds?.length ?? 0} venue(s) geselecteerd
-            </p>
-          </section>
-        ) : null}
-        <section>
-          <h5 className="font-serif text-base text-burgundy">Over deze ervaring</h5>
-          <p className="mt-1 text-xs text-wine/70 line-clamp-5">
-            {experience.customDescription ?? mood.description}
-          </p>
-        </section>
-        <section>
-          <h5 className="font-serif text-base text-burgundy">
-            Hoe verloopt de ervaring
-          </h5>
-          <ul className="mt-2 space-y-2">
-            {mood.experienceFlow.slice(0, 4).map((step) => (
-              <li key={step.title} className="text-xs text-wine/70">
-                <strong className="text-wine">{step.title}</strong>
-                <span className="block">{step.description}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    </>
   );
 }

@@ -652,7 +652,7 @@ export function EventEditor({
             EN
           </button>
         </div>
-        <LivePreviewPanel data={previewData} />
+        <LivePreviewPanel data={previewData} allVenues={allVenues} />
       </div>
     </div>
   );

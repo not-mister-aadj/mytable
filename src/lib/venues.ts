@@ -6,11 +6,8 @@ import type { Event, Venue } from "@/db/schema";
 import { venues } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { parseEventExtras } from "@/lib/event-extras";
-import {
-  coerceImageSettings,
-  DEFAULT_VENUE_IMAGE,
-  parseImageSettings,
-} from "@/lib/image-settings";
+import { venueToExperienceVenue } from "@/lib/venue-display";
+export { venueToExperienceVenue } from "@/lib/venue-display";
 import {
   DEFAULT_EXPERIENCE_TYPE,
   getExperienceTypeDefinition,
@@ -93,26 +90,6 @@ async function selectVenuesByIdsRows(
       .where(inArray(venues.id, ids));
     return rows.map((r) => withOptionalVenueFields(r));
   }
-}
-
-export function venueToExperienceVenue(venue: Venue, locale: Locale): ExperienceVenue {
-  const description =
-    locale === "nl"
-      ? venue.descriptionNl ?? venue.descriptionEn ?? ""
-      : venue.descriptionEn ?? venue.descriptionNl ?? "";
-  const imageSettings =
-    parseImageSettings(venue.imageMeta) ??
-    coerceImageSettings(venue.imageUrl, "venue");
-  const imageUrl = imageSettings?.url ?? venue.imageUrl;
-
-  return {
-    name: venue.name,
-    area: venue.area ?? venue.city,
-    atmosphere: venue.atmosphere ?? "",
-    description,
-    image: imageUrl ?? DEFAULT_VENUE_IMAGE,
-    imageSettings: imageSettings ?? undefined,
-  };
 }
 
 async function fetchVenuesByIdsUncached(ids: string[]): Promise<Venue[]> {

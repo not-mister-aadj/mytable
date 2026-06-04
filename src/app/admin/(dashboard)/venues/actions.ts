@@ -8,8 +8,9 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { redirect } from "next/navigation";
 import { parseImageSettings } from "@/lib/image-settings";
 import { DEFAULT_VENUE_IMAGE } from "@/lib/image-settings";
+import { geocodeVenueAddress } from "@/lib/geocode";
 
-function parseVenueForm(data: FormData) {
+async function parseVenueForm(data: FormData) {
   const name = String(data.get("name") ?? "").trim();
   const city = String(data.get("city") ?? "").trim();
   const descriptionNl = String(data.get("descriptionNl") ?? "").trim();
@@ -28,12 +29,12 @@ function parseVenueForm(data: FormData) {
   const area = String(data.get("area") ?? "").trim();
   const atmosphere = String(data.get("atmosphere") ?? "").trim();
   const address = String(data.get("address") ?? "").trim();
-  const latitude = String(data.get("latitude") ?? "").trim();
-  const longitude = String(data.get("longitude") ?? "").trim();
 
   if (!name || !city || !descriptionNl) {
     throw new Error("Naam, stad en beschrijving (NL) zijn verplicht.");
   }
+
+  const coords = await geocodeVenueAddress(city, address || null);
 
   return {
     name,
@@ -45,15 +46,15 @@ function parseVenueForm(data: FormData) {
     descriptionEn: descriptionEn || descriptionNl,
     imageUrl: imageUrl || DEFAULT_VENUE_IMAGE,
     imageMeta,
-    latitude: latitude || null,
-    longitude: longitude || null,
+    latitude: coords?.lat ?? null,
+    longitude: coords?.lng ?? null,
   };
 }
 
 export async function createVenueAction(formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
-  const values = parseVenueForm(formData);
+  const values = await parseVenueForm(formData);
   const db = getDb();
   const [row] = await db.insert(venues).values(values).returning();
   redirect(adminPath(`/venues/${row.id}/edit`));
@@ -62,7 +63,7 @@ export async function createVenueAction(formData: FormData) {
 export async function updateVenueAction(id: string, formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
-  const values = parseVenueForm(formData);
+  const values = await parseVenueForm(formData);
   const db = getDb();
   await db.update(venues).set(values).where(eq(venues.id, id));
   redirect(adminPath(`/venues/${id}/edit?saved=1`));

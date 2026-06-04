@@ -24,7 +24,6 @@ interface CityRouteProps {
   mapEyebrow: string;
   mapTitle: string;
   subtitle: string;
-  mapCaption: string;
   city: string;
   points: RouteMapPoint[];
 }
@@ -33,7 +32,6 @@ export function CityRoute({
   mapEyebrow,
   mapTitle,
   subtitle,
-  mapCaption,
   city,
   points,
 }: CityRouteProps) {
@@ -59,7 +57,7 @@ export function CityRoute({
         </div>
 
         <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[1.75rem] border border-border-subtle/80 shadow-[0_24px_60px_rgba(43,13,18,0.08)]">
-          <ExperienceRouteMap points={points} caption={mapCaption} />
+          <ExperienceRouteMap points={points} />
         </div>
 
         <ol className="mx-auto mt-8 flex max-w-4xl flex-wrap justify-center gap-x-6 gap-y-3">

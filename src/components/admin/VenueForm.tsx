@@ -38,20 +38,12 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           defaultValue={venue?.atmosphere ?? ""}
           hint="Bijv. Chef's special, Wijnbar"
         />
-        <Field label="Adres" name="address" defaultValue={venue?.address ?? ""} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Latitude (kaart)"
-            name="latitude"
-            defaultValue={venue?.latitude ?? ""}
-            hint="Optioneel, voor route op Wijnwalk"
-          />
-          <Field
-            label="Longitude (kaart)"
-            name="longitude"
-            defaultValue={venue?.longitude ?? ""}
-          />
-        </div>
+        <Field
+          label="Adres"
+          name="address"
+          defaultValue={venue?.address ?? ""}
+          hint="Straat + huisnummer. Coördinaten voor de Wijnwalk-kaart worden hier automatisch uit gehaald (stad + adres)."
+        />
         <MediaPicker
           usage="venue"
           label="Foto"

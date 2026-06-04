@@ -167,6 +167,27 @@ export async function getEventVenues(
   );
 }
 
+async function coordsForVenue(
+  venue: Venue,
+): Promise<{ label: string; lat: number; lng: number } | null> {
+  const { geocodeVenueCached, parseStoredCoords } = await import("@/lib/geocode");
+
+  const stored = parseStoredCoords(venue.latitude, venue.longitude);
+  const resolved =
+    stored ??
+    (venue.city
+      ? await geocodeVenueCached(venue.city, venue.address)
+      : null);
+
+  if (!resolved) return null;
+
+  const lat = Number.parseFloat(resolved.lat);
+  const lng = Number.parseFloat(resolved.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  return { label: venue.name, lat, lng };
+}
+
 export async function getVenueRouteCoords(
   event: Event,
 ): Promise<{ label: string; lat: number; lng: number }[]> {
@@ -174,12 +195,8 @@ export async function getVenueRouteCoords(
   const ids = extras.venueIds ?? [];
   if (!ids.length) return [];
   const rows = await fetchVenuesByIdsCached(ids);
-  return rows
-    .map((v) => {
-      const lat = v.latitude ? Number.parseFloat(v.latitude) : NaN;
-      const lng = v.longitude ? Number.parseFloat(v.longitude) : NaN;
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-      return { label: v.name, lat, lng };
-    })
-    .filter((p): p is { label: string; lat: number; lng: number } => p !== null);
+  const points = await Promise.all(rows.map((v) => coordsForVenue(v)));
+  return points.filter(
+    (p): p is { label: string; lat: number; lng: number } => p !== null,
+  );
 }

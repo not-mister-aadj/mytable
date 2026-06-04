@@ -10,7 +10,6 @@ const ROUTE_COLOR = "#5A0F1B";
 
 interface ExperienceRouteMapProps {
   points: RouteMapPoint[];
-  caption: string;
 }
 
 function initRouteImpressionMap(
@@ -106,7 +105,7 @@ function initRouteImpressionMap(
   return map;
 }
 
-export function ExperienceRouteMap({ points, caption }: ExperienceRouteMapProps) {
+export function ExperienceRouteMap({ points }: ExperienceRouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -133,9 +132,6 @@ export function ExperienceRouteMap({ points, caption }: ExperienceRouteMapProps)
         role="img"
         aria-label="Kaart met stops langs de route"
       />
-      <p className="border-t border-border-subtle/60 bg-cream/90 px-4 py-2.5 text-center text-xs leading-relaxed text-wine/55">
-        {caption}
-      </p>
     </div>
   );
 }

@@ -29,9 +29,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   routeMapEyebrow: "A feel for the route",
   routeMapTitle: "Past these spots in {city}",
   routeSubtitle:
-    "Get a sense of the vibe and neighbourhood upfront. Exact stops and addresses arrive in your confirmation email after booking.",
-  routeMapCaption:
-    "Map for inspiration only — not for navigation. All locations follow in your confirmation email.",
+    "Get a feel for the vibe and neighbourhood. All stops and addresses are on this page — we'll email them again one day before.",
   socialTitle: "A night out, your way.",
   socialSubtitle:
     "Your own table, come solo, or join others — you choose how social it gets.",

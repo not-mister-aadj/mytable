@@ -29,9 +29,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   routeMapEyebrow: "Een indruk van de route",
   routeMapTitle: "Langs deze plekken in {city}",
   routeSubtitle:
-    "Zo krijg je alvast een beeld van de sfeer en de buurt. De exacte stops en adressen sturen we je na je boeking per mail.",
-  routeMapCaption:
-    "Kaart ter impressie — geen navigatie. Alle locaties volgen in je bevestigingsmail.",
+    "Zo krijg je alvast een beeld van de sfeer en de buurt. Alle stops en adressen staan op deze pagina — een dag van tevoren mailen we je ze nog even.",
   socialTitle: "Een avond uit, op jouw manier.",
   socialSubtitle:
     "Eigen tafel, alleen komen of aanschuiven bij anderen — jij kiest hoe gezellig het wordt.",

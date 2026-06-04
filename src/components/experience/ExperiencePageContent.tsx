@@ -168,7 +168,6 @@ export function ExperiencePageContent({
                   mapEyebrow={page.routeMapEyebrow}
                   mapTitle={page.routeMapTitle}
                   subtitle={page.routeSubtitle}
-                  mapCaption={page.routeMapCaption}
                   city={experience.city}
                   points={routePoints}
                 />

@@ -43,6 +43,7 @@ export function ExperienceGrid({
               reserveCta={reserveCta}
               viewTableCta={viewTableCta}
               href={experiencePath(locale, experience.slug)}
+              locale={locale}
             />
           );
         })}

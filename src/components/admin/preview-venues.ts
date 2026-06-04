@@ -3,29 +3,30 @@ import type { ExperienceVenue } from "@/i18n/types";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import type { Venue } from "@/db/schema";
 import { parseStoredCoords } from "@/lib/geocode";
+import {
+  isLocationTbdVenueId,
+  locationTbdExperienceVenue,
+} from "@/lib/location-tbd-venue";
 import { venueToExperienceVenue } from "@/lib/venue-display";
 import type { PreviewEventData } from "./event-preview";
-
-function venuesInPickerOrder(
-  ids: string[],
-  allVenues: Venue[],
-): Venue[] {
-  const byId = new Map(allVenues.map((v) => [v.id, v]));
-  return ids
-    .map((id) => byId.get(id))
-    .filter((v): v is Venue => Boolean(v));
-}
 
 export function buildPreviewVenues(
   data: PreviewEventData,
   allVenues: Venue[],
 ): ExperienceVenue[] {
   const ids = data.extras.venueIds ?? [];
-  if (!ids.length || !allVenues.length) return [];
+  if (!ids.length) return [];
 
   const locale: Locale = data.previewLocale ?? "nl";
-  const rows = venuesInPickerOrder(ids, allVenues);
-  return rows.map((v) => venueToExperienceVenue(v, locale));
+  return ids
+    .map((id) => {
+      if (isLocationTbdVenueId(id)) {
+        return locationTbdExperienceVenue(locale);
+      }
+      const venue = allVenues.find((v) => v.id === id);
+      return venue ? venueToExperienceVenue(venue, locale) : null;
+    })
+    .filter((v): v is ExperienceVenue => v !== null);
 }
 
 /** Route pins in admin preview from saved venue coordinates */
@@ -37,7 +38,10 @@ export function buildPreviewRoutePoints(
   if (!ids.length) return [];
 
   const points: RouteMapPoint[] = [];
-  for (const venue of venuesInPickerOrder(ids, allVenues)) {
+  for (const id of ids) {
+    if (isLocationTbdVenueId(id)) continue;
+    const venue = allVenues.find((v) => v.id === id);
+    if (!venue) continue;
     const coords = parseStoredCoords(venue.latitude, venue.longitude);
     if (!coords) continue;
     const lat = Number.parseFloat(coords.lat);

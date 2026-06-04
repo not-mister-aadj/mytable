@@ -14,6 +14,10 @@ import {
   getVenueIdsForExperienceType,
 } from "@/lib/experience-types";
 import { getExperienceVenues } from "@/data/experience-venues";
+import {
+  isLocationTbdVenueId,
+  locationTbdExperienceVenue,
+} from "@/lib/location-tbd-venue";
 
 /** Columns safe when image_meta / lat-lng migrations not applied yet */
 const venueSelectCore = {
@@ -134,12 +138,21 @@ async function orderedExperienceVenues(
   locale: Locale,
 ): Promise<ExperienceVenue[]> {
   if (!ids.length) return [];
-  const rows = await fetchVenuesByIdsCached(ids);
+
+  const realIds = ids.filter((id) => !isLocationTbdVenueId(id));
+  const rows =
+    realIds.length > 0 ? await fetchVenuesByIdsCached(realIds) : [];
   const byId = new Map(rows.map((v) => [v.id, v]));
+
   return ids
-    .map((id) => byId.get(id))
-    .filter((v): v is Venue => Boolean(v))
-    .map((v) => venueToExperienceVenue(v, locale));
+    .map((id) => {
+      if (isLocationTbdVenueId(id)) {
+        return locationTbdExperienceVenue(locale);
+      }
+      const row = byId.get(id);
+      return row ? venueToExperienceVenue(row, locale) : null;
+    })
+    .filter((v): v is ExperienceVenue => v !== null);
 }
 
 async function resolveEventVenueIds(event: Event): Promise<string[]> {
@@ -199,7 +212,9 @@ async function coordsForVenue(
 export async function getVenueRouteCoords(
   event: Event,
 ): Promise<{ label: string; lat: number; lng: number }[]> {
-  const ids = await resolveEventVenueIds(event);
+  const ids = (await resolveEventVenueIds(event)).filter(
+    (id) => !isLocationTbdVenueId(id),
+  );
   if (!ids.length) return [];
 
   const rows = await fetchVenuesByIdsCached(ids);

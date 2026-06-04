@@ -1,7 +1,7 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { events } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
+import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -216,8 +216,27 @@ export async function unpublishEventAction(id: string) {
 
 export async function deleteEventAction(id: string) {
   await requireAdmin();
+  if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
+  const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
+  if (!event) throw new Error("Event niet gevonden");
+
+  const bookingRows = await db
+    .select({ id: bookings.id })
+    .from(bookings)
+    .where(eq(bookings.eventId, id));
+  const bookingIds = bookingRows.map((b) => b.id);
+  if (bookingIds.length > 0) {
+    await db
+      .delete(bookingEvents)
+      .where(inArray(bookingEvents.bookingId, bookingIds));
+    await db.delete(bookings).where(eq(bookings.eventId, id));
+  }
+
   await db.delete(events).where(eq(events.id, id));
+  if (event.workflowStatus === "published") {
+    revalidateEventPaths(event.slug);
+  }
   redirect(adminPath("/events"));
 }
 

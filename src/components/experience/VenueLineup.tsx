@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { PositionedImage } from "@/components/ui/PositionedImage";
 import type { ExperienceVenue } from "@/i18n/types";
+import { LocationTbdVenueCard } from "./LocationTbdVenueCard";
 
 interface VenueLineupProps {
   title: string;
@@ -29,9 +30,16 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
         </motion.div>
 
         <div className="-mx-5 mt-12 flex gap-5 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
-          {venues.map((venue, index) => (
+          {venues.map((venue, index) =>
+            venue.kind === "locationTbd" ? (
+              <LocationTbdVenueCard
+                key={`location-tbd-${index}`}
+                venue={venue}
+                index={index}
+              />
+            ) : (
             <motion.article
-              key={venue.name}
+              key={`${venue.name}-${index}`}
               initial={{ opacity: 0, x: 24 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-40px" }}
@@ -63,7 +71,8 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
                 </p>
               </div>
             </motion.article>
-          ))}
+            ),
+          )}
         </div>
       </div>
     </section>

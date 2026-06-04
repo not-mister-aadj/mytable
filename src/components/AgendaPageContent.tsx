@@ -44,6 +44,11 @@ export function AgendaPageContent({
           onChange={setActiveTab}
           ariaLabel={dict.tabsAriaLabel}
         />
+        {dict.tabHints[activeTab] ? (
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-wine/75 sm:text-[15px]">
+            {dict.tabHints[activeTab]}
+          </p>
+        ) : null}
       </div>
 
       {filteredItems.length > 0 ? (

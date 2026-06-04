@@ -31,7 +31,7 @@ export const en: Dictionary = {
       "Wine tasting at one restaurant. We handle everything around the table. You show up and enjoy.",
     ctaPrimary: "Pick your table",
     microcopy:
-      "Girls only or mixed group. Solo, with friends, or on a date.",
+      "Girls only, or a date, wine, or solo at the table — friends welcome too.",
     nextTableLabel: "Next table",
     imageAlt: "People enjoying wine and food together at the table",
   },
@@ -60,15 +60,22 @@ export const en: Dictionary = {
     hero: {
       title: "Find a table that fits you.",
       subtitle:
-        "Wine tastings at one restaurant. Choose girls only or a mixed group.",
+        "Wine tastings at one restaurant. Girls only, or come for wine and company — on a date, solo, or with friends.",
       supportLine: "Come alone, bring someone, or simply pull up a chair.",
     },
-    tabsAriaLabel: "Choose a group",
+    tabsAriaLabel: "Choose your evening",
     tabs: [
       { id: "all", label: "All tables" },
       { id: "girlsOnly", label: "Girls only" },
-      { id: "mixed", label: "Mixed group" },
+      { id: "mixed", label: "Date, wine or solo" },
     ],
+    tabHints: {
+      all: "",
+      girlsOnly:
+        "One table, women only — same tasting, a different vibe.",
+      mixed:
+        "Everyone welcome. Come for the wine, a date, friends, or dining solo.",
+    },
     grid: {
       title: "Tables you won't want to miss",
       subtitle:
@@ -76,7 +83,7 @@ export const en: Dictionary = {
     },
     empty: {
       title: "No tables found",
-      text: "There are no tables for this group yet. Try another category or view all tables.",
+      text: "There are no tables for this filter yet. Try another option or view all tables.",
       showAllCities: "Show all tables",
     },
     status: {

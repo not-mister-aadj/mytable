@@ -3,6 +3,8 @@ import type { Dictionary } from "@/i18n/types";
 import Link from "next/link";
 import { ExperienceGrid } from "./ExperienceGrid";
 
+const HOME_EXPERIENCE_CARD_LIMIT = 6;
+
 interface ExperiencesSectionProps {
   dict: Dictionary["experiences"];
   pageLabels: Dictionary["experiencePage"];
@@ -27,7 +29,7 @@ export function ExperiencesSection({
           reserveCta={dict.reserveCta}
           viewTableCta={pageLabels.viewTableCta}
           locale={locale}
-          items={dict.items}
+          items={dict.items.slice(0, HOME_EXPERIENCE_CARD_LIMIT)}
         />
 
         <div className="mt-12 flex justify-center sm:mt-14">

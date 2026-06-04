@@ -126,6 +126,7 @@ export function LivePreviewPanel({
           reserveCta={dict.experiences.reserveCta}
           viewTableCta={dict.experiencePage.viewTableCta}
           href="#preview"
+          locale={locale}
         />
       </div>
     ) : data.eventId ? null : (

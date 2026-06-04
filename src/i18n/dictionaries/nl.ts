@@ -31,7 +31,7 @@ export const nl: Dictionary = {
       "Wijnproeverij in één restaurant. Wij regelen alles rond de tafel. Jij komt genieten.",
     ctaPrimary: "Kies je tafel",
     microcopy:
-      "Girls only of gemengde groep. Solo, met vrienden, of op date.",
+      "Girls only, of date, wijn of solo aan tafel — met vrienden mag ook.",
     nextTableLabel: "Volgende tafel",
     imageAlt: "Mensen die samen aan tafel van wijn en eten genieten",
   },
@@ -60,16 +60,23 @@ export const nl: Dictionary = {
     hero: {
       title: "Vind een tafel die bij je past.",
       subtitle:
-        "Wijnproeverijen in één restaurant. Kies girls only of een gemengde groep.",
+        "Wijnproeverijen in één restaurant. Girls only, of kom voor wijn en gezelschap — op date, solo of met vrienden.",
       supportLine:
         "Kom alleen, neem iemand mee, of schuif gewoon aan.",
     },
-    tabsAriaLabel: "Kies een groep",
+    tabsAriaLabel: "Kies je avond",
     tabs: [
       { id: "all", label: "Alle tafels" },
       { id: "girlsOnly", label: "Girls only" },
-      { id: "mixed", label: "Gemengde groep" },
+      { id: "mixed", label: "Date, wijn of solo" },
     ],
+    tabHints: {
+      all: "",
+      girlsOnly:
+        "Eén tafel, alleen vrouwen — dezelfde proeverij, andere sfeer.",
+      mixed:
+        "Iedereen welkom. Kom voor de wijn, een date, met vrienden of gewoon alleen.",
+    },
     grid: {
       title: "Bekijk de tafels die je niet wilt missen",
       subtitle:
@@ -77,7 +84,7 @@ export const nl: Dictionary = {
     },
     empty: {
       title: "Geen tafels gevonden",
-      text: "Er zijn nog geen tafels voor deze groep. Kies een andere categorie of bekijk alle tafels.",
+      text: "Er zijn nog geen tafels voor dit filter. Kies een andere optie of bekijk alle tafels.",
       showAllCities: "Alle tafels tonen",
     },
     status: {

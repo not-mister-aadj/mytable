@@ -33,6 +33,7 @@ export function RelatedExperiences({
             reserveCta={dict.agenda.reserveCta}
             viewTableCta={dict.experiencePage.viewTableCta}
             href={experiencePath(locale, experience.slug)}
+            locale={locale}
           />
         ))}
       </div>

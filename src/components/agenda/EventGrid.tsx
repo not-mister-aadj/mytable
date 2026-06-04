@@ -66,6 +66,7 @@ export function EventGrid({
                   reserveCta={reserveCta}
                   viewTableCta={viewTableCta}
                   href={experiencePath(locale, experience.slug)}
+                  locale={locale}
                 />
               </motion.div>
             ))}

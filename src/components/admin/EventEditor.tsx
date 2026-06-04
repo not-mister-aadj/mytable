@@ -570,6 +570,7 @@ export function EventEditor({
                 selectedIds={extras.venueIds ?? []}
                 onChange={(ids) => updateExtras({ venueIds: ids })}
                 eventCity={city}
+                locale={previewLocale}
               />
             </Section>
           ) : null}
@@ -672,7 +673,22 @@ export function EventEditor({
                 </button>
               </>
             ) : null}
-            <form action={deleteEventAction.bind(null, event!.id)}>
+            <form
+              action={deleteEventAction.bind(null, event!.id)}
+              onSubmit={(e) => {
+                const bookingNote =
+                  event!.spotsSold > 0
+                    ? `\n\nLet op: ${event!.spotsSold} boeking(en) worden ook verwijderd.`
+                    : "";
+                if (
+                  !confirm(
+                    `Weet je zeker dat je "${event!.nameNl}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.${bookingNote}`,
+                  )
+                ) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <button type="submit" className="rounded-full border border-red-800/30 px-5 py-2 text-sm text-red-900">
                 Verwijderen
               </button>

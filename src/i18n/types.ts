@@ -21,12 +21,15 @@ export interface ExperienceFaqItem {
 }
 
 export interface ExperienceVenue {
+  kind?: "venue" | "locationTbd";
   name: string;
   area: string;
   atmosphere: string;
   description: string;
   image: string;
   imageSettings?: ImageSettings;
+  /** Headline for locationTbd placeholder card */
+  title?: string;
 }
 
 export interface ExperienceFlowStep {
@@ -211,6 +214,8 @@ export interface Dictionary {
     };
     tabsAriaLabel: string;
     tabs: AgendaTab[];
+    /** Shown under the filter when a specific tab is active */
+    tabHints: Record<AgendaTabKey, string>;
     grid: {
       title: string;
       subtitle: string;

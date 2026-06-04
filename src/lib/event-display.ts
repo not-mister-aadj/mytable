@@ -73,6 +73,19 @@ export function formatDateTime(
   return `${dayName} ${day} ${month} · ${timePart}`;
 }
 
+/** Spots remaining at or below this → agenda card shows “bijna vol” */
+export const ALMOST_FULL_SPOTS_THRESHOLD = 14;
+
+export function formatAlmostFullImageHint(
+  spotsLeft: number,
+  locale: Locale,
+): string {
+  if (locale === "nl") {
+    return `Bijna uitverkocht, ${spotsLeft} tickets beschikbaar`;
+  }
+  return `Almost sold out, ${spotsLeft} tickets available`;
+}
+
 export function deriveDisplayStatus(
   capacity: number,
   spotsSold: number,
@@ -80,7 +93,7 @@ export function deriveDisplayStatus(
 ): ExperienceStatusKey {
   const left = capacity - spotsSold;
   if (left <= 0) return "soldOut";
-  if (left <= 4) return "almostFull";
+  if (left <= ALMOST_FULL_SPOTS_THRESHOLD) return "almostFull";
   if (publishedAt) {
     const days =
       (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24);

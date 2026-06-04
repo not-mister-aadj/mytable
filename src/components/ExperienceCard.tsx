@@ -1,10 +1,13 @@
 import Link from "next/link";
+import type { Locale } from "@/i18n/config";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { PositionedImage } from "@/components/ui/PositionedImage";
 import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
+import { getSpotsLeft } from "@/lib/experience-booking";
+import { formatAlmostFullImageHint } from "@/lib/event-display";
 
 const statusBadgeStyles: Record<
   ExperienceItem["status"],
@@ -24,6 +27,7 @@ interface ExperienceCardProps {
   reserveCta: string;
   viewTableCta: string;
   href: string;
+  locale?: Locale;
 }
 
 export function ExperienceCard({
@@ -33,8 +37,11 @@ export function ExperienceCard({
   reserveCta,
   viewTableCta,
   href,
+  locale = "nl",
 }: ExperienceCardProps) {
   const isSoldOut = experience.status === "soldOut";
+  const isAlmostFull = experience.status === "almostFull";
+  const spotsLeft = getSpotsLeft(experience);
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
     experience.atmosphereTags,
@@ -86,16 +93,32 @@ export function ExperienceCard({
         />
 
         {isFemaleOnly ? (
-          <span className="absolute left-4 top-4 rounded-full bg-rose px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream shadow-sm backdrop-blur-md sm:text-sm">
+          <span className="absolute left-4 top-4 z-10 rounded-full bg-rose px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream shadow-sm backdrop-blur-md sm:text-sm">
             {femaleOnlyBadge}
           </span>
         ) : null}
 
-        <span
-          className={`absolute right-4 top-4 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide sm:text-sm ${statusBadgeStyles[experience.status]}`}
-        >
-          {statusLabels[experience.status]}
-        </span>
+        {isSoldOut ? (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-wine/35">
+            <span
+              className={`rounded-full px-5 py-2.5 text-sm font-bold uppercase tracking-wide sm:text-base ${statusBadgeStyles.soldOut}`}
+            >
+              {statusLabels.soldOut}
+            </span>
+          </div>
+        ) : (
+          <span
+            className={`absolute right-4 top-4 z-10 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide sm:text-sm ${statusBadgeStyles[experience.status]}`}
+          >
+            {statusLabels[experience.status]}
+          </span>
+        )}
+
+        {isAlmostFull && spotsLeft !== null && spotsLeft > 0 ? (
+          <p className="absolute bottom-4 left-4 z-10 max-w-[90%] text-sm font-medium leading-snug text-white drop-shadow-[0_1px_3px_rgba(43,13,18,0.65)] sm:text-[15px]">
+            {formatAlmostFullImageHint(spotsLeft, locale)}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">

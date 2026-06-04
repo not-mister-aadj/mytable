@@ -1,4 +1,5 @@
 import type { ImageSettings } from "@/lib/image-settings";
+import { isLocationTbdVenueId } from "@/lib/location-tbd-venue";
 import {
   coerceImageSettings,
   parseGalleryImages,
@@ -126,7 +127,11 @@ export function parseEventExtras(raw: unknown): EventExtras {
     galleryImageSettings:
       galleryImageSettings.length > 0 ? galleryImageSettings : undefined,
     venueIds: Array.isArray(o.venueIds)
-      ? o.venueIds.filter((id): id is string => typeof id === "string")
+      ? o.venueIds.filter(
+          (id): id is string =>
+            typeof id === "string" &&
+            (isLocationTbdVenueId(id) || id.length > 0),
+        )
       : undefined,
     cardTitleNl:
       typeof o.cardTitleNl === "string" ? o.cardTitleNl : undefined,

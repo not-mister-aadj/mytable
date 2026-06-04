@@ -1,6 +1,12 @@
 import type { ExperiencePageLabels } from "./types";
 import { images } from "@/data/images";
-import { tastingFlowEn, tastingQuotesEn } from "./experience-mood-blocks-en";
+import {
+  chefsSpecialFlowEn,
+  tastingFlowEn,
+  tastingQuotesEn,
+  wineWalkFlowEn,
+  wineWalkQuotesEn,
+} from "./experience-mood-blocks-en";
 
 export const experiencePageEn: ExperiencePageLabels = {
   viewTableCta: "View table",
@@ -176,6 +182,155 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Can I cancel or exchange?",
           answer:
             "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book. Email us if you want to exchange.",
+        },
+      ],
+    },
+    wineWalk: {
+      tagline: "A relaxed walk full of wine, great spots, and good company.",
+      description:
+        "A MyTable wine walk is not a scripted tour, but a relaxed afternoon in the city. You pass characterful spots, taste something nice along the way, and meet people naturally. The route gives structure, but the vibe stays easy and social.",
+      experienceFlow: wineWalkFlowEn,
+      guestQuotes: wineWalkQuotesEn,
+      whatToExpect: [
+        {
+          title: "Several selected venues",
+          description: "You visit different restaurants and wine bars in the city.",
+        },
+        {
+          title: "Wine and bites along the way",
+          description: "At each stop something is ready to try.",
+        },
+        {
+          title: "Relaxed walking pace",
+          description: "No rush between venues.",
+        },
+        {
+          title: "Small social group",
+          description: "Enough people to feel lively, not too large.",
+        },
+        {
+          title: "Come alone or together",
+          description: "Coming alone is very normal and welcome.",
+        },
+        {
+          title: "No forced small talk",
+          description: "Meeting people feels natural through the route and stops.",
+        },
+      ],
+      socialParagraphs: [
+        "You come for wine and good company. Not to network.",
+        "The walk gives structure, but the mood stays relaxed. Conversations shift naturally as you move from place to place.",
+      ],
+      gallery: [
+        images.wineBar,
+        images.wineGlasses,
+        images.restaurantInterior,
+        images.cheers,
+        images.heroMain,
+        images.restaurantDining,
+      ],
+      duration: "About 3 to 4 hours",
+      included: "Wine tastings, bites, and route guidance",
+      walkingDistance: "Usually 2 to 4 km, depending on the city",
+      faq: [
+        {
+          question: "Can I come alone?",
+          answer:
+            "Yes. Many people come alone. The route and group are set up so you can easily chat with others.",
+        },
+        {
+          question: "Do I have to walk a lot?",
+          answer:
+            "No. The pace is relaxed and distances between venues stay manageable.",
+        },
+        {
+          question: "What is included?",
+          answer:
+            "At each stop you get wine, a bite, or a small pairing. Exact details can vary by city.",
+        },
+        {
+          question: "When do I get the route?",
+          answer:
+            "You receive practical info and the start location in advance. Venues may be shared before or closer to the date depending on the format.",
+        },
+        {
+          question: "What if it rains?",
+          answer:
+            "The experience usually goes ahead. Bring a jacket or umbrella if unsure. We keep the pace relaxed.",
+        },
+      ],
+    },
+    chefsSpecial: {
+      tagline: "A special evening at the table, curated by the chef.",
+      description:
+        "Chef's Special is an evening where you do not have to choose everything yourself. The restaurant sets the direction, the chef creates something special, and you join a table with good company. It is an accessible way to experience a restaurant differently.",
+      experienceFlow: chefsSpecialFlowEn,
+      guestQuotes: tastingQuotesEn,
+      whatToExpect: [
+        {
+          title: "A special menu or multiple courses",
+          description: "The restaurant shapes the evening.",
+        },
+        {
+          title: "One selected restaurant",
+          description: "Everything happens at one venue.",
+        },
+        {
+          title: "Great atmosphere at the table",
+          description: "Small group, relaxed conversation.",
+        },
+        {
+          title: "Come alone or together",
+          description: "Coming alone is very normal and welcome.",
+        },
+        {
+          title: "Small group",
+          description: "Usually 8 to 14 guests.",
+        },
+        {
+          title: "No decision fatigue",
+          description: "The chef or restaurant decides the lineup.",
+        },
+      ],
+      socialParagraphs: [
+        "You come for wine and good company. Not to network.",
+        "You join people who want a proper night out. The menu gives structure; conversation flows on its own.",
+      ],
+      gallery: [
+        images.restaurantDining,
+        images.restaurantInterior,
+        images.wineGlasses,
+        images.cheers,
+        images.wineBar,
+        images.heroMain,
+      ],
+      duration: "About 2.5 to 3 hours",
+      included: "Menu or multiple courses as described on the event page",
+      faq: [
+        {
+          question: "Will I know what I eat in advance?",
+          answer:
+            "Sometimes yes, sometimes no. For Chef's Special the restaurant decides. If there is a fixed menu, we show it on the page.",
+        },
+        {
+          question: "Are drinks included?",
+          answer:
+            "Only when this is clearly stated on the event page. Otherwise you pay for drinks at the restaurant.",
+        },
+        {
+          question: "Can I share dietary requirements?",
+          answer:
+            "Yes. Tell us when you book and we align with the restaurant.",
+        },
+        {
+          question: "Can I come alone?",
+          answer:
+            "Yes. The table is set up so coming alone feels normal and relaxed.",
+        },
+        {
+          question: "Is this fine dining?",
+          answer:
+            "Not necessarily. Chef's Special means the restaurant puts together something special for the evening.",
         },
       ],
     },

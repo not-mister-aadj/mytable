@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Event } from "@/db/schema";
-import { adminPath } from "@/lib/admin-url";
+import type { Event, Venue } from "@/db/schema";
+import { adminPath, getSiteUrl } from "@/lib/admin-url";
 import {
   DEFAULT_EXPERIENCE_TYPE,
-  EXPERIENCE_TYPE_DEFINITIONS,
   type ExperienceTypeSlug,
+  isValidExperienceType,
 } from "@/lib/experience-type-definitions";
+import { getEventFormDefaults } from "@/lib/experience-template-defaults";
 import {
   createEventAction,
   updateEventAction,
@@ -16,7 +17,6 @@ import {
   unpublishEventAction,
   deleteEventAction,
 } from "@/app/admin/(dashboard)/events/actions";
-import { getSiteUrl } from "@/lib/admin-url";
 import {
   emptyEventExtras,
   parseEventExtras,
@@ -24,10 +24,21 @@ import {
   type EventExtras,
 } from "@/lib/event-extras";
 import { AtmosphereTags } from "./AtmosphereTags";
+import { EventTypePicker } from "./EventTypePicker";
 import { LivePreviewPanel } from "./LivePreviewPanel";
 import { MediaPicker } from "./MediaPicker";
 import { OccupancyBar } from "./OccupancyBar";
+import { VenuePicker } from "./VenuePicker";
 import type { PreviewEventData } from "./event-preview";
+
+const STEPS = [
+  "Type",
+  "Basis",
+  "Agendakaart",
+  "Hero",
+  "Venues",
+  "Overrides",
+] as const;
 
 function toLocalInput(d: Date | null): string {
   if (!d) return "";
@@ -44,12 +55,54 @@ function slugify(text: string): string {
     .slice(0, 60);
 }
 
-export function EventEditor({ event }: { event?: Event }) {
+function applyTypeDefaults(
+  slug: ExperienceTypeSlug,
+  setters: {
+    setCategoryNl: (v: string) => void;
+    setCategoryEn: (v: string) => void;
+    setTaglineNl: (v: string) => void;
+    setTaglineEn: (v: string) => void;
+    setExtras: (fn: (p: EventExtras) => EventExtras) => void;
+  },
+) {
+  const d = getEventFormDefaults(slug);
+  setters.setCategoryNl(d.categoryNl);
+  setters.setCategoryEn(d.categoryEn);
+  setters.setTaglineNl(d.taglineNl);
+  setters.setTaglineEn(d.taglineEn);
+  setters.setExtras((prev) => ({
+    ...prev,
+    cardCategoryNl: d.cardCategoryNl,
+    cardCategoryEn: d.cardCategoryEn,
+    cardTextNl: d.cardTextNl,
+    cardTextEn: d.cardTextEn,
+  }));
+}
+
+export function EventEditor({
+  event,
+  allVenues = [],
+  initialType,
+}: {
+  event?: Event;
+  allVenues?: Venue[];
+  initialType?: string;
+}) {
   const isEdit = Boolean(event);
   const initialExtras = event
     ? parseEventExtras(event.extras)
     : emptyEventExtras();
 
+  const startType: ExperienceTypeSlug =
+    event && isValidExperienceType(event.experienceType)
+      ? event.experienceType
+      : initialType && isValidExperienceType(initialType)
+        ? initialType
+        : DEFAULT_EXPERIENCE_TYPE;
+
+  const [step, setStep] = useState<number>(isEdit || initialType ? 1 : 0);
+  const [experienceType, setExperienceType] =
+    useState<ExperienceTypeSlug>(startType);
   const [nameNl, setNameNl] = useState(event?.nameNl ?? "");
   const [nameEn, setNameEn] = useState(event?.nameEn ?? "");
   const [slug, setSlug] = useState(event?.slug ?? "");
@@ -70,9 +123,11 @@ export function EventEditor({ event }: { event?: Event }) {
   );
   const [taglineNl, setTaglineNl] = useState(event?.taglineNl ?? "");
   const [taglineEn, setTaglineEn] = useState(event?.taglineEn ?? "");
-  const [categoryNl, setCategoryNl] = useState(event?.categoryNl ?? "PROEVERIJ");
-  const [experienceType, setExperienceType] = useState<ExperienceTypeSlug>(
-    (event?.experienceType as ExperienceTypeSlug) ?? DEFAULT_EXPERIENCE_TYPE,
+  const [categoryNl, setCategoryNl] = useState(
+    event?.categoryNl ?? getEventFormDefaults(startType).categoryNl,
+  );
+  const [categoryEn, setCategoryEn] = useState(
+    event?.categoryEn ?? getEventFormDefaults(startType).categoryEn,
   );
   const [extras, setExtras] = useState<EventExtras>(initialExtras);
   const [previewLocale, setPreviewLocale] = useState<"nl" | "en">("nl");
@@ -95,7 +150,9 @@ export function EventEditor({ event }: { event?: Event }) {
       spotsSold: event?.spotsSold ?? 0,
       imageUrl,
       categoryNl,
+      categoryEn,
       femaleOnly,
+      experienceType,
       workflowStatus: event?.workflowStatus,
       extras,
       previewLocale,
@@ -113,213 +170,350 @@ export function EventEditor({ event }: { event?: Event }) {
       event,
       imageUrl,
       categoryNl,
+      categoryEn,
       femaleOnly,
+      experienceType,
       extras,
       previewLocale,
     ],
   );
 
-  const publicUrl = slug
-    ? `${getSiteUrl()}/nl/agenda/${slug}`
-    : null;
+  const publicUrl = slug ? `${getSiteUrl()}/nl/agenda/${slug}` : null;
 
   function updateExtras(patch: Partial<EventExtras>) {
     setExtras((prev) => ({ ...prev, ...patch }));
   }
 
+  function updateSectionOverride(
+    patch: Partial<NonNullable<EventExtras["sectionOverrides"]>>,
+  ) {
+    setExtras((prev) => ({
+      ...prev,
+      sectionOverrides: { ...prev.sectionOverrides, ...patch },
+    }));
+  }
+
+  function pickType(slug: ExperienceTypeSlug) {
+    setExperienceType(slug);
+    applyTypeDefaults(slug, {
+      setCategoryNl,
+      setCategoryEn,
+      setTaglineNl,
+      setTaglineEn,
+      setExtras,
+    });
+    setStep(1);
+  }
+
+  if (!isEdit && step === 0) {
+    return (
+      <div className="grid gap-10 xl:grid-cols-[1fr_360px]">
+        <div>
+          <h2 className="font-serif text-2xl text-burgundy">
+            Stap 1 — Kies experience type
+          </h2>
+          <p className="mt-2 text-sm text-wine/60">
+            Het type bepaalt vaste teksten, FAQ en standaard secties op de
+            eventpagina.
+          </p>
+          <div className="mt-8">
+            <EventTypePicker onSelect={pickType} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-10 xl:grid-cols-[1fr_360px]">
       <div className="space-y-8">
-        <form action={action} className="space-y-10">
+        <nav className="flex flex-wrap gap-2">
+          {STEPS.slice(isEdit ? 1 : 0).map((label, i) => {
+            const idx = isEdit ? i + 1 : i;
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setStep(idx)}
+                className={`rounded-full px-4 py-1.5 text-sm ${
+                  step === idx
+                    ? "bg-burgundy text-cream"
+                    : "border border-border-subtle text-wine/70"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <form action={action} className="space-y-8">
           <input type="hidden" name="extras" value={serializeEventExtras(extras)} />
+          <input type="hidden" name="experienceType" value={experienceType} />
+          <input type="hidden" name="nameNl" value={nameNl} />
+          <input type="hidden" name="nameEn" value={nameEn} />
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="city" value={city} />
+          <input type="hidden" name="startsAt" value={startsAt} />
+          <input type="hidden" name="endsAt" value={endsAt} />
+          <input type="hidden" name="priceEuros" value={priceEuros} />
+          <input type="hidden" name="capacity" value={capacity} />
+          <input type="hidden" name="imageUrl" value={imageUrl} />
+          <input type="hidden" name="categoryNl" value={categoryNl} />
+          <input type="hidden" name="categoryEn" value={categoryEn} />
+          <input type="hidden" name="taglineNl" value={taglineNl} />
+          <input type="hidden" name="taglineEn" value={taglineEn} />
+          {femaleOnly ? <input type="hidden" name="femaleOnly" value="on" /> : null}
 
-          <Section title="Basics">
-            <label className="block text-sm">
-              <span className="font-medium text-wine">Type ervaring</span>
-              <select
-                name="experienceType"
-                value={experienceType}
-                onChange={(e) =>
-                  setExperienceType(e.target.value as ExperienceTypeSlug)
-                }
-                className="mt-1.5 w-full rounded-xl border border-border-subtle bg-cream px-4 py-2.5"
-              >
-                {EXPERIENCE_TYPE_DEFINITIONS.map((t) => (
-                  <option key={t.slug} value={t.slug}>
-                    {t.nameNl}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="text-sm text-wine/60">
-              Restaurants voor dit type:{" "}
-              <Link
-                href={adminPath(`/experience-types/${experienceType}`)}
-                className="text-burgundy underline"
-              >
-                beheer venues →
-              </Link>
-              . Geldt voor elke {EXPERIENCE_TYPE_DEFINITIONS.find((t) => t.slug === experienceType)?.nameNl ?? "event"}.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Naam (NL)" value={nameNl} onChange={setNameNl} name="nameNl" required />
-              <Field
-                label="Naam (EN)"
-                value={nameEn}
-                onChange={setNameEn}
-                name="nameEn"
-                required
-              />
-              <Field
-                label="Slug"
-                value={slug}
-                onChange={setSlug}
-                name="slug"
-                required
-                hint="URL: /agenda/jouw-slug"
-                onBlur={() => {
-                  if (!slug && nameNl) setSlug(slugify(nameNl));
-                }}
-              />
-              <Field label="Stad" value={city} onChange={setCity} name="city" required />
-              <Field
-                label="Start"
-                type="datetime-local"
-                value={startsAt}
-                onChange={setStartsAt}
-                name="startsAt"
-                required
-              />
-              <Field
-                label="Einde"
-                type="datetime-local"
-                value={endsAt}
-                onChange={setEndsAt}
-                name="endsAt"
-              />
-              <Field
-                label="Prijs (€)"
-                type="number"
-                step="0.01"
-                value={priceEuros}
-                onChange={setPriceEuros}
-                name="priceEuros"
-                required
-              />
-              <Field
-                label="Capaciteit"
-                type="number"
-                value={capacity}
-                onChange={setCapacity}
-                name="capacity"
-                required
-              />
-            </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Tagline (NL)"
-                value={taglineNl}
-                onChange={setTaglineNl}
-                name="taglineNl"
-              />
-              <Field
-                label="Tagline (EN)"
-                value={taglineEn}
-                onChange={setTaglineEn}
-                name="taglineEn"
-              />
-            </div>
-          </Section>
+          {step === 1 ? (
+            <Section title="Basis — tafelgegevens">
+              {!isEdit ? (
+                <p className="text-sm text-wine/60">
+                  Type:{" "}
+                  <strong className="text-burgundy">
+                    {getEventFormDefaults(experienceType).categoryNl}
+                  </strong>{" "}
+                  <button
+                    type="button"
+                    className="text-burgundy underline"
+                    onClick={() => setStep(0)}
+                  >
+                    wijzig type
+                  </button>
+                </p>
+              ) : (
+                <label className="block text-sm">
+                  <span className="font-medium text-wine">Type</span>
+                  <select
+                    value={experienceType}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (isValidExperienceType(v)) pickType(v);
+                    }}
+                    className="mt-1.5 w-full rounded-xl border border-border-subtle bg-cream px-4 py-2.5"
+                  >
+                    <option value="wine-tasting">Wijnproeverij</option>
+                    <option value="wine-walk">Wijnwalk</option>
+                    <option value="chefs-special">Chef&apos;s Special</option>
+                  </select>
+                </label>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Eventnaam (NL)" value={nameNl} onChange={setNameNl} name="nameNl" required />
+                <Field label="Eventnaam (EN)" value={nameEn} onChange={setNameEn} name="nameEn" required />
+                <Field
+                  label="Slug"
+                  value={slug}
+                  onChange={setSlug}
+                  name="slug"
+                  required
+                  hint="URL: /agenda/jouw-slug"
+                  onBlur={() => {
+                    if (!slug && nameNl) setSlug(slugify(nameNl));
+                  }}
+                />
+                <Field label="Stad" value={city} onChange={setCity} name="city" required />
+                <Field label="Start" type="datetime-local" value={startsAt} onChange={setStartsAt} name="startsAt" required />
+                <Field label="Einde" type="datetime-local" value={endsAt} onChange={setEndsAt} name="endsAt" />
+                <Field label="Prijs (€)" type="number" step="0.01" value={priceEuros} onChange={setPriceEuros} name="priceEuros" required />
+                <Field label="Capaciteit" type="number" value={capacity} onChange={setCapacity} name="capacity" required />
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="femaleOnly"
+                  value="on"
+                  checked={femaleOnly}
+                  onChange={(e) => setFemaleOnly(e.target.checked)}
+                  className="rounded"
+                />
+                Girls only
+              </label>
+              <div>
+                <label className="block text-sm font-medium text-wine">Sfeer-tags</label>
+                <div className="mt-2">
+                  <AtmosphereTags
+                    selected={extras.atmosphereTags ?? []}
+                    onChange={(tags) => updateExtras({ atmosphereTags: tags })}
+                  />
+                </div>
+              </div>
+            </Section>
+          ) : null}
 
-          <Section title="Atmosphere">
-            <label className="block text-sm font-medium text-wine">Sfeer-tags</label>
-            <div className="mt-2">
-              <AtmosphereTags
-                selected={extras.atmosphereTags ?? []}
-                onChange={(tags) => updateExtras({ atmosphereTags: tags })}
-              />
-            </div>
-            <label className="mt-4 flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="femaleOnly"
-                value="on"
-                checked={femaleOnly}
-                onChange={(e) => setFemaleOnly(e.target.checked)}
-                className="rounded"
-              />
-              Girls only
-            </label>
-            <p className="text-sm text-wine/60">
-              Over-tekst, gallery en FAQ:{" "}
-              <Link
-                href={adminPath(`/experience-types/${experienceType}`)}
-                className="text-burgundy underline"
-              >
-                beheer bij type →
-              </Link>
-            </p>
-          </Section>
-
-          <Section title="Visuals">
-            <MediaPicker value={imageUrl} onChange={setImageUrl} label="Hero image (per event)" />
-            <input type="hidden" name="imageUrl" value={imageUrl} />
-          </Section>
-
-          <Section title="Booking">
-            {isEdit ? (
-              <OccupancyBar
-                sold={event!.spotsSold}
-                capacity={event!.capacity}
-              />
-            ) : (
+          {step === 2 ? (
+            <Section title="Agendakaart">
               <p className="text-sm text-wine/60">
-                Bezetting verschijnt na de eerste boekingen.
+                Hoe de tafel op de agenda verschijnt (kan afwijken van de
+                detailpagina).
               </p>
-            )}
-          </Section>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Kaarttitel (NL)"
+                  value={extras.cardTitleNl ?? ""}
+                  onChange={(v) => updateExtras({ cardTitleNl: v || undefined })}
+                  name="_cardTitleNl"
+                />
+                <Field
+                  label="Kaarttitel (EN)"
+                  value={extras.cardTitleEn ?? ""}
+                  onChange={(v) => updateExtras({ cardTitleEn: v || undefined })}
+                  name="_cardTitleEn"
+                />
+                <Field
+                  label="Categorie label (NL)"
+                  value={extras.cardCategoryNl ?? categoryNl}
+                  onChange={(v) => updateExtras({ cardCategoryNl: v })}
+                  name="_cardCatNl"
+                />
+                <Field
+                  label="Categorie label (EN)"
+                  value={extras.cardCategoryEn ?? categoryEn}
+                  onChange={(v) => updateExtras({ cardCategoryEn: v })}
+                  name="_cardCatEn"
+                />
+              </div>
+              <TextArea
+                label="Korte tekst kaart (NL)"
+                value={extras.cardTextNl ?? ""}
+                onChange={(v) => updateExtras({ cardTextNl: v || undefined })}
+              />
+              <TextArea
+                label="Korte tekst kaart (EN)"
+                value={extras.cardTextEn ?? ""}
+                onChange={(v) => updateExtras({ cardTextEn: v || undefined })}
+              />
+              <MediaPicker
+                value={extras.cardImageUrl ?? ""}
+                onChange={(v) => updateExtras({ cardImageUrl: v || undefined })}
+                label="Kaartafbeelding"
+              />
+            </Section>
+          ) : null}
 
-          <Section title="Settings">
-            <Field
-              label="Categorie (NL)"
-              value={categoryNl}
-              onChange={setCategoryNl}
-              name="categoryNl"
-            />
-            <input type="hidden" name="categoryEn" value={categoryNl === "PROEVERIJ" ? "TASTING" : categoryNl} />
-            {isEdit ? (
-              <p className="mt-2 text-sm text-wine/60">
-                Status: <strong className="text-burgundy">{event!.workflowStatus}</strong>
+          {step === 3 ? (
+            <Section title="Detailpagina — hero">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Hero titel (NL)"
+                  value={extras.heroTitleNl ?? nameNl}
+                  onChange={(v) => updateExtras({ heroTitleNl: v || undefined })}
+                  name="_heroNl"
+                />
+                <Field
+                  label="Hero titel (EN)"
+                  value={extras.heroTitleEn ?? nameEn}
+                  onChange={(v) => updateExtras({ heroTitleEn: v || undefined })}
+                  name="_heroEn"
+                />
+                <Field
+                  label="Tagline (NL)"
+                  value={taglineNl}
+                  onChange={setTaglineNl}
+                  name="taglineNl"
+                />
+                <Field
+                  label="Tagline (EN)"
+                  value={taglineEn}
+                  onChange={setTaglineEn}
+                  name="taglineEn"
+                />
+              </div>
+              <MediaPicker value={imageUrl} onChange={setImageUrl} label="Hero-afbeelding" />
+              <input type="hidden" name="imageUrl" value={imageUrl} />
+              <MediaPicker
+                value={extras.galleryImages?.[0] ?? ""}
+                onChange={(url) => {
+                  const rest = extras.galleryImages?.slice(1) ?? [];
+                  updateExtras({
+                    galleryImages: url ? [url, ...rest] : rest.length ? rest : undefined,
+                  });
+                }}
+                label="Galerij (eerste afbeelding)"
+              />
+            </Section>
+          ) : null}
+
+          {step === 4 ? (
+            <Section title="Venues">
+              <VenuePicker
+                allVenues={allVenues}
+                selectedIds={extras.venueIds ?? []}
+                onChange={(ids) => updateExtras({ venueIds: ids })}
+                eventCity={city}
+              />
+            </Section>
+          ) : null}
+
+          {step === 5 ? (
+            <Section title="Optionele overrides">
+              <p className="text-sm text-wine/60">
+                Leeg laten = template-tekst van het type. Ingevuld = alleen voor
+                deze tafel.
               </p>
+              <TextArea
+                label="Venues intro (NL)"
+                value={extras.sectionOverrides?.venuesIntroNl ?? ""}
+                onChange={(v) => updateSectionOverride({ venuesIntroNl: v || undefined })}
+              />
+              <TextArea
+                label="Over deze ervaring (NL)"
+                value={extras.sectionOverrides?.aboutNl ?? ""}
+                onChange={(v) => updateSectionOverride({ aboutNl: v || undefined })}
+              />
+              <TextArea
+                label="Venues intro (EN)"
+                value={extras.sectionOverrides?.venuesIntroEn ?? ""}
+                onChange={(v) => updateSectionOverride({ venuesIntroEn: v || undefined })}
+              />
+              <TextArea
+                label="Over deze ervaring (EN)"
+                value={extras.sectionOverrides?.aboutEn ?? ""}
+                onChange={(v) => updateSectionOverride({ aboutEn: v || undefined })}
+              />
+            </Section>
+          ) : null}
+
+          <div className="flex flex-wrap gap-3">
+            {step > (isEdit ? 1 : 0) ? (
+              <button
+                type="button"
+                onClick={() => setStep((s) => s - 1)}
+                className="rounded-full border border-border-subtle px-6 py-2.5 text-sm"
+              >
+                Vorige
+              </button>
             ) : null}
-          </Section>
-
-          <button
-            type="submit"
-            className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream"
-          >
-            {isEdit ? "Save experience" : "Create draft"}
-          </button>
+            {step < 5 ? (
+              <button
+                type="button"
+                onClick={() => setStep((s) => s + 1)}
+                className="rounded-full border border-burgundy px-6 py-2.5 text-sm text-burgundy"
+              >
+                Volgende
+              </button>
+            ) : null}
+            <button
+              type="submit"
+              className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream"
+            >
+              {isEdit ? "Opslaan" : "Concept opslaan"}
+            </button>
+          </div>
         </form>
 
         {isEdit ? (
           <div className="flex flex-wrap gap-3 border-t border-border-subtle pt-6">
             {event!.workflowStatus !== "published" ? (
               <form action={publishEventAction.bind(null, event!.id)}>
-                <button
-                  type="submit"
-                  className="rounded-full bg-burgundy px-5 py-2 text-sm text-cream"
-                >
-                  Publish
+                <button type="submit" className="rounded-full bg-burgundy px-5 py-2 text-sm text-cream">
+                  Publiceren
                 </button>
               </form>
             ) : (
               <form action={unpublishEventAction.bind(null, event!.id)}>
-                <button
-                  type="submit"
-                  className="rounded-full border border-burgundy px-5 py-2 text-sm text-burgundy"
-                >
-                  Unpublish
+                <button type="submit" className="rounded-full border border-burgundy px-5 py-2 text-sm text-burgundy">
+                  Depubliceren
                 </button>
               </form>
             )}
@@ -331,26 +525,29 @@ export function EventEditor({ event }: { event?: Event }) {
                   rel="noopener noreferrer"
                   className="rounded-full border border-border-subtle px-5 py-2 text-sm"
                 >
-                  Open public page
+                  Open publieke pagina
                 </a>
                 <button
                   type="button"
                   onClick={() => navigator.clipboard.writeText(publicUrl)}
                   className="rounded-full border border-border-subtle px-5 py-2 text-sm"
                 >
-                  Copy link
+                  Kopieer URL
                 </button>
               </>
             ) : null}
             <form action={deleteEventAction.bind(null, event!.id)}>
-              <button
-                type="submit"
-                className="rounded-full border border-red-800/30 px-5 py-2 text-sm text-red-900"
-              >
-                Delete
+              <button type="submit" className="rounded-full border border-red-800/30 px-5 py-2 text-sm text-red-900">
+                Verwijderen
               </button>
             </form>
           </div>
+        ) : null}
+
+        {isEdit ? (
+          <Section title="Boekingen">
+            <OccupancyBar sold={event!.spotsSold} capacity={event!.capacity} />
+          </Section>
         ) : null}
       </div>
 
@@ -361,14 +558,14 @@ export function EventEditor({ event }: { event?: Event }) {
             onClick={() => setPreviewLocale("nl")}
             className={`rounded-full px-3 py-1 text-xs ${previewLocale === "nl" ? "bg-burgundy text-cream" : "text-wine/60"}`}
           >
-            NL preview
+            NL
           </button>
           <button
             type="button"
             onClick={() => setPreviewLocale("en")}
             className={`rounded-full px-3 py-1 text-xs ${previewLocale === "en" ? "bg-burgundy text-cream" : "text-wine/60"}`}
           >
-            EN preview
+            EN
           </button>
         </div>
         <LivePreviewPanel data={previewData} />

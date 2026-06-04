@@ -5,24 +5,47 @@ import type {
 
 export const wineWalkFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Je eerste glas",
+    title: "Start bij de eerste locatie",
     description:
-      "We starten samen op de eerste locatie met een korte intro en een eerste glas.",
+      "We beginnen op de eerste locatie met een korte introductie, zodat iedereen rustig kan landen.",
   },
   {
-    title: "Ontdek de stad",
+    title: "Proef onderweg",
     description:
-      "Tussen de locaties wandel je op ontspannen tempo door de stad.",
+      "Bij iedere stop staat er iets klaar om te proeven. Denk aan wijn, bites of een kleine pairing.",
   },
   {
-    title: "Nieuwe gesprekken",
+    title: "Wandel op rustig tempo",
     description:
-      "Aan iedere tafel ontstaan nieuwe gesprekken en ontmoetingen.",
+      "Tussen de locaties wandel je samen door de stad. Geen haast, geen strak programma.",
   },
   {
-    title: "Afsluiten zonder haast",
+    title: "Ontmoet nieuwe mensen",
     description:
-      "Vaak blijven mensen na afloop nog hangen voor een laatste drankje.",
+      "Omdat je onderweg wisselt van plek en gesprek, voelt ontmoeten natuurlijk en ontspannen.",
+  },
+];
+
+export const chefsSpecialFlowNl: ExperienceFlowStep[] = [
+  {
+    title: "Schuif aan",
+    description:
+      "Je komt aan bij het restaurant en wordt ontvangen aan de MyTable-tafel.",
+  },
+  {
+    title: "Laat je verrassen",
+    description:
+      "De chef of het restaurant serveert een speciaal menu of meerdere gangen.",
+  },
+  {
+    title: "Eet samen",
+    description:
+      "De tafel is ingericht voor ontspannen gesprek, zonder dat het voelt als networking.",
+  },
+  {
+    title: "Blijf hangen",
+    description:
+      "Na afloop kun je vaak nog blijven voor een drankje of verder praten.",
   },
 ];
 

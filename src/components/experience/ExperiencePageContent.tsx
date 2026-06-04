@@ -55,6 +55,10 @@ export function ExperiencePageContent({
 }: ExperiencePageContentProps) {
   const page = dict.experiencePage;
   const mood = getMoodContent(dict, experience.mood);
+  const venuesTitle =
+    experience.pageSections?.venuesTitle ?? page.venuesTitle;
+  const venuesSubtitle =
+    experience.pageSections?.venuesSubtitle ?? page.venuesSubtitle;
   const venues =
     eventVenues && eventVenues.length > 0
       ? eventVenues
@@ -90,8 +94,8 @@ export function ExperiencePageContent({
 
       {venues.length > 0 ? (
         <VenueLineup
-          title={page.venuesTitle}
-          subtitle={page.venuesSubtitle}
+          title={venuesTitle}
+          subtitle={venuesSubtitle}
           venues={venues}
         />
       ) : null}

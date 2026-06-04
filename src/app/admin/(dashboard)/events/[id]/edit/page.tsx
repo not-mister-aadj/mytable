@@ -4,6 +4,7 @@ import { EventEditor } from "@/components/admin/EventEditor";
 import { events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
+import { getAllVenues } from "@/lib/venues";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -13,10 +14,11 @@ export default async function EditEventPage({ params }: Props) {
   const db = getDb();
   const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
   if (!event) notFound();
+  const allVenues = await getAllVenues();
   return (
     <div>
-      <h1 className="mb-8 font-serif text-3xl text-burgundy">Edit experience</h1>
-      <EventEditor event={event} />
+      <h1 className="mb-8 font-serif text-3xl text-burgundy">Tafel bewerken</h1>
+      <EventEditor event={event} allVenues={allVenues} />
     </div>
   );
 }

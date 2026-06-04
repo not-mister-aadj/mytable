@@ -1,6 +1,12 @@
 import type { ExperiencePageLabels } from "./types";
 import { images } from "@/data/images";
-import { tastingFlowNl, tastingQuotesNl } from "./experience-mood-blocks-nl";
+import {
+  chefsSpecialFlowNl,
+  tastingFlowNl,
+  tastingQuotesNl,
+  wineWalkFlowNl,
+  wineWalkQuotesNl,
+} from "./experience-mood-blocks-nl";
 
 export const experiencePageNl: ExperiencePageLabels = {
   viewTableCta: "Bekijk tafel",
@@ -176,6 +182,155 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Kan ik annuleren of ruilen?",
           answer:
             "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren. Mail ons als je wilt ruilen.",
+        },
+      ],
+    },
+    wineWalk: {
+      tagline: "Een ontspannen wandeling vol wijn, mooie plekken en goed gezelschap.",
+      description:
+        "Een Wijnwalk bij MyTable is geen rondleiding met script, maar een ontspannen middag door de stad. Je loopt langs plekken met karakter, proeft onderweg iets lekkers en ontmoet mensen op een natuurlijke manier. De route geeft structuur, maar de sfeer blijft los en gezellig.",
+      experienceFlow: wineWalkFlowNl,
+      guestQuotes: wineWalkQuotesNl,
+      whatToExpect: [
+        {
+          title: "Meerdere geselecteerde locaties",
+          description: "Je bezoekt verschillende restaurants en wijnbars in de stad.",
+        },
+        {
+          title: "Wijn en bites onderweg",
+          description: "Bij elke stop staat er iets klaar om te proeven.",
+        },
+        {
+          title: "Rustig wandeltempo",
+          description: "Geen haast tussen de locaties.",
+        },
+        {
+          title: "Kleine sociale groep",
+          description: "Genoeg mensen om gezellig te zijn, niet te groot.",
+        },
+        {
+          title: "Kom alleen of samen",
+          description: "Alleen komen is heel normaal en welkom.",
+        },
+        {
+          title: "Geen verplichte smalltalk",
+          description: "Ontmoeten voelt natuurlijk door de route en de stops.",
+        },
+      ],
+      socialParagraphs: [
+        "Je komt voor wijn en gezelligheid. Niet om te netwerken.",
+        "De wandeling geeft structuur, maar de sfeer blijft ontspannen. Gesprekken wisselen vanzelf als je van plek naar plek gaat.",
+      ],
+      gallery: [
+        images.wineBar,
+        images.wineGlasses,
+        images.restaurantInterior,
+        images.cheers,
+        images.heroMain,
+        images.restaurantDining,
+      ],
+      duration: "Ongeveer 3 tot 4 uur",
+      included: "Wijnproeverijen, bites en routebegeleiding",
+      walkingDistance: "Meestal 2 tot 4 km, afhankelijk van de stad",
+      faq: [
+        {
+          question: "Kan ik alleen komen?",
+          answer:
+            "Ja. Veel mensen komen alleen. De route en groep zijn zo ingericht dat je makkelijk met anderen in gesprek komt.",
+        },
+        {
+          question: "Moet ik veel wandelen?",
+          answer:
+            "Nee. Het tempo is rustig en de afstanden tussen locaties blijven overzichtelijk.",
+        },
+        {
+          question: "Wat is inbegrepen?",
+          answer:
+            "Per locatie krijg je een wijn, bite of kleine pairing. De exacte invulling kan per stad verschillen.",
+        },
+        {
+          question: "Wanneer krijg ik de route?",
+          answer:
+            "Je ontvangt de praktische informatie en startlocatie vooraf. De locaties kunnen afhankelijk van het format vooraf of later bekend worden gemaakt.",
+        },
+        {
+          question: "Wat als het regent?",
+          answer:
+            "De ervaring gaat meestal door. Neem bij twijfel een jas of paraplu mee. We houden het tempo ontspannen.",
+        },
+      ],
+    },
+    chefsSpecial: {
+      tagline: "Een bijzondere avond aan tafel, samengesteld door de chef.",
+      description:
+        "Chef's Special draait om een avond waarin je niet alles zelf hoeft te kiezen. Het restaurant bepaalt de richting, de chef maakt iets moois en jij schuift aan bij een tafel met goed gezelschap. Het is een toegankelijke manier om een restaurant anders te beleven.",
+      experienceFlow: chefsSpecialFlowNl,
+      guestQuotes: tastingQuotesNl,
+      whatToExpect: [
+        {
+          title: "Een speciaal menu of meerdere gangen",
+          description: "Het restaurant stelt de avond samen.",
+        },
+        {
+          title: "Eén geselecteerd restaurant",
+          description: "Alles speelt zich af op één plek.",
+        },
+        {
+          title: "Goede sfeer aan tafel",
+          description: "Kleine groep, ontspannen gesprek.",
+        },
+        {
+          title: "Kom alleen of samen",
+          description: "Alleen komen is heel normaal en welkom.",
+        },
+        {
+          title: "Kleine groep",
+          description: "Meestal 8 tot 14 gasten.",
+        },
+        {
+          title: "Geen keuzestress",
+          description: "De chef of het restaurant bepaalt de invulling.",
+        },
+      ],
+      socialParagraphs: [
+        "Je komt voor wijn en gezelligheid. Niet om te netwerken.",
+        "Je schuift aan bij mensen die ook zin hebben in een avond uit. Het menu geeft structuur, het gesprek loopt vanzelf.",
+      ],
+      gallery: [
+        images.restaurantDining,
+        images.restaurantInterior,
+        images.wineGlasses,
+        images.cheers,
+        images.wineBar,
+        images.heroMain,
+      ],
+      duration: "Ongeveer 2,5 tot 3 uur",
+      included: "Menu of meerdere gangen zoals omschreven op de eventpagina",
+      faq: [
+        {
+          question: "Weet ik vooraf wat ik eet?",
+          answer:
+            "Soms wel, soms niet. Bij Chef's Special bepaalt het restaurant de invulling. Als er een vast menu is, tonen we dit op de pagina.",
+        },
+        {
+          question: "Zijn drankjes inbegrepen?",
+          answer:
+            "Alleen als dit duidelijk op de eventpagina staat. Anders betaal je drankjes zelf bij het restaurant.",
+        },
+        {
+          question: "Kan ik dieetwensen doorgeven?",
+          answer:
+            "Ja. Geef dit door bij het boeken, dan stemmen wij dit af met het restaurant.",
+        },
+        {
+          question: "Kan ik alleen komen?",
+          answer:
+            "Ja. De tafel is juist ingericht zodat alleen komen normaal en ontspannen voelt.",
+        },
+        {
+          question: "Is dit fine dining?",
+          answer:
+            "Niet per se. Chef's Special betekent vooral dat het restaurant iets bijzonders samenstelt voor de avond.",
         },
       ],
     },

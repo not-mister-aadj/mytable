@@ -49,7 +49,15 @@ export async function resolveEventRoutePoints(
   city: string,
   venues: ExperienceVenue[],
   legacyExperienceId: string,
+  venueCoords?: { label: string; lat: number; lng: number }[],
 ): Promise<RouteMapPoint[]> {
+  if (venueCoords?.length) {
+    return venueCoords.map((p) => ({
+      label: p.label,
+      lat: p.lat,
+      lng: p.lng,
+    }));
+  }
   const content = await getTypeContent(typeSlug ?? DEFAULT_EXPERIENCE_TYPE);
   if (content.routePoints?.length) {
     return content.routePoints.map((p) => ({

@@ -6,7 +6,7 @@ export type ExperienceStatusKey =
 
 export type AgendaTabKey = "all" | "girlsOnly" | "mixed";
 
-export type ExperienceMoodKey = "tastings";
+export type ExperienceMoodKey = "tastings" | "wineWalk" | "chefsSpecial";
 
 export interface ExperienceExpectItem {
   title: string;
@@ -121,13 +121,24 @@ export interface ExperiencePageLabels {
   moods: Record<ExperienceMoodKey, ExperienceMoodContent>;
 }
 
+export interface ExperiencePageSectionLabels {
+  venuesTitle: string;
+  venuesSubtitle: string;
+}
+
 export interface ExperienceItem {
   id: string;
   slug?: string;
   tagline?: string;
   city: string;
   experienceName: string;
+  /** Card/listing title when different from detail hero */
+  cardTitle?: string;
+  cardText?: string;
+  cardImage?: string;
   category: string;
+  experienceType?: string;
+  pageSections?: ExperiencePageSectionLabels;
   dateTime: string;
   price: number;
   status: ExperienceStatusKey;

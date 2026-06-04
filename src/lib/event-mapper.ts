@@ -10,24 +10,44 @@ import {
   mergeTypeContentIntoItem,
 } from "@/lib/experience-type-content";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
+import {
+  displayNamesFromEvent,
+  resolvePageSections,
+  typeSlugFromEvent,
+} from "@/lib/resolve-experience-content";
+import { getExperienceTypeDefinition } from "@/lib/experience-type-definitions";
 
 export function mapDbEventToExperienceItem(
   row: Event,
   locale: Locale,
 ): ExperienceItem {
+  const extras = parseEventExtras(row.extras);
+  const typeSlug = typeSlugFromEvent(row.experienceType);
+  const names = displayNamesFromEvent(row, extras, locale);
   const lang = locale === "nl" ? "nl" : "en";
+  const customDescription =
+    lang === "nl"
+      ? extras.sectionOverrides?.aboutNl ?? extras.atmosphereTextNl
+      : extras.sectionOverrides?.aboutEn ?? extras.atmosphereTextEn;
+  const customFaq =
+    lang === "nl"
+      ? extras.sectionOverrides?.faqNl ?? extras.faqNl
+      : extras.sectionOverrides?.faqEn ?? extras.faqEn;
+  const typeDef = getExperienceTypeDefinition(typeSlug);
   const startsAt = new Date(row.startsAt);
   const endsAt = row.endsAt ? new Date(row.endsAt) : null;
-  const extras = parseEventExtras(row.extras);
-  const customDescription =
-    lang === "nl" ? extras.atmosphereTextNl : extras.atmosphereTextEn;
-  const customFaq = lang === "nl" ? extras.faqNl : extras.faqEn;
+
   return {
     id: row.legacyId ?? row.id,
     slug: row.slug,
     city: row.city,
-    experienceName: lang === "nl" ? row.nameNl : row.nameEn,
-    category: lang === "nl" ? row.categoryNl : row.categoryEn,
+    experienceName: names.experienceName,
+    cardTitle: names.cardTitle,
+    cardText: names.cardText,
+    cardImage: names.cardImage,
+    category: names.category,
+    experienceType: typeSlug,
+    pageSections: resolvePageSections(typeSlug, locale, extras),
     dateTime: formatDateTime(startsAt, endsAt, locale),
     price: Math.round(row.priceCents / 100),
     status: deriveDisplayStatus(
@@ -35,10 +55,10 @@ export function mapDbEventToExperienceItem(
       row.spotsSold,
       row.publishedAt ? new Date(row.publishedAt) : null,
     ),
-    mood: (row.mood as ExperienceItem["mood"]) || "tastings",
+    mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
     image: row.imageUrl,
     femaleOnly: row.femaleOnly,
-    tagline: lang === "nl" ? (row.taglineNl ?? undefined) : (row.taglineEn ?? undefined),
+    tagline: names.tagline,
     capacity: row.capacity,
     spotsSold: row.spotsSold,
     eventDbId: row.id,
@@ -62,5 +82,10 @@ export async function enrichDbEvent(
   return {
     ...merged,
     slug: merged.slug ?? getExperienceSlug(merged.id),
+    experienceType: item.experienceType,
+    pageSections: item.pageSections,
+    cardTitle: item.cardTitle,
+    cardText: item.cardText,
+    cardImage: item.cardImage,
   };
 }

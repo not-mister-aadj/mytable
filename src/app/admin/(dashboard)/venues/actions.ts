@@ -16,6 +16,8 @@ function parseVenueForm(data: FormData) {
   const area = String(data.get("area") ?? "").trim();
   const atmosphere = String(data.get("atmosphere") ?? "").trim();
   const address = String(data.get("address") ?? "").trim();
+  const latitude = String(data.get("latitude") ?? "").trim();
+  const longitude = String(data.get("longitude") ?? "").trim();
 
   if (!name || !city || !descriptionNl) {
     throw new Error("Naam, stad en beschrijving (NL) zijn verplicht.");
@@ -30,6 +32,8 @@ function parseVenueForm(data: FormData) {
     descriptionNl,
     descriptionEn: descriptionEn || descriptionNl,
     imageUrl: imageUrl || "/images/restaurant-interior.jpg",
+    latitude: latitude || null,
+    longitude: longitude || null,
   };
 }
 

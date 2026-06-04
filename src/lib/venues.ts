@@ -7,6 +7,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { parseEventExtras } from "@/lib/event-extras";
 import {
   DEFAULT_EXPERIENCE_TYPE,
+  getExperienceTypeDefinition,
   getVenueIdsForExperienceType,
 } from "@/lib/experience-types";
 import { getExperienceVenues } from "@/data/experience-venues";
@@ -60,12 +61,13 @@ export async function getEventVenues(
   legacyExperienceId?: string,
 ): Promise<ExperienceVenue[]> {
   const typeSlug = event.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
-  let ids = await getVenueIdsForExperienceType(typeSlug);
+  const extras = parseEventExtras(event.extras);
+  let ids = extras.venueIds?.length
+    ? extras.venueIds
+    : await getVenueIdsForExperienceType(typeSlug);
 
-  if (ids.length === 0) {
-    const extras = parseEventExtras(event.extras);
-    if (extras.venueIds?.length) ids = extras.venueIds;
-    else if (event.venueId) ids = [event.venueId];
+  if (ids.length === 0 && event.venueId) {
+    ids = [event.venueId];
   }
 
   if (ids.length > 0) {
@@ -76,8 +78,26 @@ export async function getEventVenues(
     }
   }
 
+  const typeDef = getExperienceTypeDefinition(typeSlug);
   return getExperienceVenues(
     legacyExperienceId ?? event.legacyId ?? event.id,
-    "tastings",
+    typeDef?.mood ?? "tastings",
   );
+}
+
+export async function getVenueRouteCoords(
+  event: Event,
+): Promise<{ label: string; lat: number; lng: number }[]> {
+  const extras = parseEventExtras(event.extras);
+  const ids = extras.venueIds ?? [];
+  if (!ids.length) return [];
+  const rows = await fetchVenuesByIds(ids);
+  return rows
+    .map((v) => {
+      const lat = v.latitude ? Number.parseFloat(v.latitude) : NaN;
+      const lng = v.longitude ? Number.parseFloat(v.longitude) : NaN;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return { label: v.name, lat, lng };
+    })
+    .filter((p): p is { label: string; lat: number; lng: number } => p !== null);
 }

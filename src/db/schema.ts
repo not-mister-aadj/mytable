@@ -46,6 +46,8 @@ export const venues = pgTable("venues", {
   descriptionNl: text("description_nl"),
   descriptionEn: text("description_en"),
   imageUrl: text("image_url"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

@@ -32,6 +32,19 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           hint="Bijv. Chef's special, Wijnbar"
         />
         <Field label="Adres" name="address" defaultValue={venue?.address ?? ""} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Latitude (kaart)"
+            name="latitude"
+            defaultValue={venue?.latitude ?? ""}
+            hint="Optioneel, voor route op Wijnwalk"
+          />
+          <Field
+            label="Longitude (kaart)"
+            name="longitude"
+            defaultValue={venue?.longitude ?? ""}
+          />
+        </div>
         <MediaPicker value={imageUrl} onChange={setImageUrl} label="Foto" />
         <input type="hidden" name="imageUrl" value={imageUrl} />
         <TextArea

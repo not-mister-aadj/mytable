@@ -44,8 +44,8 @@ export function ExperienceCard({
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image
-          src={experience.image}
-          alt={`${experience.experienceName}, ${experience.city}`}
+          src={experience.cardImage ?? experience.image}
+          alt={`${experience.cardTitle ?? experience.experienceName}, ${experience.city}`}
           fill
           className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] ${
             isSoldOut ? "opacity-75 saturate-[0.85]" : ""
@@ -87,8 +87,14 @@ export function ExperienceCard({
         </h3>
 
         <p className="mt-2 text-base font-medium text-wine/80 sm:text-lg">
-          {experience.experienceName}
+          {experience.cardTitle ?? experience.experienceName}
         </p>
+
+        {experience.cardText ? (
+          <p className="mt-2 text-sm leading-relaxed text-wine/65 line-clamp-2">
+            {experience.cardText}
+          </p>
+        ) : null}
 
         <p className="mt-3 text-sm text-wine/60">{experience.dateTime}</p>
 

@@ -25,8 +25,17 @@ async function main() {
 
   await sql`
     INSERT INTO experience_types (slug, name_nl, name_en, mood, venue_ids)
-    VALUES ('wine-tasting', 'Wijnproeverij', 'Wine tasting', 'tastings', '[]'::jsonb)
+    VALUES
+      ('wine-tasting', 'Wijnproeverij', 'Wine tasting', 'tastings', '[]'::jsonb),
+      ('wine-walk', 'Wijnwalk', 'Wine walk', 'wineWalk', '[]'::jsonb),
+      ('chefs-special', 'Chef''s Special', 'Chef''s Special', 'chefsSpecial', '[]'::jsonb)
     ON CONFLICT (slug) DO NOTHING
+  `;
+
+  await sql`
+    ALTER TABLE venues
+    ADD COLUMN IF NOT EXISTS latitude text,
+    ADD COLUMN IF NOT EXISTS longitude text
   `;
 
   await sql`

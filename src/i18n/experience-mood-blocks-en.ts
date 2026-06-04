@@ -5,24 +5,47 @@ import type {
 
 export const wineWalkFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Your first glass",
+    title: "Start at the first venue",
     description:
-      "We start together at the first venue with a short intro and a welcome pour.",
+      "We begin at the first stop with a short introduction so everyone can settle in.",
   },
   {
-    title: "Explore the city",
+    title: "Taste along the way",
     description:
-      "Between stops you walk at an easy pace through the neighbourhood.",
+      "At each stop something is ready to try: wine, bites, or a small pairing.",
   },
   {
-    title: "New conversations",
+    title: "Walk at a relaxed pace",
     description:
-      "At every table new chats and connections naturally unfold.",
+      "Between venues you walk through the city together. No rush, no tight schedule.",
   },
   {
-    title: "Close without rushing",
+    title: "Meet new people",
     description:
-      "Often people stay a little longer for one last drink afterwards.",
+      "As you change spots and conversations along the way, meeting people feels natural and easy.",
+  },
+];
+
+export const chefsSpecialFlowEn: ExperienceFlowStep[] = [
+  {
+    title: "Take your seat",
+    description:
+      "You arrive at the restaurant and are welcomed at the MyTable table.",
+  },
+  {
+    title: "Let yourself be surprised",
+    description:
+      "The chef or restaurant serves a special menu or multiple courses.",
+  },
+  {
+    title: "Eat together",
+    description:
+      "The table is set up for relaxed conversation, without a networking vibe.",
+  },
+  {
+    title: "Stay a while",
+    description:
+      "Afterwards you can often linger for another drink or keep chatting.",
   },
 ];
 

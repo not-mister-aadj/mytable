@@ -82,8 +82,6 @@ function toEventValues(form: EventFormState) {
     ? form.experienceType
     : DEFAULT_EXPERIENCE_TYPE;
   const typeDef = getExperienceTypeDefinition(experienceType);
-  const { venueIds: _removed, ...extrasClean } = form.extras;
-  void _removed;
 
   return {
     slug: form.slug,
@@ -103,7 +101,7 @@ function toEventValues(form: EventFormState) {
     experienceType,
     mood: typeDef?.mood ?? "tastings",
     venueId: null,
-    extras: extrasClean as Record<string, unknown>,
+    extras: form.extras as Record<string, unknown>,
     updatedAt: new Date(),
   };
 }

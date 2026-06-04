@@ -11,7 +11,7 @@ import {
   getRelatedExperiences,
 } from "@/lib/experiences";
 import { resolveEventRoutePoints } from "@/lib/experience-type-content";
-import { getEventVenues } from "@/lib/venues";
+import { getEventVenues, getVenueRouteCoords } from "@/lib/venues";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getRouteMapPoints } from "@/data/experience-route-map";
@@ -72,11 +72,13 @@ export default async function ExperienceDetailPage({ params }: Props) {
     const row = await getExperienceByDbId(experience.eventDbId);
     if (row) {
       eventVenues = await getEventVenues(row, locale, experience.id);
+      const venueCoords = await getVenueRouteCoords(row);
       routePoints = await resolveEventRoutePoints(
         row.experienceType,
         row.city,
         eventVenues,
         experience.id,
+        venueCoords.length > 0 ? venueCoords : undefined,
       );
     }
   } else {

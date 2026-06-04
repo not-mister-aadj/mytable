@@ -27,13 +27,16 @@ export async function ensureExperienceTypesSeeded() {
       .where(eq(experienceTypes.slug, def.slug))
       .limit(1);
     if (!existing) {
-      await db.insert(experienceTypes).values({
-        slug: def.slug,
-        nameNl: def.nameNl,
-        nameEn: def.nameEn,
-        mood: def.mood,
-        venueIds: [],
-      });
+      await db
+        .insert(experienceTypes)
+        .values({
+          slug: def.slug,
+          nameNl: def.nameNl,
+          nameEn: def.nameEn,
+          mood: def.mood,
+          venueIds: [],
+        })
+        .onConflictDoNothing();
     }
   }
 }

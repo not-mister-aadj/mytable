@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
@@ -278,4 +278,199 @@ export async function duplicateEventAction(id: string) {
     .returning();
 
   redirect(adminPath(`/events/${row.id}/edit`));
+}
+
+export type BookingActionResult = { error: string | null };
+
+export type TransferBookingResult = BookingActionResult;
+
+export async function removeBookingFromEventAction(
+  bookingId: string,
+  eventId: string,
+): Promise<BookingActionResult> {
+  await requireAdmin();
+  if (!isDbConfigured()) {
+    return { error: "Database niet geconfigureerd" };
+  }
+
+  const db = getDb();
+
+  try {
+    const slug = await db.transaction(async (tx) => {
+      const [booking] = await tx
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, bookingId))
+        .limit(1);
+
+      if (!booking) {
+        throw new Error("Boeking niet gevonden");
+      }
+      if (booking.eventId !== eventId) {
+        throw new Error("Boeking hoort niet bij deze tafel");
+      }
+      if (booking.paymentStatus !== "paid") {
+        throw new Error("Alleen bevestigde tickets kunnen worden verwijderd");
+      }
+
+      const [event] = await tx
+        .select()
+        .from(events)
+        .where(eq(events.id, eventId))
+        .limit(1);
+
+      if (!event) {
+        throw new Error("Tafel niet gevonden");
+      }
+
+      await tx.insert(bookingEvents).values({
+        bookingId,
+        type: "removed_by_admin",
+        payload: {
+          eventId,
+          seats: booking.seats,
+          email: booking.email,
+        },
+      });
+
+      const [updatedEvent] = await tx
+        .update(events)
+        .set({
+          spotsSold: sql`${events.spotsSold} - ${booking.seats}`,
+          updatedAt: new Date(),
+        })
+        .where(
+          sql`${events.id} = ${eventId} AND ${events.spotsSold} >= ${booking.seats}`,
+        )
+        .returning();
+
+      if (!updatedEvent) {
+        throw new Error("Kon bezetting niet bijwerken");
+      }
+
+      await tx
+        .update(bookings)
+        .set({ paymentStatus: "refunded" })
+        .where(eq(bookings.id, bookingId));
+
+      return event.slug;
+    });
+
+    revalidateEventPaths(slug);
+
+    return { error: null };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Verwijderen mislukt. Probeer het opnieuw.",
+    };
+  }
+}
+
+export async function transferBookingToEventAction(
+  bookingId: string,
+  targetEventId: string,
+): Promise<TransferBookingResult> {
+  await requireAdmin();
+  if (!isDbConfigured()) {
+    return { error: "Database niet geconfigureerd" };
+  }
+
+  const db = getDb();
+
+  try {
+    const slugs = await db.transaction(async (tx) => {
+      const [booking] = await tx
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, bookingId))
+        .limit(1);
+
+      if (!booking) {
+        throw new Error("Boeking niet gevonden");
+      }
+      if (booking.paymentStatus !== "paid") {
+        throw new Error("Alleen bevestigde betalingen kunnen worden verplaatst");
+      }
+      if (booking.eventId === targetEventId) {
+        throw new Error("Kies een andere tafel");
+      }
+
+      const [sourceEvent] = await tx
+        .select()
+        .from(events)
+        .where(eq(events.id, booking.eventId))
+        .limit(1);
+      const [targetEvent] = await tx
+        .select()
+        .from(events)
+        .where(eq(events.id, targetEventId))
+        .limit(1);
+
+      if (!sourceEvent || !targetEvent) {
+        throw new Error("Tafel niet gevonden");
+      }
+      if (targetEvent.workflowStatus === "cancelled") {
+        throw new Error("Doeltafel is geannuleerd");
+      }
+      if (targetEvent.spotsSold + booking.seats > targetEvent.capacity) {
+        throw new Error("Niet genoeg plekken op de doeltafel");
+      }
+
+      await tx
+        .update(events)
+        .set({
+          spotsSold: sql`${events.spotsSold} - ${booking.seats}`,
+          updatedAt: new Date(),
+        })
+        .where(
+          sql`${events.id} = ${sourceEvent.id} AND ${events.spotsSold} >= ${booking.seats}`,
+        );
+
+      const [updatedTarget] = await tx
+        .update(events)
+        .set({
+          spotsSold: sql`${events.spotsSold} + ${booking.seats}`,
+          updatedAt: new Date(),
+        })
+        .where(
+          sql`${events.id} = ${targetEventId} AND ${events.spotsSold} + ${booking.seats} <= ${events.capacity}`,
+        )
+        .returning();
+
+      if (!updatedTarget) {
+        throw new Error("Niet genoeg plekken op de doeltafel");
+      }
+
+      await tx
+        .update(bookings)
+        .set({ eventId: targetEventId })
+        .where(eq(bookings.id, bookingId));
+
+      await tx.insert(bookingEvents).values({
+        bookingId,
+        type: "transferred",
+        payload: {
+          fromEventId: sourceEvent.id,
+          toEventId: targetEventId,
+        },
+      });
+
+      return { sourceSlug: sourceEvent.slug, targetSlug: targetEvent.slug };
+    });
+
+    revalidateEventPaths(slugs.sourceSlug);
+    revalidateEventPaths(slugs.targetSlug);
+
+    return { error: null };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Verplaatsen mislukt. Probeer het opnieuw.",
+    };
+  }
 }

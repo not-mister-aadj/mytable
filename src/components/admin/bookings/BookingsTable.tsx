@@ -32,9 +32,11 @@ export function BookingsTable({
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border-subtle bg-beige/40 px-6 py-16 text-center">
-        <p className="font-serif text-xl text-burgundy">Geen boekingen gevonden</p>
+        <p className="font-serif text-xl text-burgundy">
+          Geen bevestigde boekingen gevonden
+        </p>
         <p className="mt-2 text-sm text-wine/60">
-          Pas je filters aan of wacht op nieuwe reserveringen.
+          Pas je filters aan of wacht op nieuwe betaalde reserveringen.
         </p>
       </div>
     );

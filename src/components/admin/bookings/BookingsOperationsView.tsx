@@ -23,9 +23,6 @@ function filterBookings(
   const now = Date.now();
 
   return bookings.filter((row) => {
-    if (filters.payment !== "all" && row.paymentStatus !== filters.payment) {
-      return false;
-    }
     if (filters.city !== "all" && row.event.city !== filters.city) {
       return false;
     }
@@ -92,8 +89,8 @@ export function BookingsOperationsView({
           Boekingen
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Overzicht van gasten, tafels en betalingen. Alles wat je nodig hebt om
-          premium avonden te runnen.
+          Alleen bevestigde betalingen. Overzicht van gasten, tafels en omzet
+          voor aankomende avonden.
         </p>
       </div>
 

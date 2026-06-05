@@ -39,7 +39,9 @@ import { LivePreviewPanel } from "./LivePreviewPanel";
 import { EventGalleryEditor } from "./EventGalleryEditor";
 import { MediaPicker } from "./MediaPicker";
 import { OccupancyBar } from "./OccupancyBar";
+import { EventTicketsPanel } from "./EventTicketsPanel";
 import { VenuePicker } from "./VenuePicker";
+import type { EventTicketRow, TransferTargetEvent } from "@/lib/event-tickets-types";
 import type { PreviewEventData } from "./event-preview";
 import { coerceImageSettings, isUsableImageUrl } from "@/lib/image-settings";
 
@@ -101,10 +103,14 @@ export function EventEditor({
   event,
   allVenues = [],
   initialType,
+  tickets = [],
+  transferTargets = [],
 }: {
   event?: Event;
   allVenues?: Venue[];
   initialType?: string;
+  tickets?: EventTicketRow[];
+  transferTargets?: TransferTargetEvent[];
 }) {
   const isEdit = Boolean(event);
   const initialExtras = loadInitialExtras(event);
@@ -932,8 +938,15 @@ export function EventEditor({
           ) : null}
 
           {isEdit ? (
-            <Section title="Boekingen">
+            <Section title="Tickets & gasten">
               <OccupancyBar sold={event!.spotsSold} capacity={event!.capacity} />
+              <EventTicketsPanel
+                eventId={event!.id}
+                tickets={tickets}
+                transferTargets={transferTargets}
+                spotsSold={event!.spotsSold}
+                capacity={event!.capacity}
+              />
             </Section>
           ) : null}
         </div>

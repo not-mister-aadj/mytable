@@ -2,7 +2,6 @@
 
 export type BookingFilters = {
   search: string;
-  payment: "all" | "paid" | "pending" | "failed" | "refunded";
   timing: "all" | "upcoming" | "past";
   city: string;
   experienceType: string;
@@ -12,7 +11,6 @@ export type BookingFilters = {
 
 export const defaultBookingFilters: BookingFilters = {
   search: "",
-  payment: "all",
   timing: "all",
   city: "all",
   experienceType: "all",
@@ -62,29 +60,11 @@ export function BookingsFilters({
           />
         </div>
         <p className="text-sm text-wine/55">
-          {resultCount} {resultCount === 1 ? "boeking" : "boekingen"}
+          {resultCount} bevestigd{resultCount === 1 ? "" : "e"}
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <select
-          value={filters.payment}
-          onChange={(e) =>
-            onChange({
-              ...filters,
-              payment: e.target.value as BookingFilters["payment"],
-            })
-          }
-          className={selectClass}
-          aria-label="Betaling"
-        >
-          <option value="all">Alle betalingen</option>
-          <option value="paid">Betaald</option>
-          <option value="pending">In afwachting</option>
-          <option value="failed">Mislukt</option>
-          <option value="refunded">Terugbetaald</option>
-        </select>
-
         <select
           value={filters.timing}
           onChange={(e) =>

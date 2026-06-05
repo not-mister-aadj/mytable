@@ -198,13 +198,15 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       ? Math.round((returningEmails.length / uniquePaidEmails.length) * 100)
       : 0;
 
-  const cities = [...new Set(rows.map(({ event }) => event.city))].sort();
+  const paidBookings = enriched.filter((b) => b.paymentStatus === "paid");
+
+  const cities = [...new Set(paidBookings.map((b) => b.event.city))].sort();
   const experienceTypes = [
-    ...new Set(rows.map(({ event }) => event.experienceType)),
+    ...new Set(paidBookings.map((b) => b.event.experienceType)),
   ].sort();
 
   return {
-    bookings: enriched,
+    bookings: paidBookings,
     kpis: {
       upcomingGuests,
       revenueThisWeekCents,

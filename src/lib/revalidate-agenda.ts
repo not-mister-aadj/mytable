@@ -7,4 +7,5 @@ export function revalidateEventPaths(slug: string) {
   revalidatePath(`/en/agenda/${slug}`);
   revalidatePath("/nl");
   revalidatePath("/en");
+  revalidatePath("/admin/bookings");
 }

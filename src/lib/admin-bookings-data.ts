@@ -1,12 +1,14 @@
-import { desc, eq } from "drizzle-orm";
-import type { Event } from "@/db/schema";
+import { and, desc, eq, gt } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { reservationCode } from "@/lib/booking-display";
+import {
+  paidSeatsByEventIds,
+  reconcileEventSpotsSold,
+} from "@/lib/reconcile-spots-sold";
 import type {
   AdminBookingRow,
   AdminBookingsPageData,
-  AdminPaymentStatus,
 } from "@/lib/admin-bookings-types";
 
 function guestInitials(name: string | null, email: string): string {
@@ -27,24 +29,11 @@ function getStripeDashboardBase(): string {
     : "https://dashboard.stripe.com/test/";
 }
 
-function resolveBookingStatus(
-  paymentStatus: AdminPaymentStatus,
-  eventStartsAt: Date,
-): AdminBookingRow["bookingStatus"] {
-  const now = Date.now();
-  if (paymentStatus === "pending") return "pending";
-  if (paymentStatus === "failed") return "failed";
-  if (paymentStatus === "refunded") return "refunded";
-  return eventStartsAt.getTime() > now ? "confirmed" : "completed";
-}
-
 function guestInsightLabel(row: {
-  paymentStatus: AdminPaymentStatus;
   isReturningGuest: boolean;
   isGroup: boolean;
   isSolo: boolean;
 }): string | null {
-  if (row.paymentStatus !== "paid") return null;
   if (row.isReturningGuest) return "Terugkerende gast";
   if (row.isGroup) return "Geboekt als groep";
   if (row.isSolo) return "Komt alleen";
@@ -53,13 +42,6 @@ function guestInsightLabel(row: {
 
 export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData> {
   const db = getDb();
-  const rows = await db
-    .select({ booking: bookings, event: events })
-    .from(bookings)
-    .innerJoin(events, eq(bookings.eventId, events.id))
-    .orderBy(desc(bookings.createdAt))
-    .limit(500);
-
   const now = new Date();
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 7);
@@ -70,57 +52,63 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
   const tomorrowEnd = new Date(tomorrowStart);
   tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
 
+  const upcomingPublished = await db
+    .select()
+    .from(events)
+    .where(
+      and(
+        eq(events.workflowStatus, "published"),
+        gt(events.startsAt, now),
+      ),
+    );
+
+  await reconcileEventSpotsSold(upcomingPublished.map((e) => e.id));
+
+  const rows = await db
+    .select({ booking: bookings, event: events })
+    .from(bookings)
+    .innerJoin(events, eq(bookings.eventId, events.id))
+    .where(eq(bookings.paymentStatus, "paid"))
+    .orderBy(desc(bookings.createdAt))
+    .limit(500);
+
+  const eventIds = [...new Set(rows.map(({ event }) => event.id))];
+  const paidSeatsMap = await paidSeatsByEventIds(eventIds);
+
   const paidByEmail = new Map<string, number>();
   for (const { booking } of rows) {
-    if (booking.paymentStatus !== "paid") continue;
     paidByEmail.set(booking.email, (paidByEmail.get(booking.email) ?? 0) + 1);
-  }
-
-  const upcomingEvents = new Map<string, Event>();
-  for (const { event } of rows) {
-    if (
-      event.workflowStatus === "published" &&
-      event.startsAt.getTime() > now.getTime()
-    ) {
-      upcomingEvents.set(event.id, event);
-    }
   }
 
   let upcomingGuests = 0;
   let revenueThisWeekCents = 0;
-  let pendingPayments = 0;
   let guestsArrivingTomorrow = 0;
 
   const enriched: AdminBookingRow[] = rows.map(({ booking, event }) => {
     const previousPaidCount = Math.max(
       0,
-      (paidByEmail.get(booking.email) ?? 0) -
-        (booking.paymentStatus === "paid" ? 1 : 0),
+      (paidByEmail.get(booking.email) ?? 0) - 1,
     );
     const isReturningGuest = previousPaidCount > 0;
     const isGroup = booking.seats > 1;
     const isSolo = booking.seats === 1;
+    const confirmedSeats = paidSeatsMap.get(event.id) ?? booking.seats;
 
-    if (booking.paymentStatus === "pending") pendingPayments += 1;
-    if (
-      booking.paymentStatus === "paid" &&
-      booking.createdAt >= weekAgo
-    ) {
+    if (booking.createdAt >= weekAgo) {
       revenueThisWeekCents += booking.amountCents;
     }
     if (
-      booking.paymentStatus === "paid" &&
       event.startsAt >= tomorrowStart &&
       event.startsAt < tomorrowEnd
     ) {
       guestsArrivingTomorrow += booking.seats;
     }
-    if (
-      booking.paymentStatus === "paid" &&
-      event.startsAt.getTime() > now.getTime()
-    ) {
+    if (event.startsAt.getTime() > now.getTime()) {
       upcomingGuests += booking.seats;
     }
+
+    const bookingStatus =
+      event.startsAt.getTime() > now.getTime() ? "confirmed" : "completed";
 
     return {
       id: booking.id,
@@ -146,7 +134,7 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
         startsAt: event.startsAt.toISOString(),
         endsAt: event.endsAt?.toISOString() ?? null,
         capacity: event.capacity,
-        spotsSold: event.spotsSold,
+        spotsSold: confirmedSeats,
         femaleOnly: event.femaleOnly,
         experienceType: event.experienceType,
         imageUrl: event.imageUrl,
@@ -157,37 +145,39 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       previousPaidCount,
       isGroup,
       isSolo,
-      bookingStatus: resolveBookingStatus(
-        booking.paymentStatus,
-        event.startsAt,
-      ),
-      guestInsight: guestInsightLabel({
-        paymentStatus: booking.paymentStatus,
-        isReturningGuest,
-        isGroup,
-        isSolo,
-      }),
+      bookingStatus,
+      guestInsight: guestInsightLabel({ isReturningGuest, isGroup, isSolo }),
     };
   });
 
-  const upcomingList = [...upcomingEvents.values()];
-  const upcomingTables = upcomingList.length;
+  const upcomingPaidSeats = new Map<string, number>();
+  for (const row of enriched) {
+    if (new Date(row.event.startsAt).getTime() <= now.getTime()) continue;
+    upcomingPaidSeats.set(
+      row.event.id,
+      (upcomingPaidSeats.get(row.event.id) ?? 0) + row.seats,
+    );
+  }
+
   let totalCapacity = 0;
   let totalSold = 0;
   let fillSum = 0;
 
-  for (const event of upcomingList) {
+  for (const event of upcomingPublished) {
+    const sold = upcomingPaidSeats.get(event.id) ?? 0;
     totalCapacity += event.capacity;
-    totalSold += event.spotsSold;
+    totalSold += sold;
     if (event.capacity > 0) {
-      fillSum += (event.spotsSold / event.capacity) * 100;
+      fillSum += (sold / event.capacity) * 100;
     }
   }
 
   const occupancyRatePct =
     totalCapacity > 0 ? Math.round((totalSold / totalCapacity) * 100) : 0;
   const avgTableFillPct =
-    upcomingList.length > 0 ? Math.round(fillSum / upcomingList.length) : 0;
+    upcomingPublished.length > 0
+      ? Math.round(fillSum / upcomingPublished.length)
+      : 0;
 
   const uniquePaidEmails = [...paidByEmail.keys()];
   const returningEmails = uniquePaidEmails.filter(
@@ -198,21 +188,18 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       ? Math.round((returningEmails.length / uniquePaidEmails.length) * 100)
       : 0;
 
-  const paidBookings = enriched.filter((b) => b.paymentStatus === "paid");
-
-  const cities = [...new Set(paidBookings.map((b) => b.event.city))].sort();
+  const cities = [...new Set(enriched.map((b) => b.event.city))].sort();
   const experienceTypes = [
-    ...new Set(paidBookings.map((b) => b.event.experienceType)),
+    ...new Set(enriched.map((b) => b.event.experienceType)),
   ].sort();
 
   return {
-    bookings: paidBookings,
+    bookings: enriched,
     kpis: {
       upcomingGuests,
       revenueThisWeekCents,
       occupancyRatePct,
-      upcomingTables,
-      pendingPayments,
+      upcomingTables: upcomingPublished.length,
       avgTableFillPct,
       returningGuestsPct,
       guestsArrivingTomorrow,
@@ -221,4 +208,14 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
     experienceTypes,
     stripeDashboardBase: getStripeDashboardBase(),
   };
+}
+
+export function getGuestHistory(
+  bookings: AdminBookingRow[],
+  email: string,
+  excludeId?: string,
+): AdminBookingRow[] {
+  return bookings.filter(
+    (b) => b.email === email && b.id !== excludeId,
+  );
 }

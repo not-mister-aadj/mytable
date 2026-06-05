@@ -13,12 +13,12 @@ export default async function EditEventPage({ params }: Props) {
   await requireAdmin();
   const { id } = await params;
   const db = getDb();
-  const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
-  if (!event) notFound();
   const [allVenues, ticketsData] = await Promise.all([
     getAllVenues(),
     getEventTicketsData(id),
   ]);
+  const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
+  if (!event) notFound();
   return (
     <div>
       <h1 className="mb-8 font-serif text-3xl text-burgundy">Tafel bewerken</h1>

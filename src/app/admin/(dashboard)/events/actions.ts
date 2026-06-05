@@ -6,6 +6,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
+import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
 import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
 import {
   formatEventSaveError,
@@ -356,6 +357,7 @@ export async function removeBookingFromEventAction(
       return event.slug;
     });
 
+    await reconcileEventSpotsSold([eventId]);
     revalidateEventPaths(slug);
 
     return { error: null };
@@ -458,9 +460,14 @@ export async function transferBookingToEventAction(
         },
       });
 
-      return { sourceSlug: sourceEvent.slug, targetSlug: targetEvent.slug };
+      return {
+        sourceSlug: sourceEvent.slug,
+        targetSlug: targetEvent.slug,
+        eventIds: [sourceEvent.id, targetEventId] as const,
+      };
     });
 
+    await reconcileEventSpotsSold([...slugs.eventIds]);
     revalidateEventPaths(slugs.sourceSlug);
     revalidateEventPaths(slugs.targetSlug);
 

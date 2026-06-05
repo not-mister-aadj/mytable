@@ -48,7 +48,6 @@ export type AdminBookingsKpi = {
   revenueThisWeekCents: number;
   occupancyRatePct: number;
   upcomingTables: number;
-  pendingPayments: number;
   avgTableFillPct: number;
   returningGuestsPct: number;
   guestsArrivingTomorrow: number;

@@ -69,15 +69,6 @@ function CalendarIcon() {
   );
 }
 
-function ClockIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l4 2" />
-    </svg>
-  );
-}
-
 function RepeatIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -97,7 +88,7 @@ export function BookingsKpiBar({ kpis }: { kpis: AdminBookingsKpi }) {
   }).format(kpis.revenueThisWeekCents / 100);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       <KpiCard
         label="Aankomende gasten"
         value={String(kpis.upcomingGuests)}
@@ -125,11 +116,6 @@ export function BookingsKpiBar({ kpis }: { kpis: AdminBookingsKpi }) {
         icon={<CalendarIcon />}
       />
       <KpiCard
-        label="Open betalingen"
-        value={String(kpis.pendingPayments)}
-        icon={<ClockIcon />}
-      />
-      <KpiCard
         label="Gem. tafelbezetting"
         value={`${kpis.avgTableFillPct}%`}
         icon={<ChartIcon />}
@@ -144,26 +130,19 @@ export function BookingsKpiBar({ kpis }: { kpis: AdminBookingsKpi }) {
 }
 
 export function BookingsInsightBanner({ kpis }: { kpis: AdminBookingsKpi }) {
-  if (kpis.guestsArrivingTomorrow <= 0 && kpis.pendingPayments <= 0) {
+  if (kpis.guestsArrivingTomorrow <= 0) {
     return null;
   }
 
-  const messages: string[] = [];
-  if (kpis.guestsArrivingTomorrow > 0) {
-    messages.push(
-      `${kpis.guestsArrivingTomorrow} ${kpis.guestsArrivingTomorrow === 1 ? "gast arriveert" : "gasten arriveren"} morgen`,
-    );
-  }
-  if (kpis.pendingPayments > 0) {
-    messages.push(
-      `${kpis.pendingPayments} ${kpis.pendingPayments === 1 ? "betaling wacht" : "betalingen wachten"} op bevestiging`,
-    );
-  }
+  const message =
+    kpis.guestsArrivingTomorrow === 1
+      ? "1 gast arriveert morgen"
+      : `${kpis.guestsArrivingTomorrow} gasten arriveren morgen`;
 
   return (
     <div className="rounded-2xl border border-gold/25 bg-gradient-to-r from-gold/10 via-beige to-cream px-5 py-4 text-sm text-wine/80 shadow-[0_8px_30px_rgba(43,13,18,0.04)]">
       <span className="font-medium text-burgundy">Vandaag relevant · </span>
-      {messages.join(" · ")}
+      {message}
     </div>
   );
 }

@@ -1,0 +1,123 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { AdminBookingRow, AdminBookingsPageData } from "@/lib/admin-bookings-types";
+import { BookingDetailDrawer } from "@/components/admin/bookings/BookingDetailDrawer";
+import {
+  BookingsFilters,
+  defaultBookingFilters,
+  type BookingFilters,
+} from "@/components/admin/bookings/BookingsFilters";
+import {
+  BookingsInsightBanner,
+  BookingsKpiBar,
+} from "@/components/admin/bookings/BookingsKpiBar";
+import { BookingsTable } from "@/components/admin/bookings/BookingsTable";
+import { eventOccupancyState } from "@/components/admin/bookings/booking-utils";
+
+function filterBookings(
+  bookings: AdminBookingRow[],
+  filters: BookingFilters,
+): AdminBookingRow[] {
+  const q = filters.search.trim().toLowerCase();
+  const now = Date.now();
+
+  return bookings.filter((row) => {
+    if (filters.payment !== "all" && row.paymentStatus !== filters.payment) {
+      return false;
+    }
+    if (filters.city !== "all" && row.event.city !== filters.city) {
+      return false;
+    }
+    if (
+      filters.experienceType !== "all" &&
+      row.event.experienceType !== filters.experienceType
+    ) {
+      return false;
+    }
+    if (filters.audience === "girlsOnly" && !row.event.femaleOnly) {
+      return false;
+    }
+    if (filters.audience === "mixed" && row.event.femaleOnly) {
+      return false;
+    }
+
+    const eventTime = new Date(row.event.startsAt).getTime();
+    if (filters.timing === "upcoming" && eventTime <= now) return false;
+    if (filters.timing === "past" && eventTime > now) return false;
+
+    if (filters.occupancy !== "all") {
+      const occ = eventOccupancyState(row.event);
+      if (occ !== filters.occupancy) return false;
+    }
+
+    if (q) {
+      const haystack = [
+        row.email,
+        row.customerName ?? "",
+        row.reservationCode,
+        row.event.nameNl,
+        row.event.nameEn,
+        row.event.city,
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+
+    return true;
+  });
+}
+
+export function BookingsOperationsView({
+  data,
+}: {
+  data: AdminBookingsPageData;
+}) {
+  const [filters, setFilters] = useState<BookingFilters>(defaultBookingFilters);
+  const [selected, setSelected] = useState<AdminBookingRow | null>(null);
+
+  const filtered = useMemo(
+    () => filterBookings(data.bookings, filters),
+    [data.bookings, filters],
+  );
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-wine/45">
+          Operaties
+        </p>
+        <h1 className="mt-2 font-serif text-3xl text-burgundy sm:text-4xl">
+          Boekingen
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
+          Overzicht van gasten, tafels en betalingen. Alles wat je nodig hebt om
+          premium avonden te runnen.
+        </p>
+      </div>
+
+      <BookingsInsightBanner kpis={data.kpis} />
+      <BookingsKpiBar kpis={data.kpis} />
+
+      <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)] sm:p-6">
+        <BookingsFilters
+          filters={filters}
+          cities={data.cities}
+          experienceTypes={data.experienceTypes}
+          resultCount={filtered.length}
+          onChange={setFilters}
+        />
+      </div>
+
+      <BookingsTable rows={filtered} onSelect={setSelected} />
+
+      <BookingDetailDrawer
+        booking={selected}
+        allBookings={data.bookings}
+        stripeDashboardBase={data.stripeDashboardBase}
+        onClose={() => setSelected(null)}
+      />
+    </div>
+  );
+}

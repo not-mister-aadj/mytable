@@ -50,11 +50,6 @@ export function getCompanyLegalVars(locale: "nl" | "en"): CompanyLegalVars {
   };
 }
 
-export function formatFooterCompanyLine(locale: "nl" | "en"): string {
-  const vatLabel = locale === "nl" ? "BTW" : "VAT";
-  return `${companyLegal.tradeName} · ${companyLegal.legalName} · KvK ${companyLegal.kvk} · ${vatLabel} ${companyLegal.btw} · ${companyLegal.email}`;
-}
-
 export function formatLegalUpdated(locale: "nl" | "en"): string {
   const date = new Date(`${companyLegal.lastUpdatedIso}T12:00:00`);
   return new Intl.DateTimeFormat(locale === "nl" ? "nl-NL" : "en-GB", {

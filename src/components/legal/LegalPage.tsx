@@ -67,7 +67,7 @@ export function LegalPage({ locale, kind }: Props) {
               href={`mailto:${companyLegal.email}`}
               className="text-wine/70 underline-offset-4 hover:text-burgundy hover:underline"
             >
-              {dict.footer.links.contact}
+              {companyLegal.email}
             </Link>
           </nav>
         </div>

@@ -28,6 +28,9 @@ export function BookingOutcomeContent({
     ? `/${locale}/agenda/${summary.eventSlug}`
     : agendaPath(locale);
   const agendaHref = agendaPath(locale);
+  const galleryImages =
+    summary?.galleryImages.filter(Boolean).slice(0, 3) ??
+    ([images.cheers, images.wineGlasses, images.restaurantDining] as const);
 
   return (
     <main className="bg-cream">
@@ -134,7 +137,7 @@ export function BookingOutcomeContent({
           </section>
         ) : null}
 
-        {/* Next steps — success only */}
+        {/* Next steps (success only) */}
         {variant === "success" ? (
           <section className="border-t border-border-subtle py-12 sm:py-16">
             <h2 className="text-center font-serif text-3xl font-medium text-wine sm:text-4xl">
@@ -171,22 +174,24 @@ export function BookingOutcomeContent({
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {[images.cheers, images.wineGlasses, images.restaurantDining].map(
-                (src) => (
-                  <div
-                    key={src}
-                    className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_12px_32px_rgba(43,13,18,0.1)]"
-                  >
-                    <Image
-                      src={src}
-                      alt={dict.community.galleryAlt}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 33vw, 200px"
-                    />
-                  </div>
-                ),
-              )}
+              {galleryImages.map((src, index) => (
+                <div
+                  key={`${src}-${index}`}
+                  className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_12px_32px_rgba(43,13,18,0.1)]"
+                >
+                  <Image
+                    src={src}
+                    alt={
+                      summary
+                        ? `${summary.eventName}, ${dict.community.galleryAlt} ${index + 1}`
+                        : dict.community.galleryAlt
+                    }
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 33vw, 200px"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </section>

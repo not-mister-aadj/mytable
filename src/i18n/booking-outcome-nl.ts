@@ -13,7 +13,7 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
     eyebrow: "Geen reservering",
     headline: "Betaling niet gelukt",
     subtext:
-      "Er ging iets mis tijdens het afrekenen. Geen zorgen — je tafel is nog niet definitief geboekt.",
+      "Er ging iets mis tijdens het afrekenen. Geen zorgen, je tafel is nog niet definitief geboekt.",
     primaryCta: "Probeer opnieuw",
     secondaryCta: "Terug naar agenda",
   },
@@ -35,25 +35,20 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
           "Je ontvangt binnen enkele minuten een e-mail met je boeking en praktische info.",
       },
       {
-        title: "Details volgen later",
-        description:
-          "Venues en route-informatie kunnen later worden vrijgegeven — je hoort het van ons.",
-      },
-      {
         title: "Dieetwensen",
         description:
-          "Heb je dieetwensen doorgegeven? Die nemen we mee en bevestigen we in je mail.",
+          "Heb je dieetwensen? Het is altijd verstandig om die te melden bij de venue, ook als je ze al bij je boeking hebt doorgegeven.",
       },
       {
         title: "Tot aan tafel",
         description:
-          "Kom op tijd, ontspan en laat het gesprek vanzelf ontstaan — dat is waar MyTable om draait.",
+          "Kom op tijd, ontspan en geniet van je avond. Dat is waar MyTable om draait.",
       },
     ],
   },
   community: {
-    title: "Aan tafel ontstaat het vanzelf",
-    body: "Veel gasten komen alleen. Anderen nemen vrienden mee. Aan tafel ontstaat het vanzelf — nieuwe gesprekken, goede wijn, en een avond die anders loopt dan je dacht.",
-    galleryAlt: "Sfeerbeeld MyTable avond",
+    title: "Superlekkere wijnen en gerechten",
+    body: "Je avond draait om culinaire ontdekkingen: bijzondere restaurants, zorgvuldig gekozen wijnen en gerechten die je laten proeven, verrassen en genieten.",
+    galleryAlt: "Sfeerimpressie",
   },
 };

@@ -13,7 +13,7 @@ export const bookingOutcomeEn: BookingOutcomeLabels = {
     eyebrow: "Not reserved",
     headline: "Payment didn't go through",
     subtext:
-      "Something went wrong at checkout. Don't worry — your seat hasn't been confirmed yet.",
+      "Something went wrong at checkout. Don't worry, your seat hasn't been confirmed yet.",
     primaryCta: "Try again",
     secondaryCta: "Back to agenda",
   },
@@ -35,25 +35,20 @@ export const bookingOutcomeEn: BookingOutcomeLabels = {
           "Within a few minutes you'll receive an email with your booking and practical details.",
       },
       {
-        title: "More details later",
-        description:
-          "Venues and route info may unlock closer to the date — we'll keep you posted.",
-      },
-      {
         title: "Dietary notes",
         description:
-          "If you shared dietary preferences, we'll include them and confirm in your email.",
+          "Have dietary requirements? It's always wise to mention them to the venue, even if you already shared them when booking.",
       },
       {
         title: "Until you're at the table",
         description:
-          "Arrive on time, relax, and let the evening unfold — that's what MyTable is about.",
+          "Arrive on time, relax, and enjoy your evening. That's what MyTable is about.",
       },
     ],
   },
   community: {
-    title: "It happens naturally at the table",
-    body: "Many guests come alone. Others bring friends. At the table it just flows — new conversations, good wine, and an evening that turns out differently than you expected.",
-    galleryAlt: "MyTable evening atmosphere",
+    title: "Exceptional wines and dishes",
+    body: "Your evening is all about culinary discovery: special restaurants, carefully chosen wines, and dishes that invite you to taste, surprise, and enjoy.",
+    galleryAlt: "Atmosphere",
   },
 };

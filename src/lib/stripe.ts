@@ -14,3 +14,16 @@ export function getStripe(): Stripe {
 export function isStripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
+
+/** Hosted Checkout: iDEAL first; card + Bancontact as secondary options (Stripe UI). */
+export const CHECKOUT_PAYMENT_METHOD_TYPES = [
+  "ideal",
+  "card",
+  "bancontact",
+] as const;
+
+export function getCheckoutPaymentMethodTypes(currency: string) {
+  return currency.toUpperCase() === "EUR"
+    ? [...CHECKOUT_PAYMENT_METHOD_TYPES]
+    : ["card"];
+}

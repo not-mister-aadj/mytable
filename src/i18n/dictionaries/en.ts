@@ -2,6 +2,7 @@ import type { Dictionary } from "../types";
 import { images } from "@/data/images";
 import { getCatalogExperiences } from "@/data/experience-catalog";
 import { experiencePageEn } from "../experience-page-en";
+import { bookingOutcomeEn } from "../booking-outcome-en";
 
 const catalogEn = getCatalogExperiences("en");
 
@@ -270,6 +271,7 @@ export const en: Dictionary = {
     ],
   },
   experiencePage: experiencePageEn,
+  bookingOutcome: bookingOutcomeEn,
   footer: {
     tagline: "Good taste. Great company.",
     links: {

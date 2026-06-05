@@ -41,6 +41,32 @@ body {
   -ms-overflow-style: none;
 }
 
+@keyframes booking-sparkle-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.6);
+  }
+  15% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) scale(1);
+  }
+}
+
+.booking-sparkle {
+  animation-name: booking-sparkle-rise;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-sparkle {
+    animation: none;
+  }
+}
+
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }

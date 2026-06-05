@@ -2,6 +2,7 @@ import type { Dictionary } from "../types";
 import { images } from "@/data/images";
 import { getCatalogExperiences } from "@/data/experience-catalog";
 import { experiencePageNl } from "../experience-page-nl";
+import { bookingOutcomeNl } from "../booking-outcome-nl";
 
 const catalogNl = getCatalogExperiences("nl");
 
@@ -271,6 +272,7 @@ export const nl: Dictionary = {
     ],
   },
   experiencePage: experiencePageNl,
+  bookingOutcome: bookingOutcomeNl,
   footer: {
     tagline: "Goede smaak. Goed gezelschap.",
     links: {

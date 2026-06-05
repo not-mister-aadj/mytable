@@ -127,6 +127,41 @@ export interface ExperiencePageLabels {
   moods: Record<ExperienceMoodKey, ExperienceMoodContent>;
 }
 
+export interface BookingOutcomeLabels {
+  success: {
+    eyebrow: string;
+    headline: string;
+    subtext: string;
+    primaryCta: string;
+    secondaryCta: string;
+  };
+  failed: {
+    eyebrow: string;
+    headline: string;
+    subtext: string;
+    primaryCta: string;
+    secondaryCta: string;
+  };
+  summary: {
+    title: string;
+    date: string;
+    city: string;
+    guests: string;
+    amount: string;
+    code: string;
+    guestLabel: string;
+  };
+  nextSteps: {
+    title: string;
+    items: { title: string; description: string }[];
+  };
+  community: {
+    title: string;
+    body: string;
+    galleryAlt: string;
+  };
+}
+
 export interface ExperiencePageSectionLabels {
   venuesTitle: string;
   venuesSubtitle: string;
@@ -271,6 +306,7 @@ export interface Dictionary {
     items: { question: string; answer: string }[];
   };
   experiencePage: ExperiencePageLabels;
+  bookingOutcome: BookingOutcomeLabels;
   footer: {
     tagline: string;
     links: {

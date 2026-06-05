@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { getMaxSeatsPerOrder, getSiteUrl } from "@/lib/env";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -106,6 +106,8 @@ export async function POST(request: Request) {
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: email,
+    locale: locale === "nl" ? "nl" : "en",
+    payment_method_types: getCheckoutPaymentMethodTypes(event.currency),
     line_items: [
       {
         quantity: seats,

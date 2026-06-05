@@ -16,14 +16,16 @@ export function isStripeConfigured(): boolean {
 }
 
 /** Hosted Checkout: iDEAL first; card + Bancontact as secondary options (Stripe UI). */
-export const CHECKOUT_PAYMENT_METHOD_TYPES = [
+const EUR_CHECKOUT_PAYMENT_METHODS = [
   "ideal",
   "card",
   "bancontact",
-] as const;
+] as const satisfies readonly Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
 
-export function getCheckoutPaymentMethodTypes(currency: string) {
+export function getCheckoutPaymentMethodTypes(
+  currency: string,
+): Stripe.Checkout.SessionCreateParams["payment_method_types"] {
   return currency.toUpperCase() === "EUR"
-    ? [...CHECKOUT_PAYMENT_METHOD_TYPES]
+    ? [...EUR_CHECKOUT_PAYMENT_METHODS]
     : ["card"];
 }

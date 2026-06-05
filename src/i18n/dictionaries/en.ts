@@ -99,7 +99,7 @@ export const en: Dictionary = {
   concept: {
     title: "More than just a reservation.",
     subtitle:
-      "Wine tasting at one restaurant, chef's special for the group, and an evening at your own pace. We handle everything around the table. You come to enjoy.",
+      "Wine tasting at one or more restaurants, chef's special for the group, and an evening at your own pace. We handle everything around the table. You come to enjoy.",
     cards: [
       {
         title: "One restaurant, one table",
@@ -146,7 +146,7 @@ export const en: Dictionary = {
   venueDiscovery: {
     title: "Places for wine and food",
     subtitle:
-      "Real addresses across the Netherlands, from Rotterdam to Maastricht. WijnSpijs partner venues where wine and food come together.",
+      "The finest addresses in the Netherlands, from Rotterdam to Maastricht. MyTable partner venues where wine and food come together.",
     places: [
       {
         name: "Proef bij Platenburg",

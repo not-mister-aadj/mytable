@@ -60,9 +60,9 @@ export const nl: Dictionary = {
     hero: {
       title: "Vind een tafel die bij je past.",
       subtitle:
-        "Wijnproeverijen in één restaurant. Girls only, of kom voor wijn en gezelschap: op date, solo of met vrienden.",
+        "Wijnproeverijen op de leukste plekken in Nederland, met goed eten, mooie wijnen en een ontspannen avond.",
       supportLine:
-        "Kom alleen, neem iemand mee, of schuif gewoon aan.",
+        "Wij regelen alles rond de tafel, jij geniet van wijn en spijs.",
     },
     tabsAriaLabel: "Kies je avond",
     tabs: [
@@ -100,7 +100,7 @@ export const nl: Dictionary = {
   concept: {
     title: "Meer dan alleen een reservering.",
     subtitle:
-      "Wijnproeverij in één restaurant, chef's special voor de groep en een avond op eigen tempo. Wij regelen alles rond de tafel. Jij komt genieten.",
+      "Wijnproeverij in een of meerdere restaurants, chef's special voor de groep en een avond op eigen tempo. Wij regelen alles rond de tafel. Jij komt genieten.",
     cards: [
       {
         title: "Eén restaurant, één tafel",
@@ -113,9 +113,9 @@ export const nl: Dictionary = {
           "De chef bereidt specials voor iedereen aan tafel, wijn en spijs die bij elkaar passen.",
       },
       {
-        title: "Maak je eigen tafel of sluit aan",
+        title: "Leukste plekken in Nederland",
         description:
-          "Boek een plek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige avond.",
+          "Van Rotterdam tot Maastricht: je ontdekt locaties waar wijn, sfeer en goed eten perfect samenkomen.",
       },
     ],
   },
@@ -125,12 +125,12 @@ export const nl: Dictionary = {
       {
         title: "Kies je tafel",
         description:
-          "Girls only of gemengde groep. Wijnproeverij in één restaurant.",
+          "Kies een tafel op een plek die bij je past, met wijn en spijs als middelpunt.",
       },
       {
         title: "Reserveer je plek",
         description:
-          "Voor vrienden, een date, solo, of een plek aan een tafel die al staat.",
+          "Reserveer eenvoudig online en ontvang direct alle details van je avond.",
       },
       {
         title: "Kom aan tafel",
@@ -147,7 +147,7 @@ export const nl: Dictionary = {
   venueDiscovery: {
     title: "Plekken met wijn en spijs",
     subtitle:
-      "Echte adressen in Nederland, van Rotterdam tot Maastricht. Partnerlocaties van WijnSpijs waar wijn en spijs samenkomen.",
+      "De leukste adressen in Nederland, van Rotterdam tot Maastricht. Partnerlocaties van MyTable waar wijn en spijs samenkomen.",
     places: [
       {
         name: "Proef bij Platenburg",

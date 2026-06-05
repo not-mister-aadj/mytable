@@ -17,7 +17,7 @@ export function VenueCTA({ dict }: VenueCTAProps) {
           <div>
             <SectionHeading title={dict.title} subtitle={dict.subtitle} />
             <div className="mt-8">
-              <Button href="mailto:hello@mytable.nl" variant="primary">
+              <Button href="mailto:info@mytable.club" variant="primary">
                 {dict.cta}
               </Button>
             </div>

@@ -16,6 +16,7 @@ export function PositionedImage({
   className = "object-cover",
   sizes,
   priority,
+  onError,
 }: {
   src: string;
   alt: string;
@@ -24,6 +25,7 @@ export function PositionedImage({
   className?: string;
   sizes?: string;
   priority?: boolean;
+  onError?: () => void;
 }) {
   const focal = settings?.focalPoint ?? DEFAULT_FOCAL;
   const zoom = settings?.zoom ?? 1;
@@ -46,6 +48,8 @@ export function PositionedImage({
       style={style}
       sizes={sizes}
       priority={priority}
+      onError={onError}
+      unoptimized={src.includes("supabase.co")}
     />
   );
 }

@@ -281,6 +281,12 @@ export const en: Dictionary = {
       faq: "FAQ",
       instagram: "Instagram",
       contact: "Contact",
+      terms: "Terms and conditions",
+      privacy: "Privacy",
+    },
+    legal: {
+      eyebrow: "Legal",
+      relatedLabel: "Related pages",
     },
     copyright: "All rights reserved.",
   },

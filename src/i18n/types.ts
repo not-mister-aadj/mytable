@@ -316,6 +316,12 @@ export interface Dictionary {
       faq: string;
       instagram: string;
       contact: string;
+      terms: string;
+      privacy: string;
+    };
+    legal: {
+      eyebrow: string;
+      relatedLabel: string;
     };
     copyright: string;
   };

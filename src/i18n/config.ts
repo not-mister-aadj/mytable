@@ -24,3 +24,11 @@ export function experiencePath(locale: Locale, slug: string): string {
   const base = locale === "en" ? "/en/agenda" : "/agenda";
   return `${base}/${slug}`;
 }
+
+export function termsPath(locale: Locale): string {
+  return locale === "en" ? "/en/terms" : "/algemene-voorwaarden";
+}
+
+export function privacyPath(locale: Locale): string {
+  return locale === "en" ? "/en/privacy" : "/privacy";
+}

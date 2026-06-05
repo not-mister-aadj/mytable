@@ -282,6 +282,12 @@ export const nl: Dictionary = {
       faq: "FAQ",
       instagram: "Instagram",
       contact: "Contact",
+      terms: "Algemene voorwaarden",
+      privacy: "Privacy",
+    },
+    legal: {
+      eyebrow: "Juridisch",
+      relatedLabel: "Gerelateerde pagina's",
     },
     copyright: "Alle rechten voorbehouden.",
   },

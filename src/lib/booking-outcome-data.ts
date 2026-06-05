@@ -12,9 +12,16 @@ import {
 } from "@/lib/experience-type-content";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
-import { isUsableImageUrl, DEFAULT_EVENT_IMAGE } from "@/lib/image-settings";
+import { isUsableImageUrl } from "@/lib/image-settings";
+import type { ImageSettings } from "@/lib/image-settings";
+import { images } from "@/data/images";
 import { getDictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
+
+export type BookingGalleryItem = {
+  url: string;
+  settings?: ImageSettings;
+};
 
 export type BookingOutcomeSummary = {
   eventName: string;
@@ -22,41 +29,71 @@ export type BookingOutcomeSummary = {
   city: string;
   dateTime: string;
   imageUrl: string;
-  galleryImages: string[];
+  heroImageSettings?: ImageSettings;
+  galleryItems: BookingGalleryItem[];
+  galleryFallbacks: string[];
   amountCents?: number;
   currency?: string;
   seats?: number;
   reservationCode?: string;
 };
 
-async function resolveEventGalleryImages(
+async function resolveEventGallery(
   row: Event,
   locale: Locale,
-): Promise<string[]> {
+): Promise<{ items: BookingGalleryItem[]; fallbacks: string[] }> {
   const item = mapDbEventToExperienceItem(row, locale);
   const typeContent = await getTypeContent(
     row.experienceType ?? DEFAULT_EXPERIENCE_TYPE,
   );
   const merged = mergeTypeContentIntoItem(item, typeContent, locale);
-  const fromEvent = merged.galleryImages?.filter(isUsableImageUrl) ?? [];
-
   const dict = getDictionary(locale);
-  const moodGallery = getMoodContent(dict, item.mood).gallery.filter(
-    isUsableImageUrl,
+  const mood = getMoodContent(dict, item.mood);
+  const moodUrls = mood.gallery.filter(isUsableImageUrl);
+
+  const items: BookingGalleryItem[] = [];
+
+  const settings = item.galleryImageSettings?.filter((s) =>
+    isUsableImageUrl(s.url),
   );
-
-  const combined: string[] = [];
-  for (const url of [...fromEvent, ...moodGallery]) {
-    if (combined.length >= 3) break;
-    if (!combined.includes(url)) combined.push(url);
+  if (settings?.length) {
+    for (const s of settings) {
+      if (items.length >= 3) break;
+      if (items.some((x) => x.url === s.url)) continue;
+      items.push({ url: s.url, settings: s });
+    }
+  } else {
+    const urls =
+      merged.galleryImages?.filter(isUsableImageUrl) ?? moodUrls;
+    for (const url of urls) {
+      if (items.length >= 3) break;
+      if (items.some((x) => x.url === url)) continue;
+      items.push({ url });
+    }
   }
 
-  const hero = isUsableImageUrl(row.imageUrl) ? row.imageUrl : DEFAULT_EVENT_IMAGE;
-  if (combined.length < 3 && !combined.includes(hero)) {
-    combined.push(hero);
+  for (const url of moodUrls) {
+    if (items.length >= 3) break;
+    if (items.some((x) => x.url === url)) continue;
+    items.push({ url });
   }
 
-  return combined.slice(0, 3);
+  const defaultFallbacks = [
+    images.wineGlasses,
+    images.restaurantDining,
+    images.cheers,
+  ];
+
+  for (const url of defaultFallbacks) {
+    if (items.length >= 3) break;
+    if (items.some((x) => x.url === url)) continue;
+    items.push({ url });
+  }
+
+  return {
+    items: items.slice(0, 3),
+    fallbacks: [...moodUrls, ...defaultFallbacks].filter(isUsableImageUrl),
+  };
 }
 
 async function mapEventToSummary(
@@ -69,6 +106,9 @@ async function mapEventToSummary(
     id: string;
   },
 ): Promise<BookingOutcomeSummary> {
+  const item = mapDbEventToExperienceItem(row, locale);
+  const gallery = await resolveEventGallery(row, locale);
+
   return {
     eventName: locale === "nl" ? row.nameNl : row.nameEn,
     eventSlug: row.slug,
@@ -78,8 +118,10 @@ async function mapEventToSummary(
       row.endsAt ? new Date(row.endsAt) : null,
       locale,
     ),
-    imageUrl: isUsableImageUrl(row.imageUrl) ? row.imageUrl : DEFAULT_EVENT_IMAGE,
-    galleryImages: await resolveEventGalleryImages(row, locale),
+    imageUrl: item.image,
+    heroImageSettings: item.heroImageSettings,
+    galleryItems: gallery.items,
+    galleryFallbacks: gallery.fallbacks,
     amountCents: booking?.amountCents,
     currency: booking?.currency,
     seats: booking?.seats,

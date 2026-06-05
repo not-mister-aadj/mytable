@@ -1,11 +1,15 @@
-import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { CelebrationSparkles } from "@/components/booking/CelebrationSparkles";
 import { BookingStatusIcon } from "@/components/booking/BookingStatusIcon";
+import { BookingGalleryGrid } from "@/components/booking/BookingGalleryGrid";
+import { PositionedImage } from "@/components/ui/PositionedImage";
 import { images } from "@/data/images";
 import { agendaPath, type Locale } from "@/i18n/config";
 import type { BookingOutcomeLabels } from "@/i18n/types";
-import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
+import type {
+  BookingGalleryItem,
+  BookingOutcomeSummary,
+} from "@/lib/booking-outcome-data";
 import { formatGuestCount, formatMoney } from "@/lib/booking-display";
 
 type Variant = "success" | "failed";
@@ -28,21 +32,34 @@ export function BookingOutcomeContent({
     ? `/${locale}/agenda/${summary.eventSlug}`
     : agendaPath(locale);
   const agendaHref = agendaPath(locale);
-  const galleryImages =
-    summary?.galleryImages.filter(Boolean).slice(0, 3) ??
-    ([images.cheers, images.wineGlasses, images.restaurantDining] as const);
+  const defaultGalleryItems: BookingGalleryItem[] = [
+    { url: images.wineGlasses },
+    { url: images.restaurantDining },
+    { url: images.cheers },
+  ];
+  const defaultFallbacks = [
+    images.wineGlasses,
+    images.restaurantDining,
+    images.cheers,
+  ];
+  const galleryItems =
+    summary?.galleryItems?.length ? summary.galleryItems : defaultGalleryItems;
+  const galleryFallbacks =
+    summary?.galleryFallbacks?.length
+      ? summary.galleryFallbacks
+      : defaultFallbacks;
+  const heroImage = summary?.imageUrl ?? images.heroMain;
 
   return (
     <main className="bg-cream">
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <Image
-            src={images.heroMain}
-            alt=""
-            fill
+          <PositionedImage
+            src={heroImage}
+            alt={summary?.eventName ?? "MyTable"}
+            settings={summary?.heroImageSettings}
             priority
-            className="object-cover"
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-wine/75 via-wine/55 to-cream" />
@@ -83,11 +100,10 @@ export function BookingOutcomeContent({
             <div className="overflow-hidden rounded-3xl border border-border-subtle bg-beige shadow-[0_24px_60px_rgba(43,13,18,0.08)]">
               <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]">
                 <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[280px]">
-                  <Image
+                  <PositionedImage
                     src={summary.imageUrl}
                     alt={summary.eventName}
-                    fill
-                    className="object-cover"
+                    settings={summary.heroImageSettings}
                     sizes="(max-width: 768px) 100vw, 40vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-wine/25 via-transparent to-transparent md:bg-gradient-to-r" />
@@ -173,26 +189,11 @@ export function BookingOutcomeContent({
                 {dict.community.body}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {galleryImages.map((src, index) => (
-                <div
-                  key={`${src}-${index}`}
-                  className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_12px_32px_rgba(43,13,18,0.1)]"
-                >
-                  <Image
-                    src={src}
-                    alt={
-                      summary
-                        ? `${summary.eventName}, ${dict.community.galleryAlt} ${index + 1}`
-                        : dict.community.galleryAlt
-                    }
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 33vw, 200px"
-                  />
-                </div>
-              ))}
-            </div>
+            <BookingGalleryGrid
+              items={galleryItems}
+              fallbacks={galleryFallbacks}
+              altPrefix={dict.community.galleryAlt}
+            />
           </div>
         </section>
       </div>

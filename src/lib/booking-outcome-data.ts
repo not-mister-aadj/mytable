@@ -12,6 +12,9 @@ import {
 } from "@/lib/experience-type-content";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
+import {
+  isCheckoutPaymentSettled,
+} from "@/lib/stripe/checkout-session";
 import { isUsableImageUrl } from "@/lib/image-settings";
 import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
@@ -150,7 +153,7 @@ export async function getBookingSummaryFromSession(
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   const bookingId = session.metadata?.booking_id;
-  if (!bookingId || session.payment_status !== "paid") return null;
+  if (!bookingId) return null;
 
   const db = getDb();
   const [row] = await db
@@ -162,12 +165,70 @@ export async function getBookingSummaryFromSession(
 
   if (!row) return null;
 
+  if (!isCheckoutPaymentSettled(session, row.booking.paymentStatus)) {
+    return null;
+  }
+
   return mapEventToSummary(row.event, locale, {
     amountCents: row.booking.amountCents,
     currency: row.booking.currency,
     seats: row.booking.seats,
     id: row.booking.id,
   });
+}
+
+export type BookingConfirmationStatus = {
+  summary: BookingOutcomeSummary | null;
+  /** iDEAL/Bancontact: customer returned but bank payment still settling */
+  pending: boolean;
+};
+
+export async function getBookingConfirmationStatus(
+  sessionId: string,
+  locale: Locale,
+): Promise<BookingConfirmationStatus> {
+  if (!isDbConfigured() || !isStripeConfigured()) {
+    return { summary: null, pending: false };
+  }
+
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const bookingId = session.metadata?.booking_id;
+  if (!bookingId) {
+    return { summary: null, pending: false };
+  }
+
+  const db = getDb();
+  const [row] = await db
+    .select({ booking: bookings, event: events })
+    .from(bookings)
+    .innerJoin(events, eq(bookings.eventId, events.id))
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+
+  if (!row) {
+    return { summary: null, pending: false };
+  }
+
+  const settled = isCheckoutPaymentSettled(session, row.booking.paymentStatus);
+  const pending =
+    !settled &&
+    session.status === "complete" &&
+    session.payment_status === "unpaid";
+
+  if (!settled) {
+    return { summary: null, pending };
+  }
+
+  return {
+    summary: await mapEventToSummary(row.event, locale, {
+      amountCents: row.booking.amountCents,
+      currency: row.booking.currency,
+      seats: row.booking.seats,
+      id: row.booking.id,
+    }),
+    pending: false,
+  };
 }
 
 export async function getEventSummaryBySlug(

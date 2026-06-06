@@ -18,6 +18,7 @@ import {
 } from "@/lib/analytics/metaCapiContext";
 import { getSiteUrl } from "@/lib/env";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
+import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 
 function eventDisplayName(event: Event, locale: string): string {
   return locale === "en" ? event.nameEn : event.nameNl;
@@ -128,9 +129,21 @@ export async function sendMetaCapiPurchaseForSession(
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   const bookingId = session.metadata?.booking_id;
-  if (!bookingId || session.payment_status !== "paid") return false;
+  if (!bookingId) return false;
 
   const db = getDb();
+  const [row] = await db
+    .select({ booking: bookings, event: events })
+    .from(bookings)
+    .innerJoin(events, eq(bookings.eventId, events.id))
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+  if (!row) return false;
+
+  if (!isCheckoutPaymentSettled(session, row.booking.paymentStatus)) {
+    return false;
+  }
+
   const [alreadySent] = await db
     .select({ id: bookingEvents.id })
     .from(bookingEvents)
@@ -142,14 +155,6 @@ export async function sendMetaCapiPurchaseForSession(
     )
     .limit(1);
   if (alreadySent) return false;
-
-  const [row] = await db
-    .select({ booking: bookings, event: events })
-    .from(bookings)
-    .innerJoin(events, eq(bookings.eventId, events.id))
-    .where(eq(bookings.id, bookingId))
-    .limit(1);
-  if (!row) return false;
 
   const storedMeta = await loadCheckoutMetaContext(bookingId);
   const sent = await sendMetaCapiPurchase({

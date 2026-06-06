@@ -4,7 +4,7 @@ import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeConten
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { getBookingSummaryFromSession } from "@/lib/booking-outcome-data";
+import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
@@ -23,9 +23,10 @@ export default async function BookingConfirmedPage({
   if (!isValidLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
-  const summary = sessionId
-    ? await getBookingSummaryFromSession(sessionId, locale as Locale)
-    : null;
+  const confirmation = sessionId
+    ? await getBookingConfirmationStatus(sessionId, locale as Locale)
+    : { summary: null, pending: false };
+  const summary = confirmation.summary;
 
   if (sessionId && summary?.bookingId) {
     void sendMetaCapiPurchaseForSession(sessionId, await headers());
@@ -38,6 +39,7 @@ export default async function BookingConfirmedPage({
         variant="success"
         locale={locale as Locale}
         summary={summary}
+        sessionId={sessionId}
       />
       <BookingOutcomeContent
         variant="success"

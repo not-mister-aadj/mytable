@@ -1,38 +1,13 @@
 import { NextResponse } from "next/server";
-import { eq, sql, and } from "drizzle-orm";
-import { bookingEvents, bookings, events } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
-import { onPaymentCompleted, onPaymentFailed } from "@/lib/customers/hooks";
-import { sendMetaCapiPurchase } from "@/lib/analytics/metaCapi";
-import { metaPurchaseEventId } from "@/lib/analytics/metaIds";
-import {
-  loadCheckoutMetaContext,
-  metaUserDataFromStoredContext,
-} from "@/lib/analytics/metaCapiContext";
+import { onPaymentFailed } from "@/lib/customers/hooks";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
-import { hashEmail } from "@/lib/posthog/properties";
 import { getStripe } from "@/lib/stripe";
-import { revalidateEventPaths } from "@/lib/revalidate-agenda";
-
-async function countPriorPaidBookings(
-  email: string,
-  excludeBookingId: string,
-): Promise<number> {
-  const db = getDb();
-  const rows = await db
-    .select({ id: bookings.id })
-    .from(bookings)
-    .where(
-      and(
-        eq(bookings.email, email),
-        eq(bookings.paymentStatus, "paid"),
-        sql`${bookings.id} != ${excludeBookingId}`,
-      ),
-    );
-  return rows.length;
-}
+import { fulfillPaidCheckoutSession } from "@/lib/stripe/fulfill-checkout";
+import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 
 export async function POST(request: Request) {
   if (!isDbConfigured()) {
@@ -59,160 +34,62 @@ export async function POST(request: Request) {
 
   const db = getDb();
 
-  if (event.type === "checkout.session.completed") {
+  if (
+    event.type === "checkout.session.completed" ||
+    event.type === "checkout.session.async_payment_succeeded"
+  ) {
+    const session = event.data.object as import("stripe").Stripe.Checkout.Session;
+    if (isCheckoutPaymentSettled(session)) {
+      const result = await fulfillPaidCheckoutSession(session);
+      if (result === "not_paid") {
+        console.info(
+          "[stripe webhook] checkout complete but payment not settled yet",
+          session.id,
+        );
+      }
+    }
+  }
+
+  if (event.type === "checkout.session.async_payment_failed") {
     const session = event.data.object as import("stripe").Stripe.Checkout.Session;
     const bookingId = session.metadata?.booking_id;
     const eventId = session.metadata?.event_id;
+    if (bookingId) {
+      const [booking] = await db
+        .update(bookings)
+        .set({ paymentStatus: "failed" })
+        .where(
+          and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "pending")),
+        )
+        .returning();
 
-    if (!bookingId || !eventId) {
-      return NextResponse.json({ received: true });
-    }
+      if (booking && eventId) {
+        const [ev] = await db
+          .select()
+          .from(events)
+          .where(eq(events.id, eventId))
+          .limit(1);
 
-    const [existing] = await db
-      .select()
-      .from(bookings)
-      .where(eq(bookings.id, bookingId))
-      .limit(1);
+        if (ev) {
+          await onPaymentFailed({
+            booking,
+            event: ev,
+            reason: "async_payment_failed",
+          });
 
-    if (!existing) {
-      return NextResponse.json({ received: true });
-    }
-
-    if (existing.paymentStatus === "paid") {
-      if (existing.confirmationEmailSentAt) {
-        return NextResponse.json({ received: true });
-      }
-
-      const [ev] = await db
-        .select()
-        .from(events)
-        .where(eq(events.id, existing.eventId))
-        .limit(1);
-
-      if (ev) {
-        try {
-          await sendBookingConfirmationForPaidBooking(existing, ev);
-        } catch (emailErr) {
-          console.error("[stripe webhook] email failed", emailErr);
+          void captureServerEvent(booking.email, PostHogEvents.paymentFailed, {
+            event_id: ev.id,
+            event_slug: ev.slug,
+            event_type: ev.experienceType,
+            city: ev.city,
+            seats: booking.seats,
+            attempted_amount: booking.amountCents / 100,
+            failure_reason: "async_payment_failed",
+            stripe_session_id: session.id,
+            language: booking.locale,
+          });
         }
       }
-
-      return NextResponse.json({ received: true });
-    }
-
-    const updated = await db.transaction(async (tx) => {
-      const [ev] = await tx
-        .update(events)
-        .set({
-          spotsSold: sql`${events.spotsSold} + ${existing.seats}`,
-          updatedAt: new Date(),
-        })
-        .where(
-          sql`${events.id} = ${eventId} AND ${events.spotsSold} + ${existing.seats} <= ${events.capacity}`,
-        )
-        .returning();
-
-      if (!ev) {
-        throw new Error("Capacity exceeded");
-      }
-
-      const [booking] = await tx
-        .update(bookings)
-        .set({
-          paymentStatus: "paid",
-          stripePaymentIntentId:
-            typeof session.payment_intent === "string"
-              ? session.payment_intent
-              : session.payment_intent?.id ?? null,
-          stripeCheckoutSessionId: session.id,
-        })
-        .where(
-          and(
-            eq(bookings.id, bookingId),
-            eq(bookings.paymentStatus, "pending"),
-          ),
-        )
-        .returning();
-
-      if (!booking) {
-        throw new Error("Booking already processed");
-      }
-
-      await tx.insert(bookingEvents).values({
-        bookingId,
-        type: "payment_succeeded",
-        payload: { sessionId: session.id },
-      });
-
-      return { booking, ev };
-    });
-
-    revalidateEventPaths(updated.ev.slug);
-
-    await onPaymentCompleted({
-      booking: updated.booking,
-      event: updated.ev,
-    });
-
-    const storedMeta = await loadCheckoutMetaContext(updated.booking.id);
-    const capiSent = await sendMetaCapiPurchase({
-      booking: updated.booking,
-      event: updated.ev,
-      userData: metaUserDataFromStoredContext(
-        storedMeta,
-        updated.booking.email,
-        updated.booking.customerName?.split(/\s+/)[0] ?? null,
-      ),
-    });
-    if (capiSent) {
-      await db.insert(bookingEvents).values({
-        bookingId: updated.booking.id,
-        type: "meta_capi_purchase",
-        payload: {
-          event_id: metaPurchaseEventId(updated.booking.id),
-        },
-      });
-    }
-
-    const priorPaid = await countPriorPaidBookings(
-      updated.booking.email,
-      updated.booking.id,
-    );
-    const paymentProps = {
-      booking_id: updated.booking.id,
-      event_id: updated.ev.id,
-      event_slug: updated.ev.slug,
-      event_type: updated.ev.experienceType,
-      city: updated.ev.city,
-      seats: updated.booking.seats,
-      total_paid: updated.booking.amountCents / 100,
-      price_per_seat: updated.ev.priceCents / 100,
-      stripe_session_id: session.id,
-      is_first_booking: priorPaid === 0,
-      customer_email_hash: hashEmail(updated.booking.email),
-      language: updated.booking.locale,
-      payment_method: session.payment_method_types?.[0] ?? null,
-    };
-
-    void captureServerEvent(
-      updated.booking.email,
-      PostHogEvents.paymentCompleted,
-      paymentProps,
-    );
-    void captureServerEvent(
-      updated.booking.email,
-      PostHogEvents.bookingPaid,
-      {
-        ...paymentProps,
-        amount_cents: updated.booking.amountCents,
-        locale: updated.booking.locale,
-      },
-    );
-
-    try {
-      await sendBookingConfirmationForPaidBooking(updated.booking, updated.ev);
-    } catch (emailErr) {
-      console.error("[stripe webhook] email failed", emailErr);
     }
   }
 

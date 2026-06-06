@@ -70,12 +70,12 @@ export function MetaConfirmationPurchase({ initial, locale }: Props) {
     let cancelled = false;
     let data = initial ?? readEmbeddedPurchase();
 
-    async function poll(attempt = 0): Promise<void> {
+    async function poll(sessionId: string, attempt = 0): Promise<void> {
       if (cancelled) return;
 
       if (!data || !hasPurchaseBeenTracked(data.bookingId)) {
         try {
-          const params = new URLSearchParams({ session_id: sessionId!, locale });
+          const params = new URLSearchParams({ session_id: sessionId, locale });
           const res = await fetch(`/api/booking/confirmation?${params.toString()}`);
           if (res.ok) {
             const body = (await res.json()) as {
@@ -103,14 +103,14 @@ export function MetaConfirmationPurchase({ initial, locale }: Props) {
         return;
       }
 
-      window.setTimeout(() => void poll(attempt + 1), POLL_MS);
+      window.setTimeout(() => void poll(sessionId, attempt + 1), POLL_MS);
     }
 
     if (data && tryFirePurchase(data)) {
       return;
     }
 
-    void poll();
+    void poll(sessionId);
 
     return () => {
       cancelled = true;

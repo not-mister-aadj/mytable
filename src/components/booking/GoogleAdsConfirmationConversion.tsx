@@ -53,7 +53,7 @@ export function GoogleAdsConfirmationConversion({
 
     let cancelled = false;
 
-    async function poll(attempt = 0): Promise<void> {
+    async function poll(sessionId: string, attempt = 0): Promise<void> {
       if (cancelled || conversionFired.current || attempt >= POLL_MAX) return;
 
       try {
@@ -72,12 +72,12 @@ export function GoogleAdsConfirmationConversion({
       }
 
       if (!cancelled && !conversionFired.current) {
-        window.setTimeout(() => void poll(attempt + 1), POLL_MS);
+        window.setTimeout(() => void poll(sessionId, attempt + 1), POLL_MS);
       }
     }
 
     if (!conversionFired.current) {
-      void poll(initial ? 1 : 0);
+      void poll(sessionId, initial ? 1 : 0);
     }
 
     return () => {

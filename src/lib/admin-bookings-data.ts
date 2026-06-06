@@ -1,5 +1,5 @@
 import { and, desc, eq, gt, inArray, ne } from "drizzle-orm";
-import { bookings, events } from "@/db/schema";
+import { bookings, customers, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { reservationCode } from "@/lib/booking-display";
 import {
@@ -67,6 +67,30 @@ function mapEvent(
   };
 }
 
+function crmBadge(input: {
+  isReturningGuest: boolean;
+  customerFailedPayments: number;
+  paymentStatus: string;
+}): import("@/lib/admin-bookings-types").AdminCrmBadge {
+  if (input.customerFailedPayments > 0) return "payment_issue";
+  if (input.isReturningGuest) return "repeat";
+  if (input.paymentStatus === "paid") return "first_time";
+  return null;
+}
+
+function crmBadgeLabel(badge: import("@/lib/admin-bookings-types").AdminCrmBadge): string | null {
+  switch (badge) {
+    case "payment_issue":
+      return "Betalingsprobleem";
+    case "repeat":
+      return "Terugkerende gast";
+    case "first_time":
+      return "Eerste keer";
+    default:
+      return null;
+  }
+}
+
 export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData> {
   const db = getDb();
   const now = new Date();
@@ -92,9 +116,10 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
   await reconcileEventSpotsSold(upcomingPublished.map((e) => e.id));
 
   const rows = await db
-    .select({ booking: bookings, event: events })
+    .select({ booking: bookings, event: events, customer: customers })
     .from(bookings)
     .innerJoin(events, eq(bookings.eventId, events.id))
+    .leftJoin(customers, eq(bookings.customerId, customers.id))
     .where(ne(bookings.paymentStatus, "failed"))
     .orderBy(desc(bookings.createdAt))
     .limit(500);
@@ -140,7 +165,7 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
   let revenueThisWeekCents = 0;
   let guestsArrivingTomorrow = 0;
 
-  const enriched: AdminBookingRow[] = rows.map(({ booking, event }) => {
+  const enriched: AdminBookingRow[] = rows.map(({ booking, event, customer }) => {
     const previousPaidCount = Math.max(
       0,
       (paidByEmail.get(booking.email) ?? 0) - 1,
@@ -176,10 +201,20 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       ? transferDestById.get(booking.transferredToEventId)
       : undefined;
 
+    const customerFailedPayments = customer?.failedPaymentsCount ?? 0;
+    const badge = crmBadge({
+      isReturningGuest,
+      customerFailedPayments,
+      paymentStatus: booking.paymentStatus,
+    });
+
     return {
       id: booking.id,
       reservationCode: reservationCode(booking.id),
       email: booking.email,
+      customerId: booking.customerId,
+      customerFailedPayments,
+      crmBadge: badge,
       customerName: booking.customerName,
       seats: booking.seats,
       amountCents: booking.amountCents,
@@ -207,7 +242,7 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       isGroup,
       isSolo,
       bookingStatus,
-      guestInsight: guestInsightLabel({ isReturningGuest, isGroup, isSolo }),
+      guestInsight: crmBadgeLabel(badge) ?? guestInsightLabel({ isReturningGuest, isGroup, isSolo }),
       timeline: timelineByBooking.get(booking.id) ?? [],
     };
   });

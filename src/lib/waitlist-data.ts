@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 
@@ -30,7 +30,9 @@ export async function createWaitlistSignup(input: {
   email: string;
   city: string;
   locale: string;
-}): Promise<{ ok: true } | { ok: false; error: string }> {
+}): Promise<
+  { ok: true; id: string; created: boolean } | { ok: false; error: string }
+> {
   const email = input.email.trim().toLowerCase();
   const city = input.city.trim();
 
@@ -42,19 +44,37 @@ export async function createWaitlistSignup(input: {
   }
 
   const db = getDb();
+  const locale = input.locale === "en" ? "en" : "nl";
 
   try {
-    await db
+    const [inserted] = await db
       .insert(waitlistSignups)
-      .values({
-        email,
-        city,
-        locale: input.locale === "en" ? "en" : "nl",
-      })
+      .values({ email, city, locale })
       .onConflictDoNothing({
         target: [waitlistSignups.email, waitlistSignups.city],
-      });
-    return { ok: true };
+      })
+      .returning({ id: waitlistSignups.id });
+
+    if (inserted) {
+      return { ok: true, id: inserted.id, created: true };
+    }
+
+    const [existing] = await db
+      .select({ id: waitlistSignups.id })
+      .from(waitlistSignups)
+      .where(
+        and(
+          eq(waitlistSignups.email, email),
+          eq(waitlistSignups.city, city),
+        ),
+      )
+      .limit(1);
+
+    if (!existing) {
+      return { ok: false, error: "Could not save signup" };
+    }
+
+    return { ok: true, id: existing.id, created: false };
   } catch {
     return { ok: false, error: "Could not save signup" };
   }

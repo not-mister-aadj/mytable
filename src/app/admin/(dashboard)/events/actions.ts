@@ -9,6 +9,11 @@ import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
 import { buildBookingMovedEmailProps } from "@/lib/email/build-email-props";
 import { sendBookingMovedEmail } from "@/lib/email/sendBookingMovedEmail";
+import {
+  onBookingCancelled,
+  onBookingCreated,
+  onBookingMoved,
+} from "@/lib/customers/hooks";
 import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
 import {
   formatEventSaveError,
@@ -399,11 +404,19 @@ export async function removeBookingFromEventAction(
         .set({ paymentStatus: "refunded", lifecycleStatus: "removed" })
         .where(eq(bookings.id, bookingId));
 
-      return event.slug;
+      return { slug: event.slug, booking, event };
     });
 
+    if (slug.booking.customerId) {
+      await onBookingCancelled({
+        customerId: slug.booking.customerId,
+        booking: slug.booking,
+        event: slug.event,
+      });
+    }
+
     await reconcileEventSpotsSold([eventId]);
-    revalidateEventPaths(slug);
+    revalidateEventPaths(slug.slug);
 
     return { error: null };
   } catch (error) {
@@ -475,6 +488,7 @@ export async function transferBookingToEventAction(
         .insert(bookings)
         .values({
           eventId: targetEventId,
+          customerId: booking.customerId,
           email: booking.email,
           customerName: booking.customerName,
           seats: booking.seats,
@@ -537,8 +551,34 @@ export async function transferBookingToEventAction(
         newBooking,
         sourceEvent,
         targetEvent,
+        customerId: booking.customerId,
+        sourceBookingId: bookingId,
       };
     });
+
+    if (slugs.customerId) {
+      await onBookingMoved({
+        customerId: slugs.customerId,
+        fromEvent: slugs.sourceEvent,
+        toEvent: slugs.targetEvent,
+        fromBookingId: slugs.sourceBookingId,
+        toBookingId: slugs.newBooking.id,
+        by: user.email,
+      });
+    } else {
+      const customerId = await onBookingCreated({
+        booking: slugs.newBooking,
+        event: slugs.targetEvent,
+      });
+      await onBookingMoved({
+        customerId,
+        fromEvent: slugs.sourceEvent,
+        toEvent: slugs.targetEvent,
+        fromBookingId: slugs.sourceBookingId,
+        toBookingId: slugs.newBooking.id,
+        by: user.email,
+      });
+    }
 
     await reconcileEventSpotsSold([...slugs.eventIds]);
     revalidateEventPaths(slugs.sourceSlug);

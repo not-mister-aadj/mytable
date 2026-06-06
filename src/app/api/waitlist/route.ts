@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { createWaitlistSignup } from "@/lib/waitlist-data";
+import { onWaitlistJoined } from "@/lib/customers/hooks";
 import type { Locale } from "@/i18n/config";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -52,6 +53,13 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
+
+  await onWaitlistJoined({
+    email,
+    city,
+    locale,
+    waitlistId: result.id,
+  });
 
   return NextResponse.json({ ok: true });
 }

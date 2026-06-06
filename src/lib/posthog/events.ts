@@ -20,6 +20,10 @@ export const PostHogEvents = {
   eventPageViewed: "event_page_viewed",
   /** @deprecated use emailSignupCompleted */
   waitlistSignup: "waitlist_signup",
+  customerCreated: "customer_created",
+  customerUpdated: "customer_updated",
+  customerProfileViewed: "customer_profile_viewed",
+  customerNoteAdded: "customer_note_added",
 } as const;
 
 export type PostHogEventName =

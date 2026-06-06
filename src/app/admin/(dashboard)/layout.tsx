@@ -11,6 +11,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: "Venues", href: adminPath("/venues") },
   { label: "Types", href: adminPath("/experience-types") },
   { label: "Boekingen", href: adminPath("/bookings") },
+  { label: "Klanten", href: adminPath("/customers") },
   { label: "Wachtlijst", href: adminPath("/waitlist") },
   { label: "Analytics", href: adminPath("/analytics") },
   { label: "E-mails", href: adminPath("/email-preview") },

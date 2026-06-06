@@ -115,12 +115,31 @@ export function BookingDetailDrawer({
                       {booking.guestInitials}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-wine">{booking.email}</p>
+                      <p className="font-medium text-wine">
+                        {booking.customerId ? (
+                          <Link
+                            href={adminPath(`/customers/${booking.customerId}`)}
+                            className="hover:text-burgundy hover:underline"
+                          >
+                            {booking.email}
+                          </Link>
+                        ) : (
+                          booking.email
+                        )}
+                      </p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         <PaymentStatusPill status={booking.paymentStatus} />
                         <BookingStatusPill status={booking.bookingStatus} />
                         {booking.guestInsight ? (
                           <GuestInsightPill label={booking.guestInsight} />
+                        ) : null}
+                        {booking.customerId ? (
+                          <Link
+                            href={adminPath(`/customers/${booking.customerId}`)}
+                            className="text-sm text-burgundy underline-offset-2 hover:underline"
+                          >
+                            Klantprofiel
+                          </Link>
                         ) : null}
                       </div>
                       <p className="mt-3 text-sm text-wine/65">

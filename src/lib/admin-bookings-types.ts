@@ -36,10 +36,15 @@ export type AdminOperationalStatus =
   | "failed"
   | "refunded";
 
+export type AdminCrmBadge = "first_time" | "repeat" | "payment_issue" | null;
+
 export type AdminBookingRow = {
   id: string;
   reservationCode: string;
   email: string;
+  customerId: string | null;
+  customerFailedPayments: number;
+  crmBadge: AdminCrmBadge;
   customerName: string | null;
   seats: number;
   amountCents: number;

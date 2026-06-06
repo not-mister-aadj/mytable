@@ -112,7 +112,19 @@ export function BookingsTable({
                         <p className="truncate font-medium text-wine">
                           {row.customerName || "Gast"}
                         </p>
-                        <p className="truncate text-xs text-wine/55">{row.email}</p>
+                        <p className="truncate text-xs text-wine/55">
+                          {row.customerId ? (
+                            <Link
+                              href={adminPath(`/customers/${row.customerId}`)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="hover:text-burgundy hover:underline"
+                            >
+                              {row.email}
+                            </Link>
+                          ) : (
+                            row.email
+                          )}
+                        </p>
                         {row.guestInsight ? (
                           <div className="mt-1.5">
                             <GuestInsightPill label={row.guestInsight} />

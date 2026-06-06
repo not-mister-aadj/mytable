@@ -3,6 +3,7 @@ import { eq, sql, and } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
+import { onPaymentCompleted, onPaymentFailed } from "@/lib/customers/hooks";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { hashEmail } from "@/lib/posthog/properties";
@@ -142,6 +143,11 @@ export async function POST(request: Request) {
 
     revalidateEventPaths(updated.ev.slug);
 
+    await onPaymentCompleted({
+      booking: updated.booking,
+      event: updated.ev,
+    });
+
     const priorPaid = await countPriorPaidBookings(
       updated.booking.email,
       updated.booking.id,
@@ -203,6 +209,12 @@ export async function POST(request: Request) {
           .limit(1);
 
         if (ev) {
+          await onPaymentFailed({
+            booking,
+            event: ev,
+            reason: "session_expired",
+          });
+
           void captureServerEvent(booking.email, PostHogEvents.paymentFailed, {
             event_id: ev.id,
             event_slug: ev.slug,

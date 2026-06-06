@@ -96,11 +96,59 @@ export const events = pgTable("events", {
     .defaultNow(),
 });
 
+export const customers = pgTable(
+  "customers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    emailNormalized: text("email_normalized").notNull(),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    phone: text("phone"),
+    preferredCity: text("preferred_city"),
+    language: text("language"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    firstBookingAt: timestamp("first_booking_at", { withTimezone: true }),
+    lastBookingAt: timestamp("last_booking_at", { withTimezone: true }),
+    totalBookings: integer("total_bookings").notNull().default(0),
+    paidBookingsCount: integer("paid_bookings_count").notNull().default(0),
+    cancelledBookingsCount: integer("cancelled_bookings_count")
+      .notNull()
+      .default(0),
+    movedBookingsCount: integer("moved_bookings_count").notNull().default(0),
+    failedPaymentsCount: integer("failed_payments_count").notNull().default(0),
+    waitlistCount: integer("waitlist_count").notNull().default(0),
+    totalSpentCents: integer("total_spent_cents").notNull().default(0),
+    totalSeatsBooked: integer("total_seats_booked").notNull().default(0),
+    favoriteCity: text("favorite_city"),
+    favoriteEventType: text("favorite_event_type"),
+    tags: jsonb("tags").$type<string[]>().default([]),
+    notes: text("notes"),
+  },
+  (table) => ({
+    emailNormalizedUnique: uniqueIndex("customers_email_normalized_unique").on(
+      table.emailNormalized,
+    ),
+  }),
+);
+
 export const bookings = pgTable("bookings", {
   id: uuid("id").primaryKey().defaultRandom(),
   eventId: uuid("event_id")
     .notNull()
     .references(() => events.id),
+  customerId: uuid("customer_id").references(() => customers.id),
   email: text("email").notNull(),
   customerName: text("customer_name"),
   seats: integer("seats").notNull().default(1),
@@ -151,6 +199,7 @@ export const waitlistSignups = pgTable(
     email: text("email").notNull(),
     city: text("city").notNull(),
     locale: text("locale").notNull().default("nl"),
+    customerId: uuid("customer_id").references(() => customers.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -163,6 +212,22 @@ export const waitlistSignups = pgTable(
   }),
 );
 
+export const customerActivities = pgTable("customer_activities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  customerId: uuid("customer_id")
+    .notNull()
+    .references(() => customers.id),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type Customer = typeof customers.$inferSelect;
+export type CustomerActivity = typeof customerActivities.$inferSelect;
 export type ExperienceType = typeof experienceTypes.$inferSelect;
 export type Venue = typeof venues.$inferSelect;
 export type Event = typeof events.$inferSelect;

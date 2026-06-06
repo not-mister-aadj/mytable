@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { getMaxSeatsPerOrder, getSiteUrl } from "@/lib/env";
+import { onBookingCreated, onCheckoutStarted } from "@/lib/customers/hooks";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
@@ -100,6 +101,8 @@ export async function POST(request: Request) {
     })
     .returning();
 
+  await onBookingCreated({ booking, event });
+
   const stripe = getStripe();
   const siteUrl = getSiteUrl();
   const productName =
@@ -135,6 +138,20 @@ export async function POST(request: Request) {
     .update(bookings)
     .set({ stripeCheckoutSessionId: session.id })
     .where(eq(bookings.id, booking.id));
+
+  const [bookingWithSession] = await db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.id, booking.id))
+    .limit(1);
+
+  if (bookingWithSession) {
+    await onCheckoutStarted({
+      booking: bookingWithSession,
+      event,
+      stripeSessionId: session.id,
+    });
+  }
 
   void captureServerEvent(email, PostHogEvents.checkoutStarted, {
     event_id: event.id,

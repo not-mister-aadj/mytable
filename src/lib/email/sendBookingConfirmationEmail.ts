@@ -5,6 +5,7 @@ import {
 } from "@/emails/BookingConfirmationEmail";
 import { bookings, events, venues } from "@/db/schema";
 import { getDb } from "@/db/index";
+import { onEmailSent } from "@/lib/customers/hooks";
 import type { Booking, Event } from "@/db/schema";
 import {
   buildBookingConfirmationEmailProps,
@@ -119,6 +120,14 @@ export async function sendBookingConfirmationForPaidBooking(
       .update(bookings)
       .set({ confirmationEmailSentAt: new Date() })
       .where(eq(bookings.id, booking.id));
+  }
+
+  if (result.ok && booking.customerId) {
+    await onEmailSent({
+      customerId: booking.customerId,
+      subject: "Boekingsbevestiging",
+      bookingId: booking.id,
+    });
   }
 
   return result;

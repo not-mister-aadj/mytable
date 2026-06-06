@@ -1,6 +1,7 @@
 import type { AnalyticsSummary } from "@/lib/posthog/admin-stats";
 import {
   getPostHogDashboardEmbedUrl,
+  getPostHogGrowthDashboardUrl,
   isPostHogAdminConfigured,
   isPostHogConfigured,
 } from "@/lib/posthog/config";
@@ -31,8 +32,46 @@ function StatCard({
   );
 }
 
+function FunnelStrip({ steps }: { steps: AnalyticsSummary["funnel7d"] }) {
+  const max = Math.max(...steps.map((s) => s.count), 1);
+
+  return (
+    <section className="rounded-2xl border border-border-subtle bg-beige p-6">
+      <h2 className="text-lg font-medium text-burgundy">Groei-funnel (7 dagen)</h2>
+      <p className="mt-1 text-sm text-wine/60">
+        Stappen op mytable.club — vult aan naarmate er traffic binnenkomt.
+      </p>
+      <ol className="mt-6 space-y-3">
+        {steps.map((step, index) => {
+          const prev = index > 0 ? steps[index - 1].count : null;
+          const conversion =
+            prev && prev > 0
+              ? `${Math.round((step.count / prev) * 100)}%`
+              : "—";
+          const width = `${Math.max(8, (step.count / max) * 100)}%`;
+
+          return (
+            <li key={step.label} className="grid gap-2 sm:grid-cols-[140px_1fr_72px_56px] sm:items-center">
+              <span className="text-sm font-medium text-wine">{step.label}</span>
+              <div className="h-2 overflow-hidden rounded-full bg-cream">
+                <div
+                  className="h-full rounded-full bg-burgundy/80"
+                  style={{ width }}
+                />
+              </div>
+              <span className="text-sm tabular-nums text-wine/80">{step.count}</span>
+              <span className="text-xs text-wine/50">{conversion}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 export function AnalyticsView({ summary }: AnalyticsViewProps) {
   const embedUrl = getPostHogDashboardEmbedUrl();
+  const growthDashboardUrl = getPostHogGrowthDashboardUrl();
   const trackingOn = isPostHogConfigured();
   const adminApiOn = isPostHogAdminConfigured();
 
@@ -52,23 +91,38 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="font-serif text-3xl text-burgundy">Analytics</h1>
-        <p className="mt-2 text-sm text-wine/70">
-          CEO-overzicht — traffic, intent, checkout, revenue (7 dagen).
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl text-burgundy">Analytics</h1>
+          <p className="mt-2 text-sm text-wine/70">
+            CEO-overzicht — traffic, intent, checkout, revenue (7 dagen).
+          </p>
+        </div>
+        {adminApiOn ? (
+          <a
+            href={growthDashboardUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-full bg-burgundy px-5 py-2.5 text-sm font-medium text-cream hover:bg-wine"
+          >
+            Open Growth Dashboard in PostHog →
+          </a>
+        ) : null}
       </div>
 
       {summary ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Betaalde boekingen (7d)" value={summary.paymentsCompleted7d} />
-          <StatCard label="Stoelen geboekt (7d)" value={summary.seatsBooked7d} />
-          <StatCard label="Omzet (7d)" value={summary.revenue7d} format="currency" />
-          <StatCard label="Event detail views (7d)" value={summary.eventDetailViews7d} />
-          <StatCard label="Pageviews (7d)" value={summary.pageviews7d} />
-          <StatCard label="Checkout gestart (7d)" value={summary.checkoutStarted7d} />
-          <StatCard label="Wachtlijst (7d)" value={summary.waitlistSignups7d} />
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="Betaalde boekingen (7d)" value={summary.paymentsCompleted7d} />
+            <StatCard label="Stoelen geboekt (7d)" value={summary.seatsBooked7d} />
+            <StatCard label="Omzet (7d)" value={summary.revenue7d} format="currency" />
+            <StatCard label="Event detail views (7d)" value={summary.eventDetailViews7d} />
+            <StatCard label="Pageviews (7d)" value={summary.pageviews7d} />
+            <StatCard label="Checkout gestart (7d)" value={summary.checkoutStarted7d} />
+            <StatCard label="Wachtlijst (7d)" value={summary.waitlistSignups7d} />
+          </div>
+          <FunnelStrip steps={summary.funnel7d} />
+        </>
       ) : (
         <SetupPanel
           title="Admin-statistieken vereisen een PostHog API key"
@@ -95,31 +149,26 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
             />
           </div>
         </section>
-      ) : adminApiOn ? (
+      ) : null}
+
+      {adminApiOn && !embedUrl ? (
         <p className="text-sm text-wine/60">
-          Run{" "}
-          <code className="rounded bg-cream px-1.5 py-0.5">
-            npm run posthog:setup-dashboards
-          </code>{" "}
-          om dashboards aan te maken, of zet{" "}
+          Charts & breakdowns staan in{" "}
+          <a
+            href={growthDashboardUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-burgundy underline-offset-2 hover:underline"
+          >
+            MyTable Growth Dashboard
+          </a>
+          . Voor een embed hier: PostHog → Share → Embed → zet{" "}
           <code className="rounded bg-cream px-1.5 py-0.5">
             POSTHOG_DASHBOARD_EMBED_URL
           </code>{" "}
-          handmatig.
+          op Vercel.
         </p>
       ) : null}
-
-      <p className="text-sm text-wine/60">
-        Volledige analyse (funnels, city/event breakdown) →{" "}
-        <a
-          href="https://eu.posthog.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-burgundy underline-offset-2 hover:underline"
-        >
-          PostHog openen
-        </a>
-      </p>
     </div>
   );
 }

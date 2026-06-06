@@ -33,3 +33,11 @@ export function getPostHogDashboardEmbedUrl(): string | undefined {
   const raw = process.env.POSTHOG_DASHBOARD_EMBED_URL?.trim();
   return raw || undefined;
 }
+
+/** Direct link to Growth Dashboard in PostHog (requires login). */
+export function getPostHogGrowthDashboardUrl(): string {
+  const projectId = getPostHogProjectId() ?? "195293";
+  const dashboardId =
+    process.env.POSTHOG_GROWTH_DASHBOARD_ID?.trim() ?? "729743";
+  return `${getPostHogApiHost()}/project/${projectId}/dashboard/${dashboardId}`;
+}

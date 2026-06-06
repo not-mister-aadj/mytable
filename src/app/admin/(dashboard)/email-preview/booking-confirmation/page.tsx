@@ -2,11 +2,16 @@ import { render } from "@react-email/render";
 import { BookingConfirmationEmail } from "@/emails/BookingConfirmationEmail";
 import { sampleBookingConfirmationProps } from "@/emails/sample-data";
 import { requireAdmin } from "@/lib/admin-auth";
+import { bookingConfirmationSubject } from "@/lib/email/subjects";
 
 export default async function BookingConfirmationEmailPreviewPage() {
   await requireAdmin();
   const html = await render(
     BookingConfirmationEmail(sampleBookingConfirmationProps),
+  );
+  const subject = bookingConfirmationSubject(
+    sampleBookingConfirmationProps.bookingCode,
+    sampleBookingConfirmationProps.eventName,
   );
 
   return (
@@ -17,7 +22,7 @@ export default async function BookingConfirmationEmailPreviewPage() {
             E-mail preview · Bevestiging
           </h1>
           <p className="mt-1 text-sm text-wine/60">
-            Onderwerp: Je plek aan tafel is bevestigd
+            Onderwerp: {subject}
           </p>
         </div>
       </div>

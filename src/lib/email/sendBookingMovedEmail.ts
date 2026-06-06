@@ -4,13 +4,15 @@ import {
 } from "@/emails/BookingMovedEmail";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
 import {
+  bookingEmailHeaders,
+  bookingMovedSubject,
+} from "@/lib/email/subjects";
+import {
   getEmailFrom,
   getEmailReplyTo,
   getResendClient,
   type EmailSendResult,
 } from "@/lib/email/resend";
-
-const SUBJECT = "Je MyTable boeking is verplaatst";
 
 function validateProps(props: BookingMovedEmailProps): void {
   const required: (keyof BookingMovedEmailProps)[] = [
@@ -55,7 +57,8 @@ export async function sendBookingMovedEmail(
     from: getEmailFrom(),
     replyTo: getEmailReplyTo(),
     to: props.customerEmail,
-    subject: SUBJECT,
+    subject: bookingMovedSubject(props.bookingCode, props.newEventName),
+    headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
     attachments,

@@ -2,10 +2,15 @@ import { render } from "@react-email/render";
 import { BookingMovedEmail } from "@/emails/BookingMovedEmail";
 import { sampleBookingMovedProps } from "@/emails/sample-data";
 import { requireAdmin } from "@/lib/admin-auth";
+import { bookingMovedSubject } from "@/lib/email/subjects";
 
 export default async function BookingMovedEmailPreviewPage() {
   await requireAdmin();
   const html = await render(BookingMovedEmail(sampleBookingMovedProps));
+  const subject = bookingMovedSubject(
+    sampleBookingMovedProps.bookingCode,
+    sampleBookingMovedProps.newEventName,
+  );
 
   return (
     <div>
@@ -15,7 +20,7 @@ export default async function BookingMovedEmailPreviewPage() {
             E-mail preview · Verplaatst
           </h1>
           <p className="mt-1 text-sm text-wine/60">
-            Onderwerp: Je MyTable boeking is verplaatst
+            Onderwerp: {subject}
           </p>
         </div>
       </div>

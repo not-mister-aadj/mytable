@@ -15,6 +15,7 @@
     "db:setup-dev": "tsx scripts/ensure-dev-database.ts",
     "email:test": "tsx scripts/send-test-email.ts",
     "email:test-booking": "tsx scripts/send-test-booking-email.ts",
+    "email:test-moved": "tsx scripts/send-test-booking-moved-email.ts",
     "email:icons": "node scripts/generate-email-icons.mjs",
     "favicon": "node scripts/generate-favicon.mjs"
   },

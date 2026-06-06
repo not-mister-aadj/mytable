@@ -11,13 +11,15 @@ import {
 } from "@/lib/email/build-email-props";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
 import {
+  bookingConfirmationSubject,
+  bookingEmailHeaders,
+} from "@/lib/email/subjects";
+import {
   getEmailFrom,
   getEmailReplyTo,
   getResendClient,
   type EmailSendResult,
 } from "@/lib/email/resend";
-
-const SUBJECT = "Je plek aan tafel is bevestigd";
 
 function validateProps(props: BookingConfirmationEmailProps): void {
   const required: (keyof BookingConfirmationEmailProps)[] = [
@@ -59,7 +61,8 @@ export async function sendBookingConfirmationEmail(
     from: getEmailFrom(),
     replyTo: getEmailReplyTo(),
     to: props.customerEmail,
-    subject: SUBJECT,
+    subject: bookingConfirmationSubject(props.bookingCode, props.eventName),
+    headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
     attachments,

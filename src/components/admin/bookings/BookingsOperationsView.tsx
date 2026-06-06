@@ -14,6 +14,7 @@ import {
 } from "@/components/admin/bookings/BookingsKpiBar";
 import { BookingsTable } from "@/components/admin/bookings/BookingsTable";
 import { eventOccupancyState } from "@/components/admin/bookings/booking-utils";
+import { matchesBookingStatusFilter } from "@/lib/booking-lifecycle";
 
 function matchesSearch(row: AdminBookingRow, q: string): boolean {
   const normalized = q.replace(/\s/g, "").toLowerCase();
@@ -34,6 +35,8 @@ function matchesSearch(row: AdminBookingRow, q: string): boolean {
     row.event.nameNl,
     row.event.nameEn,
     row.event.city,
+    row.transferDestination?.nameNl ?? "",
+    row.transferDestination?.city ?? "",
   ]
     .join(" ")
     .toLowerCase();
@@ -49,6 +52,19 @@ function filterBookings(
   const now = Date.now();
 
   return bookings.filter((row) => {
+    if (
+      filters.status !== "all" &&
+      !matchesBookingStatusFilter(
+        {
+          paymentStatus: row.paymentStatus,
+          lifecycleStatus: row.lifecycleStatus,
+        },
+        filters.status,
+      )
+    ) {
+      return false;
+    }
+
     if (filters.city !== "all" && row.event.city !== filters.city) {
       return false;
     }
@@ -103,8 +119,9 @@ export function BookingsOperationsView({
           Boekingen
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Alleen bevestigde betalingen. Overzicht van gasten, tafels en omzet
-          voor aankomende avonden.
+          Overzicht van gasten, verplaatsingen en betalingen. Actieve gasten
+          tellen mee voor bezetting; verplaatste boekingen blijven zichtbaar
+          voor traceerbaarheid.
         </p>
       </div>
 

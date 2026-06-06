@@ -1,4 +1,4 @@
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { reservationCode } from "@/lib/booking-display";
@@ -19,9 +19,30 @@ export async function getEventTicketsData(
       and(
         eq(bookings.eventId, eventId),
         eq(bookings.paymentStatus, "paid"),
+        inArray(bookings.lifecycleStatus, ["active", "transferred"]),
       ),
     )
     .orderBy(desc(bookings.createdAt));
+
+  const transferredToIds = [
+    ...new Set(
+      ticketRows
+        .map((b) => b.transferredToEventId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const destinationEvents =
+    transferredToIds.length > 0
+      ? await db
+          .select()
+          .from(events)
+          .where(inArray(events.id, transferredToIds))
+      : [];
+
+  const destinationById = new Map(
+    destinationEvents.map((event) => [event.id, event]),
+  );
 
   const targetRows = await db
     .select()
@@ -32,15 +53,33 @@ export async function getEventTicketsData(
     .orderBy(events.startsAt);
 
   return {
-    tickets: ticketRows.map((b) => ({
-      id: b.id,
-      reservationCode: reservationCode(b.id),
-      customerName: b.customerName,
-      email: b.email,
-      seats: b.seats,
-      dietaryNotes: b.dietaryNotes,
-      createdAt: b.createdAt.toISOString(),
-    })),
+    tickets: ticketRows.map((b) => {
+      const destination = b.transferredToEventId
+        ? destinationById.get(b.transferredToEventId)
+        : undefined;
+
+      return {
+        id: b.id,
+        reservationCode: reservationCode(b.id),
+        customerName: b.customerName,
+        email: b.email,
+        seats: b.seats,
+        dietaryNotes: b.dietaryNotes,
+        createdAt: b.createdAt.toISOString(),
+        lifecycleStatus: b.lifecycleStatus,
+        transferredAt: b.transferredAt?.toISOString() ?? null,
+        transferredBy: b.transferredBy,
+        transferDestination: destination
+          ? {
+              eventId: destination.id,
+              nameNl: destination.nameNl,
+              city: destination.city,
+              startsAt: destination.startsAt.toISOString(),
+              slug: destination.slug,
+            }
+          : null,
+      };
+    }),
     transferTargets: targetRows.map((e) => ({
       id: e.id,
       nameNl: e.nameNl,

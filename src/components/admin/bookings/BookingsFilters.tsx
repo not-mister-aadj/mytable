@@ -1,7 +1,16 @@
 "use client";
 
+export type BookingStatusFilter =
+  | "all"
+  | "active"
+  | "moved"
+  | "cancelled"
+  | "paid"
+  | "pending";
+
 export type BookingFilters = {
   search: string;
+  status: BookingStatusFilter;
   timing: "all" | "upcoming" | "past";
   city: string;
   experienceType: string;
@@ -11,6 +20,7 @@ export type BookingFilters = {
 
 export const defaultBookingFilters: BookingFilters = {
   search: "",
+  status: "all",
   timing: "all",
   city: "all",
   experienceType: "all",
@@ -60,11 +70,30 @@ export function BookingsFilters({
           />
         </div>
         <p className="text-sm text-wine/55">
-          {resultCount} bevestigd{resultCount === 1 ? "" : "e"}
+          {resultCount} {resultCount === 1 ? "resultaat" : "resultaten"}
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <select
+          value={filters.status}
+          onChange={(e) =>
+            onChange({
+              ...filters,
+              status: e.target.value as BookingFilters["status"],
+            })
+          }
+          className={selectClass}
+          aria-label="Status"
+        >
+          <option value="all">Alle statussen</option>
+          <option value="active">Actief</option>
+          <option value="moved">Verplaatst</option>
+          <option value="cancelled">Geannuleerd</option>
+          <option value="paid">Betaald</option>
+          <option value="pending">In afwachting</option>
+        </select>
+
         <select
           value={filters.timing}
           onChange={(e) =>

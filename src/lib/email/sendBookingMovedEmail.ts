@@ -49,7 +49,7 @@ export async function sendBookingMovedEmail(
     return { ok: false, error: "Email not configured" };
   }
 
-  const { html, text, attachments } = await renderEmailForDelivery(
+  const { html, text } = await renderEmailForDelivery(
     BookingMovedEmail(props),
   );
 
@@ -61,7 +61,6 @@ export async function sendBookingMovedEmail(
     headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
-    attachments,
   });
 
   if (error) {

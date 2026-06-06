@@ -1,10 +1,9 @@
 import { render } from "@react-email/render";
 import type { ReactElement } from "react";
-import { embedEmailIcons } from "@/lib/email/embed-email-icons";
 
+/** Render email HTML with hosted icon URLs (no CID attachments — Gmail lists those separately). */
 export async function renderEmailForDelivery(element: ReactElement) {
-  const htmlWithUrls = await render(element);
-  const { html, attachments } = await embedEmailIcons(htmlWithUrls);
+  const html = await render(element);
   const text = await render(element, { plainText: true });
-  return { html, text, attachments };
+  return { html, text };
 }

@@ -296,6 +296,17 @@ export async function resendBookingConfirmationAction(
   }
 
   try {
+    const db = getDb();
+    const [booking] = await db
+      .select({ lifecycleStatus: bookings.lifecycleStatus })
+      .from(bookings)
+      .where(eq(bookings.id, bookingId))
+      .limit(1);
+
+    if (booking?.lifecycleStatus !== "active") {
+      return { error: "Alleen actieve boekingen kunnen opnieuw worden gemaild" };
+    }
+
     const { sendBookingConfirmationByBookingId } = await import(
       "@/lib/email/sendBookingConfirmationEmail"
     );
@@ -344,6 +355,9 @@ export async function removeBookingFromEventAction(
       if (booking.paymentStatus !== "paid") {
         throw new Error("Alleen bevestigde tickets kunnen worden verwijderd");
       }
+      if (booking.lifecycleStatus !== "active") {
+        throw new Error("Deze boeking is niet meer actief op deze tafel");
+      }
 
       const [event] = await tx
         .select()
@@ -382,7 +396,7 @@ export async function removeBookingFromEventAction(
 
       await tx
         .update(bookings)
-        .set({ paymentStatus: "refunded" })
+        .set({ paymentStatus: "refunded", lifecycleStatus: "removed" })
         .where(eq(bookings.id, bookingId));
 
       return event.slug;
@@ -406,7 +420,7 @@ export async function transferBookingToEventAction(
   bookingId: string,
   targetEventId: string,
 ): Promise<TransferBookingResult> {
-  await requireAdmin();
+  const { user } = await requireAdmin();
   if (!isDbConfigured()) {
     return { error: "Database niet geconfigureerd" };
   }
@@ -426,6 +440,9 @@ export async function transferBookingToEventAction(
       }
       if (booking.paymentStatus !== "paid") {
         throw new Error("Alleen bevestigde betalingen kunnen worden verplaatst");
+      }
+      if (booking.lifecycleStatus !== "active") {
+        throw new Error("Deze boeking is niet meer actief op deze tafel");
       }
       if (booking.eventId === targetEventId) {
         throw new Error("Kies een andere tafel");
@@ -452,50 +469,72 @@ export async function transferBookingToEventAction(
         throw new Error("Niet genoeg plekken op de doeltafel");
       }
 
-      await tx
-        .update(events)
-        .set({
-          spotsSold: sql`${events.spotsSold} - ${booking.seats}`,
-          updatedAt: new Date(),
-        })
-        .where(
-          sql`${events.id} = ${sourceEvent.id} AND ${events.spotsSold} >= ${booking.seats}`,
-        );
+      const transferredAt = new Date();
 
-      const [updatedTarget] = await tx
-        .update(events)
-        .set({
-          spotsSold: sql`${events.spotsSold} + ${booking.seats}`,
-          updatedAt: new Date(),
+      const [newBooking] = await tx
+        .insert(bookings)
+        .values({
+          eventId: targetEventId,
+          email: booking.email,
+          customerName: booking.customerName,
+          seats: booking.seats,
+          amountCents: booking.amountCents,
+          currency: booking.currency,
+          stripePaymentIntentId: booking.stripePaymentIntentId,
+          paymentStatus: "paid",
+          locale: booking.locale,
+          dietaryNotes: booking.dietaryNotes,
+          adminNotes: booking.adminNotes,
+          confirmationEmailSentAt: booking.confirmationEmailSentAt,
+          lifecycleStatus: "active",
+          transferredFromBookingId: booking.id,
+          transferredAt,
+          transferredBy: user.email ?? undefined,
         })
-        .where(
-          sql`${events.id} = ${targetEventId} AND ${events.spotsSold} + ${booking.seats} <= ${events.capacity}`,
-        )
         .returning();
 
-      if (!updatedTarget) {
-        throw new Error("Niet genoeg plekken op de doeltafel");
+      if (!newBooking) {
+        throw new Error("Kon nieuwe boeking niet aanmaken");
       }
 
       await tx
         .update(bookings)
-        .set({ eventId: targetEventId })
+        .set({
+          lifecycleStatus: "transferred",
+          transferredToEventId: targetEventId,
+          transferredToBookingId: newBooking.id,
+          transferredAt,
+          transferredBy: user.email ?? undefined,
+        })
         .where(eq(bookings.id, bookingId));
 
-      await tx.insert(bookingEvents).values({
-        bookingId,
-        type: "transferred",
-        payload: {
-          fromEventId: sourceEvent.id,
-          toEventId: targetEventId,
+      await tx.insert(bookingEvents).values([
+        {
+          bookingId,
+          type: "transferred",
+          payload: {
+            fromEventId: sourceEvent.id,
+            toEventId: targetEventId,
+            toBookingId: newBooking.id,
+            by: user.email,
+          },
         },
-      });
+        {
+          bookingId: newBooking.id,
+          type: "transferred_in",
+          payload: {
+            fromEventId: sourceEvent.id,
+            fromBookingId: bookingId,
+            by: user.email,
+          },
+        },
+      ]);
 
       return {
         sourceSlug: sourceEvent.slug,
         targetSlug: targetEvent.slug,
         eventIds: [sourceEvent.id, targetEventId] as const,
-        booking,
+        newBooking,
         sourceEvent,
         targetEvent,
       };
@@ -507,7 +546,7 @@ export async function transferBookingToEventAction(
 
     try {
       const movedProps = buildBookingMovedEmailProps(
-        slugs.booking,
+        slugs.newBooking,
         slugs.sourceEvent,
         slugs.targetEvent,
       );

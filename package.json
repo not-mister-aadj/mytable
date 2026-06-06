@@ -13,6 +13,7 @@
     "db:seed": "tsx scripts/seed-events.ts",
     "db:sync-dev": "tsx scripts/sync-dev-from-prod.ts",
     "db:setup-dev": "tsx scripts/ensure-dev-database.ts",
+    "db:migrate-lifecycle": "tsx scripts/apply-booking-lifecycle-migration.ts",
     "email:test": "tsx scripts/send-test-email.ts",
     "email:test-booking": "tsx scripts/send-test-booking-email.ts",
     "email:test-moved": "tsx scripts/send-test-booking-moved-email.ts",

@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import type { AdminBookingRow } from "@/lib/admin-bookings-types";
+import { adminPath } from "@/lib/admin-url";
 import { formatMoney } from "@/lib/booking-display";
 import { OccupancyBar } from "@/components/admin/OccupancyBar";
 import {
@@ -20,6 +22,33 @@ function formatEventDate(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));
+}
+
+function TransferDestinationNote({ row }: { row: AdminBookingRow }) {
+  if (row.bookingStatus !== "transferred" || !row.transferDestination) {
+    return null;
+  }
+
+  const dest = row.transferDestination;
+
+  return (
+    <div className="mt-2 max-w-[220px] rounded-xl border border-orange-200/80 bg-orange-50/80 px-3 py-2 text-xs text-orange-950">
+      <p className="font-semibold uppercase tracking-[0.05em] text-orange-800/80">
+        Verplaatst naar
+      </p>
+      <p className="mt-1 font-medium">{dest.nameNl}</p>
+      <p className="text-orange-900/75">
+        {dest.city} · {formatEventDate(dest.startsAt)}
+      </p>
+      <Link
+        href={adminPath(`/events/${dest.id}/edit`)}
+        onClick={(e) => e.stopPropagation()}
+        className="mt-1.5 inline-block font-medium text-orange-900 underline-offset-2 hover:underline"
+      >
+        Naar doeltafel
+      </Link>
+    </div>
+  );
 }
 
 export function BookingsTable({
@@ -62,6 +91,7 @@ export function BookingsTable({
           <tbody>
             {rows.map((row, index) => {
               const occupancy = eventOccupancyState(row.event);
+              const isTransferred = row.bookingStatus === "transferred";
               return (
                 <motion.tr
                   key={row.id}
@@ -69,7 +99,9 @@ export function BookingsTable({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: index * 0.02 }}
                   onClick={() => onSelect(row)}
-                  className="group cursor-pointer border-b border-border-subtle/50 transition hover:bg-cream/70"
+                  className={`group cursor-pointer border-b border-border-subtle/50 transition hover:bg-cream/70 ${
+                    isTransferred ? "bg-orange-50/40" : ""
+                  }`}
                 >
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -146,6 +178,7 @@ export function BookingsTable({
                   </td>
                   <td className="px-5 py-4">
                     <BookingStatusPill status={row.bookingStatus} />
+                    <TransferDestinationNote row={row} />
                   </td>
                   <td className="px-5 py-4">
                     <button
@@ -185,7 +218,7 @@ export function BookingsTable({
                 <p className="font-medium text-wine">
                   {row.customerName || row.email}
                 </p>
-                <PaymentStatusPill status={row.paymentStatus} />
+                <BookingStatusPill status={row.bookingStatus} />
               </div>
               <p className="mt-1 text-sm text-wine/70">{row.event.nameNl}</p>
               <p className="mt-1 text-xs text-wine/55">

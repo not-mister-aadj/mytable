@@ -2,7 +2,12 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 
-/** Zet spotsSold gelijk aan som van betaalde boekingen (bron van waarheid). */
+const activeAttendanceWhere = and(
+  eq(bookings.paymentStatus, "paid"),
+  eq(bookings.lifecycleStatus, "active"),
+);
+
+/** Zet spotsSold gelijk aan som van actieve betaalde boekingen (bron van waarheid). */
 export async function reconcileEventSpotsSold(
   eventIds?: string[],
 ): Promise<void> {
@@ -15,12 +20,7 @@ export async function reconcileEventSpotsSold(
           total: sql<number>`coalesce(sum(${bookings.seats}), 0)::int`,
         })
         .from(bookings)
-        .where(
-          and(
-            eq(bookings.eventId, eventId),
-            eq(bookings.paymentStatus, "paid"),
-          ),
-        );
+        .where(and(eq(bookings.eventId, eventId), activeAttendanceWhere));
 
       await db
         .update(events)
@@ -39,7 +39,7 @@ export async function reconcileEventSpotsSold(
       total: sql<number>`coalesce(sum(${bookings.seats}), 0)::int`,
     })
     .from(bookings)
-    .where(eq(bookings.paymentStatus, "paid"))
+    .where(activeAttendanceWhere)
     .groupBy(bookings.eventId);
 
   const paidByEvent = new Map(totals.map((r) => [r.eventId, r.total]));
@@ -65,9 +65,7 @@ export async function paidSeatsForEvent(eventId: string): Promise<number> {
       total: sql<number>`coalesce(sum(${bookings.seats}), 0)::int`,
     })
     .from(bookings)
-    .where(
-      and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid")),
-    );
+    .where(and(eq(bookings.eventId, eventId), activeAttendanceWhere));
   return row?.total ?? 0;
 }
 
@@ -84,10 +82,7 @@ export async function paidSeatsByEventIds(
     })
     .from(bookings)
     .where(
-      and(
-        inArray(bookings.eventId, eventIds),
-        eq(bookings.paymentStatus, "paid"),
-      ),
+      and(inArray(bookings.eventId, eventIds), activeAttendanceWhere),
     )
     .groupBy(bookings.eventId);
 

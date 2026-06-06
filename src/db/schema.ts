@@ -22,6 +22,12 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "refunded",
 ]);
 
+export const bookingLifecycleStatusEnum = pgEnum("booking_lifecycle_status", [
+  "active",
+  "transferred",
+  "removed",
+]);
+
 /** Fixed content per experience format (e.g. all wine tastings share venues) */
 export const experienceTypes = pgTable("experience_types", {
   slug: text("slug").primaryKey(),
@@ -110,6 +116,16 @@ export const bookings = pgTable("bookings", {
   confirmationEmailSentAt: timestamp("confirmation_email_sent_at", {
     withTimezone: true,
   }),
+  lifecycleStatus: bookingLifecycleStatusEnum("lifecycle_status")
+    .notNull()
+    .default("active"),
+  transferredToEventId: uuid("transferred_to_event_id").references(
+    () => events.id,
+  ),
+  transferredToBookingId: uuid("transferred_to_booking_id"),
+  transferredFromBookingId: uuid("transferred_from_booking_id"),
+  transferredAt: timestamp("transferred_at", { withTimezone: true }),
+  transferredBy: text("transferred_by"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

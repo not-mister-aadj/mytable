@@ -1,6 +1,7 @@
 import type { Booking, Event } from "@/db/schema";
 
 export type AdminPaymentStatus = Booking["paymentStatus"];
+export type AdminLifecycleStatus = Booking["lifecycleStatus"];
 
 export type AdminBookingEvent = {
   id: string;
@@ -18,6 +19,23 @@ export type AdminBookingEvent = {
   workflowStatus: Event["workflowStatus"];
 };
 
+export type AdminBookingTimelineEntry = {
+  id: string;
+  label: string;
+  at: string;
+  by?: string;
+  tone: "neutral" | "success" | "warning" | "danger";
+};
+
+export type AdminOperationalStatus =
+  | "confirmed"
+  | "completed"
+  | "transferred"
+  | "removed"
+  | "pending"
+  | "failed"
+  | "refunded";
+
 export type AdminBookingRow = {
   id: string;
   reservationCode: string;
@@ -27,6 +45,7 @@ export type AdminBookingRow = {
   amountCents: number;
   currency: string;
   paymentStatus: AdminPaymentStatus;
+  lifecycleStatus: AdminLifecycleStatus;
   locale: string;
   dietaryNotes: string | null;
   adminNotes: string | null;
@@ -34,13 +53,18 @@ export type AdminBookingRow = {
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
   event: AdminBookingEvent;
+  /** Where this guest was moved to (for transferred rows on the source event). */
+  transferDestination: AdminBookingEvent | null;
+  transferredAt: string | null;
+  transferredBy: string | null;
   guestInitials: string;
   isReturningGuest: boolean;
   previousPaidCount: number;
   isGroup: boolean;
   isSolo: boolean;
   guestInsight: string | null;
-  bookingStatus: "confirmed" | "completed" | "pending" | "failed" | "refunded";
+  bookingStatus: AdminOperationalStatus;
+  timeline: AdminBookingTimelineEntry[];
 };
 
 export type AdminBookingsKpi = {

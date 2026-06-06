@@ -236,20 +236,75 @@ export function BookingDetailDrawer({
 
                 <DetailSection title="Tijdlijn">
                   <ol className="space-y-3 border-l border-border-subtle pl-4">
-                    <li className="relative text-sm text-wine/75">
-                      <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-burgundy" />
-                      Reservering aangemaakt · {formatDateTime(booking.createdAt)}
-                    </li>
-                    <li className="relative text-sm text-wine/75">
-                      <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                      Betaling · {booking.paymentStatus}
-                    </li>
-                    <li className="relative text-sm text-wine/75">
-                      <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-gold" />
-                      Tafel · {formatDateTime(booking.event.startsAt)}
-                    </li>
+                    {booking.timeline.length > 0 ? (
+                      booking.timeline.map((entry) => (
+                        <li
+                          key={entry.id}
+                          className="relative text-sm text-wine/75"
+                        >
+                          <span
+                            className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ${
+                              entry.tone === "success"
+                                ? "bg-emerald-500"
+                                : entry.tone === "warning"
+                                  ? "bg-orange-500"
+                                  : entry.tone === "danger"
+                                    ? "bg-red-500"
+                                    : "bg-burgundy"
+                            }`}
+                          />
+                          <p>{entry.label}</p>
+                          <p className="mt-0.5 text-xs text-wine/50">
+                            {entry.at}
+                            {entry.by ? ` · ${entry.by}` : ""}
+                          </p>
+                        </li>
+                      ))
+                    ) : (
+                      <>
+                        <li className="relative text-sm text-wine/75">
+                          <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-burgundy" />
+                          Reservering aangemaakt · {formatDateTime(booking.createdAt)}
+                        </li>
+                        <li className="relative text-sm text-wine/75">
+                          <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                          Betaling · {booking.paymentStatus}
+                        </li>
+                      </>
+                    )}
                   </ol>
                 </DetailSection>
+
+                {booking.transferDestination ? (
+                  <DetailSection title="Verplaatsing">
+                    <div className="rounded-2xl border border-orange-200/80 bg-orange-50/70 p-4 text-sm text-orange-950">
+                      <p className="font-semibold">Verplaatst naar</p>
+                      <p className="mt-1 font-medium">
+                        {booking.transferDestination.nameNl}
+                      </p>
+                      <p className="text-orange-900/75">
+                        {booking.transferDestination.city} ·{" "}
+                        {formatDateTime(booking.transferDestination.startsAt)}
+                      </p>
+                      {booking.transferredBy ? (
+                        <p className="mt-2 text-xs text-orange-900/65">
+                          Door {booking.transferredBy}
+                          {booking.transferredAt
+                            ? ` · ${formatDateTime(booking.transferredAt)}`
+                            : ""}
+                        </p>
+                      ) : null}
+                      <Link
+                        href={adminPath(
+                          `/events/${booking.transferDestination.id}/edit`,
+                        )}
+                        className="mt-3 inline-block font-medium text-orange-900 underline-offset-2 hover:underline"
+                      >
+                        Naar doeltafel
+                      </Link>
+                    </div>
+                  </DetailSection>
+                ) : null}
 
                 {history.length > 0 ? (
                   <DetailSection title="Eerdere boekingen">

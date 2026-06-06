@@ -53,7 +53,7 @@ export async function sendBookingConfirmationEmail(
     return { ok: false, error: "Email not configured" };
   }
 
-  const { html, text, attachments } = await renderEmailForDelivery(
+  const { html, text } = await renderEmailForDelivery(
     BookingConfirmationEmail(props),
   );
 
@@ -65,7 +65,6 @@ export async function sendBookingConfirmationEmail(
     headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
-    attachments,
   });
 
   if (error) {

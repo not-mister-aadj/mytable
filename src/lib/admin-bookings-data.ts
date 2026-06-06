@@ -1,12 +1,18 @@
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, ne } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { reservationCode } from "@/lib/booking-display";
+import {
+  isActiveAttendance,
+  resolveOperationalBookingStatus,
+} from "@/lib/booking-lifecycle";
+import { appendCreatedTimelineEntries } from "@/lib/booking-timeline";
 import {
   paidSeatsByEventIds,
   reconcileEventSpotsSold,
 } from "@/lib/reconcile-spots-sold";
 import type {
+  AdminBookingEvent,
   AdminBookingRow,
   AdminBookingsPageData,
 } from "@/lib/admin-bookings-types";
@@ -40,6 +46,27 @@ function guestInsightLabel(row: {
   return "Eerste keer";
 }
 
+function mapEvent(
+  event: typeof events.$inferSelect,
+  spotsSold: number,
+): AdminBookingEvent {
+  return {
+    id: event.id,
+    nameNl: event.nameNl,
+    nameEn: event.nameEn,
+    slug: event.slug,
+    city: event.city,
+    startsAt: event.startsAt.toISOString(),
+    endsAt: event.endsAt?.toISOString() ?? null,
+    capacity: event.capacity,
+    spotsSold,
+    femaleOnly: event.femaleOnly,
+    experienceType: event.experienceType,
+    imageUrl: event.imageUrl,
+    workflowStatus: event.workflowStatus,
+  };
+}
+
 export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData> {
   const db = getDb();
   const now = new Date();
@@ -68,15 +95,44 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
     .select({ booking: bookings, event: events })
     .from(bookings)
     .innerJoin(events, eq(bookings.eventId, events.id))
-    .where(eq(bookings.paymentStatus, "paid"))
+    .where(ne(bookings.paymentStatus, "failed"))
     .orderBy(desc(bookings.createdAt))
     .limit(500);
 
   const eventIds = [...new Set(rows.map(({ event }) => event.id))];
   const paidSeatsMap = await paidSeatsByEventIds(eventIds);
 
+  const transferDestIds = [
+    ...new Set(
+      rows
+        .map(({ booking }) => booking.transferredToEventId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const transferDestEvents =
+    transferDestIds.length > 0
+      ? await db
+          .select()
+          .from(events)
+          .where(inArray(events.id, transferDestIds))
+      : [];
+
+  const transferDestById = new Map(transferDestEvents.map((e) => [e.id, e]));
+  const transferDestSpots = await paidSeatsByEventIds(transferDestIds);
+
+  const bookingIds = rows.map(({ booking }) => booking.id);
+  const createdAtById = new Map(
+    rows.map(({ booking }) => [booking.id, booking.createdAt.toISOString()]),
+  );
+  const timelineByBooking = await appendCreatedTimelineEntries(
+    bookingIds,
+    createdAtById,
+  );
+
   const paidByEmail = new Map<string, number>();
   for (const { booking } of rows) {
+    if (booking.paymentStatus !== "paid") continue;
     paidByEmail.set(booking.email, (paidByEmail.get(booking.email) ?? 0) + 1);
   }
 
@@ -92,23 +148,33 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
     const isReturningGuest = previousPaidCount > 0;
     const isGroup = booking.seats > 1;
     const isSolo = booking.seats === 1;
-    const confirmedSeats = paidSeatsMap.get(event.id) ?? booking.seats;
+    const confirmedSeats = paidSeatsMap.get(event.id) ?? 0;
 
-    if (booking.createdAt >= weekAgo) {
-      revenueThisWeekCents += booking.amountCents;
-    }
-    if (
-      event.startsAt >= tomorrowStart &&
-      event.startsAt < tomorrowEnd
-    ) {
-      guestsArrivingTomorrow += booking.seats;
-    }
-    if (event.startsAt.getTime() > now.getTime()) {
-      upcomingGuests += booking.seats;
+    if (isActiveAttendance(booking)) {
+      if (booking.createdAt >= weekAgo) {
+        revenueThisWeekCents += booking.amountCents;
+      }
+      if (
+        event.startsAt >= tomorrowStart &&
+        event.startsAt < tomorrowEnd
+      ) {
+        guestsArrivingTomorrow += booking.seats;
+      }
+      if (event.startsAt.getTime() > now.getTime()) {
+        upcomingGuests += booking.seats;
+      }
     }
 
-    const bookingStatus =
-      event.startsAt.getTime() > now.getTime() ? "confirmed" : "completed";
+    const bookingStatus = resolveOperationalBookingStatus({
+      paymentStatus: booking.paymentStatus,
+      lifecycleStatus: booking.lifecycleStatus,
+      eventStartsAt: event.startsAt,
+      now,
+    });
+
+    const destEvent = booking.transferredToEventId
+      ? transferDestById.get(booking.transferredToEventId)
+      : undefined;
 
     return {
       id: booking.id,
@@ -119,27 +185,22 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       amountCents: booking.amountCents,
       currency: booking.currency,
       paymentStatus: booking.paymentStatus,
+      lifecycleStatus: booking.lifecycleStatus,
       locale: booking.locale,
       dietaryNotes: booking.dietaryNotes,
       adminNotes: booking.adminNotes,
       createdAt: booking.createdAt.toISOString(),
       stripeCheckoutSessionId: booking.stripeCheckoutSessionId,
       stripePaymentIntentId: booking.stripePaymentIntentId,
-      event: {
-        id: event.id,
-        nameNl: event.nameNl,
-        nameEn: event.nameEn,
-        slug: event.slug,
-        city: event.city,
-        startsAt: event.startsAt.toISOString(),
-        endsAt: event.endsAt?.toISOString() ?? null,
-        capacity: event.capacity,
-        spotsSold: confirmedSeats,
-        femaleOnly: event.femaleOnly,
-        experienceType: event.experienceType,
-        imageUrl: event.imageUrl,
-        workflowStatus: event.workflowStatus,
-      },
+      event: mapEvent(event, confirmedSeats),
+      transferDestination: destEvent
+        ? mapEvent(
+            destEvent,
+            transferDestSpots.get(destEvent.id) ?? 0,
+          )
+        : null,
+      transferredAt: booking.transferredAt?.toISOString() ?? null,
+      transferredBy: booking.transferredBy,
       guestInitials: guestInitials(booking.customerName, booking.email),
       isReturningGuest,
       previousPaidCount,
@@ -147,11 +208,13 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       isSolo,
       bookingStatus,
       guestInsight: guestInsightLabel({ isReturningGuest, isGroup, isSolo }),
+      timeline: timelineByBooking.get(booking.id) ?? [],
     };
   });
 
   const upcomingPaidSeats = new Map<string, number>();
   for (const row of enriched) {
+    if (!isActiveAttendance(row)) continue;
     if (new Date(row.event.startsAt).getTime() <= now.getTime()) continue;
     upcomingPaidSeats.set(
       row.event.id,

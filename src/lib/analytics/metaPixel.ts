@@ -195,7 +195,7 @@ const PURCHASE_MAX_ATTEMPTS = 40;
 export function purchase(
   params: MetaPurchaseParams,
   attempt = 0,
-): void {
+): boolean {
   initMetaPixel();
 
   if (hasPurchaseBeenTracked(params.booking_id)) {
@@ -204,7 +204,7 @@ export function purchase(
         `[Meta Pixel] Purchase skipped (duplicate) for ${params.booking_id}`,
       );
     }
-    return;
+    return true;
   }
 
   if (!canTrack()) {
@@ -213,7 +213,7 @@ export function purchase(
     } else if (isDebugMode()) {
       console.warn("[Meta Pixel] Purchase not sent — pixel not ready");
     }
-    return;
+    return false;
   }
 
   const eventId = metaPurchaseEventId(params.booking_id);
@@ -233,6 +233,7 @@ export function purchase(
   window.fbq!("track", "Purchase", payload, { eventID: eventId });
   logMetaEvent("Purchase", { ...payload, event_id: eventId });
   markPurchaseTracked(params.booking_id);
+  return true;
 }
 
 export function lead(params: MetaLeadParams): void {

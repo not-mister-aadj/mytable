@@ -30,7 +30,9 @@ function handleAdminSubdomain(request: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     const stripped = pathname.slice("/admin".length) || "/";
-    return NextResponse.redirect(new URL(stripped, request.url));
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = stripped;
+    return NextResponse.redirect(redirectUrl);
   }
 
   const rewritePath = pathname === "/" ? "/admin" : `/admin${pathname}`;
@@ -82,23 +84,27 @@ export async function middleware(request: NextRequest) {
 
   if (explicit === "en") {
     const suffix = pathname.slice(3) || "";
-    return NextResponse.rewrite(
-      new URL(`/en${suffix || ""}`, request.url),
-    );
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/en${suffix || ""}`;
+    return NextResponse.rewrite(rewriteUrl);
   }
 
   if (explicit === "nl") {
     const suffix = pathname.slice(3) || "";
     const visible = suffix || "/";
     if (visible !== pathname) {
-      return NextResponse.redirect(new URL(visible, request.url));
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = visible;
+      return NextResponse.redirect(redirectUrl);
     }
-    return NextResponse.rewrite(new URL(`/nl${suffix || ""}`, request.url));
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/nl${suffix || ""}`;
+    return NextResponse.rewrite(rewriteUrl);
   }
 
-  return NextResponse.rewrite(
-    new URL(`/${defaultLocale}${pathname}`, request.url),
-  );
+  const rewriteUrl = request.nextUrl.clone();
+  rewriteUrl.pathname = `/${defaultLocale}${pathname}`;
+  return NextResponse.rewrite(rewriteUrl);
 }
 
 export const config = {

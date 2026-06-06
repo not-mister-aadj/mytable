@@ -30,7 +30,14 @@ export async function getConfirmationPurchase(
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   const bookingId = session.metadata?.booking_id;
 
-  if (!bookingId || session.status !== "complete") {
+  if (!bookingId) {
+    return null;
+  }
+
+  const sessionReady =
+    session.status === "complete" || session.payment_status === "paid";
+
+  if (!sessionReady) {
     return null;
   }
 

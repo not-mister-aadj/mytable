@@ -8,12 +8,17 @@ import { trackGoogleAdsPurchase } from "@/lib/analytics/googleAds";
 
 type Props = {
   initial: ConfirmationPurchaseData | null;
-  sessionId: string;
   locale: Locale;
 };
 
 const POLL_MS = 2000;
 const POLL_MAX = 45;
+
+function getSessionIdFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const id = new URLSearchParams(window.location.search).get("session_id")?.trim();
+  return id?.startsWith("cs_") ? id : null;
+}
 
 function fireConversion(data: ConfirmationPurchaseData): void {
   trackGoogleAdsPurchase({
@@ -26,13 +31,15 @@ function fireConversion(data: ConfirmationPurchaseData): void {
 /** Fires Google Ads purchase conversion with value on the confirmation page. */
 export function GoogleAdsConfirmationConversion({
   initial,
-  sessionId,
   locale,
 }: Props) {
   const conversionFired = useRef(false);
 
   useEffect(() => {
     if (!isGoogleAdsConfigured()) return;
+
+    const sessionId = getSessionIdFromUrl();
+    if (!sessionId) return;
 
     function tryFire(data: ConfirmationPurchaseData) {
       if (conversionFired.current) return;
@@ -76,7 +83,7 @@ export function GoogleAdsConfirmationConversion({
     return () => {
       cancelled = true;
     };
-  }, [initial, sessionId, locale]);
+  }, [initial, locale]);
 
   return null;
 }

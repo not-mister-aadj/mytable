@@ -96,8 +96,8 @@ export function trackMetaPurchasePayload(data: {
   experienceType: string;
   city: string;
   seats: number;
-}): void {
-  purchase({
+}): boolean {
+  return purchase({
     value: data.value,
     currency: data.currency,
     content_name: data.contentName,

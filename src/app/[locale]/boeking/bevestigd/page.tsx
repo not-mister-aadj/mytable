@@ -3,7 +3,10 @@ import { Header } from "@/components/Header";
 import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import { GoogleAdsConfirmationConversion } from "@/components/booking/GoogleAdsConfirmationConversion";
-import { MetaConfirmationPurchase } from "@/components/booking/MetaConfirmationPurchase";
+import {
+  ConfirmationPurchaseEmbed,
+  MetaConfirmationPurchase,
+} from "@/components/booking/MetaConfirmationPurchase";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
@@ -40,21 +43,16 @@ export default async function BookingConfirmedPage({
 
   return (
     <>
+      {purchase ? <ConfirmationPurchaseEmbed data={purchase} /> : null}
       <Header dict={dict.header} locale={locale} />
-      {sessionId ? (
-        <>
-          <MetaConfirmationPurchase
-            initial={purchase}
-            sessionId={sessionId}
-            locale={locale as Locale}
-          />
-          <GoogleAdsConfirmationConversion
-            initial={purchase}
-            sessionId={sessionId}
-            locale={locale as Locale}
-          />
-        </>
-      ) : null}
+      <MetaConfirmationPurchase
+        initial={purchase}
+        locale={locale as Locale}
+      />
+      <GoogleAdsConfirmationConversion
+        initial={purchase}
+        locale={locale as Locale}
+      />
       <BookingOutcomeTracker
         variant="success"
         locale={locale as Locale}

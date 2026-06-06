@@ -1,6 +1,12 @@
 import { createHash } from "crypto";
 import type { ExperienceItem } from "@/i18n/types";
+import {
+  inferPageType as inferAnalyticsPageType,
+  type AnalyticsPageType,
+} from "@/lib/analytics/inferPageType";
 import type { PageType } from "@/lib/posthog/events";
+
+export type { AnalyticsPageType };
 
 export type AnalyticsProperties = Record<
   string,
@@ -56,20 +62,7 @@ export function buildExperienceProperties(
 }
 
 export function inferPageType(pathname: string): PageType {
-  const path = pathname.replace(/^\/(nl|en)/, "") || "/";
-  if (path === "/" || path === "") return "home";
-  if (path === "/agenda") return "agenda";
-  if (path.startsWith("/agenda/")) return "event_detail";
-  if (path.startsWith("/boeking/bevestigd")) return "success";
-  if (path.startsWith("/boeking/geannuleerd")) return "failed";
-  if (
-    path.includes("privacy") ||
-    path.includes("terms") ||
-    path.includes("algemene-voorwaarden")
-  ) {
-    return "legal";
-  }
-  return "other";
+  return inferAnalyticsPageType(pathname) as PageType;
 }
 
 export function getDeviceType(userAgent: string): string {

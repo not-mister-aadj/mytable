@@ -4,10 +4,33 @@ import type { ExperienceItem } from "@/i18n/types";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 import {
   initiateCheckout,
+  landingPageView,
   lead,
+  pageView,
   purchase,
   viewContent,
 } from "@/lib/analytics/metaPixel";
+import { inferPageType } from "@/lib/analytics/inferPageType";
+
+export function trackMetaPageView(pathname: string): void {
+  const pageType = inferPageType(pathname);
+
+  if (pageType === "event_detail") {
+    // ViewContent fires from ExperiencePageContent — avoids double-counting PageView.
+    return;
+  }
+
+  if (pageType === "home" || pageType === "agenda") {
+    landingPageView(pathname, pageType);
+    return;
+  }
+
+  pageView({
+    page_type: pageType,
+    page_path: pathname,
+    page_category: "other",
+  });
+}
 
 function eventContentId(experience: ExperienceItem): string {
   const id = experience.eventDbId ?? experience.id;
@@ -26,6 +49,9 @@ export function trackMetaViewContent(
     city: experience.city,
     value: experience.price,
     currency: "EUR",
+    page_path: experience.slug
+      ? `/${locale}/agenda/${experience.slug}`
+      : undefined,
   });
 }
 

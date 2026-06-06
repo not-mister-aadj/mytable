@@ -2,8 +2,9 @@
 # Usage: fill NEXT_PUBLIC_META_PIXEL_ID and META_CAPI_ACCESS_TOKEN in .env.local, then:
 #   powershell -ExecutionPolicy Bypass -File scripts/set-meta-vercel-env.ps1
 
-$envFile = Join-Path $PSScriptRoot ".." ".env.local" | Resolve-Path -ErrorAction SilentlyContinue
-if (-not $envFile) {
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$envFile = Join-Path $root ".env.local"
+if (-not (Test-Path $envFile)) {
   Write-Error ".env.local not found. Add NEXT_PUBLIC_META_PIXEL_ID and META_CAPI_ACCESS_TOKEN first."
   exit 1
 }

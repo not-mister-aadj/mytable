@@ -36,6 +36,7 @@ export type MetaViewContentParams = {
   city: string;
   value: number;
   currency: string;
+  page_path?: string;
 };
 
 export type MetaInitiateCheckoutParams = {
@@ -93,6 +94,7 @@ function logMetaEvent(event: string, params?: Record<string, unknown>): void {
 }
 
 function track(event: string, params?: Record<string, unknown>): void {
+  initMetaPixel();
   if (!canTrack()) return;
   const payload = params ? withUtm(params) : withUtm({});
   window.fbq!("track", event, payload);
@@ -129,17 +131,39 @@ export function initMetaPixel(): void {
   logMetaEvent("init", { pixel_id: pixelId });
 }
 
-export function pageView(): void {
+
+export function pageView(params?: Record<string, unknown>): void {
+  initMetaPixel();
   if (!canTrack()) return;
-  window.fbq!("track", "PageView");
-  logMetaEvent("PageView");
+  const payload = params ? withUtm(params) : withUtm({});
+  window.fbq!("track", "PageView", payload);
+  logMetaEvent("PageView", payload);
+}
+
+/** Homepage + agenda — distinct from event detail (ViewContent). */
+export function landingPageView(pathname: string, pageType: "home" | "agenda"): void {
+  const params = withUtm({
+    page_type: pageType,
+    page_path: pathname,
+    page_category: "landing",
+  });
+  initMetaPixel();
+  if (!canTrack()) return;
+  window.fbq!("trackCustom", "LandingPageView", params);
+  window.fbq!("track", "PageView", params);
+  logMetaEvent("LandingPageView", params);
 }
 
 export function viewContent(params: MetaViewContentParams): void {
-  track("ViewContent", params);
+  track("ViewContent", {
+    ...params,
+    page_type: "event_detail",
+    page_category: "event",
+  });
 }
 
 export function initiateCheckout(params: MetaInitiateCheckoutParams): void {
+  initMetaPixel();
   if (!canTrack()) return;
   const payload = withUtm({
     content_name: params.content_name,
@@ -165,7 +189,15 @@ export function initiateCheckout(params: MetaInitiateCheckoutParams): void {
   logMetaEvent("InitiateCheckout", payload);
 }
 
-export function purchase(params: MetaPurchaseParams): void {
+const PURCHASE_RETRY_MS = 100;
+const PURCHASE_MAX_ATTEMPTS = 20;
+
+export function purchase(
+  params: MetaPurchaseParams,
+  attempt = 0,
+): void {
+  initMetaPixel();
+
   if (hasPurchaseBeenTracked(params.booking_id)) {
     if (isDebugMode()) {
       console.log(
@@ -175,14 +207,25 @@ export function purchase(params: MetaPurchaseParams): void {
     return;
   }
 
+  if (!canTrack()) {
+    if (attempt < PURCHASE_MAX_ATTEMPTS) {
+      setTimeout(() => purchase(params, attempt + 1), PURCHASE_RETRY_MS);
+    } else if (isDebugMode()) {
+      console.warn("[Meta Pixel] Purchase not sent — pixel not ready");
+    }
+    return;
+  }
+
   const eventId = metaPurchaseEventId(params.booking_id);
   const payload = withUtm({
     value: params.value,
     currency: params.currency,
     content_name: params.content_name,
+    content_type: "product",
     event_type: params.event_type,
     city: params.city,
     seats: params.seats,
+    num_items: params.seats,
     booking_id: params.booking_id,
     content_ids: params.content_ids,
   });
@@ -193,6 +236,7 @@ export function purchase(params: MetaPurchaseParams): void {
 }
 
 export function lead(params: MetaLeadParams): void {
+  initMetaPixel();
   if (!canTrack()) return;
   const payload = withUtm({
     source: params.source,

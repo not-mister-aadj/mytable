@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import type { Locale } from "@/i18n/config";
 import type { ConfirmationPurchaseData } from "@/lib/analytics/confirmationPurchase";
-import { isMetaPixelConfigured } from "@/lib/analytics/metaConfig";
+import { isMetaPixelEnabled } from "@/lib/analytics/metaConfig";
 import { hasPurchaseBeenTracked } from "@/lib/analytics/metaPixel";
 import { trackMetaPurchasePayload } from "@/lib/analytics/metaTracking";
 
@@ -54,7 +54,7 @@ function tryFirePurchase(data: ConfirmationPurchaseData): boolean {
 /** Fires Meta Purchase on the booking confirmation page (primary conversion point). */
 export function MetaConfirmationPurchase({ initial, locale }: Props) {
   useEffect(() => {
-    if (!isMetaPixelConfigured()) return;
+    if (!isMetaPixelEnabled()) return;
 
     const sessionId = getSessionIdFromUrl();
     if (!sessionId) {

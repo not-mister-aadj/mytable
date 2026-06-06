@@ -4,6 +4,7 @@ import { hasMetaPixelConsent } from "@/lib/analytics/metaConsent";
 import {
   getMetaPixelId,
   isMetaPixelConfigured,
+  isMetaPixelEnabled,
 } from "@/lib/analytics/metaConfig";
 import {
   metaInitiateCheckoutEventId,
@@ -69,7 +70,7 @@ export type MetaLeadParams = {
 
 const PURCHASE_STORAGE_PREFIX = "mytable_meta_purchase_";
 
-export { getMetaPixelId, isMetaPixelConfigured };
+export { getMetaPixelId, isMetaPixelConfigured, isMetaPixelEnabled };
 
 function isDebugMode(): boolean {
   return process.env.NODE_ENV === "development";
@@ -78,7 +79,7 @@ function isDebugMode(): boolean {
 function canTrack(): boolean {
   return (
     typeof window !== "undefined" &&
-    isMetaPixelConfigured() &&
+    isMetaPixelEnabled() &&
     hasMetaPixelConsent() &&
     typeof window.fbq === "function"
   );
@@ -102,7 +103,7 @@ function track(event: string, params?: Record<string, unknown>): void {
 }
 
 export function initMetaPixel(): void {
-  if (typeof window === "undefined" || !isMetaPixelConfigured()) return;
+  if (typeof window === "undefined" || !isMetaPixelEnabled()) return;
   if (typeof window.fbq === "function") return;
 
   const pixelId = getMetaPixelId();

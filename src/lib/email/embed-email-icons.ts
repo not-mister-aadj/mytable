@@ -1,27 +1,28 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { emailIcons, type EmailIconName } from "@/emails/icons";
+import {
+  emailIconPngBase64,
+  type EmailIconDataName,
+} from "@/emails/icon-data";
+import { emailIconVariants } from "@/emails/icon-urls";
 
 export type InlineEmailIconAttachment = {
   filename: string;
-  content: Buffer;
+  /** Resend API expects base64-encoded content, not a Buffer object. */
+  content: string;
   contentType: "image/png";
   contentId: string;
 };
 
-/** Replace icon URLs with cid: refs and attach PNG bytes (Gmail-safe, no external hosting). */
+/** Replace icon URLs with cid: refs and attach PNG bytes (works on Vercel, no filesystem). */
 export async function embedEmailIcons(html: string): Promise<{
   html: string;
   attachments: InlineEmailIconAttachment[];
 }> {
-  const iconDir = join(process.cwd(), "public", "email", "icons");
   const attachments: InlineEmailIconAttachment[] = [];
   let output = html;
 
-  for (const name of Object.keys(emailIcons) as EmailIconName[]) {
-    const url = emailIcons[name];
+  for (const name of Object.keys(emailIconPngBase64) as EmailIconDataName[]) {
     const contentId = `mt-${name}`;
-    const content = await readFile(join(iconDir, `${name}.png`));
+    const content = emailIconPngBase64[name];
 
     attachments.push({
       filename: `${name}.png`,
@@ -30,7 +31,9 @@ export async function embedEmailIcons(html: string): Promise<{
       contentId,
     });
 
-    output = output.split(url).join(`cid:${contentId}`);
+    for (const url of emailIconVariants(name)) {
+      output = output.split(url).join(`cid:${contentId}`);
+    }
   }
 
   return { html: output, attachments };

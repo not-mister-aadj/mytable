@@ -9,18 +9,19 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const host = requestUrl.host;
   const proto = requestUrl.protocol.replace(":", "");
-
-  const { searchParams } = requestUrl;
-  const code = searchParams.get("code");
+  const code = requestUrl.searchParams.get("code");
 
   if (!code) {
     return NextResponse.redirect(adminUrlForHost("/login?error=auth", host, proto));
   }
 
   const cookieStore = await cookies();
-  clearStaleSupabaseAuthCookies(cookieStore.getAll(), (name) =>
-    cookieStore.delete(name),
-  );
+  const successRedirect = adminPostLoginUrl(host, proto, null);
+  let response = NextResponse.redirect(successRedirect);
+
+  clearStaleSupabaseAuthCookies(cookieStore.getAll(), (name) => {
+    response.cookies.set(name, "", { maxAge: 0, path: "/" });
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,9 +32,9 @@ export async function GET(request: Request) {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
         },
       },
     },
@@ -46,15 +47,28 @@ export async function GET(request: Request) {
   }
 
   if (!isAdminEmail(data.user.email)) {
-    await supabase.auth.signOut();
-    const devEmail =
-      process.env.NODE_ENV === "development"
-        ? `&email=${encodeURIComponent(data.user.email)}`
-        : "";
-    return NextResponse.redirect(
-      adminUrlForHost(`/login?error=unauthorized${devEmail}`, host, proto),
+    let unauthorizedResponse = NextResponse.redirect(
+      adminUrlForHost("/login?error=unauthorized", host, proto),
     );
+    const signOutClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              unauthorizedResponse.cookies.set(name, value, options);
+            });
+          },
+        },
+      },
+    );
+    await signOutClient.auth.signOut();
+    return unauthorizedResponse;
   }
 
-  return NextResponse.redirect(adminPostLoginUrl(host, proto, null));
+  return response;
 }

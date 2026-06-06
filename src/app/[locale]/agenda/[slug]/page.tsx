@@ -125,7 +125,7 @@ export default async function ExperienceDetailPage({ params }: Props) {
           eventVenues={eventVenues}
           routePoints={routePoints}
         />
-        <NewsletterCTA dict={dict.newsletter} />
+        <NewsletterCTA dict={dict.newsletter} locale={locale} />
       </main>
       <Footer dict={dict.footer} locale={locale} />
     </>

@@ -299,6 +299,7 @@ export interface Dictionary {
     cityLabel: string;
     cta: string;
     success: string;
+    error: string;
     cities: string[];
   };
   faq: {

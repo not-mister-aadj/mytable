@@ -1,20 +1,52 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { Button } from "./ui/Button";
 import { SectionHeading } from "./ui/SectionHeading";
+import { captureClientEvent } from "@/lib/posthog/client";
+import { PostHogEvents } from "@/lib/posthog/events";
 
 interface NewsletterSignupProps {
   dict: Dictionary["newsletter"];
+  locale: Locale;
 }
 
-export function NewsletterSignup({ dict }: NewsletterSignupProps) {
+export function NewsletterSignup({ dict, locale }: NewsletterSignupProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    setIsSubmitting(true);
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const email = String(data.get("email") ?? "").trim();
+    const city = String(data.get("city") ?? "").trim();
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, city, locale }),
+      });
+
+      if (!res.ok) {
+        setError(dict.error);
+        return;
+      }
+
+      captureClientEvent(PostHogEvents.waitlistSignup, { city, locale });
+      setSubmitted(true);
+    } catch {
+      setError(dict.error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -47,8 +79,9 @@ export function NewsletterSignup({ dict }: NewsletterSignupProps) {
                     name="email"
                     type="email"
                     required
+                    disabled={isSubmitting}
                     placeholder={dict.emailPlaceholder}
-                    className="w-full rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream placeholder:text-cream/50 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                    className="w-full rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream placeholder:text-cream/50 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30 disabled:opacity-60"
                   />
                 </div>
                 <div className="flex-1 text-left sm:max-w-[180px]">
@@ -59,8 +92,9 @@ export function NewsletterSignup({ dict }: NewsletterSignupProps) {
                     id="city"
                     name="city"
                     required
+                    disabled={isSubmitting}
                     defaultValue={dict.cities[0]}
-                    className="w-full appearance-none rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                    className="w-full appearance-none rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30 disabled:opacity-60"
                   >
                     {dict.cities.map((city) => (
                       <option key={city} value={city} className="text-wine">
@@ -72,10 +106,15 @@ export function NewsletterSignup({ dict }: NewsletterSignupProps) {
                 <Button
                   type="submit"
                   variant="secondary"
-                  className="shrink-0 bg-cream text-burgundy hover:bg-beige"
+                  className={`shrink-0 bg-cream text-burgundy hover:bg-beige ${isSubmitting ? "pointer-events-none opacity-60" : ""}`}
                 >
-                  {dict.cta}
+                  {isSubmitting ? "…" : dict.cta}
                 </Button>
+                {error ? (
+                  <p className="w-full text-sm text-gold sm:col-span-3" role="alert">
+                    {error}
+                  </p>
+                ) : null}
               </form>
             )}
           </div>

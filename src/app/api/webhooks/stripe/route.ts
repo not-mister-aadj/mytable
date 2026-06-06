@@ -3,6 +3,8 @@ import { eq, sql, and } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
+import { captureServerEvent } from "@/lib/posthog/server";
+import { PostHogEvents } from "@/lib/posthog/events";
 import { getStripe } from "@/lib/stripe";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 
@@ -120,6 +122,16 @@ export async function POST(request: Request) {
     });
 
     revalidateEventPaths(updated.ev.slug);
+
+    void captureServerEvent(updated.booking.email, PostHogEvents.bookingPaid, {
+      booking_id: updated.booking.id,
+      event_id: updated.ev.id,
+      event_slug: updated.ev.slug,
+      city: updated.ev.city,
+      seats: updated.booking.seats,
+      amount_cents: updated.booking.amountCents,
+      locale: updated.booking.locale,
+    });
 
     try {
       await sendBookingConfirmationForPaidBooking(updated.booking, updated.ev);

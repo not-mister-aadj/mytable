@@ -209,6 +209,7 @@ export const nl: Dictionary = {
     cta: "Op de lijst",
     success:
       "Bedankt. Je staat op de lijst. We nemen contact op zodra de volgende tafel in jouw stad opent.",
+    error: "Aanmelden mislukt. Probeer het later opnieuw.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
   },
   faq: {

@@ -63,7 +63,7 @@ export default async function Home({ params }: Props) {
         <VenueDiscovery dict={dict.venueDiscovery} />
         <Testimonials dict={dict.testimonials} locale={locale} />
         <VenueCTA dict={dict.venueCta} />
-        <NewsletterSignup dict={dict.newsletter} />
+        <NewsletterSignup dict={dict.newsletter} locale={locale} />
         <FAQ dict={dict.faq} />
       </main>
       <Footer dict={dict.footer} locale={locale} />

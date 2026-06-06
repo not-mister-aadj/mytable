@@ -8,6 +8,7 @@ const COPY_ORDER = [
   "events",
   "bookings",
   "booking_events",
+  "waitlist_signups",
 ] as const;
 
 async function copyTable(
@@ -56,7 +57,8 @@ export async function syncDevFromProd(): Promise<void> {
         bookings,
         events,
         venues,
-        experience_types
+        experience_types,
+        waitlist_signups
       RESTART IDENTITY CASCADE
     `);
 

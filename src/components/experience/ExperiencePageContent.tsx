@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
@@ -26,6 +26,8 @@ import { ScrollProgress } from "./ScrollProgress";
 import { SocialAtmosphere } from "./SocialAtmosphere";
 import { VenueLineup } from "./VenueLineup";
 import { WhatToExpect } from "./WhatToExpect";
+import { captureClientEvent } from "@/lib/posthog/client";
+import { PostHogEvents } from "@/lib/posthog/events";
 
 const fade = {
   initial: { opacity: 0, y: 16 },
@@ -74,6 +76,23 @@ export function ExperiencePageContent({
       venues.map((v) => v.name),
     );
   const stickySentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (previewMode) return;
+    captureClientEvent(PostHogEvents.eventPageViewed, {
+      event_slug: experience.slug,
+      event_id: experience.eventDbId ?? experience.id,
+      city: experience.city,
+      locale,
+    });
+  }, [
+    experience.slug,
+    experience.eventDbId,
+    experience.id,
+    experience.city,
+    locale,
+    previewMode,
+  ]);
 
   return (
     <>

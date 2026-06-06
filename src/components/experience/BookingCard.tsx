@@ -16,6 +16,8 @@ import {
 import { splitDateTime } from "@/lib/experience-detail";
 import { resolveFemaleOnly } from "@/lib/event-extras";
 import { isDbEventsEnabled } from "@/lib/env";
+import { captureClientEvent } from "@/lib/posthog/client";
+import { PostHogEvents } from "@/lib/posthog/events";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -58,6 +60,13 @@ export function BookingCard({
     if (!eventDbId) return;
     setLoading(true);
     setError(null);
+    captureClientEvent(PostHogEvents.checkoutStarted, {
+      event_id: eventDbId,
+      event_slug: experience.slug,
+      city: experience.city,
+      seats,
+      locale,
+    });
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",

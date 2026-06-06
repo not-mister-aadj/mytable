@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PostHogProvider } from "@/components/PostHogProvider";
 import { SetHtmlLang } from "@/components/SetHtmlLang";
 import { isValidLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -24,10 +25,10 @@ export default async function LocaleLayout({ children, params }: Props) {
   if (!isValidLocale(locale)) notFound();
 
   return (
-    <>
+    <PostHogProvider>
       <SetHtmlLang locale={locale} />
       {children}
-    </>
+    </PostHogProvider>
   );
 }
 

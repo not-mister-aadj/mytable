@@ -45,7 +45,7 @@ export default async function AgendaPage({ params }: Props) {
             items={dict.agenda.items}
           />
         </div>
-        <NewsletterCTA dict={dict.newsletter} />
+        <NewsletterCTA dict={dict.newsletter} locale={locale} />
       </main>
       <Footer dict={dict.footer} locale={locale} />
     </>

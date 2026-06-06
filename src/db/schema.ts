@@ -7,6 +7,7 @@ import {
   uuid,
   boolean,
   jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const workflowStatusEnum = pgEnum("workflow_status", [
@@ -142,6 +143,25 @@ export const bookingEvents = pgTable("booking_events", {
     .notNull()
     .defaultNow(),
 });
+
+export const waitlistSignups = pgTable(
+  "waitlist_signups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    city: text("city").notNull(),
+    locale: text("locale").notNull().default("nl"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    emailCityUnique: uniqueIndex("waitlist_signups_email_city_unique").on(
+      table.email,
+      table.city,
+    ),
+  }),
+);
 
 export type ExperienceType = typeof experienceTypes.$inferSelect;
 export type Venue = typeof venues.$inferSelect;

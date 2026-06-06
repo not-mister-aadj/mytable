@@ -208,6 +208,7 @@ export const en: Dictionary = {
     cta: "Join the list",
     success:
       "Thank you. You're on the list. We'll be in touch when the next table opens in your city.",
+    error: "Sign-up failed. Please try again later.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
   },
   faq: {

@@ -7,6 +7,7 @@ import {
   trackBookingConfirmationViewed,
   trackPaymentFailedClient,
 } from "@/lib/posthog/analytics";
+import { trackMetaPurchase } from "@/lib/analytics/metaTracking";
 
 interface BookingOutcomeTrackerProps {
   variant: "success" | "failed";
@@ -38,6 +39,9 @@ export function BookingOutcomeTracker({
         booking_id: summary?.bookingId ?? null,
         language: locale,
       });
+      if (summary) {
+        trackMetaPurchase(summary);
+      }
       return;
     }
 

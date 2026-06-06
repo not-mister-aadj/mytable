@@ -27,6 +27,7 @@ import { SocialAtmosphere } from "./SocialAtmosphere";
 import { VenueLineup } from "./VenueLineup";
 import { WhatToExpect } from "./WhatToExpect";
 import { trackEventDetailViewed } from "@/lib/posthog/analytics";
+import { trackMetaViewContent } from "@/lib/analytics/metaTracking";
 
 const fade = {
   initial: { opacity: 0, y: 16 },
@@ -79,6 +80,7 @@ export function ExperiencePageContent({
   useEffect(() => {
     if (previewMode) return;
     trackEventDetailViewed(experience, locale);
+    trackMetaViewContent(experience, locale);
   }, [
     experience.slug,
     experience.eventDbId,

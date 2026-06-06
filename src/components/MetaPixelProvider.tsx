@@ -1,0 +1,39 @@
+"use client";
+
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { initMetaPixel, isMetaPixelConfigured, pageView } from "@/lib/analytics/metaPixel";
+import { persistUtmFromUrl } from "@/lib/analytics/utm";
+
+function MetaPixelTracker() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    initMetaPixel();
+  }, []);
+
+  useEffect(() => {
+    if (!isMetaPixelConfigured() || !pathname) return;
+    initMetaPixel();
+    persistUtmFromUrl(searchParams.toString() ? `?${searchParams.toString()}` : "");
+    pageView();
+  }, [pathname, searchParams]);
+
+  return null;
+}
+
+export function MetaPixelProvider({ children }: { children: React.ReactNode }) {
+  if (!isMetaPixelConfigured()) {
+    return <>{children}</>;
+  }
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <MetaPixelTracker />
+      </Suspense>
+      {children}
+    </>
+  );
+}

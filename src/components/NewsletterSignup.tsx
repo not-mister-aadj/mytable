@@ -8,6 +8,11 @@ import {
   trackCityFilterChanged,
   trackEmailSignupCompleted,
 } from "@/lib/posthog/analytics";
+import { trackMetaLead } from "@/lib/analytics/metaTracking";
+import {
+  getMetaBrowserCookies,
+  getMetaEventSourceUrl,
+} from "@/lib/analytics/metaCookies";
 import { Button } from "./ui/Button";
 import { SectionHeading } from "./ui/SectionHeading";
 
@@ -41,7 +46,16 @@ export function NewsletterSignup({
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, city: selectedCity, locale }),
+        body: JSON.stringify({
+          email,
+          city: selectedCity,
+          locale,
+          source: sourceSection === "home" ? "newsletter" : "waitlist",
+          meta: {
+            ...getMetaBrowserCookies(),
+            eventSourceUrl: getMetaEventSourceUrl(),
+          },
+        }),
       });
 
       if (!res.ok) {
@@ -49,12 +63,21 @@ export function NewsletterSignup({
         return;
       }
 
+      const data = (await res.json()) as { id?: string };
+
       trackEmailSignupCompleted({
         email,
         city: selectedCity,
         language: locale,
         source_section: sourceSection,
       });
+      if (data.id) {
+        trackMetaLead({
+          source: sourceSection === "home" ? "newsletter" : "waitlist",
+          city: selectedCity,
+          waitlistId: data.id,
+        });
+      }
       setSubmitted(true);
     } catch {
       setError(dict.error);

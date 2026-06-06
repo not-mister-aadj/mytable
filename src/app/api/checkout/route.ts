@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { bookings, events } from "@/db/schema";
+import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { getMaxSeatsPerOrder, getSiteUrl } from "@/lib/env";
 import { onBookingCreated, onCheckoutStarted } from "@/lib/customers/hooks";
+import {
+  sendMetaCapiInitiateCheckout,
+} from "@/lib/analytics/metaCapi";
+import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
+import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
@@ -43,6 +48,17 @@ export async function POST(request: Request) {
     name?: string;
     locale?: string;
     dietaryNotes?: string;
+    utm?: {
+      utm_source?: string;
+      utm_medium?: string;
+      utm_campaign?: string;
+      utm_content?: string;
+    };
+    meta?: {
+      fbp?: string;
+      fbc?: string;
+      eventSourceUrl?: string;
+    };
   };
 
   try {
@@ -102,6 +118,40 @@ export async function POST(request: Request) {
     .returning();
 
   await onBookingCreated({ booking, event });
+
+  const utm = body.utm ?? {};
+  const metaContext = parseMetaTrackingContext(body.meta);
+  if (
+    utm.utm_source ||
+    utm.utm_medium ||
+    utm.utm_campaign ||
+    utm.utm_content
+  ) {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: "checkout_utm",
+      payload: utm,
+    });
+  }
+
+  if (metaContext.fbp || metaContext.fbc || metaContext.eventSourceUrl) {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: "checkout_meta_context",
+      payload: metaContext,
+    });
+  }
+
+  void sendMetaCapiInitiateCheckout({
+    booking,
+    event,
+    userData: metaUserDataFromRequest(
+      request,
+      metaContext,
+      booking.email,
+      booking.customerName?.split(/\s+/)[0] ?? null,
+    ),
+  });
 
   const stripe = getStripe();
   const siteUrl = getSiteUrl();
@@ -170,5 +220,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });
   }
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ url: session.url, bookingId: booking.id });
 }

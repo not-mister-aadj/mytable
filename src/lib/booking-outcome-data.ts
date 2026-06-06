@@ -150,7 +150,7 @@ export async function getBookingSummaryFromSession(
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   const bookingId = session.metadata?.booking_id;
-  if (!bookingId) return null;
+  if (!bookingId || session.payment_status !== "paid") return null;
 
   const db = getDb();
   const [row] = await db

@@ -20,6 +20,9 @@ import {
   trackBookingStarted,
   trackSeatsSelected,
 } from "@/lib/posthog/analytics";
+import { trackMetaInitiateCheckout } from "@/lib/analytics/metaTracking";
+import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
+import { getStoredUtm } from "@/lib/analytics/utm";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -64,6 +67,7 @@ export function BookingCard({
     setError(null);
     trackBookingStarted(experience, locale, "detail_page", seats);
     try {
+      const metaCookies = getMetaBrowserCookies();
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,6 +78,11 @@ export function BookingCard({
           seats,
           locale,
           dietaryNotes,
+          utm: getStoredUtm(),
+          meta: {
+            ...metaCookies,
+            eventSourceUrl: getMetaEventSourceUrl(),
+          },
         }),
       });
       const data = await res.json();
@@ -81,6 +90,9 @@ export function BookingCard({
         setError(data.error ?? "Er ging iets mis.");
         setLoading(false);
         return;
+      }
+      if (data.bookingId) {
+        trackMetaInitiateCheckout(experience, seats, data.bookingId);
       }
       window.location.href = data.url;
     } catch {

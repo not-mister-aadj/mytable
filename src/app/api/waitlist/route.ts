@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { createWaitlistSignup } from "@/lib/waitlist-data";
 import { onWaitlistJoined } from "@/lib/customers/hooks";
+import { sendMetaCapiLead } from "@/lib/analytics/metaCapi";
+import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
+import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import type { Locale } from "@/i18n/config";
+import { getSiteUrl } from "@/lib/env";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
@@ -31,7 +35,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   }
 
-  let body: { email?: string; city?: string; locale?: string };
+  let body: {
+    email?: string;
+    city?: string;
+    locale?: string;
+    source?: "waitlist" | "newsletter";
+    meta?: {
+      fbp?: string;
+      fbc?: string;
+      eventSourceUrl?: string;
+    };
+  };
   try {
     body = await request.json();
   } catch {
@@ -61,5 +75,15 @@ export async function POST(request: Request) {
     waitlistId: result.id,
   });
 
-  return NextResponse.json({ ok: true });
+  const metaContext = parseMetaTrackingContext(body.meta);
+  void sendMetaCapiLead({
+    email,
+    city,
+    source: body.source === "newsletter" ? "newsletter" : "waitlist",
+    waitlistId: result.id,
+    eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
+    userData: metaUserDataFromRequest(request, metaContext, email),
+  });
+
+  return NextResponse.json({ ok: true, id: result.id });
 }

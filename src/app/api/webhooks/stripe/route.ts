@@ -4,6 +4,12 @@ import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
 import { onPaymentCompleted, onPaymentFailed } from "@/lib/customers/hooks";
+import { sendMetaCapiPurchase } from "@/lib/analytics/metaCapi";
+import { metaPurchaseEventId } from "@/lib/analytics/metaIds";
+import {
+  loadCheckoutMetaContext,
+  metaUserDataFromStoredContext,
+} from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { hashEmail } from "@/lib/posthog/properties";
@@ -147,6 +153,26 @@ export async function POST(request: Request) {
       booking: updated.booking,
       event: updated.ev,
     });
+
+    const storedMeta = await loadCheckoutMetaContext(updated.booking.id);
+    const capiSent = await sendMetaCapiPurchase({
+      booking: updated.booking,
+      event: updated.ev,
+      userData: metaUserDataFromStoredContext(
+        storedMeta,
+        updated.booking.email,
+        updated.booking.customerName?.split(/\s+/)[0] ?? null,
+      ),
+    });
+    if (capiSent) {
+      await db.insert(bookingEvents).values({
+        bookingId: updated.booking.id,
+        type: "meta_capi_purchase",
+        payload: {
+          event_id: metaPurchaseEventId(updated.booking.id),
+        },
+      });
+    }
 
     const priorPaid = await countPriorPaidBookings(
       updated.booking.email,

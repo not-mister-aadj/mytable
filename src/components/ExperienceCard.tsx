@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { PositionedImage } from "@/components/ui/PositionedImage";
+import type { AnalyticsSourceSection } from "@/lib/posthog/events";
+import { trackEventCardClicked } from "@/lib/posthog/analytics";
 import {
   displayAtmosphereTags,
   resolveFemaleOnly,
@@ -28,6 +32,7 @@ interface ExperienceCardProps {
   viewTableCta: string;
   href: string;
   locale?: Locale;
+  sourceSection?: AnalyticsSourceSection;
 }
 
 export function ExperienceCard({
@@ -38,6 +43,7 @@ export function ExperienceCard({
   viewTableCta,
   href,
   locale = "nl",
+  sourceSection = "agenda_grid",
 }: ExperienceCardProps) {
   const isSoldOut = experience.status === "soldOut";
   const isAlmostFull = experience.status === "almostFull";
@@ -55,10 +61,15 @@ export function ExperienceCard({
     cardSettings?.url ?? experience.cardImage ?? experience.image;
   const hasCardImage = Boolean(cardSrc);
 
+  function handleClick() {
+    trackEventCardClicked(experience, locale, sourceSection);
+  }
+
   return (
     <Link
       href={href}
       prefetch={true}
+      onClick={handleClick}
       className={`group flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-beige shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(43,13,18,0.12)] ${
         isFemaleOnly
           ? "border-rose/40 bg-rose-soft ring-1 ring-rose/25 hover:shadow-[0_22px_44px_rgba(157,77,111,0.18)]"

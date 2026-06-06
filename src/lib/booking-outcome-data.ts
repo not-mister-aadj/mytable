@@ -27,6 +27,9 @@ export type BookingGalleryItem = {
 export type BookingOutcomeSummary = {
   eventName: string;
   eventSlug: string;
+  eventId?: string;
+  experienceType?: string;
+  bookingId?: string;
   city: string;
   dateTime: string;
   imageUrl: string;
@@ -118,6 +121,9 @@ async function mapEventToSummary(
   return {
     eventName: locale === "nl" ? row.nameNl : row.nameEn,
     eventSlug: row.slug,
+    eventId: row.id,
+    experienceType: row.experienceType ?? DEFAULT_EXPERIENCE_TYPE,
+    bookingId: booking?.id,
     city: row.city,
     dateTime: formatDateTime(
       new Date(row.startsAt),

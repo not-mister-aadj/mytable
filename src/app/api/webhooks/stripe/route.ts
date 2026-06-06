@@ -5,8 +5,27 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
+import { hashEmail } from "@/lib/posthog/properties";
 import { getStripe } from "@/lib/stripe";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
+
+async function countPriorPaidBookings(
+  email: string,
+  excludeBookingId: string,
+): Promise<number> {
+  const db = getDb();
+  const rows = await db
+    .select({ id: bookings.id })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.email, email),
+        eq(bookings.paymentStatus, "paid"),
+        sql`${bookings.id} != ${excludeBookingId}`,
+      ),
+    );
+  return rows.length;
+}
 
 export async function POST(request: Request) {
   if (!isDbConfigured()) {
@@ -123,15 +142,40 @@ export async function POST(request: Request) {
 
     revalidateEventPaths(updated.ev.slug);
 
-    void captureServerEvent(updated.booking.email, PostHogEvents.bookingPaid, {
+    const priorPaid = await countPriorPaidBookings(
+      updated.booking.email,
+      updated.booking.id,
+    );
+    const paymentProps = {
       booking_id: updated.booking.id,
       event_id: updated.ev.id,
       event_slug: updated.ev.slug,
+      event_type: updated.ev.experienceType,
       city: updated.ev.city,
       seats: updated.booking.seats,
-      amount_cents: updated.booking.amountCents,
-      locale: updated.booking.locale,
-    });
+      total_paid: updated.booking.amountCents / 100,
+      price_per_seat: updated.ev.priceCents / 100,
+      stripe_session_id: session.id,
+      is_first_booking: priorPaid === 0,
+      customer_email_hash: hashEmail(updated.booking.email),
+      language: updated.booking.locale,
+      payment_method: session.payment_method_types?.[0] ?? null,
+    };
+
+    void captureServerEvent(
+      updated.booking.email,
+      PostHogEvents.paymentCompleted,
+      paymentProps,
+    );
+    void captureServerEvent(
+      updated.booking.email,
+      PostHogEvents.bookingPaid,
+      {
+        ...paymentProps,
+        amount_cents: updated.booking.amountCents,
+        locale: updated.booking.locale,
+      },
+    );
 
     try {
       await sendBookingConfirmationForPaidBooking(updated.booking, updated.ev);
@@ -143,11 +187,35 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as import("stripe").Stripe.Checkout.Session;
     const bookingId = session.metadata?.booking_id;
+    const eventId = session.metadata?.event_id;
     if (bookingId) {
-      await db
+      const [booking] = await db
         .update(bookings)
         .set({ paymentStatus: "failed" })
-        .where(eq(bookings.id, bookingId));
+        .where(eq(bookings.id, bookingId))
+        .returning();
+
+      if (booking && eventId) {
+        const [ev] = await db
+          .select()
+          .from(events)
+          .where(eq(events.id, eventId))
+          .limit(1);
+
+        if (ev) {
+          void captureServerEvent(booking.email, PostHogEvents.paymentFailed, {
+            event_id: ev.id,
+            event_slug: ev.slug,
+            event_type: ev.experienceType,
+            city: ev.city,
+            seats: booking.seats,
+            attempted_amount: booking.amountCents / 100,
+            failure_reason: "session_expired",
+            stripe_session_id: session.id,
+            language: booking.locale,
+          });
+        }
+      }
     }
   }
 

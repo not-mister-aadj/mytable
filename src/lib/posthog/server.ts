@@ -7,7 +7,7 @@ import type { PostHogEventName } from "@/lib/posthog/events";
 
 export async function captureServerEvent(
   distinctId: string,
-  event: PostHogEventName,
+  event: PostHogEventName | string,
   properties?: Record<string, string | number | boolean | null | undefined>,
 ): Promise<void> {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim();

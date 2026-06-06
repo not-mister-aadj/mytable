@@ -16,8 +16,10 @@ import {
 import { splitDateTime } from "@/lib/experience-detail";
 import { resolveFemaleOnly } from "@/lib/event-extras";
 import { isDbEventsEnabled } from "@/lib/env";
-import { captureClientEvent } from "@/lib/posthog/client";
-import { PostHogEvents } from "@/lib/posthog/events";
+import {
+  trackBookingStarted,
+  trackSeatsSelected,
+} from "@/lib/posthog/analytics";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -60,13 +62,7 @@ export function BookingCard({
     if (!eventDbId) return;
     setLoading(true);
     setError(null);
-    captureClientEvent(PostHogEvents.checkoutStarted, {
-      event_id: eventDbId,
-      event_slug: experience.slug,
-      city: experience.city,
-      seats,
-      locale,
-    });
+    trackBookingStarted(experience, locale, "detail_page", seats);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -200,7 +196,11 @@ export function BookingCard({
             Aantal plaatsen
             <select
               value={seats}
-              onChange={(e) => setSeats(Number(e.target.value))}
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                setSeats(next);
+                trackSeatsSelected(experience, locale, next);
+              }}
               className="mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 py-2"
             >
               {Array.from(

@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
+import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getBookingSummaryFromSession } from "@/lib/booking-outcome-data";
@@ -27,6 +28,11 @@ export default async function BookingConfirmedPage({
   return (
     <>
       <Header dict={dict.header} locale={locale} />
+      <BookingOutcomeTracker
+        variant="success"
+        locale={locale as Locale}
+        summary={summary}
+      />
       <BookingOutcomeContent
         variant="success"
         dict={dict.bookingOutcome}

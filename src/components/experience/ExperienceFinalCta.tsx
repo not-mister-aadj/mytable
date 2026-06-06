@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { agendaPath, type Locale } from "@/i18n/config";
+import type { ExperienceItem } from "@/i18n/types";
 import { images } from "@/data/images";
+import { trackBookingStarted } from "@/lib/posthog/analytics";
 import { Button } from "../ui/Button";
 
 interface ExperienceFinalCtaProps {
+  experience: ExperienceItem;
   headline: string;
   subheadline: string;
   primaryCta: string;
@@ -15,6 +18,7 @@ interface ExperienceFinalCtaProps {
 }
 
 export function ExperienceFinalCta({
+  experience,
   headline,
   subheadline,
   primaryCta,
@@ -47,7 +51,12 @@ export function ExperienceFinalCta({
           {subheadline}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button href="#booking" variant="primary" className="bg-cream text-wine hover:bg-beige">
+          <Button
+            href="#booking"
+            variant="primary"
+            className="bg-cream text-wine hover:bg-beige"
+            onClick={() => trackBookingStarted(experience, locale, "final_cta")}
+          >
             {primaryCta}
           </Button>
           <Button

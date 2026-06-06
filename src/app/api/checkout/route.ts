@@ -3,6 +3,8 @@ import { eq } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { getMaxSeatsPerOrder, getSiteUrl } from "@/lib/env";
+import { captureServerEvent } from "@/lib/posthog/server";
+import { PostHogEvents } from "@/lib/posthog/events";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -133,6 +135,19 @@ export async function POST(request: Request) {
     .update(bookings)
     .set({ stripeCheckoutSessionId: session.id })
     .where(eq(bookings.id, booking.id));
+
+  void captureServerEvent(email, PostHogEvents.checkoutStarted, {
+    event_id: event.id,
+    event_slug: event.slug,
+    event_type: event.experienceType,
+    event_name: productName,
+    city: event.city,
+    seats,
+    total_price: amountCents / 100,
+    price_per_seat: event.priceCents / 100,
+    stripe_session_id: session.id,
+    language: locale,
+  });
 
   if (!session.url) {
     return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });

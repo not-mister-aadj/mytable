@@ -16,6 +16,7 @@ import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
+import { trackBookingStarted } from "@/lib/posthog/analytics";
 import { Button } from "../ui/Button";
 
 interface ExperienceHeroProps {
@@ -192,7 +193,11 @@ export function ExperienceHero({
           transition={{ duration: 0.45, delay: 0.3 }}
           className="mt-8 flex flex-wrap gap-3"
         >
-          <Button href="#booking" variant="primary">
+          <Button
+            href="#booking"
+            variant="primary"
+            onClick={() => trackBookingStarted(experience, locale, "hero")}
+          >
             {reserveCta}
           </Button>
           <Link

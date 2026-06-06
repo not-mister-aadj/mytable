@@ -9,11 +9,24 @@ interface AnalyticsViewProps {
   summary: AnalyticsSummary | null;
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({
+  label,
+  value,
+  format,
+}: {
+  label: string;
+  value: number;
+  format?: "currency";
+}) {
+  const display =
+    format === "currency"
+      ? `€${value.toLocaleString("nl-NL", { maximumFractionDigits: 0 })}`
+      : value.toLocaleString("nl-NL");
+
   return (
     <div className="rounded-2xl border border-border-subtle bg-beige p-5">
       <p className="text-sm text-wine/60">{label}</p>
-      <p className="mt-1 font-serif text-2xl text-burgundy">{value}</p>
+      <p className="mt-1 font-serif text-2xl text-burgundy">{display}</p>
     </div>
   );
 }
@@ -42,15 +55,18 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
       <div>
         <h1 className="font-serif text-3xl text-burgundy">Analytics</h1>
         <p className="mt-2 text-sm text-wine/70">
-          Website-gedrag via PostHog — pageviews, checkout en boekingen (7 dagen).
+          CEO-overzicht — traffic, intent, checkout, revenue (7 dagen).
         </p>
       </div>
 
       {summary ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label="Betaalde boekingen (7d)" value={summary.paymentsCompleted7d} />
+          <StatCard label="Stoelen geboekt (7d)" value={summary.seatsBooked7d} />
+          <StatCard label="Omzet (7d)" value={summary.revenue7d} format="currency" />
+          <StatCard label="Event detail views (7d)" value={summary.eventDetailViews7d} />
           <StatCard label="Pageviews (7d)" value={summary.pageviews7d} />
           <StatCard label="Checkout gestart (7d)" value={summary.checkoutStarted7d} />
-          <StatCard label="Boekingen betaald (7d)" value={summary.bookingsPaid7d} />
           <StatCard label="Wachtlijst (7d)" value={summary.waitlistSignups7d} />
         </div>
       ) : (
@@ -67,7 +83,9 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
 
       {embedUrl ? (
         <section>
-          <h2 className="mb-4 text-lg font-medium text-burgundy">PostHog dashboard</h2>
+          <h2 className="mb-4 text-lg font-medium text-burgundy">
+            MyTable Growth Dashboard
+          </h2>
           <div className="overflow-hidden rounded-2xl border border-border-subtle bg-beige">
             <iframe
               src={embedUrl}
@@ -79,13 +97,20 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
         </section>
       ) : adminApiOn ? (
         <p className="text-sm text-wine/60">
-          Tip: maak een dashboard in PostHog → Share → Embed, en zet de URL in{" "}
-          <code className="rounded bg-cream px-1.5 py-0.5">POSTHOG_DASHBOARD_EMBED_URL</code>.
+          Run{" "}
+          <code className="rounded bg-cream px-1.5 py-0.5">
+            npm run posthog:setup-dashboards
+          </code>{" "}
+          om dashboards aan te maken, of zet{" "}
+          <code className="rounded bg-cream px-1.5 py-0.5">
+            POSTHOG_DASHBOARD_EMBED_URL
+          </code>{" "}
+          handmatig.
         </p>
       ) : null}
 
       <p className="text-sm text-wine/60">
-        Volledige analyse (replay, funnels) →{" "}
+        Volledige analyse (funnels, city/event breakdown) →{" "}
         <a
           href="https://eu.posthog.com"
           target="_blank"

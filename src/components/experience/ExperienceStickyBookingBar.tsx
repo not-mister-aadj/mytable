@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import type { Locale } from "@/i18n/config";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { canReserve, formatPerPerson } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
@@ -9,6 +10,7 @@ import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
+import { trackBookingStarted } from "@/lib/posthog/analytics";
 import { Button } from "../ui/Button";
 
 interface ExperienceStickyBookingBarProps {
@@ -16,6 +18,7 @@ interface ExperienceStickyBookingBarProps {
   labels: Dictionary["experiencePage"];
   reserveCta: string;
   femaleOnlyBadge: string;
+  locale: Locale;
   sentinelRef: RefObject<HTMLElement | null>;
 }
 
@@ -76,6 +79,7 @@ export function ExperienceStickyBookingBar({
   labels,
   reserveCta,
   femaleOnlyBadge,
+  locale,
   sentinelRef,
 }: ExperienceStickyBookingBarProps) {
   const [visible, setVisible] = useState(false);
@@ -169,6 +173,9 @@ export function ExperienceStickyBookingBar({
               <Button
                 href="#booking"
                 variant="primary"
+                onClick={() =>
+                  trackBookingStarted(experience, locale, "sticky_bar")
+                }
                 className={`w-full shrink-0 px-5 py-2.5 text-sm sm:w-auto ${
                   isSoldOut ? "pointer-events-none opacity-50" : ""
                 } ${isFemaleOnly ? "bg-rose hover:bg-rose-deep" : ""}`}

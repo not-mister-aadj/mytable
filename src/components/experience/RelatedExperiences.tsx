@@ -34,6 +34,7 @@ export function RelatedExperiences({
             viewTableCta={dict.experiencePage.viewTableCta}
             href={experiencePath(locale, experience.slug)}
             locale={locale}
+            sourceSection="related"
           />
         ))}
       </div>

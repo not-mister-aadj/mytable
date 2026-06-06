@@ -3,20 +3,29 @@
 import { FormEvent, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
+import type { AnalyticsSourceSection } from "@/lib/posthog/events";
+import {
+  trackCityFilterChanged,
+  trackEmailSignupCompleted,
+} from "@/lib/posthog/analytics";
 import { Button } from "./ui/Button";
 import { SectionHeading } from "./ui/SectionHeading";
-import { captureClientEvent } from "@/lib/posthog/client";
-import { PostHogEvents } from "@/lib/posthog/events";
 
 interface NewsletterSignupProps {
   dict: Dictionary["newsletter"];
   locale: Locale;
+  sourceSection?: AnalyticsSourceSection;
 }
 
-export function NewsletterSignup({ dict, locale }: NewsletterSignupProps) {
+export function NewsletterSignup({
+  dict,
+  locale,
+  sourceSection = "home",
+}: NewsletterSignupProps) {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [city, setCity] = useState(dict.cities[0] ?? "");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,13 +35,13 @@ export function NewsletterSignup({ dict, locale }: NewsletterSignupProps) {
     const form = e.currentTarget;
     const data = new FormData(form);
     const email = String(data.get("email") ?? "").trim();
-    const city = String(data.get("city") ?? "").trim();
+    const selectedCity = String(data.get("city") ?? city).trim();
 
     try {
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, city, locale }),
+        body: JSON.stringify({ email, city: selectedCity, locale }),
       });
 
       if (!res.ok) {
@@ -40,13 +49,27 @@ export function NewsletterSignup({ dict, locale }: NewsletterSignupProps) {
         return;
       }
 
-      captureClientEvent(PostHogEvents.waitlistSignup, { city, locale });
+      trackEmailSignupCompleted({
+        email,
+        city: selectedCity,
+        language: locale,
+        source_section: sourceSection,
+      });
       setSubmitted(true);
     } catch {
       setError(dict.error);
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function handleCityChange(nextCity: string) {
+    trackCityFilterChanged({
+      selected_city: nextCity,
+      previous_city: city,
+      page_path: window.location.pathname,
+    });
+    setCity(nextCity);
   }
 
   return (
@@ -93,12 +116,13 @@ export function NewsletterSignup({ dict, locale }: NewsletterSignupProps) {
                     name="city"
                     required
                     disabled={isSubmitting}
-                    defaultValue={dict.cities[0]}
+                    value={city}
+                    onChange={(e) => handleCityChange(e.target.value)}
                     className="w-full appearance-none rounded-full border border-cream/20 bg-cream/10 px-5 py-3 text-cream outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30 disabled:opacity-60"
                   >
-                    {dict.cities.map((city) => (
-                      <option key={city} value={city} className="text-wine">
-                        {city}
+                    {dict.cities.map((cityOption) => (
+                      <option key={cityOption} value={cityOption} className="text-wine">
+                        {cityOption}
                       </option>
                     ))}
                   </select>

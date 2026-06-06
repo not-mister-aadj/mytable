@@ -24,7 +24,7 @@ export function initPostHogClient(): void {
 }
 
 export function captureClientEvent(
-  event: PostHogEventName,
+  event: PostHogEventName | string,
   properties?: Record<string, string | number | boolean | null | undefined>,
 ): void {
   if (typeof window === "undefined") return;

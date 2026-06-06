@@ -26,8 +26,7 @@ import { ScrollProgress } from "./ScrollProgress";
 import { SocialAtmosphere } from "./SocialAtmosphere";
 import { VenueLineup } from "./VenueLineup";
 import { WhatToExpect } from "./WhatToExpect";
-import { captureClientEvent } from "@/lib/posthog/client";
-import { PostHogEvents } from "@/lib/posthog/events";
+import { trackEventDetailViewed } from "@/lib/posthog/analytics";
 
 const fade = {
   initial: { opacity: 0, y: 16 },
@@ -79,12 +78,7 @@ export function ExperiencePageContent({
 
   useEffect(() => {
     if (previewMode) return;
-    captureClientEvent(PostHogEvents.eventPageViewed, {
-      event_slug: experience.slug,
-      event_id: experience.eventDbId ?? experience.id,
-      city: experience.city,
-      locale,
-    });
+    trackEventDetailViewed(experience, locale);
   }, [
     experience.slug,
     experience.eventDbId,
@@ -115,6 +109,7 @@ export function ExperiencePageContent({
           labels={page}
           reserveCta={dict.agenda.reserveCta}
           femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
+          locale={locale}
           sentinelRef={stickySentinelRef}
         />
       )}
@@ -219,6 +214,7 @@ export function ExperiencePageContent({
 
             <motion.div {...fade}>
               <ExperienceFinalCta
+                experience={experience}
                 headline={page.finalCtaHeadline}
                 subheadline={page.finalCtaSubheadline}
                 primaryCta={page.finalCtaPrimary}

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Dictionary, AgendaTabKey, ExperienceItem } from "@/i18n/types";
+import { trackAgendaViewed, trackAgendaTabChange } from "@/lib/posthog/analytics";
 import { filterAgendaItems, sortAgendaTimeline } from "@/lib/agenda";
 import { enrichExperience } from "@/lib/experience-detail";
 import { EmotionalTabs } from "./agenda/EmotionalTabs";
@@ -33,7 +34,22 @@ export function AgendaPageContent({
     [items, activeTab],
   );
 
-  const clearFilters = () => setActiveTab("all");
+  useEffect(() => {
+    trackAgendaViewed({
+      language: locale,
+      category_filter: activeTab,
+      number_of_events_visible: filteredItems.length,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once on agenda mount
+  }, []);
+
+  function handleTabChange(next: AgendaTabKey) {
+    const nextFiltered = filterAgendaItems(items, next);
+    trackAgendaTabChange(dict.tabs, activeTab, next, nextFiltered.length, locale);
+    setActiveTab(next);
+  }
+
+  const clearFilters = () => handleTabChange("all");
 
   return (
     <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
@@ -41,7 +57,7 @@ export function AgendaPageContent({
         <EmotionalTabs
           tabs={dict.tabs}
           active={activeTab}
-          onChange={setActiveTab}
+          onChange={handleTabChange}
           ariaLabel={dict.tabsAriaLabel}
         />
         {dict.tabHints[activeTab] ? (

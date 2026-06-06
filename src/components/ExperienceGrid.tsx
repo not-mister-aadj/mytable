@@ -44,6 +44,7 @@ export function ExperienceGrid({
               viewTableCta={viewTableCta}
               href={experiencePath(locale, experience.slug)}
               locale={locale}
+              sourceSection="home_grid"
             />
           );
         })}

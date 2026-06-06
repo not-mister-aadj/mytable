@@ -2,8 +2,10 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
+import { trackPageViewed } from "@/lib/posthog/analytics";
 import { initPostHogClient, capturePageView } from "@/lib/posthog/client";
 import { isPostHogConfigured } from "@/lib/posthog/config";
+import { inferPageType } from "@/lib/posthog/properties";
 
 function PostHogPageViewTracker() {
   const pathname = usePathname();
@@ -19,7 +21,15 @@ function PostHogPageViewTracker() {
     let url = window.origin + pathname;
     const query = searchParams.toString();
     if (query) url += `?${query}`;
+
     capturePageView(url);
+
+    const locale = pathname.startsWith("/en") ? "en" : "nl";
+    trackPageViewed({
+      page_path: pathname,
+      page_type: inferPageType(pathname),
+      language: locale,
+    });
   }, [pathname, searchParams]);
 
   return null;

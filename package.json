@@ -19,7 +19,8 @@
     "email:test-booking": "tsx scripts/send-test-booking-email.ts",
     "email:test-moved": "tsx scripts/send-test-booking-moved-email.ts",
     "email:icons": "node scripts/generate-email-icons.mjs",
-    "favicon": "node scripts/generate-favicon.mjs"
+    "favicon": "node scripts/generate-favicon.mjs",
+    "posthog:setup-dashboards": "node scripts/setup-posthog-dashboards.mjs"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",

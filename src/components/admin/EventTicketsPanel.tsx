@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import {
   removeBookingFromEventAction,
+  resendBookingConfirmationAction,
   transferBookingToEventAction,
 } from "@/app/admin/(dashboard)/events/actions";
 import type {
@@ -56,6 +57,18 @@ function TicketRow({
       }
       setTargetId("");
       onChanged();
+    });
+  }
+
+  function handleResendConfirmation() {
+    setError(null);
+    startTransition(async () => {
+      const result = await resendBookingConfirmationAction(ticket.id);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      alert("Bevestigingsmail verstuurd.");
     });
   }
 
@@ -122,6 +135,14 @@ function TicketRow({
               className="shrink-0 rounded-full bg-burgundy px-4 py-1.5 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Verplaats
+            </button>
+            <button
+              type="button"
+              onClick={handleResendConfirmation}
+              disabled={isPending}
+              className="shrink-0 rounded-full border border-border-subtle px-4 py-1.5 text-sm font-medium text-wine/75 transition hover:bg-beige disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Mail opnieuw
             </button>
             <button
               type="button"

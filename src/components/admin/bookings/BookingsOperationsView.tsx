@@ -15,6 +15,32 @@ import {
 import { BookingsTable } from "@/components/admin/bookings/BookingsTable";
 import { eventOccupancyState } from "@/components/admin/bookings/booking-utils";
 
+function matchesSearch(row: AdminBookingRow, q: string): boolean {
+  const normalized = q.replace(/\s/g, "").toLowerCase();
+  const codeQuery = normalized.replace(/^mt-?/i, "");
+  const code = row.reservationCode.toLowerCase();
+  const codeBody = code.replace(/^mt-?/i, "");
+
+  if (
+    code.includes(normalized) ||
+    (codeQuery.length > 0 && codeBody.includes(codeQuery))
+  ) {
+    return true;
+  }
+
+  const haystack = [
+    row.email,
+    row.customerName ?? "",
+    row.event.nameNl,
+    row.event.nameEn,
+    row.event.city,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(normalized);
+}
+
 function filterBookings(
   bookings: AdminBookingRow[],
   filters: BookingFilters,
@@ -48,19 +74,7 @@ function filterBookings(
       if (occ !== filters.occupancy) return false;
     }
 
-    if (q) {
-      const haystack = [
-        row.email,
-        row.customerName ?? "",
-        row.reservationCode,
-        row.event.nameNl,
-        row.event.nameEn,
-        row.event.city,
-      ]
-        .join(" ")
-        .toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
+    if (q && !matchesSearch(row, q)) return false;
 
     return true;
   });

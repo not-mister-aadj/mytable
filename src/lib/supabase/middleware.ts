@@ -1,5 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { clearStaleSupabaseAuthCookies } from "@/lib/supabase/cookies";
+
+function deleteStaleSupabaseCookies(
+  request: NextRequest,
+  response: NextResponse,
+): void {
+  clearStaleSupabaseAuthCookies(request.cookies.getAll(), (name) => {
+    response.cookies.set(name, "", { maxAge: 0, path: "/" });
+  });
+}
 
 export async function updateSupabaseSession(
   request: NextRequest,
@@ -9,6 +19,8 @@ export async function updateSupabaseSession(
   let response = rewritePath
     ? NextResponse.rewrite(new URL(rewritePath, request.url))
     : NextResponse.next({ request });
+
+  deleteStaleSupabaseCookies(request, response);
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -26,6 +38,7 @@ export async function updateSupabaseSession(
         response = rewritePath
           ? NextResponse.rewrite(new URL(rewritePath, request.url))
           : NextResponse.next({ request });
+        deleteStaleSupabaseCookies(request, response);
         cookiesToSet.forEach(({ name, value, options: cookieOptions }) =>
           response.cookies.set(name, value, cookieOptions),
         );

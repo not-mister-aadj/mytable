@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
-import { adminUrl } from "@/lib/admin-url";
+import { adminUrlForHost } from "@/lib/admin-url";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/env";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
-export async function requireAdmin() {
+async function redirectToAdmin(path: string): Promise<never> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3001";
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  redirect(adminUrlForHost(path, host, proto));
+}
+
+export async function requireAdmin(): Promise<{
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  user: User;
+}> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -13,13 +25,11 @@ export async function requireAdmin() {
     if (user) {
       await supabase.auth.signOut();
     }
-    redirect(
-      user?.email
-        ? adminUrl("/login?error=unauthorized")
-        : adminUrl("/login"),
+    await redirectToAdmin(
+      user?.email ? "/login?error=unauthorized" : "/login",
     );
   }
-  return { supabase, user };
+  return { supabase, user: user! };
 }
 
 /** JSON API routes — returns 401 response or null if allowed */

@@ -107,6 +107,9 @@ export const bookings = pgTable("bookings", {
   locale: text("locale").notNull().default("nl"),
   dietaryNotes: text("dietary_notes"),
   adminNotes: text("admin_notes"),
+  confirmationEmailSentAt: timestamp("confirmation_email_sent_at", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

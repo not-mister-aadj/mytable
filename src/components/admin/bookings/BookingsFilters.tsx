@@ -55,7 +55,7 @@ export function BookingsFilters({
             type="search"
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            placeholder="Zoek op naam, e-mail, code of tafel…"
+            placeholder="Zoek op boekingscode, naam, e-mail of tafel…"
             className="w-full rounded-full border border-border-subtle bg-cream py-2.5 pl-10 pr-4 text-sm text-wine shadow-[0_4px_20px_rgba(43,13,18,0.03)] outline-none transition placeholder:text-wine/40 focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
           />
         </div>

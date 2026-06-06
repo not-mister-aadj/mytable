@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { defaultLocale, type Locale } from "./i18n/config";
-import { getAdminUrl, isAdminHost, usesAdminSubdomain } from "@/lib/admin-url";
+import { getAdminUrl, isAdminHost, isLocalDevHost, usesAdminSubdomainFromEnv } from "@/lib/admin-url";
 import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
 function resolveLocale(pathname: string): Locale | null {
@@ -41,11 +41,19 @@ export async function middleware(request: NextRequest) {
   const hostname = request.nextUrl.hostname;
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/api/auth/clear-session") {
+    return NextResponse.next();
+  }
+
   if (isAdminHost(hostname)) {
     return handleAdminSubdomain(request);
   }
 
-  if (usesAdminSubdomain() && pathname.startsWith("/admin")) {
+  if (
+    usesAdminSubdomainFromEnv() &&
+    pathname.startsWith("/admin") &&
+    !isLocalDevHost(hostname)
+  ) {
     const subPath = pathname.slice("/admin".length) || "/";
     return NextResponse.redirect(new URL(subPath, getAdminUrl()));
   }

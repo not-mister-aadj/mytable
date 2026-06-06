@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
+import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
 import { getStripe } from "@/lib/stripe";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
-import { sendBookingConfirmationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   if (!isDbConfigured()) {
@@ -46,7 +46,29 @@ export async function POST(request: Request) {
       .where(eq(bookings.id, bookingId))
       .limit(1);
 
-    if (!existing || existing.paymentStatus === "paid") {
+    if (!existing) {
+      return NextResponse.json({ received: true });
+    }
+
+    if (existing.paymentStatus === "paid") {
+      if (existing.confirmationEmailSentAt) {
+        return NextResponse.json({ received: true });
+      }
+
+      const [ev] = await db
+        .select()
+        .from(events)
+        .where(eq(events.id, existing.eventId))
+        .limit(1);
+
+      if (ev) {
+        try {
+          await sendBookingConfirmationForPaidBooking(existing, ev);
+        } catch (emailErr) {
+          console.error("[stripe webhook] email failed", emailErr);
+        }
+      }
+
       return NextResponse.json({ received: true });
     }
 
@@ -76,8 +98,17 @@ export async function POST(request: Request) {
               : session.payment_intent?.id ?? null,
           stripeCheckoutSessionId: session.id,
         })
-        .where(eq(bookings.id, bookingId))
+        .where(
+          and(
+            eq(bookings.id, bookingId),
+            eq(bookings.paymentStatus, "pending"),
+          ),
+        )
         .returning();
+
+      if (!booking) {
+        throw new Error("Booking already processed");
+      }
 
       await tx.insert(bookingEvents).values({
         bookingId,
@@ -91,10 +122,7 @@ export async function POST(request: Request) {
     revalidateEventPaths(updated.ev.slug);
 
     try {
-      await sendBookingConfirmationEmail({
-        booking: updated.booking,
-        event: updated.ev,
-      });
+      await sendBookingConfirmationForPaidBooking(updated.booking, updated.ev);
     } catch (emailErr) {
       console.error("[stripe webhook] email failed", emailErr);
     }

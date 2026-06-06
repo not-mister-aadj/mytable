@@ -1,6 +1,6 @@
 "use client";
 
-import { getAuthCallbackUrl } from "@/lib/admin-url";
+import { getBrowserAuthCallbackUrl } from "@/lib/admin-url";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -11,9 +11,13 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const attemptedEmail = searchParams.get("email");
+
   const errorText =
     error === "unauthorized"
-      ? "Geen toegang met dit account."
+      ? attemptedEmail
+        ? `Geen toegang met ${attemptedEmail}. Voeg dit adres toe aan ADMIN_EMAILS in .env.local en herstart npm run dev.`
+        : "Geen toegang met dit account."
       : error === "auth"
         ? "Inloggen mislukt. Probeer het opnieuw."
         : null;
@@ -23,10 +27,12 @@ function LoginForm() {
     setMessage(null);
     try {
       const supabase = createSupabaseBrowserClient();
+      const redirectTo = getBrowserAuthCallbackUrl();
+
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getAuthCallbackUrl("/"),
+          redirectTo,
           queryParams: {
             prompt: "select_account",
           },

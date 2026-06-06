@@ -8,6 +8,54 @@
 
 ## Database
 
+**Localhost** gebruikt **MyTable-dev** (apart Supabase-project). Productie blijft op Vercel.
+
+| Bestand | Doel |
+|---------|------|
+| `.env.local` | MyTable-dev credentials (localhost) |
+| `.env.production.local` | Productie `DATABASE_URL` — alleen voor sync, nooit committen |
+
+### Eerste keer dev setup
+
+1. Maak **MyTable-dev** in Supabase (EU).
+2. Plak dev URL/keys in `.env.local` (zie `.env.example`).
+3. Kopieer `.env.production.local.example` → `.env.production.local` en vul prod `DATABASE_URL` in.
+4. In **MyTable-dev** → Authentication → Redirect URLs: `http://localhost:3001/api/auth/callback`
+5. In **MyTable-dev** → Storage: bucket **`media`** (public), zoals prod.
+6. Run:
+
+```bash
+npm run db:setup-dev
+```
+
+Dit maakt het schema aan op dev en kopieert alle data van productie.
+
+### Dagelijks lokaal
+
+```bash
+npm run dev
+```
+
+Bij elke start: **productie → dev sync** (zodat je met echte data werkt). Snel starten zonder sync:
+
+```bash
+DEV_SYNC_ON_START=false npm run dev
+# of
+npm run dev:no-sync
+```
+
+Handmatig opnieuw syncen:
+
+```bash
+npm run db:sync-dev
+```
+
+**Let op:** wijzigingen in localhost gaan naar **MyTable-dev**, niet naar productie. `push-vercel-env.ps1` pusht geen database-keys meer naar Vercel.
+
+---
+
+## Database (migraties)
+
 ```bash
 # Migratie (kies één)
 npm run db:push
@@ -50,16 +98,18 @@ Op de eventpagina: venues gefilterd op **event-stad** waar mogelijk.
    - Authorized redirect URIs: kopieer uit Supabase (stap 2), bijv.  
      `https://bwxpzxyzsaecjeqrazxz.supabase.co/auth/v1/callback`
 2. **Supabase → Authentication → Providers → Google**: aan, plak Client ID + Client Secret.
-3. **Authentication → URL configuration**:
-   - Site URL (lokaal): `http://localhost:3001`
-   - Redirect URLs (beide toevoegen):
+3. **Authentication → URL configuration** (eenmalig — hoef je niet te wisselen):
+   - **Site URL**: `https://dashboard.mytable.club` (productie, laten staan)
+   - **Redirect URLs** (beide toevoegen):
      - `http://localhost:3001/api/auth/callback`
      - `https://dashboard.mytable.club/api/auth/callback`
-4. `.env.local`:
+   - De app kiest automatisch de juiste callback op basis van waar je inlogt (localhost vs dashboard).
+4. `.env.local` (lokaal):
+   - `NEXT_PUBLIC_SITE_URL=http://localhost:3001`
+   - `LOCAL_DEV_ORIGIN=http://localhost:3001`
    - `ADMIN_EMAILS=jouw@gmail.com`
-   - Productie: `NEXT_PUBLIC_ADMIN_URL=https://dashboard.mytable.club`, `ADMIN_HOST=dashboard.mytable.club`
-   - Publieke site: `NEXT_PUBLIC_SITE_URL=https://mytable.club` (of je marketing-domein)
-5. **Vercel**: domein `dashboard.mytable.club` aan hetzelfde project koppelen (DNS CNAME).
+   - Productie-URLs (`NEXT_PUBLIC_ADMIN_URL`, …) mogen in `.env.local` staan; lokaal negeert de app die voor auth.
+5. **Vercel** (productie): `NEXT_PUBLIC_SITE_URL=https://mytable.club`, `NEXT_PUBLIC_ADMIN_URL=https://dashboard.mytable.club`
 6. Lokaal: [http://localhost:3001/admin/login](http://localhost:3001/admin/login) — productie: **https://dashboard.mytable.club/login**
 
 Alleen e-mails in `ADMIN_EMAILS` komen in `/admin`; andere Google-accounts krijgen “geen toegang”.
@@ -82,7 +132,10 @@ Alleen e-mails in `ADMIN_EMAILS` komen in `/admin`; andere Google-accounts krijg
 |----------|------|
 | `npm run db:push` | Schema naar Supabase |
 | `npm run db:seed` | Catalog → events tabel |
-| `npm run dev` | Site op poort 3001 |
+| `npm run dev` | Sync prod→dev, dan site op poort 3001 |
+| `npm run dev:no-sync` | Site op poort 3001 zonder sync |
+| `npm run db:setup-dev` | Schema + eerste prod→dev sync |
+| `npm run db:sync-dev` | Productiedata naar MyTable-dev kopiëren |
 | `npx vercel login` | Eenmalig, voor env-sync |
 | `.\scripts\push-vercel-env.ps1` | `.env.local` → Vercel (production + preview) |
 

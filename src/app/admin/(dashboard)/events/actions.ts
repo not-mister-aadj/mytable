@@ -7,6 +7,8 @@ import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
+import { buildBookingMovedEmailProps } from "@/lib/email/build-email-props";
+import { sendBookingMovedEmail } from "@/lib/email/sendBookingMovedEmail";
 import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
 import {
   formatEventSaveError,
@@ -285,6 +287,35 @@ export type BookingActionResult = { error: string | null };
 
 export type TransferBookingResult = BookingActionResult;
 
+export async function resendBookingConfirmationAction(
+  bookingId: string,
+): Promise<BookingActionResult> {
+  await requireAdmin();
+  if (!isDbConfigured()) {
+    return { error: "Database niet geconfigureerd" };
+  }
+
+  try {
+    const { sendBookingConfirmationByBookingId } = await import(
+      "@/lib/email/sendBookingConfirmationEmail"
+    );
+    const result = await sendBookingConfirmationByBookingId(bookingId, {
+      force: true,
+    });
+    if (!result.ok) {
+      return { error: result.error };
+    }
+    return { error: null };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "E-mail versturen mislukt.",
+    };
+  }
+}
+
 export async function removeBookingFromEventAction(
   bookingId: string,
   eventId: string,
@@ -464,12 +495,26 @@ export async function transferBookingToEventAction(
         sourceSlug: sourceEvent.slug,
         targetSlug: targetEvent.slug,
         eventIds: [sourceEvent.id, targetEventId] as const,
+        booking,
+        sourceEvent,
+        targetEvent,
       };
     });
 
     await reconcileEventSpotsSold([...slugs.eventIds]);
     revalidateEventPaths(slugs.sourceSlug);
     revalidateEventPaths(slugs.targetSlug);
+
+    try {
+      const movedProps = buildBookingMovedEmailProps(
+        slugs.booking,
+        slugs.sourceEvent,
+        slugs.targetEvent,
+      );
+      await sendBookingMovedEmail(movedProps);
+    } catch (emailErr) {
+      console.error("[transfer booking] moved email failed", emailErr);
+    }
 
     return { error: null };
   } catch (error) {

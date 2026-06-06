@@ -1,13 +1,35 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { PositionedImage } from "@/components/ui/PositionedImage";
+import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
 
 type GalleryItem = {
   url: string;
   settings?: ImageSettings;
 };
+
+function pickUniqueGalleryItems(
+  items: GalleryItem[],
+  fallbacks: string[],
+): GalleryItem[] {
+  const used = new Set<string>();
+
+  return items.map((item) => {
+    for (const url of [item.url, ...fallbacks]) {
+      if (!url) continue;
+      const key = imageUrlKey(url);
+      if (used.has(key)) continue;
+      used.add(key);
+      return {
+        url,
+        settings: key === imageUrlKey(item.url) ? item.settings : undefined,
+      };
+    }
+    return item;
+  });
+}
 
 export function BookingGalleryGrid({
   items,
@@ -18,59 +40,28 @@ export function BookingGalleryGrid({
   fallbacks: string[];
   altPrefix: string;
 }) {
-  if (items.length === 0) return null;
+  const displayItems = useMemo(
+    () => pickUniqueGalleryItems(items, fallbacks),
+    [items, fallbacks],
+  );
+
+  if (displayItems.length === 0) return null;
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      {items.map((item, index) => (
-        <GalleryTile
+      {displayItems.map((item, index) => (
+        <div
           key={`${item.url}-${index}`}
-          item={item}
-          fallbacks={fallbacks}
-          alt={`${altPrefix} ${index + 1}`}
-        />
+          className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_12px_32px_rgba(43,13,18,0.10)]"
+        >
+          <PositionedImage
+            src={item.url}
+            alt={`${altPrefix} ${index + 1}`}
+            settings={item.settings}
+            sizes="(max-width: 1024px) 33vw, 200px"
+          />
+        </div>
       ))}
-    </div>
-  );
-}
-
-function GalleryTile({
-  item,
-  fallbacks,
-  alt,
-}: {
-  item: GalleryItem;
-  fallbacks: string[];
-  alt: string;
-}) {
-  const candidates = useMemo(() => {
-    const seen = new Set<string>();
-    const urls: string[] = [];
-    for (const url of [item.url, ...fallbacks]) {
-      if (!url || seen.has(url)) continue;
-      seen.add(url);
-      urls.push(url);
-    }
-    return urls;
-  }, [item.url, fallbacks]);
-
-  const [index, setIndex] = useState(0);
-  const src = candidates[index] ?? item.url;
-  const settings = index === 0 ? item.settings : undefined;
-
-  return (
-    <div className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_12px_32px_rgba(43,13,18,0.1)]">
-      <PositionedImage
-        src={src}
-        alt={alt}
-        settings={settings}
-        sizes="(max-width: 1024px) 33vw, 200px"
-        onError={() => {
-          setIndex((current) =>
-            current < candidates.length - 1 ? current + 1 : current,
-          );
-        }}
-      />
     </div>
   );
 }

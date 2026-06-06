@@ -13,6 +13,7 @@ import {
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
 import { isUsableImageUrl } from "@/lib/image-settings";
+import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
 import { images } from "@/data/images";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -52,30 +53,33 @@ async function resolveEventGallery(
   const moodUrls = mood.gallery.filter(isUsableImageUrl);
 
   const items: BookingGalleryItem[] = [];
+  const usedKeys = new Set<string>();
+
+  function pushItem(entry: BookingGalleryItem): void {
+    if (items.length >= 3) return;
+    const key = imageUrlKey(entry.url);
+    if (usedKeys.has(key)) return;
+    usedKeys.add(key);
+    items.push(entry);
+  }
 
   const settings = item.galleryImageSettings?.filter((s) =>
     isUsableImageUrl(s.url),
   );
   if (settings?.length) {
     for (const s of settings) {
-      if (items.length >= 3) break;
-      if (items.some((x) => x.url === s.url)) continue;
-      items.push({ url: s.url, settings: s });
+      pushItem({ url: s.url, settings: s });
     }
   } else {
     const urls =
       merged.galleryImages?.filter(isUsableImageUrl) ?? moodUrls;
     for (const url of urls) {
-      if (items.length >= 3) break;
-      if (items.some((x) => x.url === url)) continue;
-      items.push({ url });
+      pushItem({ url });
     }
   }
 
   for (const url of moodUrls) {
-    if (items.length >= 3) break;
-    if (items.some((x) => x.url === url)) continue;
-    items.push({ url });
+    pushItem({ url });
   }
 
   const defaultFallbacks = [
@@ -85,14 +89,16 @@ async function resolveEventGallery(
   ];
 
   for (const url of defaultFallbacks) {
-    if (items.length >= 3) break;
-    if (items.some((x) => x.url === url)) continue;
-    items.push({ url });
+    pushItem({ url });
   }
 
   return {
     items: items.slice(0, 3),
-    fallbacks: [...moodUrls, ...defaultFallbacks].filter(isUsableImageUrl),
+    fallbacks: [...moodUrls, ...defaultFallbacks]
+      .filter(isUsableImageUrl)
+      .filter((url, index, all) =>
+        all.findIndex((u) => imageUrlKey(u) === imageUrlKey(url)) === index,
+      ),
   };
 }
 

@@ -45,10 +45,11 @@ export function BookingsTable({
   return (
     <div className="overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige/50 shadow-[0_12px_40px_rgba(43,13,18,0.05)]">
       <div className="hidden overflow-x-auto lg:block">
-        <table className="w-full min-w-[960px] text-left text-sm">
+        <table className="w-full min-w-[1040px] text-left text-sm">
           <thead>
             <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
               <th className="px-5 py-3.5">Gast</th>
+              <th className="px-5 py-3.5">Code</th>
               <th className="px-5 py-3.5">Tafel</th>
               <th className="px-5 py-3.5">Datum</th>
               <th className="px-5 py-3.5">Plekken</th>
@@ -87,6 +88,11 @@ export function BookingsTable({
                         ) : null}
                       </div>
                     </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="font-mono text-xs tracking-wide text-wine/65">
+                      {row.reservationCode}
+                    </span>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -184,6 +190,9 @@ export function BookingsTable({
               <p className="mt-1 text-sm text-wine/70">{row.event.nameNl}</p>
               <p className="mt-1 text-xs text-wine/55">
                 {formatEventDate(row.event.startsAt)} · {row.seats} plekken
+              </p>
+              <p className="mt-1 font-mono text-xs text-wine/50">
+                {row.reservationCode}
               </p>
             </div>
           </motion.button>

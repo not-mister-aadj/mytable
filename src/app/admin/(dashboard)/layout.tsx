@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { adminPath, adminUrl } from "@/lib/admin-url";
+import { adminPath, adminUrlForHost } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function AdminDashboardLayout({
@@ -15,7 +16,10 @@ export default async function AdminDashboardLayout({
     "use server";
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();
-    redirect(adminUrl("/login"));
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3001";
+    const proto = h.get("x-forwarded-proto") ?? "http";
+    redirect(adminUrlForHost("/login", host, proto));
   }
 
   return (
@@ -40,6 +44,9 @@ export default async function AdminDashboardLayout({
             </Link>
             <Link href={adminPath("/bookings")} className="hover:text-burgundy">
               Boekingen
+            </Link>
+            <Link href={adminPath("/email-preview")} className="hover:text-burgundy">
+              E-mails
             </Link>
             <span className="text-wine/50">{user.email}</span>
             <form action={signOut}>

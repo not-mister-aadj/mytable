@@ -36,6 +36,13 @@ $skipIfEmpty = @(
   "RESEND_API_KEY", "MAPKIT_TEAM_ID", "MAPKIT_KEY_ID", "MAPKIT_PRIVATE_KEY"
 )
 
+# Never push local/dev database or Supabase keys to Vercel from .env.local
+$neverPush = @(
+  "DATABASE_URL", "PROD_DATABASE_URL", "PROD_SUPABASE_PROJECT_REF",
+  "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY",
+  "DEV_SYNC_ON_START"
+)
+
 $environments = @("production", "preview")
 
 if (-not (Test-Path (Join-Path $root ".vercel\project.json"))) {
@@ -45,6 +52,10 @@ if (-not (Test-Path (Join-Path $root ".vercel\project.json"))) {
 
 Write-Host "Pushing environment variables..." -ForegroundColor Cyan
 foreach ($key in ($vars.Keys | Sort-Object)) {
+  if ($neverPush -contains $key) {
+    Write-Host "  skip $key (local/dev only)" -ForegroundColor DarkGray
+    continue
+  }
   $value = $vars[$key]
   if ([string]::IsNullOrWhiteSpace($value)) {
     if ($skipIfEmpty -contains $key) {

@@ -24,6 +24,16 @@ const skipIfEmpty = new Set([
   "MAPKIT_PRIVATE_KEY",
 ]);
 
+const neverPush = new Set([
+  "DATABASE_URL",
+  "PROD_DATABASE_URL",
+  "PROD_SUPABASE_PROJECT_REF",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "DEV_SYNC_ON_START",
+]);
+
 const environments = ["production"];
 
 function parseEnv(path) {
@@ -50,6 +60,10 @@ if (!existsSync(join(root, ".vercel", "project.json"))) {
 }
 
 for (const key of Object.keys(vars).sort()) {
+  if (neverPush.has(key)) {
+    console.log(`skip ${key} (local/dev only)`);
+    continue;
+  }
   const value = vars[key];
   if (!value) {
     if (skipIfEmpty.has(key)) {

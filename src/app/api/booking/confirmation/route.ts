@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Locale } from "@/i18n/config";
+import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
 import { isDbConfigured } from "@/db/index";
@@ -19,10 +20,11 @@ export async function GET(request: Request) {
   }
 
   const status = await getBookingConfirmationStatus(sessionId, locale);
+  const purchase = await getConfirmationPurchase(sessionId, locale);
 
-  if (status.summary?.bookingId) {
+  if (status.summary?.bookingId || purchase?.bookingId) {
     void sendMetaCapiPurchaseForSession(sessionId, request.headers);
   }
 
-  return NextResponse.json(status);
+  return NextResponse.json({ ...status, purchase });
 }

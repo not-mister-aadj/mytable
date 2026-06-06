@@ -75,15 +75,37 @@ export function trackMetaInitiateCheckout(
 export function trackMetaPurchase(summary: BookingOutcomeSummary): void {
   if (!summary.bookingId || summary.amountCents == null) return;
 
-  purchase({
+  trackMetaPurchasePayload({
+    bookingId: summary.bookingId,
+    eventId: summary.eventId,
     value: summary.amountCents / 100,
     currency: summary.currency ?? "EUR",
-    content_name: summary.eventName,
-    event_type: summary.experienceType ?? "experience",
+    contentName: summary.eventName,
+    experienceType: summary.experienceType ?? "experience",
     city: summary.city,
     seats: summary.seats ?? 1,
-    booking_id: summary.bookingId,
-    content_ids: summary.eventId ? [`event_${summary.eventId}`] : undefined,
+  });
+}
+
+export function trackMetaPurchasePayload(data: {
+  bookingId: string;
+  eventId?: string;
+  value: number;
+  currency: string;
+  contentName: string;
+  experienceType: string;
+  city: string;
+  seats: number;
+}): void {
+  purchase({
+    value: data.value,
+    currency: data.currency,
+    content_name: data.contentName,
+    event_type: data.experienceType,
+    city: data.city,
+    seats: data.seats,
+    booking_id: data.bookingId,
+    content_ids: data.eventId ? [`event_${data.eventId}`] : undefined,
   });
 }
 

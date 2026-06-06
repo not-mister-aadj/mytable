@@ -189,8 +189,8 @@ export function initiateCheckout(params: MetaInitiateCheckoutParams): void {
   logMetaEvent("InitiateCheckout", payload);
 }
 
-const PURCHASE_RETRY_MS = 100;
-const PURCHASE_MAX_ATTEMPTS = 20;
+const PURCHASE_RETRY_MS = 150;
+const PURCHASE_MAX_ATTEMPTS = 40;
 
 export function purchase(
   params: MetaPurchaseParams,

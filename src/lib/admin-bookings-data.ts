@@ -11,6 +11,7 @@ import {
   paidSeatsByEventIds,
   reconcileEventSpotsSold,
 } from "@/lib/reconcile-spots-sold";
+import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
 import type {
   AdminBookingEvent,
   AdminBookingRow,
@@ -92,6 +93,8 @@ function crmBadgeLabel(badge: import("@/lib/admin-bookings-types").AdminCrmBadge
 }
 
 export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData> {
+  await syncPendingCheckoutsFromStripe();
+
   const db = getDb();
   const now = new Date();
   const weekAgo = new Date(now);

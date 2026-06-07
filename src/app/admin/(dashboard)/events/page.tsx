@@ -3,6 +3,7 @@ import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { reconcileAllEventSpotsSold } from "@/lib/reconcile-spots-sold";
+import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
 import { EventsList } from "@/components/admin/EventsList";
 
 export default async function AdminEventsPage() {
@@ -11,6 +12,7 @@ export default async function AdminEventsPage() {
     return <p>Database niet geconfigureerd.</p>;
   }
   const db = getDb();
+  await syncPendingCheckoutsFromStripe();
   await reconcileAllEventSpotsSold();
   const rows = await db.select().from(events).orderBy(asc(events.startsAt));
 

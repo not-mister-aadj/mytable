@@ -12,6 +12,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
+import { tryFulfillCheckoutSession } from "@/lib/stripe/fulfill-checkout";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
@@ -29,6 +30,11 @@ export default async function BookingConfirmedPage({
   if (!isValidLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
+
+  if (sessionId) {
+    await tryFulfillCheckoutSession(sessionId);
+  }
+
   const confirmation = sessionId
     ? await getBookingConfirmationStatus(sessionId, locale as Locale)
     : { summary: null, pending: false };

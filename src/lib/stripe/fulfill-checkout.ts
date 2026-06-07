@@ -1,7 +1,7 @@
 import { eq, sql, and } from "drizzle-orm";
 import type Stripe from "stripe";
 import { bookingEvents, bookings, events } from "@/db/schema";
-import { getDb } from "@/db/index";
+import { getDb, isDbConfigured } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
 import { onPaymentCompleted } from "@/lib/customers/hooks";
 import { sendMetaCapiPurchase } from "@/lib/analytics/metaCapi";
@@ -15,6 +15,7 @@ import { PostHogEvents } from "@/lib/posthog/events";
 import { hashEmail } from "@/lib/posthog/properties";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
+import { getStripe, isStripeConfigured } from "@/lib/stripe";
 
 async function countPriorPaidBookings(
   email: string,
@@ -198,4 +199,28 @@ export async function fulfillPaidCheckoutSession(
   }
 
   return "fulfilled";
+}
+
+/** Fallback when the Stripe webhook is delayed or missed (confirmation page / poll API). */
+export async function tryFulfillCheckoutSession(
+  sessionId: string,
+): Promise<FulfillCheckoutResult | null> {
+  if (!sessionId.startsWith("cs_") || !isDbConfigured() || !isStripeConfigured()) {
+    return null;
+  }
+
+  const stripe = getStripe();
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch (err) {
+    console.error("[stripe fulfill] session retrieve failed", err);
+    return null;
+  }
+
+  if (!isCheckoutPaymentSettled(session)) {
+    return "not_paid";
+  }
+
+  return fulfillPaidCheckoutSession(session);
 }

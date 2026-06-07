@@ -3,6 +3,7 @@ import type { Locale } from "@/i18n/config";
 import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
+import { tryFulfillCheckoutSession } from "@/lib/stripe/fulfill-checkout";
 import { isDbConfigured } from "@/db/index";
 import { isStripeConfigured } from "@/lib/stripe";
 
@@ -18,6 +19,8 @@ export async function GET(request: Request) {
   if (!sessionId?.startsWith("cs_")) {
     return NextResponse.json({ error: "Ongeldige sessie." }, { status: 400 });
   }
+
+  await tryFulfillCheckoutSession(sessionId);
 
   const status = await getBookingConfirmationStatus(sessionId, locale);
   const purchase = await getConfirmationPurchase(sessionId, locale);

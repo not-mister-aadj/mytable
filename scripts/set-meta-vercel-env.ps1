@@ -32,8 +32,7 @@ try {
   Write-Host "Setting META_CAPI_ACCESS_TOKEN on Vercel Production..."
   $capiToken | npx vercel env add META_CAPI_ACCESS_TOKEN production --force
   if ($testCode) {
-    Write-Host "Setting META_CAPI_TEST_EVENT_CODE on Vercel Production..."
-    $testCode | npx vercel env add META_CAPI_TEST_EVENT_CODE production --force
+    Write-Host "Skipping META_CAPI_TEST_EVENT_CODE for Production (test events only — keep in .env.local for localhost)."
   }
   Write-Host "Done. Redeploy with: npx vercel --prod"
 } finally {

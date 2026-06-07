@@ -19,6 +19,8 @@ import {
   formatEventSaveError,
   validateEventForm,
 } from "@/lib/event-form-validation";
+import { generateEventSlug } from "@/lib/event-slug";
+import { resolveUniqueEventSlug } from "@/lib/event-slug.server";
 import { DEFAULT_EVENT_IMAGE, isUsableImageUrl } from "@/lib/image-settings";
 import {
   DEFAULT_EXPERIENCE_TYPE,
@@ -29,7 +31,6 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 
 export type EventFormState = {
-  slug: string;
   city: string;
   startsAt: string;
   endsAt: string;
@@ -63,7 +64,6 @@ function parseForm(data: FormData): EventFormState {
   }
 
   return {
-    slug: String(data.get("slug") ?? "").trim(),
     city: String(data.get("city") ?? "").trim(),
     startsAt: String(data.get("startsAt") ?? ""),
     endsAt: String(data.get("endsAt") ?? ""),
@@ -100,7 +100,6 @@ function toEventValues(form: EventFormState) {
   const typeDef = getExperienceTypeDefinition(experienceType);
 
   return {
-    slug: form.slug,
     city: form.city,
     startsAt: new Date(form.startsAt),
     endsAt: form.endsAt ? new Date(form.endsAt) : null,
@@ -135,10 +134,19 @@ async function persistNewEvent(formData: FormData) {
   const form = parseForm(formData);
   const values = toEventValues(form);
   const db = getDb();
+  const slug = await resolveUniqueEventSlug(
+    db,
+    generateEventSlug({
+      nameNl: values.nameNl,
+      city: values.city,
+      startsAt: values.startsAt,
+    }),
+  );
   const [row] = await db
     .insert(events)
     .values({
       ...values,
+      slug,
       workflowStatus: "draft",
     })
     .returning();
@@ -153,9 +161,17 @@ async function persistUpdateEvent(id: string, formData: FormData) {
   const form = parseForm(formData);
   const values = toEventValues(form);
   const db = getDb();
+  const [existing] = await db
+    .select({ slug: events.slug })
+    .from(events)
+    .where(eq(events.id, id))
+    .limit(1);
+  if (!existing) {
+    throw new Error("Event niet gevonden");
+  }
   const [row] = await db
     .update(events)
-    .set(values)
+    .set({ ...values, slug: existing.slug })
     .where(eq(events.id, id))
     .returning();
   if (row.workflowStatus === "published") {
@@ -255,8 +271,15 @@ export async function duplicateEventAction(id: string) {
   const [source] = await db.select().from(events).where(eq(events.id, id)).limit(1);
   if (!source) throw new Error("Event niet gevonden");
 
-  const suffix = Date.now().toString(36);
-  const newSlug = `${source.slug}-copy-${suffix}`.slice(0, 120);
+  const copyNameNl = source.nameNl.replace(/\s*\(copy\)\s*$/i, "").trim();
+  const newSlug = await resolveUniqueEventSlug(
+    db,
+    generateEventSlug({
+      nameNl: copyNameNl,
+      city: source.city,
+      startsAt: source.startsAt,
+    }),
+  );
 
   const [row] = await db
     .insert(events)

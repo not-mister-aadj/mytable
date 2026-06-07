@@ -7,9 +7,6 @@ export function validateEventForm(form: EventFormState): string | null {
   if (!form.nameEn?.trim()) {
     return "Vul een eventnaam (EN) in onder stap Basis.";
   }
-  if (!form.slug?.trim()) {
-    return "Vul een slug in onder stap Basis.";
-  }
   if (!form.city?.trim()) {
     return "Vul een stad in onder stap Basis.";
   }
@@ -37,7 +34,7 @@ export function formatEventSaveError(error: unknown): string {
   if (error && typeof error === "object" && "code" in error) {
     const code = String((error as { code: string }).code);
     if (code === "23505") {
-      return "Deze slug bestaat al. Kies een andere slug bij stap Basis.";
+      return "Deze URL bestaat al voor een ander event. Pas tafelnaam, stad of datum aan.";
     }
   }
   if (error instanceof Error && error.message) {

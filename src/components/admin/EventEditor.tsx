@@ -18,6 +18,7 @@ import {
   type EventFormState,
 } from "@/app/admin/(dashboard)/events/actions";
 import { validateEventForm } from "@/lib/event-form-validation";
+import { generateEventSlug } from "@/lib/event-slug";
 import {
   detectEditorUiFlags,
   effectiveImageUrl,
@@ -64,15 +65,6 @@ function toLocalInput(d: Date | null): string {
   if (!d) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .slice(0, 60);
 }
 
 function applyTypeDefaults(
@@ -129,7 +121,6 @@ export function EventEditor({
     useState<ExperienceTypeSlug>(startType);
   const [nameNl, setNameNl] = useState(event?.nameNl ?? "");
   const [nameEn, setNameEn] = useState(event?.nameEn ?? "");
-  const [slug, setSlug] = useState(event?.slug ?? "");
   const [city, setCity] = useState(event?.city ?? "Den Haag");
   const [startsAt, setStartsAt] = useState(
     event ? toLocalInput(new Date(event.startsAt)) : "",
@@ -237,7 +228,6 @@ export function EventEditor({
 
   function buildFormSnapshot(): EventFormState {
     return {
-      slug,
       city,
       startsAt,
       endsAt,
@@ -312,7 +302,15 @@ export function EventEditor({
     ],
   );
 
-  const publicUrl = slug ? `${getSiteUrl()}/nl/agenda/${slug}` : null;
+  const slugPreview = useMemo(() => {
+    if (isEdit && event) return event.slug;
+    if (!nameNl.trim() || !city.trim() || !startsAt) return null;
+    const starts = new Date(startsAt);
+    if (Number.isNaN(starts.getTime())) return null;
+    return generateEventSlug({ nameNl, city, startsAt: starts });
+  }, [isEdit, event, nameNl, city, startsAt]);
+
+  const publicUrl = slugPreview ? `${getSiteUrl()}/nl/agenda/${slugPreview}` : null;
   const typeDefaults = getEventFormDefaults(experienceType);
 
   function updateExtras(patch: Partial<EventExtras>) {
@@ -416,7 +414,6 @@ export function EventEditor({
             <input type="hidden" name="experienceType" value={experienceType} />
             <input type="hidden" name="nameNl" value={nameNl} />
             <input type="hidden" name="nameEn" value={nameEn} />
-            <input type="hidden" name="slug" value={slug} />
             <input type="hidden" name="city" value={city} />
             <input type="hidden" name="startsAt" value={startsAt} />
             <input type="hidden" name="endsAt" value={endsAt} />
@@ -467,17 +464,19 @@ export function EventEditor({
                     name="nameEn"
                     required
                   />
-                  <Field
-                    label="Slug"
-                    value={slug}
-                    onChange={setSlug}
-                    name="slug"
-                    required
-                    hint="URL: /agenda/jouw-slug"
-                    onBlur={() => {
-                      if (!slug && nameNl) setSlug(slugify(nameNl));
-                    }}
-                  />
+                  <div className="sm:col-span-2">
+                    <p className="text-sm font-medium text-wine">Publieke URL</p>
+                    <p className="mt-1.5 rounded-xl border border-border-subtle bg-cream/60 px-4 py-2.5 font-mono text-sm text-wine/80">
+                      {slugPreview
+                        ? `/agenda/${slugPreview}`
+                        : "Wordt automatisch gegenereerd uit tafelnaam, stad en startdatum."}
+                    </p>
+                    <p className="mt-1 text-xs text-wine/50">
+                      {isEdit
+                        ? "De URL verandert niet na het aanmaken van het event."
+                        : "Bij een dubbele slug wordt -2, -3, … toegevoegd."}
+                    </p>
+                  </div>
                   <Field
                     label="Stad"
                     value={city}

@@ -140,6 +140,7 @@ export function ExperiencePageContent({
                 locale={locale}
                 className="mt-10"
                 compact
+                fitViewport
               />
             </motion.div>
 
@@ -232,13 +233,15 @@ export function ExperiencePageContent({
           </div>
 
           <div className="hidden lg:block">
-            <div className="sticky top-28 pt-14">
+            <div className="sticky top-36 pt-4">
               <BookingCard
                 experience={experience}
                 labels={page}
                 statusLabels={dict.agenda.status}
                 reserveCta={dict.agenda.reserveCta}
                 locale={locale}
+                compact
+                fitViewport
               />
             </div>
           </div>

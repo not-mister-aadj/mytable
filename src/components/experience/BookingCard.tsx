@@ -31,8 +31,10 @@ interface BookingCardProps {
   reserveCta: string;
   locale: Locale;
   className?: string;
-  /** Tighter layout for mobile — hides extras and caps height so the form stays reachable. */
+  /** Tighter layout — hides social proof and trust bullets. */
   compact?: boolean;
+  /** Cap height to viewport and scroll inside the card (header + sticky bar safe area). */
+  fitViewport?: boolean;
 }
 
 export function BookingCard({
@@ -43,6 +45,7 @@ export function BookingCard({
   locale,
   className = "",
   compact = false,
+  fitViewport = false,
 }: BookingCardProps) {
   const { date, time } = splitDateTime(experience.dateTime);
   const isSoldOut = !canReserve(experience);
@@ -108,9 +111,11 @@ export function BookingCard({
     <motion.aside
       layout
       className={`rounded-2xl border shadow-[0_20px_50px_rgba(43,13,18,0.1)] sm:rounded-3xl ${
-        compact
-          ? "max-h-[calc(100dvh-6rem-env(safe-area-inset-bottom,0px))] overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] [-webkit-overflow-scrolling:touch]"
-          : "p-6 sm:p-7"
+        compact ? "p-4" : "p-6 sm:p-7"
+      } ${
+        fitViewport
+          ? "max-h-[calc(100dvh-9.5rem-env(safe-area-inset-bottom,0px))] overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))] [-webkit-overflow-scrolling:touch]"
+          : ""
       } ${
         isFemaleOnly
           ? "border-rose/40 bg-rose-soft ring-1 ring-rose/25 shadow-[0_20px_50px_rgba(157,77,111,0.14)]"

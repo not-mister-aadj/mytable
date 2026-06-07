@@ -13,10 +13,8 @@ import type { CustomerStatusKey } from "@/lib/customers/types";
 type FilterKey =
   | "all"
   | "paying"
-  | "non_paying"
   | "repeat"
-  | "failed_payments"
-  | "waitlist_only";
+  | "failed_payments";
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
@@ -65,17 +63,8 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
       }
 
       if (statusFilter === "paying" && row.paidBookingsCount === 0) return false;
-      if (statusFilter === "non_paying" && row.paidBookingsCount > 0) {
-        return false;
-      }
       if (statusFilter === "repeat" && row.paidBookingsCount < 2) return false;
       if (statusFilter === "failed_payments" && row.failedPaymentsCount === 0) {
-        return false;
-      }
-      if (
-        statusFilter === "waitlist_only" &&
-        row.status !== "waitlist_only"
-      ) {
         return false;
       }
 
@@ -98,8 +87,8 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
           Klanten
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Overzicht van gasten op basis van e-mailadres — boekingen, uitgaven en
-          activiteit in de tijd.
+          Betalende gasten op basis van e-mailadres — voltooide boekingen,
+          omzet en activiteit in de tijd.
         </p>
       </div>
 
@@ -141,10 +130,8 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
           >
             <option value="all">Alle statussen</option>
             <option value="paying">Betalend</option>
-            <option value="non_paying">Niet betalend</option>
             <option value="repeat">Terugkerend</option>
             <option value="failed_payments">Betalingsprobleem</option>
-            <option value="waitlist_only">Alleen wachtlijst</option>
           </select>
           <select
             value={cityFilter}
@@ -220,7 +207,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
                       {row.favoriteCity ?? "—"}
                     </td>
                     <td className="px-5 py-4 font-medium text-wine">
-                      {row.totalBookings}
+                      {row.paidBookingsCount}
                     </td>
                     <td className="px-5 py-4 text-wine/75">{row.totalSeatsBooked}</td>
                     <td className="px-5 py-4 font-medium text-wine">

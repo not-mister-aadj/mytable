@@ -20,7 +20,7 @@ export type BookingFilters = {
 
 export const defaultBookingFilters: BookingFilters = {
   search: "",
-  status: "all",
+  status: "paid",
   timing: "all",
   city: "all",
   experienceType: "all",

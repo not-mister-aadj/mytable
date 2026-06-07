@@ -14,6 +14,8 @@ import {
   customerStatusLabel,
   resolveCustomerStatus,
 } from "@/lib/customers/status";
+import { reconcileAllCustomers } from "@/lib/customers/reconcile";
+import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
 import type { CustomerStatusKey } from "@/lib/customers/types";
 
 export type AdminCustomerListRow = {
@@ -127,13 +129,18 @@ function mapCustomerRow(row: typeof customers.$inferSelect): AdminCustomerListRo
 }
 
 export async function getAdminCustomersPageData(): Promise<AdminCustomersPageData> {
+  await syncPendingCheckoutsFromStripe();
+  await reconcileAllCustomers();
+
   const db = getDb();
   const rows = await db
     .select()
     .from(customers)
     .orderBy(desc(customers.lastSeenAt));
 
-  const customersList = rows.map(mapCustomerRow);
+  const customersList = rows
+    .map(mapCustomerRow)
+    .filter((c) => c.paidBookingsCount > 0 && c.totalSpentCents > 0);
 
   const payingCustomers = customersList.filter((c) => c.paidBookingsCount > 0).length;
   const repeatCustomers = customersList.filter((c) => c.paidBookingsCount > 1).length;

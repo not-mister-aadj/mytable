@@ -18,7 +18,6 @@ import {
   type EventFormState,
 } from "@/app/admin/(dashboard)/events/actions";
 import { validateEventForm } from "@/lib/event-form-validation";
-import { generateEventSlug } from "@/lib/event-slug";
 import {
   detectEditorUiFlags,
   effectiveImageUrl,
@@ -302,15 +301,10 @@ export function EventEditor({
     ],
   );
 
-  const slugPreview = useMemo(() => {
-    if (isEdit && event) return event.slug;
-    if (!nameNl.trim() || !city.trim() || !startsAt) return null;
-    const starts = new Date(startsAt);
-    if (Number.isNaN(starts.getTime())) return null;
-    return generateEventSlug({ nameNl, city, startsAt: starts });
-  }, [isEdit, event, nameNl, city, startsAt]);
-
-  const publicUrl = slugPreview ? `${getSiteUrl()}/nl/agenda/${slugPreview}` : null;
+  const publicUrl =
+    isEdit && event?.slug
+      ? `${getSiteUrl()}/nl/agenda/${event.slug}`
+      : null;
   const typeDefaults = getEventFormDefaults(experienceType);
 
   function updateExtras(patch: Partial<EventExtras>) {
@@ -464,19 +458,6 @@ export function EventEditor({
                     name="nameEn"
                     required
                   />
-                  <div className="sm:col-span-2">
-                    <p className="text-sm font-medium text-wine">Publieke URL</p>
-                    <p className="mt-1.5 rounded-xl border border-border-subtle bg-cream/60 px-4 py-2.5 font-mono text-sm text-wine/80">
-                      {slugPreview
-                        ? `/agenda/${slugPreview}`
-                        : "Wordt automatisch gegenereerd uit tafelnaam, stad en startdatum."}
-                    </p>
-                    <p className="mt-1 text-xs text-wine/50">
-                      {isEdit
-                        ? "De URL verandert niet na het aanmaken van het event."
-                        : "Bij een dubbele slug wordt -2, -3, … toegevoegd."}
-                    </p>
-                  </div>
                   <Field
                     label="Stad"
                     value={city}

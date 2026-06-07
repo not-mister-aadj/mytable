@@ -127,7 +127,11 @@ export function ExperiencePageContent({
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">
           <div className="min-w-0 space-y-4">
-            <motion.div {...fade} id="booking" className="lg:hidden">
+            <motion.div
+              {...fade}
+              id="booking"
+              className="scroll-mt-[9rem] lg:hidden"
+            >
               <BookingCard
                 experience={experience}
                 labels={page}
@@ -135,6 +139,7 @@ export function ExperiencePageContent({
                 reserveCta={dict.agenda.reserveCta}
                 locale={locale}
                 className="mt-10"
+                compact
               />
             </motion.div>
 

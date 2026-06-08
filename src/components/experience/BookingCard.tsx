@@ -314,7 +314,7 @@ export function BookingCard({
             isFemaleOnly ? "bg-rose hover:bg-rose-deep" : "bg-burgundy"
           } ${bookingDisabled ? "pointer-events-none opacity-50" : ""}`}
         >
-          {isClosed ? statusLabels.closed : reserveCta}
+          {isClosed ? labels.closedCta : reserveCta}
         </a>
       )}
 

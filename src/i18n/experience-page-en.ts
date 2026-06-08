@@ -97,6 +97,7 @@ export const experiencePageEn: ExperiencePageLabels = {
     closed: "Bookings closed",
     new: "New in our lineup",
   },
+  closedCta: "Full, closed",
   moods: {
     tastings: {
       tagline: "Wine tasting at one table, girls only or mixed group",

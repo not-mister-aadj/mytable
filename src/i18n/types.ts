@@ -125,6 +125,7 @@ export interface ExperiencePageLabels {
     groupSize: string;
   };
   spotsByStatus: Record<ExperienceStatusKey, string>;
+  closedCta: string;
   moods: Record<ExperienceMoodKey, ExperienceMoodContent>;
 }
 

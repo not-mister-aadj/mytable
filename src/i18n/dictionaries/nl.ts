@@ -37,8 +37,8 @@ export const nl: Dictionary = {
     imageAlt: "Mensen die samen aan tafel van wijn en eten genieten",
   },
   valueStrip: [
-    "Gecureerde locaties",
-    "Bord en glas die kloppen",
+    "Leukste locaties",
+    "Wijn en spijs die samengaan",
     "Solo of eigen tafel",
     "Ontspannen sfeer",
   ],

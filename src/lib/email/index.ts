@@ -1,5 +1,6 @@
 export {
   DEFAULT_EMAIL_FROM,
+  getBookingConfirmationBcc,
   getEmailFrom,
   getResendClient,
   isEmailConfigured,

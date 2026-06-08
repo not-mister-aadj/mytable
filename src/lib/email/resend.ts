@@ -14,6 +14,13 @@ export function getEmailReplyTo(): string {
   return process.env.EMAIL_REPLY_TO?.trim() || "info@mytable.club";
 }
 
+/** BCC on booking confirmations — same copy the customer receives. Empty env disables. */
+export function getBookingConfirmationBcc(): string[] {
+  if (process.env.EMAIL_BCC === "") return [];
+  const address = process.env.EMAIL_BCC?.trim() || "info@mytable.club";
+  return [address];
+}
+
 export function getResendClient(): Resend | null {
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key) {

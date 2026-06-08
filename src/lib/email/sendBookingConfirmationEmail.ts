@@ -16,6 +16,7 @@ import {
   bookingEmailHeaders,
 } from "@/lib/email/subjects";
 import {
+  getBookingConfirmationBcc,
   getEmailFrom,
   getEmailReplyTo,
   getResendClient,
@@ -63,10 +64,15 @@ export async function sendBookingConfirmationEmail(
     BookingConfirmationEmail(props),
   );
 
+  const bcc = getBookingConfirmationBcc().filter(
+    (address) => address.toLowerCase() !== props.customerEmail.toLowerCase(),
+  );
+
   const { data, error } = await resend.emails.send({
     from: getEmailFrom(),
     replyTo: getEmailReplyTo(),
     to: props.customerEmail,
+    bcc: bcc.length > 0 ? bcc : undefined,
     subject: bookingConfirmationSubject(props.bookingCode, props.eventName),
     headers: bookingEmailHeaders(props.bookingCode),
     html,

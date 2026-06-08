@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { AdminBookingRow, AdminBookingsPageData } from "@/lib/admin-bookings-types";
 import { BookingDetailDrawer } from "@/components/admin/bookings/BookingDetailDrawer";
 import {
@@ -103,11 +104,18 @@ export function BookingsOperationsView({
 }) {
   const [filters, setFilters] = useState<BookingFilters>(defaultBookingFilters);
   const [selected, setSelected] = useState<AdminBookingRow | null>(null);
+  const router = useRouter();
 
   const filtered = useMemo(
     () => filterBookings(data.bookings, filters),
     [data.bookings, filters],
   );
+
+  useEffect(() => {
+    if (!selected) return;
+    const updated = data.bookings.find((row) => row.id === selected.id);
+    if (updated) setSelected(updated);
+  }, [data.bookings, selected?.id]);
 
   return (
     <div className="space-y-8">
@@ -145,6 +153,7 @@ export function BookingsOperationsView({
         allBookings={data.bookings}
         stripeDashboardBase={data.stripeDashboardBase}
         onClose={() => setSelected(null)}
+        onBookingUpdated={() => router.refresh()}
       />
     </div>
   );

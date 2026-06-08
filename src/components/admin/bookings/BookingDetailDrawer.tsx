@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState, useTransition } from "react";
+import { resendBookingConfirmationAction } from "@/app/admin/(dashboard)/events/actions";
 import type { AdminBookingRow } from "@/lib/admin-bookings-types";
 import { getGuestHistory } from "@/components/admin/bookings/booking-utils";
 import { adminPath } from "@/lib/admin-url";
@@ -47,15 +49,48 @@ export function BookingDetailDrawer({
   allBookings,
   stripeDashboardBase,
   onClose,
+  onBookingUpdated,
 }: {
   booking: AdminBookingRow | null;
   allBookings: AdminBookingRow[];
   stripeDashboardBase: string;
   onClose: () => void;
+  onBookingUpdated?: () => void;
 }) {
+  const [isPending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
   const history = booking
     ? getGuestHistory(allBookings, booking.email, booking.id)
     : [];
+
+  const canResendConfirmation =
+    booking?.paymentStatus === "paid" &&
+    booking.lifecycleStatus === "active";
+
+  function handleResendConfirmation() {
+    if (!booking || !canResendConfirmation) return;
+
+    const guestName = booking.customerName?.trim() || "deze gast";
+    const confirmed = confirm(
+      `Bevestigingsmail opnieuw sturen naar ${booking.email}?\n\n` +
+        `${guestName} ontvangt de boekingsbevestiging voor ${booking.event.nameNl} opnieuw.`,
+    );
+    if (!confirmed) return;
+
+    setActionError(null);
+    setActionSuccess(null);
+    startTransition(async () => {
+      const result = await resendBookingConfirmationAction(booking.id);
+      if (result.error) {
+        setActionError(result.error);
+        return;
+      }
+      setActionSuccess("Bevestigingsmail verstuurd.");
+      onBookingUpdated?.();
+    });
+  }
 
   const stripeUrl = booking?.stripePaymentIntentId
     ? `${stripeDashboardBase}payments/${booking.stripePaymentIntentId}`
@@ -345,6 +380,31 @@ export function BookingDetailDrawer({
                         </li>
                       ))}
                     </ul>
+                  </DetailSection>
+                ) : null}
+
+                {canResendConfirmation ? (
+                  <DetailSection title="Acties">
+                    <div className="rounded-2xl border border-border-subtle/80 bg-beige/60 p-4">
+                      <p className="text-sm text-wine/65">
+                        Stuur de boekingsbevestiging opnieuw naar{" "}
+                        <span className="font-medium text-wine">{booking.email}</span>.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleResendConfirmation}
+                        disabled={isPending}
+                        className="mt-4 rounded-full border border-border-subtle bg-cream px-5 py-2 text-sm font-medium text-wine transition hover:bg-beige disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isPending ? "Bezig…" : "Bevestigingsmail opnieuw sturen"}
+                      </button>
+                      {actionError ? (
+                        <p className="mt-3 text-sm text-red-800">{actionError}</p>
+                      ) : null}
+                      {actionSuccess ? (
+                        <p className="mt-3 text-sm text-emerald-800">{actionSuccess}</p>
+                      ) : null}
+                    </div>
                   </DetailSection>
                 ) : null}
               </div>

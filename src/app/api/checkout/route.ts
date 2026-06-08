@@ -100,7 +100,10 @@ export async function POST(request: Request) {
 
   if (isEventClosedForBooking(event.startsAt)) {
     return NextResponse.json(
-      { error: "Boekingen zijn gesloten — minder dan 48 uur voor aanvang." },
+      {
+        error:
+          locale === "en" ? "Bookings closed." : "Boekingen gesloten.",
+      },
       { status: 409 },
     );
   }

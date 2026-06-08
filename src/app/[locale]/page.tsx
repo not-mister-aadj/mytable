@@ -1,4 +1,3 @@
-import { ConceptSection } from "@/components/ConceptSection";
 import { ExperiencesSection } from "@/components/ExperiencesSection";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
@@ -58,7 +57,6 @@ export default async function Home({ params }: Props) {
           locale={locale}
           agendaHref={agendaHref}
         />
-        <ConceptSection dict={dict.concept} />
         <HowItWorks dict={dict.howItWorks} />
         <VenueDiscovery dict={dict.venueDiscovery} />
         <Testimonials dict={dict.testimonials} locale={locale} />

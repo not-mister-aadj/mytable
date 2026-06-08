@@ -23,7 +23,7 @@ const STATUS_LABELS_NL: Record<ExperienceStatusKey, string> = {
   available: "Beschikbaar",
   almostFull: "Bijna vol",
   soldOut: "Uitverkocht",
-  closed: "Gesloten",
+  closed: "Vol",
   new: "Nieuw",
 };
 

@@ -23,6 +23,7 @@ const STATUS_LABELS_NL: Record<ExperienceStatusKey, string> = {
   available: "Beschikbaar",
   almostFull: "Bijna vol",
   soldOut: "Uitverkocht",
+  closed: "Gesloten",
   new: "Nieuw",
 };
 
@@ -51,12 +52,14 @@ export function getEventPublicLabels(event: Event): EventPublicLabel[] {
     event.capacity,
     event.spotsSold,
     publishedAt,
+    event.startsAt,
   );
 
   const showDisplayStatus =
     event.workflowStatus === "published" ||
     displayStatus === "soldOut" ||
-    displayStatus === "almostFull";
+    displayStatus === "almostFull" ||
+    displayStatus === "closed";
 
   if (showDisplayStatus) {
     labels.push({
@@ -77,6 +80,7 @@ export function getEventAlmostFullHint(event: Event): string | null {
     event.capacity,
     event.spotsSold,
     publishedAt,
+    event.startsAt,
   );
   if (displayStatus !== "almostFull") return null;
   const spotsLeft = event.capacity - event.spotsSold;

@@ -11,17 +11,21 @@ import {
   getPublishedSlugs,
   getRelatedPublishedExperiences,
 } from "@/lib/experience-data";
-import { publishedUpcomingEventsWhere } from "@/lib/published-events-filter";
+import {
+  publishedAgendaEventsWhere,
+  publishedLandingEventsWhere,
+} from "@/lib/published-events-filter";
 import { enrichExperience, type EnrichedExperience } from "./experience-detail";
 
 async function fetchPublishedFromDb(
   locale: Locale,
+  whereClause: ReturnType<typeof publishedLandingEventsWhere>,
 ): Promise<EnrichedExperience[]> {
   const db = getDb();
   const rows = await db
     .select()
     .from(events)
-    .where(publishedUpcomingEventsWhere())
+    .where(whereClause)
     .orderBy(events.startsAt);
 
   return enrichPublishedRows(rows, locale);
@@ -31,18 +35,39 @@ function fetchFromCatalog(locale: Locale): EnrichedExperience[] {
   return getCatalogExperiences(locale).map(enrichExperience);
 }
 
-/** Canonical list: agenda / homepage */
-export async function getAllExperiences(
+/** Landing page: open for booking, not closed. */
+export async function getLandingExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
   if (isDbEventsEnabled() && isDbConfigured()) {
     try {
-      return await fetchPublishedFromDb(locale);
+      return await fetchPublishedFromDb(locale, publishedLandingEventsWhere());
     } catch (err) {
       console.error("[experiences] DB fetch failed, falling back to catalog", err);
     }
   }
   return fetchFromCatalog(locale);
+}
+
+/** Agenda page: includes closed events until 7 days after start. */
+export async function getAgendaExperiences(
+  locale: Locale,
+): Promise<EnrichedExperience[]> {
+  if (isDbEventsEnabled() && isDbConfigured()) {
+    try {
+      return await fetchPublishedFromDb(locale, publishedAgendaEventsWhere());
+    } catch (err) {
+      console.error("[experiences] DB fetch failed, falling back to catalog", err);
+    }
+  }
+  return fetchFromCatalog(locale);
+}
+
+/** @deprecated Use getLandingExperiences or getAgendaExperiences */
+export async function getAllExperiences(
+  locale: Locale,
+): Promise<EnrichedExperience[]> {
+  return getLandingExperiences(locale);
 }
 
 export async function getExperienceBySlug(
@@ -109,7 +134,7 @@ export async function getAllExperienceSlugs(locale: Locale): Promise<string[]> {
 
 /** Sync agenda items for dictionary merge */
 export async function getAgendaItems(locale: Locale) {
-  return getAllExperiences(locale);
+  return getAgendaExperiences(locale);
 }
 
 export function getCatalogAgendaItems(locale: Locale) {

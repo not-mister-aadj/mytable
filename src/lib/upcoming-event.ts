@@ -84,7 +84,7 @@ export function getNextUpcomingExperience(
 ): ExperienceItem | null {
   const now = Date.now();
   const upcoming = sortExperiencesByDate(items, locale).filter((item) => {
-    if (item.status === "soldOut") return false;
+    if (item.status === "soldOut" || item.status === "closed") return false;
     const at = parseExperienceStartsAt(item.dateTime, locale);
     return at !== null && at.getTime() >= now;
   });

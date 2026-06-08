@@ -11,6 +11,7 @@ import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
 import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
+import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -95,6 +96,13 @@ export async function POST(request: Request) {
 
   if (!event || event.workflowStatus !== "published") {
     return NextResponse.json({ error: "Tafel niet beschikbaar." }, { status: 404 });
+  }
+
+  if (isEventClosedForBooking(event.startsAt)) {
+    return NextResponse.json(
+      { error: "Boekingen zijn gesloten — minder dan 48 uur voor aanvang." },
+      { status: 409 },
+    );
   }
 
   const spotsLeft = event.capacity - event.spotsSold;

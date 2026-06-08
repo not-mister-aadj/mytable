@@ -94,6 +94,7 @@ export const experiencePageEn: ExperiencePageLabels = {
     available: "Plenty of seats still available",
     almostFull: "Only a few spots left, book soon",
     soldOut: "This table is sold out",
+    closed: "Bookings closed — less than 48 hours before start",
     new: "New in our lineup",
   },
   moods: {

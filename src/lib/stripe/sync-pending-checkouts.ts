@@ -7,6 +7,7 @@ import {
   tryFulfillCheckoutSession,
   type FulfillCheckoutResult,
 } from "@/lib/stripe/fulfill-checkout";
+import { sendMissingBookingConfirmationEmails } from "@/lib/email/send-missing-confirmation-emails";
 
 export type PendingCheckoutSyncResult = {
   bookingId: string;
@@ -52,6 +53,8 @@ export async function syncPendingCheckoutsFromStripe(): Promise<PendingCheckoutS
   if (results.some((r) => r.outcome === "fulfilled")) {
     await reconcileAllEventSpotsSold();
   }
+
+  await sendMissingBookingConfirmationEmails();
 
   return results;
 }

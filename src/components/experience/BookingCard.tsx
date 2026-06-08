@@ -48,7 +48,9 @@ export function BookingCard({
   fitViewport = false,
 }: BookingCardProps) {
   const { date, time } = splitDateTime(experience.dateTime);
-  const isSoldOut = !canReserve(experience);
+  const isClosed = experience.status === "closed";
+  const isSoldOut = !isClosed && !canReserve(experience);
+  const bookingDisabled = isClosed || isSoldOut;
   const spotsLeft = getSpotsLeft(experience);
   const views = getViewsThisWeek(experience.id);
   const priceLine = formatPerPerson(experience.price, labels.perPerson);
@@ -130,7 +132,15 @@ export function BookingCard({
         {priceLine}
       </p>
 
-      {spotsLeft !== null && spotsLeft > 0 ? (
+      {isClosed ? (
+        <span
+          className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream sm:px-3.5 sm:py-1.5 sm:text-xs ${
+            compact ? "mt-2.5" : "mt-4"
+          } bg-wine/80`}
+        >
+          {statusLabels.closed}
+        </span>
+      ) : spotsLeft !== null && spotsLeft > 0 ? (
         <span
           className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream sm:px-3.5 sm:py-1.5 sm:text-xs ${
             compact ? "mt-2.5" : "mt-4"
@@ -218,7 +228,7 @@ export function BookingCard({
         </div>
       ) : null}
 
-      {dbCheckoutEnabled && !isSoldOut ? (
+      {dbCheckoutEnabled && !bookingDisabled ? (
         <form
           onSubmit={handleCheckout}
           className={compact ? "mt-3 space-y-2" : "mt-6 space-y-3"}
@@ -302,9 +312,9 @@ export function BookingCard({
             compact ? "mt-3 py-2.5 text-sm" : "mt-6 py-3 text-sm"
           } ${
             isFemaleOnly ? "bg-rose hover:bg-rose-deep" : "bg-burgundy"
-          } ${isSoldOut ? "pointer-events-none opacity-50" : ""}`}
+          } ${bookingDisabled ? "pointer-events-none opacity-50" : ""}`}
         >
-          {reserveCta}
+          {isClosed ? statusLabels.closed : reserveCta}
         </a>
       )}
 

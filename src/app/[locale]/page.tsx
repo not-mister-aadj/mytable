@@ -11,7 +11,7 @@ import { ValueStrip } from "@/components/ValueStrip";
 import { VenueCTA } from "@/components/VenueCTA";
 import { VenueDiscovery } from "@/components/VenueDiscovery";
 import { agendaPath, experiencePath, isValidLocale } from "@/i18n/config";
-import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
+import { getDictionaryWithLanding } from "@/i18n/get-dictionary";
 import {
   enrichExperience,
   getMoodContent,
@@ -28,7 +28,7 @@ export default async function Home({ params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
 
-  const dict = await getDictionaryWithAgenda(locale);
+  const dict = await getDictionaryWithLanding(locale);
   const agendaHref = agendaPath(locale);
   const nextRaw = getNextUpcomingExperience(dict.agenda.items, locale);
   const nextEvent = nextRaw

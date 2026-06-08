@@ -19,6 +19,7 @@ import {
   getEmailFrom,
   getEmailReplyTo,
   getResendClient,
+  isEmailConfigured,
   type EmailSendResult,
 } from "@/lib/email/resend";
 
@@ -48,9 +49,13 @@ export async function sendBookingConfirmationEmail(
 ): Promise<EmailSendResult> {
   validateProps(props);
 
+  if (!isEmailConfigured()) {
+    console.warn("[email] RESEND_API_KEY missing, skip booking confirmation");
+    return { ok: false, error: "Email not configured" };
+  }
+
   const resend = getResendClient();
   if (!resend) {
-    console.warn("[email] RESEND_API_KEY missing, skip booking confirmation");
     return { ok: false, error: "Email not configured" };
   }
 

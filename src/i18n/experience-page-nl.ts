@@ -94,6 +94,7 @@ export const experiencePageNl: ExperiencePageLabels = {
     available: "Nog voldoende plekken beschikbaar",
     almostFull: "Nog enkele plekken over, wees er snel bij",
     soldOut: "Deze tafel is uitverkocht",
+    closed: "Boekingen gesloten — minder dan 48 uur voor aanvang",
     new: "Nieuw in ons aanbod",
   },
   moods: {

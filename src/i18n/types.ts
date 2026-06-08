@@ -2,6 +2,7 @@ export type ExperienceStatusKey =
   | "available"
   | "almostFull"
   | "soldOut"
+  | "closed"
   | "new";
 
 export type AgendaTabKey = "all" | "girlsOnly" | "mixed";

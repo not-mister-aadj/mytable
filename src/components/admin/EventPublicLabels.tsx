@@ -11,6 +11,7 @@ const statusBadgeStyles: Record<ExperienceStatusKey, string> = {
     "bg-cream text-burgundy ring-1 ring-burgundy/15",
   almostFull: "bg-gold text-wine",
   soldOut: "bg-burgundy text-cream",
+  closed: "bg-wine/70 text-cream",
   new: "bg-cream text-burgundy ring-2 ring-gold",
 };
 

@@ -16,7 +16,7 @@ import {
   parseTypeContent,
   type ExperienceTypeContent,
 } from "@/lib/experience-type-content.types";
-import { publishedUpcomingEventsWhere } from "@/lib/published-events-filter";
+import { publishedAgendaEventsWhere } from "@/lib/published-events-filter";
 
 export async function loadTypeContentMap(
   slugs: string[],
@@ -38,14 +38,14 @@ export async function loadTypeContentMap(
   return map;
 }
 
-export const getPublishedEventRowBySlug = cache(
+export const getAgendaEventRowBySlug = cache(
   async (slug: string): Promise<Event | undefined> => {
     if (!isDbConfigured()) return undefined;
     const db = getDb();
     const [row] = await db
       .select()
       .from(events)
-      .where(and(publishedUpcomingEventsWhere(), eq(events.slug, slug)))
+      .where(and(publishedAgendaEventsWhere(), eq(events.slug, slug)))
       .limit(1);
     return row;
   },
@@ -56,7 +56,7 @@ export const getPublishedExperienceBySlug = cache(
     locale: Locale,
     slug: string,
   ): Promise<EnrichedExperience | undefined> => {
-    const row = await getPublishedEventRowBySlug(slug);
+    const row = await getAgendaEventRowBySlug(slug);
     if (!row) return undefined;
     const typeSlug = row.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
     const contentMap = await loadTypeContentMap([typeSlug]);
@@ -74,7 +74,7 @@ export async function getPublishedSlugs(): Promise<string[]> {
   const rows = await db
     .select({ slug: events.slug })
     .from(events)
-    .where(publishedUpcomingEventsWhere());
+    .where(publishedAgendaEventsWhere());
   return rows.map((r) => r.slug);
 }
 
@@ -111,7 +111,7 @@ export async function getRelatedPublishedExperiences(
     .from(events)
     .where(
       and(
-        publishedUpcomingEventsWhere(),
+        publishedAgendaEventsWhere(),
         ne(events.slug, current.slug),
         or(
           eq(events.mood, current.mood),

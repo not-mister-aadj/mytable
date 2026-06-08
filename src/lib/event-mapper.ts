@@ -70,6 +70,7 @@ export function mapDbEventToExperienceItem(
       row.capacity,
       row.spotsSold,
       row.publishedAt ? new Date(row.publishedAt) : null,
+      startsAt,
     ),
     mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
     image: heroUrl,

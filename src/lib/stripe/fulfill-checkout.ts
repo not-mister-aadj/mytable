@@ -1,6 +1,7 @@
 import { eq, sql, and } from "drizzle-orm";
 import type Stripe from "stripe";
 import { bookingEvents, bookings, events } from "@/db/schema";
+import type { Booking, Event } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
 import { onPaymentCompleted } from "@/lib/customers/hooks";
@@ -16,6 +17,21 @@ import { hashEmail } from "@/lib/posthog/properties";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+
+async function deliverConfirmationEmail(
+  booking: Booking,
+  event: Event,
+  context: string,
+): Promise<void> {
+  try {
+    const result = await sendBookingConfirmationForPaidBooking(booking, event);
+    if (!result.ok) {
+      console.error(`[stripe fulfill] ${context} email failed`, result.error);
+    }
+  } catch (emailErr) {
+    console.error(`[stripe fulfill] ${context} email failed`, emailErr);
+  }
+}
 
 async function countPriorPaidBookings(
   email: string,
@@ -80,11 +96,7 @@ export async function fulfillPaidCheckoutSession(
       .limit(1);
 
     if (ev) {
-      try {
-        await sendBookingConfirmationForPaidBooking(existing, ev);
-      } catch (emailErr) {
-        console.error("[stripe fulfill] email failed", emailErr);
-      }
+      await deliverConfirmationEmail(existing, ev, "catch-up");
     }
 
     return "already_paid";
@@ -192,11 +204,7 @@ export async function fulfillPaidCheckoutSession(
     locale: updated.booking.locale,
   });
 
-  try {
-    await sendBookingConfirmationForPaidBooking(updated.booking, updated.ev);
-  } catch (emailErr) {
-    console.error("[stripe fulfill] email failed", emailErr);
-  }
+  await deliverConfirmationEmail(updated.booking, updated.ev, "confirmation");
 
   return "fulfilled";
 }

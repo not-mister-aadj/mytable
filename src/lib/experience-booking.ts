@@ -10,6 +10,7 @@ export function getSpotsLeft(experience: ExperienceItem): number | null {
   }
   switch (experience.status) {
     case "soldOut":
+    case "closed":
       return 0;
     case "almostFull":
       return 4;
@@ -44,6 +45,7 @@ export function formatViewsLabel(template: string, count: number): string {
 }
 
 export function canReserve(experience: ExperienceItem): boolean {
+  if (experience.status === "closed") return false;
   const left = getSpotsLeft(experience);
   if (left !== null) return left > 0;
   return experience.status !== "soldOut";

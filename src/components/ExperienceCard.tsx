@@ -21,6 +21,7 @@ const statusBadgeStyles: Record<
     "bg-cream/95 text-burgundy ring-1 ring-burgundy/15 backdrop-blur-md",
   almostFull: "bg-gold text-wine shadow-sm backdrop-blur-md",
   soldOut: "bg-burgundy text-cream backdrop-blur-md",
+  closed: "bg-wine/80 text-cream backdrop-blur-md",
   new: "bg-cream/90 text-burgundy ring-2 ring-gold backdrop-blur-md",
 };
 
@@ -45,7 +46,9 @@ export function ExperienceCard({
   locale = "nl",
   sourceSection = "agenda_grid",
 }: ExperienceCardProps) {
+  const isClosed = experience.status === "closed";
   const isSoldOut = experience.status === "soldOut";
+  const isUnavailable = isSoldOut || isClosed;
   const isAlmostFull = experience.status === "almostFull";
   const spotsLeft = getSpotsLeft(experience);
   const isFemaleOnly = resolveFemaleOnly(
@@ -109,12 +112,12 @@ export function ExperienceCard({
           </span>
         ) : null}
 
-        {isSoldOut ? (
+        {isUnavailable ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-wine/35">
             <span
-              className={`rounded-full px-5 py-2.5 text-sm font-bold uppercase tracking-wide sm:text-base ${statusBadgeStyles.soldOut}`}
+              className={`rounded-full px-5 py-2.5 text-sm font-bold uppercase tracking-wide sm:text-base ${statusBadgeStyles[isClosed ? "closed" : "soldOut"]}`}
             >
-              {statusLabels.soldOut}
+              {isClosed ? statusLabels.closed : statusLabels.soldOut}
             </span>
           </div>
         ) : (
@@ -180,10 +183,14 @@ export function ExperienceCard({
           </p>
           <span
             className={`shrink-0 text-sm font-medium transition-colors ${
-              isSoldOut ? "text-wine/40" : "text-burgundy group-hover:text-wine"
+              isUnavailable ? "text-wine/40" : "text-burgundy group-hover:text-wine"
             }`}
           >
-            {isSoldOut ? statusLabels.soldOut : viewTableCta}
+            {isClosed
+              ? statusLabels.closed
+              : isSoldOut
+                ? statusLabels.soldOut
+                : viewTableCta}
           </span>
         </div>
       </div>

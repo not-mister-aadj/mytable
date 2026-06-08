@@ -1,5 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import type { ExperienceStatusKey } from "@/i18n/types";
+import { isEventClosedForBooking } from "@/lib/event-visibility";
 
 const WEEKDAYS_NL = [
   "Zondag",
@@ -90,13 +91,17 @@ export function deriveDisplayStatus(
   capacity: number,
   spotsSold: number,
   publishedAt: Date | null,
+  startsAt: Date,
+  now = new Date(),
 ): ExperienceStatusKey {
+  if (isEventClosedForBooking(startsAt, now)) return "closed";
+
   const left = capacity - spotsSold;
   if (left <= 0) return "soldOut";
   if (left <= ALMOST_FULL_SPOTS_THRESHOLD) return "almostFull";
   if (publishedAt) {
     const days =
-      (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24);
+      (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60 * 24);
     if (days < 14) return "new";
   }
   return "available";

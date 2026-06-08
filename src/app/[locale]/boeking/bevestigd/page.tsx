@@ -13,6 +13,7 @@ import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
 import { tryFulfillCheckoutSession } from "@/lib/stripe/fulfill-checkout";
+import { ensureConfirmationEmailForCheckoutSession } from "@/lib/email/ensure-confirmation-email";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
@@ -33,6 +34,7 @@ export default async function BookingConfirmedPage({
 
   if (sessionId) {
     await tryFulfillCheckoutSession(sessionId);
+    await ensureConfirmationEmailForCheckoutSession(sessionId);
   }
 
   const confirmation = sessionId

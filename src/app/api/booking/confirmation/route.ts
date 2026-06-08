@@ -4,6 +4,7 @@ import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
 import { tryFulfillCheckoutSession } from "@/lib/stripe/fulfill-checkout";
+import { ensureConfirmationEmailForCheckoutSession } from "@/lib/email/ensure-confirmation-email";
 import { isDbConfigured } from "@/db/index";
 import { isStripeConfigured } from "@/lib/stripe";
 
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
   }
 
   await tryFulfillCheckoutSession(sessionId);
+  await ensureConfirmationEmailForCheckoutSession(sessionId);
 
   const status = await getBookingConfirmationStatus(sessionId, locale);
   const purchase = await getConfirmationPurchase(sessionId, locale);

@@ -325,22 +325,31 @@ export async function resendBookingConfirmationAction(
 
   try {
     const db = getDb();
-    const [booking] = await db
-      .select({ lifecycleStatus: bookings.lifecycleStatus })
+    const [row] = await db
+      .select({ booking: bookings, event: events })
       .from(bookings)
+      .innerJoin(events, eq(bookings.eventId, events.id))
       .where(eq(bookings.id, bookingId))
       .limit(1);
 
-    if (booking?.lifecycleStatus !== "active") {
+    if (!row) {
+      return { error: "Boeking niet gevonden" };
+    }
+
+    if (row.booking.lifecycleStatus !== "active") {
       return { error: "Alleen actieve boekingen kunnen opnieuw worden gemaild" };
     }
 
-    const { sendBookingConfirmationByBookingId } = await import(
-      "@/lib/email/sendBookingConfirmationEmail"
+    const { deliverBookingConfirmationEmail } = await import(
+      "@/lib/email/deliver-booking-confirmation"
     );
-    const result = await sendBookingConfirmationByBookingId(bookingId, {
-      force: true,
-    });
+
+    const result = await deliverBookingConfirmationEmail(
+      row.booking,
+      row.event,
+      "admin-resend",
+      { force: true },
+    );
     if (!result.ok) {
       return { error: result.error };
     }

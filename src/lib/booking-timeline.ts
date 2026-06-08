@@ -74,6 +74,14 @@ export async function getBookingTimelineEntries(
         label = "Betaling voltooid";
         tone = "success";
         break;
+      case "confirmation_email_sent":
+        label = "Bevestigingsmail verstuurd";
+        tone = "success";
+        break;
+      case "confirmation_email_failed":
+        label = "Bevestigingsmail mislukt";
+        tone = "danger";
+        break;
       case "transferred":
         label = `Verplaatst naar ${eventNames.get(String(payload.toEventId)) ?? "andere tafel"}`;
         tone = "warning";

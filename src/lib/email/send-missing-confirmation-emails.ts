@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
+import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { isEmailConfigured } from "@/lib/email/resend";
 
 export type MissingConfirmationEmailResult = {
@@ -36,7 +36,11 @@ export async function sendMissingBookingConfirmationEmails(): Promise<
 
   for (const { booking, event } of rows) {
     try {
-      const outcome = await sendBookingConfirmationForPaidBooking(booking, event);
+      const outcome = await deliverBookingConfirmationEmail(
+        booking,
+        event,
+        "catch-up",
+      );
       results.push({
         bookingId: booking.id,
         email: booking.email,

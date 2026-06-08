@@ -1,9 +1,8 @@
 import { eq, sql, and } from "drizzle-orm";
 import type Stripe from "stripe";
 import { bookingEvents, bookings, events } from "@/db/schema";
-import type { Booking, Event } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
+import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { onPaymentCompleted } from "@/lib/customers/hooks";
 import { sendMetaCapiPurchase } from "@/lib/analytics/metaCapi";
 import { metaPurchaseEventId } from "@/lib/analytics/metaIds";
@@ -17,21 +16,6 @@ import { hashEmail } from "@/lib/posthog/properties";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
-
-async function deliverConfirmationEmail(
-  booking: Booking,
-  event: Event,
-  context: string,
-): Promise<void> {
-  try {
-    const result = await sendBookingConfirmationForPaidBooking(booking, event);
-    if (!result.ok) {
-      console.error(`[stripe fulfill] ${context} email failed`, result.error);
-    }
-  } catch (emailErr) {
-    console.error(`[stripe fulfill] ${context} email failed`, emailErr);
-  }
-}
 
 async function countPriorPaidBookings(
   email: string,
@@ -58,7 +42,7 @@ export type FulfillCheckoutResult =
   | "missing_metadata"
   | "booking_not_found";
 
-/** Mark booking paid, send Meta CAPI, email, PostHog — idempotent. */
+/** Mark booking paid, send confirmation email, then CRM/analytics — idempotent. */
 export async function fulfillPaidCheckoutSession(
   session: Stripe.Checkout.Session,
 ): Promise<FulfillCheckoutResult> {
@@ -96,7 +80,7 @@ export async function fulfillPaidCheckoutSession(
       .limit(1);
 
     if (ev) {
-      await deliverConfirmationEmail(existing, ev, "catch-up");
+      await deliverBookingConfirmationEmail(existing, ev, "catch-up");
     }
 
     return "already_paid";
@@ -148,10 +132,20 @@ export async function fulfillPaidCheckoutSession(
 
   revalidateEventPaths(updated.ev.slug);
 
-  await onPaymentCompleted({
-    booking: updated.booking,
-    event: updated.ev,
-  });
+  await deliverBookingConfirmationEmail(
+    updated.booking,
+    updated.ev,
+    "confirmation",
+  );
+
+  try {
+    await onPaymentCompleted({
+      booking: updated.booking,
+      event: updated.ev,
+    });
+  } catch (err) {
+    console.error("[stripe fulfill] CRM hook failed", err);
+  }
 
   const storedMeta = await loadCheckoutMetaContext(updated.booking.id);
   const capiSent = await sendMetaCapiPurchase({
@@ -203,8 +197,6 @@ export async function fulfillPaidCheckoutSession(
     amount_cents: updated.booking.amountCents,
     locale: updated.booking.locale,
   });
-
-  await deliverConfirmationEmail(updated.booking, updated.ev, "confirmation");
 
   return "fulfilled";
 }

@@ -1,6 +1,7 @@
 import { eq, sql, and } from "drizzle-orm";
 import type Stripe from "stripe";
 import { bookingEvents, bookings, events } from "@/db/schema";
+import type { Booking, Event } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { onPaymentCompleted } from "@/lib/customers/hooks";
@@ -16,6 +17,103 @@ import { hashEmail } from "@/lib/posthog/properties";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+
+export type FulfillCheckoutOptions = {
+  /** Skip blocking on Resend — confirmation page renders first, API poll sends email. */
+  deferEmail?: boolean;
+  /** Run CRM / Meta CAPI / PostHog after responding (confirmation page). */
+  deferSideEffects?: boolean;
+};
+
+async function runPostPaymentSideEffects(
+  session: Stripe.Checkout.Session,
+  updated: { booking: Booking; ev: Event },
+  options?: FulfillCheckoutOptions,
+): Promise<void> {
+  const run = async () => {
+    const db = getDb();
+
+    try {
+      await onPaymentCompleted({
+        booking: updated.booking,
+        event: updated.ev,
+      });
+    } catch (err) {
+      console.error("[stripe fulfill] CRM hook failed", err);
+    }
+
+    const storedMeta = await loadCheckoutMetaContext(updated.booking.id);
+    const capiSent = await sendMetaCapiPurchase({
+      booking: updated.booking,
+      event: updated.ev,
+      userData: metaUserDataFromStoredContext(
+        storedMeta,
+        updated.booking.email,
+        updated.booking.customerName?.split(/\s+/)[0] ?? null,
+      ),
+    });
+    if (capiSent) {
+      await db.insert(bookingEvents).values({
+        bookingId: updated.booking.id,
+        type: "meta_capi_purchase",
+        payload: {
+          event_id: metaPurchaseEventId(updated.booking.id),
+        },
+      });
+    }
+
+    const priorPaid = await countPriorPaidBookings(
+      updated.booking.email,
+      updated.booking.id,
+    );
+    const paymentProps = {
+      booking_id: updated.booking.id,
+      event_id: updated.ev.id,
+      event_slug: updated.ev.slug,
+      event_type: updated.ev.experienceType,
+      city: updated.ev.city,
+      seats: updated.booking.seats,
+      total_paid: updated.booking.amountCents / 100,
+      price_per_seat: updated.ev.priceCents / 100,
+      stripe_session_id: session.id,
+      is_first_booking: priorPaid === 0,
+      customer_email_hash: hashEmail(updated.booking.email),
+      language: updated.booking.locale,
+      payment_method: session.payment_method_types?.[0] ?? null,
+    };
+
+    void captureServerEvent(
+      updated.booking.email,
+      PostHogEvents.paymentCompleted,
+      paymentProps,
+    );
+    void captureServerEvent(updated.booking.email, PostHogEvents.bookingPaid, {
+      ...paymentProps,
+      amount_cents: updated.booking.amountCents,
+      locale: updated.booking.locale,
+    });
+  };
+
+  if (options?.deferSideEffects) {
+    void run();
+    return;
+  }
+
+  await run();
+}
+
+async function deliverConfirmationEmail(
+  booking: Booking,
+  event: Event,
+  context: string,
+  options?: FulfillCheckoutOptions,
+): Promise<void> {
+  if (options?.deferEmail) {
+    void deliverBookingConfirmationEmail(booking, event, context);
+    return;
+  }
+  await deliverBookingConfirmationEmail(booking, event, context);
+}
 
 async function countPriorPaidBookings(
   email: string,
@@ -45,6 +143,7 @@ export type FulfillCheckoutResult =
 /** Mark booking paid, send confirmation email, then CRM/analytics — idempotent. */
 export async function fulfillPaidCheckoutSession(
   session: Stripe.Checkout.Session,
+  options?: FulfillCheckoutOptions,
 ): Promise<FulfillCheckoutResult> {
   const bookingId = session.metadata?.booking_id;
   const eventId = session.metadata?.event_id;
@@ -80,7 +179,7 @@ export async function fulfillPaidCheckoutSession(
       .limit(1);
 
     if (ev) {
-      await deliverBookingConfirmationEmail(existing, ev, "catch-up");
+      await deliverConfirmationEmail(existing, ev, "catch-up", options);
     }
 
     return "already_paid";
@@ -132,71 +231,14 @@ export async function fulfillPaidCheckoutSession(
 
   revalidateEventPaths(updated.ev.slug);
 
-  await deliverBookingConfirmationEmail(
+  await deliverConfirmationEmail(
     updated.booking,
     updated.ev,
     "confirmation",
+    options,
   );
 
-  try {
-    await onPaymentCompleted({
-      booking: updated.booking,
-      event: updated.ev,
-    });
-  } catch (err) {
-    console.error("[stripe fulfill] CRM hook failed", err);
-  }
-
-  const storedMeta = await loadCheckoutMetaContext(updated.booking.id);
-  const capiSent = await sendMetaCapiPurchase({
-    booking: updated.booking,
-    event: updated.ev,
-    userData: metaUserDataFromStoredContext(
-      storedMeta,
-      updated.booking.email,
-      updated.booking.customerName?.split(/\s+/)[0] ?? null,
-    ),
-  });
-  if (capiSent) {
-    await db.insert(bookingEvents).values({
-      bookingId: updated.booking.id,
-      type: "meta_capi_purchase",
-      payload: {
-        event_id: metaPurchaseEventId(updated.booking.id),
-      },
-    });
-  }
-
-  const priorPaid = await countPriorPaidBookings(
-    updated.booking.email,
-    updated.booking.id,
-  );
-  const paymentProps = {
-    booking_id: updated.booking.id,
-    event_id: updated.ev.id,
-    event_slug: updated.ev.slug,
-    event_type: updated.ev.experienceType,
-    city: updated.ev.city,
-    seats: updated.booking.seats,
-    total_paid: updated.booking.amountCents / 100,
-    price_per_seat: updated.ev.priceCents / 100,
-    stripe_session_id: session.id,
-    is_first_booking: priorPaid === 0,
-    customer_email_hash: hashEmail(updated.booking.email),
-    language: updated.booking.locale,
-    payment_method: session.payment_method_types?.[0] ?? null,
-  };
-
-  void captureServerEvent(
-    updated.booking.email,
-    PostHogEvents.paymentCompleted,
-    paymentProps,
-  );
-  void captureServerEvent(updated.booking.email, PostHogEvents.bookingPaid, {
-    ...paymentProps,
-    amount_cents: updated.booking.amountCents,
-    locale: updated.booking.locale,
-  });
+  await runPostPaymentSideEffects(session, updated, options);
 
   return "fulfilled";
 }
@@ -204,6 +246,7 @@ export async function fulfillPaidCheckoutSession(
 /** Fallback when the Stripe webhook is delayed or missed (confirmation page / poll API). */
 export async function tryFulfillCheckoutSession(
   sessionId: string,
+  options?: FulfillCheckoutOptions,
 ): Promise<FulfillCheckoutResult | null> {
   if (!sessionId.startsWith("cs_") || !isDbConfigured() || !isStripeConfigured()) {
     return null;
@@ -222,5 +265,5 @@ export async function tryFulfillCheckoutSession(
     return "not_paid";
   }
 
-  return fulfillPaidCheckoutSession(session);
+  return fulfillPaidCheckoutSession(session, options);
 }

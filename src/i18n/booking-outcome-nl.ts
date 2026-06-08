@@ -17,6 +17,13 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
     primaryCta: "Probeer opnieuw",
     secondaryCta: "Terug naar agenda",
   },
+  pending: {
+    eyebrow: "Even geduld",
+    headline: "Je betaling wordt bevestigd",
+    subtext: "We halen je boeking op. Dit duurt meestal maar een paar seconden.",
+    timeoutSubtext:
+      "Dit duurt langer dan verwacht. Ververs de pagina of wacht op de bevestigingsmail — je betaling is waarschijnlijk al verwerkt.",
+  },
   summary: {
     title: "Je reservering",
     date: "Datum & tijd",

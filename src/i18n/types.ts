@@ -144,6 +144,12 @@ export interface BookingOutcomeLabels {
     primaryCta: string;
     secondaryCta: string;
   };
+  pending: {
+    eyebrow: string;
+    headline: string;
+    subtext: string;
+    timeoutSubtext: string;
+  };
   summary: {
     title: string;
     date: string;

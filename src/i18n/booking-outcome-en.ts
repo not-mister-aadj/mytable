@@ -17,6 +17,13 @@ export const bookingOutcomeEn: BookingOutcomeLabels = {
     primaryCta: "Try again",
     secondaryCta: "Back to agenda",
   },
+  pending: {
+    eyebrow: "One moment",
+    headline: "Confirming your payment",
+    subtext: "We're loading your booking. This usually takes just a few seconds.",
+    timeoutSubtext:
+      "This is taking longer than expected. Refresh the page or wait for your confirmation email — your payment was likely already processed.",
+  },
   summary: {
     title: "Your reservation",
     date: "Date & time",

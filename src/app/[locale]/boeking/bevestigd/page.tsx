@@ -1,7 +1,6 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
-import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
+import { BookingConfirmationView } from "@/components/booking/BookingConfirmationView";
 import { GoogleAdsConfirmationConversion } from "@/components/booking/GoogleAdsConfirmationConversion";
 import {
   ConfirmationPurchaseEmbed,
@@ -13,9 +12,10 @@ import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
 import { tryFulfillCheckoutSession } from "@/lib/stripe/fulfill-checkout";
-import { ensureConfirmationEmailForCheckoutSession } from "@/lib/email/ensure-confirmation-email";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -33,19 +33,20 @@ export default async function BookingConfirmedPage({
   const dict = getDictionary(locale);
 
   if (sessionId) {
-    await tryFulfillCheckoutSession(sessionId);
-    await ensureConfirmationEmailForCheckoutSession(sessionId);
+    await tryFulfillCheckoutSession(sessionId, {
+      deferEmail: true,
+      deferSideEffects: true,
+    });
   }
 
   const confirmation = sessionId
     ? await getBookingConfirmationStatus(sessionId, locale as Locale)
     : { summary: null, pending: false };
-  const summary = confirmation.summary;
   const purchase = sessionId
     ? await getConfirmationPurchase(sessionId, locale as Locale)
     : null;
 
-  if (sessionId && (summary?.bookingId || purchase?.bookingId)) {
+  if (sessionId && (confirmation.summary?.bookingId || purchase?.bookingId)) {
     void sendMetaCapiPurchaseForSession(sessionId, await headers());
   }
 
@@ -61,16 +62,11 @@ export default async function BookingConfirmedPage({
         initial={purchase}
         locale={locale as Locale}
       />
-      <BookingOutcomeTracker
-        variant="success"
+      <BookingConfirmationView
+        sessionId={sessionId ?? null}
         locale={locale as Locale}
-        summary={summary}
-      />
-      <BookingOutcomeContent
-        variant="success"
         dict={dict.bookingOutcome}
-        locale={locale}
-        summary={summary}
+        initialSummary={confirmation.summary}
       />
       <Footer dict={dict.footer} locale={locale} />
     </>

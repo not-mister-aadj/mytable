@@ -12,13 +12,14 @@ import type {
 } from "@/lib/booking-outcome-data";
 import { formatGuestCount, formatMoney } from "@/lib/booking-display";
 
-type Variant = "success" | "failed";
+type Variant = "success" | "failed" | "pending";
 
 interface BookingOutcomeContentProps {
   variant: Variant;
   dict: BookingOutcomeLabels;
   locale: Locale;
   summary: BookingOutcomeSummary | null;
+  timedOut?: boolean;
 }
 
 export function BookingOutcomeContent({
@@ -26,8 +27,14 @@ export function BookingOutcomeContent({
   dict,
   locale,
   summary,
+  timedOut = false,
 }: BookingOutcomeContentProps) {
-  const copy = variant === "success" ? dict.success : dict.failed;
+  const copy =
+    variant === "pending"
+      ? dict.pending
+      : variant === "success"
+        ? dict.success
+        : dict.failed;
   const eventHref = summary
     ? `/${locale}/agenda/${summary.eventSlug}`
     : agendaPath(locale);
@@ -68,7 +75,14 @@ export function BookingOutcomeContent({
         {variant === "success" ? <CelebrationSparkles /> : null}
 
         <div className="relative mx-auto max-w-3xl px-5 pb-16 pt-28 text-center sm:px-8 sm:pb-20 sm:pt-32">
-          <BookingStatusIcon variant={variant} />
+          {variant === "pending" ? (
+            <div
+              className="mx-auto mb-2 h-10 w-10 animate-spin rounded-full border-2 border-beige/30 border-t-gold"
+              aria-hidden
+            />
+          ) : (
+            <BookingStatusIcon variant={variant === "failed" ? "failed" : "success"} />
+          )}
           <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
             {copy.eyebrow}
           </p>
@@ -76,20 +90,26 @@ export function BookingOutcomeContent({
             {copy.headline}
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-beige/85 sm:text-lg">
-            {copy.subtext}
+            {timedOut ? dict.pending.timeoutSubtext : copy.subtext}
           </p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button href={eventHref} variant="primary" className="min-w-[200px]">
-              {copy.primaryCta}
-            </Button>
-            <Button
-              href={agendaHref}
-              variant="outline"
-              className="min-w-[200px] border-beige/40 text-beige hover:border-beige/60 hover:bg-beige/10 hover:text-beige"
-            >
-              {copy.secondaryCta}
-            </Button>
-          </div>
+          {variant !== "pending" ? (
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button href={eventHref} variant="primary" className="min-w-[200px]">
+                {variant === "success"
+                  ? dict.success.primaryCta
+                  : dict.failed.primaryCta}
+              </Button>
+              <Button
+                href={agendaHref}
+                variant="outline"
+                className="min-w-[200px] border-beige/40 text-beige hover:border-beige/60 hover:bg-beige/10 hover:text-beige"
+              >
+                {variant === "success"
+                  ? dict.success.secondaryCta
+                  : dict.failed.secondaryCta}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -179,23 +199,25 @@ export function BookingOutcomeContent({
         ) : null}
 
         {/* Community */}
-        <section className="border-t border-border-subtle py-12 sm:py-16">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-            <div>
-              <h2 className="font-serif text-3xl font-medium leading-tight text-wine sm:text-4xl">
-                {dict.community.title}
-              </h2>
-              <p className="mt-5 text-base leading-relaxed text-wine/75 sm:text-lg">
-                {dict.community.body}
-              </p>
+        {variant !== "pending" ? (
+          <section className="border-t border-border-subtle py-12 sm:py-16">
+            <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+              <div>
+                <h2 className="font-serif text-3xl font-medium leading-tight text-wine sm:text-4xl">
+                  {dict.community.title}
+                </h2>
+                <p className="mt-5 text-base leading-relaxed text-wine/75 sm:text-lg">
+                  {dict.community.body}
+                </p>
+              </div>
+              <BookingGalleryGrid
+                items={galleryItems}
+                fallbacks={galleryFallbacks}
+                altPrefix={dict.community.galleryAlt}
+              />
             </div>
-            <BookingGalleryGrid
-              items={galleryItems}
-              fallbacks={galleryFallbacks}
-              altPrefix={dict.community.galleryAlt}
-            />
-          </div>
-        </section>
+          </section>
+        ) : null}
       </div>
     </main>
   );

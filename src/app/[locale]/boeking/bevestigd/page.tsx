@@ -3,15 +3,17 @@ import { Header } from "@/components/Header";
 import { BookingConfirmationView } from "@/components/booking/BookingConfirmationView";
 import { GoogleAdsConfirmationConversion } from "@/components/booking/GoogleAdsConfirmationConversion";
 import {
-  ConfirmationPurchaseEmbed,
   MetaConfirmationPurchase,
 } from "@/components/booking/MetaConfirmationPurchase";
+import { ConfirmationPurchaseEmbed } from "@/components/booking/ConfirmationPurchaseEmbed";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getConfirmationPurchase } from "@/lib/analytics/confirmationPurchase";
 import { sendMetaCapiPurchaseForSession } from "@/lib/analytics/metaCapi";
 import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
-import { tryFulfillCheckoutSession } from "@/lib/stripe/fulfill-checkout";
+import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
+import type { ConfirmationPurchaseData } from "@/lib/analytics/confirmationPurchase";
+import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
@@ -32,22 +34,35 @@ export default async function BookingConfirmedPage({
 
   const dict = getDictionary(locale);
 
+  let confirmation: {
+    summary: BookingOutcomeSummary | null;
+    pending: boolean;
+  } = { summary: null, pending: false };
+  let purchase: ConfirmationPurchaseData | null = null;
+
   if (sessionId) {
-    await tryFulfillCheckoutSession(sessionId, {
+    await tryFulfillCheckoutSessionSafe(sessionId, {
       deferEmail: true,
       deferSideEffects: true,
     });
-  }
 
-  const confirmation = sessionId
-    ? await getBookingConfirmationStatus(sessionId, locale as Locale)
-    : { summary: null, pending: false };
-  const purchase = sessionId
-    ? await getConfirmationPurchase(sessionId, locale as Locale)
-    : null;
+    try {
+      confirmation = await getBookingConfirmationStatus(
+        sessionId,
+        locale as Locale,
+      );
+      purchase = await getConfirmationPurchase(sessionId, locale as Locale);
+    } catch (err) {
+      console.error("[confirmation page] failed to load booking status", err);
+    }
 
-  if (sessionId && (confirmation.summary?.bookingId || purchase?.bookingId)) {
-    void sendMetaCapiPurchaseForSession(sessionId, await headers());
+    if (confirmation.summary?.bookingId || purchase?.bookingId) {
+      void sendMetaCapiPurchaseForSession(sessionId, await headers()).catch(
+        (err) => {
+          console.error("[confirmation page] Meta CAPI failed", err);
+        },
+      );
+    }
   }
 
   return (
@@ -65,7 +80,6 @@ export default async function BookingConfirmedPage({
       <BookingConfirmationView
         sessionId={sessionId ?? null}
         locale={locale as Locale}
-        dict={dict.bookingOutcome}
         initialSummary={confirmation.summary}
       />
       <Footer dict={dict.footer} locale={locale} />

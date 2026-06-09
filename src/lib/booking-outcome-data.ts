@@ -192,7 +192,14 @@ export async function getBookingConfirmationStatus(
   }
 
   const stripe = getStripe();
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  let session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch (err) {
+    console.error("[booking confirmation] session retrieve failed", err);
+    return { summary: null, pending: false };
+  }
+
   const bookingId = session.metadata?.booking_id;
   if (!bookingId) {
     return { summary: null, pending: false };
@@ -220,15 +227,20 @@ export async function getBookingConfirmationStatus(
     return { summary: null, pending };
   }
 
-  return {
-    summary: await mapEventToSummary(row.event, locale, {
-      amountCents: row.booking.amountCents,
-      currency: row.booking.currency,
-      seats: row.booking.seats,
-      id: row.booking.id,
-    }),
-    pending: false,
-  };
+  try {
+    return {
+      summary: await mapEventToSummary(row.event, locale, {
+        amountCents: row.booking.amountCents,
+        currency: row.booking.currency,
+        seats: row.booking.seats,
+        id: row.booking.id,
+      }),
+      pending: false,
+    };
+  } catch (err) {
+    console.error("[booking confirmation] summary build failed", err);
+    return { summary: null, pending: false };
+  }
 }
 
 export async function getEventSummaryBySlug(

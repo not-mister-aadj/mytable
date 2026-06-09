@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import type { BookingOutcomeLabels } from "@/i18n/types";
+import { bookingOutcomeEn } from "@/i18n/booking-outcome-en";
+import { bookingOutcomeNl } from "@/i18n/booking-outcome-nl";
 import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
@@ -13,16 +14,15 @@ const POLL_MAX = 45;
 type Props = {
   sessionId: string | null;
   locale: Locale;
-  dict: BookingOutcomeLabels;
   initialSummary: BookingOutcomeSummary | null;
 };
 
 export function BookingConfirmationView({
   sessionId,
   locale,
-  dict,
   initialSummary,
 }: Props) {
+  const dict = locale === "en" ? bookingOutcomeEn : bookingOutcomeNl;
   const [summary, setSummary] = useState(initialSummary);
   const [timedOut, setTimedOut] = useState(false);
 

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { Locale } from "@/i18n/config";
 import type { ConfirmationPurchaseData } from "@/lib/analytics/confirmationPurchase";
+import { CONFIRMATION_PURCHASE_EMBED_ID } from "@/lib/analytics/confirmation-purchase-constants";
 import { isMetaPixelEnabled } from "@/lib/analytics/metaConfig";
 import { hasPurchaseBeenTracked } from "@/lib/analytics/metaPixel";
 import { trackMetaPurchasePayload } from "@/lib/analytics/metaTracking";
@@ -14,7 +15,6 @@ type Props = {
 
 const POLL_MS = 2000;
 const POLL_MAX = 45;
-const EMBED_ID = "mytable-confirmation-purchase";
 
 function getSessionIdFromUrl(): string | null {
   if (typeof window === "undefined") return null;
@@ -24,7 +24,7 @@ function getSessionIdFromUrl(): string | null {
 
 function readEmbeddedPurchase(): ConfirmationPurchaseData | null {
   if (typeof document === "undefined") return null;
-  const el = document.getElementById(EMBED_ID);
+  const el = document.getElementById(CONFIRMATION_PURCHASE_EMBED_ID);
   if (!el?.textContent) return null;
   try {
     return JSON.parse(el.textContent) as ConfirmationPurchaseData;
@@ -118,18 +118,4 @@ export function MetaConfirmationPurchase({ initial, locale }: Props) {
   }, [initial, locale]);
 
   return null;
-}
-
-export function ConfirmationPurchaseEmbed({
-  data,
-}: {
-  data: ConfirmationPurchaseData;
-}) {
-  return (
-    <script
-      id={EMBED_ID}
-      type="application/json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-    />
-  );
 }

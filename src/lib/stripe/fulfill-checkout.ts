@@ -217,6 +217,25 @@ export async function fulfillPaidCheckoutSession(
       .returning();
 
     if (!booking) {
+      const [paidBooking] = await tx
+        .select()
+        .from(bookings)
+        .where(
+          and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "paid")),
+        )
+        .limit(1);
+
+      if (paidBooking) {
+        const [paidEvent] = await tx
+          .select()
+          .from(events)
+          .where(eq(events.id, eventId))
+          .limit(1);
+        if (paidEvent) {
+          return { booking: paidBooking, ev: paidEvent };
+        }
+      }
+
       throw new Error("Booking already processed");
     }
 
@@ -266,4 +285,17 @@ export async function tryFulfillCheckoutSession(
   }
 
   return fulfillPaidCheckoutSession(session, options);
+}
+
+/** Never throw — safe for the confirmation page shell. */
+export async function tryFulfillCheckoutSessionSafe(
+  sessionId: string,
+  options?: FulfillCheckoutOptions,
+): Promise<FulfillCheckoutResult | null> {
+  try {
+    return await tryFulfillCheckoutSession(sessionId, options);
+  } catch (err) {
+    console.error("[stripe fulfill] unexpected failure", err);
+    return null;
+  }
 }

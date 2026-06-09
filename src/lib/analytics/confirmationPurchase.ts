@@ -27,7 +27,14 @@ export async function getConfirmationPurchase(
   if (!isDbConfigured() || !isStripeConfigured()) return null;
 
   const stripe = getStripe();
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  let session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch (err) {
+    console.error("[confirmation purchase] session retrieve failed", err);
+    return null;
+  }
+
   const bookingId = session.metadata?.booking_id;
 
   if (!bookingId) {

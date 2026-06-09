@@ -8,7 +8,7 @@ import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeConten
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 
-const POLL_MS = 2000;
+const POLL_MS = 1000;
 const POLL_MAX = 45;
 
 type Props = {

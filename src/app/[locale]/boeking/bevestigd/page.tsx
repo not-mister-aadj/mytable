@@ -14,6 +14,7 @@ import { getBookingConfirmationStatus } from "@/lib/booking-outcome-data";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 import type { ConfirmationPurchaseData } from "@/lib/analytics/confirmationPurchase";
 import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
+import { ensureConfirmationEmailForCheckoutSession } from "@/lib/email/ensure-confirmation-email";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
@@ -45,6 +46,7 @@ export default async function BookingConfirmedPage({
       deferEmail: true,
       deferSideEffects: true,
     });
+    void ensureConfirmationEmailForCheckoutSession(sessionId);
 
     try {
       confirmation = await getBookingConfirmationStatus(

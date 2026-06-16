@@ -39,7 +39,15 @@ export function formatEventSaveError(error: unknown): string {
     }
   }
   if (error instanceof Error && error.message) {
-    return error.message;
+    const msg = error.message;
+    if (msg.includes("gallery_meta")) {
+      return (
+        "Venue-galerij kan niet worden opgeslagen: de database mist nog de kolom gallery_meta. " +
+        "Voer eenmalig uit: npm run db:migrate-venue-gallery (met productie DATABASE_URL), " +
+        "of voeg in Supabase SQL Editor toe: ALTER TABLE venues ADD COLUMN IF NOT EXISTS gallery_meta jsonb;"
+      );
+    }
+    return msg;
   }
   return "Opslaan mislukt. Probeer het opnieuw.";
 }

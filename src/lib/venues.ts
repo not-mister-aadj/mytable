@@ -65,6 +65,8 @@ function withOptionalVenueFields(
 function isMissingVenueColumnError(error: unknown): boolean {
   const msg = error instanceof Error ? error.message : String(error);
   return (
+    msg.includes("does not exist") ||
+    msg.includes("Failed query") ||
     msg.includes("image_meta") ||
     msg.includes("gallery_meta") ||
     msg.includes("latitude") ||
@@ -72,10 +74,15 @@ function isMissingVenueColumnError(error: unknown): boolean {
   );
 }
 
-/** Includes image fields when lat/lng columns are missing on older databases */
-const venueSelectWithImages = {
+/** core + image_meta (no gallery_meta) */
+const venueSelectWithImageMeta = {
   ...venueSelectCore,
   imageMeta: venues.imageMeta,
+};
+
+/** core + image fields */
+const venueSelectWithImages = {
+  ...venueSelectWithImageMeta,
   galleryMeta: venues.galleryMeta,
 };
 
@@ -112,11 +119,20 @@ async function selectAllVenuesRows(db: ReturnType<typeof getDb>): Promise<Venue[
       return rows.map((row) => mapVenueRow(row));
     } catch (inner) {
       if (!isMissingVenueColumnError(inner)) throw inner;
-      const rows = await db
-        .select(venueSelectCore)
-        .from(venues)
-        .orderBy(asc(venues.city), asc(venues.name));
-      return rows.map((row) => mapVenueRow(row));
+      try {
+        const rows = await db
+          .select(venueSelectWithImageMeta)
+          .from(venues)
+          .orderBy(asc(venues.city), asc(venues.name));
+        return rows.map((row) => mapVenueRow(row));
+      } catch (inner2) {
+        if (!isMissingVenueColumnError(inner2)) throw inner2;
+        const rows = await db
+          .select(venueSelectCore)
+          .from(venues)
+          .orderBy(asc(venues.city), asc(venues.name));
+        return rows.map((row) => mapVenueRow(row));
+      }
     }
   }
 }
@@ -138,11 +154,20 @@ async function selectVenuesByIdsRows(
       return rows.map((row) => mapVenueRow(row));
     } catch (inner) {
       if (!isMissingVenueColumnError(inner)) throw inner;
-      const rows = await db
-        .select(venueSelectCore)
-        .from(venues)
-        .where(inArray(venues.id, ids));
-      return rows.map((row) => mapVenueRow(row));
+      try {
+        const rows = await db
+          .select(venueSelectWithImageMeta)
+          .from(venues)
+          .where(inArray(venues.id, ids));
+        return rows.map((row) => mapVenueRow(row));
+      } catch (inner2) {
+        if (!isMissingVenueColumnError(inner2)) throw inner2;
+        const rows = await db
+          .select(venueSelectCore)
+          .from(venues)
+          .where(inArray(venues.id, ids));
+        return rows.map((row) => mapVenueRow(row));
+      }
     }
   }
 }
@@ -165,7 +190,7 @@ export async function getAllVenues(): Promise<Venue[]> {
   noStore();
   if (!isDbConfigured()) return [];
   const db = getDb();
-  await ensureVenueColumns(db);
+  await ensureVenueColumns();
   return selectAllVenuesRows(db);
 }
 
@@ -173,7 +198,7 @@ export async function getVenueById(id: string): Promise<Venue | undefined> {
   noStore();
   if (!isDbConfigured()) return undefined;
   const db = getDb();
-  await ensureVenueColumns(db);
+  await ensureVenueColumns();
   try {
     const [row] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
     return row ? mapVenueRow(row) : undefined;
@@ -188,12 +213,22 @@ export async function getVenueById(id: string): Promise<Venue | undefined> {
       return row ? mapVenueRow(row) : undefined;
     } catch (inner) {
       if (!isMissingVenueColumnError(inner)) throw inner;
-      const [row] = await db
-        .select(venueSelectCore)
-        .from(venues)
-        .where(eq(venues.id, id))
-        .limit(1);
-      return row ? mapVenueRow(row) : undefined;
+      try {
+        const [row] = await db
+          .select(venueSelectWithImageMeta)
+          .from(venues)
+          .where(eq(venues.id, id))
+          .limit(1);
+        return row ? mapVenueRow(row) : undefined;
+      } catch (inner2) {
+        if (!isMissingVenueColumnError(inner2)) throw inner2;
+        const [row] = await db
+          .select(venueSelectCore)
+          .from(venues)
+          .where(eq(venues.id, id))
+          .limit(1);
+        return row ? mapVenueRow(row) : undefined;
+      }
     }
   }
 }

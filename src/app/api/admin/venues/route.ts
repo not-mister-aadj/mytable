@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { isDbConfigured } from "@/db/index";
 import { requireAdminApi } from "@/lib/admin-auth";
-import { getDb, isDbConfigured } from "@/db/index";
 import { ensureVenueColumns } from "@/lib/ensure-venue-columns";
 import { getAllVenues } from "@/lib/venues";
 
@@ -10,7 +10,7 @@ export async function GET() {
 
   try {
     if (isDbConfigured()) {
-      await ensureVenueColumns(getDb());
+      await ensureVenueColumns();
     }
     const venues = await getAllVenues();
     return NextResponse.json({ venues });

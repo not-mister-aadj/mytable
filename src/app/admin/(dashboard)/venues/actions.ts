@@ -119,7 +119,7 @@ async function persistCreateVenue(formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
-  await ensureVenueColumns(db);
+  await ensureVenueColumns();
   const values = await parseVenueForm(formData);
   const [row] = await db.insert(venues).values(values).returning();
   revalidateVenueDependents();
@@ -130,7 +130,7 @@ async function persistUpdateVenue(id: string, formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
-  await ensureVenueColumns(db);
+  await ensureVenueColumns();
   const existing = await getVenueById(id);
   if (!existing) throw new Error("Venue niet gevonden");
 
@@ -246,7 +246,7 @@ export async function deleteVenueAction(id: string) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
-  await ensureVenueColumns(db);
+  await ensureVenueColumns();
   const venue = await getVenueById(id);
   if (!venue) throw new Error("Venue niet gevonden");
 

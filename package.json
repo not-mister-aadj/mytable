@@ -16,6 +16,7 @@
     "db:migrate-lifecycle": "tsx scripts/apply-booking-lifecycle-migration.ts",
     "db:migrate-waitlist": "tsx scripts/apply-waitlist-migration.ts",
     "db:migrate-customers": "tsx scripts/apply-customers-migration.ts",
+    "db:migrate-venue-gallery": "tsx scripts/apply-experience-types-migration.ts",
     "db:backfill-customers": "tsx scripts/backfill-customers.ts",
     "email:test": "tsx scripts/send-test-email.ts",
     "email:test-booking": "tsx scripts/send-test-booking-email.ts",

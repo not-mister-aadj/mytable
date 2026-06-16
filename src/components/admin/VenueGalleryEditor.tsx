@@ -37,6 +37,13 @@ export function VenueGalleryEditor({
   }
 
   function removeAt(index: number) {
+    if (
+      !confirm(
+        `Galerijfoto ${index + 1} verwijderen? Klik daarna op Opslaan om de wijziging te bewaren.`,
+      )
+    ) {
+      return;
+    }
     commit(images.filter((_, i) => i !== index));
   }
 
@@ -104,7 +111,7 @@ export function VenueGalleryEditor({
                   <button
                     type="button"
                     onClick={() => removeAt(index)}
-                    className="text-xs text-wine/50 hover:text-burgundy"
+                    className="text-xs font-medium text-red-800 hover:text-red-950"
                   >
                     Verwijderen
                   </button>

@@ -6,6 +6,8 @@ import type { Venue } from "@/db/schema";
 import { parseEventExtras } from "@/lib/event-extras";
 import {
   eventExtrasReferenceVenue,
+  getVenueGallerySettings,
+  reconcileVenueImageRefsInExtras,
   stripVenueImageRefs,
 } from "@/lib/venue-images";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -127,7 +129,35 @@ async function persistUpdateVenue(id: string, formData: FormData) {
   if (!existing) throw new Error("Venue niet gevonden");
 
   const values = await parseVenueForm(formData, existing);
+  const oldGallery = getVenueGallerySettings(existing);
+  const newGallery = values.galleryMeta
+    ? parseGalleryImages(values.galleryMeta)
+    : [];
+
   await db.update(venues).set(values).where(eq(venues.id, id));
+
+  const eventRows = await db
+    .select({ id: events.id, extras: events.extras })
+    .from(events);
+  for (const row of eventRows) {
+    const extras = parseEventExtras(row.extras);
+    if (!eventExtrasReferenceVenue(extras, id)) continue;
+    const reconciled = reconcileVenueImageRefsInExtras(
+      extras,
+      id,
+      oldGallery,
+      newGallery,
+    );
+    if (JSON.stringify(reconciled) === JSON.stringify(extras)) continue;
+    await db
+      .update(events)
+      .set({
+        extras: { ...(row.extras ?? {}), ...reconciled },
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, row.id));
+  }
+
   redirect(adminPath(`/venues/${id}/edit?saved=1`));
 }
 

@@ -35,10 +35,25 @@ export function VenueForm({ venue }: { venue?: Venue }) {
     parseGalleryImages(venue?.galleryMeta),
   );
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    fd.set(
+      "galleryMeta",
+      galleryImages.length > 0 ? JSON.stringify(galleryImages) : "",
+    );
+    fd.set("imageUrl", imageSettings?.url ?? "");
+    fd.set(
+      "imageMeta",
+      imageSettings ? JSON.stringify(imageSettings) : "",
+    );
+    submitAction(fd);
+  }
+
   return (
     <div className="max-w-2xl space-y-8">
       <form
-        action={submitAction}
+        onSubmit={handleSubmit}
         className="space-y-6 rounded-2xl border border-border-subtle bg-beige p-6"
       >
         <Field label="Naam" name="name" defaultValue={venue?.name} required />

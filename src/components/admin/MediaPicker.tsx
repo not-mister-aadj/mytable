@@ -86,8 +86,11 @@ export function MediaPicker({
               </button>
               <button
                 type="button"
-                onClick={() => onChange(undefined)}
-                className="text-xs text-wine/50 hover:text-burgundy"
+                onClick={() => {
+                  if (!confirm("Hero-afbeelding verwijderen?")) return;
+                  onChange(undefined);
+                }}
+                className="text-xs font-medium text-red-800 hover:text-red-950"
               >
                 Verwijderen
               </button>

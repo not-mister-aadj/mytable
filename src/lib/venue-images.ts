@@ -1,4 +1,6 @@
 import type { Venue } from "@/db/schema";
+import type { EventExtras } from "@/lib/event-extras";
+import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
 import {
   coerceImageSettings,
@@ -198,4 +200,75 @@ export function resolveEventImagesFromVenues(
         ? galleryImageSettings
         : undefined,
   };
+}
+
+function galleryIndexByUrl(gallery: ImageSettings[]): Map<string, number> {
+  const map = new Map<string, number>();
+  gallery.forEach((item, index) => {
+    if (item.url) map.set(imageUrlKey(item.url), index);
+  });
+  return map;
+}
+
+function remapVenueRefAfterGalleryChange(
+  ref: VenueImageRef,
+  venueId: string,
+  oldGallery: ImageSettings[],
+  newGallery: ImageSettings[],
+): VenueImageRef | undefined {
+  if (ref.venueId !== venueId) return ref;
+  if (ref.kind === "hero") return ref;
+
+  const index = ref.galleryIndex ?? 0;
+  const oldUrl = oldGallery[index]?.url;
+  if (!oldUrl) return undefined;
+
+  const newIndex = galleryIndexByUrl(newGallery).get(imageUrlKey(oldUrl));
+  if (newIndex === undefined) return undefined;
+
+  return { venueId, kind: "gallery", galleryIndex: newIndex };
+}
+
+/** Keep event venue image refs valid after venue gallery images are removed or reordered. */
+export function reconcileVenueImageRefsInExtras(
+  extras: EventExtras,
+  venueId: string,
+  oldGallery: ImageSettings[],
+  newGallery: ImageSettings[],
+): EventExtras {
+  const next: EventExtras = { ...extras };
+
+  if (next.venueCardRef) {
+    const remapped = remapVenueRefAfterGalleryChange(
+      next.venueCardRef,
+      venueId,
+      oldGallery,
+      newGallery,
+    );
+    if (remapped) next.venueCardRef = remapped;
+    else delete next.venueCardRef;
+  }
+
+  if (next.venueHeroRef) {
+    const remapped = remapVenueRefAfterGalleryChange(
+      next.venueHeroRef,
+      venueId,
+      oldGallery,
+      newGallery,
+    );
+    if (remapped) next.venueHeroRef = remapped;
+    else delete next.venueHeroRef;
+  }
+
+  if (next.venueGalleryRefs?.length) {
+    const remapped = next.venueGalleryRefs
+      .map((ref) =>
+        remapVenueRefAfterGalleryChange(ref, venueId, oldGallery, newGallery),
+      )
+      .filter((ref): ref is VenueImageRef => ref !== undefined);
+    if (remapped.length > 0) next.venueGalleryRefs = remapped;
+    else delete next.venueGalleryRefs;
+  }
+
+  return next;
 }

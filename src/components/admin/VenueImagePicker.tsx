@@ -136,26 +136,30 @@ export function VenueImagePicker({
                     <div className="flex flex-wrap gap-1">
                       <button
                         type="button"
-                        onClick={() => onCardChange(item.ref)}
+                        onClick={() =>
+                          onCardChange(isCard ? undefined : item.ref)
+                        }
                         className={`rounded-full px-2 py-1 text-[10px] ${
                           isCard
                             ? "bg-burgundy text-cream"
                             : "border border-border-subtle text-wine/70 hover:border-burgundy/30"
                         }`}
                       >
-                        Kaart
+                        {isCard ? "✓ Kaart" : "Kaart"}
                       </button>
                       {separateHero ? (
                         <button
                           type="button"
-                          onClick={() => onHeroChange(item.ref)}
+                          onClick={() =>
+                            onHeroChange(isHero ? undefined : item.ref)
+                          }
                           className={`rounded-full px-2 py-1 text-[10px] ${
                             isHero
                               ? "bg-gold text-wine"
                               : "border border-border-subtle text-wine/70 hover:border-burgundy/30"
                           }`}
                         >
-                          Hero
+                          {isHero ? "✓ Hero" : "Hero"}
                         </button>
                       ) : null}
                       <button

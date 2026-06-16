@@ -1,6 +1,7 @@
-import type { Event } from "@/db/schema";
+import type { Event, Venue } from "@/db/schema";
 import type { ExperienceTypeSlug } from "@/lib/experience-type-definitions";
 import type { EventExtras } from "@/lib/event-extras";
+import { resolveEventImagesFromVenues, venueImageRefKey } from "@/lib/venue-images";
 import { getEventFormDefaults } from "@/lib/experience-template-defaults";
 
 export type EventEditorUiFlags = {
@@ -21,6 +22,12 @@ export function detectEditorUiFlags(
   const d = getEventFormDefaults(type);
   const cardUrl = extras.cardImage?.url ?? extras.cardImageUrl ?? "";
   const heroUrl = extras.heroImage?.url ?? event?.imageUrl ?? "";
+  const venueCardKey = extras.venueCardRef
+    ? venueImageRefKey(extras.venueCardRef)
+    : null;
+  const venueHeroKey = extras.venueHeroRef
+    ? venueImageRefKey(extras.venueHeroRef)
+    : null;
 
   return {
     customCardTitle: Boolean(
@@ -30,7 +37,13 @@ export function detectEditorUiFlags(
       extras.heroTitleNl?.trim() || extras.heroTitleEn?.trim(),
     ),
     separateHeroImage: Boolean(
-      extras.heroImage?.url && heroUrl && cardUrl && heroUrl !== cardUrl,
+      (venueHeroKey &&
+        venueCardKey &&
+        venueHeroKey !== venueCardKey) ||
+        (extras.heroImage?.url &&
+          heroUrl &&
+          cardUrl &&
+          heroUrl !== cardUrl),
     ),
     customTagline: Boolean(
       (taglineNl.trim() && taglineNl !== d.taglineNl) ||
@@ -59,6 +72,11 @@ export function normalizeEventExtras(
   }
   if (!flags.separateHeroImage) {
     delete next.heroImage;
+    if (next.venueCardRef) {
+      next.venueHeroRef = next.venueCardRef;
+    } else {
+      delete next.venueHeroRef;
+    }
   }
 
   return next;
@@ -81,7 +99,19 @@ export function effectiveImageUrl(
   extras: EventExtras,
   flags: Pick<EventEditorUiFlags, "separateHeroImage">,
   fallbackUrl: string,
+  venues: Venue[] = [],
 ): string {
+  const resolved = venues.length
+    ? resolveEventImagesFromVenues(extras, venues)
+    : null;
+
+  if (resolved) {
+    if (flags.separateHeroImage && resolved.heroImage?.url) {
+      return resolved.heroImage.url;
+    }
+    if (resolved.cardImage?.url) return resolved.cardImage.url;
+  }
+
   if (flags.separateHeroImage && extras.heroImage?.url) {
     return extras.heroImage.url;
   }

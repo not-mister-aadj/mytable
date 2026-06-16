@@ -4,12 +4,16 @@ import { eq } from "drizzle-orm";
 import { events, experienceTypes, venues } from "@/db/schema";
 import type { Venue } from "@/db/schema";
 import { parseEventExtras } from "@/lib/event-extras";
+import {
+  eventExtrasReferenceVenue,
+  stripVenueImageRefs,
+} from "@/lib/venue-images";
 import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
-import { parseImageSettings } from "@/lib/image-settings";
+import { parseImageSettings, parseGalleryImages } from "@/lib/image-settings";
 import { DEFAULT_VENUE_IMAGE } from "@/lib/image-settings";
 import {
   geocodeVenueAddress,
@@ -68,6 +72,18 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
   } catch {
     imageMeta = null;
   }
+  let galleryMeta: Record<string, unknown>[] | null = null;
+  try {
+    const rawGallery = String(data.get("galleryMeta") ?? "").trim();
+    if (rawGallery) {
+      const parsed = parseGalleryImages(JSON.parse(rawGallery));
+      if (parsed.length > 0) {
+        galleryMeta = parsed as unknown as Record<string, unknown>[];
+      }
+    }
+  } catch {
+    galleryMeta = null;
+  }
   const area = String(data.get("area") ?? "").trim();
   const atmosphere = String(data.get("atmosphere") ?? "").trim();
   const address = String(data.get("address") ?? "").trim();
@@ -88,6 +104,7 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
     descriptionEn: descriptionEn || descriptionNl,
     imageUrl: imageUrl || DEFAULT_VENUE_IMAGE,
     imageMeta,
+    galleryMeta,
     latitude: coords?.lat ?? null,
     longitude: coords?.lng ?? null,
   };
@@ -152,12 +169,18 @@ async function detachVenueFromReferences(
     .from(events);
   for (const row of eventRows) {
     const extras = parseEventExtras(row.extras);
-    if (!extras.venueIds?.includes(venueId)) continue;
-    const venueIds = extras.venueIds.filter((vid) => vid !== venueId);
+    if (!eventExtrasReferenceVenue(extras, venueId)) continue;
+
+    const venueIds = (extras.venueIds ?? []).filter((vid) => vid !== venueId);
+    const stripped = stripVenueImageRefs(extras, venueId);
     await db
       .update(events)
       .set({
-        extras: { ...(row.extras ?? {}), venueIds },
+        extras: {
+          ...(row.extras ?? {}),
+          ...stripped,
+          venueIds,
+        },
         updatedAt: new Date(),
       })
       .where(eq(events.id, row.id));

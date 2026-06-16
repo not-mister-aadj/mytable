@@ -54,6 +54,8 @@ export const venues = pgTable("venues", {
   descriptionEn: text("description_en"),
   imageUrl: text("image_url"),
   imageMeta: jsonb("image_meta").$type<Record<string, unknown>>(),
+  /** Gallery images for sfeerimpressie — source of truth for event image picks */
+  galleryMeta: jsonb("gallery_meta").$type<Record<string, unknown>[]>(),
   latitude: text("latitude"),
   longitude: text("longitude"),
   createdAt: timestamp("created_at", { withTimezone: true })

@@ -7,9 +7,11 @@ import {
   deleteVenueAction,
 } from "@/app/admin/(dashboard)/venues/actions";
 import { MediaPicker } from "./MediaPicker";
+import { VenueGalleryEditor } from "./VenueGalleryEditor";
 import { useActionState, useState } from "react";
 import {
   coerceImageSettings,
+  parseGalleryImages,
   parseImageSettings,
 } from "@/lib/image-settings";
 import type { ImageSettings } from "@/lib/image-settings";
@@ -28,6 +30,9 @@ export function VenueForm({ venue }: { venue?: Venue }) {
     () =>
       parseImageSettings(venue?.imageMeta) ??
       coerceImageSettings(venue?.imageUrl, "venue"),
+  );
+  const [galleryImages, setGalleryImages] = useState<ImageSettings[]>(() =>
+    parseGalleryImages(venue?.galleryMeta),
   );
 
   return (
@@ -53,7 +58,7 @@ export function VenueForm({ venue }: { venue?: Venue }) {
         />
         <MediaPicker
           usage="venue"
-          label="Foto"
+          label="Hero-afbeelding"
           value={imageSettings}
           onChange={setImageSettings}
         />
@@ -62,6 +67,17 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           type="hidden"
           name="imageMeta"
           value={imageSettings ? JSON.stringify(imageSettings) : ""}
+        />
+        <input
+          type="hidden"
+          name="galleryMeta"
+          value={
+            galleryImages.length > 0 ? JSON.stringify(galleryImages) : ""
+          }
+        />
+        <VenueGalleryEditor
+          images={galleryImages}
+          onChange={(next) => setGalleryImages(next ?? [])}
         />
         <TextArea
           label="Beschrijving (NL)"

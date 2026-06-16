@@ -129,6 +129,29 @@ export interface ExperiencePageLabels {
   moods: Record<ExperienceMoodKey, ExperienceMoodContent>;
 }
 
+export interface EventShareLabels {
+  invite: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    whatsapp: string;
+    email: string;
+    skip: string;
+    close: string;
+  };
+  share: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    copy: string;
+    copied: string;
+    nativeShare: string;
+    close: string;
+  };
+  inviteMessage: string;
+  emailSubject: string;
+}
+
 export interface BookingOutcomeLabels {
   success: {
     eyebrow: string;

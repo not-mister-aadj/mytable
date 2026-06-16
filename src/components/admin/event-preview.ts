@@ -1,5 +1,6 @@
 import type { ExperienceItem, ExperienceMoodKey } from "@/i18n/types";
 import { formatDateTime, deriveDisplayStatus } from "@/lib/event-display";
+import { parseEventDateTimeLocal } from "@/lib/event-datetime-local";
 import {
   resolveFemaleOnly,
   type EventExtras,
@@ -46,8 +47,10 @@ export function buildCardPreviewExperience(
 ): ExperienceItem {
   const locale = data.previewLocale ?? "nl";
   const extras = data.extras;
-  const startsAt = data.startsAt ? new Date(data.startsAt) : new Date();
-  const endsAt = data.endsAt ? new Date(data.endsAt) : null;
+  const startsAt = data.startsAt
+    ? parseEventDateTimeLocal(data.startsAt)
+    : new Date();
+  const endsAt = data.endsAt ? parseEventDateTimeLocal(data.endsAt) : null;
   const capacity = data.capacity || 14;
   const spotsSold = data.spotsSold ?? 0;
   const typeDef = getExperienceTypeDefinition(data.experienceType);
@@ -101,8 +104,10 @@ export function buildDetailPreviewExperience(
 ): ExperienceItem {
   const locale = data.previewLocale ?? "nl";
   const extras = data.extras;
-  const startsAt = data.startsAt ? new Date(data.startsAt) : new Date();
-  const endsAt = data.endsAt ? new Date(data.endsAt) : null;
+  const startsAt = data.startsAt
+    ? parseEventDateTimeLocal(data.startsAt)
+    : new Date();
+  const endsAt = data.endsAt ? parseEventDateTimeLocal(data.endsAt) : null;
   const capacity = data.capacity || 14;
   const spotsSold = data.spotsSold ?? 0;
   const typeDef = getExperienceTypeDefinition(data.experienceType);

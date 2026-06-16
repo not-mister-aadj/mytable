@@ -26,6 +26,7 @@ import { ScrollProgress } from "./ScrollProgress";
 import { SocialAtmosphere } from "./SocialAtmosphere";
 import { VenueLineup } from "./VenueLineup";
 import { WhatToExpect } from "./WhatToExpect";
+import { EventShareModals } from "@/components/experience/EventShareModals";
 import { trackEventDetailViewed } from "@/lib/posthog/analytics";
 import { trackMetaViewContent } from "@/lib/analytics/metaTracking";
 
@@ -92,6 +93,9 @@ export function ExperiencePageContent({
 
   return (
     <>
+      {previewMode ? null : (
+        <EventShareModals experience={experience} locale={locale} />
+      )}
       {previewMode ? null : <ScrollProgress />}
 
       <ExperienceHero

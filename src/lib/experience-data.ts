@@ -7,6 +7,8 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { isDbEventsEnabled } from "@/lib/env";
 import { enrichDbEventWithContent } from "@/lib/event-mapper";
 import type { EnrichedExperience } from "@/lib/experience-detail";
+import { parseEventExtras } from "@/lib/event-extras";
+import { fetchVenuesByIds } from "@/lib/venues";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import {
   getExperienceTypesBySlugs,
@@ -60,10 +62,16 @@ export const getPublishedExperienceBySlug = cache(
     if (!row) return undefined;
     const typeSlug = row.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
     const contentMap = await loadTypeContentMap([typeSlug]);
+    const extras = parseEventExtras(row.extras);
+    const venues =
+      extras.venueIds && extras.venueIds.length > 0
+        ? await fetchVenuesByIds(extras.venueIds)
+        : [];
     return enrichDbEventWithContent(
       row,
       locale,
       contentMap.get(typeSlug) ?? parseTypeContent({}),
+      venues,
     );
   },
 );
@@ -85,12 +93,26 @@ export async function enrichPublishedRows(
   if (rows.length === 0) return [];
   const typeSlugs = rows.map((r) => r.experienceType ?? DEFAULT_EXPERIENCE_TYPE);
   const contentMap = await loadTypeContentMap(typeSlugs);
+
+  const allVenueIds = [
+    ...new Set(
+      rows.flatMap((row) => parseEventExtras(row.extras).venueIds ?? []),
+    ),
+  ];
+  const venueRows = allVenueIds.length > 0 ? await fetchVenuesByIds(allVenueIds) : [];
+  const venuesById = new Map(venueRows.map((v) => [v.id, v]));
+
   return rows.map((row) => {
     const typeSlug = row.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
+    const venueIds = parseEventExtras(row.extras).venueIds ?? [];
+    const venues = venueIds
+      .map((id) => venuesById.get(id))
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
     return enrichDbEventWithContent(
       row,
       locale,
       contentMap.get(typeSlug) ?? parseTypeContent({}),
+      venues,
     );
   });
 }

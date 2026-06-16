@@ -5,11 +5,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { formatDateTime } from "@/lib/event-display";
 import { reservationCode } from "@/lib/booking-display";
 import { getMoodContent } from "@/lib/experience-detail";
-import { mapDbEventToExperienceItem } from "@/lib/event-mapper";
-import {
-  getTypeContent,
-  mergeTypeContentIntoItem,
-} from "@/lib/experience-type-content";
+import { enrichDbEvent } from "@/lib/event-mapper";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
 import {
@@ -49,11 +45,7 @@ async function resolveEventGallery(
   row: Event,
   locale: Locale,
 ): Promise<{ items: BookingGalleryItem[]; fallbacks: string[] }> {
-  const item = mapDbEventToExperienceItem(row, locale);
-  const typeContent = await getTypeContent(
-    row.experienceType ?? DEFAULT_EXPERIENCE_TYPE,
-  );
-  const merged = mergeTypeContentIntoItem(item, typeContent, locale);
+  const item = await enrichDbEvent(row, locale);
   const dict = getDictionary(locale);
   const mood = getMoodContent(dict, item.mood);
   const moodUrls = mood.gallery.filter(isUsableImageUrl);
@@ -77,8 +69,7 @@ async function resolveEventGallery(
       pushItem({ url: s.url, settings: s });
     }
   } else {
-    const urls =
-      merged.galleryImages?.filter(isUsableImageUrl) ?? moodUrls;
+    const urls = item.galleryImages?.filter(isUsableImageUrl) ?? moodUrls;
     for (const url of urls) {
       pushItem({ url });
     }
@@ -118,7 +109,7 @@ async function mapEventToSummary(
     id: string;
   },
 ): Promise<BookingOutcomeSummary> {
-  const item = mapDbEventToExperienceItem(row, locale);
+  const item = await enrichDbEvent(row, locale);
   const gallery = await resolveEventGallery(row, locale);
 
   return {

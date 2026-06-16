@@ -36,14 +36,25 @@ import {
 import { AtmosphereTags } from "./AtmosphereTags";
 import { AdminEditorSplit } from "./AdminEditorSplit";
 import { LivePreviewPanel } from "./LivePreviewPanel";
-import { EventGalleryEditor } from "./EventGalleryEditor";
-import { MediaPicker } from "./MediaPicker";
+import { VenueImagePicker } from "./VenueImagePicker";
 import { OccupancyBar } from "./OccupancyBar";
 import { EventTicketsPanel } from "./EventTicketsPanel";
 import { VenuePicker } from "./VenuePicker";
 import type { EventTicketRow, TransferTargetEvent } from "@/lib/event-tickets-types";
 import type { PreviewEventData } from "./event-preview";
-import { coerceImageSettings, isUsableImageUrl } from "@/lib/image-settings";
+import {
+  resolveEventImagesFromVenues,
+  stripVenueImageRefs,
+} from "@/lib/venue-images";
+import type { VenueImageRef } from "@/lib/venue-images";
+import {
+  coerceImageSettings,
+  isUsableImageUrl,
+} from "@/lib/image-settings";
+import {
+  formatEventDateTimeLocal,
+  parseEventDateTimeLocal,
+} from "@/lib/event-datetime-local";
 
 function loadInitialExtras(event?: Event): EventExtras {
   if (!event) return emptyEventExtras();
@@ -57,13 +68,14 @@ function loadInitialExtras(event?: Event): EventExtras {
   return e;
 }
 
-const STEPS = ["Basis", "Content", "Venues", "Overrides"] as const;
+const STEPS = ["Basis", "Venues", "Content", "Overrides"] as const;
 const LAST_STEP = STEPS.length - 1;
 
-function toLocalInput(d: Date | null): string {
+function toLocalInput(d: Date | string | null): string {
   if (!d) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const date = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(date.getTime())) return "";
+  return formatEventDateTimeLocal(date);
 }
 
 function applyTypeDefaults(
@@ -122,10 +134,10 @@ export function EventEditor({
   const [nameEn, setNameEn] = useState(event?.nameEn ?? "");
   const [city, setCity] = useState(event?.city ?? "Den Haag");
   const [startsAt, setStartsAt] = useState(
-    event ? toLocalInput(new Date(event.startsAt)) : "",
+    event ? toLocalInput(event.startsAt) : "",
   );
   const [endsAt, setEndsAt] = useState(
-    event?.endsAt ? toLocalInput(new Date(event.endsAt)) : "",
+    event?.endsAt ? toLocalInput(event.endsAt) : "",
   );
   const [priceEuros, setPriceEuros] = useState(
     event ? String(event.priceCents / 100) : "49",
@@ -198,10 +210,45 @@ export function EventEditor({
     [experienceType, taglineNl, taglineEn, customTagline],
   );
 
-  const resolvedImageUrl = useMemo(
-    () => effectiveImageUrl(normalizedExtras, uiFlags, imageUrl),
-    [normalizedExtras, uiFlags, imageUrl],
+  const eventVenues = useMemo(
+    () =>
+      allVenues.filter((v) =>
+        (extras.venueIds ?? []).includes(v.id),
+      ),
+    [allVenues, extras.venueIds],
   );
+
+  const resolvedImages = useMemo(
+    () => resolveEventImagesFromVenues(normalizedExtras, eventVenues),
+    [normalizedExtras, eventVenues],
+  );
+
+  const previewExtras = useMemo(
+    () => ({
+      ...normalizedExtras,
+      cardImage: resolvedImages.cardImage,
+      heroImage: resolvedImages.heroImage,
+      galleryImageSettings: resolvedImages.galleryImageSettings,
+      galleryImages: resolvedImages.galleryImageSettings?.map((g) => g.url),
+    }),
+    [normalizedExtras, resolvedImages],
+  );
+
+  const resolvedImageUrl = useMemo(() => {
+    if (uiFlags.separateHeroImage && resolvedImages.heroImage?.url) {
+      return resolvedImages.heroImage.url;
+    }
+    return (
+      resolvedImages.cardImage?.url ??
+      effectiveImageUrl(normalizedExtras, uiFlags, imageUrl, eventVenues)
+    );
+  }, [
+    resolvedImages,
+    uiFlags,
+    normalizedExtras,
+    imageUrl,
+    eventVenues,
+  ]);
 
   const [saveState, submitAction, isSaving] = useActionState(
     isEdit
@@ -274,7 +321,7 @@ export function EventEditor({
       femaleOnly,
       experienceType,
       workflowStatus: event?.workflowStatus,
-      extras: normalizedExtras,
+      extras: previewExtras,
       previewLocale,
       eventId: event?.id,
       previewRevision: event?.updatedAt
@@ -296,7 +343,7 @@ export function EventEditor({
       categoryEn,
       femaleOnly,
       experienceType,
-      normalizedExtras,
+      previewExtras,
       previewLocale,
     ],
   );
@@ -336,16 +383,29 @@ export function EventEditor({
     }
   }
 
-  function handleCardImageChange(
-    settings: ReturnType<typeof coerceImageSettings>,
-  ) {
+  function setVenueCardRef(ref: VenueImageRef | undefined) {
     updateExtras({
-      cardImage: settings,
-      cardImageUrl: settings?.url,
+      venueCardRef: ref,
+      venueHeroRef: separateHeroImage ? extras.venueHeroRef : ref,
+      cardImage: undefined,
+      cardImageUrl: undefined,
+      heroImage: undefined,
     });
-    if (!separateHeroImage) {
-      setImageUrl(settings?.url ?? "");
-    }
+  }
+
+  function setVenueHeroRef(ref: VenueImageRef | undefined) {
+    updateExtras({
+      venueHeroRef: ref,
+      heroImage: undefined,
+    });
+  }
+
+  function setVenueGalleryRefs(refs: VenueImageRef[] | undefined) {
+    updateExtras({
+      venueGalleryRefs: refs,
+      galleryImageSettings: undefined,
+      galleryImages: undefined,
+    });
   }
 
   const previewColumn = (
@@ -470,7 +530,6 @@ export function EventEditor({
                     type="datetime-local"
                     value={startsAt}
                     onChange={setStartsAt}
-                    name="startsAt"
                     required
                   />
                   <Field
@@ -478,7 +537,6 @@ export function EventEditor({
                     type="datetime-local"
                     value={endsAt}
                     onChange={setEndsAt}
-                    name="endsAt"
                   />
                   <Field
                     label="Prijs (€)"
@@ -540,41 +598,60 @@ export function EventEditor({
             ) : null}
 
             {step === 1 ? (
+              <Section title="Venues">
+                <p className="text-sm text-wine/60">
+                  Kies de locatie(s) voor deze tafel. Alle afbeeldingen voor het
+                  event komen uit de venue-bibliotheek in de volgende stap.
+                </p>
+                <VenuePicker
+                  allVenues={allVenues}
+                  selectedIds={extras.venueIds ?? []}
+                  onChange={(ids) => {
+                    const removed = (extras.venueIds ?? []).filter(
+                      (id) => !ids.includes(id),
+                    );
+                    let nextExtras = { ...extras, venueIds: ids };
+                    for (const venueId of removed) {
+                      nextExtras = stripVenueImageRefs(nextExtras, venueId);
+                    }
+                    setExtras(nextExtras);
+                  }}
+                  eventCity={city}
+                  locale={previewLocale}
+                />
+              </Section>
+            ) : null}
+
+            {step === 2 ? (
               <Section title="Content">
                 <p className="text-sm text-wine/60">
-                  Agenda en detailpagina delen standaard dezelfde titel en
-                  afbeelding. Pas alleen aan wat afwijkt.
+                  Kies afbeeldingen uit de geselecteerde venues. Geen aparte
+                  uploads op het event — wijzigingen aan venue-foto&apos;s werken
+                  automatisch door.
                 </p>
 
-                <MediaPicker
-                  usage="agenda-card"
-                  value={extras.cardImage}
-                  onChange={handleCardImageChange}
-                  label="Afbeelding (agenda + detail)"
+                <VenueImagePicker
+                  allVenues={allVenues}
+                  venueIds={extras.venueIds ?? []}
+                  galleryRefs={extras.venueGalleryRefs ?? []}
+                  heroRef={extras.venueHeroRef}
+                  cardRef={extras.venueCardRef}
+                  separateHero={separateHeroImage}
+                  onGalleryChange={setVenueGalleryRefs}
+                  onHeroChange={setVenueHeroRef}
+                  onCardChange={setVenueCardRef}
                 />
 
                 <ToggleRow
                   checked={separateHeroImage}
                   onChange={(checked) => {
                     setSeparateHeroImage(checked);
-                    if (!checked) {
-                      setImageUrl(extras.cardImage?.url ?? "");
+                    if (!checked && extras.venueCardRef) {
+                      updateExtras({ venueHeroRef: extras.venueCardRef });
                     }
                   }}
                   label="Andere hero-afbeelding"
                 />
-                {separateHeroImage ? (
-                  <MediaPicker
-                    usage="hero"
-                    value={extras.heroImage}
-                    onChange={(v) => {
-                      updateExtras({ heroImage: v });
-                      setImageUrl(v?.url ?? "");
-                    }}
-                    label="Hero-afbeelding"
-                  />
-                ) : null}
-
                 <ToggleRow
                   checked={customCardTitle}
                   onChange={(checked) => {
@@ -754,28 +831,6 @@ export function EventEditor({
                     </div>
                   )}
                 </div>
-
-                <EventGalleryEditor
-                  images={extras.galleryImageSettings ?? []}
-                  onChange={(next) =>
-                    updateExtras({
-                      galleryImageSettings: next,
-                      galleryImages: next?.map((g) => g.url),
-                    })
-                  }
-                />
-              </Section>
-            ) : null}
-
-            {step === 2 ? (
-              <Section title="Venues">
-                <VenuePicker
-                  allVenues={allVenues}
-                  selectedIds={extras.venueIds ?? []}
-                  onChange={(ids) => updateExtras({ venueIds: ids })}
-                  eventCity={city}
-                  locale={previewLocale}
-                />
               </Section>
             ) : null}
 
@@ -988,7 +1043,7 @@ function Field({
   onBlur,
 }: {
   label: string;
-  name: string;
+  name?: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;

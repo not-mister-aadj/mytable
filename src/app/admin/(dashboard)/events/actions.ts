@@ -19,6 +19,7 @@ import {
   formatEventSaveError,
   validateEventForm,
 } from "@/lib/event-form-validation";
+import { parseEventDateTimeLocal } from "@/lib/event-datetime-local";
 import { generateEventSlug } from "@/lib/event-slug";
 import { resolveUniqueEventSlug } from "@/lib/event-slug.server";
 import { DEFAULT_EVENT_IMAGE, isUsableImageUrl } from "@/lib/image-settings";
@@ -101,8 +102,8 @@ function toEventValues(form: EventFormState) {
 
   return {
     city: form.city,
-    startsAt: new Date(form.startsAt),
-    endsAt: form.endsAt ? new Date(form.endsAt) : null,
+    startsAt: parseEventDateTimeLocal(form.startsAt),
+    endsAt: form.endsAt ? parseEventDateTimeLocal(form.endsAt) : null,
     priceCents: Math.round(priceEuros * 100),
     capacity: Number.isFinite(capacity) ? capacity : 14,
     femaleOnly: resolveFemaleOnly(

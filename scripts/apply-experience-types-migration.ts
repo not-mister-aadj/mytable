@@ -44,6 +44,11 @@ async function main() {
   `;
 
   await sql`
+    ALTER TABLE venues
+    ADD COLUMN IF NOT EXISTS gallery_meta jsonb
+  `;
+
+  await sql`
     ALTER TABLE events
     ADD COLUMN IF NOT EXISTS experience_type text NOT NULL DEFAULT 'wine-tasting'
   `;

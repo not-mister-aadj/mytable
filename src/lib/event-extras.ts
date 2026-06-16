@@ -8,6 +8,11 @@ import {
   parseGalleryImages,
   parseImageSettings,
 } from "@/lib/image-settings";
+import type { VenueImageRef } from "@/lib/venue-images";
+import {
+  parseVenueImageRef,
+  parseVenueImageRefs,
+} from "@/lib/venue-images";
 
 export const GIRLS_ONLY_ATMOSPHERE_TAG = "Girls only";
 export const PREMIUM_ATMOSPHERE_TAG = "Premium";
@@ -44,6 +49,10 @@ export type EventExtras = {
   /** @deprecated use galleryImageSettings */
   galleryImages?: string[];
   galleryImageSettings?: ImageSettings[];
+  /** References to venue images (ordered gallery selection) */
+  venueGalleryRefs?: VenueImageRef[];
+  venueHeroRef?: VenueImageRef;
+  venueCardRef?: VenueImageRef;
   venueIds?: string[];
   cardTitleNl?: string;
   cardTitleEn?: string;
@@ -129,6 +138,12 @@ export function parseEventExtras(raw: unknown): EventExtras {
     galleryImages: galleryImageSettings.map((g) => g.url),
     galleryImageSettings:
       galleryImageSettings.length > 0 ? galleryImageSettings : undefined,
+    venueGalleryRefs: (() => {
+      const refs = parseVenueImageRefs(o.venueGalleryRefs);
+      return refs.length > 0 ? refs : undefined;
+    })(),
+    venueHeroRef: parseVenueImageRef(o.venueHeroRef),
+    venueCardRef: parseVenueImageRef(o.venueCardRef),
     venueIds: Array.isArray(o.venueIds)
       ? o.venueIds
           .filter((id): id is string => typeof id === "string")

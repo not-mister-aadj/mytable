@@ -4,6 +4,7 @@ import { adminPath } from "@/lib/admin-url";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
+import { formatDateTime } from "@/lib/event-display";
 
 export default async function AdminDashboardPage() {
   await requireAdmin();
@@ -69,11 +70,20 @@ export default async function AdminDashboardPage() {
         </div>
         <ul className="mt-4 divide-y divide-border-subtle rounded-2xl border border-border-subtle bg-beige">
           {upcoming.map((e) => (
-            <li key={e.id} className="flex justify-between px-4 py-3 text-sm">
+            <li key={e.id} className="flex flex-col gap-1 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <span>
                 {e.nameNl} · {e.city}
+                <span className="text-wine/60">
+                  {" "}
+                  ·{" "}
+                  {formatDateTime(
+                    new Date(e.startsAt),
+                    e.endsAt ? new Date(e.endsAt) : null,
+                    "nl",
+                  )}
+                </span>
               </span>
-              <span className="text-wine/60">
+              <span className="shrink-0 text-wine/60">
                 {e.spotsSold}/{e.capacity} ·{" "}
                 <Link href={adminPath(`/events/${e.id}/edit`)} className="underline">
                   Bewerken

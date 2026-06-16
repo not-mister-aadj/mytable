@@ -49,11 +49,12 @@ type VenueCoreRow = {
 
 function withOptionalVenueFields(
   row: VenueCoreRow,
-  extra?: Partial<Pick<Venue, "imageMeta" | "latitude" | "longitude">>,
+  extra?: Partial<Pick<Venue, "imageMeta" | "galleryMeta" | "latitude" | "longitude">>,
 ): Venue {
   return {
     ...row,
     imageMeta: extra?.imageMeta ?? null,
+    galleryMeta: extra?.galleryMeta ?? null,
     latitude: extra?.latitude ?? null,
     longitude: extra?.longitude ?? null,
   };
@@ -63,6 +64,7 @@ function isMissingVenueColumnError(error: unknown): boolean {
   const msg = error instanceof Error ? error.message : String(error);
   return (
     msg.includes("image_meta") ||
+    msg.includes("gallery_meta") ||
     msg.includes("latitude") ||
     msg.includes("longitude")
   );

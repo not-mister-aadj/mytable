@@ -1,4 +1,5 @@
 import type { EventFormState } from "@/app/admin/(dashboard)/events/actions";
+import { parseEventDateTimeLocal } from "@/lib/event-datetime-local";
 
 export function validateEventForm(form: EventFormState): string | null {
   if (!form.nameNl?.trim()) {
@@ -17,12 +18,12 @@ export function validateEventForm(form: EventFormState): string | null {
   if (!Number.isFinite(priceEuros) || priceEuros < 0) {
     return "Vul een geldige prijs in onder stap Basis.";
   }
-  const startsAt = new Date(form.startsAt);
+  const startsAt = parseEventDateTimeLocal(form.startsAt);
   if (Number.isNaN(startsAt.getTime())) {
     return "De startdatum is ongeldig.";
   }
   if (form.endsAt?.trim()) {
-    const endsAt = new Date(form.endsAt);
+    const endsAt = parseEventDateTimeLocal(form.endsAt);
     if (Number.isNaN(endsAt.getTime())) {
       return "De einddatum is ongeldig.";
     }

@@ -44,7 +44,8 @@ async function applyExperienceTypesPatch(sql: postgres.Sql): Promise<void> {
     ALTER TABLE venues
     ADD COLUMN IF NOT EXISTS latitude text,
     ADD COLUMN IF NOT EXISTS longitude text,
-    ADD COLUMN IF NOT EXISTS image_meta jsonb
+    ADD COLUMN IF NOT EXISTS image_meta jsonb,
+    ADD COLUMN IF NOT EXISTS gallery_meta jsonb
   `;
 
   await sql`

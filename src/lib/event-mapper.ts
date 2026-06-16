@@ -1,9 +1,8 @@
+import type { Event, Venue } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
-import { deriveDisplayStatus, formatDateTime } from "@/lib/event-display";
-import type { Event } from "@/db/schema";
 import { getExperienceSlug } from "@/data/experience-slugs";
-import type { EnrichedExperience } from "./experience-detail";
+import { deriveDisplayStatus, formatDateTime } from "@/lib/event-display";
 import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
 import { mergeTypeContentIntoItem } from "@/lib/experience-type-content";
 import type { ExperienceTypeContent } from "@/lib/experience-type-content.types";
@@ -21,12 +20,20 @@ import {
   DEFAULT_EVENT_IMAGE,
   isUsableImageUrl,
 } from "@/lib/image-settings";
+import { fetchVenuesByIds } from "@/lib/venues";
+import { resolveEventImagesFromVenues } from "@/lib/venue-images";
+import type { EnrichedExperience } from "./experience-detail";
 
 export function mapDbEventToExperienceItem(
   row: Event,
   locale: Locale,
+  venues: Venue[] = [],
 ): ExperienceItem {
   const extras = parseEventExtras(row.extras);
+  const resolvedImages =
+    venues.length > 0
+      ? resolveEventImagesFromVenues(extras, venues)
+      : resolveEventImagesFromVenues(extras, []);
   const typeSlug = typeSlugFromEvent(row.experienceType);
   const names = displayNamesFromEvent(row, extras, locale);
   const lang = locale === "nl" ? "nl" : "en";
@@ -42,10 +49,14 @@ export function mapDbEventToExperienceItem(
   const startsAt = new Date(row.startsAt);
   const endsAt = row.endsAt ? new Date(row.endsAt) : null;
 
-  const heroSettings = resolveHeroImageSettings(extras, row.imageUrl);
+  const heroSettings =
+    resolvedImages.heroImage ??
+    resolveHeroImageSettings(extras, row.imageUrl);
   const cardSettings =
+    resolvedImages.cardImage ??
     extras.cardImage ??
     coerceImageSettings(extras.cardImageUrl, "agenda-card");
+  const gallerySettings = resolvedImages.galleryImageSettings;
 
   const heroUrl =
     heroSettings?.url ??
@@ -82,8 +93,8 @@ export function mapDbEventToExperienceItem(
     atmosphereTags: extras.atmosphereTags,
     customDescription: customDescription || undefined,
     customFaq: customFaq?.length ? customFaq : undefined,
-    galleryImages: extras.galleryImageSettings?.map((g) => g.url),
-    galleryImageSettings: extras.galleryImageSettings,
+    galleryImages: gallerySettings?.map((g) => g.url),
+    galleryImageSettings: gallerySettings,
   };
 }
 
@@ -91,8 +102,9 @@ export function enrichDbEventWithContent(
   row: Event,
   locale: Locale,
   typeContent: ExperienceTypeContent,
+  venues: Venue[] = [],
 ): EnrichedExperience {
-  const item = mapDbEventToExperienceItem(row, locale);
+  const item = mapDbEventToExperienceItem(row, locale, venues);
   const merged = mergeTypeContentIntoItem(item, typeContent, locale);
   return {
     ...merged,
@@ -114,5 +126,10 @@ export async function enrichDbEvent(
 ): Promise<EnrichedExperience> {
   const typeSlug = row.experienceType ?? DEFAULT_EXPERIENCE_TYPE;
   const typeContent = await getTypeContent(typeSlug);
-  return enrichDbEventWithContent(row, locale, typeContent);
+  const extras = parseEventExtras(row.extras);
+  const venues =
+    extras.venueIds && extras.venueIds.length > 0
+      ? await fetchVenuesByIds(extras.venueIds)
+      : [];
+  return enrichDbEventWithContent(row, locale, typeContent, venues);
 }

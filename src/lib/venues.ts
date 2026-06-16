@@ -1,10 +1,12 @@
 import { cache } from "react";
+import { unstable_noStore as noStore } from "next/cache";
 import { eq, inArray, asc } from "drizzle-orm";
 import type { Locale } from "@/i18n/config";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { Event, Venue } from "@/db/schema";
 import { venues } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
+import { ensureVenueColumns } from "@/lib/ensure-venue-columns";
 import { parseEventExtras } from "@/lib/event-extras";
 import { venueToExperienceVenue } from "@/lib/venue-display";
 export { venueToExperienceVenue } from "@/lib/venue-display";
@@ -70,16 +72,52 @@ function isMissingVenueColumnError(error: unknown): boolean {
   );
 }
 
+/** Includes image fields when lat/lng columns are missing on older databases */
+const venueSelectWithImages = {
+  ...venueSelectCore,
+  imageMeta: venues.imageMeta,
+  galleryMeta: venues.galleryMeta,
+};
+
+function mapVenueRow(
+  row: VenueCoreRow & {
+    imageMeta?: Venue["imageMeta"];
+    galleryMeta?: Venue["galleryMeta"];
+    latitude?: Venue["latitude"];
+    longitude?: Venue["longitude"];
+  },
+): Venue {
+  return withOptionalVenueFields(row, {
+    imageMeta: row.imageMeta ?? null,
+    galleryMeta: row.galleryMeta ?? null,
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
+  });
+}
+
 async function selectAllVenuesRows(db: ReturnType<typeof getDb>): Promise<Venue[]> {
   try {
-    return await db.select().from(venues).orderBy(asc(venues.city), asc(venues.name));
-  } catch (error) {
-    if (!isMissingVenueColumnError(error)) throw error;
     const rows = await db
-      .select(venueSelectCore)
+      .select()
       .from(venues)
       .orderBy(asc(venues.city), asc(venues.name));
-    return rows.map((r) => withOptionalVenueFields(r));
+    return rows.map((row) => mapVenueRow(row));
+  } catch (error) {
+    if (!isMissingVenueColumnError(error)) throw error;
+    try {
+      const rows = await db
+        .select(venueSelectWithImages)
+        .from(venues)
+        .orderBy(asc(venues.city), asc(venues.name));
+      return rows.map((row) => mapVenueRow(row));
+    } catch (inner) {
+      if (!isMissingVenueColumnError(inner)) throw inner;
+      const rows = await db
+        .select(venueSelectCore)
+        .from(venues)
+        .orderBy(asc(venues.city), asc(venues.name));
+      return rows.map((row) => mapVenueRow(row));
+    }
   }
 }
 
@@ -88,14 +126,24 @@ async function selectVenuesByIdsRows(
   ids: string[],
 ): Promise<Venue[]> {
   try {
-    return await db.select().from(venues).where(inArray(venues.id, ids));
+    const rows = await db.select().from(venues).where(inArray(venues.id, ids));
+    return rows.map((row) => mapVenueRow(row));
   } catch (error) {
     if (!isMissingVenueColumnError(error)) throw error;
-    const rows = await db
-      .select(venueSelectCore)
-      .from(venues)
-      .where(inArray(venues.id, ids));
-    return rows.map((r) => withOptionalVenueFields(r));
+    try {
+      const rows = await db
+        .select(venueSelectWithImages)
+        .from(venues)
+        .where(inArray(venues.id, ids));
+      return rows.map((row) => mapVenueRow(row));
+    } catch (inner) {
+      if (!isMissingVenueColumnError(inner)) throw inner;
+      const rows = await db
+        .select(venueSelectCore)
+        .from(venues)
+        .where(inArray(venues.id, ids));
+      return rows.map((row) => mapVenueRow(row));
+    }
   }
 }
 
@@ -114,25 +162,39 @@ export async function fetchVenuesByIds(ids: string[]): Promise<Venue[]> {
 }
 
 export async function getAllVenues(): Promise<Venue[]> {
+  noStore();
   if (!isDbConfigured()) return [];
   const db = getDb();
+  await ensureVenueColumns(db);
   return selectAllVenuesRows(db);
 }
 
 export async function getVenueById(id: string): Promise<Venue | undefined> {
+  noStore();
   if (!isDbConfigured()) return undefined;
   const db = getDb();
+  await ensureVenueColumns(db);
   try {
     const [row] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
-    return row;
+    return row ? mapVenueRow(row) : undefined;
   } catch (error) {
     if (!isMissingVenueColumnError(error)) throw error;
-    const [row] = await db
-      .select(venueSelectCore)
-      .from(venues)
-      .where(eq(venues.id, id))
-      .limit(1);
-    return row ? withOptionalVenueFields(row) : undefined;
+    try {
+      const [row] = await db
+        .select(venueSelectWithImages)
+        .from(venues)
+        .where(eq(venues.id, id))
+        .limit(1);
+      return row ? mapVenueRow(row) : undefined;
+    } catch (inner) {
+      if (!isMissingVenueColumnError(inner)) throw inner;
+      const [row] = await db
+        .select(venueSelectCore)
+        .from(venues)
+        .where(eq(venues.id, id))
+        .limit(1);
+      return row ? mapVenueRow(row) : undefined;
+    }
   }
 }
 

@@ -18,6 +18,8 @@ type VenueImagePickerProps = {
   onGalleryChange: (refs: VenueImageRef[] | undefined) => void;
   onHeroChange: (ref: VenueImageRef | undefined) => void;
   onCardChange: (ref: VenueImageRef | undefined) => void;
+  onRequestVenuesStep?: () => void;
+  onRefresh?: () => void | Promise<void>;
 };
 
 export function VenueImagePicker({
@@ -30,6 +32,8 @@ export function VenueImagePicker({
   onGalleryChange,
   onHeroChange,
   onCardChange,
+  onRequestVenuesStep,
+  onRefresh,
 }: VenueImagePickerProps) {
   const catalog = buildVenueImageCatalog(allVenues, venueIds);
   const galleryKeys = new Set(galleryRefs.map(venueImageRefKey));
@@ -38,19 +42,35 @@ export function VenueImagePicker({
 
   if (venueIds.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border-subtle bg-cream/50 p-6 text-sm text-wine/60">
-        Selecteer eerst venue(s) in de vorige stap. Alle event-afbeeldingen komen
-        uit de venue-bibliotheek — geen aparte uploads op het event.
+      <div className="rounded-2xl border-2 border-dashed border-burgundy/25 bg-cream/50 p-6">
+        <h3 className="font-serif text-lg text-burgundy">Sfeerimpressie</h3>
+        <p className="mt-2 text-sm text-wine/70">
+          Om sfeerfoto&apos;s te kiezen, selecteer eerst minstens één venue in de
+          vorige stap. Alle foto&apos;s komen uit de venue-bibliotheek.
+        </p>
+        {onRequestVenuesStep ? (
+          <button
+            type="button"
+            onClick={onRequestVenuesStep}
+            className="mt-4 rounded-full bg-burgundy px-5 py-2 text-sm font-medium text-cream"
+          >
+            Ga naar Venues
+          </button>
+        ) : null}
       </div>
     );
   }
 
   if (catalog.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border-subtle bg-cream/50 p-6 text-sm text-wine/60">
-        De geselecteerde venue(s) hebben nog geen foto&apos;s. Voeg een hero en
-        galerij toe via{" "}
-        <span className="font-medium text-wine">Admin → Venues</span>.
+      <div className="rounded-2xl border-2 border-dashed border-burgundy/25 bg-cream/50 p-6">
+        <h3 className="font-serif text-lg text-burgundy">Sfeerimpressie</h3>
+        <p className="mt-2 text-sm text-wine/70">
+          De geselecteerde venue(s) hebben nog geen foto&apos;s. Voeg een hero en
+          galerijfoto&apos;s toe via{" "}
+          <span className="font-medium text-wine">Admin → Venues</span>, sla de
+          venue op, en kom dan terug naar deze stap.
+        </p>
       </div>
     );
   }
@@ -80,12 +100,45 @@ export function VenueImagePicker({
     byVenue.set(item.venueName, list);
   }
 
+  const galleryCount = catalog.filter((item) => item.ref.kind === "gallery").length;
+
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-wine/60">
-        Kies afbeeldingen uit de venue-bibliotheek. Wijzigingen aan venue-foto&apos;s
-        werken automatisch door op alle gekoppelde events.
-      </p>
+    <div className="space-y-6 rounded-2xl border border-burgundy/15 bg-cream/40 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="font-serif text-lg text-burgundy">Sfeerimpressie &amp; afbeeldingen</h3>
+          <p className="mt-2 text-sm text-wine/70">
+            Klik op <strong className="text-wine">Sfeerimpressie</strong> om een foto
+            in de galerij op de detailpagina te zetten. Gebruik{" "}
+            <strong className="text-wine">Kaart</strong> voor de agendakaart en de
+            hero bovenaan (zelfde afbeelding).
+          </p>
+          <p className="mt-1 text-xs text-wine/50">
+            {catalog.length} foto&apos;s beschikbaar
+            {galleryCount > 0
+              ? ` (${galleryCount} galerij)`
+              : " — alleen hero, geen galerij opgeslagen bij venue"}
+          </p>
+        </div>
+        {onRefresh ? (
+          <button
+            type="button"
+            onClick={() => void onRefresh()}
+            className="shrink-0 rounded-full border border-border-subtle px-3 py-1.5 text-xs text-wine/70 hover:border-burgundy/30 hover:text-burgundy"
+          >
+            Vernieuwen
+          </button>
+        ) : null}
+      </div>
+
+      {galleryCount === 0 && catalog.length > 0 ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Deze venue heeft nog geen galerijfoto&apos;s opgeslagen — alleen de hero is
+          zichtbaar. Ga naar <strong>Admin → Venues</strong>, voeg foto&apos;s toe
+          onder <strong>Galerij</strong>, klik <strong>Opslaan</strong>, en druk
+          hier op <strong>Vernieuwen</strong>.
+        </p>
+      ) : null}
 
       {[...byVenue.entries()].map(([venueName, items]) => (
         <div key={venueName}>
@@ -126,7 +179,7 @@ export function VenueImagePicker({
                       ) : null}
                       {inGallery ? (
                         <span className="rounded-full bg-wine/80 px-2 py-0.5 text-[10px] font-medium text-cream">
-                          Galerij
+                          Sfeer
                         </span>
                       ) : null}
                     </div>
@@ -171,7 +224,7 @@ export function VenueImagePicker({
                             : "border border-border-subtle text-wine/70 hover:border-burgundy/30"
                         }`}
                       >
-                        {inGallery ? "✓ Galerij" : "Galerij"}
+                        {inGallery ? "✓ Sfeerimpressie" : "Sfeerimpressie"}
                       </button>
                     </div>
                   </div>

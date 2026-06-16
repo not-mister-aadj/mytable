@@ -137,7 +137,7 @@ export function buildVenueImageCatalog(
         ref: { venueId, kind: "gallery", galleryIndex: index },
         settings,
         venueName: venue.name,
-        label: `Galerij ${index + 1}`,
+        label: `Sfeer ${index + 1}`,
       });
     });
   }

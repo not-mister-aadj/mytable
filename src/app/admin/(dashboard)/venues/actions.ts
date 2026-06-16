@@ -14,6 +14,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseImageSettings, parseGalleryImages } from "@/lib/image-settings";
 import { DEFAULT_VENUE_IMAGE } from "@/lib/image-settings";
@@ -23,6 +24,8 @@ import {
   type GeocodeResult,
 } from "@/lib/geocode";
 import { formatEventSaveError } from "@/lib/event-form-validation";
+import { ensureVenueColumns } from "@/lib/ensure-venue-columns";
+import { getVenueById } from "@/lib/venues";
 
 export type VenueSaveState = {
   error: string | null;
@@ -115,9 +118,11 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
 async function persistCreateVenue(formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
-  const values = await parseVenueForm(formData);
   const db = getDb();
+  await ensureVenueColumns(db);
+  const values = await parseVenueForm(formData);
   const [row] = await db.insert(venues).values(values).returning();
+  revalidateVenueDependents();
   redirect(adminPath(`/venues/${row.id}/edit?saved=1`));
 }
 
@@ -125,7 +130,8 @@ async function persistUpdateVenue(id: string, formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
-  const [existing] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
+  await ensureVenueColumns(db);
+  const existing = await getVenueById(id);
   if (!existing) throw new Error("Venue niet gevonden");
 
   const values = await parseVenueForm(formData, existing);
@@ -158,7 +164,13 @@ async function persistUpdateVenue(id: string, formData: FormData) {
       .where(eq(events.id, row.id));
   }
 
+  revalidateVenueDependents();
   redirect(adminPath(`/venues/${id}/edit?saved=1`));
+}
+
+function revalidateVenueDependents() {
+  revalidatePath(adminPath("/venues"));
+  revalidatePath(adminPath("/events"));
 }
 
 export async function createVenueAction(
@@ -234,7 +246,8 @@ export async function deleteVenueAction(id: string) {
   await requireAdmin();
   if (!isDbConfigured()) throw new Error("Database niet geconfigureerd");
   const db = getDb();
-  const [venue] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
+  await ensureVenueColumns(db);
+  const venue = await getVenueById(id);
   if (!venue) throw new Error("Venue niet gevonden");
 
   await detachVenueFromReferences(db, id);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
 import type { Event, Venue } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
 import {
@@ -128,6 +128,7 @@ export function EventEditor({
   const templateDefaults = getEventFormDefaults(startType);
 
   const [step, setStep] = useState(0);
+  const [venueLibrary, setVenueLibrary] = useState(allVenues);
   const [experienceType, setExperienceType] =
     useState<ExperienceTypeSlug>(startType);
   const [nameNl, setNameNl] = useState(event?.nameNl ?? "");
@@ -162,21 +163,33 @@ export function EventEditor({
   const [extras, setExtras] = useState<EventExtras>(initialExtras);
   const [previewLocale, setPreviewLocale] = useState<"nl" | "en">("nl");
 
+  useEffect(() => {
+    setVenueLibrary(allVenues);
+  }, [allVenues]);
+
+  const refreshVenueLibrary = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/venues", { cache: "no-store" });
+      const data = (await res.json()) as { venues?: Venue[] };
+      if (Array.isArray(data.venues)) {
+        setVenueLibrary(data.venues);
+      }
+    } catch {
+      // keep current library
+    }
+  }, []);
+
+  useEffect(() => {
+    if (step !== 2) return;
+    void refreshVenueLibrary();
+  }, [step, refreshVenueLibrary]);
+
   const initialFlags = detectEditorUiFlags(
     initialExtras,
     event,
     startType,
     event?.taglineNl ?? templateDefaults.taglineNl,
     event?.taglineEn ?? templateDefaults.taglineEn,
-  );
-  const [customCardTitle, setCustomCardTitle] = useState(
-    initialFlags.customCardTitle,
-  );
-  const [customHeroTitle, setCustomHeroTitle] = useState(
-    initialFlags.customHeroTitle,
-  );
-  const [separateHeroImage, setSeparateHeroImage] = useState(
-    initialFlags.separateHeroImage,
   );
   const [customTagline, setCustomTagline] = useState(initialFlags.customTagline);
   const [customCardText, setCustomCardText] = useState(
@@ -185,19 +198,13 @@ export function EventEditor({
 
   const uiFlags: EventEditorUiFlags = useMemo(
     () => ({
-      customCardTitle,
-      customHeroTitle,
-      separateHeroImage,
+      customCardTitle: false,
+      customHeroTitle: false,
+      separateHeroImage: false,
       customTagline,
       customCardText,
     }),
-    [
-      customCardTitle,
-      customHeroTitle,
-      separateHeroImage,
-      customTagline,
-      customCardText,
-    ],
+    [customTagline, customCardText],
   );
 
   const normalizedExtras = useMemo(
@@ -210,12 +217,19 @@ export function EventEditor({
     [experienceType, taglineNl, taglineEn, customTagline],
   );
 
+  const effectiveVenueIds = useMemo(() => {
+    const ids = extras.venueIds ?? [];
+    if (ids.length > 0) return ids;
+    if (event?.venueId) return [event.venueId];
+    return [];
+  }, [extras.venueIds, event?.venueId]);
+
   const eventVenues = useMemo(
     () =>
-      allVenues.filter((v) =>
-        (extras.venueIds ?? []).includes(v.id),
+      venueLibrary.filter((v) =>
+        effectiveVenueIds.includes(v.id),
       ),
-    [allVenues, extras.venueIds],
+    [venueLibrary, effectiveVenueIds],
   );
 
   const resolvedImages = useMemo(
@@ -386,16 +400,9 @@ export function EventEditor({
   function setVenueCardRef(ref: VenueImageRef | undefined) {
     updateExtras({
       venueCardRef: ref,
-      venueHeroRef: separateHeroImage ? extras.venueHeroRef : ref,
+      venueHeroRef: ref,
       cardImage: undefined,
       cardImageUrl: undefined,
-      heroImage: undefined,
-    });
-  }
-
-  function setVenueHeroRef(ref: VenueImageRef | undefined) {
-    updateExtras({
-      venueHeroRef: ref,
       heroImage: undefined,
     });
   }
@@ -426,7 +433,7 @@ export function EventEditor({
           EN
         </button>
       </div>
-      <LivePreviewPanel data={previewData} allVenues={allVenues} />
+      <LivePreviewPanel data={previewData} allVenues={venueLibrary} />
     </>
   );
 
@@ -485,8 +492,7 @@ export function EventEditor({
             {step === 0 ? (
               <Section title="Basis">
                 <p className="text-sm text-wine/60">
-                  De tafelnaam (NL/EN) is leidend voor agenda en detailpagina,
-                  tenzij je een aparte titel kiest bij Content.
+                  De tafelnaam (NL/EN) is leidend voor agenda en detailpagina.
                 </p>
                 <label className="block text-sm">
                   <span className="font-medium text-wine">Type</span>
@@ -604,7 +610,7 @@ export function EventEditor({
                   event komen uit de venue-bibliotheek in de volgende stap.
                 </p>
                 <VenuePicker
-                  allVenues={allVenues}
+                  allVenues={venueLibrary}
                   selectedIds={extras.venueIds ?? []}
                   onChange={(ids) => {
                     const removed = (extras.venueIds ?? []).filter(
@@ -624,113 +630,24 @@ export function EventEditor({
 
             {step === 2 ? (
               <Section title="Content">
-                <p className="text-sm text-wine/60">
-                  Kies afbeeldingen uit de geselecteerde venues. Geen aparte
-                  uploads op het event — wijzigingen aan venue-foto&apos;s werken
-                  automatisch door.
-                </p>
-
                 <VenueImagePicker
-                  allVenues={allVenues}
-                  venueIds={extras.venueIds ?? []}
+                  allVenues={venueLibrary}
+                  venueIds={effectiveVenueIds}
                   galleryRefs={extras.venueGalleryRefs ?? []}
                   heroRef={extras.venueHeroRef}
                   cardRef={extras.venueCardRef}
-                  separateHero={separateHeroImage}
+                  separateHero={false}
                   onGalleryChange={setVenueGalleryRefs}
-                  onHeroChange={setVenueHeroRef}
+                  onHeroChange={() => {}}
                   onCardChange={setVenueCardRef}
+                  onRequestVenuesStep={() => setStep(1)}
+                  onRefresh={refreshVenueLibrary}
                 />
 
-                <ToggleRow
-                  checked={separateHeroImage}
-                  onChange={(checked) => {
-                    setSeparateHeroImage(checked);
-                    if (!checked && extras.venueCardRef) {
-                      updateExtras({ venueHeroRef: extras.venueCardRef });
-                    }
-                  }}
-                  label="Andere hero-afbeelding"
-                />
-                <ToggleRow
-                  checked={customCardTitle}
-                  onChange={(checked) => {
-                    setCustomCardTitle(checked);
-                    if (!checked) {
-                      updateExtras({
-                        cardTitleNl: undefined,
-                        cardTitleEn: undefined,
-                      });
-                    }
-                  }}
-                  label="Andere titel op agendakaart"
-                />
-                {customCardTitle ? (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field
-                      label="Kaarttitel (NL)"
-                      value={extras.cardTitleNl ?? ""}
-                      onChange={(v) =>
-                        updateExtras({ cardTitleNl: v || undefined })
-                      }
-                      name="_cardTitleNl"
-                    />
-                    <Field
-                      label="Kaarttitel (EN)"
-                      value={extras.cardTitleEn ?? ""}
-                      onChange={(v) =>
-                        updateExtras({ cardTitleEn: v || undefined })
-                      }
-                      name="_cardTitleEn"
-                    />
-                  </div>
-                ) : (
-                  <Hint>
-                    Agendakaart toont:{" "}
-                    <strong>{nameNl || "…"}</strong> (NL) /{" "}
-                    <strong>{nameEn || nameNl || "…"}</strong> (EN)
-                  </Hint>
-                )}
-
-                <ToggleRow
-                  checked={customHeroTitle}
-                  onChange={(checked) => {
-                    setCustomHeroTitle(checked);
-                    if (!checked) {
-                      updateExtras({
-                        heroTitleNl: undefined,
-                        heroTitleEn: undefined,
-                      });
-                    }
-                  }}
-                  label="Andere titel op detailpagina"
-                />
-                {customHeroTitle ? (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field
-                      label="Hero titel (NL)"
-                      value={extras.heroTitleNl ?? ""}
-                      onChange={(v) =>
-                        updateExtras({ heroTitleNl: v || undefined })
-                      }
-                      name="_heroNl"
-                    />
-                    <Field
-                      label="Hero titel (EN)"
-                      value={extras.heroTitleEn ?? ""}
-                      onChange={(v) =>
-                        updateExtras({ heroTitleEn: v || undefined })
-                      }
-                      name="_heroEn"
-                    />
-                  </div>
-                ) : (
-                  <Hint>
-                    Detailpagina toont:{" "}
-                    <strong>{nameNl || "…"}</strong> (NL) /{" "}
-                    <strong>{nameEn || nameNl || "…"}</strong> (EN)
-                  </Hint>
-                )}
+                <p className="text-sm text-wine/60">
+                  Hieronder pas je tagline en kaarttekst aan. Sfeerfoto&apos;s kies
+                  je hierboven via de knop <strong>Sfeerimpressie</strong>.
+                </p>
 
                 <div className="rounded-xl border border-border-subtle bg-cream/60 px-4 py-3">
                   <p className="text-xs font-medium uppercase tracking-wide text-wine/50">
@@ -1003,32 +920,6 @@ function Section({
       <div className="mt-5 space-y-4">{children}</div>
     </section>
   );
-}
-
-function ToggleRow({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className="flex items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="rounded"
-      />
-      <span className="text-wine">{label}</span>
-    </label>
-  );
-}
-
-function Hint({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-wine/55">{children}</p>;
 }
 
 function Field({

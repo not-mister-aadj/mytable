@@ -31,7 +31,7 @@ export function ExperienceGrid({
     <div className={className}>
       <SectionHeading title={title} subtitle={subtitle} />
 
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-7 xl:grid-cols-3 xl:gap-8">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
         {items.map((item) => {
           const experience = enrichExperience(item);
           return (

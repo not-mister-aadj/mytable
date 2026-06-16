@@ -74,6 +74,38 @@ export function formatDateTime(
   return `${dayName} ${day} ${month} · ${timePart}`;
 }
 
+const WEEKDAY_PREFIX_NL = /^(Zondag|Maandag|Dinsdag|Woensdag|Donderdag|Vrijdag|Zaterdag)\s+/;
+const WEEKDAY_PREFIX_EN = /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s+/;
+
+/** Compact agenda card line: "16 juni · 14:00 · Rotterdam" */
+export function formatCardMetaLine(
+  dateTime: string,
+  city: string,
+  locale: Locale,
+): string {
+  const parts = dateTime.split(" · ");
+  const datePart = parts[0] ?? dateTime;
+  const timePart = parts.slice(1).join(" · ");
+  const shortDate = datePart
+    .replace(locale === "nl" ? WEEKDAY_PREFIX_NL : WEEKDAY_PREFIX_EN, "")
+    .trim();
+  return [shortDate, timePart, city].filter(Boolean).join(" · ");
+}
+
+/** Date and time only — city is shown separately on the card */
+export function formatCardDateTimeLine(
+  dateTime: string,
+  locale: Locale,
+): string {
+  const parts = dateTime.split(" · ");
+  const datePart = parts[0] ?? dateTime;
+  const timePart = parts.slice(1).join(" · ");
+  const shortDate = datePart
+    .replace(locale === "nl" ? WEEKDAY_PREFIX_NL : WEEKDAY_PREFIX_EN, "")
+    .trim();
+  return [shortDate, timePart].filter(Boolean).join(" · ");
+}
+
 /** Spots remaining at or below this → agenda card shows “bijna vol” */
 export const ALMOST_FULL_SPOTS_THRESHOLD = 14;
 

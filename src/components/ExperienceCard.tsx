@@ -11,7 +11,7 @@ import {
   resolveFemaleOnly,
 } from "@/lib/event-extras";
 import { getSpotsLeft } from "@/lib/experience-booking";
-import { formatAlmostFullImageHint } from "@/lib/event-display";
+import { formatAlmostFullImageHint, formatCardDateTimeLine } from "@/lib/event-display";
 
 const statusBadgeStyles: Record<
   ExperienceItem["status"],
@@ -24,6 +24,9 @@ const statusBadgeStyles: Record<
   closed: "bg-wine/80 text-cream backdrop-blur-md",
   new: "bg-cream/90 text-burgundy ring-2 ring-gold backdrop-blur-md",
 };
+
+/** Editorial cover ratio — shorter than hero, still image-led */
+const CARD_IMAGE_ASPECT = "2 / 1";
 
 interface ExperienceCardProps {
   experience: ExperienceItem;
@@ -50,7 +53,6 @@ export function ExperienceCard({
   const isSoldOut = experience.status === "soldOut";
   const isUnavailable = isSoldOut || isClosed;
   const isAlmostFull = experience.status === "almostFull";
-  const spotsLeft = getSpotsLeft(experience);
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
     experience.atmosphereTags,
@@ -63,6 +65,11 @@ export function ExperienceCard({
   const cardSrc =
     cardSettings?.url ?? experience.cardImage ?? experience.image;
   const hasCardImage = Boolean(cardSrc);
+  const title = experience.cardTitle ?? experience.experienceName;
+  const dateTimeLine = formatCardDateTimeLine(experience.dateTime, locale);
+  const spotsLeft = getSpotsLeft(experience);
+  const showUrgencyHint =
+    isAlmostFull && spotsLeft !== null && spotsLeft > 0;
 
   function handleClick() {
     trackEventCardClicked(experience, locale, sourceSection);
@@ -73,41 +80,45 @@ export function ExperienceCard({
       href={href}
       prefetch={true}
       onClick={handleClick}
-      className={`group flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-beige shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(43,13,18,0.12)] ${
+      className={`group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-beige shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(43,13,18,0.1)] ${
         isFemaleOnly
-          ? "border-rose/40 bg-rose-soft ring-1 ring-rose/25 hover:shadow-[0_22px_44px_rgba(157,77,111,0.18)]"
+          ? "border-rose/40 bg-rose-soft ring-1 ring-rose/25 hover:shadow-[0_16px_36px_rgba(157,77,111,0.14)]"
           : "border-border-subtle"
       }`}
     >
       <div
         className="relative overflow-hidden"
-        style={{ aspectRatio: cardSettings?.aspectRatio?.replace(":", " / ") ?? "16 / 10" }}
+        style={{ aspectRatio: CARD_IMAGE_ASPECT }}
       >
         {hasCardImage ? (
           <PositionedImage
             src={cardSrc}
-            alt={`${experience.cardTitle ?? experience.experienceName}, ${experience.city}`}
-            settings={cardSettings}
+            alt={`${experience.city}, ${title}`}
+            settings={
+              cardSettings
+                ? { ...cardSettings, aspectRatio: "16:10" }
+                : undefined
+            }
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] ${
+            className={`object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${
               isSoldOut ? "opacity-75 saturate-[0.85]" : ""
             } ${isFemaleOnly ? "saturate-[1.05]" : ""}`}
           />
         ) : (
-          <div className="flex h-full min-h-[160px] items-center justify-center bg-wine/5 text-sm text-wine/40">
+          <div className="flex h-full min-h-[120px] items-center justify-center bg-wine/5 text-xs text-wine/40">
             Afbeelding volgt
           </div>
         )}
         <div
           className={`absolute inset-0 bg-gradient-to-t transition-opacity duration-300 ${
             isFemaleOnly
-              ? "from-rose-deep/35 via-rose/10 to-rose-soft/20 group-hover:from-rose-deep/25"
-              : "from-wine/25 via-transparent to-wine/5 group-hover:from-wine/15"
+              ? "from-rose-deep/30 via-rose/5 to-transparent group-hover:from-rose-deep/20"
+              : "from-wine/20 via-transparent to-transparent group-hover:from-wine/12"
           }`}
         />
 
         {isFemaleOnly ? (
-          <span className="absolute left-4 top-4 z-10 rounded-full bg-rose px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-cream shadow-sm backdrop-blur-md sm:text-sm">
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-rose px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream shadow-sm backdrop-blur-md sm:text-xs">
             {femaleOnlyBadge}
           </span>
         ) : null}
@@ -115,55 +126,58 @@ export function ExperienceCard({
         {isUnavailable ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-wine/35">
             <span
-              className={`rounded-full px-5 py-2.5 text-sm font-bold uppercase tracking-wide sm:text-base ${statusBadgeStyles[isClosed ? "closed" : "soldOut"]}`}
+              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wide sm:text-sm ${statusBadgeStyles[isClosed ? "closed" : "soldOut"]}`}
             >
               {isClosed ? statusLabels.closed : statusLabels.soldOut}
             </span>
           </div>
         ) : (
           <span
-            className={`absolute right-4 top-4 z-10 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide sm:text-sm ${statusBadgeStyles[experience.status]}`}
+            className={`absolute right-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide sm:text-xs ${statusBadgeStyles[experience.status]}`}
           >
             {statusLabels[experience.status]}
           </span>
         )}
 
-        {isAlmostFull && spotsLeft !== null && spotsLeft > 0 ? (
-          <p className="absolute bottom-4 left-4 z-10 max-w-[90%] text-sm font-medium leading-snug text-white drop-shadow-[0_1px_3px_rgba(43,13,18,0.65)] sm:text-[15px]">
+        {showUrgencyHint ? (
+          <p className="absolute bottom-3 left-3 z-10 max-w-[88%] text-xs font-medium leading-snug text-white drop-shadow-[0_1px_3px_rgba(43,13,18,0.65)] sm:text-sm">
             {formatAlmostFullImageHint(spotsLeft, locale)}
           </p>
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col p-5 sm:p-6">
-        <p
-          className={`text-[10px] font-semibold uppercase tracking-[0.2em] sm:text-xs ${
-            isFemaleOnly ? "text-rose-deep" : "text-gold"
-          }`}
-        >
-          {experience.category}
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5 sm:px-4 sm:pb-4 sm:pt-4">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="min-w-0 font-serif text-[1.65rem] font-medium leading-none tracking-tight text-wine sm:text-3xl">
+            {experience.city}
+          </h3>
+          <p
+            className={`shrink-0 pt-1 text-right text-[10px] font-semibold uppercase leading-tight tracking-[0.14em] sm:max-w-[38%] sm:text-[11px] ${
+              isFemaleOnly ? "text-rose-deep" : "text-gold"
+            }`}
+          >
+            {experience.category}
+          </p>
+        </div>
+
+        <p className="mt-1.5 font-serif text-[0.95rem] font-medium leading-snug text-wine/70 sm:text-base">
+          {title}
         </p>
 
-        <h3 className="mt-2 font-serif text-3xl font-medium leading-none tracking-tight text-wine sm:text-4xl">
-          {experience.city}
-        </h3>
-
-        <p className="mt-2 text-base font-medium text-wine/80 sm:text-lg">
-          {experience.cardTitle ?? experience.experienceName}
-        </p>
+        <p className="mt-1 text-sm leading-snug text-wine/55">{dateTimeLine}</p>
 
         {experience.cardText ? (
-          <p className="mt-2 text-sm leading-relaxed text-wine/65 line-clamp-2">
+          <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-wine/65">
             {experience.cardText}
           </p>
         ) : null}
 
         {visibleTags.length > 0 ? (
-          <ul className="mt-3 flex flex-wrap gap-1.5">
-            {visibleTags.map((tag) => (
+          <ul className="mt-2 flex flex-wrap gap-1">
+            {visibleTags.slice(0, 3).map((tag) => (
               <li
                 key={tag}
-                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                className={`rounded-full px-2 py-px text-[11px] font-medium ${
                   isFemaleOnly
                     ? "bg-rose/15 text-rose-deep"
                     : "bg-wine/8 text-wine/70"
@@ -175,10 +189,8 @@ export function ExperienceCard({
           </ul>
         ) : null}
 
-        <p className="mt-3 text-sm text-wine/60">{experience.dateTime}</p>
-
-        <div className="mt-5 flex items-end justify-between gap-4 border-t border-border-subtle pt-5">
-          <p className="font-serif text-3xl font-medium leading-none text-burgundy">
+        <div className="mt-3 flex items-end justify-between gap-3">
+          <p className="font-serif text-2xl font-medium leading-none text-burgundy sm:text-[1.65rem]">
             €{experience.price}
           </p>
           <span
@@ -190,7 +202,7 @@ export function ExperienceCard({
               ? statusLabels.closed
               : isSoldOut
                 ? statusLabels.soldOut
-                : viewTableCta}
+                : `${viewTableCta} →`}
           </span>
         </div>
       </div>

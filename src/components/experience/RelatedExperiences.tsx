@@ -23,7 +23,7 @@ export function RelatedExperiences({
       <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
         {title}
       </h2>
-      <div className="mt-10 grid grid-cols-1 gap-7 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-7">
         {items.map((experience) => (
           <ExperienceCard
             key={experience.id}

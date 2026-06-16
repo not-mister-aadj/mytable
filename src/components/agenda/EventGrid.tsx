@@ -38,7 +38,7 @@ export function EventGrid({
         </p>
       </div>
 
-      <div className="mt-8 min-h-[320px] sm:mt-10">
+      <div className="mt-6 min-h-[280px] sm:mt-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={filterKey}
@@ -46,7 +46,7 @@ export function EventGrid({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-1 gap-7 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-9"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7"
           >
             {items.map((experience, index) => (
               <motion.div

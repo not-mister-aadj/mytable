@@ -47,6 +47,12 @@ export function formatEventSaveError(error: unknown): string {
         "of voeg in Supabase SQL Editor toe: ALTER TABLE venues ADD COLUMN IF NOT EXISTS gallery_meta jsonb;"
       );
     }
+    if (msg.includes("seating_preference")) {
+      return (
+        "Boeking kan niet worden opgeslagen: de database mist nog de kolom seating_preference. " +
+        "Voeg in Supabase SQL Editor toe: ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seating_preference text;"
+      );
+    }
     return msg;
   }
   return "Opslaan mislukt. Probeer het opnieuw.";

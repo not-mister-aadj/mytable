@@ -3,6 +3,7 @@ import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { isEmailConfigured } from "@/lib/email/resend";
+import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 
 export type MissingConfirmationEmailResult = {
   bookingId: string;
@@ -19,6 +20,7 @@ export async function sendMissingBookingConfirmationEmails(): Promise<
     return [];
   }
 
+  await ensureBookingColumns();
   const db = getDb();
   const rows = await db
     .select({ booking: bookings, event: events })

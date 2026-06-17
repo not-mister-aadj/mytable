@@ -3,11 +3,13 @@ import { bookings, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { reservationCode } from "@/lib/booking-display";
 import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
+import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import type { EventTicketsData } from "@/lib/event-tickets-types";
 
 export async function getEventTicketsData(
   eventId: string,
 ): Promise<EventTicketsData> {
+  await ensureBookingColumns();
   const db = getDb();
 
   await reconcileEventSpotsSold([eventId]);

@@ -12,6 +12,7 @@ import {
   reconcileEventSpotsSold,
 } from "@/lib/reconcile-spots-sold";
 import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
+import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import type {
   AdminBookingEvent,
   AdminBookingRow,

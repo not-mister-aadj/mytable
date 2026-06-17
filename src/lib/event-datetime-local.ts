@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+
 /** Event wall-clock times are always Europe/Amsterdam (NL events). */
 const EVENT_TIMEZONE = "Europe/Amsterdam";
 
@@ -57,4 +59,83 @@ export function parseEventDateTimeLocal(value: string): Date {
   }
 
   return new Date(NaN);
+}
+
+function capitalizeWord(value: string): string {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export type EventZonedParts = {
+  weekday: string;
+  day: string;
+  month: string;
+  hour: string;
+  minute: string;
+};
+
+/** Calendar parts in Amsterdam wall clock — use for all public event display. */
+export function getEventZonedParts(date: Date, locale: Locale): EventZonedParts {
+  const localeTag = locale === "nl" ? "nl-NL" : "en-GB";
+  const parts = new Intl.DateTimeFormat(localeTag, {
+    timeZone: EVENT_TIMEZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const pick = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+
+  return {
+    weekday: capitalizeWord(pick("weekday")),
+    day: pick("day"),
+    month: pick("month"),
+    hour: pick("hour"),
+    minute: pick("minute"),
+  };
+}
+
+export function formatEventWallClockTime(
+  date: Date,
+  locale: Locale = "nl",
+): string {
+  const { hour, minute } = getEventZonedParts(date, locale);
+  return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+}
+
+/** Public cards, detail pages, emails: "Zondag 16 juni · 14:00–17:00" */
+export function formatEventDateTimeDisplay(
+  startsAt: Date,
+  endsAt: Date | null,
+  locale: Locale,
+): string {
+  const start = getEventZonedParts(startsAt, locale);
+  const startTime = `${start.hour.padStart(2, "0")}:${start.minute.padStart(2, "0")}`;
+  let timePart = startTime;
+  if (endsAt) {
+    const end = getEventZonedParts(endsAt, locale);
+    timePart = `${startTime}–${end.hour.padStart(2, "0")}:${end.minute.padStart(2, "0")}`;
+  }
+  return `${start.weekday} ${start.day} ${start.month} · ${timePart}`;
+}
+
+/** Admin lists: "21 jun, 14:00" */
+export function formatEventAdminListDate(
+  date: Date,
+  locale: Locale = "nl",
+  options?: { weekday?: "short" },
+): string {
+  return new Intl.DateTimeFormat(locale === "nl" ? "nl-NL" : "en-GB", {
+    timeZone: EVENT_TIMEZONE,
+    ...(options?.weekday ? { weekday: options.weekday } : {}),
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
 }

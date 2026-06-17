@@ -13,15 +13,10 @@ import {
   PaymentStatusPill,
 } from "@/components/admin/bookings/BookingStatusPills";
 import { eventOccupancyState } from "@/components/admin/bookings/booking-utils";
+import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 
 function formatEventDate(iso: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(iso));
+  return formatEventAdminListDate(new Date(iso), "nl", { weekday: "short" });
 }
 
 function TransferDestinationNote({ row }: { row: AdminBookingRow }) {

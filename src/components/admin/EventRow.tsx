@@ -13,6 +13,7 @@ import {
   deleteEventAction,
   duplicateEventAction,
 } from "@/app/admin/(dashboard)/events/actions";
+import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 
 function TrashIcon() {
   return (
@@ -35,15 +36,6 @@ function TrashIcon() {
       <line x1="14" y1="11" x2="14" y2="17" />
     </svg>
   );
-}
-
-function formatEventDate(d: Date) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(d);
 }
 
 function confirmDelete(event: Event) {
@@ -83,7 +75,7 @@ export function EventRow({ event }: { event: Event }) {
           <StatusPill status={status} />
         </div>
         <p className="mt-0.5 text-sm text-wine/70">
-          {event.city} · {formatEventDate(new Date(event.startsAt))}
+          {event.city} · {formatEventAdminListDate(new Date(event.startsAt))}
         </p>
         <EventPublicLabels event={event} />
         <div className="mt-3 max-w-xs">

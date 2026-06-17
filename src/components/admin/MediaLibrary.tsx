@@ -32,6 +32,7 @@ interface MediaLibraryProps {
   onSelect: (url: string, item?: MediaItem) => void;
   multi?: boolean;
   selected?: string[];
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 function formatDate(iso?: string): string {
@@ -53,6 +54,7 @@ export function MediaLibrary({
   onSelect,
   multi = false,
   selected = [],
+  onUploadingChange,
 }: MediaLibraryProps) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -81,6 +83,10 @@ export function MediaLibrary({
     if (open) load();
   }, [open, load]);
 
+  useEffect(() => {
+    onUploadingChange?.(uploading);
+  }, [uploading, onUploadingChange]);
+
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -99,6 +105,13 @@ export function MediaLibrary({
       const res = await fetch("/api/admin/media", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Upload mislukt");
+      if (multi && data.url && data.path) {
+        onSelect(data.url, {
+          path: data.path,
+          url: data.url,
+          name: data.path,
+        });
+      }
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload mislukt");

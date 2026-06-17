@@ -8,7 +8,7 @@ import {
 } from "@/app/admin/(dashboard)/venues/actions";
 import { MediaPicker } from "./MediaPicker";
 import { VenueGalleryEditor } from "./VenueGalleryEditor";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   coerceImageSettings,
   parseGalleryImages,
@@ -34,25 +34,42 @@ export function VenueForm({ venue }: { venue?: Venue }) {
   const [galleryImages, setGalleryImages] = useState<ImageSettings[]>(() =>
     parseGalleryImages(venue?.galleryMeta),
   );
+  const [galleryBusy, setGalleryBusy] = useState(false);
+
+  const imageSettingsRef = useRef(imageSettings);
+  const galleryImagesRef = useRef(galleryImages);
+  imageSettingsRef.current = imageSettings;
+  galleryImagesRef.current = galleryImages;
+
+  function syncImageFields(form: HTMLFormElement) {
+    const setHidden = (name: string, value: string) => {
+      const el = form.elements.namedItem(name);
+      if (el instanceof HTMLInputElement) {
+        el.value = value;
+      }
+    };
+    const gallery = galleryImagesRef.current;
+    const hero = imageSettingsRef.current;
+    setHidden(
+      "galleryMeta",
+      gallery.length > 0 ? JSON.stringify(gallery) : "",
+    );
+    setHidden("imageUrl", hero?.url ?? "");
+    setHidden("imageMeta", hero ? JSON.stringify(hero) : "");
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    fd.set(
-      "galleryMeta",
-      galleryImages.length > 0 ? JSON.stringify(galleryImages) : "",
-    );
-    fd.set("imageUrl", imageSettings?.url ?? "");
-    fd.set(
-      "imageMeta",
-      imageSettings ? JSON.stringify(imageSettings) : "",
-    );
-    submitAction(fd);
+    if (galleryBusy) {
+      e.preventDefault();
+      return;
+    }
+    syncImageFields(e.currentTarget);
   }
 
   return (
     <div className="max-w-2xl space-y-8">
       <form
+        action={submitAction}
         onSubmit={handleSubmit}
         className="space-y-6 rounded-2xl border border-border-subtle bg-beige p-6"
       >
@@ -92,7 +109,8 @@ export function VenueForm({ venue }: { venue?: Venue }) {
         />
         <VenueGalleryEditor
           images={galleryImages}
-          onChange={(next) => setGalleryImages(next ?? [])}
+          onChange={setGalleryImages}
+          onBusyChange={setGalleryBusy}
         />
         <TextArea
           label="Beschrijving (NL)"
@@ -106,6 +124,12 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           defaultValue={venue?.descriptionEn ?? ""}
         />
 
+        {galleryBusy ? (
+          <p className="text-sm text-wine/60">
+            Wacht tot de galerij klaar is met laden voordat je opslaat.
+          </p>
+        ) : null}
+
         {saveState.error ? (
           <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
             {saveState.error}
@@ -114,7 +138,7 @@ export function VenueForm({ venue }: { venue?: Venue }) {
 
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving || galleryBusy}
           className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream disabled:opacity-60"
         >
           {isSaving ? "Opslaan…" : isEdit ? "Opslaan" : "Venue aanmaken"}

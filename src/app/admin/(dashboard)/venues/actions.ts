@@ -78,16 +78,29 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
     imageMeta = null;
   }
   let galleryMeta: Record<string, unknown>[] | null = null;
+  const existingGallery =
+    existing && existing.galleryMeta
+      ? (parseGalleryImages(existing.galleryMeta) as unknown as Record<
+          string,
+          unknown
+        >[])
+      : null;
+  if (existingGallery && existingGallery.length > 0) {
+    galleryMeta = existingGallery;
+  }
   try {
     const rawGallery = String(data.get("galleryMeta") ?? "").trim();
     if (rawGallery) {
       const parsed = parseGalleryImages(JSON.parse(rawGallery));
-      if (parsed.length > 0) {
-        galleryMeta = parsed as unknown as Record<string, unknown>[];
-      }
+      galleryMeta =
+        parsed.length > 0
+          ? (parsed as unknown as Record<string, unknown>[])
+          : null;
+    } else {
+      galleryMeta = null;
     }
   } catch {
-    galleryMeta = null;
+    /* Keep existing galleryMeta when JSON is invalid — avoids wiping on race. */
   }
   const area = String(data.get("area") ?? "").trim();
   const atmosphere = String(data.get("atmosphere") ?? "").trim();

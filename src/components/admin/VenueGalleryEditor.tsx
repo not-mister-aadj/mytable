@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ImageSettings } from "@/lib/image-settings";
 import { createImageSettings, galleryUrls } from "@/lib/image-settings";
 import { PositionedImage } from "@/components/ui/PositionedImage";
@@ -9,29 +9,38 @@ import { MediaLibrary, type MediaItem } from "./MediaLibrary";
 
 type VenueGalleryEditorProps = {
   images: ImageSettings[];
-  onChange: (images: ImageSettings[] | undefined) => void;
+  onChange: (images: ImageSettings[]) => void;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 export function VenueGalleryEditor({
   images,
   onChange,
+  onBusyChange,
 }: VenueGalleryEditorProps) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+
+  useEffect(() => {
+    onBusyChange?.(libraryOpen || editIndex !== null || uploading);
+  }, [libraryOpen, editIndex, uploading, onBusyChange]);
 
   function commit(next: ImageSettings[]) {
-    onChange(next.length > 0 ? next : undefined);
+    onChange(next);
   }
 
   function addFromLibrary(url: string, item?: MediaItem) {
     const settings = createImageSettings(url, "gallery", {
       mediaId: item?.path,
     });
-    commit([...images, settings]);
+    commit([...imagesRef.current, settings]);
   }
 
   function updateAt(index: number, settings: ImageSettings) {
-    const next = [...images];
+    const next = [...imagesRef.current];
     next[index] = settings;
     commit(next);
   }
@@ -44,13 +53,14 @@ export function VenueGalleryEditor({
     ) {
       return;
     }
-    commit(images.filter((_, i) => i !== index));
+    commit(imagesRef.current.filter((_, i) => i !== index));
   }
 
   function move(index: number, direction: -1 | 1) {
+    const current = imagesRef.current;
     const target = index + direction;
-    if (target < 0 || target >= images.length) return;
-    const next = [...images];
+    if (target < 0 || target >= current.length) return;
+    const next = [...current];
     [next[index], next[target]] = [next[target], next[index]];
     commit(next);
   }
@@ -151,6 +161,7 @@ export function VenueGalleryEditor({
         multi
         selected={galleryUrls(images)}
         onSelect={addFromLibrary}
+        onUploadingChange={setUploading}
       />
 
       {editIndex !== null && images[editIndex] ? (

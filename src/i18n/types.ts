@@ -95,6 +95,14 @@ export interface ExperiencePageLabels {
   bookingCity: string;
   bookingPrice: string;
   bookingSpots: string;
+  bookingEmail: string;
+  bookingName: string;
+  bookingDietary: string;
+  bookingSeatingLabel: string;
+  bookingSeatingOwn: string;
+  bookingSeatingOwnHint: string;
+  bookingSeatingJoin: string;
+  bookingSeatingJoinHint: string;
   spotsLeftBadge: string;
   bookingViewsLabel: string;
   bookingTrustBullets: string[];

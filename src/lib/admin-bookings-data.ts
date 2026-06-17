@@ -226,6 +226,7 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       lifecycleStatus: booking.lifecycleStatus,
       locale: booking.locale,
       dietaryNotes: booking.dietaryNotes,
+      seatingPreference: booking.seatingPreference,
       adminNotes: booking.adminNotes,
       createdAt: booking.createdAt.toISOString(),
       stripeCheckoutSessionId: booking.stripeCheckoutSessionId,

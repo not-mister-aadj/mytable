@@ -531,6 +531,7 @@ export async function transferBookingToEventAction(
           paymentStatus: "paid",
           locale: booking.locale,
           dietaryNotes: booking.dietaryNotes,
+          seatingPreference: booking.seatingPreference,
           adminNotes: booking.adminNotes,
           confirmationEmailSentAt: booking.confirmationEmailSentAt,
           lifecycleStatus: "active",

@@ -12,6 +12,8 @@ import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
+import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
+import { isSeatingPreference } from "@/lib/booking-seating";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -49,6 +51,7 @@ export async function POST(request: Request) {
     name?: string;
     locale?: string;
     dietaryNotes?: string;
+    seatingPreference?: string;
     utm?: {
       utm_source?: string;
       utm_medium?: string;
@@ -70,6 +73,7 @@ export async function POST(request: Request) {
 
   const eventId = body.eventId?.trim();
   const email = body.email?.trim().toLowerCase();
+  const customerName = body.name?.trim();
   const seats = Math.min(
     getMaxSeatsPerOrder(),
     Math.max(1, Number(body.seats) || 1),
@@ -82,6 +86,30 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  if (!customerName) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en" ? "Name is required." : "Naam is verplicht.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (!isSeatingPreference(body.seatingPreference)) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en"
+            ? "Choose how you'd like to join the table."
+            : "Kies hoe je aan tafel wilt.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const seatingPreference = body.seatingPreference;
 
   if (!checkRateLimit(`checkout:event:${eventId}:${email}`, 5, 300_000)) {
     return NextResponse.json({ error: "Te veel pogingen." }, { status: 429 });
@@ -114,16 +142,18 @@ export async function POST(request: Request) {
   }
 
   const amountCents = event.priceCents * seats;
+  await ensureBookingColumns();
   const [booking] = await db
     .insert(bookings)
     .values({
       eventId: event.id,
       email,
-      customerName: body.name?.trim() || null,
+      customerName,
       seats,
       amountCents,
       locale,
       dietaryNotes: body.dietaryNotes?.trim() || null,
+      seatingPreference,
       paymentStatus: "pending",
     })
     .returning();

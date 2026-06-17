@@ -9,6 +9,7 @@ import {
   transferBookingToEventAction,
 } from "@/app/admin/(dashboard)/events/actions";
 import { adminPath } from "@/lib/admin-url";
+import { formatSeatingPreference, isSeatingPreference } from "@/lib/booking-seating";
 import type {
   EventTicketRow,
   TransferTargetEvent,
@@ -141,6 +142,12 @@ function TicketRow({
     >
       <td className="py-3 pr-4">
         <p className="font-medium text-wine">{guestLabel(ticket)}</p>
+        {ticket.seatingPreference &&
+        isSeatingPreference(ticket.seatingPreference) ? (
+          <p className="mt-0.5 text-xs text-wine/50">
+            {formatSeatingPreference(ticket.seatingPreference, "nl")}
+          </p>
+        ) : null}
         {ticket.dietaryNotes ? (
           <p className="mt-0.5 text-xs text-wine/50">{ticket.dietaryNotes}</p>
         ) : null}

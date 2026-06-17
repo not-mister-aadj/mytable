@@ -65,6 +65,7 @@ export async function getEventTicketsData(
         email: b.email,
         seats: b.seats,
         dietaryNotes: b.dietaryNotes,
+        seatingPreference: b.seatingPreference,
         createdAt: b.createdAt.toISOString(),
         lifecycleStatus: b.lifecycleStatus,
         transferredAt: b.transferredAt?.toISOString() ?? null,

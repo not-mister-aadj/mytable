@@ -23,6 +23,10 @@ import {
 import { trackMetaInitiateCheckout } from "@/lib/analytics/metaTracking";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { getStoredUtm } from "@/lib/analytics/utm";
+import {
+  defaultSeatingForSeats,
+  type SeatingPreference,
+} from "@/lib/booking-seating";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -60,6 +64,9 @@ export function BookingCard({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [seats, setSeats] = useState(1);
+  const [seatingPreference, setSeatingPreference] = useState<SeatingPreference>(
+    defaultSeatingForSeats(1),
+  );
   const [dietaryNotes, setDietaryNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +91,7 @@ export function BookingCard({
           email,
           name,
           seats,
+          seatingPreference,
           locale,
           dietaryNotes,
           utm: getStoredUtm(),
@@ -234,7 +242,7 @@ export function BookingCard({
           className={compact ? "mt-3 space-y-2" : "mt-6 space-y-3"}
         >
           <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            E-mail
+            {labels.bookingEmail}
             <input
               type="email"
               required
@@ -246,9 +254,11 @@ export function BookingCard({
             />
           </label>
           <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            Naam (optioneel)
+            {labels.bookingName}
             <input
               type="text"
+              required
+              autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
@@ -257,12 +267,13 @@ export function BookingCard({
             />
           </label>
           <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            Aantal plaatsen
+            {labels.bookingSpots}
             <select
               value={seats}
               onChange={(e) => {
                 const next = Number(e.target.value);
                 setSeats(next);
+                setSeatingPreference(defaultSeatingForSeats(next));
                 trackSeatsSelected(experience, locale, next);
               }}
               className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
@@ -279,8 +290,65 @@ export function BookingCard({
               ))}
             </select>
           </label>
+          <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
+            <legend
+              className={`text-wine ${compact ? "text-xs" : "text-sm"}`}
+            >
+              {labels.bookingSeatingLabel}
+            </legend>
+            {(
+              [
+                {
+                  value: "own_table" as const,
+                  title: labels.bookingSeatingOwn,
+                  hint: labels.bookingSeatingOwnHint,
+                },
+                {
+                  value: "join_others" as const,
+                  title: labels.bookingSeatingJoin,
+                  hint: labels.bookingSeatingJoinHint,
+                },
+              ] as const
+            ).map((option) => {
+              const selected = seatingPreference === option.value;
+              return (
+                <label
+                  key={option.value}
+                  className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
+                    compact ? "text-xs" : "text-sm"
+                  } ${
+                    selected
+                      ? isFemaleOnly
+                        ? "border-rose bg-rose/10"
+                        : "border-burgundy/40 bg-cream"
+                      : "border-border-subtle bg-cream/60 hover:border-burgundy/20"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="seatingPreference"
+                    value={option.value}
+                    checked={selected}
+                    onChange={() => setSeatingPreference(option.value)}
+                    className="mt-0.5 shrink-0 accent-burgundy"
+                    required
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-medium text-wine">
+                      {option.title}
+                    </span>
+                    {!compact ? (
+                      <span className="mt-0.5 block text-xs leading-snug text-wine/55">
+                        {option.hint}
+                      </span>
+                    ) : null}
+                  </span>
+                </label>
+              );
+            })}
+          </fieldset>
           <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            Dieetwensen (optioneel)
+            {labels.bookingDietary}
             <textarea
               value={dietaryNotes}
               onChange={(e) => setDietaryNotes(e.target.value)}

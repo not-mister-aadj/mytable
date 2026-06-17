@@ -163,6 +163,7 @@ export const bookings = pgTable("bookings", {
     .default("pending"),
   locale: text("locale").notNull().default("nl"),
   dietaryNotes: text("dietary_notes"),
+  seatingPreference: text("seating_preference"),
   adminNotes: text("admin_notes"),
   confirmationEmailSentAt: timestamp("confirmation_email_sent_at", {
     withTimezone: true,

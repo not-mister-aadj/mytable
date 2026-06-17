@@ -13,6 +13,7 @@ export type EventTicketRow = {
   email: string;
   seats: number;
   dietaryNotes: string | null;
+  seatingPreference: string | null;
   createdAt: string;
   lifecycleStatus: "active" | "transferred" | "removed";
   transferredAt: string | null;

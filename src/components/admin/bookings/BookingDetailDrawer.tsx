@@ -10,6 +10,10 @@ import type { AdminBookingRow } from "@/lib/admin-bookings-types";
 import { getGuestHistory } from "@/components/admin/bookings/booking-utils";
 import { adminPath } from "@/lib/admin-url";
 import { formatMoney } from "@/lib/booking-display";
+import {
+  formatSeatingPreference,
+  isSeatingPreference,
+} from "@/lib/booking-seating";
 import { OccupancyBar } from "@/components/admin/OccupancyBar";
 import {
   BookingStatusPill,
@@ -271,6 +275,15 @@ export function BookingDetailDrawer({
                     ) : null}
                   </dl>
                 </DetailSection>
+
+                {booking.seatingPreference &&
+                isSeatingPreference(booking.seatingPreference) ? (
+                  <DetailSection title="Tafelwens">
+                    <p className="rounded-2xl border border-border-subtle/80 bg-beige/60 p-4 text-sm leading-relaxed text-wine/75">
+                      {formatSeatingPreference(booking.seatingPreference, "nl")}
+                    </p>
+                  </DetailSection>
+                ) : null}
 
                 {booking.dietaryNotes ? (
                   <DetailSection title="Dieetwensen">

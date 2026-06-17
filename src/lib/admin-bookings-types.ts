@@ -53,6 +53,7 @@ export type AdminBookingRow = {
   lifecycleStatus: AdminLifecycleStatus;
   locale: string;
   dietaryNotes: string | null;
+  seatingPreference: string | null;
   adminNotes: string | null;
   createdAt: string;
   stripeCheckoutSessionId: string | null;

@@ -31,6 +31,18 @@ export function validateEventForm(form: EventFormState): string | null {
   return null;
 }
 
+export function validateEventForPublish(form: EventFormState): string | null {
+  const base = validateEventForm(form);
+  if (base) return base;
+
+  const capacity = Number.parseInt(form.capacity, 10);
+  if (!Number.isFinite(capacity) || capacity < 1) {
+    return "Vul een capaciteit van minimaal 1 in voordat je publiceert.";
+  }
+
+  return null;
+}
+
 export function formatEventSaveError(error: unknown): string {
   if (error && typeof error === "object" && "code" in error) {
     const code = String((error as { code: string }).code);

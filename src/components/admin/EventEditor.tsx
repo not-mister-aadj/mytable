@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import type { Event, Venue } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
 import {
@@ -10,14 +11,18 @@ import {
 } from "@/lib/experience-type-definitions";
 import { getEventFormDefaults } from "@/lib/experience-template-defaults";
 import {
-  createEventAction,
-  updateEventAction,
-  publishEventAction,
+  createEventDirectAction,
+  saveEventAction,
+  saveAndPublishEventAction,
   unpublishEventAction,
   deleteEventAction,
   type EventFormState,
 } from "@/app/admin/(dashboard)/events/actions";
-import { validateEventForm } from "@/lib/event-form-validation";
+import {
+  formatEventSaveError,
+  validateEventForm,
+  validateEventForPublish,
+} from "@/lib/event-form-validation";
 import {
   detectEditorUiFlags,
   effectiveImageUrl,
@@ -264,14 +269,32 @@ export function EventEditor({
     eventVenues,
   ]);
 
-  const [saveState, submitAction, isSaving] = useActionState(
-    isEdit
-      ? updateEventAction.bind(null, event!.id)
-      : createEventAction,
-    { error: null },
-  );
+  const [isSaving, startSaveTransition] = useTransition();
+  const [isPublishing, startPublishTransition] = useTransition();
   const [localError, setLocalError] = useState<string | null>(null);
-  const saveError = localError ?? saveState.error;
+  const saveError = localError;
+
+  function buildFormDataFromState(): FormData {
+    const formData = new FormData();
+    formData.set("extras", serializeEventExtras(normalizedExtras));
+    formData.set("experienceType", experienceType);
+    formData.set("nameNl", nameNl);
+    formData.set("nameEn", nameEn);
+    formData.set("city", city);
+    formData.set("startsAt", startsAt);
+    formData.set("endsAt", endsAt);
+    formData.set("priceEuros", priceEuros);
+    formData.set("capacity", capacity);
+    formData.set("imageUrl", resolvedImageUrl);
+    formData.set("categoryNl", categoryNl);
+    formData.set("categoryEn", categoryEn);
+    formData.set("taglineNl", resolvedTaglines.taglineNl);
+    formData.set("taglineEn", resolvedTaglines.taglineEn);
+    if (femaleOnly) {
+      formData.set("femaleOnly", "on");
+    }
+    return formData;
+  }
 
   useEffect(() => {
     if (!event) {
@@ -307,14 +330,51 @@ export function EventEditor({
   }
 
   function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     const validationError = validateEventForm(buildFormSnapshot());
     if (validationError) {
-      e.preventDefault();
       setLocalError(validationError);
       setStep(0);
       return;
     }
     setLocalError(null);
+    const formData = buildFormDataFromState();
+    startSaveTransition(async () => {
+      try {
+        if (isEdit) {
+          await saveEventAction(event!.id, formData);
+        } else {
+          await createEventDirectAction(formData);
+        }
+      } catch (error) {
+        if (isRedirectError(error)) throw error;
+        setLocalError(formatEventSaveError(error));
+      }
+    });
+  }
+
+  function handlePublish() {
+    const validationError = validateEventForPublish(buildFormSnapshot());
+    if (validationError) {
+      setLocalError(validationError);
+      if (
+        validationError.includes("Basis") ||
+        validationError.includes("capaciteit")
+      ) {
+        setStep(0);
+      }
+      return;
+    }
+    setLocalError(null);
+    const formData = buildFormDataFromState();
+    startPublishTransition(async () => {
+      try {
+        await saveAndPublishEventAction(event!.id, formData);
+      } catch (error) {
+        if (isRedirectError(error)) throw error;
+        setLocalError(formatEventSaveError(error));
+      }
+    });
   }
 
   const previewData: PreviewEventData = useMemo(
@@ -460,7 +520,6 @@ export function EventEditor({
           </nav>
 
           <form
-            action={submitAction}
             onSubmit={handleFormSubmit}
             className="space-y-8"
           >
@@ -815,7 +874,7 @@ export function EventEditor({
               ) : null}
               <button
                 type="submit"
-                disabled={isSaving}
+                disabled={isSaving || isPublishing}
                 className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-cream disabled:opacity-60"
               >
                 {isSaving ? "Opslaan…" : isEdit ? "Opslaan" : "Concept opslaan"}
@@ -824,16 +883,22 @@ export function EventEditor({
           </form>
 
           {isEdit ? (
-            <div className="flex flex-wrap gap-3 border-t border-border-subtle pt-6">
+            <div className="space-y-4 border-t border-border-subtle pt-6">
+              {saveError ? (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+                  {saveError}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap gap-3">
               {event!.workflowStatus !== "published" ? (
-                <form action={publishEventAction.bind(null, event!.id)}>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-burgundy px-5 py-2 text-sm text-cream"
-                  >
-                    Publiceren
-                  </button>
-                </form>
+                <button
+                  type="button"
+                  onClick={handlePublish}
+                  disabled={isPublishing || isSaving}
+                  className="rounded-full bg-burgundy px-5 py-2 text-sm text-cream disabled:opacity-60"
+                >
+                  {isPublishing ? "Publiceren…" : "Publiceren"}
+                </button>
               ) : (
                 <form action={unpublishEventAction.bind(null, event!.id)}>
                   <button
@@ -886,6 +951,7 @@ export function EventEditor({
                   Verwijderen
                 </button>
               </form>
+              </div>
             </div>
           ) : null}
 

@@ -154,7 +154,7 @@ async function persistNewEvent(formData: FormData) {
   redirect(adminPath(`/events/${row.id}/edit?saved=1`));
 }
 
-async function persistUpdateEvent(id: string, formData: FormData) {
+async function applyEventUpdate(id: string, formData: FormData) {
   await requireAdmin();
   if (!isDbConfigured()) {
     throw new Error("Database niet geconfigureerd");
@@ -178,7 +178,36 @@ async function persistUpdateEvent(id: string, formData: FormData) {
   if (row.workflowStatus === "published") {
     revalidateEventPaths(row.slug);
   }
+  return row;
+}
+
+async function persistUpdateEvent(id: string, formData: FormData) {
+  await applyEventUpdate(id, formData);
   redirect(adminPath(`/events/${id}/edit?saved=1`));
+}
+
+export async function saveEventAction(id: string, formData: FormData) {
+  await persistUpdateEvent(id, formData);
+}
+
+export async function createEventDirectAction(formData: FormData) {
+  await persistNewEvent(formData);
+}
+
+export async function saveAndPublishEventAction(id: string, formData: FormData) {
+  const row = await applyEventUpdate(id, formData);
+  const db = getDb();
+  const [published] = await db
+    .update(events)
+    .set({
+      workflowStatus: "published",
+      publishedAt: row.publishedAt ?? new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(events.id, id))
+    .returning();
+  if (published) revalidateEventPaths(published.slug);
+  redirect(adminPath(`/events/${id}/edit?published=1`));
 }
 
 export async function createEventAction(

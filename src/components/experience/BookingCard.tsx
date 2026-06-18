@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
@@ -45,6 +45,22 @@ interface BookingCardProps {
   fitViewport?: boolean;
 }
 
+function radioOptionClass(
+  selected: boolean,
+  compact: boolean,
+  isFemaleOnly: boolean,
+): string {
+  return `flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
+    compact ? "text-xs" : "text-sm"
+  } ${
+    selected
+      ? isFemaleOnly
+        ? "border-rose bg-rose/10"
+        : "border-burgundy/40 bg-cream"
+      : "border-border-subtle bg-cream/60 hover:border-burgundy/20"
+  }`;
+}
+
 export function BookingCard({
   experience,
   labels,
@@ -65,6 +81,7 @@ export function BookingCard({
   const eventDbId = getEventIdForCheckout(experience);
   const dbCheckoutEnabled = isDbEventsEnabled() && Boolean(eventDbId);
 
+  const [formStep, setFormStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [seats, setSeats] = useState(1);
@@ -76,14 +93,40 @@ export function BookingCard({
   const [dietaryNotes, setDietaryNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
     experience.atmosphereTags,
   );
 
+  useEffect(() => {
+    setFormStep(1);
+    setError(null);
+  }, [experience.id, eventDbId]);
+
+  function validateStep1(): boolean {
+    const form = formRef.current;
+    if (!form) return false;
+    for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+      '[data-booking-step="1"]',
+    )) {
+      if (!el.checkValidity()) {
+        el.reportValidity();
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function goToStep2() {
+    if (!validateStep1()) return;
+    setError(null);
+    setFormStep(2);
+  }
+
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault();
-    if (!eventDbId) return;
+    if (!eventDbId || formStep !== 2) return;
     setLoading(true);
     setError(null);
     trackBookingStarted(experience, locale, "detail_page", seats);
@@ -126,6 +169,11 @@ export function BookingCard({
       setLoading(false);
     }
   }
+
+  const inputClass = `mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
+    compact ? "py-1.5 text-sm" : "py-2"
+  }`;
+  const labelClass = `block text-wine ${compact ? "text-xs" : "text-sm"}`;
 
   return (
     <motion.aside
@@ -176,17 +224,19 @@ export function BookingCard({
         </span>
       )}
 
-      {experience.cardText ? (
-        <p className={`text-sm text-wine/55 ${compact ? "mt-1" : "mt-2"}`}>
+      {experience.cardText && formStep === 1 ? (
+        <p
+          className={`line-clamp-2 text-sm text-wine/55 ${compact ? "mt-1" : "mt-2"}`}
+        >
           {experience.cardText}
         </p>
       ) : null}
 
       {compact ? (
         <div
-          className={`mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t pt-3 text-[11px] leading-snug sm:text-xs ${
+          className={`flex flex-wrap gap-x-4 gap-y-2 border-t text-[11px] leading-snug sm:text-xs ${
             isFemaleOnly ? "border-rose/20" : "border-border-subtle"
-          }`}
+          } ${formStep === 1 ? "mt-3 pt-3" : "mt-2 pt-2"}`}
         >
           <div>
             <p className="text-wine/50">{labels.bookingDate}</p>
@@ -205,9 +255,9 @@ export function BookingCard({
         </div>
       ) : (
         <dl
-          className={`mt-6 space-y-3 border-t pt-6 text-sm ${
+          className={`space-y-3 border-t text-sm ${
             isFemaleOnly ? "border-rose/20" : "border-border-subtle"
-          }`}
+          } ${formStep === 1 ? "mt-6 pt-6" : "mt-4 pt-4"}`}
         >
           <div className="flex justify-between gap-4">
             <dt className="text-wine/55">{labels.bookingDate}</dt>
@@ -226,7 +276,7 @@ export function BookingCard({
         </dl>
       )}
 
-      {views !== null && !compact ? (
+      {views !== null && !compact && formStep === 1 ? (
         <div className="mt-5 flex items-center gap-2">
           <div className="flex -space-x-2" aria-hidden>
             {[0, 1, 2, 3].map((i) => (
@@ -250,190 +300,237 @@ export function BookingCard({
 
       {dbCheckoutEnabled && !bookingDisabled ? (
         <form
+          ref={formRef}
           onSubmit={handleCheckout}
           className={compact ? "mt-3 space-y-2" : "mt-6 space-y-3"}
         >
-          <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            {labels.bookingEmail}
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
-                compact ? "py-1.5 text-sm" : "py-2"
-              }`}
-            />
-          </label>
-          <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            {labels.bookingName}
-            <input
-              type="text"
-              required
-              autoComplete="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
-                compact ? "py-1.5 text-sm" : "py-2"
-              }`}
-            />
-          </label>
-          <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            {labels.bookingSpots}
-            <select
-              value={seats}
-              onChange={(e) => {
-                const next = Number(e.target.value);
-                setSeats(next);
-                setSeatingPreference(defaultSeatingForSeats(next));
-                trackSeatsSelected(experience, locale, next);
-              }}
-              className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
-                compact ? "py-1.5 text-sm" : "py-2"
-              }`}
-            >
-              {Array.from(
-                { length: Math.min(spotsLeft ?? 4, 4) },
-                (_, i) => i + 1,
-              ).map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
-            <legend
-              className={`text-wine ${compact ? "text-xs" : "text-sm"}`}
-            >
-              {labels.bookingSeatingLabel}
-            </legend>
-            {(
-              [
-                {
-                  value: "own_table" as const,
-                  title: labels.bookingSeatingOwn,
-                  hint: labels.bookingSeatingOwnHint,
-                },
-                {
-                  value: "join_others" as const,
-                  title: labels.bookingSeatingJoin,
-                  hint: labels.bookingSeatingJoinHint,
-                },
-              ] as const
-            ).map((option) => {
-              const selected = seatingPreference === option.value;
-              return (
-                <label
-                  key={option.value}
-                  className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
-                    compact ? "text-xs" : "text-sm"
-                  } ${
-                    selected
-                      ? isFemaleOnly
-                        ? "border-rose bg-rose/10"
-                        : "border-burgundy/40 bg-cream"
-                      : "border-border-subtle bg-cream/60 hover:border-burgundy/20"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="seatingPreference"
-                    value={option.value}
-                    checked={selected}
-                    onChange={() => setSeatingPreference(option.value)}
-                    className="mt-0.5 shrink-0 accent-burgundy"
-                    required
-                  />
-                  <span className="min-w-0">
-                    <span className="block font-medium text-wine">
-                      {option.title}
-                    </span>
-                    {!compact ? (
-                      <span className="mt-0.5 block text-xs leading-snug text-wine/55">
-                        {option.hint}
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
-              );
-            })}
-          </fieldset>
-          {seatingPreference === "join_others" ? (
-            <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
-              <legend
-                className={`text-wine ${compact ? "text-xs" : "text-sm"}`}
-              >
-                {labels.bookingTableLanguageLabel}
-              </legend>
-              {(
-                [
-                  {
-                    value: "both_fine" as const,
-                    title: labels.bookingTableLanguageBoth,
-                  },
-                  {
-                    value: "prefer_dutch" as const,
-                    title: labels.bookingTableLanguagePreferDutch,
-                  },
-                ] as const
-              ).map((option) => {
-                const selected = tableLanguagePreference === option.value;
-                return (
-                  <label
-                    key={option.value}
-                    className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
-                      compact ? "text-xs" : "text-sm"
-                    } ${
-                      selected
-                        ? isFemaleOnly
-                          ? "border-rose bg-rose/10"
-                          : "border-burgundy/40 bg-cream"
-                        : "border-border-subtle bg-cream/60 hover:border-burgundy/20"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="tableLanguagePreference"
-                      value={option.value}
-                      checked={selected}
-                      onChange={() => setTableLanguagePreference(option.value)}
-                      className="mt-0.5 shrink-0 accent-burgundy"
-                      required
-                    />
-                    <span className="min-w-0 font-medium text-wine">
-                      {option.title}
-                    </span>
-                  </label>
-                );
-              })}
-            </fieldset>
-          ) : null}
-          <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
-            {labels.bookingDietary}
-            <textarea
-              value={dietaryNotes}
-              onChange={(e) => setDietaryNotes(e.target.value)}
-              rows={compact ? 1 : 2}
-              className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
-                compact ? "min-h-[2.25rem] resize-none py-1.5 text-sm" : "py-2"
-              }`}
-            />
-          </label>
-          {error ? <p className="text-sm text-red-800">{error}</p> : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full rounded-full px-6 font-medium text-cream disabled:opacity-50 ${
-              compact ? "py-2.5 text-sm" : "py-3 text-sm"
-            } ${
-              isFemaleOnly
-                ? "bg-rose hover:bg-rose-deep"
-                : "bg-burgundy hover:bg-wine"
-            }`}
+          <div
+            className="flex items-center gap-2"
+            aria-label={`${formStep} / 2`}
           >
-            {loading ? "Doorsturen…" : reserveCta}
-          </button>
+            <span
+              className={`h-1.5 flex-1 rounded-full ${
+                formStep >= 1
+                  ? isFemaleOnly
+                    ? "bg-rose"
+                    : "bg-burgundy"
+                  : "bg-wine/15"
+              }`}
+            />
+            <span
+              className={`h-1.5 flex-1 rounded-full ${
+                formStep >= 2
+                  ? isFemaleOnly
+                    ? "bg-rose"
+                    : "bg-burgundy"
+                  : "bg-wine/15"
+              }`}
+            />
+          </div>
+
+          {formStep === 1 ? (
+            <>
+              <label className={labelClass}>
+                {labels.bookingEmail}
+                <input
+                  type="email"
+                  required
+                  data-booking-step="1"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass}
+                />
+              </label>
+              <label className={labelClass}>
+                {labels.bookingName}
+                <input
+                  type="text"
+                  required
+                  autoComplete="name"
+                  data-booking-step="1"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={inputClass}
+                />
+              </label>
+              <label className={labelClass}>
+                {labels.bookingSpots}
+                <select
+                  data-booking-step="1"
+                  value={seats}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    setSeats(next);
+                    setSeatingPreference(defaultSeatingForSeats(next));
+                    trackSeatsSelected(experience, locale, next);
+                  }}
+                  className={inputClass}
+                >
+                  {Array.from(
+                    { length: Math.min(spotsLeft ?? 4, 4) },
+                    (_, i) => i + 1,
+                  ).map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={goToStep2}
+                className={`w-full rounded-full px-6 font-medium text-cream ${
+                  compact ? "py-2.5 text-sm" : "py-3 text-sm"
+                } ${
+                  isFemaleOnly
+                    ? "bg-rose hover:bg-rose-deep"
+                    : "bg-burgundy hover:bg-wine"
+                }`}
+              >
+                {labels.bookingStepNext}
+              </button>
+            </>
+          ) : (
+            <>
+              <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
+                <legend className={labelClass.replace("block ", "")}>
+                  {labels.bookingSeatingLabel}
+                </legend>
+                {(
+                  [
+                    {
+                      value: "own_table" as const,
+                      title: labels.bookingSeatingOwn,
+                      hint: labels.bookingSeatingOwnHint,
+                    },
+                    {
+                      value: "join_others" as const,
+                      title: labels.bookingSeatingJoin,
+                      hint: labels.bookingSeatingJoinHint,
+                    },
+                  ] as const
+                ).map((option) => {
+                  const selected = seatingPreference === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={radioOptionClass(
+                        selected,
+                        compact,
+                        isFemaleOnly,
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="seatingPreference"
+                        value={option.value}
+                        checked={selected}
+                        onChange={() => setSeatingPreference(option.value)}
+                        className="mt-0.5 shrink-0 accent-burgundy"
+                        required
+                      />
+                      <span className="min-w-0">
+                        <span className="block font-medium text-wine">
+                          {option.title}
+                        </span>
+                        {!compact ? (
+                          <span className="mt-0.5 block text-xs leading-snug text-wine/55">
+                            {option.hint}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  );
+                })}
+              </fieldset>
+              {seatingPreference === "join_others" ? (
+                <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
+                  <legend className={labelClass.replace("block ", "")}>
+                    {labels.bookingTableLanguageLabel}
+                  </legend>
+                  {(
+                    [
+                      {
+                        value: "both_fine" as const,
+                        title: labels.bookingTableLanguageBoth,
+                      },
+                      {
+                        value: "prefer_dutch" as const,
+                        title: labels.bookingTableLanguagePreferDutch,
+                      },
+                    ] as const
+                  ).map((option) => {
+                    const selected = tableLanguagePreference === option.value;
+                    return (
+                      <label
+                        key={option.value}
+                        className={radioOptionClass(
+                          selected,
+                          compact,
+                          isFemaleOnly,
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="tableLanguagePreference"
+                          value={option.value}
+                          checked={selected}
+                          onChange={() =>
+                            setTableLanguagePreference(option.value)
+                          }
+                          className="mt-0.5 shrink-0 accent-burgundy"
+                          required
+                        />
+                        <span className="min-w-0 font-medium text-wine">
+                          {option.title}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </fieldset>
+              ) : null}
+              <label className={labelClass}>
+                {labels.bookingDietary}
+                <textarea
+                  value={dietaryNotes}
+                  onChange={(e) => setDietaryNotes(e.target.value)}
+                  rows={compact ? 1 : 2}
+                  className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
+                    compact
+                      ? "min-h-[2.25rem] resize-none py-1.5 text-sm"
+                      : "py-2"
+                  }`}
+                />
+              </label>
+              {error ? <p className="text-sm text-red-800">{error}</p> : null}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full rounded-full px-6 font-medium text-cream disabled:opacity-50 ${
+                  compact ? "py-2.5 text-sm" : "py-3 text-sm"
+                } ${
+                  isFemaleOnly
+                    ? "bg-rose hover:bg-rose-deep"
+                    : "bg-burgundy hover:bg-wine"
+                }`}
+              >
+                {loading ? "Doorsturen…" : reserveCta}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setFormStep(1);
+                }}
+                disabled={loading}
+                className={`w-full text-center text-sm text-wine/55 underline hover:text-wine disabled:opacity-50 ${
+                  compact ? "py-0.5" : "py-1"
+                }`}
+              >
+                {labels.bookingStepBack}
+              </button>
+            </>
+          )}
         </form>
       ) : (
         <a
@@ -448,27 +545,27 @@ export function BookingCard({
         </a>
       )}
 
-      {!compact ? (
-      <ul
-        className={`mt-6 space-y-2.5 border-t pt-6 ${
-          isFemaleOnly ? "border-rose/20" : "border-border-subtle"
-        }`}
-      >
-        {labels.bookingTrustBullets.map((line) => (
-          <li
-            key={line}
-            className="flex items-start gap-2 text-sm text-wine/70"
-          >
-            <span
-              className={`mt-0.5 ${isFemaleOnly ? "text-rose-deep" : "text-gold"}`}
-              aria-hidden
+      {!compact && formStep === 1 ? (
+        <ul
+          className={`mt-6 space-y-2.5 border-t pt-6 ${
+            isFemaleOnly ? "border-rose/20" : "border-border-subtle"
+          }`}
+        >
+          {labels.bookingTrustBullets.map((line) => (
+            <li
+              key={line}
+              className="flex items-start gap-2 text-sm text-wine/70"
             >
-              ✓
-            </span>
-            {line}
-          </li>
-        ))}
-      </ul>
+              <span
+                className={`mt-0.5 ${isFemaleOnly ? "text-rose-deep" : "text-gold"}`}
+                aria-hidden
+              >
+                ✓
+              </span>
+              {line}
+            </li>
+          ))}
+        </ul>
       ) : null}
     </motion.aside>
   );

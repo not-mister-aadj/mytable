@@ -106,6 +106,8 @@ export interface ExperiencePageLabels {
   bookingTableLanguageLabel: string;
   bookingTableLanguageBoth: string;
   bookingTableLanguagePreferDutch: string;
+  bookingStepNext: string;
+  bookingStepBack: string;
   spotsLeftBadge: string;
   bookingViewsLabel: string;
   bookingTrustBullets: string[];

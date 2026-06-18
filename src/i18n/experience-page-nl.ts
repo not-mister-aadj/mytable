@@ -58,6 +58,8 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingTableLanguageLabel: "Taal aan tafel",
   bookingTableLanguageBoth: "Nederlands of Engels, prima",
   bookingTableLanguagePreferDutch: "Liever Nederlands",
+  bookingStepNext: "Volgende",
+  bookingStepBack: "Terug",
   spotsLeftBadge: "Nog {count} plekken beschikbaar",
   bookingViewsLabel: "{count} mensen bekeken deze tafel deze week",
   bookingTrustBullets: [

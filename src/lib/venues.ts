@@ -17,6 +17,7 @@ import {
 } from "@/lib/experience-types";
 import { getExperienceVenues } from "@/data/experience-venues";
 import {
+  filterMapVenueIds,
   isLocationTbdVenueId,
   locationTbdExperienceVenue,
   normalizeVenueId,
@@ -174,10 +175,19 @@ async function selectVenuesByIdsRows(
 
 async function fetchVenuesByIdsUncached(ids: string[]): Promise<Venue[]> {
   if (!ids.length || !isDbConfigured()) return [];
+  const realIds = [...new Set(filterMapVenueIds(ids.map(normalizeVenueId)))];
+  if (!realIds.length) return [];
+
   const db = getDb();
-  const rows = await selectVenuesByIdsRows(db, ids);
+  const rows = await selectVenuesByIdsRows(db, realIds);
   const byId = new Map(rows.map((v) => [v.id, v]));
-  return ids.map((id) => byId.get(id)).filter((v): v is Venue => Boolean(v));
+  return ids
+    .map((id) => {
+      const normalizedId = normalizeVenueId(id);
+      if (isLocationTbdVenueId(normalizedId)) return undefined;
+      return byId.get(normalizedId);
+    })
+    .filter((v): v is Venue => Boolean(v));
 }
 
 export const fetchVenuesByIdsCached = cache(fetchVenuesByIdsUncached);

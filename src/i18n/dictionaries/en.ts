@@ -1,10 +1,7 @@
 import type { Dictionary } from "../types";
 import { images } from "@/data/images";
-import { getCatalogExperiences } from "@/data/experience-catalog";
 import { experiencePageEn } from "../experience-page-en";
 import { bookingOutcomeEn } from "../booking-outcome-en";
-
-const catalogEn = getCatalogExperiences("en");
 
 export const en: Dictionary = {
   meta: {
@@ -56,7 +53,7 @@ export const en: Dictionary = {
     femaleOnlyBadge: "Girls only",
     reserveCta: "Reserve your seat",
     viewAllCta: "View all upcoming tables",
-    items: catalogEn,
+    items: [],
   },
   agenda: {
     hero: {
@@ -97,7 +94,7 @@ export const en: Dictionary = {
     },
     femaleOnlyBadge: "Girls only",
     reserveCta: "Reserve your seat",
-    items: catalogEn,
+    items: [],
   },
   concept: {
     title: "More than just a reservation.",

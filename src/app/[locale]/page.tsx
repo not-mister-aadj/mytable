@@ -19,8 +19,8 @@ import {
 import { getNextUpcomingExperience } from "@/lib/upcoming-event";
 import { notFound } from "next/navigation";
 
-/** Keep homepage event strip in sync with the database. */
-export const revalidate = 60;
+/** Always load published events from the database at request time. */
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string }>;

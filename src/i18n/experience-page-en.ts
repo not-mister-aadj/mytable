@@ -60,6 +60,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingTableLanguagePreferDutch: "Prefer Dutch if possible",
   bookingStepNext: "Continue",
   bookingStepBack: "Back",
+  bookingFemaleOnlyNote: "This table is for women only.",
   spotsLeftBadge: "{count} spots still available",
   bookingViewsLabel: "{count} people viewed this table this week",
   bookingTrustBullets: [

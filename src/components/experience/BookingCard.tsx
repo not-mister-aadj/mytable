@@ -224,6 +224,16 @@ export function BookingCard({
         </span>
       )}
 
+      {isFemaleOnly ? (
+        <p
+          className={`font-medium leading-snug text-rose-deep ${
+            compact ? "mt-1.5 text-xs" : "mt-2 text-sm"
+          }`}
+        >
+          {labels.bookingFemaleOnlyNote}
+        </p>
+      ) : null}
+
       {experience.cardText && formStep === 1 ? (
         <p
           className={`line-clamp-2 text-sm text-wine/55 ${compact ? "mt-1" : "mt-2"}`}

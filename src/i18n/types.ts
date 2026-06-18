@@ -108,6 +108,7 @@ export interface ExperiencePageLabels {
   bookingTableLanguagePreferDutch: string;
   bookingStepNext: string;
   bookingStepBack: string;
+  bookingFemaleOnlyNote: string;
   spotsLeftBadge: string;
   bookingViewsLabel: string;
   bookingTrustBullets: string[];

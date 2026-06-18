@@ -4,7 +4,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { eq } from "drizzle-orm";
 import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { isDbEventsEnabled } from "@/lib/env";
+import { isDbEventsEnabled, shouldUseStaticCatalogFallback } from "@/lib/env";
 import {
   enrichPublishedRows,
   getDbExperienceBySlug,
@@ -35,32 +35,47 @@ function fetchFromCatalog(locale: Locale): EnrichedExperience[] {
   return getCatalogExperiences(locale).map(enrichExperience);
 }
 
+async function loadPublishedExperiences(
+  locale: Locale,
+  whereClause: ReturnType<typeof publishedLandingEventsWhere>,
+): Promise<EnrichedExperience[]> {
+  if (isDbEventsEnabled() && isDbConfigured()) {
+    return fetchPublishedFromDb(locale, whereClause);
+  }
+  if (shouldUseStaticCatalogFallback()) {
+    return fetchFromCatalog(locale);
+  }
+  return [];
+}
+
 /** Landing page: open for booking, not closed. */
 export async function getLandingExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  if (isDbEventsEnabled() && isDbConfigured()) {
-    try {
-      return await fetchPublishedFromDb(locale, publishedLandingEventsWhere());
-    } catch (err) {
-      console.error("[experiences] DB fetch failed, falling back to catalog", err);
+  try {
+    return await loadPublishedExperiences(locale, publishedLandingEventsWhere());
+  } catch (err) {
+    console.error("[experiences] DB fetch failed", err);
+    if (shouldUseStaticCatalogFallback()) {
+      return fetchFromCatalog(locale);
     }
+    throw err;
   }
-  return fetchFromCatalog(locale);
 }
 
 /** Agenda page: includes closed events until 7 days after start. */
 export async function getAgendaExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  if (isDbEventsEnabled() && isDbConfigured()) {
-    try {
-      return await fetchPublishedFromDb(locale, publishedAgendaEventsWhere());
-    } catch (err) {
-      console.error("[experiences] DB fetch failed, falling back to catalog", err);
+  try {
+    return await loadPublishedExperiences(locale, publishedAgendaEventsWhere());
+  } catch (err) {
+    console.error("[experiences] DB fetch failed", err);
+    if (shouldUseStaticCatalogFallback()) {
+      return fetchFromCatalog(locale);
     }
+    throw err;
   }
-  return fetchFromCatalog(locale);
 }
 
 /** @deprecated Use getLandingExperiences or getAgendaExperiences */
@@ -77,9 +92,13 @@ export async function getExperienceBySlug(
   if (isDbEventsEnabled() && isDbConfigured()) {
     const fromDb = await getDbExperienceBySlug(locale, slug);
     if (fromDb) return fromDb;
+    return undefined;
   }
-  const all = fetchFromCatalog(locale);
-  return all.find((item) => item.slug === slug);
+  if (shouldUseStaticCatalogFallback()) {
+    const all = fetchFromCatalog(locale);
+    return all.find((item) => item.slug === slug);
+  }
+  return undefined;
 }
 
 export async function getExperienceByDbId(
@@ -106,8 +125,10 @@ export async function getRelatedExperiences(
       if (related.length > 0) return related;
     } catch (err) {
       console.error("[experiences] related fetch failed", err);
+      if (!shouldUseStaticCatalogFallback()) throw err;
     }
   }
+  if (!shouldUseStaticCatalogFallback()) return [];
   const all = fetchFromCatalog(locale);
   return all
     .filter((item) => item.slug !== current.slug)
@@ -126,8 +147,10 @@ export async function getAllExperienceSlugs(locale: Locale): Promise<string[]> {
       return await getPublishedSlugs();
     } catch (err) {
       console.error("[experiences] slug list failed", err);
+      if (!shouldUseStaticCatalogFallback()) throw err;
     }
   }
+  if (!shouldUseStaticCatalogFallback()) return [];
   const all = fetchFromCatalog(locale);
   return all.map((item) => item.slug);
 }

@@ -19,6 +19,9 @@ import {
 import { getNextUpcomingExperience } from "@/lib/upcoming-event";
 import { notFound } from "next/navigation";
 
+/** Keep homepage event strip in sync with the database. */
+export const revalidate = 60;
+
 type Props = {
   params: Promise<{ locale: string }>;
 };

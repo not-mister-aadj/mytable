@@ -8,6 +8,9 @@ import { getDictionary, getDictionaryWithAgenda } from "@/i18n/get-dictionary";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+/** Refresh agenda from database after admin publishes or edits events. */
+export const revalidate = 60;
+
 type Props = {
   params: Promise<{ locale: string }>;
 };

@@ -1,8 +1,6 @@
 import { AdminShell, type AdminNavItem } from "@/components/admin/AdminShell";
 import { adminPath, adminUrlForHost } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
-import { isDbConfigured } from "@/db/index";
-import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -25,10 +23,6 @@ export default async function AdminDashboardLayout({
   children: React.ReactNode;
 }) {
   const { user } = await requireAdmin();
-
-  if (isDbConfigured()) {
-    await ensureBookingColumns();
-  }
 
   async function signOut() {
     "use server";

@@ -2,6 +2,10 @@ import postgres from "postgres";
 import { isDbConfigured } from "@/db/index";
 
 let migrationClient: ReturnType<typeof postgres> | null = null;
+let columnsEnsured = false;
+let ensureInFlight: Promise<void> | null = null;
+
+const ENSURE_TIMEOUT_MS = 8_000;
 
 function migrationConnectionString(): string | undefined {
   return (
@@ -23,10 +27,28 @@ function getMigrationClient() {
   return migrationClient;
 }
 
-/** Idempotent — safe to run before booking writes. */
+/** Idempotent — safe to run before booking writes. Cached per server instance. */
 export async function ensureBookingColumns(): Promise<void> {
-  if (!isDbConfigured()) return;
+  if (!isDbConfigured() || columnsEnsured) return;
 
-  const sql = getMigrationClient();
-  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seating_preference text`;
+  if (!ensureInFlight) {
+    ensureInFlight = (async () => {
+      const sql = getMigrationClient();
+      await Promise.race([
+        sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seating_preference text`,
+        new Promise<never>((_, reject) => {
+          setTimeout(
+            () => reject(new Error("ensureBookingColumns timed out")),
+            ENSURE_TIMEOUT_MS,
+          );
+        }),
+      ]);
+      columnsEnsured = true;
+    })().catch((error) => {
+      ensureInFlight = null;
+      console.error("[ensureBookingColumns]", error);
+    });
+  }
+
+  await ensureInFlight;
 }

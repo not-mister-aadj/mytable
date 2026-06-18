@@ -10,8 +10,9 @@ export async function GET(request: Request) {
   const host = requestUrl.host;
   const proto = requestUrl.protocol.replace(":", "");
   const code = requestUrl.searchParams.get("code");
+  const oauthError = requestUrl.searchParams.get("error");
 
-  if (!code) {
+  if (oauthError || !code) {
     return NextResponse.redirect(adminUrlForHost("/login?error=auth", host, proto));
   }
 

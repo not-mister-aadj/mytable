@@ -8,6 +8,7 @@ import { Suspense, useState } from "react";
 function LoginForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const cleared = searchParams.get("cleared");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -71,6 +72,21 @@ function LoginForm() {
         {message ? (
           <p className="mt-4 text-sm text-wine/80">{message}</p>
         ) : null}
+
+        {cleared ? (
+          <p className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-900">
+            Sessie gewist. Probeer opnieuw in te loggen.
+          </p>
+        ) : null}
+
+        <p className="mt-6 text-xs leading-relaxed text-wine/55">
+          Blijft Google hangen op &quot;Omleiden&quot;? Gebruik een normaal browservenster
+          (geen incognito), zet VPN uit, en probeer{" "}
+          <a href="/api/auth/clear-session" className="underline">
+            sessie wissen
+          </a>
+          .
+        </p>
       </div>
     </div>
   );

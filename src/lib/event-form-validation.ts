@@ -32,15 +32,7 @@ export function validateEventForm(form: EventFormState): string | null {
 }
 
 export function validateEventForPublish(form: EventFormState): string | null {
-  const base = validateEventForm(form);
-  if (base) return base;
-
-  const capacity = Number.parseInt(form.capacity, 10);
-  if (!Number.isFinite(capacity) || capacity < 1) {
-    return "Vul een capaciteit van minimaal 1 in voordat je publiceert.";
-  }
-
-  return null;
+  return validateEventForm(form);
 }
 
 export function formatEventSaveError(error: unknown): string {

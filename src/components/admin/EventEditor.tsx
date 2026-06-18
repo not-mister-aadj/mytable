@@ -357,10 +357,7 @@ export function EventEditor({
     const validationError = validateEventForPublish(buildFormSnapshot());
     if (validationError) {
       setLocalError(validationError);
-      if (
-        validationError.includes("Basis") ||
-        validationError.includes("capaciteit")
-      ) {
+      if (validationError.includes("Basis")) {
         setStep(0);
       }
       return;
@@ -387,7 +384,10 @@ export function EventEditor({
       startsAt,
       endsAt,
       priceEuros: Number.parseFloat(priceEuros) || 0,
-      capacity: Number.parseInt(capacity, 10) || 14,
+      capacity: (() => {
+        const parsed = Number.parseInt(capacity, 10);
+        return Number.isFinite(parsed) ? parsed : 14;
+      })(),
       spotsSold: event?.spotsSold ?? 0,
       imageUrl: resolvedImageUrl,
       categoryNl,

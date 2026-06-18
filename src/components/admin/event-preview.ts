@@ -51,7 +51,7 @@ export function buildCardPreviewExperience(
     ? parseEventDateTimeLocal(data.startsAt)
     : new Date();
   const endsAt = data.endsAt ? parseEventDateTimeLocal(data.endsAt) : null;
-  const capacity = data.capacity || 14;
+  const capacity = Number.isFinite(data.capacity) ? data.capacity : 14;
   const spotsSold = data.spotsSold ?? 0;
   const typeDef = getExperienceTypeDefinition(data.experienceType);
 
@@ -108,7 +108,7 @@ export function buildDetailPreviewExperience(
     ? parseEventDateTimeLocal(data.startsAt)
     : new Date();
   const endsAt = data.endsAt ? parseEventDateTimeLocal(data.endsAt) : null;
-  const capacity = data.capacity || 14;
+  const capacity = Number.isFinite(data.capacity) ? data.capacity : 14;
   const spotsSold = data.spotsSold ?? 0;
   const typeDef = getExperienceTypeDefinition(data.experienceType);
   const moodKey = (typeDef?.mood ?? "tastings") as ExperienceMoodKey;

@@ -27,6 +27,10 @@ import {
   defaultSeatingForSeats,
   type SeatingPreference,
 } from "@/lib/booking-seating";
+import {
+  DEFAULT_TABLE_LANGUAGE_PREFERENCE,
+  type TableLanguagePreference,
+} from "@/lib/booking-table-language";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -67,6 +71,8 @@ export function BookingCard({
   const [seatingPreference, setSeatingPreference] = useState<SeatingPreference>(
     defaultSeatingForSeats(1),
   );
+  const [tableLanguagePreference, setTableLanguagePreference] =
+    useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [dietaryNotes, setDietaryNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +98,10 @@ export function BookingCard({
           name,
           seats,
           seatingPreference,
+          tableLanguagePreference:
+            seatingPreference === "join_others"
+              ? tableLanguagePreference
+              : DEFAULT_TABLE_LANGUAGE_PREFERENCE,
           locale,
           dietaryNotes,
           utm: getStoredUtm(),
@@ -166,9 +176,11 @@ export function BookingCard({
         </span>
       )}
 
-      <p className={`text-sm text-wine/55 ${compact ? "mt-1" : "mt-2"}`}>
-        {labels.spotsByStatus[experience.status]}
-      </p>
+      {experience.cardText ? (
+        <p className={`text-sm text-wine/55 ${compact ? "mt-1" : "mt-2"}`}>
+          {experience.cardText}
+        </p>
+      ) : null}
 
       {compact ? (
         <div
@@ -347,6 +359,56 @@ export function BookingCard({
               );
             })}
           </fieldset>
+          {seatingPreference === "join_others" ? (
+            <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
+              <legend
+                className={`text-wine ${compact ? "text-xs" : "text-sm"}`}
+              >
+                {labels.bookingTableLanguageLabel}
+              </legend>
+              {(
+                [
+                  {
+                    value: "both_fine" as const,
+                    title: labels.bookingTableLanguageBoth,
+                  },
+                  {
+                    value: "prefer_dutch" as const,
+                    title: labels.bookingTableLanguagePreferDutch,
+                  },
+                ] as const
+              ).map((option) => {
+                const selected = tableLanguagePreference === option.value;
+                return (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
+                      compact ? "text-xs" : "text-sm"
+                    } ${
+                      selected
+                        ? isFemaleOnly
+                          ? "border-rose bg-rose/10"
+                          : "border-burgundy/40 bg-cream"
+                        : "border-border-subtle bg-cream/60 hover:border-burgundy/20"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="tableLanguagePreference"
+                      value={option.value}
+                      checked={selected}
+                      onChange={() => setTableLanguagePreference(option.value)}
+                      className="mt-0.5 shrink-0 accent-burgundy"
+                      required
+                    />
+                    <span className="min-w-0 font-medium text-wine">
+                      {option.title}
+                    </span>
+                  </label>
+                );
+              })}
+            </fieldset>
+          ) : null}
           <label className={`block text-wine ${compact ? "text-xs" : "text-sm"}`}>
             {labels.bookingDietary}
             <textarea

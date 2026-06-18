@@ -10,6 +10,10 @@ import {
 } from "@/app/admin/(dashboard)/events/actions";
 import { adminPath } from "@/lib/admin-url";
 import { formatSeatingPreference, isSeatingPreference } from "@/lib/booking-seating";
+import {
+  formatTableLanguagePreference,
+  isTableLanguagePreference,
+} from "@/lib/booking-table-language";
 import type {
   EventTicketRow,
   TransferTargetEvent,
@@ -146,6 +150,13 @@ function TicketRow({
         isSeatingPreference(ticket.seatingPreference) ? (
           <p className="mt-0.5 text-xs text-wine/50">
             {formatSeatingPreference(ticket.seatingPreference, "nl")}
+          </p>
+        ) : null}
+        {ticket.seatingPreference === "join_others" &&
+        ticket.tableLanguagePreference &&
+        isTableLanguagePreference(ticket.tableLanguagePreference) ? (
+          <p className="mt-0.5 text-xs text-wine/50">
+            {formatTableLanguagePreference(ticket.tableLanguagePreference, "nl")}
           </p>
         ) : null}
         {ticket.dietaryNotes ? (

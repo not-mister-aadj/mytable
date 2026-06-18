@@ -14,6 +14,7 @@ import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import { isSeatingPreference } from "@/lib/booking-seating";
+import { isTableLanguagePreference } from "@/lib/booking-table-language";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
     locale?: string;
     dietaryNotes?: string;
     seatingPreference?: string;
+    tableLanguagePreference?: string;
     utm?: {
       utm_source?: string;
       utm_medium?: string;
@@ -111,6 +113,26 @@ export async function POST(request: Request) {
 
   const seatingPreference = body.seatingPreference;
 
+  const tableLanguagePreference =
+    seatingPreference === "join_others"
+      ? body.tableLanguagePreference
+      : "both_fine";
+
+  if (
+    seatingPreference === "join_others" &&
+    !isTableLanguagePreference(tableLanguagePreference)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en"
+            ? "Choose your language preference at the table."
+            : "Kies je taalvoorkeur aan tafel.",
+      },
+      { status: 400 },
+    );
+  }
+
   if (!checkRateLimit(`checkout:event:${eventId}:${email}`, 5, 300_000)) {
     return NextResponse.json({ error: "Te veel pogingen." }, { status: 429 });
   }
@@ -154,6 +176,7 @@ export async function POST(request: Request) {
       locale,
       dietaryNotes: body.dietaryNotes?.trim() || null,
       seatingPreference,
+      tableLanguagePreference,
       paymentStatus: "pending",
     })
     .returning();

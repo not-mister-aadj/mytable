@@ -55,6 +55,9 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingSeatingOwnHint: "You'll dine with just your party.",
   bookingSeatingJoin: "Join others at the table",
   bookingSeatingJoinHint: "Great if you'd like to meet new people.",
+  bookingTableLanguageLabel: "Language at the table",
+  bookingTableLanguageBoth: "Dutch or English, both fine",
+  bookingTableLanguagePreferDutch: "Prefer Dutch if possible",
   spotsLeftBadge: "{count} spots still available",
   bookingViewsLabel: "{count} people viewed this table this week",
   bookingTrustBullets: [

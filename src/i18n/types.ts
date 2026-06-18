@@ -103,6 +103,9 @@ export interface ExperiencePageLabels {
   bookingSeatingOwnHint: string;
   bookingSeatingJoin: string;
   bookingSeatingJoinHint: string;
+  bookingTableLanguageLabel: string;
+  bookingTableLanguageBoth: string;
+  bookingTableLanguagePreferDutch: string;
   spotsLeftBadge: string;
   bookingViewsLabel: string;
   bookingTrustBullets: string[];

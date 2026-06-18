@@ -14,6 +14,10 @@ import {
   formatSeatingPreference,
   isSeatingPreference,
 } from "@/lib/booking-seating";
+import {
+  formatTableLanguagePreference,
+  isTableLanguagePreference,
+} from "@/lib/booking-table-language";
 import { OccupancyBar } from "@/components/admin/OccupancyBar";
 import {
   BookingStatusPill,
@@ -279,9 +283,21 @@ export function BookingDetailDrawer({
                 {booking.seatingPreference &&
                 isSeatingPreference(booking.seatingPreference) ? (
                   <DetailSection title="Tafelwens">
-                    <p className="rounded-2xl border border-border-subtle/80 bg-beige/60 p-4 text-sm leading-relaxed text-wine/75">
-                      {formatSeatingPreference(booking.seatingPreference, "nl")}
-                    </p>
+                    <div className="space-y-3 rounded-2xl border border-border-subtle/80 bg-beige/60 p-4 text-sm leading-relaxed text-wine/75">
+                      <p>
+                        {formatSeatingPreference(booking.seatingPreference, "nl")}
+                      </p>
+                      {booking.seatingPreference === "join_others" &&
+                      booking.tableLanguagePreference &&
+                      isTableLanguagePreference(booking.tableLanguagePreference) ? (
+                        <p>
+                          {formatTableLanguagePreference(
+                            booking.tableLanguagePreference,
+                            "nl",
+                          )}
+                        </p>
+                      ) : null}
+                    </div>
                   </DetailSection>
                 ) : null}
 

@@ -35,7 +35,10 @@ export async function ensureBookingColumns(): Promise<void> {
     ensureInFlight = (async () => {
       const sql = getMigrationClient();
       await Promise.race([
-        sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seating_preference text`,
+        (async () => {
+          await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seating_preference text`;
+          await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS table_language_preference text`;
+        })(),
         new Promise<never>((_, reject) => {
           setTimeout(
             () => reject(new Error("ensureBookingColumns timed out")),

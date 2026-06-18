@@ -11,6 +11,9 @@ import { getVenueSectionLabels } from "@/lib/experience-template-defaults";
 import type { EventExtras } from "@/lib/event-extras";
 import { getMoodContent } from "@/lib/experience-detail";
 import {
+  getEventFormDefaults,
+} from "@/lib/experience-template-defaults";
+import {
   coerceImageSettings,
   createImageSettings,
   isUsableImageUrl,
@@ -57,6 +60,19 @@ export function resolveMoodForEvent(
   };
 }
 
+export function resolveCardText(
+  typeSlug: ExperienceTypeSlug,
+  extras: EventExtras,
+  locale: Locale,
+): string {
+  const slug = isValidExperienceType(typeSlug) ? typeSlug : "wine-tasting";
+  const defaults = getEventFormDefaults(slug);
+  const custom =
+    locale === "nl" ? extras.cardTextNl : extras.cardTextEn;
+  if (custom?.trim()) return custom.trim();
+  return locale === "nl" ? defaults.cardTextNl : defaults.cardTextEn;
+}
+
 export function displayNamesFromEvent(
   row: {
     nameNl: string;
@@ -69,6 +85,7 @@ export function displayNamesFromEvent(
   },
   extras: EventExtras,
   locale: Locale,
+  typeSlug: ExperienceTypeSlug,
 ) {
   const lang = locale === "nl" ? "nl" : "en";
   const heroTitle =
@@ -83,7 +100,7 @@ export function displayNamesFromEvent(
     lang === "nl"
       ? extras.cardCategoryNl || row.categoryNl
       : extras.cardCategoryEn || row.categoryEn;
-  const cardText = lang === "nl" ? extras.cardTextNl : extras.cardTextEn;
+  const cardText = resolveCardText(typeSlug, extras, locale);
   const tagline =
     lang === "nl"
       ? row.taglineNl ?? undefined

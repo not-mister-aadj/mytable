@@ -35,7 +35,7 @@ export function mapDbEventToExperienceItem(
       ? resolveEventImagesFromVenues(extras, venues)
       : resolveEventImagesFromVenues(extras, []);
   const typeSlug = typeSlugFromEvent(row.experienceType);
-  const names = displayNamesFromEvent(row, extras, locale);
+  const names = displayNamesFromEvent(row, extras, locale, typeSlug);
   const lang = locale === "nl" ? "nl" : "en";
   const customDescription =
     lang === "nl"

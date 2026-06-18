@@ -561,6 +561,7 @@ export async function transferBookingToEventAction(
           locale: booking.locale,
           dietaryNotes: booking.dietaryNotes,
           seatingPreference: booking.seatingPreference,
+          tableLanguagePreference: booking.tableLanguagePreference,
           adminNotes: booking.adminNotes,
           confirmationEmailSentAt: booking.confirmationEmailSentAt,
           lifecycleStatus: "active",

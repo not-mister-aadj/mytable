@@ -55,6 +55,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingSeatingOwnHint: "Jullie zitten met z'n eigen gezelschap.",
   bookingSeatingJoin: "Aanschuiven bij anderen",
   bookingSeatingJoinHint: "Leuk als je nieuwe mensen wilt ontmoeten.",
+  bookingTableLanguageLabel: "Taal aan tafel",
+  bookingTableLanguageBoth: "Nederlands of Engels, prima",
+  bookingTableLanguagePreferDutch: "Liever Nederlands",
   spotsLeftBadge: "Nog {count} plekken beschikbaar",
   bookingViewsLabel: "{count} mensen bekeken deze tafel deze week",
   bookingTrustBullets: [

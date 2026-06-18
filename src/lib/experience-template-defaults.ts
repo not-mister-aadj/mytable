@@ -24,9 +24,9 @@ const DEFAULTS: Record<ExperienceTypeSlug, EventFormDefaults> = {
     cardCategoryNl: "PROEVERIJ",
     cardCategoryEn: "TASTING",
     cardTextNl:
-      "Schuif aan bij een kleine groep voor wijn, chef's specials en gezelligheid aan één tafel.",
+      "Inclusief vier wijnen, vier bites en een gezellige tafel.",
     cardTextEn:
-      "Join a small group for wine, chef's specials, and good company at one table.",
+      "Includes four wines, four bites, and a welcoming table.",
   },
   "wine-walk": {
     categoryNl: "WIJNWALK",

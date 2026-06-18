@@ -15,7 +15,7 @@ import {
   DEFAULT_EVENT_IMAGE,
   isUsableImageUrl,
 } from "@/lib/image-settings";
-import { resolveHeroImageSettings } from "@/lib/resolve-experience-content";
+import { resolveHeroImageSettings, resolveCardText } from "@/lib/resolve-experience-content";
 
 export type PreviewEventData = {
   nameNl: string;
@@ -63,8 +63,7 @@ export function buildCardPreviewExperience(
     locale === "nl"
       ? extras.cardCategoryNl || data.categoryNl
       : extras.cardCategoryEn || data.categoryNl;
-  const cardText =
-    locale === "nl" ? extras.cardTextNl : extras.cardTextEn;
+  const cardText = resolveCardText(data.experienceType, extras, locale);
 
   const cardSettings =
     extras.cardImage ??
@@ -162,6 +161,7 @@ export function buildDetailPreviewExperience(
     capacity,
     spotsSold,
     tagline: locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
+    cardText: resolveCardText(data.experienceType, extras, locale),
     atmosphereTags: extras.atmosphereTags,
     customDescription: aboutOverride || mood.description,
     customFaq: extras.sectionOverrides?.faqNl?.length

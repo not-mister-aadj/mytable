@@ -57,6 +57,12 @@ export function formatEventSaveError(error: unknown): string {
         "Voeg in Supabase SQL Editor toe: ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seating_preference text;"
       );
     }
+    if (msg.includes("table_language_preference")) {
+      return (
+        "Boeking kan niet worden opgeslagen: de database mist nog de kolom table_language_preference. " +
+        "Voeg in Supabase SQL Editor toe: ALTER TABLE bookings ADD COLUMN IF NOT EXISTS table_language_preference text;"
+      );
+    }
     return msg;
   }
   return "Opslaan mislukt. Probeer het opnieuw.";

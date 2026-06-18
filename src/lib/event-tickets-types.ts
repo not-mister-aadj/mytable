@@ -14,6 +14,7 @@ export type EventTicketRow = {
   seats: number;
   dietaryNotes: string | null;
   seatingPreference: string | null;
+  tableLanguagePreference: string | null;
   createdAt: string;
   lifecycleStatus: "active" | "transferred" | "removed";
   transferredAt: string | null;

@@ -77,6 +77,7 @@ export function ExperiencePageContent({
       venues.map((v) => v.name),
     );
   const stickySentinelRef = useRef<HTMLDivElement>(null);
+  const mobileBookingRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (previewMode) return;
@@ -117,6 +118,7 @@ export function ExperiencePageContent({
           femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
           locale={locale}
           sentinelRef={stickySentinelRef}
+          bookingRef={mobileBookingRef}
         />
       )}
 
@@ -133,6 +135,7 @@ export function ExperiencePageContent({
           <div className="min-w-0 space-y-4">
             <motion.div
               {...fade}
+              ref={mobileBookingRef}
               id="booking"
               className="scroll-mt-[9rem] lg:hidden"
             >

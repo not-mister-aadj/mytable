@@ -20,6 +20,7 @@ interface ExperienceStickyBookingBarProps {
   femaleOnlyBadge: string;
   locale: Locale;
   sentinelRef: RefObject<HTMLElement | null>;
+  bookingRef?: RefObject<HTMLElement | null>;
 }
 
 function MetaItem({
@@ -81,8 +82,10 @@ export function ExperienceStickyBookingBar({
   femaleOnlyBadge,
   locale,
   sentinelRef,
+  bookingRef,
 }: ExperienceStickyBookingBarProps) {
-  const [visible, setVisible] = useState(false);
+  const [heroPast, setHeroPast] = useState(false);
+  const [bookingInView, setBookingInView] = useState(false);
   const { date, time } = splitDateTime(experience.dateTime);
   const priceLine = formatPerPerson(experience.price, labels.perPerson);
   const isSoldOut = !canReserve(experience);
@@ -101,13 +104,28 @@ export function ExperienceStickyBookingBar({
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setVisible(!entry.isIntersecting),
+      ([entry]) => setHeroPast(!entry.isIntersecting),
       { root: null, rootMargin: "0px", threshold: 0 },
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [sentinelRef]);
+
+  useEffect(() => {
+    const booking = bookingRef?.current;
+    if (!booking) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setBookingInView(entry.isIntersecting),
+      { root: null, rootMargin: "-4rem 0px 0px 0px", threshold: 0.15 },
+    );
+
+    observer.observe(booking);
+    return () => observer.disconnect();
+  }, [bookingRef]);
+
+  const visible = heroPast && !bookingInView;
 
   return (
     <AnimatePresence>

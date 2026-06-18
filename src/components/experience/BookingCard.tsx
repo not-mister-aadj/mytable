@@ -174,6 +174,8 @@ export function BookingCard({
     compact ? "py-1.5 text-sm" : "py-2"
   }`;
   const labelClass = `block text-wine ${compact ? "text-xs" : "text-sm"}`;
+  const showCardText = formStep === 1 && Boolean(experience.cardText);
+  const showEventMeta = formStep === 2 || !experience.cardText;
 
   return (
     <motion.aside
@@ -234,7 +236,7 @@ export function BookingCard({
         </p>
       ) : null}
 
-      {experience.cardText && formStep === 1 ? (
+      {showCardText ? (
         <p
           className={`line-clamp-2 text-sm text-wine/55 ${compact ? "mt-1" : "mt-2"}`}
         >
@@ -242,7 +244,8 @@ export function BookingCard({
         </p>
       ) : null}
 
-      {compact ? (
+      {showEventMeta ? (
+        compact ? (
         <div
           className={`flex flex-wrap gap-x-4 gap-y-2 border-t text-[11px] leading-snug sm:text-xs ${
             isFemaleOnly ? "border-rose/20" : "border-border-subtle"
@@ -263,7 +266,7 @@ export function BookingCard({
             <p className="mt-0.5 font-medium text-wine">{experience.city}</p>
           </div>
         </div>
-      ) : (
+        ) : (
         <dl
           className={`space-y-3 border-t text-sm ${
             isFemaleOnly ? "border-rose/20" : "border-border-subtle"
@@ -284,7 +287,8 @@ export function BookingCard({
             <dd className="text-right font-medium text-wine">{experience.city}</dd>
           </div>
         </dl>
-      )}
+        )
+      ) : null}
 
       {views !== null && !compact && formStep === 1 ? (
         <div className="mt-5 flex items-center gap-2">

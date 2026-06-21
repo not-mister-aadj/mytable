@@ -22,6 +22,7 @@ export async function GirlsOnlyLanding({
   const allEvents = getGirlsOnlyWineEvents(agendaItems, locale);
   const { bookable, soldOut } = partitionGirlsOnlyEvents(allEvents);
   const heroEvents = bookable.slice(0, 3);
+  const hasMoreBookableEvents = bookable.length > 3;
   const primaryCtaHref =
     bookable.length > 0
       ? experiencePath(locale, bookable[0].slug)
@@ -35,6 +36,7 @@ export async function GirlsOnlyLanding({
       allEvents={allEvents}
       soldOut={soldOut}
       heroEvents={heroEvents}
+      hasMoreBookableEvents={hasMoreBookableEvents}
       primaryCtaHref={primaryCtaHref}
       galleryItems={galleryItems}
     />

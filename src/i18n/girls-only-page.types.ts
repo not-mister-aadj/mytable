@@ -12,6 +12,7 @@ export interface GirlsOnlyPageLabels {
     cta: string;
     trustLine: string;
     heroEventsTitle: string;
+    viewAllTables: string;
     calloutLabel: string;
     calloutPain: string;
     calloutReassurance: string;
@@ -36,6 +37,8 @@ export interface GirlsOnlyPageLabels {
       limitedSeats: string;
       soloOrFriends: string;
     };
+    viewAllTables: string;
+    showMoreSoldOut: string;
   };
   howItWorks: {
     title: string;

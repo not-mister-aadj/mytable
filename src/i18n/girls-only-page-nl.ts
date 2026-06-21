@@ -14,6 +14,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     cta: "Schuif aan aan tafel",
     trustLine: "Solo or met vriendinnen · Kleine tafels · Beginners welkom",
     heroEventsTitle: "Aankomende girls-only tafels",
+    viewAllTables: "Bekijk alle tafels",
     calloutLabel: "We kennen het allemaal wel:",
     calloutPain: "Je wilt iets leuks doen, maar niemand kan of wil mee.",
     calloutReassurance: "Girl, je bent zeker niet de enige!",
@@ -42,6 +43,8 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       limitedSeats: "Beperkte plekken",
       soloOrFriends: "Solo of met vriendinnen",
     },
+    viewAllTables: "Bekijk alle aankomende tafels",
+    showMoreSoldOut: "Toon meer uitverkochte avonden",
   },
   howItWorks: {
     title: "Hoe het werkt",

@@ -14,6 +14,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     cta: "Join a table",
     trustLine: "Solo or with friends · Small tables · Beginners welcome",
     heroEventsTitle: "Upcoming girls-only tables",
+    viewAllTables: "View all tables",
     calloutLabel: "We all know the feeling:",
     calloutPain: "You want to do something fun but nobody can or wants to come.",
     calloutReassurance: "Girl, you're definitely not the only one!",
@@ -42,6 +43,8 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       limitedSeats: "Limited seats",
       soloOrFriends: "Solo or with friends",
     },
+    viewAllTables: "View all upcoming tables",
+    showMoreSoldOut: "Show more sold-out evenings",
   },
   howItWorks: {
     title: "How it works",

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { experiencePath, type Locale } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import {
@@ -22,12 +23,15 @@ interface GirlsOnlyLandingViewProps {
   allEvents: EnrichedExperience[];
   soldOut: EnrichedExperience[];
   heroEvents: EnrichedExperience[];
+  hasMoreBookableEvents: boolean;
   primaryCtaHref: string;
   galleryItems: GirlsOnlyGalleryItem[];
 }
 
 const ctaClassName =
   "bg-rose text-cream hover:bg-rose-deep px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] sm:text-sm";
+
+const EVENT_PREVIEW_COUNT = 3;
 
 function TrustBadge({ children }: { children: React.ReactNode }) {
   return (
@@ -72,12 +76,19 @@ export function GirlsOnlyLandingView({
   allEvents,
   soldOut,
   heroEvents,
+  hasMoreBookableEvents,
   primaryCtaHref,
   galleryItems,
 }: GirlsOnlyLandingViewProps) {
+  const [showAllSoldOut, setShowAllSoldOut] = useState(false);
   const testimonials = getGirlsOnlyTestimonials(locale);
   const { top, bottom } = splitGirlsOnlyTestimonialRows(testimonials);
   const trustPills = labels.hero.trustLine.split(" · ");
+  const visibleSoldOut = showAllSoldOut
+    ? soldOut
+    : soldOut.slice(0, EVENT_PREVIEW_COUNT);
+  const hasMoreSoldOut = soldOut.length > EVENT_PREVIEW_COUNT;
+  const hasMoreEventsThanPreview = allEvents.length > EVENT_PREVIEW_COUNT;
 
   const cardProps = {
     statusLabels: labels.status,
@@ -170,6 +181,11 @@ export function GirlsOnlyLandingView({
                   />
                 ))}
               </div>
+              {hasMoreBookableEvents ? (
+                <div className="mt-8 text-center">
+                  <GirlsOnlyCta href="#events">{labels.hero.viewAllTables}</GirlsOnlyCta>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -206,7 +222,7 @@ export function GirlsOnlyLandingView({
             </ul>
 
             <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {soldOut.slice(0, 3).map((experience) => (
+              {visibleSoldOut.map((experience) => (
                 <ExperienceCard
                   key={experience.id}
                   experience={experience}
@@ -215,6 +231,23 @@ export function GirlsOnlyLandingView({
                 />
               ))}
             </div>
+
+            {(hasMoreSoldOut || hasMoreEventsThanPreview) && (
+              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                {hasMoreSoldOut && !showAllSoldOut ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllSoldOut(true)}
+                    className="text-sm font-medium text-rose-deep underline-offset-4 hover:underline"
+                  >
+                    {labels.trust.showMoreSoldOut}
+                  </button>
+                ) : null}
+                {hasMoreEventsThanPreview ? (
+                  <GirlsOnlyCta href="#events">{labels.trust.viewAllTables}</GirlsOnlyCta>
+                ) : null}
+              </div>
+            )}
           </div>
         </section>
       ) : null}

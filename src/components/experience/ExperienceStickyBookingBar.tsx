@@ -116,9 +116,17 @@ export function ExperienceStickyBookingBar({
     const booking = bookingRef?.current;
     if (!booking) return;
 
+    const headerOffsetPx = Math.round(
+      parseFloat(getComputedStyle(document.documentElement).fontSize) * 4,
+    );
+
     const observer = new IntersectionObserver(
       ([entry]) => setBookingInView(entry.isIntersecting),
-      { root: null, rootMargin: "-4rem 0px 0px 0px", threshold: 0.15 },
+      {
+        root: null,
+        rootMargin: `-${headerOffsetPx}px 0px 0px 0px`,
+        threshold: 0.15,
+      },
     );
 
     observer.observe(booking);

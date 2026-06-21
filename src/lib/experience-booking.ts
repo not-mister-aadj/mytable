@@ -36,6 +36,18 @@ export function formatPerPerson(price: number, label: string): string {
   return label.replace("{price}", String(price));
 }
 
+export const SPOTS_URGENCY_THRESHOLD = 15;
+
+export function shouldShowSpotsLeftBadge(
+  spotsLeft: number | null,
+): spotsLeft is number {
+  return (
+    spotsLeft !== null &&
+    spotsLeft > 0 &&
+    spotsLeft <= SPOTS_URGENCY_THRESHOLD
+  );
+}
+
 export function formatSpotsBadge(template: string, count: number): string {
   return template.replace("{count}", String(count));
 }

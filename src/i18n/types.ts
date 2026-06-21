@@ -98,6 +98,7 @@ export interface ExperiencePageLabels {
   bookingEmail: string;
   bookingName: string;
   bookingDietary: string;
+  bookingDietaryPlaceholder: string;
   bookingSeatingLabel: string;
   bookingSeatingOwn: string;
   bookingSeatingOwnHint: string;

@@ -12,6 +12,7 @@ import {
   getEventIdForCheckout,
   getSpotsLeft,
   getViewsThisWeek,
+  shouldShowSpotsLeftBadge,
 } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
 import { resolveFemaleOnly } from "@/lib/event-extras";
@@ -45,20 +46,68 @@ interface BookingCardProps {
   fitViewport?: boolean;
 }
 
-function radioOptionClass(
-  selected: boolean,
-  compact: boolean,
-  isFemaleOnly: boolean,
-): string {
-  return `flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
+function choiceLegendClass(compact: boolean): string {
+  return `mb-2.5 block font-semibold text-wine ${
     compact ? "text-xs" : "text-sm"
-  } ${
-    selected
-      ? isFemaleOnly
-        ? "border-rose bg-rose/10"
-        : "border-burgundy/40 bg-cream"
-      : "border-border-subtle bg-cream/60 hover:border-burgundy/20"
   }`;
+}
+
+function choiceInputClass(compact: boolean, isFemaleOnly: boolean): string {
+  return `mt-1.5 w-full rounded-xl border bg-white px-3.5 shadow-sm transition-colors placeholder:text-wine/35 focus:outline-none focus:ring-2 ${
+    compact ? "py-2 text-sm" : "py-2.5"
+  } ${
+    isFemaleOnly
+      ? "border-rose/25 focus:border-rose focus:ring-rose/15"
+      : "border-border-subtle focus:border-burgundy/40 focus:ring-burgundy/10"
+  }`;
+}
+
+function BookingChoiceOption({
+  selected,
+  compact,
+  isFemaleOnly,
+  children,
+  ...inputProps
+}: {
+  selected: boolean;
+  compact: boolean;
+  isFemaleOnly: boolean;
+  children: React.ReactNode;
+} & React.ComponentPropsWithoutRef<"input">) {
+  return (
+    <label
+      className={`group flex cursor-pointer items-start gap-3 rounded-2xl border px-4 transition-all ${
+        compact ? "py-2.5 text-xs" : "py-3.5 text-sm"
+      } ${
+        selected
+          ? isFemaleOnly
+            ? "border-rose bg-white shadow-[0_2px_14px_rgba(157,77,111,0.14)] ring-1 ring-rose/35"
+            : "border-burgundy/45 bg-white shadow-sm ring-1 ring-burgundy/20"
+          : isFemaleOnly
+            ? "border-rose/20 bg-white/75 hover:border-rose/35 hover:bg-white"
+            : "border-border-subtle bg-white/85 hover:border-burgundy/25 hover:bg-white"
+      }`}
+    >
+      <input type="radio" className="sr-only" {...inputProps} />
+      <span
+        className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+          selected
+            ? isFemaleOnly
+              ? "border-rose bg-rose"
+              : "border-burgundy bg-burgundy"
+            : isFemaleOnly
+              ? "border-rose/30 bg-white group-hover:border-rose/45"
+              : "border-wine/20 bg-white group-hover:border-burgundy/35"
+        }`}
+        aria-hidden
+      >
+        {selected ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-white" />
+        ) : null}
+      </span>
+      <span className="min-w-0 flex-1">{children}</span>
+    </label>
+  );
 }
 
 export function BookingCard({
@@ -170,10 +219,16 @@ export function BookingCard({
     }
   }
 
-  const inputClass = `mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
-    compact ? "py-1.5 text-sm" : "py-2"
+  const inputClass = `mt-1.5 w-full rounded-xl border bg-white px-3.5 shadow-sm transition-colors focus:outline-none focus:ring-2 ${
+    compact ? "py-2 text-sm" : "py-2.5"
+  } ${
+    isFemaleOnly
+      ? "border-rose/25 focus:border-rose focus:ring-rose/15"
+      : "border-border-subtle focus:border-burgundy/40 focus:ring-burgundy/10"
   }`;
-  const labelClass = `block text-wine ${compact ? "text-xs" : "text-sm"}`;
+  const labelClass = `block font-medium text-wine ${
+    compact ? "text-xs" : "text-sm"
+  }`;
   const showCardText = formStep === 1 && Boolean(experience.cardText);
   const showEventMeta = formStep === 2 || !experience.cardText;
 
@@ -208,7 +263,7 @@ export function BookingCard({
         >
           {statusLabels.closed}
         </span>
-      ) : spotsLeft !== null && spotsLeft > 0 ? (
+      ) : shouldShowSpotsLeftBadge(spotsLeft) ? (
         <span
           className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream sm:px-3.5 sm:py-1.5 sm:text-xs ${
             compact ? "mt-2.5" : "mt-4"
@@ -216,7 +271,7 @@ export function BookingCard({
         >
           {formatSpotsBadge(labels.spotsLeftBadge, spotsLeft)}
         </span>
-      ) : (
+      ) : spotsLeft !== null && spotsLeft > 0 ? null : (
         <span
           className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream sm:px-3.5 sm:py-1.5 sm:text-xs ${
             compact ? "mt-2.5" : "mt-4"
@@ -405,9 +460,9 @@ export function BookingCard({
               </button>
             </>
           ) : (
-            <>
-              <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
-                <legend className={labelClass.replace("block ", "")}>
+            <div className={compact ? "space-y-4" : "space-y-5"}>
+              <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
+                <legend className={choiceLegendClass(compact)}>
                   {labels.bookingSeatingLabel}
                 </legend>
                 {(
@@ -426,40 +481,32 @@ export function BookingCard({
                 ).map((option) => {
                   const selected = seatingPreference === option.value;
                   return (
-                    <label
+                    <BookingChoiceOption
                       key={option.value}
-                      className={radioOptionClass(
-                        selected,
-                        compact,
-                        isFemaleOnly,
-                      )}
+                      selected={selected}
+                      compact={compact}
+                      isFemaleOnly={isFemaleOnly}
+                      name="seatingPreference"
+                      value={option.value}
+                      checked={selected}
+                      onChange={() => setSeatingPreference(option.value)}
+                      required
                     >
-                      <input
-                        type="radio"
-                        name="seatingPreference"
-                        value={option.value}
-                        checked={selected}
-                        onChange={() => setSeatingPreference(option.value)}
-                        className="mt-0.5 shrink-0 accent-burgundy"
-                        required
-                      />
-                      <span className="min-w-0">
-                        <span className="block font-medium text-wine">
-                          {option.title}
-                        </span>
-                        {!compact ? (
-                          <span className="mt-0.5 block text-xs leading-snug text-wine/55">
-                            {option.hint}
-                          </span>
-                        ) : null}
+                      <span className="block font-medium text-wine">
+                        {option.title}
                       </span>
-                    </label>
+                      {!compact ? (
+                        <span className="mt-1 block text-xs leading-relaxed text-wine/60">
+                          {option.hint}
+                        </span>
+                      ) : null}
+                    </BookingChoiceOption>
                   );
                 })}
               </fieldset>
               {seatingPreference === "join_others" ? (
-                <fieldset className={compact ? "space-y-1.5" : "space-y-2"}>
-                  <legend className={labelClass.replace("block ", "")}>
+                <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
+                  <legend className={choiceLegendClass(compact)}>
                     {labels.bookingTableLanguageLabel}
                   </legend>
                   {(
@@ -476,29 +523,23 @@ export function BookingCard({
                   ).map((option) => {
                     const selected = tableLanguagePreference === option.value;
                     return (
-                      <label
+                      <BookingChoiceOption
                         key={option.value}
-                        className={radioOptionClass(
-                          selected,
-                          compact,
-                          isFemaleOnly,
-                        )}
+                        selected={selected}
+                        compact={compact}
+                        isFemaleOnly={isFemaleOnly}
+                        name="tableLanguagePreference"
+                        value={option.value}
+                        checked={selected}
+                        onChange={() =>
+                          setTableLanguagePreference(option.value)
+                        }
+                        required
                       >
-                        <input
-                          type="radio"
-                          name="tableLanguagePreference"
-                          value={option.value}
-                          checked={selected}
-                          onChange={() =>
-                            setTableLanguagePreference(option.value)
-                          }
-                          className="mt-0.5 shrink-0 accent-burgundy"
-                          required
-                        />
-                        <span className="min-w-0 font-medium text-wine">
+                        <span className="font-medium text-wine">
                           {option.title}
                         </span>
-                      </label>
+                      </BookingChoiceOption>
                     );
                   })}
                 </fieldset>
@@ -508,12 +549,9 @@ export function BookingCard({
                 <textarea
                   value={dietaryNotes}
                   onChange={(e) => setDietaryNotes(e.target.value)}
-                  rows={compact ? 1 : 2}
-                  className={`mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 ${
-                    compact
-                      ? "min-h-[2.25rem] resize-none py-1.5 text-sm"
-                      : "py-2"
-                  }`}
+                  rows={compact ? 2 : 3}
+                  placeholder={labels.bookingDietaryPlaceholder}
+                  className={`${choiceInputClass(compact, isFemaleOnly)} resize-none`}
                 />
               </label>
               {error ? <p className="text-sm text-red-800">{error}</p> : null}
@@ -543,7 +581,7 @@ export function BookingCard({
               >
                 {labels.bookingStepBack}
               </button>
-            </>
+            </div>
           )}
         </form>
       ) : (

@@ -57,6 +57,12 @@ async function applyExperienceTypesPatch(sql: postgres.Sql): Promise<void> {
     ALTER TABLE experience_types
     ADD COLUMN IF NOT EXISTS content jsonb NOT NULL DEFAULT '{}'::jsonb
   `;
+
+  await sql`
+    ALTER TABLE bookings
+    ADD COLUMN IF NOT EXISTS seating_preference text,
+    ADD COLUMN IF NOT EXISTS table_language_preference text
+  `;
 }
 
 export async function ensureDevSchema(): Promise<void> {

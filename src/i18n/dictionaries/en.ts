@@ -283,6 +283,7 @@ export const en: Dictionary = {
       contact: "Contact",
       terms: "Terms and conditions",
       privacy: "Privacy",
+      girlsOnly: "Girls-only wine tastings",
     },
     legal: {
       eyebrow: "Legal",

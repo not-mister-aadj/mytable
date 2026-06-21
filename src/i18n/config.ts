@@ -32,3 +32,7 @@ export function termsPath(locale: Locale): string {
 export function privacyPath(locale: Locale): string {
   return locale === "en" ? "/en/privacy" : "/privacy";
 }
+
+export function girlsOnlyPath(locale: Locale): string {
+  return locale === "en" ? "/en/girls-only" : "/girls-only";
+}

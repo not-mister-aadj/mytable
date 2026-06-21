@@ -364,6 +364,7 @@ export interface Dictionary {
       contact: string;
       terms: string;
       privacy: string;
+      girlsOnly: string;
     };
     legal: {
       eyebrow: string;

@@ -36,6 +36,7 @@ interface ExperienceCardProps {
   viewTableCta: string;
   href: string;
   locale?: Locale;
+  socialPromise?: string;
   sourceSection?: AnalyticsSourceSection;
 }
 
@@ -48,6 +49,7 @@ export function ExperienceCard({
   href,
   locale = "nl",
   sourceSection = "agenda_grid",
+  socialPromise,
 }: ExperienceCardProps) {
   const isClosed = experience.status === "closed";
   const isSoldOut = experience.status === "soldOut";
@@ -166,7 +168,17 @@ export function ExperienceCard({
 
         <p className="mt-1 text-sm leading-snug text-wine/55">{dateTimeLine}</p>
 
-        {experience.cardText ? (
+        {socialPromise ? (
+          <p
+            className={`mt-2 text-sm font-medium leading-snug ${
+              isFemaleOnly ? "text-rose-deep" : "text-burgundy"
+            }`}
+          >
+            {socialPromise}
+          </p>
+        ) : null}
+
+        {!socialPromise && experience.cardText ? (
           <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-wine/65">
             {experience.cardText}
           </p>

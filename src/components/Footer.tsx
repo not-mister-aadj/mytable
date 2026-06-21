@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import {
+  girlsOnlyPath,
   localePath,
   privacyPath,
   termsPath,
@@ -19,6 +20,7 @@ export function Footer({ dict, locale }: FooterProps) {
   const year = new Date().getFullYear();
 
   const footerLinks = [
+    { label: dict.links.girlsOnly, href: girlsOnlyPath(locale) },
     { label: dict.links.terms, href: termsPath(locale) },
     { label: dict.links.privacy, href: privacyPath(locale) },
     { label: companyLegal.email, href: `mailto:${companyLegal.email}` },

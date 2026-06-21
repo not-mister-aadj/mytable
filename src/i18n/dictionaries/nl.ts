@@ -284,6 +284,7 @@ export const nl: Dictionary = {
       contact: "Contact",
       terms: "Algemene voorwaarden",
       privacy: "Privacy",
+      girlsOnly: "Girls-only proeverijen",
     },
     legal: {
       eyebrow: "Juridisch",

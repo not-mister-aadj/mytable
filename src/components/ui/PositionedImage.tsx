@@ -15,6 +15,7 @@ export function PositionedImage({
   fill = true,
   className = "object-cover",
   sizes,
+  quality,
   priority,
   onError,
 }: {
@@ -24,6 +25,7 @@ export function PositionedImage({
   fill?: boolean;
   className?: string;
   sizes?: string;
+  quality?: number;
   priority?: boolean;
   onError?: () => void;
 }) {
@@ -47,6 +49,7 @@ export function PositionedImage({
       className={className}
       style={style}
       sizes={sizes}
+      quality={quality}
       priority={priority}
       onError={onError}
       unoptimized={src.includes("supabase.co")}

@@ -102,9 +102,137 @@ body {
   animation: marquee-right 55s linear infinite;
 }
 
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.4s ease-out forwards;
+}
+
+.animate-toast-out {
+  animation: toast-out 0.32s ease-in forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-left,
   .animate-marquee-right {
     animation: none;
   }
+
+  .animate-toast-in,
+  .animate-toast-out {
+    animation: none;
+  }
 }
+
+/* Girls-only landing — navbar palette (premium blush / burgundy) */
+.girls-only-header {
+  --go-blush-mist: #f3e4ea;
+  --go-blush-veil: #f7eef2;
+  --go-cream: #f7f1e8;
+  --go-rose-muted: #c991a8;
+  --go-rose-deep: #9d4d6f;
+  --go-burgundy: #5a0f1b;
+  --go-wine: #2b0d12;
+  --go-nav-charcoal: #463238;
+  --go-nav-bg: rgba(243, 228, 234, 0.78);
+  --go-nav-bg-scrolled: rgba(247, 241, 232, 0.94);
+  --go-nav-border: rgba(157, 77, 111, 0.16);
+  --go-nav-border-strong: rgba(157, 77, 111, 0.24);
+  --go-nav-link: #463238;
+  --go-nav-link-hover: #5a0f1b;
+  --go-nav-cta-start: #7a3b52;
+  --go-nav-cta-end: #5a0f1b;
+  --go-nav-cta-hover-start: #6b3448;
+  --go-nav-cta-hover-end: #4a0c16;
+  --go-nav-lang-bg: rgba(255, 248, 239, 0.88);
+  --go-nav-lang-border: rgba(157, 77, 111, 0.22);
+  --go-nav-lang-text: #5a0f1b;
+}
+
+.girls-only-header--scrolled {
+  background-color: var(--go-nav-bg-scrolled);
+  border-bottom-color: var(--go-nav-border);
+}
+
+.girls-only-header--top {
+  background-color: var(--go-nav-bg);
+  border-bottom-color: transparent;
+}
+
+.girls-only-header__logo img {
+  filter: brightness(0) saturate(100%) invert(11%) sepia(28%) saturate(4200%)
+    hue-rotate(314deg) brightness(0.52) contrast(1.08);
+}
+
+.girls-only-header__nav-link {
+  color: var(--go-nav-link);
+}
+
+.girls-only-header__nav-link:hover,
+.girls-only-header__nav-link:focus-visible {
+  color: var(--go-nav-link-hover);
+}
+
+.girls-only-header__lang {
+  border-color: var(--go-nav-lang-border);
+  background-color: var(--go-nav-lang-bg);
+  color: var(--go-nav-lang-text);
+}
+
+.girls-only-header__lang:hover,
+.girls-only-header__lang:focus-visible {
+  border-color: var(--go-nav-border-strong);
+  background-color: var(--go-cream);
+}
+
+.girls-only-header__cta {
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    135deg,
+    var(--go-nav-cta-start) 0%,
+    var(--go-nav-cta-end) 100%
+  );
+  color: var(--go-cream);
+  box-shadow: 0 4px 18px rgba(90, 15, 27, 0.18);
+}
+
+.girls-only-header__cta:hover,
+.girls-only-header__cta:focus-visible {
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    135deg,
+    var(--go-nav-cta-hover-start) 0%,
+    var(--go-nav-cta-hover-end) 100%
+  );
+  box-shadow: 0 6px 22px rgba(90, 15, 27, 0.24);
+}
+
+.girls-only-header__menu-btn {
+  border-color: var(--go-nav-border-strong);
+  background-color: var(--go-nav-lang-bg);
+}
+
+.girls-only-header__menu-icon {
+  background-color: var(--go-burgundy);
+}
+

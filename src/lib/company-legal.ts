@@ -14,7 +14,7 @@ export const companyLegal = {
   kvk: "74627120",
   btw: "NL004132989B53",
   /** ISO date string for display, e.g. "7 juni 2026" via locale formatter */
-  lastUpdatedIso: "2026-06-07",
+  lastUpdatedIso: "2026-06-05",
   exchangeDeadlineHours: 48,
 } as const;
 

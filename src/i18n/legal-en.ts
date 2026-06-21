@@ -96,6 +96,18 @@ export const termsEn: LegalDocumentContent = {
           type: "p",
           text: "To run the event, we may share limited guest information with the partner venue, such as the name on the booking, group size and dietary notes.",
         },
+        {
+          type: "p",
+          text: "Photos and video: during {{tradeName}} evenings, photos and videos may be taken by us or photographers and videographers we engage. By completing your payment, you agree that you may appear in material we use for marketing, including our website, social media, email and online advertising.",
+        },
+        {
+          type: "p",
+          text: "Prefer not to be clearly on camera? Tell the host or on-site team when you arrive. We will do our best to accommodate that, but we cannot guarantee you will not appear in the background of group or atmosphere shots.",
+        },
+        {
+          type: "p",
+          text: "You may always ask us to reasonably adjust or remove specific images on which you are recognisably pictured, via {{email}}. See our privacy policy at {{websiteUrl}}/en/privacy for more.",
+        },
       ],
     },
     {
@@ -230,6 +242,7 @@ export const privacyEn: LegalDocumentContent = {
                 "Making a reservation: your name, email address, number of seats and optional dietary notes;",
                 "Contact by email: your name, email address and message content;",
                 "Waitlist or newsletter (if available): your email address and preferred city, if you sign up.",
+                "At events: photos and videos on which guests may appear recognisably, where you give consent when booking.",
               ],
             },
           ],
@@ -340,6 +353,27 @@ export const privacyEn: LegalDocumentContent = {
             },
           ],
         },
+        {
+          title: "Marketing photos and video",
+          blocks: [
+            {
+              type: "p",
+              text: "We sometimes take photos and videos during {{tradeName}} evenings for promotion. Guests may appear recognisably in that material.",
+            },
+            {
+              type: "p",
+              text: "Legal basis: consent, given when you complete a reservation and accept our terms and conditions.",
+            },
+            {
+              type: "p",
+              text: "Retention: for as long as the material remains commercially relevant for our marketing, usually up to 3 years, unless the law requires otherwise.",
+            },
+            {
+              type: "p",
+              text: "You may object, withdraw consent or request deletion via {{email}}. Withdrawal does not have retroactive effect for material already published where reasonable removal is no longer feasible.",
+            },
+          ],
+        },
       ],
       blocks: [],
     },
@@ -392,6 +426,7 @@ export const privacyEn: LegalDocumentContent = {
           items: [
             "Order and invoice data: at least 7 years to comply with tax retention rules.",
             "Booking data: as long as needed to fulfil your reservation and any follow-up.",
+            "Marketing photos and videos: usually up to 3 years, or shorter if you withdraw consent and removal is reasonably possible.",
             "Technical logs: kept briefly, only as long as needed for security and troubleshooting.",
           ],
         },

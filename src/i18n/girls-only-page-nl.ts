@@ -123,7 +123,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     available: "Beschikbaar",
     almostFull: "Bijna vol",
     soldOut: "Uitverkocht",
-    closed: "Vol",
+    closed: "Uitverkocht",
     new: "Nieuw",
   },
   femaleOnlyBadge: "Girls only",

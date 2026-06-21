@@ -96,6 +96,18 @@ export const termsNl: LegalDocumentContent = {
           type: "p",
           text: "Om het evenement te kunnen uitvoeren mogen wij beperkte gastinformatie delen met de partnerlocatie, zoals de naam op de boeking, de groepsgrootte en dieetnotities.",
         },
+        {
+          type: "p",
+          text: "Foto- en video-opnames: tijdens {{tradeName}}-avonden kunnen foto's en video's worden gemaakt door ons of door door ons ingeschakelde fotografen of videografen. Door je betaling af te ronden stem je ermee in dat je aanwezig kunt zijn op beeldmateriaal dat wij gebruiken voor marketing, waaronder onze website, social media, e-mail en online advertenties.",
+        },
+        {
+          type: "p",
+          text: "Wil je liever niet (duidelijk) in beeld? Meld dat bij aankomst aan de host of het team ter plaatse. Wij doen ons best om daar rekening mee te houden, maar kunnen niet garanderen dat je nergens op de achtergrond verschijnt in groeps- of sfeeropnames.",
+        },
+        {
+          type: "p",
+          text: "Je kunt altijd vragen om redelijke aanpassing of verwijdering van specifieke beelden waarop je herkenbaar in beeld bent, via {{email}}. Meer hierover staat in ons privacybeleid op {{websiteUrl}}/privacy.",
+        },
       ],
     },
     {
@@ -230,6 +242,7 @@ export const privacyNl: LegalDocumentContent = {
                 "Reservering plaatsen: je naam, e-mailadres, aantal plaatsen en optioneel dieetwensen;",
                 "Contact per e-mail: je naam, e-mailadres en de inhoud van je bericht;",
                 "Wachtlijst of nieuwsbrief (indien beschikbaar): je e-mailadres en voorkeursstad, als je je hiervoor aanmeldt.",
+                "Tijdens evenementen: foto's en video's waarop deelnemers (mogelijk herkenbaar) in beeld kunnen zijn, als je daarvoor toestemming geeft bij het boeken.",
               ],
             },
           ],
@@ -340,6 +353,27 @@ export const privacyNl: LegalDocumentContent = {
             },
           ],
         },
+        {
+          title: "Marketingfoto's en -video's",
+          blocks: [
+            {
+              type: "p",
+              text: "Tijdens {{tradeName}}-avonden maken wij soms foto's en video's voor promotie. Daarin kunnen deelnemers herkenbaar in beeld zijn.",
+            },
+            {
+              type: "p",
+              text: "Grondslag: toestemming, gegeven door een reservering af te ronden en daarmee akkoord te gaan met de algemene voorwaarden.",
+            },
+            {
+              type: "p",
+              text: "Bewaartermijn: zolang het beeldmateriaal commercieel relevant blijft voor onze marketing, doorgaans maximaal 3 jaar, tenzij wettelijk anders vereist.",
+            },
+            {
+              type: "p",
+              text: "Je kunt bezwaar maken, toestemming intrekken of verwijdering vragen via {{email}}. Intrekken heeft geen terugwerkende kracht voor reeds gepubliceerd materiaal waar redelijke verwijdering niet meer haalbaar is.",
+            },
+          ],
+        },
       ],
       blocks: [],
     },
@@ -392,6 +426,7 @@ export const privacyNl: LegalDocumentContent = {
           items: [
             "Bestel- en factuurgegevens bewaren wij ten minste 7 jaar om te voldoen aan fiscale bewaarplichten.",
             "Boekingsgegevens bewaren wij zolang nodig voor de uitvoering van je reservering en eventuele nazorg.",
+            "Marketingfoto's en -video's bewaren wij doorgaans maximaal 3 jaar, of korter als je toestemming intrekt en redelijke verwijdering mogelijk is.",
             "Technische loggegevens bewaren wij kort, alleen zolang nodig voor beveiliging en foutopsporing.",
           ],
         },

@@ -62,6 +62,12 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingStepNext: "Volgende",
   bookingStepBack: "Terug",
   bookingFemaleOnlyNote: "Deze tafel is alleen voor vrouwen.",
+  bookingMediaConsent:
+    "Door je boeking af te ronden stem je ermee in dat tijdens de avond foto's en video's kunnen worden gemaakt en gebruikt voor MyTable-marketing, waaronder onze website, social media, e-mail en online advertenties.",
+  bookingMediaConsentReadMore: "Meer in onze",
+  bookingMediaConsentTerms: "algemene voorwaarden",
+  bookingMediaConsentPrivacy: "privacyverklaring",
+  bookingMediaConsentAnd: "en",
   spotsLeftBadge: "Nog {count} plekken beschikbaar",
   bookingViewsLabel: "{count} mensen bekeken deze tafel deze week",
   bookingTrustBullets: [
@@ -109,10 +115,10 @@ export const experiencePageNl: ExperiencePageLabels = {
     available: "Nog voldoende plekken beschikbaar",
     almostFull: "Nog enkele plekken over, wees er snel bij",
     soldOut: "Deze tafel is uitverkocht",
-    closed: "Boekingen gesloten",
+    closed: "Uitverkocht",
     new: "Nieuw in ons aanbod",
   },
-  closedCta: "Vol, gesloten",
+  closedCta: "Uitverkocht",
   moods: {
     tastings: {
       tagline: "Wijnproeverij aan één tafel, girls only of gemengde groep",

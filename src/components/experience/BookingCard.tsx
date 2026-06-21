@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
-import type { Locale } from "@/i18n/config";
+import { privacyPath, termsPath, type Locale } from "@/i18n/config";
 import {
   canReserve,
   formatPerPerson,
@@ -255,13 +256,13 @@ export function BookingCard({
         {priceLine}
       </p>
 
-      {isClosed ? (
+      {isClosed || isSoldOut ? (
         <span
           className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream sm:px-3.5 sm:py-1.5 sm:text-xs ${
             compact ? "mt-2.5" : "mt-4"
-          } bg-wine/80`}
+          } ${isFemaleOnly ? "bg-rose/90" : "bg-burgundy/90"}`}
         >
-          {statusLabels.closed}
+          {statusLabels.soldOut}
         </span>
       ) : shouldShowSpotsLeftBadge(spotsLeft) ? (
         <span
@@ -555,6 +556,28 @@ export function BookingCard({
                 />
               </label>
               {error ? <p className="text-sm text-red-800">{error}</p> : null}
+              <p
+                className={`leading-relaxed text-wine/55 ${
+                  compact ? "text-[11px]" : "text-xs"
+                }`}
+              >
+                {labels.bookingMediaConsent}{" "}
+                {labels.bookingMediaConsentReadMore}{" "}
+                <Link
+                  href={termsPath(locale)}
+                  className="text-wine/70 underline-offset-2 hover:text-wine hover:underline"
+                >
+                  {labels.bookingMediaConsentTerms}
+                </Link>{" "}
+                {labels.bookingMediaConsentAnd}{" "}
+                <Link
+                  href={privacyPath(locale)}
+                  className="text-wine/70 underline-offset-2 hover:text-wine hover:underline"
+                >
+                  {labels.bookingMediaConsentPrivacy}
+                </Link>
+                .
+              </p>
               <button
                 type="submit"
                 disabled={loading}

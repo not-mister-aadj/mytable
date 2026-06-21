@@ -110,6 +110,11 @@ export interface ExperiencePageLabels {
   bookingStepNext: string;
   bookingStepBack: string;
   bookingFemaleOnlyNote: string;
+  bookingMediaConsent: string;
+  bookingMediaConsentReadMore: string;
+  bookingMediaConsentTerms: string;
+  bookingMediaConsentPrivacy: string;
+  bookingMediaConsentAnd: string;
   spotsLeftBadge: string;
   bookingViewsLabel: string;
   bookingTrustBullets: string[];

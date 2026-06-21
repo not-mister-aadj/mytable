@@ -15,6 +15,10 @@ import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import { isSeatingPreference } from "@/lib/booking-seating";
 import { isTableLanguagePreference } from "@/lib/booking-table-language";
+import {
+  MEDIA_MARKETING_CONSENT_EVENT,
+  MEDIA_MARKETING_CONSENT_VERSION,
+} from "@/lib/media-marketing-consent";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -182,6 +186,16 @@ export async function POST(request: Request) {
     .returning();
 
   await onBookingCreated({ booking, event });
+
+  await db.insert(bookingEvents).values({
+    bookingId: booking.id,
+    type: MEDIA_MARKETING_CONSENT_EVENT,
+    payload: {
+      version: MEDIA_MARKETING_CONSENT_VERSION,
+      acceptedAt: new Date().toISOString(),
+      locale,
+    },
+  });
 
   const utm = body.utm ?? {};
   const metaContext = parseMetaTrackingContext(body.meta);

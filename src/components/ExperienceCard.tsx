@@ -128,9 +128,9 @@ export function ExperienceCard({
         {isUnavailable ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-wine/35">
             <span
-              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wide sm:text-sm ${statusBadgeStyles[isClosed ? "closed" : "soldOut"]}`}
+              className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wide sm:text-sm ${statusBadgeStyles.soldOut}`}
             >
-              {isClosed ? statusLabels.closed : statusLabels.soldOut}
+              {statusLabels.soldOut}
             </span>
           </div>
         ) : (
@@ -210,11 +210,9 @@ export function ExperienceCard({
               isUnavailable ? "text-wine/40" : "text-burgundy group-hover:text-wine"
             }`}
           >
-            {isClosed
-              ? statusLabels.closed
-              : isSoldOut
-                ? statusLabels.soldOut
-                : `${viewTableCta} →`}
+            {isUnavailable
+              ? statusLabels.soldOut
+              : `${viewTableCta} →`}
           </span>
         </div>
       </div>

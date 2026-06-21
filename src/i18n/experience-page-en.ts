@@ -62,6 +62,12 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingStepNext: "Continue",
   bookingStepBack: "Back",
   bookingFemaleOnlyNote: "This table is for women only.",
+  bookingMediaConsent:
+    "By completing your booking, you agree that photos and videos may be taken during the event and used for MyTable marketing, including our website, social media, email and online ads.",
+  bookingMediaConsentReadMore: "More in our",
+  bookingMediaConsentTerms: "terms",
+  bookingMediaConsentPrivacy: "privacy policy",
+  bookingMediaConsentAnd: "and",
   spotsLeftBadge: "{count} spots still available",
   bookingViewsLabel: "{count} people viewed this table this week",
   bookingTrustBullets: [
@@ -109,10 +115,10 @@ export const experiencePageEn: ExperiencePageLabels = {
     available: "Plenty of seats still available",
     almostFull: "Only a few spots left, book soon",
     soldOut: "This table is sold out",
-    closed: "Bookings closed",
+    closed: "Sold out",
     new: "New in our lineup",
   },
-  closedCta: "Full, closed",
+  closedCta: "Sold out",
   moods: {
     tastings: {
       tagline: "Wine tasting at one table, girls only or mixed group",

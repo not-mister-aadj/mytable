@@ -14,10 +14,14 @@ export function initPostHogClient(): void {
 
   posthog.init(key, {
     api_host: getPostHogIngestHost(),
+    ui_host: "https://eu.posthog.com",
     person_profiles: "identified_only",
     capture_pageview: false,
     capture_pageleave: true,
     persistence: "localStorage+cookie",
+    // We only use event capture — skip /flags and remote config (avoids 401/404 noise).
+    advanced_disable_feature_flags: true,
+    disable_session_recording: true,
   });
 
   initialized = true;

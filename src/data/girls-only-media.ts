@@ -5,6 +5,13 @@ export const girlsOnlyHeroMedia = {
 
 const galleryImages = [
   {
+    src: "/girls-only/paint-sip-unicorn.jpg",
+    alt: {
+      nl: "Twee vrouwen genieten van wijn tijdens een paint and sip avond",
+      en: "Two women enjoying wine during a paint and sip evening",
+    },
+  },
+  {
     src: "/girls-only/smiling-glasses.jpg",
     alt: {
       nl: "Vrouwen lachen en praten tijdens een girls-only avond uit",

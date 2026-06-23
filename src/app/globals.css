@@ -236,3 +236,7 @@ body {
   background-color: var(--go-burgundy);
 }
 
+.girls-only-header__mobile-menu {
+  background-color: var(--go-cream);
+}
+

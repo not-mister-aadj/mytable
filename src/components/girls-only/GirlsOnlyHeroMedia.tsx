@@ -34,7 +34,7 @@ export function GirlsOnlyHeroMedia({ locale }: GirlsOnlyHeroMediaProps) {
 
   return (
     <figure className="relative">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.18)] sm:aspect-[5/6]">
+      <div className="relative aspect-[16/10] max-h-[13.5rem] overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.18)] sm:aspect-[5/6] sm:max-h-none">
         {slides.map((slide, slideIndex) => (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img

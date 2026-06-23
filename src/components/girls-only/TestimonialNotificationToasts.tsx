@@ -29,11 +29,13 @@ function shuffle<T>(items: T[]): T[] {
 interface TestimonialNotificationToastsProps {
   items: GirlsOnlyToastItem[];
   justNowLabel: string;
+  className?: string;
 }
 
 export function TestimonialNotificationToasts({
   items,
   justNowLabel,
+  className = "bottom-4 left-4 right-4 sm:bottom-6 sm:left-auto sm:right-6 sm:max-w-sm",
 }: TestimonialNotificationToastsProps) {
   const [active, setActive] = useState<GirlsOnlyToastItem | null>(null);
   const [exiting, setExiting] = useState(false);
@@ -141,7 +143,7 @@ export function TestimonialNotificationToasts({
 
   return (
     <div
-      className="pointer-events-none fixed bottom-4 left-4 right-4 z-40 sm:bottom-6 sm:left-auto sm:right-6 sm:max-w-sm"
+      className={`pointer-events-none fixed z-40 ${className}`}
       role="status"
       aria-live="polite"
       aria-atomic="true"

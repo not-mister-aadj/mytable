@@ -1,6 +1,9 @@
 import type { Locale } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
-import { getGirlsOnlyWineEvents } from "@/lib/girls-only-landing";
+import {
+  getGirlsOnlyWineEvents,
+  partitionGirlsOnlyEvents,
+} from "@/lib/girls-only-landing";
 import type { ExperienceItem } from "@/i18n/types";
 import { GirlsOnlyLandingView } from "./GirlsOnlyLandingView";
 
@@ -15,7 +18,9 @@ export async function GirlsOnlyLanding({
   locale,
   agendaItems,
 }: GirlsOnlyLandingProps) {
-  const allEvents = getGirlsOnlyWineEvents(agendaItems, locale);
+  const events = getGirlsOnlyWineEvents(agendaItems, locale);
+  const { bookable, soldOut } = partitionGirlsOnlyEvents(events);
+  const allEvents = [...bookable, ...soldOut];
 
   return (
     <GirlsOnlyLandingView

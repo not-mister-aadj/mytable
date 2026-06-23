@@ -38,6 +38,8 @@ interface ExperienceCardProps {
   locale?: Locale;
   socialPromise?: string;
   sourceSection?: AnalyticsSourceSection;
+  /** Hides the social-promise line on small screens (shorter cards on mobile). */
+  compact?: boolean;
 }
 
 export function ExperienceCard({
@@ -50,6 +52,7 @@ export function ExperienceCard({
   locale = "nl",
   sourceSection = "agenda_grid",
   socialPromise,
+  compact = false,
 }: ExperienceCardProps) {
   const isClosed = experience.status === "closed";
   const isSoldOut = experience.status === "soldOut";
@@ -171,6 +174,8 @@ export function ExperienceCard({
         {socialPromise ? (
           <p
             className={`mt-2 text-sm font-medium leading-snug ${
+              compact ? "hidden sm:block" : ""
+            } ${
               isFemaleOnly ? "text-rose-deep" : "text-burgundy"
             }`}
           >

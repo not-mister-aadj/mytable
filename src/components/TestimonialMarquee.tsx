@@ -74,6 +74,8 @@ interface TestimonialMarqueeProps {
   bottom: Testimonial[];
   fadeFromClassName?: string;
   cardClassName?: string;
+  /** Single marquee row instead of two (shorter on mobile landing pages). */
+  singleRow?: boolean;
 }
 
 export function TestimonialMarquee({
@@ -81,6 +83,7 @@ export function TestimonialMarquee({
   bottom,
   fadeFromClassName = "from-cream",
   cardClassName,
+  singleRow = false,
 }: TestimonialMarqueeProps) {
   return (
     <div className="relative mt-12 sm:mt-14">
@@ -94,11 +97,13 @@ export function TestimonialMarquee({
       />
       <div className="space-y-4 sm:space-y-5">
         <MarqueeRow items={top} direction="left" cardClassName={cardClassName} />
-        <MarqueeRow
-          items={bottom}
-          direction="right"
-          cardClassName={cardClassName}
-        />
+        {!singleRow ? (
+          <MarqueeRow
+            items={bottom}
+            direction="right"
+            cardClassName={cardClassName}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -48,7 +48,7 @@ export default async function GirlsOnlyPage({ params }: Props) {
         ctaLabel={labels.finalCta.button}
         locale={locale}
       />
-      <main className="bg-cream">
+      <main className="bg-cream pb-20 lg:pb-0">
         <GirlsOnlyLanding
           labels={labels}
           locale={locale}

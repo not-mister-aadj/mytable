@@ -24,7 +24,6 @@ export interface GirlsOnlyPageLabels {
     tables: string;
     howItWorks: string;
     whyJoin: string;
-    allExperiences: string;
   };
   trust: {
     title: string;

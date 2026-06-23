@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { girlsOnlyPath, localePath } from "@/i18n/config";
+import { girlsOnlyPath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -181,13 +181,6 @@ export function GirlsOnlyHeader({
               {ctaLabel}
             </Button>
           </div>
-          <Link
-            href={localePath(locale)}
-            className="girls-only-header__nav-link mt-6 text-center text-sm font-medium underline-offset-4 hover:underline"
-            onClick={closeMenu}
-          >
-            {nav.allExperiences}
-          </Link>
         </div>
       </nav>
     </>

@@ -29,7 +29,6 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     tables: "Aankomende tafels",
     howItWorks: "Hoe het werkt",
     whyJoin: "Waarom girls komen",
-    allExperiences: "Alle MyTable-uitjes",
   },
   trust: {
     title: "Deze avonden vliegen eruit",

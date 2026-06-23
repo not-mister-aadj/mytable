@@ -28,7 +28,6 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     tables: "Upcoming tables",
     howItWorks: "How it works",
     whyJoin: "Why girls join",
-    allExperiences: "All MyTable experiences",
   },
   trust: {
     title: "These evenings sell out fast",

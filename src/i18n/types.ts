@@ -64,7 +64,6 @@ export interface ExperienceMoodContent {
 export interface ExperiencePageLabels {
   viewTableCta: string;
   secondaryCta: string;
-  agendaCta: string;
   heroTrustBar: string;
   heroTrustFooter: string;
   heroSpotsHint: string;

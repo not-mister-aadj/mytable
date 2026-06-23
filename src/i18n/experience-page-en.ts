@@ -11,7 +11,6 @@ import {
 export const experiencePageEn: ExperiencePageLabels = {
   viewTableCta: "View table",
   secondaryCta: "Back to agenda",
-  agendaCta: "View agenda",
   heroTrustBar: "★★★★★ 4.8 · 1200+ guests at the table since 2024",
   heroTrustFooter:
     "Pay in full when you book · Free date exchange up to 48 hours before · Dietary needs welcome",

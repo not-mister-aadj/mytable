@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { PositionedImage } from "@/components/ui/PositionedImage";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import type { Dictionary, ExperienceItem, ExperienceMoodContent } from "@/i18n/types";
-import { agendaPath, type Locale } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
 import {
   formatPerPerson,
   formatSpotsBadge,
@@ -200,12 +199,6 @@ export function ExperienceHero({
           >
             {reserveCta}
           </Button>
-          <Link
-            href={agendaPath(locale)}
-            className="inline-flex items-center justify-center rounded-full border border-cream/35 bg-cream/10 px-6 py-3 text-sm font-medium tracking-wide text-cream backdrop-blur-sm transition-all duration-300 hover:border-cream/55 hover:bg-cream/20"
-          >
-            {labels.agendaCta}
-          </Link>
         </motion.div>
 
         <motion.p

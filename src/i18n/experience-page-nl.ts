@@ -11,7 +11,6 @@ import {
 export const experiencePageNl: ExperiencePageLabels = {
   viewTableCta: "Bekijk tafel",
   secondaryCta: "Terug naar agenda",
-  agendaCta: "Bekijk agenda",
   heroTrustBar: "★★★★★ 4.8 · 1200+ gasten aan tafel sinds 2024",
   heroTrustFooter:
     "Alles vooraf betaald · Gratis ruilen tot 48 uur van tevoren · Dieetwensen mogelijk",

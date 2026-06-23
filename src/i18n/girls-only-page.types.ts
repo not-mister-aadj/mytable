@@ -1,6 +1,10 @@
 import type { ExperienceStatusKey } from "./types";
 
 export interface GirlsOnlyPageLabels {
+  socialPromise: string;
+  toasts: {
+    justNow: string;
+  };
   meta: {
     title: string;
     description: string;
@@ -9,7 +13,6 @@ export interface GirlsOnlyPageLabels {
     eyebrow: string;
     title: string;
     subtitle: string;
-    cta: string;
     trustLine: string;
     calloutLabel: string;
     calloutPain: string;
@@ -55,7 +58,6 @@ export interface GirlsOnlyPageLabels {
   events: {
     title: string;
     subtitle: string;
-    cardSocialPromise: string;
     empty: string;
   };
   testimonials: {

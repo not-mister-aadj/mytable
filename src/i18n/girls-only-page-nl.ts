@@ -1,6 +1,11 @@
 import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
+  socialPromise:
+    "Nieuwe vriendinnen ontmoeten over 4 wijnen en chef's bites.",
+  toasts: {
+    justNow: "Zojuist",
+  },
   meta: {
     title: "Ontmoet nieuwe vriendinnen over goede wijn",
     description:
@@ -11,7 +16,6 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     title: "Ontmoet nieuwe vriendinnen. Proef lekkere wijn.",
     subtitle:
       "Je wilt iets leuks doen, maar niemand kan of wil mee? Girl, je bent niet de enige. Kom solo, met een vriendin, of reserveer je eigen tafel met je groep. Geen datumprikkers. Gewoon gezellig aan tafel.",
-    cta: "Schuif aan tafel",
     trustLine: "Solo or met vriendinnen · Kleine tafels · Beginners welkom",
     calloutLabel: "We kennen het allemaal wel:",
     calloutPain: "Je wilt iets leuks doen, maar niemand kan of wil mee.",
@@ -100,8 +104,6 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     title: "Schuif aan een tafel bij jou in de buurt",
     subtitle:
       "Door heel Nederland. Kies je stad, kies je datum, en kom opdagen.",
-    cardSocialPromise:
-      "Nieuwe vriendinnen ontmoeten over 4 wijnen en chef's bites.",
     empty:
       "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
   },

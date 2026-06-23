@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { experiencePath, type Locale } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import {
   getGirlsOnlyTestimonials,
   splitGirlsOnlyTestimonialRows,
 } from "@/data/girls-only-testimonials";
+import { getGirlsOnlyToastNotifications } from "@/data/girls-only-toast-notifications";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/Button";
@@ -22,7 +22,6 @@ interface GirlsOnlyLandingViewProps {
   locale: Locale;
   allEvents: EnrichedExperience[];
   soldOut: EnrichedExperience[];
-  primaryCtaHref: string;
   galleryItems: GirlsOnlyGalleryItem[];
 }
 
@@ -73,11 +72,14 @@ export function GirlsOnlyLandingView({
   locale,
   allEvents,
   soldOut,
-  primaryCtaHref,
   galleryItems,
 }: GirlsOnlyLandingViewProps) {
   const [showAllSoldOut, setShowAllSoldOut] = useState(false);
   const testimonials = getGirlsOnlyTestimonials(locale);
+  const toastNotifications = useMemo(
+    () => getGirlsOnlyToastNotifications(locale),
+    [locale],
+  );
   const { top, bottom } = splitGirlsOnlyTestimonialRows(testimonials);
   const trustPills = labels.hero.trustLine.split(" · ");
   const visibleSoldOut = showAllSoldOut
@@ -92,7 +94,7 @@ export function GirlsOnlyLandingView({
     reserveCta: labels.reserveCta,
     viewTableCta: labels.viewTableCta,
     locale,
-    socialPromise: labels.events.cardSocialPromise,
+    socialPromise: labels.socialPromise,
     sourceSection: "agenda_grid" as const,
   };
 
@@ -130,16 +132,10 @@ export function GirlsOnlyLandingView({
                   </p>
                 </div>
 
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
-                  <GirlsOnlyCta href={primaryCtaHref}>
-                    {labels.hero.cta}
-                  </GirlsOnlyCta>
-                  <Link
-                    href="#events"
-                    className="text-sm font-medium text-rose-deep underline-offset-4 hover:underline"
-                  >
+                <div className="mt-8 flex justify-center lg:justify-start">
+                  <GirlsOnlyCta href="#events">
                     {labels.finalCta.button}
-                  </Link>
+                  </GirlsOnlyCta>
                 </div>
 
                 <ul className="mt-6 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
@@ -149,6 +145,10 @@ export function GirlsOnlyLandingView({
                     </li>
                   ))}
                 </ul>
+
+                <p className="mt-5 text-sm font-medium leading-relaxed text-rose-deep sm:text-base">
+                  {labels.socialPromise}
+                </p>
               </div>
             </div>
 
@@ -233,6 +233,9 @@ export function GirlsOnlyLandingView({
             </h2>
             <p className="mt-3 text-base leading-relaxed text-wine/65">
               {labels.howItWorks.subtitle}
+            </p>
+            <p className="mt-4 text-sm font-medium text-rose-deep sm:text-base">
+              {labels.socialPromise}
             </p>
           </div>
           <ol className="mt-10 grid gap-5 sm:grid-cols-3 sm:gap-6">
@@ -357,7 +360,10 @@ export function GirlsOnlyLandingView({
       </section>
 
       {testimonials.length > 0 ? (
-        <TestimonialNotificationToasts testimonials={testimonials} />
+        <TestimonialNotificationToasts
+          items={toastNotifications}
+          justNowLabel={labels.toasts.justNow}
+        />
       ) : null}
     </>
   );

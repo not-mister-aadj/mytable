@@ -17,7 +17,10 @@ interface GirlsOnlyHeaderProps {
   locale: Locale;
 }
 
-const ctaBase =
+const navLinkClassName =
+  "girls-only-header__nav-link text-sm font-medium transition-colors duration-200";
+
+const ctaClassName =
   "girls-only-header__cta border-0 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-300 sm:text-sm";
 
 export function GirlsOnlyHeader({
@@ -78,7 +81,7 @@ export function GirlsOnlyHeader({
             <Link
               key={link.href}
               href={link.href}
-              className="girls-only-header__nav-link text-sm font-medium transition-colors duration-200"
+              className={navLinkClassName}
             >
               {link.label}
             </Link>
@@ -91,7 +94,7 @@ export function GirlsOnlyHeader({
             label={headerDict.languageSwitch}
             variant="girlsOnly"
           />
-          <Button href="#events" variant="primary" className={ctaBase}>
+          <Button href="#events" variant="primary" className={ctaClassName}>
             <span aria-hidden className="mr-1.5 opacity-90">
               ›
             </span>
@@ -159,7 +162,7 @@ export function GirlsOnlyHeader({
             <Button
               href="#events"
               variant="primary"
-              className={`${ctaBase} w-full`}
+              className={`${ctaClassName} w-full`}
               onClick={closeMenu}
             >
               <span aria-hidden className="mr-1.5 opacity-90">

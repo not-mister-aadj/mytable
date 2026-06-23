@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Testimonial, TestimonialAvatar } from "@/data/testimonials";
+import type { GirlsOnlyToastItem } from "@/data/girls-only-toast-notifications";
+import type { TestimonialAvatar } from "@/data/testimonials";
 
 const MAX_TOASTS = 6;
 const INITIAL_DELAY_MS = 12_000;
@@ -26,16 +27,18 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 interface TestimonialNotificationToastsProps {
-  testimonials: Testimonial[];
+  items: GirlsOnlyToastItem[];
+  justNowLabel: string;
 }
 
 export function TestimonialNotificationToasts({
-  testimonials,
+  items,
+  justNowLabel,
 }: TestimonialNotificationToastsProps) {
-  const [active, setActive] = useState<Testimonial | null>(null);
+  const [active, setActive] = useState<GirlsOnlyToastItem | null>(null);
   const [exiting, setExiting] = useState(false);
 
-  const queueRef = useRef<Testimonial[]>([]);
+  const queueRef = useRef<GirlsOnlyToastItem[]>([]);
   const shownCountRef = useRef(0);
   const firstTriggeredRef = useRef(false);
   const isVisibleRef = useRef(false);
@@ -100,12 +103,12 @@ export function TestimonialNotificationToasts({
   }, []);
 
   useEffect(() => {
-    if (testimonials.length === 0) return undefined;
+    if (items.length === 0) return undefined;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return undefined;
     }
 
-    queueRef.current = shuffle(testimonials).slice(0, MAX_TOASTS);
+    queueRef.current = shuffle(items).slice(0, MAX_TOASTS);
 
     const initialTimer = setTimeout(triggerFirst, INITIAL_DELAY_MS);
 
@@ -132,7 +135,7 @@ export function TestimonialNotificationToasts({
       observers.forEach((observer) => observer.disconnect());
       clearTimers();
     };
-  }, [testimonials, triggerFirst, clearTimers]);
+  }, [items, triggerFirst, clearTimers]);
 
   if (!active) return null;
 
@@ -155,16 +158,37 @@ export function TestimonialNotificationToasts({
           >
             {active.initials}
           </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-wine">
-              {active.name}
-            </p>
-            <p className="truncate text-xs text-wine/55">{active.detail}</p>
+          <div className="min-w-0 flex-1">
+            {active.kind === "booking" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full bg-emerald-500"
+                    aria-hidden
+                  />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/50">
+                    {justNowLabel}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm font-semibold leading-snug text-wine">
+                  {active.message}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="truncate text-sm font-semibold text-wine">
+                  {active.name}
+                </p>
+                <p className="truncate text-xs text-wine/55">{active.detail}</p>
+              </>
+            )}
           </div>
         </header>
-        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-wine/75">
-          {active.quote}
-        </p>
+        {active.kind === "review" ? (
+          <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-wine/75">
+            {active.quote}
+          </p>
+        ) : null}
       </article>
     </div>
   );

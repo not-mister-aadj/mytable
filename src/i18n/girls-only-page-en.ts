@@ -1,6 +1,10 @@
 import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
+  socialPromise: "Meet new girlfriends over 4 wines and chef's bites.",
+  toasts: {
+    justNow: "Just now",
+  },
   meta: {
     title: "Meet new girlfriends over great wine",
     description:
@@ -11,7 +15,6 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     title: "Meet new girlfriends. Taste great wine.",
     subtitle:
       "You want to do something fun but nobody can or wants to come? Girl, you're not the only one. Come solo, bring a friend, or book your own table with your group. No date polls. Just show up and have a good time.",
-    cta: "Join a table",
     trustLine: "Solo or with friends · Small tables · Beginners welcome",
     calloutLabel: "We all know the feeling:",
     calloutPain: "You want to do something fun but nobody can or wants to come.",
@@ -99,8 +102,6 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   events: {
     title: "Join a table near you",
     subtitle: "Across the Netherlands. Pick your city, pick your date, and come.",
-    cardSocialPromise:
-      "Meet new girlfriends over 4 wines and chef's bites.",
     empty:
       "New girls-only tables are added regularly. Check back soon or follow MyTable for updates.",
   },

@@ -45,7 +45,7 @@ export default async function GirlsOnlyPage({ params }: Props) {
       <GirlsOnlyHeader
         headerDict={dict.header}
         nav={labels.headerNav}
-        ctaLabel={labels.hero.cta}
+        ctaLabel={labels.finalCta.button}
         locale={locale}
       />
       <main className="bg-cream">

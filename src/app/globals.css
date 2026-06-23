@@ -27,11 +27,13 @@
 }
 
 html {
+  color-scheme: light only;
   scroll-behavior: smooth;
+  background-color: var(--cream);
 }
 
 body {
-  background: var(--cream);
+  background-color: var(--cream);
   color: var(--wine);
   font-family: var(--font-dm-sans), system-ui, sans-serif;
 }

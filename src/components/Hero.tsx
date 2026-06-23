@@ -22,7 +22,7 @@ export function Hero({ dict, agendaHref, nextEvent }: HeroProps) {
   return (
     <section
       id="banner"
-      className="relative scroll-mt-20 overflow-hidden pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28"
+      className="relative scroll-mt-20 overflow-hidden bg-cream pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28"
     >
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:px-10">
         <div className="max-w-xl">

@@ -28,7 +28,11 @@ export interface GirlsOnlyPageLabels {
   howItWorks: {
     title: string;
     subtitle: string;
-    steps: { title: string; description: string }[];
+    sharedStep: { title: string; description: string };
+    paths: {
+      label: string;
+      steps: { title: string; description: string }[];
+    }[];
   };
   benefits: {
     title: string;

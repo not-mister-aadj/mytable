@@ -2,28 +2,30 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   socialPromise:
-    "Nieuwe vriendinnen ontmoeten over 4 wijnen en chef's bites.",
+    "Vier wijnen, chef's bites en een avond die voelt als uit eten met je meiden.",
   toasts: {
     justNow: "Zojuist",
   },
   meta: {
-    title: "Ontmoet nieuwe vriendinnen over goede wijn",
+    title: "Girls-only wijnspijs met je vriendinnen",
     description:
-      "Girls-only wijnproeverijen door heel Nederland. Join solo, leave with friends. Geen datumprikkers, gewoon gezellig aan tafel.",
+      "Girls-only wijnproeverijen door heel Nederland. Boek een tafel voor je groep, of schuif solo aan. Wij regelen wijn, bites en een gezellige tafel.",
   },
   hero: {
     eyebrow: "Girls only · MyTable",
-    title: "Ontmoet nieuwe vriendinnen. Proef lekkere wijn.",
+    title: "Wijnspijs met je vriendinnen. Zonder gedoe.",
     subtitle:
-      "Je wilt iets leuks doen, maar niemand kan of wil mee? Girl, je bent niet de enige. Kom solo, met een vriendin, of reserveer je eigen tafel met je groep. Geen datumprikkers. Gewoon gezellig aan tafel.",
-    trustLine: "Solo or met vriendinnen · Kleine tafels · Beginners welkom",
-    calloutLabel: "We kennen het allemaal wel:",
-    calloutPain: "Je wilt iets leuks doen, maar niemand kan of wil mee.",
-    calloutReassurance: "Girl, je bent zeker niet de enige!",
+      "Een avond uit met wijn, bites en goede gesprekken, precies zoals jullie dat willen. Reserveer jullie eigen tafel met je groep. Geen datumprikkers, geen menu-ruzie. Gewoon opdagen en genieten.",
+    trustLine:
+      "Met je vriendinnen · Solo ook welkom · Kleine tafels · Beginners welkom",
+    calloutLabel: "Jouw volgende girls' wine night:",
+    calloutPain:
+      "Vier wijnen, chef's bites en gezelligheid aan een tafel die van jullie is.",
+    calloutReassurance: "Reserveer voor je groep. Wij regelen de rest.",
     calloutBody:
-      "Kom solo, met een vriendin, of reserveer je eigen tafel met je groep. Geen datumprikkers. Gewoon gezellig aan tafel.",
+      "Geen groep beschikbaar? Schuif solo of met een vriendin aan bij anderen. MyTable zorgt dat je aan een fijne tafel belandt.",
     imageAlt:
-      "Vrouwen in gesprek tijdens een gezellige girls-only avond uit",
+      "Vrouwen genieten van wijn en bites tijdens een girls-only avond uit",
   },
   headerNav: {
     tables: "Aankomende tafels",
@@ -32,62 +34,83 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   },
   howItWorks: {
     title: "Hoe het werkt",
-    subtitle: "Kom solo, met een vriendin, of met je eigen groep.",
-    steps: [
+    subtitle:
+      "Eerst kies je je avond. Daarna bepaal je of je met je groep komt of aanschuift bij anderen.",
+    sharedStep: {
+      title: "Kies je tafel",
+      description:
+        "Kies je stad en datum en reserveer. De avond staat vast. Geen heen-en-weer appen over wanneer het uitkomt.",
+    },
+    paths: [
       {
-        title: "Kies je tafel",
-        description:
-          "Kies je stad en datum en reserveer. De avond staat vast. Geen heen-en-weer appen over wanneer het uitkomt.",
+        label: "Met je vriendinnen",
+        steps: [
+          {
+            title: "Reserveer jullie eigen tafel",
+            description:
+              "Boek voor je groep: twee, vier of meer. Jullie zitten samen aan een eigen tafel.",
+          },
+          {
+            title: "Kom opdagen en proef",
+            description:
+              "Vier wijnen, chef's bites en een avond die voelt als uit eten met je meiden. Wij regelen alles rond de tafel.",
+          },
+        ],
       },
       {
-        title: "Kies hoe je aanschuift",
-        description:
-          "Aanschuiven bij anderen? Solo of met een vriendin, en je ontmoet nieuwe girls aan tafel. Eigen tafel voor jullie groep? Kan ook.",
-      },
-      {
-        title: "Kom opdagen en geniet",
-        description:
-          "Vier wijnen, chef's bites en gesprekken die vanzelf lopen. Join solo, leave with friends.",
+        label: "Solo of met één vriendin",
+        steps: [
+          {
+            title: "Schuif aan bij anderen",
+            description:
+              "Geen volledige groep? Boek solo of met een vriendin en schuif aan bij andere girls aan tafel.",
+          },
+          {
+            title: "MyTable regelt je plek",
+            description:
+              "Wij zorgen dat je aan een gezellige tafel belandt. Vaak leer je onderweg nog andere girls kennen, maar het draait om de avond, niet om matchen.",
+          },
+        ],
       },
     ],
   },
   benefits: {
     title: "Waarom girls komen",
     subtitle:
-      "Voor nieuwe vriendinnen, een avond uit met je meiden, of allebei.",
+      "Voor een avond wijnspijs met je meiden, en als bonus soms nieuwe gezichten aan tafel.",
     items: [
-      {
-        title: "Kom zoals jij wilt",
-        description:
-          "Solo aanschuiven bij anderen, met een vriendin mee, of jullie eigen tafel reserveren. Alle drie mag. De meeste girls komen solo, maar er is geen verkeerde keuze.",
-      },
-      {
-        title: "Nieuwe vriendinnen, in real life",
-        description:
-          "Schuif je bij anderen aan, dan ontmoet je girls buiten je gebruikelijke kring. Geen eindeloos chatten. Gewoon aan tafel, face to face.",
-      },
       {
         title: "Wijn en eten geregeld",
         description:
           "Vier wijnen en bites van de chef. Wij regelen alles rond de tafel. Jij hoeft alleen op te komen dagen.",
       },
       {
+        title: "Jullie eigen tafel, jullie avond",
+        description:
+          "Reserveer voor je groep en zit samen aan een eigen tafel. Geen gedoe met reserveren, menu's of wie wat betaalt. Dat hebben wij al geregeld.",
+      },
+      {
         title: "Gezellig, niet awkward",
         description:
           "Geen netwerkpraat, geen speeddating-sfeer. Gewoon proeven, lachen en praten aan een kleine tafel.",
       },
+      {
+        title: "Solo? Ook prima",
+        description:
+          "Geen groep beschikbaar? Schuif solo of met een vriendin aan bij anderen. MyTable zorgt dat je aan een fijne tafel belandt.",
+      },
     ],
   },
   events: {
-    title: "Schuif aan een tafel bij jou in de buurt",
+    title: "Boek een tafel bij jou in de buurt",
     subtitle:
-      "Door heel Nederland. Kies je stad, kies je datum, en kom opdagen.",
+      "Door heel Nederland. Kies je stad, kies je datum, en kom met je meiden opdagen.",
     empty:
       "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
   },
   testimonials: {
     eyebrow: "Wat girls zeggen",
-    title: "Oké wacht… dit was veel leuker dan ze hadden verwacht",
+    title: "Precies zo'n avond uit als we zochten",
   },
   finalCta: {
     title: "Klaar voor je volgende girls' wine night?",

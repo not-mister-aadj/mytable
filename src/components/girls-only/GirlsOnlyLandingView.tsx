@@ -163,24 +163,48 @@ export function GirlsOnlyLandingView({
               {labels.socialPromise}
             </p>
           </div>
-          <ol className="mt-10 grid gap-5 sm:grid-cols-3 sm:gap-6">
-            {labels.howItWorks.steps.map((step, index) => (
-              <li
-                key={step.title}
-                className="rounded-3xl border border-rose/20 bg-beige/90 p-6 shadow-sm"
+          <div className="mx-auto mt-10 max-w-xl rounded-3xl border border-rose/20 bg-beige/90 p-6 text-left shadow-sm sm:p-7">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose font-serif text-lg font-medium text-cream">
+              1
+            </span>
+            <h3 className="mt-4 font-serif text-lg font-medium text-wine">
+              {labels.howItWorks.sharedStep.title}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-wine/65">
+              {labels.howItWorks.sharedStep.description}
+            </p>
+          </div>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:gap-8">
+            {labels.howItWorks.paths.map((path) => (
+              <div
+                key={path.label}
+                className="rounded-3xl border border-rose/20 bg-white/80 p-6 shadow-sm sm:p-7"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose font-serif text-lg font-medium text-cream">
-                  {index + 1}
-                </span>
-                <h3 className="mt-4 font-serif text-lg font-medium text-wine">
-                  {step.title}
+                <h3 className="font-serif text-lg font-medium text-wine sm:text-xl">
+                  {path.label}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-wine/65">
-                  {step.description}
-                </p>
-              </li>
+                <ol className="mt-5 space-y-5">
+                  {path.steps.map((step, index) => (
+                    <li key={step.title}>
+                      <div className="flex gap-4">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose/15 font-serif text-sm font-medium text-rose-deep">
+                          {index + 2}
+                        </span>
+                        <div>
+                          <h4 className="font-serif text-base font-medium text-wine">
+                            {step.title}
+                          </h4>
+                          <p className="mt-1.5 text-sm leading-relaxed text-wine/65">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 

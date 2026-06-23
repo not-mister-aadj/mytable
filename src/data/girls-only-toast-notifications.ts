@@ -34,32 +34,54 @@ function parseDetail(detail: string): { city: string; context: string } {
   return { city, context };
 }
 
+function isGroupContext(context: string): boolean {
+  const ctx = context.toLowerCase();
+  return (
+    ctx.includes("groep") ||
+    ctx.includes("vriendin") ||
+    ctx.includes("vriendinnen") ||
+    ctx.includes("meiden") ||
+    ctx.includes("group") ||
+    ctx.includes("friend") ||
+    ctx.includes("crew") ||
+    ctx.includes("birthday")
+  );
+}
+
+function parseGroupSize(context: string): number | null {
+  const match = context.match(/(?:groep van|group of)\s*(\d+)/i);
+  return match ? Number(match[1]) : null;
+}
+
 function buildBookingMessage(testimonial: Testimonial, locale: Locale): string {
   const { city, context } = parseDetail(testimonial.detail);
   const ctx = context.toLowerCase();
   const { name } = testimonial;
+  const groupSize = parseGroupSize(context);
 
   if (locale === "en") {
-    if (ctx.includes("friend")) {
-      return `${name} booked a table in ${city} · with a friend`;
+    if (groupSize) {
+      return `${name} booked a table for ${groupSize} in ${city}`;
+    }
+    if (isGroupContext(context)) {
+      return `${name} booked a table in ${city} · with friends`;
     }
     if (ctx.includes("new in town")) {
-      return `${name} from ${city} is joining her first table`;
+      return `${name} from ${city} is joining a table solo`;
     }
-    return name.length % 2 === 0
-      ? `${name} from ${city} just booked a spot`
-      : `${name} is joining solo in ${city}`;
+    return `${name} is joining a table in ${city}`;
   }
 
-  if (ctx.includes("vriendin")) {
-    return `${name} boekt een tafel in ${city} · met vriendin`;
+  if (groupSize) {
+    return `${name} boekt een tafel voor ${groupSize} in ${city}`;
+  }
+  if (isGroupContext(context)) {
+    return `${name} boekt een tafel in ${city} · met vriendinnen`;
   }
   if (ctx.includes("verhuisd")) {
-    return `${name} uit ${city} schuift voor het eerst aan`;
+    return `${name} uit ${city} schuift solo aan bij een tafel`;
   }
-  return name.length % 2 === 0
-    ? `${name} uit ${city} heeft zojuist een plek geboekt`
-    : `${name} schuift solo aan in ${city}`;
+  return `${name} schuift aan bij een tafel in ${city}`;
 }
 
 function toBookingToast(testimonial: Testimonial, locale: Locale): GirlsOnlyToastItem {
@@ -88,8 +110,15 @@ export function getGirlsOnlyToastNotifications(locale: Locale): GirlsOnlyToastIt
   const testimonials = getGirlsOnlyTestimonials(locale);
   const shuffled = shuffle(testimonials);
 
-  const bookingToasts = shuffled.slice(0, 3).map((item) => toBookingToast(item, locale));
-  const reviewToasts = shuffled.slice(3, 6).map(toReviewToast);
+  const groupBookings = shuffled
+    .filter((item) => isGroupContext(parseDetail(item.detail).context))
+    .slice(0, 2)
+    .map((item) => toBookingToast(item, locale));
+  const soloBookings = shuffled
+    .filter((item) => !isGroupContext(parseDetail(item.detail).context))
+    .slice(0, 1)
+    .map((item) => toBookingToast(item, locale));
+  const reviewToasts = shuffled.slice(0, 3).map(toReviewToast);
 
-  return shuffle([...bookingToasts, ...reviewToasts]);
+  return shuffle([...groupBookings, ...soloBookings, ...reviewToasts]);
 }

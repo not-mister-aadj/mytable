@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,11 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
     shortcut: "/favicon.ico",
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#f7f1e8",
 };
 
 const cormorant = Cormorant_Garamond({
@@ -33,9 +38,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={`${cormorant.variable} ${dmSans.variable}`} suppressHydrationWarning>
+    <html
+      className={`${cormorant.variable} ${dmSans.variable} bg-cream text-wine`}
+      suppressHydrationWarning
+    >
       <body
-        className="min-h-screen font-sans antialiased"
+        className="min-h-screen bg-cream font-sans text-wine antialiased"
         suppressHydrationWarning
       >
         {children}

@@ -20,8 +20,8 @@ import {
 import { getNextUpcomingExperience } from "@/lib/upcoming-event";
 import { notFound } from "next/navigation";
 
-/** Always load published events from the database at request time. */
-export const dynamic = "force-dynamic";
+/** Revalidate published events every minute; admin publish calls revalidateEventPaths. */
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ locale: string }>;

@@ -2,6 +2,7 @@ import type { Locale } from "@/i18n/config";
 import { getCatalogExperiences } from "@/data/experience-catalog";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { isDbEventsEnabled, shouldUseStaticCatalogFallback } from "@/lib/env";
@@ -16,6 +17,10 @@ import {
   publishedLandingEventsWhere,
 } from "@/lib/published-events-filter";
 import { enrichExperience, type EnrichedExperience } from "./experience-detail";
+
+export const PUBLISHED_EVENTS_CACHE_TAG = "published-events";
+
+const PUBLISHED_CACHE_SECONDS = 60;
 
 async function fetchPublishedFromDb(
   locale: Locale,
@@ -60,18 +65,41 @@ async function loadPublishedExperiences(
   return [];
 }
 
+function cachePublishedExperiences(
+  locale: Locale,
+  scope: "landing" | "agenda",
+  whereClause: ReturnType<typeof publishedLandingEventsWhere>,
+) {
+  return unstable_cache(
+    async () => loadPublishedExperiences(locale, whereClause),
+    ["published-experiences", scope, locale],
+    {
+      revalidate: PUBLISHED_CACHE_SECONDS,
+      tags: [PUBLISHED_EVENTS_CACHE_TAG, `${PUBLISHED_EVENTS_CACHE_TAG}:${scope}`],
+    },
+  )();
+}
+
 /** Landing page: open for booking, not closed. */
 export async function getLandingExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  return loadPublishedExperiences(locale, publishedLandingEventsWhere());
+  return cachePublishedExperiences(
+    locale,
+    "landing",
+    publishedLandingEventsWhere(),
+  );
 }
 
 /** Agenda page: includes closed events until 7 days after start. */
 export async function getAgendaExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  return loadPublishedExperiences(locale, publishedAgendaEventsWhere());
+  return cachePublishedExperiences(
+    locale,
+    "agenda",
+    publishedAgendaEventsWhere(),
+  );
 }
 
 /** @deprecated Use getLandingExperiences or getAgendaExperiences */
@@ -81,12 +109,23 @@ export async function getAllExperiences(
   return getLandingExperiences(locale);
 }
 
+function cacheExperienceBySlug(locale: Locale, slug: string) {
+  return unstable_cache(
+    async () => getDbExperienceBySlug(locale, slug),
+    ["experience-by-slug", locale, slug],
+    {
+      revalidate: PUBLISHED_CACHE_SECONDS,
+      tags: [PUBLISHED_EVENTS_CACHE_TAG, `experience:${slug}`],
+    },
+  )();
+}
+
 export async function getExperienceBySlug(
   locale: Locale,
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
   if (isDbEventsEnabled() && isDbConfigured()) {
-    const fromDb = await getDbExperienceBySlug(locale, slug);
+    const fromDb = await cacheExperienceBySlug(locale, slug);
     if (fromDb) return fromDb;
     return undefined;
   }

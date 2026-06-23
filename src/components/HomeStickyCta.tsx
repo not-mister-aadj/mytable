@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Button } from "./ui/Button";
 
 interface HomeStickyCtaProps {
@@ -8,6 +10,11 @@ interface HomeStickyCtaProps {
 }
 
 export function HomeStickyCta({ label, href }: HomeStickyCtaProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch(href);
+  }, [router, href]);
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle bg-cream/95 p-3 shadow-[0_-10px_32px_rgba(43,13,18,0.1)] backdrop-blur-md lg:hidden"

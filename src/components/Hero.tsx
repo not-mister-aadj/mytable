@@ -73,12 +73,14 @@ export function Hero({ dict, agendaHref, nextEvent }: HeroProps) {
         </div>
 
         <div className="order-1 mx-auto w-full max-w-md lg:order-2 lg:max-w-none">
-          <div className="relative aspect-[16/10] max-h-[13.5rem] overflow-hidden rounded-2xl shadow-[0_24px_60px_rgba(43,13,18,0.12)] sm:aspect-[5/6] sm:max-h-none sm:rounded-3xl">
-            <HeroMontageVideo alt={dict.imageAlt} />
-            <div className="absolute inset-0 bg-gradient-to-t from-wine/50 via-transparent to-transparent" />
+          <div className="relative">
+            <div className="relative aspect-[16/10] max-h-[13.5rem] overflow-hidden rounded-2xl shadow-[0_24px_60px_rgba(43,13,18,0.12)] sm:aspect-[5/6] sm:max-h-none sm:rounded-3xl">
+              <HeroMontageVideo alt={dict.imageAlt} />
+              <div className="absolute inset-0 bg-gradient-to-t from-wine/50 via-transparent to-transparent" />
+            </div>
 
             {nextEvent ? (
-              <div className="absolute -bottom-4 left-4 right-4 hidden sm:-left-6 sm:bottom-8 sm:right-auto sm:block sm:max-w-xs lg:-left-10">
+              <div className="absolute bottom-4 left-4 right-4 hidden sm:bottom-8 sm:right-auto sm:block sm:max-w-xs">
                 <NextEventCard nextEvent={nextEvent} label={dict.nextTableLabel} />
               </div>
             ) : null}

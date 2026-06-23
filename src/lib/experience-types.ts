@@ -26,25 +26,29 @@ export async function ensureExperienceTypesSeeded() {
   if (!isDbConfigured()) return;
   await ensureExperienceTypesSchemaCached();
   const db = getDb();
-  for (const def of EXPERIENCE_TYPE_DEFINITIONS) {
-    const [existing] = await db
-      .select()
-      .from(experienceTypes)
-      .where(eq(experienceTypes.slug, def.slug))
-      .limit(1);
-    if (!existing) {
-      await db
-        .insert(experienceTypes)
-        .values({
-          slug: def.slug,
-          nameNl: def.nameNl,
-          nameEn: def.nameEn,
-          mood: def.mood,
-          venueIds: [],
-        })
-        .onConflictDoNothing();
-    }
-  }
+  const slugs = EXPERIENCE_TYPE_DEFINITIONS.map((def) => def.slug);
+  const existing = await db
+    .select({ slug: experienceTypes.slug })
+    .from(experienceTypes)
+    .where(inArray(experienceTypes.slug, slugs));
+  const existingSlugs = new Set(existing.map((row) => row.slug));
+  const missing = EXPERIENCE_TYPE_DEFINITIONS.filter(
+    (def) => !existingSlugs.has(def.slug),
+  );
+  if (missing.length === 0) return;
+
+  await db
+    .insert(experienceTypes)
+    .values(
+      missing.map((def) => ({
+        slug: def.slug,
+        nameNl: def.nameNl,
+        nameEn: def.nameEn,
+        mood: def.mood,
+        venueIds: [],
+      })),
+    )
+    .onConflictDoNothing();
 }
 
 /** At most once per request */

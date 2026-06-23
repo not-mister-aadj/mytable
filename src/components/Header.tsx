@@ -87,6 +87,7 @@ export function Header({ dict, locale }: HeaderProps) {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch
                 className="text-sm font-medium text-wine/80 transition-colors hover:text-burgundy"
               >
                 {link.label}
@@ -153,6 +154,7 @@ export function Header({ dict, locale }: HeaderProps) {
               <li key={link.href}>
                 <Link
                   href={link.href}
+                  prefetch
                   className="block font-serif text-2xl font-medium text-wine transition-colors hover:text-burgundy"
                   onClick={closeMenu}
                 >

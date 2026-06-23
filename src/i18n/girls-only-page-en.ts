@@ -6,19 +6,19 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   meta: {
     title: "Girls-only wine & bites on Sunday afternoon",
     description:
-      "Girls-only wine tastings every Sunday afternoon across the Netherlands. Book for your friends, or join solo. We handle the wine, bites, and a great table.",
+      "Girls-only wine tastings every Sunday afternoon across the Netherlands. Book a table for your group, or join solo. We handle the wine, bites, and a great table.",
   },
   hero: {
     eyebrow: "Girls only · Every Sunday afternoon",
-    title: "Wine & bites on Sunday afternoon. Book for your friends.",
+    title: "Wine & bites on Sunday afternoon with your girls. Solo works too.",
     subtitle:
-      "Want something fun on Sunday, but your friends are busy or far away? Book a Sunday afternoon wine & bites session for your friends. Four wines, chef's bites, one restaurant. No date polls, no menu drama.",
+      "Want something fun on Sunday, but your friends are busy or far away? Book a Sunday afternoon wine & bites session for your group. Four wines, chef's bites, one restaurant. No date polls, no menu drama.",
     trustLine:
       "Sunday afternoon · With your friends · Solo welcome too · Beginners welcome",
     calloutLabel: "Your next Sunday afternoon:",
     calloutPain:
-      "Four wines, chef's bites, one table. No date polls, no menu drama.",
-    calloutReassurance: "Book for your friends. We handle the rest.",
+      "Your girls, four wines, one table. No date polls, no menu drama.",
+    calloutReassurance: "Book for your group. We handle the rest.",
     calloutBody:
       "No full group? Join solo or bring a friend and sit with others.",
     imageAlt:
@@ -32,7 +32,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   howItWorks: {
     title: "How it works",
     subtitle:
-      "Pick your Sunday afternoon, book for your friends or join solo, and enjoy your time at the table.",
+      "Pick your Sunday afternoon, book for your group or join solo, and enjoy your time at the table.",
     sharedStep: {
       title: "Pick your Sunday afternoon",
       description:
@@ -45,7 +45,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           {
             title: "Book your own table",
             description:
-              "Book for your friends: two, four, or more. You sit together at your own table.",
+              "Reserve for your group: two, four, or more. You sit together at your own table.",
           },
           {
             title: "Show up Sunday afternoon",
@@ -74,7 +74,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   benefits: {
     title: "Why girls join",
     subtitle:
-      "For a Sunday afternoon of wine & bites with your friends, and sometimes new faces at the table as a bonus.",
+      "For a Sunday afternoon of wine & bites with your crew, and sometimes new faces at the table as a bonus.",
     items: [
       {
         title: "Wine and food sorted",
@@ -84,7 +84,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       {
         title: "Your table, your afternoon",
         description:
-          "Book for your friends and sit together at your own table. No juggling reservations, menus, or who pays what.",
+          "Book for your group and sit together at your own table. No juggling reservations, menus, or who pays what.",
       },
       {
         title: "Fun, not awkward",
@@ -101,7 +101,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   events: {
     title: "Pick your Sunday afternoon",
     subtitle:
-      "Every Sunday, one slot per city. Pick your date, check how many spots are left, and book for your friends.",
+      "Every Sunday, one slot per city. Pick your date, check how many spots are left, and book for your girls.",
     empty:
       "New girls-only tables are added regularly. Check back soon or follow MyTable for updates.",
   },

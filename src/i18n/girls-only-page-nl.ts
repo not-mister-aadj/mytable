@@ -6,19 +6,19 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   meta: {
     title: "Girls-only wijnspijs op zondagmiddag",
     description:
-      "Elke zondagmiddag girls-only wijnproeverijen door heel Nederland. Boek voor je vriendinnen, of schuif solo aan. Wij regelen wijn, bites en een gezellige tafel.",
+      "Elke zondagmiddag girls-only wijnproeverijen door heel Nederland. Boek een tafel voor je groep, of schuif solo aan. Wij regelen wijn, bites en een gezellige tafel.",
   },
   hero: {
     eyebrow: "Girls only · Elke zondagmiddag",
-    title: "Wijnspijs op zondagmiddag. Boek voor je vriendinnen.",
+    title: "Wijnspijs op zondagmiddag met je meiden. Solo kan ook.",
     subtitle:
-      "Zin in iets leuks op zondag, maar je vriendinnen zijn druk of ver weg? Boek een zondagmiddag wijnspijs voor je vriendinnen. Vier wijnen, chef's bites, één restaurant. Geen datumprikkers, geen menu-ruzie.",
+      "Zin in iets leuks op zondag, maar je vriendinnen zijn druk of ver weg? Boek een zondagmiddag wijnspijs voor je groep. Vier wijnen, chef's bites, één restaurant. Geen datumprikkers, geen menu-ruzie.",
     trustLine:
       "Zondagmiddag · Met je vriendinnen · Solo ook welkom · Beginners welkom",
     calloutLabel: "Jouw volgende zondagmiddag:",
     calloutPain:
-      "Vier wijnen, chef's bites, één tafel. Geen datumprikkers, geen menu-gedoe.",
-    calloutReassurance: "Boek voor je vriendinnen. Wij regelen de rest.",
+      "Je meiden, vier wijnen, één tafel. Geen datumprikkers, geen menu-gedoe.",
+    calloutReassurance: "Reserveer voor je groep. Wij regelen de rest.",
     calloutBody:
       "Geen volledige groep? Schuif solo of met een vriendin aan bij anderen.",
     imageAlt:
@@ -32,7 +32,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   howItWorks: {
     title: "Hoe het werkt",
     subtitle:
-      "Kies je zondagmiddag, boek voor je vriendinnen of schuif solo aan, en geniet aan tafel.",
+      "Kies je zondagmiddag, boek voor je groep of schuif solo aan, en geniet aan tafel.",
     sharedStep: {
       title: "Kies je zondagmiddag",
       description:
@@ -45,7 +45,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           {
             title: "Reserveer jullie eigen tafel",
             description:
-              "Boek voor je vriendinnen: twee, vier of meer. Jullie zitten samen aan een eigen tafel.",
+              "Boek voor je groep: twee, vier of meer. Jullie zitten samen aan een eigen tafel.",
           },
           {
             title: "Kom zondagmiddag proeven",
@@ -74,7 +74,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   benefits: {
     title: "Waarom girls komen",
     subtitle:
-      "Voor een zondagmiddag wijnspijs met je vriendinnen, en als bonus soms nieuwe gezichten aan tafel.",
+      "Voor een zondagmiddag wijnspijs met je meiden, en als bonus soms nieuwe gezichten aan tafel.",
     items: [
       {
         title: "Wijn en eten geregeld",
@@ -84,7 +84,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       {
         title: "Jullie eigen tafel, jullie middag",
         description:
-          "Boek voor je vriendinnen en zit samen aan een eigen tafel. Geen gedoe met reserveren, menu's of wie wat betaalt.",
+          "Reserveer voor je groep en zit samen aan een eigen tafel. Geen gedoe met reserveren, menu's of wie wat betaalt.",
       },
       {
         title: "Gezellig, niet awkward",
@@ -101,7 +101,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   events: {
     title: "Kies je zondagmiddag",
     subtitle:
-      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en boek voor je vriendinnen.",
+      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en boek voor je meiden.",
     empty:
       "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
   },

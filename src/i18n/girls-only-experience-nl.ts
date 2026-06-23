@@ -87,7 +87,7 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
     },
   ],
   socialParagraphs: [
-    "Boek een tafel voor je vriendinnen en geniet van een zondagmiddag uit samen. Jij reserveert, wij regelen wijn, bites en de tafel.",
+    "Boek een tafel voor je groep en geniet van een zondagmiddag uit met je meiden. Jij reserveert, wij regelen wijn, bites en de tafel.",
     "Proeven, lachen, bijpraten. Geen netwerkpraat en geen speeddating-sfeer. Gewoon een fijne girls-only zondagmiddag.",
   ],
   faq: [
@@ -136,7 +136,7 @@ export const girlsOnlyExperienceLabelsNl = {
     "Eigen tafel met je groep, of aanschuiven als je geen volledige groep hebt.",
   finalCtaHeadline: "Klaar voor je volgende zondagmiddag wijnspijs?",
   finalCtaSubheadline:
-    "Vier wijnen, chef's bites en gezelligheid met je vriendinnen. Zonder datumprikkers, zonder gedoe.",
+    "Vier wijnen, chef's bites en gezelligheid met je meiden. Zonder datumprikkers, zonder gedoe.",
   bookingSeatingOwn: "Met mijn vriendinnen, eigen tafel",
   bookingSeatingOwnHint: "Jullie tafel, jullie crew. Wijn, bites, geen gedoe.",
   bookingSeatingJoin: "Ik schuif aan bij anderen",
@@ -155,7 +155,7 @@ export const girlsOnlyExperienceLabelsNl = {
 };
 
 export const girlsOnlyWineTastingCardTextNl =
-  "Boek voor je vriendinnen. Vier wijnen, één tafel. Wij doen de rest.";
+  "Je meiden, vier wijnen, één tafel. Jij reserveert, wij doen de rest.";
 
 export const girlsOnlyWineTastingTaglineNl =
   "Girls-only wijnspijs op zondagmiddag. Zonder gedoe.";

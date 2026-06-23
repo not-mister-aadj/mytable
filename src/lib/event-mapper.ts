@@ -9,6 +9,11 @@ import type { ExperienceTypeContent } from "@/lib/experience-type-content.types"
 import { getTypeContent } from "@/lib/experience-type-content";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
 import {
+  isGirlsOnlyWineTasting,
+  resolveGirlsOnlyCardText,
+  resolveGirlsOnlyTagline,
+} from "@/lib/girls-only-experience-content";
+import {
   displayNamesFromEvent,
   resolveHeroImageSettings,
   resolvePageSections,
@@ -35,7 +40,25 @@ export function mapDbEventToExperienceItem(
       ? resolveEventImagesFromVenues(extras, venues)
       : resolveEventImagesFromVenues(extras, []);
   const typeSlug = typeSlugFromEvent(row.experienceType);
-  const names = displayNamesFromEvent(row, extras, locale, typeSlug);
+  const typeDef = getExperienceTypeDefinition(typeSlug);
+  const names = displayNamesFromEvent(
+    row,
+    extras,
+    locale,
+    typeSlug,
+    row.femaleOnly,
+  );
+  const itemForGirlsOnlyCheck = {
+    femaleOnly: resolveFemaleOnly(row.femaleOnly, extras.atmosphereTags),
+    experienceType: typeSlug,
+    mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
+  };
+  const cardText = isGirlsOnlyWineTasting(itemForGirlsOnlyCheck)
+    ? resolveGirlsOnlyCardText(names.cardText, locale)
+    : names.cardText;
+  const tagline = isGirlsOnlyWineTasting(itemForGirlsOnlyCheck)
+    ? resolveGirlsOnlyTagline(names.tagline, locale)
+    : names.tagline;
   const lang = locale === "nl" ? "nl" : "en";
   const customDescription =
     lang === "nl"
@@ -45,7 +68,6 @@ export function mapDbEventToExperienceItem(
     lang === "nl"
       ? extras.sectionOverrides?.faqNl ?? extras.faqNl
       : extras.sectionOverrides?.faqEn ?? extras.faqEn;
-  const typeDef = getExperienceTypeDefinition(typeSlug);
   const startsAt = new Date(row.startsAt);
   const endsAt = row.endsAt ? new Date(row.endsAt) : null;
 
@@ -68,7 +90,7 @@ export function mapDbEventToExperienceItem(
     city: row.city,
     experienceName: names.experienceName,
     cardTitle: names.cardTitle,
-    cardText: names.cardText,
+    cardText,
     cardImage: cardSettings?.url,
     cardImageSettings: cardSettings,
     heroImageSettings: heroSettings,
@@ -84,10 +106,10 @@ export function mapDbEventToExperienceItem(
       row.publishedAt ? new Date(row.publishedAt) : null,
       startsAt,
     ),
-    mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
+    mood: itemForGirlsOnlyCheck.mood,
     image: heroUrl,
-    femaleOnly: resolveFemaleOnly(row.femaleOnly, extras.atmosphereTags),
-    tagline: names.tagline,
+    femaleOnly: itemForGirlsOnlyCheck.femaleOnly,
+    tagline,
     capacity: row.capacity,
     spotsSold: row.spotsSold,
     eventDbId: row.id,

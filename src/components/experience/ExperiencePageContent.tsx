@@ -7,6 +7,10 @@ import type { Locale } from "@/i18n/config";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { getMoodContent } from "@/lib/experience-detail";
+import {
+  getExperiencePageLabelsForEvent,
+  getMoodContentForEvent,
+} from "@/lib/girls-only-experience-content";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getExperienceVenues } from "@/data/experience-venues";
 import { getRouteMapPoints } from "@/data/experience-route-map";
@@ -59,8 +63,8 @@ export function ExperiencePageContent({
   routePoints: routePointsProp,
   previewMode = false,
 }: ExperiencePageContentProps) {
-  const page = dict.experiencePage;
-  const mood = getMoodContent(dict, experience.mood);
+  const page = getExperiencePageLabelsForEvent(dict, locale, experience);
+  const mood = getMoodContentForEvent(dict, experience, locale);
   const venuesTitle =
     experience.pageSections?.venuesTitle ?? page.venuesTitle;
   const venuesSubtitle =

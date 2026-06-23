@@ -25,8 +25,8 @@ import { getRouteMapPoints } from "@/data/experience-route-map";
 import { getExperienceVenues as getCatalogVenues } from "@/data/experience-venues";
 import {
   getExperienceTagline,
-  getMoodContent,
 } from "@/lib/experience-detail";
+import { getMoodContentForEvent } from "@/lib/girls-only-experience-content";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const experience = await getExperienceBySlug(locale, slug);
   if (!experience) return {};
   const dict = getDictionary(locale);
-  const mood = getMoodContent(dict, experience.mood);
+  const mood = getMoodContentForEvent(dict, experience, locale);
   return {
     title: `${experience.experienceName}, ${experience.city} | MyTable`,
     description: getExperienceTagline(experience, mood),

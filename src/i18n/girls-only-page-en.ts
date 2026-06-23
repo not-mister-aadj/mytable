@@ -13,19 +13,13 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       "You want to do something fun but nobody can or wants to come? Girl, you're not the only one. Come solo, bring a friend, or book your own table with your group. No date polls. Just show up and have a good time.",
     cta: "Join a table",
     trustLine: "Solo or with friends · Small tables · Beginners welcome",
-    heroEventsTitle: "Upcoming girls-only tables",
-    viewAllTables: "View all tables",
     calloutLabel: "We all know the feeling:",
     calloutPain: "You want to do something fun but nobody can or wants to come.",
     calloutReassurance: "Girl, you're definitely not the only one!",
     calloutBody:
       "Come solo, bring a friend, or book your own table with your group. No date polls. Just show up and have a good time.",
-    videoEditionBadge: "Special edition",
-    videoEditionTitle: "Wine & Sip",
-    videoEditionNote:
-      "This video is from our Wine & Sip evening, a special girls-only edition with wine, bites, and new connections.",
     imageAlt:
-      "Video from a MyTable Wine & Sip special edition with women at the table",
+      "Women chatting during a fun girls-only night out",
   },
   headerNav: {
     tables: "Upcoming tables",
@@ -96,7 +90,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   },
   gallery: {
     eyebrow: "A peek at the table",
-    title: "This is what an evening looks like",
+    title: "This is what an event looks like",
     subtitle:
       "Real girls and real conversations, with wine and food at the table in between.",
     previousPhoto: "Previous photo",

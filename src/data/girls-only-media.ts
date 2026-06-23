@@ -1,9 +1,21 @@
-export const girlsOnlyHeroMedia = {
-  videoSrc: "/girls-only/social-evening.mp4",
-  posterSrc: "/girls-only/hero-poster.jpg",
-} as const;
+import type { Locale } from "@/i18n/config";
+
+export type GirlsOnlySocialImage = {
+  src: string;
+  alt: {
+    nl: string;
+    en: string;
+  };
+};
 
 const galleryImages = [
+  {
+    src: "/girls-only/crowd-evening.jpg",
+    alt: {
+      nl: "Groep vrouwen ontmoet elkaar in een gezellige setting",
+      en: "Group of women meeting in a warm social setting",
+    },
+  },
   {
     src: "/girls-only/paint-sip-unicorn.jpg",
     alt: {
@@ -47,13 +59,6 @@ const galleryImages = [
     },
   },
   {
-    src: "/girls-only/crowd-evening.jpg",
-    alt: {
-      nl: "Groep vrouwen ontmoet elkaar in een gezellige setting",
-      en: "Group of women meeting in a warm social setting",
-    },
-  },
-  {
     src: "/girls-only/laughing-bar.jpg",
     alt: {
       nl: "Vrouwen lachen samen aan de bar",
@@ -74,6 +79,14 @@ const galleryImages = [
       en: "Group of women chatting in a bar",
     },
   },
-] as const;
+] as const satisfies readonly GirlsOnlySocialImage[];
 
 export const girlsOnlySocialGalleryImages = galleryImages;
+
+export function getGirlsOnlyHeroSlideshowImages(locale: Locale) {
+  const lang = locale === "en" ? "en" : "nl";
+  return girlsOnlySocialGalleryImages.map((image) => ({
+    src: image.src,
+    alt: image.alt[lang],
+  }));
+}

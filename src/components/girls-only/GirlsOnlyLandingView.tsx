@@ -22,8 +22,6 @@ interface GirlsOnlyLandingViewProps {
   locale: Locale;
   allEvents: EnrichedExperience[];
   soldOut: EnrichedExperience[];
-  heroEvents: EnrichedExperience[];
-  hasMoreBookableEvents: boolean;
   primaryCtaHref: string;
   galleryItems: GirlsOnlyGalleryItem[];
 }
@@ -75,8 +73,6 @@ export function GirlsOnlyLandingView({
   locale,
   allEvents,
   soldOut,
-  heroEvents,
-  hasMoreBookableEvents,
   primaryCtaHref,
   galleryItems,
 }: GirlsOnlyLandingViewProps) {
@@ -157,37 +153,9 @@ export function GirlsOnlyLandingView({
             </div>
 
             <div className="order-1 mx-auto w-full max-w-md lg:order-2 lg:max-w-none">
-              <GirlsOnlyHeroMedia
-                alt={labels.hero.imageAlt}
-                editionBadge={labels.hero.videoEditionBadge}
-                editionTitle={labels.hero.videoEditionTitle}
-                editionNote={labels.hero.videoEditionNote}
-              />
+              <GirlsOnlyHeroMedia locale={locale} />
             </div>
           </div>
-
-          {heroEvents.length > 0 ? (
-            <div className="mt-12 lg:mt-14">
-              <div className="text-center">
-                <SectionEyebrow>{labels.hero.heroEventsTitle}</SectionEyebrow>
-              </div>
-              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                {heroEvents.map((experience) => (
-                  <ExperienceCard
-                    key={experience.id}
-                    experience={experience}
-                    href={experiencePath(locale, experience.slug)}
-                    {...cardProps}
-                  />
-                ))}
-              </div>
-              {hasMoreBookableEvents ? (
-                <div className="mt-8 text-center">
-                  <GirlsOnlyCta href="#events">{labels.hero.viewAllTables}</GirlsOnlyCta>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       </section>
 

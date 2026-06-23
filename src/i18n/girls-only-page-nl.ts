@@ -11,21 +11,15 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     title: "Ontmoet nieuwe vriendinnen. Proef lekkere wijn.",
     subtitle:
       "Je wilt iets leuks doen, maar niemand kan of wil mee? Girl, je bent niet de enige. Kom solo, met een vriendin, of reserveer je eigen tafel met je groep. Geen datumprikkers. Gewoon gezellig aan tafel.",
-    cta: "Schuif aan aan tafel",
+    cta: "Schuif aan tafel",
     trustLine: "Solo or met vriendinnen · Kleine tafels · Beginners welkom",
-    heroEventsTitle: "Aankomende girls-only tafels",
-    viewAllTables: "Bekijk alle tafels",
     calloutLabel: "We kennen het allemaal wel:",
     calloutPain: "Je wilt iets leuks doen, maar niemand kan of wil mee.",
     calloutReassurance: "Girl, je bent zeker niet de enige!",
     calloutBody:
       "Kom solo, met een vriendin, of reserveer je eigen tafel met je groep. Geen datumprikkers. Gewoon gezellig aan tafel.",
-    videoEditionBadge: "Speciale editie",
-    videoEditionTitle: "Wine & Sip",
-    videoEditionNote:
-      "Deze video is van onze Wine & Sip-avond, een speciale girls-only editie met wijn, bites en nieuwe connecties.",
     imageAlt:
-      "Video-impressie van een MyTable Wine & Sip editie met vrouwen aan tafel",
+      "Vrouwen in gesprek tijdens een gezellige girls-only avond uit",
   },
   headerNav: {
     tables: "Aankomende tafels",
@@ -96,14 +90,14 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   },
   gallery: {
     eyebrow: "Kijkje aan tafel",
-    title: "Zo ziet een avond eruit",
+    title: "Zo ziet een event eruit",
     subtitle:
       "Echte girls en echte gesprekken, met wijn en gerechten aan tafel ertussen.",
     previousPhoto: "Vorige foto",
     nextPhoto: "Volgende foto",
   },
   events: {
-    title: "Schuif aan aan een tafel bij jou in de buurt",
+    title: "Schuif aan een tafel bij jou in de buurt",
     subtitle:
       "Door heel Nederland. Kies je stad, kies je datum, en kom opdagen.",
     cardSocialPromise:

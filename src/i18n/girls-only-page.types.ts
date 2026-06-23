@@ -11,15 +11,10 @@ export interface GirlsOnlyPageLabels {
     subtitle: string;
     cta: string;
     trustLine: string;
-    heroEventsTitle: string;
-    viewAllTables: string;
     calloutLabel: string;
     calloutPain: string;
     calloutReassurance: string;
     calloutBody: string;
-    videoEditionBadge: string;
-    videoEditionTitle: string;
-    videoEditionNote: string;
     imageAlt: string;
   };
   headerNav: {

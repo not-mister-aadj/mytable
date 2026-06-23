@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FastLink } from "./ui/FastLink";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
@@ -84,14 +85,13 @@ export function Header({ dict, locale }: HeaderProps) {
             aria-label="Main navigation"
           >
             {navLinks.map((link) => (
-              <Link
+              <FastLink
                 key={link.href}
                 href={link.href}
-                prefetch
                 className="text-sm font-medium text-wine/80 transition-colors hover:text-burgundy"
               >
                 {link.label}
-              </Link>
+              </FastLink>
             ))}
           </nav>
 
@@ -152,14 +152,13 @@ export function Header({ dict, locale }: HeaderProps) {
           <ul className="flex flex-col gap-5">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link
+                <FastLink
                   href={link.href}
-                  prefetch
                   className="block font-serif text-2xl font-medium text-wine transition-colors hover:text-burgundy"
                   onClick={closeMenu}
                 >
                   {link.label}
-                </Link>
+                </FastLink>
               </li>
             ))}
           </ul>

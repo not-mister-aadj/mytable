@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { Dictionary } from "@/i18n/types";
 import type { EnrichedExperience } from "@/lib/experience-detail";
+import { FastLink } from "./ui/FastLink";
 import { Button } from "./ui/Button";
 import { HeroMontageVideo } from "./HeroMontageVideo";
 
@@ -26,7 +26,7 @@ function NextEventCard({
   label: string;
 }) {
   return (
-    <Link
+    <FastLink
       href={nextEvent.href}
       className="block rounded-2xl border border-border-subtle bg-beige/95 p-4 shadow-lg backdrop-blur-sm transition-shadow hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy sm:p-5"
     >
@@ -42,7 +42,7 @@ function NextEventCard({
       <span className="mt-3 inline-block rounded-full bg-burgundy/10 px-3 py-1 text-xs font-medium text-burgundy">
         {nextEvent.statusLabel}
       </span>
-    </Link>
+    </FastLink>
   );
 }
 

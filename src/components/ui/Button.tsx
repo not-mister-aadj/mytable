@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { type ReactNode } from "react";
+import { FastLink } from "./FastLink";
 
 type ButtonVariant = "primary" | "secondary" | "outline";
 
@@ -36,9 +36,9 @@ export function Button({
 
   if (href) {
     return (
-      <Link href={href} prefetch className={classes} onClick={onClick}>
+      <FastLink href={href} className={classes} onClick={onClick}>
         {children}
-      </Link>
+      </FastLink>
     );
   }
 

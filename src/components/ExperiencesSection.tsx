@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
-import Link from "next/link";
+import { FastLink } from "./ui/FastLink";
 import { ExperienceGrid } from "./ExperienceGrid";
 
 const HOME_EXPERIENCE_CARD_LIMIT = 6;
@@ -35,7 +35,7 @@ export function ExperiencesSection({
         />
 
         <div className="mt-8 flex justify-center sm:mt-12">
-          <Link
+          <FastLink
             href={agendaHref}
             className="group inline-flex items-center gap-2 rounded-full border border-burgundy/25 bg-beige px-6 py-3 text-sm font-medium text-burgundy transition-all duration-300 hover:border-burgundy/40 hover:bg-cream hover:shadow-md"
           >
@@ -46,7 +46,7 @@ export function ExperiencesSection({
             >
               →
             </span>
-          </Link>
+          </FastLink>
         </div>
       </div>
     </section>

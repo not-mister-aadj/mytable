@@ -1,11 +1,13 @@
 import { AgendaHero } from "@/components/agenda/AgendaHero";
+import { AgendaEventsSection } from "@/components/agenda/AgendaEventsSection";
+import { AgendaGridSkeleton } from "@/components/agenda/AgendaGridSkeleton";
 import { NewsletterCTA } from "@/components/agenda/NewsletterCTA";
-import { AgendaPageContent } from "@/components/AgendaPageContent";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { isValidLocale } from "@/i18n/config";
-import { getDictionary, getDictionaryWithAgenda } from "@/i18n/get-dictionary";
+import { getDictionary } from "@/i18n/get-dictionary";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 /** Revalidate published events every minute; admin publish calls revalidateEventPaths. */
@@ -33,7 +35,7 @@ export default async function AgendaPage({ params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
 
-  const dict = await getDictionaryWithAgenda(locale);
+  const dict = getDictionary(locale);
 
   return (
     <>
@@ -41,12 +43,9 @@ export default async function AgendaPage({ params }: Props) {
       <main className="bg-cream">
         <AgendaHero hero={dict.agenda.hero} />
         <div className="pb-8 pt-10 sm:pb-12 sm:pt-12">
-          <AgendaPageContent
-            dict={dict.agenda}
-            pageLabels={dict.experiencePage}
-            locale={locale}
-            items={dict.agenda.items}
-          />
+          <Suspense fallback={<AgendaGridSkeleton />}>
+            <AgendaEventsSection locale={locale} />
+          </Suspense>
         </div>
         <NewsletterCTA dict={dict.newsletter} locale={locale} />
       </main>

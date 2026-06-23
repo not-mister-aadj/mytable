@@ -1,11 +1,13 @@
 import { Footer } from "@/components/Footer";
+import { GirlsOnlyAgendaSection } from "@/components/girls-only/GirlsOnlyAgendaSection";
 import { GirlsOnlyHeader } from "@/components/girls-only/GirlsOnlyHeader";
-import { GirlsOnlyLanding } from "@/components/girls-only/GirlsOnlyLanding";
+import { GirlsOnlyLandingSkeleton } from "@/components/girls-only/GirlsOnlyLandingSkeleton";
 import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
 import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
 import { isValidLocale, type Locale } from "@/i18n/config";
-import { getDictionary, getDictionaryWithAgenda } from "@/i18n/get-dictionary";
+import { getDictionary } from "@/i18n/get-dictionary";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 export const revalidate = 60;
@@ -37,7 +39,6 @@ export default async function GirlsOnlyPage({ params }: Props) {
   if (!isValidLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
-  const agendaDict = await getDictionaryWithAgenda(locale);
   const labels = getGirlsOnlyLabels(locale);
 
   return (
@@ -49,11 +50,9 @@ export default async function GirlsOnlyPage({ params }: Props) {
         locale={locale}
       />
       <main className="bg-cream pb-20 lg:pb-0">
-        <GirlsOnlyLanding
-          labels={labels}
-          locale={locale}
-          agendaItems={agendaDict.agenda.items}
-        />
+        <Suspense fallback={<GirlsOnlyLandingSkeleton />}>
+          <GirlsOnlyAgendaSection locale={locale} labels={labels} />
+        </Suspense>
       </main>
       <Footer dict={dict.footer} locale={locale} />
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { FastLink } from "@/components/ui/FastLink";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { PositionedImage } from "@/components/ui/PositionedImage";
@@ -88,9 +88,8 @@ export function ExperienceCard({
   }
 
   return (
-    <Link
+    <FastLink
       href={href}
-      prefetch={true}
       onClick={handleClick}
       className={`group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-beige shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(43,13,18,0.1)] ${
         isFemaleOnly
@@ -228,6 +227,6 @@ export function ExperienceCard({
           </span>
         </div>
       </div>
-    </Link>
+    </FastLink>
   );
 }

@@ -6,6 +6,7 @@ import { Hero } from "@/components/Hero";
 import { HomeStickyCta } from "@/components/HomeStickyCta";
 import { HowItWorks } from "@/components/HowItWorks";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { PrefetchCriticalRoutes } from "@/components/PrefetchCriticalRoutes";
 import { Testimonials } from "@/components/Testimonials";
 import { ValueStrip } from "@/components/ValueStrip";
 import { VenueCTA } from "@/components/VenueCTA";
@@ -18,6 +19,7 @@ import {
   splitDateTime,
 } from "@/lib/experience-detail";
 import { getNextUpcomingExperience } from "@/lib/upcoming-event";
+import { warmNavigationCaches } from "@/lib/warm-navigation-cache";
 import { notFound } from "next/navigation";
 
 /** Revalidate published events every minute; admin publish calls revalidateEventPaths. */
@@ -31,8 +33,17 @@ export default async function Home({ params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
 
-  const dict = await getDictionaryWithLanding(locale);
+  const [dict] = await Promise.all([
+    getDictionaryWithLanding(locale),
+    warmNavigationCaches(locale),
+  ]);
   const agendaHref = agendaPath(locale);
+  const prefetchHrefs = [
+    agendaHref,
+    ...dict.experiences.items
+      .slice(0, 6)
+      .flatMap((item) => (item.slug ? [experiencePath(locale, item.slug)] : [])),
+  ];
   const nextRaw = getNextUpcomingExperience(dict.agenda.items, locale);
   const nextEvent = nextRaw
     ? (() => {
@@ -51,6 +62,7 @@ export default async function Home({ params }: Props) {
 
   return (
     <>
+      <PrefetchCriticalRoutes locale={locale} hrefs={prefetchHrefs} />
       <Header dict={dict.header} locale={locale} />
       <main className="pb-20 lg:pb-0">
         <Hero dict={dict.hero} agendaHref={agendaHref} nextEvent={nextEvent} />

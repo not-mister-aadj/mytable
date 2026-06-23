@@ -34,7 +34,6 @@ export function GirlsOnlyHeader({
   const pageRoot = girlsOnlyPath(locale);
 
   const navLinks = [
-    { label: nav.tables, href: "#events" },
     { label: nav.howItWorks, href: "#how-it-works" },
     { label: nav.whyJoin, href: "#why-join" },
   ];

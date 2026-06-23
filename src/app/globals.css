@@ -27,15 +27,62 @@
 }
 
 html {
-  color-scheme: light only;
+  color-scheme: only light;
   scroll-behavior: smooth;
-  background-color: var(--cream);
+  background-color: #f7f1e8;
+  forced-color-adjust: none;
 }
 
 body {
-  background-color: var(--cream);
-  color: var(--wine);
+  background-color: #f7f1e8;
+  color: #2b0d12;
   font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/* Declare an explicit "dark" palette identical to light — Samsung may prefer this
+   over its forced-dark algorithm when Labs → Use website dark theme is enabled. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: only light;
+    --cream: #f7f1e8;
+    --burgundy: #5a0f1b;
+    --wine: #2b0d12;
+    --gold: #c59a5b;
+    --beige: #fff8ef;
+    --rose: #e8a4b8;
+    --rose-deep: #9d4d6f;
+    --rose-soft: #f8e8ef;
+    --border-subtle: rgba(90, 15, 27, 0.12);
+  }
+
+  html[data-color-mode="light"],
+  html[data-color-mode="light"] body {
+    background-color: #f7f1e8 !important;
+    color: #2b0d12 !important;
+  }
+}
+
+/* Logo stays wine-colored even when Samsung tones images down. */
+.site-logo {
+  background-color: #f7f1e8;
+}
+
+.site-logo img {
+  filter: brightness(0) saturate(100%) invert(11%) sepia(28%) saturate(4200%)
+    hue-rotate(314deg) brightness(0.52) contrast(1.08);
+  opacity: 1 !important;
+}
+
+/* Counter-invert when Samsung Internet forced-dark is detected at runtime. */
+html.samsung-force-light {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #000;
+}
+
+html.samsung-force-light img,
+html.samsung-force-light video,
+html.samsung-force-light picture {
+  filter: invert(1) hue-rotate(180deg);
 }
 
 .scrollbar-none {

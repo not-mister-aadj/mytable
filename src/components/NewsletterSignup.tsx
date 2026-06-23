@@ -96,25 +96,26 @@ export function NewsletterSignup({
   }
 
   return (
-    <section id="newsletter" className="scroll-mt-24 py-16 sm:py-24">
+    <section id="newsletter" className="scroll-mt-24 py-8 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-        <div className="overflow-hidden rounded-3xl border border-border-subtle bg-burgundy px-6 py-12 text-cream shadow-[0_24px_60px_rgba(90,15,27,0.2)] sm:px-12 sm:py-16">
+        <div className="overflow-hidden rounded-2xl border border-border-subtle bg-burgundy px-5 py-8 text-cream shadow-[0_24px_60px_rgba(90,15,27,0.2)] sm:rounded-3xl sm:px-12 sm:py-16">
           <div className="mx-auto max-w-xl text-center">
             <SectionHeading
               title={dict.title}
               subtitle={dict.subtitle}
               align="center"
+              compact
               className="[&_h2]:text-cream [&_p]:text-cream/80"
             />
 
             {submitted ? (
-              <p className="mt-8 text-lg text-cream/90" role="status">
+              <p className="mt-6 text-base text-cream/90 sm:mt-8 sm:text-lg" role="status">
                 {dict.success}
               </p>
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-center"
+                className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-end sm:justify-center sm:gap-4"
               >
                 <div className="flex-1 text-left sm:max-w-xs">
                   <label htmlFor="email" className="sr-only">

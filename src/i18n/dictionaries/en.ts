@@ -12,6 +12,7 @@ export const en: Dictionary = {
   header: {
     nav: {
       experiences: "Available tables",
+      girlsOnly: "Girls only",
       howItWorks: "How it works",
       forVenues: "For venues",
       faq: "FAQ",
@@ -120,6 +121,7 @@ export const en: Dictionary = {
   },
   howItWorks: {
     title: "How MyTable works",
+    expandCta: "View all steps",
     steps: [
       {
         title: "Pick your table",

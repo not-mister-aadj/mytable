@@ -244,6 +244,7 @@ export interface Dictionary {
   header: {
     nav: {
       experiences: string;
+      girlsOnly: string;
       howItWorks: string;
       forVenues: string;
       faq: string;
@@ -304,6 +305,7 @@ export interface Dictionary {
   };
   howItWorks: {
     title: string;
+    expandCta: string;
     steps: { title: string; description: string }[];
   };
   venueDiscovery: {

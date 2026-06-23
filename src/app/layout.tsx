@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { ForceLightAppearance } from "@/components/ForceLightAppearance";
 import "./globals.css";
 
 const siteUrl =
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light",
-  themeColor: "#f7f1e8",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f1e8" },
+    { media: "(prefers-color-scheme: dark)", color: "#f7f1e8" },
+  ],
 };
 
 const cormorant = Cormorant_Garamond({
@@ -39,13 +43,18 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      data-color-mode="light"
       className={`${cormorant.variable} ${dmSans.variable} bg-cream text-wine`}
       suppressHydrationWarning
     >
+      <head>
+        <meta name="color-scheme" content="light only" />
+      </head>
       <body
         className="min-h-screen bg-cream font-sans text-wine antialiased"
         suppressHydrationWarning
       >
+        <ForceLightAppearance />
         {children}
       </body>
     </html>

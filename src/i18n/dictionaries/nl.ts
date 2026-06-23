@@ -12,6 +12,7 @@ export const nl: Dictionary = {
   header: {
     nav: {
       experiences: "Beschikbare tafels",
+      girlsOnly: "Girls only",
       howItWorks: "Zo werkt het",
       forVenues: "Voor locaties",
       faq: "FAQ",
@@ -121,6 +122,7 @@ export const nl: Dictionary = {
   },
   howItWorks: {
     title: "Zo werkt MyTable",
+    expandCta: "Bekijk alle stappen",
     steps: [
       {
         title: "Kies je tafel",

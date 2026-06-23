@@ -14,6 +14,8 @@ interface ExperienceGridProps {
   locale: Locale;
   items: Dictionary["experiences"]["items"];
   className?: string;
+  compact?: boolean;
+  hideSubtitleOnMobile?: boolean;
 }
 
 export function ExperienceGrid({
@@ -26,12 +28,19 @@ export function ExperienceGrid({
   locale,
   items,
   className = "",
+  compact = false,
+  hideSubtitleOnMobile = false,
 }: ExperienceGridProps) {
   return (
     <div className={className}>
-      <SectionHeading title={title} subtitle={subtitle} />
+      <SectionHeading
+        title={title}
+        subtitle={subtitle}
+        compact={compact}
+        hideSubtitleOnMobile={hideSubtitleOnMobile}
+      />
 
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
         {items.map((item) => {
           const experience = enrichExperience(item);
           return (
@@ -45,6 +54,7 @@ export function ExperienceGrid({
               href={experiencePath(locale, experience.slug)}
               locale={locale}
               sourceSection="home_grid"
+              compact={compact}
             />
           );
         })}

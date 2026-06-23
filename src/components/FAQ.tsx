@@ -7,11 +7,11 @@ interface FAQProps {
 
 export function FAQ({ dict }: FAQProps) {
   return (
-    <section id="faq" className="scroll-mt-24 bg-beige/50 py-16 sm:py-24">
+    <section id="faq" className="scroll-mt-24 bg-beige/50 py-8 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-3xl px-5 sm:px-8 lg:px-10">
-        <SectionHeading title={dict.title} align="center" className="mx-auto" />
+        <SectionHeading title={dict.title} align="center" className="mx-auto" compact />
 
-        <div className="mt-10 space-y-3">
+        <div className="mt-6 space-y-2.5 sm:mt-10 sm:space-y-3">
           {dict.items.map((item) => (
             <details
               key={item.question}

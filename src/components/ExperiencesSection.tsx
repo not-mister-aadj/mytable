@@ -19,7 +19,7 @@ export function ExperiencesSection({
   agendaHref,
 }: ExperiencesSectionProps) {
   return (
-    <section id="experiences" className="scroll-mt-24 bg-cream py-16 sm:py-24">
+    <section id="experiences" className="scroll-mt-24 bg-cream py-8 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <ExperienceGrid
           title={dict.title}
@@ -30,9 +30,11 @@ export function ExperiencesSection({
           viewTableCta={pageLabels.viewTableCta}
           locale={locale}
           items={dict.items.slice(0, HOME_EXPERIENCE_CARD_LIMIT)}
+          compact
+          hideSubtitleOnMobile
         />
 
-        <div className="mt-12 flex justify-center sm:mt-14">
+        <div className="mt-8 flex justify-center sm:mt-12">
           <Link
             href={agendaHref}
             className="group inline-flex items-center gap-2 rounded-full border border-burgundy/25 bg-beige px-6 py-3 text-sm font-medium text-burgundy transition-all duration-300 hover:border-burgundy/40 hover:bg-cream hover:shadow-md"

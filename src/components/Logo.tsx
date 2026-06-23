@@ -36,7 +36,7 @@ export function Logo({
 
   return (
     <span
-      className={`inline-block shrink-0 overflow-hidden bg-transparent leading-none ${className}`}
+      className={`site-logo inline-block shrink-0 overflow-hidden rounded-md bg-cream leading-none ${className}`}
       style={{ height: visibleHeight, width: imageWidth }}
     >
       <Image
@@ -45,7 +45,7 @@ export function Logo({
         width={imageWidth}
         height={imageHeight}
         priority={priority}
-        className="block max-w-none bg-transparent contrast-[1.05] saturate-[1.08]"
+        className="block max-w-none bg-cream"
         style={{ width: imageWidth, height: imageHeight }}
       />
     </span>

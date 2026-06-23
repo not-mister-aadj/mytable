@@ -3,6 +3,7 @@ import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
+import { HomeStickyCta } from "@/components/HomeStickyCta";
 import { HowItWorks } from "@/components/HowItWorks";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { Testimonials } from "@/components/Testimonials";
@@ -51,7 +52,7 @@ export default async function Home({ params }: Props) {
   return (
     <>
       <Header dict={dict.header} locale={locale} />
-      <main>
+      <main className="pb-20 lg:pb-0">
         <Hero dict={dict.hero} agendaHref={agendaHref} nextEvent={nextEvent} />
         <ValueStrip items={dict.valueStrip} />
         <ExperiencesSection
@@ -60,13 +61,14 @@ export default async function Home({ params }: Props) {
           locale={locale}
           agendaHref={agendaHref}
         />
+        <Testimonials dict={dict.testimonials} locale={locale} />
         <HowItWorks dict={dict.howItWorks} />
         <VenueDiscovery dict={dict.venueDiscovery} />
-        <Testimonials dict={dict.testimonials} locale={locale} />
         <VenueCTA dict={dict.venueCta} />
         <NewsletterSignup dict={dict.newsletter} locale={locale} />
         <FAQ dict={dict.faq} />
       </main>
+      <HomeStickyCta label={dict.hero.ctaPrimary} href={agendaHref} />
       <Footer dict={dict.footer} locale={locale} />
     </>
   );

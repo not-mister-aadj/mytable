@@ -3,6 +3,8 @@ interface SectionHeadingProps {
   subtitle?: string;
   align?: "left" | "center";
   className?: string;
+  compact?: boolean;
+  hideSubtitleOnMobile?: boolean;
 }
 
 export function SectionHeading({
@@ -10,16 +12,28 @@ export function SectionHeading({
   subtitle,
   align = "left",
   className = "",
+  compact = false,
+  hideSubtitleOnMobile = false,
 }: SectionHeadingProps) {
   return (
     <div
       className={`max-w-2xl ${align === "center" ? "mx-auto text-center" : ""} ${className}`}
     >
-      <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-5xl">
+      <h2
+        className={`font-serif font-medium tracking-tight text-wine ${
+          compact
+            ? "text-2xl sm:text-4xl lg:text-5xl"
+            : "text-3xl sm:text-4xl lg:text-5xl"
+        }`}
+      >
         {title}
       </h2>
       {subtitle && (
-        <p className="mt-4 text-base leading-relaxed text-wine/75 sm:text-lg">
+        <p
+          className={`mt-3 text-sm leading-relaxed text-wine/75 sm:mt-4 sm:text-lg ${
+            hideSubtitleOnMobile ? "hidden sm:block" : ""
+          }`}
+        >
           {subtitle}
         </p>
       )}

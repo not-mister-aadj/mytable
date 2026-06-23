@@ -19,7 +19,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   perPerson: "€{price} per person",
   aboutTitle: "About this experience",
   expectTitle: "What to expect",
-  flowTitle: "How the evening flows",
+  flowTitle: "How the experience flows",
   flowExpandCta: "View all steps",
   venuesTitle: "Where you join the table",
   venuesSubtitle:
@@ -30,7 +30,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   routeMapTitle: "Past these spots in {city}",
   routeSubtitle:
     "Get a feel for the vibe and neighbourhood. All stops and addresses are on this page. We'll email them again one day before.",
-  socialTitle: "A night out, your way.",
+  socialTitle: "A Sunday afternoon out, your way.",
   socialSubtitle:
     "Your own table, come solo, or join others. You choose how social it gets.",
   galleryTitle: "Atmosphere",
@@ -121,7 +121,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   closedCta: "Sold out",
   moods: {
     tastings: {
-      tagline: "Wine tasting at one table, girls only or mixed group",
+      tagline: "Wine tasting on Sunday afternoon, girls only or mixed group",
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
@@ -140,7 +140,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           title: "Book your own table or join one",
           description:
-            "Reserve for friends or a date, or come solo and join others who are up for a relaxed evening.",
+            "Reserve for friends or a date, or come solo and join others who are up for a relaxed Sunday afternoon.",
         },
         {
           title: "Accessible guidance",
@@ -159,7 +159,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Book your own table with friends, come alone, or pull up a chair with people who want a fun evening out.",
+        "Book your own table with friends, come alone, or pull up a chair with people who want a fun Sunday afternoon.",
         "Taste, laugh, catch up without the fuss. Nobody's grading your wine knowledge; everyone's just curious.",
       ],
       gallery: [
@@ -197,6 +197,11 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Where does the tasting take place?",
           answer:
             "At one partner restaurant per city. The exact venue is on your booking confirmation.",
+        },
+        {
+          question: "When are the events?",
+          answer:
+            "Every Sunday afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
         },
         {
           question: "Can I cancel or exchange?",

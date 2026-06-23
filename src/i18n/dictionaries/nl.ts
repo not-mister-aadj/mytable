@@ -27,23 +27,23 @@ export const nl: Dictionary = {
     headlineLine1: "Goede smaak.",
     headlineLine2: "Goed gezelschap.",
     subheadline:
-      "Wij regelen alles rond de tafel. Jij komt genieten. Van wijnproeverijen en chef-specials tot wijnwalks.",
-    ctaPrimary: "Kies je tafel",
+      "Elke zondagmiddag: wijnproeverijen en chef's specials aan één tafel. Wij regelen alles. Jij komt met je vriendinnen, of schuif solo aan.",
+    ctaPrimary: "Kies je zondagmiddag",
     microcopy:
-      "Boek je eigen tafel, of schuif solo aan bij anderen. Met vrienden, op date, of alleen.",
+      "Zin in iets leuks, maar je vriendinnen zijn druk? Boek voor je groep of schuif solo aan. Geen datumprikkers.",
     nextTableLabel: "Volgende tafel",
     imageAlt: "Mensen die samen aan tafel van wijn en eten genieten",
   },
   valueStrip: [
-    "Leukste locaties",
-    "Wijn en spijs die samengaan",
-    "Solo of eigen tafel",
-    "Ontspannen sfeer",
+    "Elke zondagmiddag",
+    "4 wijnen · 4 bites",
+    "Eigen tafel of aanschuiven",
+    "Kleine groepen",
   ],
   experiences: {
-    title: "Bekijk de tafels die je niet wilt missen",
+    title: "Kies je zondagmiddag",
     subtitle:
-      "Kies je stad, reserveer je plek en schuif aan bij een tafel met goede smaak en goed gezelschap.",
+      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en reserveer.",
     status: {
       available: "Beschikbaar",
       almostFull: "Bijna vol",
@@ -58,13 +58,13 @@ export const nl: Dictionary = {
   },
   agenda: {
     hero: {
-      title: "Vind een tafel die bij je past.",
+      title: "Vind je zondagmiddag.",
       subtitle:
-        "Wijnproeverijen op de leukste plekken in Nederland, met goed eten, mooie wijnen en een ontspannen avond.",
+        "Wijnproeverijen op zondagmiddag op de leukste plekken in Nederland. Goed eten, mooie wijnen, ontspannen sfeer.",
       supportLine:
-        "Wij regelen alles rond de tafel, jij geniet van wijn en spijs.",
+        "Wij regelen alles rond de tafel. Jij geniet van wijn en spijs.",
     },
-    tabsAriaLabel: "Kies je avond",
+    tabsAriaLabel: "Kies je zondagmiddag",
     tabs: [
       { id: "all", label: "Alle tafels" },
       { id: "girlsOnly", label: "Girls only" },
@@ -78,9 +78,9 @@ export const nl: Dictionary = {
         "Iedereen welkom. Kom voor de wijn, een date, met vrienden of gewoon alleen.",
     },
     grid: {
-      title: "Bekijk de tafels die je niet wilt missen",
+      title: "Kies je zondagmiddag",
       subtitle:
-        "Kies je stad, reserveer je plek en schuif aan bij een tafel met goede smaak en goed gezelschap.",
+        "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en reserveer.",
     },
     empty: {
       title: "Geen tafels gevonden",
@@ -101,7 +101,7 @@ export const nl: Dictionary = {
   concept: {
     title: "Meer dan alleen een reservering.",
     subtitle:
-      "Wijnproeverij in een of meerdere restaurants, chef's special voor de groep en een avond op eigen tempo. Wij regelen alles rond de tafel. Jij komt genieten.",
+      "Wijnproeverij aan één tafel, chef's special voor de groep en een zondagmiddag op eigen tempo. Wij regelen alles rond de tafel. Jij komt genieten.",
     cards: [
       {
         title: "Eén restaurant, één tafel",
@@ -125,24 +125,19 @@ export const nl: Dictionary = {
     expandCta: "Bekijk alle stappen",
     steps: [
       {
-        title: "Kies je tafel",
+        title: "Kies je zondagmiddag",
         description:
-          "Kies een tafel op een plek die bij je past, met wijn en spijs als middelpunt.",
+          "Kies je stad en datum. Girls only of gemengd, met wijn en spijs als middelpunt.",
       },
       {
-        title: "Reserveer je plek",
+        title: "Reserveer online",
         description:
-          "Reserveer eenvoudig online en ontvang direct alle details van je avond.",
+          "Boek voor je groep of schuif solo aan. Alles betaal je vooraf, direct bevestigd.",
       },
       {
-        title: "Kom aan tafel",
+        title: "Kom zondag aan tafel",
         description:
-          "Je krijgt waar en wanneer. Plek, sfeer en alle details eromheen regelen wij.",
-      },
-      {
-        title: "Geniet van de avond",
-        description:
-          "Chef's special, goede wijn en gezelschap, twee tot drie uur op eigen tempo.",
+          "Vier wijnen, chef's bites en gezelschap. Twee tot drie uur op eigen tempo.",
       },
     ],
   },
@@ -225,6 +220,11 @@ export const nl: Dictionary = {
         question: "Wat is het verschil tussen girls only en gemengd?",
         answer:
           "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom: solo, met vrienden of op date. Het concept is hetzelfde, alleen de samenstelling van de groep verschilt.",
+      },
+      {
+        question: "Wanneer zijn de events?",
+        answer:
+          "Elke zondagmiddag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
       },
       {
         question: "Kan ik alleen komen of iemand meenemen?",

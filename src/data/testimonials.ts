@@ -15,7 +15,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Sophie",
     detail: "Rotterdam · solo",
     quote:
-      "Ik kwam alleen en durfde dat eerst even niet. Binnen tien minuten zat ik midden in een gesprek over wijn en bites alsof ik al jaren mee at.",
+      "Ik kwam solo en was echt nerveus. Maar iedereen kwam alleen of met één vriendin. Binnen tien minuten zat ik al te kletsen. Veel minder awkward dan ik dacht.",
     initials: "S",
     avatar: "burgundy",
   },
@@ -23,7 +23,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Mark",
     detail: "Amsterdam · gemengd",
     quote:
-      "Ontspannen vanaf het eerste glas. Geen gedwongen introducties, wel echt lekker eten en mensen die ook gewoon zin hadden in een avond uit.",
+      "Ontspannen vanaf het eerste glas. Geen gedwongen introducties, wel echt lekker eten en mensen die ook gewoon zin hadden in een zondagmiddag uit.",
     initials: "M",
     avatar: "gold",
   },
@@ -39,7 +39,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Sanne",
     detail: "Utrecht · girls only",
     quote:
-      "Met mijn zus naar de girls only-tafel. Ruim twee uur proeven en praten, op ons tempo. We gingen pas weg toen we er klaar mee waren.",
+      "Met mijn zus naar de girls only-tafel. Oké wacht… veel leuker dan ik had verwacht. Ruim twee uur proeven en kletsen, op ons tempo.",
     initials: "S",
     avatar: "wine",
   },
@@ -55,7 +55,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Lisa & Noor",
     detail: "Amsterdam · met vriendinnen",
     quote:
-      "Met z'n vieren geboekt aan een gemengde tafel. MyTable regelde de plek, wij hoefden alleen te komen. Voelde alsof iemand anders het feestje had georganiseerd.",
+      "Met z'n vieren geboekt. Niemand hoefde te datumprikken. MyTable regelde alles, wij hoefden alleen op te komen dagen. Zo makkelijk kan het zijn.",
     initials: "LN",
     avatar: "gold",
   },
@@ -63,7 +63,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Pieter",
     detail: "Groningen · solo",
     quote:
-      "Eerste keer alleen naar zo'n avond. Host legde rustig uit wat de chef voor ons had bedacht. Aan het einde zaten we met z'n vieren nog na te praten bij de bar.",
+      "Eerste keer alleen naar zo'n zondagmiddag. Ik dacht dat het awkward zou worden, maar de host legde alles rustig uit. Aan het einde zaten we met z'n vieren nog na te praten bij de bar.",
     initials: "P",
     avatar: "rose",
   },
@@ -71,7 +71,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Carmen",
     detail: "Maastricht · girls only",
     quote:
-      "De girls only-proeverij was precies goed: één restaurant, lekker proeven, veel gelach. Niet te veel wijnpraat, wel mensen die ook nieuwsgierig waren.",
+      "Ik dacht dat het misschien awkward zou worden met allemaal wijnpraat, maar het was vooral lachen en bijpraten. Niet te serieus, wel echt goede wijn.",
     initials: "C",
     avatar: "wine",
   },
@@ -87,7 +87,7 @@ const testimonialsNl: Testimonial[] = [
     name: "Naomi",
     detail: "Rotterdam · girls only",
     quote:
-      "Girls only-avond was verrassend gezellig. Kleine tafel, veel gelach, en wijn die echt goed was. Ik kom terug met vriendinnen.",
+      "Mijn vriendinnen konden niet, dus solo gegaan. En het voelde alsof ik met gezellige meiden uit eten was. Waarom heb ik dit niet eerder gedaan?",
     initials: "N",
     avatar: "gold",
   },
@@ -178,7 +178,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Sophie",
     detail: "Rotterdam · solo",
     quote:
-      "I came alone and was nervous at first. Within ten minutes I was in the middle of a conversation about wine and bites like I had been there for years.",
+      "I came solo and was genuinely nervous. But everyone came alone or with one friend. Within ten minutes I was chatting away. Way less awkward than I thought.",
     initials: "S",
     avatar: "burgundy",
   },
@@ -186,7 +186,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Mark",
     detail: "Amsterdam · mixed",
     quote:
-      "Relaxed from the first glass. No forced intros, just genuinely good food and people who wanted a proper night out.",
+      "Relaxed from the first glass. No forced intros, just genuinely good food and people who wanted a proper Sunday afternoon out.",
     initials: "M",
     avatar: "gold",
   },
@@ -202,7 +202,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Sanne",
     detail: "Utrecht · girls only",
     quote:
-      "Went with my sister to the girls-only table. Well over two hours of tasting and talking at our pace. We left when we were ready.",
+      "Went with my sister to the girls-only table. Okay wait… way more fun than I expected. Well over two hours of tasting and chatting, at our pace.",
     initials: "S",
     avatar: "wine",
   },
@@ -218,7 +218,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Lisa & Noor",
     detail: "Amsterdam · with friends",
     quote:
-      "Booked for four at a mixed table. MyTable handled the venue, we just showed up. Felt like someone else had organised the party.",
+      "Booked for four. Nobody had to date-poll. MyTable handled everything, we just had to show up. It can be that easy.",
     initials: "LN",
     avatar: "gold",
   },
@@ -226,7 +226,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Pieter",
     detail: "Groningen · solo",
     quote:
-      "First time going alone to something like this. The host calmly explained what the chef had planned for us. By the end four of us were still chatting at the bar.",
+      "First time going alone to a Sunday afternoon like this. I thought it would feel awkward, but the host calmly explained everything. By the end four of us were still chatting at the bar.",
     initials: "P",
     avatar: "rose",
   },
@@ -234,7 +234,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Carmen",
     detail: "Maastricht · girls only",
     quote:
-      "The girls-only tasting was just right: one restaurant, great pours, lots of laughter. Not too much wine talk, just curious people.",
+      "I thought it might feel awkward with all the wine talk, but it was mostly laughing and catching up. Not too serious, but genuinely good wine.",
     initials: "C",
     avatar: "wine",
   },
@@ -250,7 +250,7 @@ const testimonialsEn: Testimonial[] = [
     name: "Naomi",
     detail: "Rotterdam · girls only",
     quote:
-      "The girls-only evening was surprisingly social. Small table, lots of laughter, and wine that was actually good. Coming back with friends.",
+      "My friends couldn't make it, so I went solo. And it felt like dining out with fun girls. Why didn't I do this sooner?",
     initials: "N",
     avatar: "gold",
   },

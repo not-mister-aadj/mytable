@@ -40,7 +40,19 @@ async function loadPublishedExperiences(
   whereClause: ReturnType<typeof publishedLandingEventsWhere>,
 ): Promise<EnrichedExperience[]> {
   if (isDbEventsEnabled() && isDbConfigured()) {
-    return fetchPublishedFromDb(locale, whereClause);
+    try {
+      return await fetchPublishedFromDb(locale, whereClause);
+    } catch (err) {
+      const cause =
+        err instanceof Error && "cause" in err
+          ? (err as Error & { cause?: unknown }).cause
+          : err;
+      console.error("[experiences] DB fetch failed", cause ?? err);
+      if (shouldUseStaticCatalogFallback()) {
+        return fetchFromCatalog(locale);
+      }
+      throw err;
+    }
   }
   if (shouldUseStaticCatalogFallback()) {
     return fetchFromCatalog(locale);
@@ -52,30 +64,14 @@ async function loadPublishedExperiences(
 export async function getLandingExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  try {
-    return await loadPublishedExperiences(locale, publishedLandingEventsWhere());
-  } catch (err) {
-    console.error("[experiences] DB fetch failed", err);
-    if (shouldUseStaticCatalogFallback()) {
-      return fetchFromCatalog(locale);
-    }
-    throw err;
-  }
+  return loadPublishedExperiences(locale, publishedLandingEventsWhere());
 }
 
 /** Agenda page: includes closed events until 7 days after start. */
 export async function getAgendaExperiences(
   locale: Locale,
 ): Promise<EnrichedExperience[]> {
-  try {
-    return await loadPublishedExperiences(locale, publishedAgendaEventsWhere());
-  } catch (err) {
-    console.error("[experiences] DB fetch failed", err);
-    if (shouldUseStaticCatalogFallback()) {
-      return fetchFromCatalog(locale);
-    }
-    throw err;
-  }
+  return loadPublishedExperiences(locale, publishedAgendaEventsWhere());
 }
 
 /** @deprecated Use getLandingExperiences or getAgendaExperiences */

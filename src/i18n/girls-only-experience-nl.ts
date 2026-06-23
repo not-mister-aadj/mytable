@@ -6,52 +6,52 @@ import type {
 
 export const girlsOnlyTastingFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Ontvangst & intro",
+    title: "Welkom & intro",
     description:
-      "Je wordt verwelkomd met een eerste glas. De host legt kort uit wat de chef voor jullie tafel heeft bedacht.",
+      "Je wordt ontvangen met een eerste glas. De host vertelt kort wat de chef voor jullie tafel heeft bedacht.",
   },
   {
-    title: "Proeven aan jullie tafel",
+    title: "Proeven aan tafel",
     description:
-      "Vier wijnen en chef's bites, afgestemd op elkaar. Jullie zitten samen aan een eigen tafel en bepalen zelf het tempo.",
+      "Vier wijnen en chef's bites, bij elkaar gepaird. Jullie zitten aan jullie eigen tafel en bepalen het tempo.",
   },
   {
-    title: "Gezelligheid zonder gedoe",
+    title: "Gezellig, zonder gedoe",
     description:
-      "Geen menu-ruzie, geen rekening verdelen. Gewoon proeven, lachen en bijpraten zoals bij een avond uit met je meiden.",
+      "Geen menu-ruzie, geen rekening splitsen. Gewoon proeven, lachen en bijpraten zoals een middag uit met je meiden.",
   },
   {
     title: "Afsluiten zonder haast",
     description:
-      "Reken op twee tot drie uur. Wie wil blijft nog even napraten aan de bar.",
+      "Reken op twee tot drie uur. Blijf gerust nog even voor een drankje aan de bar.",
   },
 ];
 
 export const girlsOnlyTastingQuotesNl: ExperienceGuestQuote[] = [
   {
     quote:
-      "Precies zo'n avond als we zochten. Vier wijnen, lekkere bites en nergens over hoeven nadenken.",
+      "Ik kwam solo en was echt nerveus. Maar binnen tien minuten zat ik al te kletsen. Veel leuker dan ik had verwacht.",
     name: "Lisa",
     detail: "met 3 vriendinnen",
   },
   {
     quote:
-      "Met mijn zus en twee vriendinnen gereserveerd. Eigen tafel, alles geregeld. We zaten de hele avond te proeven en te kletsen.",
+      "Met mijn zus en twee vriendinnen geboekt. Eigen tafel, alles geregeld. Waarom hebben we dit niet eerder gedaan?",
     name: "Sanne",
     detail: "groep van 4",
   },
   {
     quote:
-      "Geen groep beschikbaar, dus solo gegaan. Toch een hele fijne avond. Het draaide vooral om de wijn en de sfeer.",
+      "Mijn vriendinnen konden niet, dus solo gegaan. Het voelde alsof ik met gezellige meiden uit eten was. Niet awkward, gewoon fijn.",
     name: "Noor",
     detail: "solo",
   },
 ];
 
 export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
-  tagline: "Girls-only wijnspijs met je vriendinnen. Zonder gedoe.",
+  tagline: "Girls-only wijnspijs op zondagmiddag. Zonder gedoe.",
   description:
-    "Een avond wijn en bites met je meiden aan één tafel. Vier wijnen, chef's specials en alles rond de tafel geregeld. Geen wijnles, wel context en ruimte om op jullie tempo te genieten, meestal twee tot drie uur.",
+    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Vier wijnen, chef's specials, en alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten, meestal twee tot drie uur.",
   experienceFlow: girlsOnlyTastingFlowNl,
   guestQuotes: girlsOnlyTastingQuotesNl,
   whatToExpect: [
@@ -66,9 +66,9 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "Reserveer voor je groep en zit samen aan een eigen tafel. Twee, vier of meer: jullie bepalen wie erbij is.",
     },
     {
-      title: "Eén restaurant, één avond",
+      title: "Eén restaurant, één zondagmiddag",
       description:
-        "Geen stops door de stad. Alles speelt zich af op één plek die we zorgvuldig kiezen.",
+        "Geen stops door de stad. Alles gebeurt op één zorgvuldig gekozen plek.",
     },
     {
       title: "Solo? Ook prima",
@@ -76,7 +76,7 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "Geen volledige groep? Boek solo of met een vriendin en schuif aan bij andere girls. MyTable regelt je plek.",
     },
     {
-      title: "Toegankelijke uitleg",
+      title: "Toegankelijke begeleiding",
       description:
         "Onze host deelt achtergrond over de wijnen zonder dat het een examen wordt.",
     },
@@ -87,8 +87,8 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
     },
   ],
   socialParagraphs: [
-    "Boek een tafel voor je groep en geniet van een avond die voelt als uit eten met je meiden.",
-    "Proeven, lachen, bijpraten. Geen netwerkpraat en geen speeddating-sfeer. Gewoon een leuke girls' wine night.",
+    "Boek een tafel voor je vriendinnen en geniet van een zondagmiddag uit samen. Jij reserveert, wij regelen wijn, bites en de tafel.",
+    "Proeven, lachen, bijpraten. Geen netwerkpraat en geen speeddating-sfeer. Gewoon een fijne girls-only zondagmiddag.",
   ],
   faq: [
     {
@@ -100,6 +100,11 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
       question: "Wat als ik geen groep heb?",
       answer:
         "Boek solo of met een vriendin en schuif aan bij andere girls aan tafel. MyTable zorgt dat je aan een gezellige tafel belandt.",
+    },
+    {
+      question: "Wanneer zijn de events?",
+      answer:
+        "Elke zondagmiddag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
     },
     {
       question: "Wat is een chef's special?",
@@ -126,12 +131,12 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
 
 export const girlsOnlyExperienceLabelsNl = {
   pillSoloTogether: "Met je vriendinnen · solo ook welkom",
-  socialTitle: "Een girls' wine night met je meiden.",
+  socialTitle: "Girls-only wijnspijs op zondagmiddag.",
   socialSubtitle:
     "Eigen tafel met je groep, of aanschuiven als je geen volledige groep hebt.",
-  finalCtaHeadline: "Klaar voor je volgende girls' wine night?",
+  finalCtaHeadline: "Klaar voor je volgende zondagmiddag wijnspijs?",
   finalCtaSubheadline:
-    "Vier wijnen, chef's bites en een avond die voelt als uit eten met je vriendinnen.",
+    "Vier wijnen, chef's bites en gezelligheid met je vriendinnen. Zonder datumprikkers, zonder gedoe.",
   bookingSeatingOwn: "Met mijn vriendinnen, eigen tafel",
   bookingSeatingOwnHint: "Jullie tafel, jullie crew. Wijn, bites, geen gedoe.",
   bookingSeatingJoin: "Ik schuif aan bij anderen",
@@ -145,12 +150,12 @@ export const girlsOnlyExperienceLabelsNl = {
   ],
   practicalValues: {
     solo: "Geen groep? Solo of met een vriendin aanschuiven kan ook",
-    groupSize: "Kleine tafels, meestal 8 tot 14 vrouwen per avond",
+    groupSize: "Kleine tafels, meestal 8 tot 14 vrouwen per zondagmiddag",
   },
 };
 
 export const girlsOnlyWineTastingCardTextNl =
-  "Vier wijnen, chef's bites en een avond die voelt als uit eten met je meiden.";
+  "Boek voor je vriendinnen. Vier wijnen, één tafel. Wij doen de rest.";
 
 export const girlsOnlyWineTastingTaglineNl =
-  "Girls-only wijnspijs met je vriendinnen. Zonder gedoe.";
+  "Girls-only wijnspijs op zondagmiddag. Zonder gedoe.";

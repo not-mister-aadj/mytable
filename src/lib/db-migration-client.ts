@@ -1,7 +1,16 @@
 import postgres from "postgres";
 import { isDbConfigured } from "@/db/index";
 
-let migrationClient: ReturnType<typeof postgres> | null = null;
+const postgresMigrationOptions = {
+  prepare: false as const,
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10,
+};
+
+const globalForMigrations = globalThis as typeof globalThis & {
+  __mytableMigrationPostgres?: ReturnType<typeof postgres>;
+};
 
 /** Prefer direct / non-pooled URL — poolers often block DDL. */
 export function migrationConnectionString(): string | undefined {
@@ -18,10 +27,13 @@ export function getDbMigrationClient() {
   if (!url) {
     throw new Error("DATABASE_URL is not set");
   }
-  if (!migrationClient) {
-    migrationClient = postgres(url, { prepare: false, max: 1 });
+  if (!globalForMigrations.__mytableMigrationPostgres) {
+    globalForMigrations.__mytableMigrationPostgres = postgres(
+      url,
+      postgresMigrationOptions,
+    );
   }
-  return migrationClient;
+  return globalForMigrations.__mytableMigrationPostgres;
 }
 
 /** Run idempotent DDL at most once per server process. */

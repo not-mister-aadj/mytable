@@ -1,11 +1,8 @@
 import Image from "next/image";
-import {
-  LOGO_NATURAL,
-  LOGO_WORDMARK_RATIO,
-} from "@/i18n/logo-config";
+import { LOGO_MARK, LOGO_NATURAL } from "@/i18n/logo-config";
 
-const LOGO_SRC = "/logo-transparent.png";
-const FULL_ASPECT = LOGO_NATURAL.width / LOGO_NATURAL.height;
+const LOGO_MARK_SRC = "/logo-mark.png";
+const LOGO_FULL_SRC = "/logo-transparent.png";
 
 type LogoVariant = "header" | "footer";
 
@@ -18,11 +15,13 @@ interface LogoProps {
 const HEADER_VISIBLE_HEIGHT = 36;
 const FOOTER_VISIBLE_HEIGHT = 40;
 
-function getLogoDimensions(visibleHeight: number) {
-  const imageHeight = Math.round(visibleHeight / LOGO_WORDMARK_RATIO);
-  const imageWidth = Math.round(imageHeight * FULL_ASPECT);
-
-  return { visibleHeight, imageWidth, imageHeight };
+function getLogoDimensions(
+  natural: { width: number; height: number },
+  visibleHeight: number,
+) {
+  const imageHeight = visibleHeight;
+  const imageWidth = Math.round(visibleHeight * (natural.width / natural.height));
+  return { imageWidth, imageHeight };
 }
 
 export function Logo({
@@ -30,23 +29,22 @@ export function Logo({
   priority = false,
   className = "",
 }: LogoProps) {
-  const visibleHeight =
-    variant === "header" ? HEADER_VISIBLE_HEIGHT : FOOTER_VISIBLE_HEIGHT;
-  const { imageWidth, imageHeight } = getLogoDimensions(visibleHeight);
+  const isHeader = variant === "header";
+  const visibleHeight = isHeader ? HEADER_VISIBLE_HEIGHT : FOOTER_VISIBLE_HEIGHT;
+  const natural = isHeader ? LOGO_MARK : LOGO_NATURAL;
+  const src = isHeader ? LOGO_MARK_SRC : LOGO_FULL_SRC;
+  const { imageWidth, imageHeight } = getLogoDimensions(natural, visibleHeight);
 
   return (
-    <span
-      className={`site-logo inline-block shrink-0 overflow-hidden rounded-md bg-cream leading-none ${className}`}
-      style={{ height: visibleHeight, width: imageWidth }}
-    >
+    <span className={`site-logo inline-flex shrink-0 items-center leading-none ${className}`}>
       <Image
-        src={LOGO_SRC}
+        src={src}
         alt="MyTable"
         width={imageWidth}
         height={imageHeight}
         priority={priority}
-        className="block max-w-none bg-cream"
-        style={{ width: imageWidth, height: imageHeight }}
+        className="block h-auto max-w-none w-auto"
+        style={{ height: visibleHeight, width: "auto" }}
       />
     </span>
   );

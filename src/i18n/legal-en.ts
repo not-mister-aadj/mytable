@@ -387,12 +387,12 @@ export const privacyEn: LegalDocumentContent = {
         {
           type: "ul",
           items: [
-            "Partner venues — limited guest information to run your table;",
-            "Stripe (payments) — processes your payment; we do not store card or bank details;",
-            "Supabase (database and storage) — stores booking data and media;",
-            "Vercel (hosting) — hosts our website;",
-            "Resend (email) — sends booking confirmations on our behalf;",
-            "Apple MapKit (maps) — shows maps on event pages where enabled.",
+            "Partner venues: limited guest information to run your table;",
+            "Stripe (payments): processes your payment; we do not store card or bank details;",
+            "Supabase (database and storage): stores booking data and media;",
+            "Vercel (hosting): hosts our website;",
+            "Resend (email): sends booking confirmations on our behalf;",
+            "Apple MapKit (maps): shows maps on event pages where enabled.",
           ],
         },
         {

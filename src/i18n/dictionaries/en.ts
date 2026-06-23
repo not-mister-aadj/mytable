@@ -27,23 +27,23 @@ export const en: Dictionary = {
     headlineLine1: "Good taste.",
     headlineLine2: "Great company.",
     subheadline:
-      "We handle everything at the table. You show up and enjoy: from wine tastings and chef's specials to wine walks.",
-    ctaPrimary: "Pick your table",
+      "Every Sunday afternoon: wine tastings and chef's specials at one table. We handle everything. You come with your friends, or join solo.",
+    ctaPrimary: "Pick your Sunday afternoon",
     microcopy:
-      "Book your own table, or join solo and meet others. With friends, on a date, or alone.",
+      "Want something fun but your friends are busy? Book for your group or join solo. No date polls.",
     nextTableLabel: "Next table",
     imageAlt: "People enjoying wine and food together at the table",
   },
   valueStrip: [
-    "Curated venues",
-    "Food and wine in sync",
-    "Solo or your own table",
-    "Relaxed social atmosphere",
+    "Every Sunday afternoon",
+    "4 wines · 4 bites",
+    "Your table or join others",
+    "Small groups",
   ],
   experiences: {
-    title: "See the tables you won't want to miss",
+    title: "Pick your Sunday afternoon",
     subtitle:
-      "Pick your city, reserve your seat, and join a table with good taste and great company.",
+      "Every Sunday, one slot per city. Pick your date, check how many spots are left, and reserve.",
     status: {
       available: "Available",
       almostFull: "Almost full",
@@ -58,12 +58,12 @@ export const en: Dictionary = {
   },
   agenda: {
     hero: {
-      title: "Find a table that fits you.",
+      title: "Find your Sunday afternoon.",
       subtitle:
-        "Wine tastings at one restaurant. Girls only, or come for wine and company: on a date, solo, or with friends.",
+        "Wine tastings on Sunday afternoon at the best spots in the Netherlands. Great food, fine wines, relaxed vibe.",
       supportLine: "Come alone, bring someone, or simply pull up a chair.",
     },
-    tabsAriaLabel: "Choose your evening",
+    tabsAriaLabel: "Choose your Sunday afternoon",
     tabs: [
       { id: "all", label: "All tables" },
       { id: "girlsOnly", label: "Girls only" },
@@ -77,9 +77,9 @@ export const en: Dictionary = {
         "Everyone welcome. Come for the wine, a date, friends, or dining solo.",
     },
     grid: {
-      title: "Tables you won't want to miss",
+      title: "Pick your Sunday afternoon",
       subtitle:
-        "Pick your city, reserve your seat, and join a table with good taste and great company.",
+        "Every Sunday, one slot per city. Pick your date, check how many spots are left, and reserve.",
     },
     empty: {
       title: "No tables found",
@@ -100,7 +100,7 @@ export const en: Dictionary = {
   concept: {
     title: "More than just a reservation.",
     subtitle:
-      "Wine tasting at one or more restaurants, chef's special for the group, and an evening at your own pace. We handle everything around the table. You come to enjoy.",
+      "Wine tasting at one table, chef's special for the group, and a Sunday afternoon at your own pace. We handle everything around the table. You come to enjoy.",
     cards: [
       {
         title: "One restaurant, one table",
@@ -124,24 +124,19 @@ export const en: Dictionary = {
     expandCta: "View all steps",
     steps: [
       {
-        title: "Pick your table",
+        title: "Pick your Sunday afternoon",
         description:
-          "Girls only or mixed group. Wine tasting at one restaurant.",
+          "Choose your city and date. Girls only or mixed group, with wine and food at the center.",
       },
       {
-        title: "Reserve your spot",
+        title: "Reserve online",
         description:
-          "For friends, a date, solo, or a seat at a table that's already set.",
+          "Book for your group or join solo. Pay in full upfront, confirmed right away.",
       },
       {
-        title: "Arrive at the table",
+        title: "Show up Sunday afternoon",
         description:
-          "You get the where and when. We handle the venue, the vibe, and every detail around it.",
-      },
-      {
-        title: "Enjoy the evening",
-        description:
-          "Chef's special, good wine, and company, two to three hours at your own pace.",
+          "Four wines, chef's bites, and good company. Two to three hours at your own pace.",
       },
     ],
   },
@@ -224,6 +219,11 @@ export const en: Dictionary = {
         question: "What is the difference between girls only and mixed?",
         answer:
           "Girls only tables are for women only. Mixed groups welcome everyone: solo, with friends, or on a date. The concept is the same; only who sits at the table differs.",
+      },
+      {
+        question: "When are the events?",
+        answer:
+          "Every Sunday afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
       },
       {
         question: "Can I come alone or bring someone?",

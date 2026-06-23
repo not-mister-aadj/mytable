@@ -144,19 +144,19 @@ export const mysteryFlowEn: ExperienceFlowStep[] = [
 export const tastingQuotesEn: ExperienceGuestQuote[] = [
   {
     quote:
-      "One restaurant, no fuss. The chef's specials were a surprise and the table felt welcoming right away.",
+      "I thought it might feel awkward, but within ten minutes it felt normal. Four wines, great bites, no hassle.",
     name: "Anna",
     age: 31,
   },
   {
     quote:
-      "The girls-only evening was just right: well over two hours, our own pace, and conversation that flowed naturally.",
+      "Okay wait… way more fun than I expected. Well over two hours of tasting and chatting, at our own pace. Why didn't I do this sooner?",
     name: "Petra",
     age: 45,
   },
   {
     quote:
-      "We came for the wine and stayed for the conversation. Would do it again.",
+      "We came for the wine and stayed for the conversation. Just cozy, without anyone testing your wine knowledge.",
     name: "Kim & Sam",
     detail: "Couple",
   },

@@ -30,7 +30,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   routeMapTitle: "Langs deze plekken in {city}",
   routeSubtitle:
     "Zo krijg je alvast een beeld van de sfeer en de buurt. Alle stops en adressen staan op deze pagina. Een dag van tevoren mailen we je ze nog even.",
-  socialTitle: "Een avond uit, op jouw manier.",
+  socialTitle: "Een zondagmiddag uit, op jouw manier.",
   socialSubtitle:
     "Eigen tafel, alleen komen of aanschuiven bij anderen. Jij kiest hoe gezellig het wordt.",
   galleryTitle: "Sfeerimpressie",
@@ -63,7 +63,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingStepBack: "Terug",
   bookingFemaleOnlyNote: "Deze tafel is alleen voor vrouwen.",
   bookingMediaConsent:
-    "Door je boeking af te ronden stem je ermee in dat tijdens de avond foto's en video's kunnen worden gemaakt en gebruikt voor MyTable-marketing, waaronder onze website, social media, e-mail en online advertenties.",
+    "Door je boeking af te ronden stem je ermee in dat tijdens het event foto's en video's kunnen worden gemaakt en gebruikt voor MyTable-marketing, waaronder onze website, social media, e-mail en online advertenties.",
   bookingMediaConsentReadMore: "Meer in onze",
   bookingMediaConsentTerms: "algemene voorwaarden",
   bookingMediaConsentPrivacy: "privacyverklaring",
@@ -121,7 +121,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   closedCta: "Uitverkocht",
   moods: {
     tastings: {
-      tagline: "Wijnproeverij aan één tafel, girls only of gemengde groep",
+      tagline: "Wijnproeverij op zondagmiddag, girls only of gemengde groep",
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
@@ -140,7 +140,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           title: "Maak je eigen tafel of sluit aan",
           description:
-            "Boek een plek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige avond.",
+            "Boek een plek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige zondagmiddag.",
         },
         {
           title: "Toegankelijke uitleg",
@@ -159,7 +159,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Boek je eigen tafel met vrienden, kom alleen of schuif aan bij mensen die ook zin hebben in een gezellige avond.",
+        "Boek je eigen tafel met vrienden, kom alleen of schuif aan bij mensen die ook zin hebben in een gezellige zondagmiddag.",
         "Proeven, lachen, bijpraten zonder gedoe. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
       ],
       gallery: [
@@ -197,6 +197,11 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Waar vindt de proeverij plaats?",
           answer:
             "In één partnerrestaurant per stad. De exacte locatie staat op je boekingsbevestiging.",
+        },
+        {
+          question: "Wanneer zijn de events?",
+          answer:
+            "Elke zondagmiddag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
         },
         {
           question: "Kan ik annuleren of ruilen?",

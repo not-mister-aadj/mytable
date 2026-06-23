@@ -144,19 +144,19 @@ export const mysteryFlowNl: ExperienceFlowStep[] = [
 export const tastingQuotesNl: ExperienceGuestQuote[] = [
   {
     quote:
-      "Eén restaurant, geen gedoe. De chef's specials waren verrassend en de tafel voelde meteen gezellig.",
+      "Ik dacht dat het misschien awkward zou worden, maar binnen tien minuten voelde het normaal. Vier wijnen, lekkere bites, en geen gedoe.",
     name: "Anna",
     age: 31,
   },
   {
     quote:
-      "Girls only-avond was precies goed: ruim twee uur, eigen tempo, en gesprekken die vanzelf kwamen.",
+      "Oké wacht… veel leuker dan ik had verwacht. Ruim twee uur geproefd en gekletst, op ons tempo. Waarom heb ik dit niet eerder gedaan?",
     name: "Petra",
     age: 45,
   },
   {
     quote:
-      "We gingen voor de wijn en bleven hangen voor de gesprekken. Zou zo weer doen.",
+      "We kwamen voor de wijn en bleven hangen voor de gesprekken. Gewoon gezellig, zonder dat iemand je test op wijnkennis.",
     name: "Kim & Sam",
     detail: "Duo",
   },

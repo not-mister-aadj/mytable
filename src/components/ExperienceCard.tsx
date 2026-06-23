@@ -11,7 +11,7 @@ import {
   resolveFemaleOnly,
 } from "@/lib/event-extras";
 import { getSpotsLeft } from "@/lib/experience-booking";
-import { formatAlmostFullImageHint, formatCardDateTimeLine } from "@/lib/event-display";
+import { formatAlmostFullImageHint, formatCardDateTimeLine, formatSpotsLeftHint } from "@/lib/event-display";
 
 const statusBadgeStyles: Record<
   ExperienceItem["status"],
@@ -58,6 +58,7 @@ export function ExperienceCard({
   const isSoldOut = experience.status === "soldOut";
   const isUnavailable = isSoldOut || isClosed;
   const isAlmostFull = experience.status === "almostFull";
+  const isAvailable = experience.status === "available";
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
     experience.atmosphereTags,
@@ -74,7 +75,13 @@ export function ExperienceCard({
   const dateTimeLine = formatCardDateTimeLine(experience.dateTime, locale);
   const spotsLeft = getSpotsLeft(experience);
   const showUrgencyHint =
-    isAlmostFull && spotsLeft !== null && spotsLeft > 0;
+    !isUnavailable &&
+    spotsLeft !== null &&
+    spotsLeft > 0 &&
+    (isAlmostFull || (isAvailable && spotsLeft <= 15));
+  const urgencyHintText = isAlmostFull
+    ? formatAlmostFullImageHint(spotsLeft!, locale)
+    : formatSpotsLeftHint(spotsLeft!, locale);
 
   function handleClick() {
     trackEventCardClicked(experience, locale, sourceSection);
@@ -146,7 +153,7 @@ export function ExperienceCard({
 
         {showUrgencyHint ? (
           <p className="absolute bottom-3 left-3 z-10 max-w-[88%] text-xs font-medium leading-snug text-white drop-shadow-[0_1px_3px_rgba(43,13,18,0.65)] sm:text-sm">
-            {formatAlmostFullImageHint(spotsLeft, locale)}
+            {urgencyHintText}
           </p>
         ) : null}
       </div>

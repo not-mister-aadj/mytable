@@ -2,41 +2,41 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   socialPromise:
-    "Vier wijnen, chef's bites en een avond die voelt als uit eten met je meiden.",
+    "Vier wijnen, chef's bites, één tafel. Jij boekt, wij regelen de rest.",
   meta: {
-    title: "Girls-only wijnspijs met je vriendinnen",
+    title: "Girls-only wijnspijs op zondagmiddag",
     description:
-      "Girls-only wijnproeverijen door heel Nederland. Boek een tafel voor je groep, of schuif solo aan. Wij regelen wijn, bites en een gezellige tafel.",
+      "Elke zondagmiddag girls-only wijnproeverijen door heel Nederland. Boek voor je vriendinnen, of schuif solo aan. Wij regelen wijn, bites en een gezellige tafel.",
   },
   hero: {
-    eyebrow: "Girls only · MyTable",
-    title: "Wijnspijs met je vriendinnen. Zonder gedoe.",
+    eyebrow: "Girls only · Elke zondagmiddag",
+    title: "Wijnspijs op zondagmiddag. Boek voor je vriendinnen.",
     subtitle:
-      "Een avond uit met wijn, bites en goede gesprekken, precies zoals jullie dat willen. Reserveer jullie eigen tafel met je groep. Geen datumprikkers, geen menu-ruzie. Gewoon opdagen en genieten.",
+      "Zin in iets leuks op zondag, maar je vriendinnen zijn druk of ver weg? Boek een zondagmiddag wijnspijs voor je vriendinnen. Vier wijnen, chef's bites, één restaurant. Geen datumprikkers, geen menu-ruzie.",
     trustLine:
-      "Met je vriendinnen · Solo ook welkom · Kleine tafels · Beginners welkom",
-    calloutLabel: "Jouw volgende girls' wine night:",
+      "Zondagmiddag · Met je vriendinnen · Solo ook welkom · Beginners welkom",
+    calloutLabel: "Jouw volgende zondagmiddag:",
     calloutPain:
-      "Vier wijnen, chef's bites en gezelligheid aan een tafel die van jullie is.",
-    calloutReassurance: "Reserveer voor je groep. Wij regelen de rest.",
+      "Vier wijnen, chef's bites, één tafel. Geen datumprikkers, geen menu-gedoe.",
+    calloutReassurance: "Boek voor je vriendinnen. Wij regelen de rest.",
     calloutBody:
-      "Geen groep beschikbaar? Schuif solo of met een vriendin aan bij anderen. MyTable zorgt dat je aan een fijne tafel belandt.",
+      "Geen volledige groep? Schuif solo of met een vriendin aan bij anderen.",
     imageAlt:
-      "Vrouwen genieten van wijn en bites tijdens een girls-only avond uit",
+      "Vrouwen genieten van wijn en bites tijdens een girls-only zondagmiddag",
   },
   headerNav: {
-    tables: "Aankomende tafels",
+    tables: "Aankomende zondagen",
     howItWorks: "Hoe het werkt",
     whyJoin: "Waarom girls komen",
   },
   howItWorks: {
     title: "Hoe het werkt",
     subtitle:
-      "Eerst kies je je avond. Daarna bepaal je of je met je groep komt of aanschuift bij anderen.",
+      "Kies je zondagmiddag, boek voor je vriendinnen of schuif solo aan, en geniet aan tafel.",
     sharedStep: {
-      title: "Kies je tafel",
+      title: "Kies je zondagmiddag",
       description:
-        "Kies je stad en datum en reserveer. De avond staat vast. Geen heen-en-weer appen over wanneer het uitkomt.",
+        "Kies je stad en datum en reserveer. Je zondag staat vast. Geen heen-en-weer appen over wanneer het uitkomt.",
     },
     paths: [
       {
@@ -45,12 +45,12 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           {
             title: "Reserveer jullie eigen tafel",
             description:
-              "Boek voor je groep: twee, vier of meer. Jullie zitten samen aan een eigen tafel.",
+              "Boek voor je vriendinnen: twee, vier of meer. Jullie zitten samen aan een eigen tafel.",
           },
           {
-            title: "Kom opdagen en proef",
+            title: "Kom zondagmiddag proeven",
             description:
-              "Vier wijnen, chef's bites en een avond die voelt als uit eten met je meiden. Wij regelen alles rond de tafel.",
+              "Vier wijnen, chef's bites en een ontspannen middag aan tafel. Wij regelen alles rond de tafel.",
           },
         ],
       },
@@ -65,7 +65,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           {
             title: "MyTable regelt je plek",
             description:
-              "Wij zorgen dat je aan een gezellige tafel belandt. Vaak leer je onderweg nog andere girls kennen, maar het draait om de avond, niet om matchen.",
+              "Wij zorgen dat je aan een gezellige tafel belandt. Geen speeddating, gewoon een fijne zondagmiddag.",
           },
         ],
       },
@@ -74,17 +74,17 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   benefits: {
     title: "Waarom girls komen",
     subtitle:
-      "Voor een avond wijnspijs met je meiden, en als bonus soms nieuwe gezichten aan tafel.",
+      "Voor een zondagmiddag wijnspijs met je vriendinnen, en als bonus soms nieuwe gezichten aan tafel.",
     items: [
       {
         title: "Wijn en eten geregeld",
         description:
-          "Vier wijnen en bites van de chef. Wij regelen alles rond de tafel. Jij hoeft alleen op te komen dagen.",
+          "Vier wijnen en bites van de chef. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
       },
       {
-        title: "Jullie eigen tafel, jullie avond",
+        title: "Jullie eigen tafel, jullie middag",
         description:
-          "Reserveer voor je groep en zit samen aan een eigen tafel. Geen gedoe met reserveren, menu's of wie wat betaalt. Dat hebben wij al geregeld.",
+          "Boek voor je vriendinnen en zit samen aan een eigen tafel. Geen gedoe met reserveren, menu's of wie wat betaalt.",
       },
       {
         title: "Gezellig, niet awkward",
@@ -94,24 +94,24 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       {
         title: "Solo? Ook prima",
         description:
-          "Geen groep beschikbaar? Schuif solo of met een vriendin aan bij anderen. MyTable zorgt dat je aan een fijne tafel belandt.",
+          "Geen volledige groep? Schuif solo of met een vriendin aan. Aan tafel zitten groepen én girls die alleen komen.",
       },
     ],
   },
   events: {
-    title: "Boek een tafel bij jou in de buurt",
+    title: "Kies je zondagmiddag",
     subtitle:
-      "Door heel Nederland. Kies je stad, kies je datum, en kom met je meiden opdagen.",
+      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en boek voor je vriendinnen.",
     empty:
       "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
   },
   testimonials: {
     eyebrow: "Wat girls zeggen",
-    title: "Precies zo'n avond uit als we zochten",
+    title: "Precies zo'n zondagmiddag als we zochten",
   },
   finalCta: {
-    title: "Klaar voor je volgende girls' wine night?",
-    button: "Bekijk aankomende tafels",
+    title: "Klaar voor je volgende zondagmiddag wijnspijs?",
+    button: "Bekijk aankomende zondagen",
   },
   status: {
     available: "Beschikbaar",

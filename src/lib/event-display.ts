@@ -46,6 +46,16 @@ export function formatCardDateTimeLine(
 /** Spots remaining at or below this → agenda card shows “bijna vol” */
 export const ALMOST_FULL_SPOTS_THRESHOLD = 14;
 
+export function formatSpotsLeftHint(
+  spotsLeft: number,
+  locale: Locale,
+): string {
+  if (locale === "nl") {
+    return `Nog ${spotsLeft} plekken`;
+  }
+  return `${spotsLeft} spots left`;
+}
+
 export function formatAlmostFullImageHint(
   spotsLeft: number,
   locale: Locale,

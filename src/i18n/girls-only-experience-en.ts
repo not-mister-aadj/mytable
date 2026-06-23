@@ -18,7 +18,7 @@ export const girlsOnlyTastingFlowEn: ExperienceFlowStep[] = [
   {
     title: "Cozy, no hassle",
     description:
-      "No menu drama, no splitting the bill. Just tasting, laughing, and catching up like a night out with your crew.",
+      "No menu drama, no splitting the bill. Just tasting, laughing, and catching up like an afternoon out with your crew.",
   },
   {
     title: "Finish without rushing",
@@ -30,28 +30,28 @@ export const girlsOnlyTastingFlowEn: ExperienceFlowStep[] = [
 export const girlsOnlyTastingQuotesEn: ExperienceGuestQuote[] = [
   {
     quote:
-      "Exactly the kind of night we were looking for. Four wines, great bites, and zero planning stress.",
+      "I came solo and was genuinely nervous. But within ten minutes I was chatting away. Way more fun than I expected.",
     name: "Lisa",
     detail: "with 3 friends",
   },
   {
     quote:
-      "Booked with my sister and two friends. Our own table, everything sorted. We spent the whole evening tasting and catching up.",
+      "Booked with my sister and two friends. Our own table, everything sorted. Why didn't we do this sooner?",
     name: "Sanne",
     detail: "group of 4",
   },
   {
     quote:
-      "No group available, so I went solo. Still a lovely evening. It was mostly about the wine and the vibe.",
+      "My friends couldn't make it, so I went solo. It felt like dining out with fun girls. Not awkward, just nice.",
     name: "Noor",
     detail: "solo",
   },
 ];
 
 export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
-  tagline: "Girls-only wine & bites with your friends. No hassle.",
+  tagline: "Girls-only wine & bites on Sunday afternoon. No hassle.",
   description:
-    "An evening of wine and bites with your crew at one table. Four wines, chef's specials, and everything around the table sorted. No wine exam, just context and room to enjoy at your pace, usually two to three hours.",
+    "A Sunday afternoon of wine and bites with your crew at one table. Four wines, chef's specials, and everything around the table sorted. No wine exam, just context and room to enjoy at your pace, usually two to three hours.",
   experienceFlow: girlsOnlyTastingFlowEn,
   guestQuotes: girlsOnlyTastingQuotesEn,
   whatToExpect: [
@@ -66,7 +66,7 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
         "Book for your group and sit together at your own table. Two, four, or more: you decide who joins.",
     },
     {
-      title: "One restaurant, one evening",
+      title: "One restaurant, one Sunday afternoon",
       description:
         "No stops across the city. Everything happens at one carefully chosen spot.",
     },
@@ -87,8 +87,8 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
     },
   ],
   socialParagraphs: [
-    "Book a table for your group and enjoy a night that feels like dinner out with your crew.",
-    "Tasting, laughing, catching up. No networking talk, no speed-dating vibe. Just a fun girls' wine night.",
+    "Book a table for your group and enjoy a Sunday afternoon out with your girls. You reserve, we handle wine, bites, and the table.",
+    "Tasting, laughing, catching up. No networking talk, no speed-dating vibe. Just a fun girls-only Sunday afternoon.",
   ],
   faq: [
     {
@@ -100,6 +100,11 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
       question: "What if I don't have a group?",
       answer:
         "Book solo or bring a friend and join other girls at the table. MyTable makes sure you land at a cozy table.",
+    },
+    {
+      question: "When are the events?",
+      answer:
+        "Every Sunday afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
     },
     {
       question: "What is a chef's special?",
@@ -126,12 +131,12 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
 
 export const girlsOnlyExperienceLabelsEn = {
   pillSoloTogether: "With your friends · solo welcome too",
-  socialTitle: "A girls' wine night with your crew.",
+  socialTitle: "Girls-only wine & bites on Sunday afternoon.",
   socialSubtitle:
     "Your own table with your group, or join others if you don't have a full group.",
-  finalCtaHeadline: "Ready for your next girls' wine night?",
+  finalCtaHeadline: "Ready for your next Sunday afternoon wine & bites?",
   finalCtaSubheadline:
-    "Four wines, chef's bites, and a night that feels like dinner out with your friends.",
+    "Four wines, chef's bites, and good company with your girls. No date polls, no hassle.",
   bookingSeatingOwn: "With my friends, own table",
   bookingSeatingOwnHint: "Your table, your crew. Wine, bites, no hassle.",
   bookingSeatingJoin: "I'll join others at the table",
@@ -145,12 +150,12 @@ export const girlsOnlyExperienceLabelsEn = {
   ],
   practicalValues: {
     solo: "No group? Join solo or bring a friend",
-    groupSize: "Small tables, usually 8 to 14 women per evening",
+    groupSize: "Small tables, usually 8 to 14 women per Sunday afternoon",
   },
 };
 
 export const girlsOnlyWineTastingCardTextEn =
-  "Four wines, chef's bites, and a night that feels like dinner out with your crew.";
+  "Your girls, four wines, one table. You reserve, we do the rest.";
 
 export const girlsOnlyWineTastingTaglineEn =
-  "Girls-only wine & bites with your friends. No hassle.";
+  "Girls-only wine & bites on Sunday afternoon. No hassle.";

@@ -22,7 +22,7 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
     headline: "Je betaling wordt bevestigd",
     subtext: "We halen je boeking op. Dit duurt meestal maar een paar seconden.",
     timeoutSubtext:
-      "Dit duurt langer dan verwacht. Ververs de pagina of wacht op de bevestigingsmail — je betaling is waarschijnlijk al verwerkt.",
+      "Dit duurt langer dan verwacht. Ververs de pagina of wacht op de bevestigingsmail. Je betaling is waarschijnlijk al verwerkt.",
   },
   summary: {
     title: "Je reservering",
@@ -49,13 +49,13 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
       {
         title: "Tot aan tafel",
         description:
-          "Kom op tijd, ontspan en geniet van je avond. Dat is waar MyTable om draait.",
+          "Kom op tijd, ontspan en geniet van je zondagmiddag. Dat is waar MyTable om draait.",
       },
     ],
   },
   community: {
     title: "Superlekkere wijnen en gerechten",
-    body: "Je avond draait om culinaire ontdekkingen: bijzondere restaurants, zorgvuldig gekozen wijnen en gerechten die je laten proeven, verrassen en genieten.",
+    body: "Je zondagmiddag draait om culinaire ontdekkingen: bijzondere restaurants, zorgvuldig gekozen wijnen en gerechten die je laten proeven, verrassen en genieten.",
     galleryAlt: "Sfeerimpressie",
   },
 };

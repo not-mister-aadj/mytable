@@ -387,12 +387,12 @@ export const privacyNl: LegalDocumentContent = {
         {
           type: "ul",
           items: [
-            "Partnerlocaties — beperkte gastinformatie voor de uitvoering van je tafel;",
-            "Stripe (betalingen) — verwerkt je betaling; wij slaan geen kaart- of bankgegevens op;",
-            "Supabase (database en opslag) — slaat boekingsgegevens en media op;",
-            "Vercel (hosting) — host onze website;",
-            "Resend (e-mail) — verstuurt boekingsbevestigingen namens ons;",
-            "Apple MapKit (kaarten) — toont kaarten op evenementpagina's, indien ingeschakeld.",
+            "Partnerlocaties: beperkte gastinformatie voor de uitvoering van je tafel;",
+            "Stripe (betalingen): verwerkt je betaling; wij slaan geen kaart- of bankgegevens op;",
+            "Supabase (database en opslag): slaat boekingsgegevens en media op;",
+            "Vercel (hosting): host onze website;",
+            "Resend (e-mail): verstuurt boekingsbevestigingen namens ons;",
+            "Apple MapKit (kaarten): toont kaarten op evenementpagina's, indien ingeschakeld.",
           ],
         },
         {

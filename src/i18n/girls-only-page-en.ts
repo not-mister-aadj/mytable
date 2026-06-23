@@ -29,19 +29,6 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     howItWorks: "How it works",
     whyJoin: "Why girls join",
   },
-  trust: {
-    title: "These evenings sell out fast",
-    subtitle:
-      "Popular girls-only tables fill up quickly. New dates are added regularly. Keep an eye out.",
-    badges: {
-      girlsOnly: "Girls only",
-      soldOut: "Sold out",
-      limitedSeats: "Limited seats",
-      soloOrFriends: "Solo or with friends",
-    },
-    viewAllTables: "View all upcoming tables",
-    showMoreSoldOut: "Show more sold-out evenings",
-  },
   howItWorks: {
     title: "How it works",
     subtitle: "Come solo, bring a friend, or book your own table.",
@@ -86,17 +73,9 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       {
         title: "Fun, not awkward",
         description:
-          "No name tags, no networking talk, no speed-dating vibe. Just tasting, laughing, and talking at a small table.",
+          "No networking talk, no speed-dating vibe. Just tasting, laughing, and talking at a small table.",
       },
     ],
-  },
-  gallery: {
-    eyebrow: "A peek at the table",
-    title: "This is what an event looks like",
-    subtitle:
-      "Real girls and real conversations, with wine and food at the table in between.",
-    previousPhoto: "Previous photo",
-    nextPhoto: "Next photo",
   },
   events: {
     title: "Join a table near you",

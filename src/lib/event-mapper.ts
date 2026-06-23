@@ -76,6 +76,7 @@ export function mapDbEventToExperienceItem(
     experienceType: typeSlug,
     pageSections: resolvePageSections(typeSlug, locale, extras),
     dateTime: formatDateTime(startsAt, endsAt, locale),
+    startsAt: startsAt.toISOString(),
     price: Math.round(row.priceCents / 100),
     status: deriveDisplayStatus(
       row.capacity,

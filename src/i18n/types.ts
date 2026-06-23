@@ -234,6 +234,8 @@ export interface ExperienceItem {
   experienceType?: string;
   pageSections?: ExperiencePageSectionLabels;
   dateTime: string;
+  /** ISO timestamp for reliable sorting (from DB events). */
+  startsAt?: string;
   price: number;
   status: ExperienceStatusKey;
   image: string;

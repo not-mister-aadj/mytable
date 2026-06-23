@@ -4,14 +4,6 @@ import { sortAgendaTimeline } from "@/lib/agenda";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { enrichExperience } from "@/lib/experience-detail";
 
-const ROTTERDAM_PRIORITY = 0;
-const DEFAULT_CITY_PRIORITY = 1;
-
-function citySortPriority(city: string): number {
-  if (/rotterdam/i.test(city)) return ROTTERDAM_PRIORITY;
-  return DEFAULT_CITY_PRIORITY;
-}
-
 export function isGirlsOnlyWineTasting(item: ExperienceItem): boolean {
   if (!item.femaleOnly) return false;
 
@@ -30,13 +22,7 @@ export function getGirlsOnlyWineEvents(
     .filter(isGirlsOnlyWineTasting)
     .map(enrichExperience);
 
-  const sorted = sortAgendaTimeline(filtered, locale);
-
-  return sorted.sort((a, b) => {
-    const cityDiff = citySortPriority(a.city) - citySortPriority(b.city);
-    if (cityDiff !== 0) return cityDiff;
-    return 0;
-  });
+  return sortAgendaTimeline(filtered, locale);
 }
 
 export function partitionGirlsOnlyEvents(items: EnrichedExperience[]): {

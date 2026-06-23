@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { experiencePath, type Locale } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import {
@@ -14,21 +14,15 @@ import { Button } from "@/components/ui/Button";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { TestimonialNotificationToasts } from "@/components/girls-only/TestimonialNotificationToasts";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
-import { GirlsOnlyGallery } from "@/components/girls-only/GirlsOnlyGallery";
-import type { GirlsOnlyGalleryItem } from "@/lib/girls-only-gallery";
 
 interface GirlsOnlyLandingViewProps {
   labels: GirlsOnlyPageLabels;
   locale: Locale;
   allEvents: EnrichedExperience[];
-  soldOut: EnrichedExperience[];
-  galleryItems: GirlsOnlyGalleryItem[];
 }
 
 const ctaClassName =
   "bg-rose text-cream hover:bg-rose-deep px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] sm:text-sm";
-
-const EVENT_PREVIEW_COUNT = 3;
 
 function TrustBadge({ children }: { children: React.ReactNode }) {
   return (
@@ -71,10 +65,7 @@ export function GirlsOnlyLandingView({
   labels,
   locale,
   allEvents,
-  soldOut,
-  galleryItems,
 }: GirlsOnlyLandingViewProps) {
-  const [showAllSoldOut, setShowAllSoldOut] = useState(false);
   const testimonials = getGirlsOnlyTestimonials(locale);
   const toastNotifications = useMemo(
     () => getGirlsOnlyToastNotifications(locale),
@@ -82,11 +73,6 @@ export function GirlsOnlyLandingView({
   );
   const { top, bottom } = splitGirlsOnlyTestimonialRows(testimonials);
   const trustPills = labels.hero.trustLine.split(" · ");
-  const visibleSoldOut = showAllSoldOut
-    ? soldOut
-    : soldOut.slice(0, EVENT_PREVIEW_COUNT);
-  const hasMoreSoldOut = soldOut.length > EVENT_PREVIEW_COUNT;
-  const hasMoreEventsThanPreview = allEvents.length > EVENT_PREVIEW_COUNT;
 
   const cardProps = {
     statusLabels: labels.status,
@@ -158,67 +144,6 @@ export function GirlsOnlyLandingView({
           </div>
         </div>
       </section>
-
-      <GirlsOnlyGallery labels={labels.gallery} items={galleryItems} />
-
-      {/* Trust / sold-out social proof */}
-      {soldOut.length > 0 ? (
-        <section className="border-b border-rose/15 bg-beige/60 py-10 sm:py-12">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
-                {labels.trust.title}
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-wine/65 sm:text-base">
-                {labels.trust.subtitle}
-              </p>
-            </div>
-
-            <ul className="mt-6 flex flex-wrap justify-center gap-2">
-              <li>
-                <TrustBadge>{labels.trust.badges.girlsOnly}</TrustBadge>
-              </li>
-              <li>
-                <TrustBadge>{labels.trust.badges.soldOut}</TrustBadge>
-              </li>
-              <li>
-                <TrustBadge>{labels.trust.badges.limitedSeats}</TrustBadge>
-              </li>
-              <li>
-                <TrustBadge>{labels.trust.badges.soloOrFriends}</TrustBadge>
-              </li>
-            </ul>
-
-            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {visibleSoldOut.map((experience) => (
-                <ExperienceCard
-                  key={experience.id}
-                  experience={experience}
-                  href={experiencePath(locale, experience.slug)}
-                  {...cardProps}
-                />
-              ))}
-            </div>
-
-            {(hasMoreSoldOut || hasMoreEventsThanPreview) && (
-              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                {hasMoreSoldOut && !showAllSoldOut ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowAllSoldOut(true)}
-                    className="text-sm font-medium text-rose-deep underline-offset-4 hover:underline"
-                  >
-                    {labels.trust.showMoreSoldOut}
-                  </button>
-                ) : null}
-                {hasMoreEventsThanPreview ? (
-                  <GirlsOnlyCta href="#events">{labels.trust.viewAllTables}</GirlsOnlyCta>
-                ) : null}
-              </div>
-            )}
-          </div>
-        </section>
-      ) : null}
 
       {/* How it works */}
       <section

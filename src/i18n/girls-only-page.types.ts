@@ -25,18 +25,6 @@ export interface GirlsOnlyPageLabels {
     howItWorks: string;
     whyJoin: string;
   };
-  trust: {
-    title: string;
-    subtitle: string;
-    badges: {
-      girlsOnly: string;
-      soldOut: string;
-      limitedSeats: string;
-      soloOrFriends: string;
-    };
-    viewAllTables: string;
-    showMoreSoldOut: string;
-  };
   howItWorks: {
     title: string;
     subtitle: string;
@@ -46,13 +34,6 @@ export interface GirlsOnlyPageLabels {
     title: string;
     subtitle: string;
     items: { title: string; description: string }[];
-  };
-  gallery: {
-    eyebrow: string;
-    title: string;
-    subtitle: string;
-    previousPhoto: string;
-    nextPhoto: string;
   };
   events: {
     title: string;

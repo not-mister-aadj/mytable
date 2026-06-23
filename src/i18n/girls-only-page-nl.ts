@@ -30,19 +30,6 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     howItWorks: "Hoe het werkt",
     whyJoin: "Waarom girls komen",
   },
-  trust: {
-    title: "Deze avonden vliegen eruit",
-    subtitle:
-      "Populaire girls-only tafels zijn snel uitverkocht. Nieuwe data komen er regelmatig bij. Houd ons in de gaten.",
-    badges: {
-      girlsOnly: "Girls only",
-      soldOut: "Uitverkocht",
-      limitedSeats: "Beperkte plekken",
-      soloOrFriends: "Solo of met vriendinnen",
-    },
-    viewAllTables: "Bekijk alle aankomende tafels",
-    showMoreSoldOut: "Toon meer uitverkochte avonden",
-  },
   howItWorks: {
     title: "Hoe het werkt",
     subtitle: "Kom solo, met een vriendin, of met je eigen groep.",
@@ -87,17 +74,9 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       {
         title: "Gezellig, niet awkward",
         description:
-          "Geen name tags, geen netwerkpraat, geen speeddating-sfeer. Gewoon proeven, lachen en praten aan een kleine tafel.",
+          "Geen netwerkpraat, geen speeddating-sfeer. Gewoon proeven, lachen en praten aan een kleine tafel.",
       },
     ],
-  },
-  gallery: {
-    eyebrow: "Kijkje aan tafel",
-    title: "Zo ziet een event eruit",
-    subtitle:
-      "Echte girls en echte gesprekken, met wijn en gerechten aan tafel ertussen.",
-    previousPhoto: "Vorige foto",
-    nextPhoto: "Volgende foto",
   },
   events: {
     title: "Schuif aan een tafel bij jou in de buurt",

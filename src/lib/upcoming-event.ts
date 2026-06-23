@@ -64,17 +64,21 @@ export function parseExperienceStartsAt(
   return candidate;
 }
 
+function experienceSortTime(item: ExperienceItem, locale: Locale): number {
+  if (item.startsAt) {
+    const parsed = Date.parse(item.startsAt);
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+  return parseExperienceStartsAt(item.dateTime, locale)?.getTime() ?? Infinity;
+}
+
 export function sortExperiencesByDate(
   items: ExperienceItem[],
   locale: Locale,
 ): ExperienceItem[] {
-  return [...items].sort((a, b) => {
-    const da =
-      parseExperienceStartsAt(a.dateTime, locale)?.getTime() ?? Infinity;
-    const db =
-      parseExperienceStartsAt(b.dateTime, locale)?.getTime() ?? Infinity;
-    return da - db;
-  });
+  return [...items].sort(
+    (a, b) => experienceSortTime(a, locale) - experienceSortTime(b, locale),
+  );
 }
 
 /** First upcoming bookable event in the agenda timeline. */
@@ -85,8 +89,10 @@ export function getNextUpcomingExperience(
   const now = Date.now();
   const upcoming = sortExperiencesByDate(items, locale).filter((item) => {
     if (item.status === "soldOut" || item.status === "closed") return false;
-    const at = parseExperienceStartsAt(item.dateTime, locale);
-    return at !== null && at.getTime() >= now;
+    const at = item.startsAt
+      ? Date.parse(item.startsAt)
+      : parseExperienceStartsAt(item.dateTime, locale)?.getTime();
+    return at !== undefined && !Number.isNaN(at) && at >= now;
   });
   return upcoming[0] ?? null;
 }

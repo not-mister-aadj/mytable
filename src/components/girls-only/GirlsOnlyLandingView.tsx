@@ -1,18 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
 import { experiencePath, type Locale } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import {
   getGirlsOnlyTestimonials,
   splitGirlsOnlyTestimonialRows,
 } from "@/data/girls-only-testimonials";
-import { getGirlsOnlyToastNotifications } from "@/data/girls-only-toast-notifications";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/Button";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
-import { TestimonialNotificationToasts } from "@/components/girls-only/TestimonialNotificationToasts";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { GirlsOnlyStickyCta } from "@/components/girls-only/GirlsOnlyStickyCta";
 
@@ -258,10 +255,6 @@ export function GirlsOnlyLandingView({
   allEvents,
 }: GirlsOnlyLandingViewProps) {
   const testimonials = getGirlsOnlyTestimonials(locale);
-  const toastNotifications = useMemo(
-    () => getGirlsOnlyToastNotifications(locale),
-    [locale],
-  );
   const { top, bottom } = splitGirlsOnlyTestimonialRows(testimonials);
   const trustPills = labels.hero.trustLine.split(" · ");
 
@@ -401,14 +394,6 @@ export function GirlsOnlyLandingView({
       </section>
 
       <GirlsOnlyStickyCta label={labels.finalCta.button} />
-
-      {testimonials.length > 0 ? (
-        <TestimonialNotificationToasts
-          items={toastNotifications}
-          justNowLabel={labels.toasts.justNow}
-          className="bottom-24 left-4 right-4 sm:bottom-6 sm:left-auto sm:right-6 sm:max-w-sm"
-        />
-      ) : null}
     </>
   );
 }

@@ -3,9 +3,6 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   socialPromise:
     "Four wines, chef's bites, and a night that feels like dinner out with your crew.",
-  toasts: {
-    justNow: "Just now",
-  },
   meta: {
     title: "Girls-only wine & bites with your friends",
     description:

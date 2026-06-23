@@ -2,9 +2,6 @@ import type { ExperienceStatusKey } from "./types";
 
 export interface GirlsOnlyPageLabels {
   socialPromise: string;
-  toasts: {
-    justNow: string;
-  };
   meta: {
     title: string;
     description: string;

@@ -144,7 +144,7 @@ export function ExperienceStickyBookingBar({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className={`fixed inset-x-0 top-[4.25rem] z-[48] border-b shadow-sm backdrop-blur-md ${
+          className={`fixed inset-x-0 top-[4.25rem] z-[48] hidden border-b shadow-sm backdrop-blur-md lg:block ${
             isFemaleOnly
               ? "border-rose/25 bg-rose-soft/95"
               : "border-border-subtle bg-cream/95"

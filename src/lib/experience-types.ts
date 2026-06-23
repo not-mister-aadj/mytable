@@ -2,6 +2,7 @@ import { cache } from "react";
 import { eq, inArray } from "drizzle-orm";
 import { experienceTypes } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
+import { ensureExperienceTypesSchema } from "@/lib/ensure-experience-types-schema";
 import {
   EXPERIENCE_TYPE_DEFINITIONS,
   type ExperienceTypeSlug,
@@ -18,8 +19,12 @@ export {
   DEFAULT_EXPERIENCE_TYPE,
 };
 
+/** At most once per request */
+export const ensureExperienceTypesSchemaCached = cache(ensureExperienceTypesSchema);
+
 export async function ensureExperienceTypesSeeded() {
   if (!isDbConfigured()) return;
+  await ensureExperienceTypesSchemaCached();
   const db = getDb();
   for (const def of EXPERIENCE_TYPE_DEFINITIONS) {
     const [existing] = await db
@@ -57,14 +62,19 @@ export async function getExperienceTypesBySlugs(slugs: string[]) {
 
 export async function getExperienceType(slug: string) {
   if (!isDbConfigured()) return undefined;
-  await ensureExperienceTypesSeededCached();
-  const db = getDb();
-  const [row] = await db
-    .select()
-    .from(experienceTypes)
-    .where(eq(experienceTypes.slug, slug))
-    .limit(1);
-  return row;
+  try {
+    await ensureExperienceTypesSeededCached();
+    const db = getDb();
+    const [row] = await db
+      .select()
+      .from(experienceTypes)
+      .where(eq(experienceTypes.slug, slug))
+      .limit(1);
+    return row;
+  } catch (error) {
+    console.error("[getExperienceType] query failed for", slug, error);
+    return undefined;
+  }
 }
 
 export async function getAllExperienceTypes() {

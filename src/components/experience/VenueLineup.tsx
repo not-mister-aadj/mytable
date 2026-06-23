@@ -14,7 +14,7 @@ interface VenueLineupProps {
 
 export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
   return (
-    <section className="border-y border-border-subtle bg-wine py-16 text-cream sm:py-24">
+    <section className="border-y border-border-subtle bg-wine py-10 text-cream sm:py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -22,15 +22,15 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="max-w-2xl font-serif text-3xl font-medium tracking-tight sm:text-4xl lg:text-5xl">
+          <h2 className="max-w-2xl font-serif text-2xl font-medium tracking-tight sm:text-4xl lg:text-5xl">
             {title}
           </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-cream/75 sm:text-lg">
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-cream/75 sm:mt-4 sm:text-lg">
             {subtitle}
           </p>
         </motion.div>
 
-        <div className="-mx-5 mt-12 flex gap-5 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
+        <div className="-mx-5 mt-8 flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-8 sm:mt-12 sm:gap-5 sm:px-8 lg:-mx-10 lg:px-10">
           {venues.map((venue, index) =>
             isLocationTbdVenue(venue) ? (
               <LocationTbdVenueCard

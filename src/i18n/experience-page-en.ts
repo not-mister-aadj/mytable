@@ -20,6 +20,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   aboutTitle: "About this experience",
   expectTitle: "What to expect",
   flowTitle: "How the evening flows",
+  flowExpandCta: "View all steps",
   venuesTitle: "Where you join the table",
   venuesSubtitle:
     "Visit one of our partner restaurants. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",

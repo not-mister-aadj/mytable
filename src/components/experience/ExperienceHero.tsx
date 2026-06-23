@@ -74,7 +74,7 @@ export function ExperienceHero({
       className={
         previewMode
           ? "relative min-h-[min(52vh,420px)] overflow-hidden sm:min-h-[min(58vh,480px)]"
-          : "relative min-h-[62vh] overflow-hidden sm:min-h-[70vh]"
+          : "relative min-h-[48vh] overflow-hidden sm:min-h-[62vh] lg:min-h-[70vh]"
       }
     >
       <motion.div className="absolute inset-0 scale-105" style={{ y: imageY }}>
@@ -93,14 +93,14 @@ export function ExperienceHero({
         className={
           previewMode
             ? "relative mx-auto flex min-h-[min(52vh,420px)] max-w-7xl flex-col justify-end px-5 pb-10 pt-24 sm:min-h-[min(58vh,480px)] sm:px-8 sm:pb-12 lg:px-10"
-            : "relative mx-auto flex min-h-[62vh] max-w-7xl flex-col justify-end px-5 pb-12 pt-32 sm:min-h-[70vh] sm:px-8 sm:pb-16 lg:px-10"
+            : "relative mx-auto flex min-h-[48vh] max-w-7xl flex-col justify-end px-5 pb-8 pt-24 sm:min-h-[62vh] sm:px-8 sm:pb-12 sm:pt-32 lg:min-h-[70vh] lg:pb-16 lg:px-10"
         }
       >
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="text-xs font-medium tracking-wide text-cream/85"
+          className="hidden text-xs font-medium tracking-wide text-cream/85 sm:block"
         >
           {labels.heroTrustBar}
         </motion.p>
@@ -109,7 +109,7 @@ export function ExperienceHero({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-gold"
+          className="mt-4 text-xs font-semibold uppercase tracking-[0.28em] text-gold sm:mt-6"
         >
           {experience.category}
         </motion.p>
@@ -129,7 +129,7 @@ export function ExperienceHero({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-3 max-w-3xl font-serif text-4xl font-medium leading-[1.05] tracking-tight text-cream sm:text-5xl lg:text-6xl"
+          className="mt-2 max-w-3xl font-serif text-3xl font-medium leading-[1.08] tracking-tight text-cream sm:mt-3 sm:text-5xl lg:text-6xl"
         >
           {experience.experienceName}
         </motion.h1>
@@ -138,7 +138,7 @@ export function ExperienceHero({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="mt-2 font-serif text-2xl text-cream/90 sm:text-3xl"
+          className="mt-1 font-serif text-xl text-cream/90 sm:mt-2 sm:text-3xl"
         >
           {experience.city}
         </motion.p>
@@ -147,7 +147,7 @@ export function ExperienceHero({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-4 max-w-xl text-lg leading-relaxed text-cream/80 sm:text-xl"
+          className="mt-3 line-clamp-2 max-w-xl text-base leading-relaxed text-cream/80 sm:mt-4 sm:line-clamp-none sm:text-xl"
         >
           {tagline}
         </motion.p>
@@ -157,7 +157,7 @@ export function ExperienceHero({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.22 }}
-            className="mt-4 flex flex-wrap gap-2"
+            className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2"
           >
             {visibleTags.map((tag) => (
               <li
@@ -174,12 +174,12 @@ export function ExperienceHero({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.25 }}
-          className="mt-6 flex flex-wrap gap-2"
+          className="mt-4 flex flex-wrap gap-1.5 sm:mt-6 sm:gap-2"
         >
           {pills.map((pill) => (
             <li
               key={pill}
-              className="rounded-full border border-cream/25 bg-cream/10 px-4 py-2 text-xs font-medium tracking-wide text-cream backdrop-blur-sm sm:text-sm"
+              className="rounded-full border border-cream/25 bg-cream/10 px-3 py-1.5 text-[11px] font-medium tracking-wide text-cream backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm"
             >
               {pill}
             </li>
@@ -190,7 +190,7 @@ export function ExperienceHero({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.3 }}
-          className="mt-8 flex flex-wrap gap-3"
+          className="mt-6 hidden flex-wrap gap-3 sm:mt-8 sm:flex"
         >
           <Button
             href="#booking"
@@ -205,7 +205,7 @@ export function ExperienceHero({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.45, delay: 0.35 }}
-          className="mt-6 max-w-xl text-xs leading-relaxed text-cream/65 sm:text-sm"
+          className="mt-4 hidden max-w-xl text-xs leading-relaxed text-cream/65 sm:mt-6 sm:block sm:text-sm"
         >
           {labels.heroTrustFooter}
           {spots !== null && spots > 0 && spots <= 6 ? (

@@ -16,23 +16,23 @@ export function SocialAtmosphere({
   imageAlt,
 }: SocialAtmosphereProps) {
   return (
-    <section className="border-t border-border-subtle py-14 sm:py-20">
-      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <section className="border-t border-border-subtle py-8 sm:py-14 lg:py-20">
+      <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
         <div>
-          <h2 className="font-serif text-3xl font-medium leading-tight tracking-tight text-wine sm:text-4xl">
+          <h2 className="font-serif text-2xl font-medium leading-tight tracking-tight text-wine sm:text-4xl">
             {title}
           </h2>
-          <p className="mt-4 text-lg text-wine/65">{subtitle}</p>
+          <p className="mt-3 text-base text-wine/65 sm:mt-4 sm:text-lg">{subtitle}</p>
           {paragraphs.map((p) => (
             <p
               key={p.slice(0, 40)}
-              className="mt-6 text-base leading-relaxed text-wine/75"
+              className="mt-4 text-sm leading-relaxed text-wine/75 sm:mt-6 sm:text-base"
             >
               {p}
             </p>
           ))}
         </div>
-        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(43,13,18,0.12)]">
+        <div className="relative aspect-[5/4] overflow-hidden rounded-2xl shadow-[0_24px_60px_rgba(43,13,18,0.12)] sm:aspect-[4/5] sm:rounded-3xl">
           <Image
             src={image}
             alt={imageAlt}

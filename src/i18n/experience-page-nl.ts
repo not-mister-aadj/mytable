@@ -20,6 +20,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   aboutTitle: "Over deze ervaring",
   expectTitle: "Wat kun je verwachten?",
   flowTitle: "Hoe verloopt de ervaring?",
+  flowExpandCta: "Bekijk alle stappen",
   venuesTitle: "Waar je aan tafel schuift",
   venuesSubtitle:
     "Bezoek een van onze partnerrestaurants. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",

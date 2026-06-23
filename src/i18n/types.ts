@@ -72,6 +72,7 @@ export interface ExperiencePageLabels {
   aboutTitle: string;
   expectTitle: string;
   flowTitle: string;
+  flowExpandCta: string;
   venuesTitle: string;
   venuesSubtitle: string;
   guestQuotesTitle: string;
@@ -146,29 +147,6 @@ export interface ExperiencePageLabels {
   spotsByStatus: Record<ExperienceStatusKey, string>;
   closedCta: string;
   moods: Record<ExperienceMoodKey, ExperienceMoodContent>;
-}
-
-export interface EventShareLabels {
-  invite: {
-    eyebrow: string;
-    title: string;
-    body: string;
-    whatsapp: string;
-    email: string;
-    skip: string;
-    close: string;
-  };
-  share: {
-    eyebrow: string;
-    title: string;
-    body: string;
-    copy: string;
-    copied: string;
-    nativeShare: string;
-    close: string;
-  };
-  inviteMessage: string;
-  emailSubject: string;
 }
 
 export interface BookingOutcomeLabels {

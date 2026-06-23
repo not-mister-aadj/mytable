@@ -91,16 +91,16 @@ export function PracticalInfo({
   ];
 
   return (
-    <section className="border-t border-border-subtle py-14 sm:py-20">
+    <section className="border-t border-border-subtle py-8 sm:py-14 lg:py-20">
       <motion.h2
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl"
+        className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl"
       >
         {title}
       </motion.h2>
-      <dl className="mt-10 grid gap-4 sm:grid-cols-2">
+      <dl className="mt-6 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4">
         {rows.map((row, index) => (
           <motion.div
             key={row.label}
@@ -108,7 +108,7 @@ export function PracticalInfo({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-20px" }}
             transition={{ delay: index * 0.04 }}
-            className="flex gap-4 rounded-2xl border border-border-subtle bg-beige/60 px-5 py-4"
+            className="flex gap-3 rounded-2xl border border-border-subtle bg-beige/60 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4"
           >
             <PracticalIcon type={row.icon} />
             <div>

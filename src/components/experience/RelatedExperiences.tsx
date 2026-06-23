@@ -19,11 +19,11 @@ export function RelatedExperiences({
   if (items.length === 0) return null;
 
   return (
-    <section className="border-t border-border-subtle py-14 sm:py-20">
-      <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+    <section className="border-t border-border-subtle py-8 sm:py-14 lg:py-20">
+      <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl">
         {title}
       </h2>
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-7">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-7">
         {items.map((experience) => (
           <ExperienceCard
             key={experience.id}

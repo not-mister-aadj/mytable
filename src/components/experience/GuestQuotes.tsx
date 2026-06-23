@@ -22,13 +22,13 @@ export function GuestQuotes({ title, quotes }: GuestQuotesProps) {
   if (!current) return null;
 
   return (
-    <section className="border-t border-border-subtle py-14 sm:py-20">
-      <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+    <section className="border-t border-border-subtle py-8 sm:py-14 lg:py-20">
+      <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl">
         {title}
       </h2>
 
-      <div className="relative mt-10 overflow-hidden rounded-3xl border border-border-subtle bg-beige px-6 py-10 sm:px-12 sm:py-14">
-        <span className="font-serif text-6xl leading-none text-gold/50" aria-hidden>
+      <div className="relative mt-6 overflow-hidden rounded-2xl border border-border-subtle bg-beige px-5 py-8 sm:mt-10 sm:rounded-3xl sm:px-12 sm:py-14">
+        <span className="font-serif text-5xl leading-none text-gold/50 sm:text-6xl" aria-hidden>
           &ldquo;
         </span>
 
@@ -40,7 +40,7 @@ export function GuestQuotes({ title, quotes }: GuestQuotesProps) {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.35 }}
           >
-            <p className="mt-2 max-w-3xl font-serif text-2xl leading-relaxed text-wine sm:text-3xl">
+            <p className="mt-2 max-w-3xl font-serif text-xl leading-relaxed text-wine sm:text-3xl">
               {current.quote}
             </p>
             <footer className="mt-6 text-sm font-medium text-wine/55">

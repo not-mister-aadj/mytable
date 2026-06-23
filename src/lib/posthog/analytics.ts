@@ -76,7 +76,7 @@ export function trackEventDetailViewed(
 export function trackBookingStarted(
   experience: ExperienceItem,
   language: string,
-  source: "detail_page" | "agenda_card" | "hero" | "sticky_bar" | "final_cta",
+  source: "detail_page" | "agenda_card" | "hero" | "sticky_bar" | "final_cta" | "mobile_sticky",
   seatsSelected?: number,
 ): void {
   capture(PostHogEvents.bookingStarted, {

@@ -22,6 +22,7 @@ import { ExperienceFinalCta } from "./ExperienceFinalCta";
 import { ExperienceFlow } from "./ExperienceFlow";
 import { ExperienceGallery } from "./ExperienceGallery";
 import { ExperienceHero } from "./ExperienceHero";
+import { ExperienceMobileStickyCta } from "./ExperienceMobileStickyCta";
 import { ExperienceStickyBookingBar } from "./ExperienceStickyBookingBar";
 import { GuestQuotes } from "./GuestQuotes";
 import { PracticalInfo } from "./PracticalInfo";
@@ -30,7 +31,6 @@ import { ScrollProgress } from "./ScrollProgress";
 import { SocialAtmosphere } from "./SocialAtmosphere";
 import { VenueLineup } from "./VenueLineup";
 import { WhatToExpect } from "./WhatToExpect";
-import { EventShareModals } from "@/components/experience/EventShareModals";
 import { trackEventDetailViewed } from "@/lib/posthog/analytics";
 import { trackMetaViewContent } from "@/lib/analytics/metaTracking";
 
@@ -98,9 +98,6 @@ export function ExperiencePageContent({
 
   return (
     <>
-      {previewMode ? null : (
-        <EventShareModals experience={experience} locale={locale} />
-      )}
       {previewMode ? null : <ScrollProgress />}
 
       <ExperienceHero
@@ -126,6 +123,37 @@ export function ExperiencePageContent({
         />
       )}
 
+      {previewMode ? null : (
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:hidden">
+          <motion.div
+            {...fade}
+            ref={mobileBookingRef}
+            id="booking"
+            className="scroll-mt-[5rem] pt-4"
+          >
+            <BookingCard
+              experience={experience}
+              labels={page}
+              statusLabels={dict.agenda.status}
+              reserveCta={dict.agenda.reserveCta}
+              locale={locale}
+              compact
+              fitViewport
+            />
+          </motion.div>
+        </div>
+      )}
+
+      {previewMode ? null : (
+        <ExperienceMobileStickyCta
+          experience={experience}
+          labels={page}
+          reserveCta={dict.agenda.reserveCta}
+          locale={locale}
+          bookingRef={mobileBookingRef}
+        />
+      )}
+
       {venues.length > 0 ? (
         <VenueLineup
           title={venuesTitle}
@@ -134,26 +162,23 @@ export function ExperiencePageContent({
         />
       ) : null}
 
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-7xl px-5 pb-[max(5.5rem,env(safe-area-inset-bottom))] sm:px-8 lg:px-10 lg:pb-0">
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">
-          <div className="min-w-0 space-y-4">
-            <motion.div
-              {...fade}
-              ref={mobileBookingRef}
-              id="booking"
-              className="scroll-mt-[9rem] lg:hidden"
-            >
-              <BookingCard
-                experience={experience}
-                labels={page}
-                statusLabels={dict.agenda.status}
-                reserveCta={dict.agenda.reserveCta}
-                locale={locale}
-                className="mt-10"
-                compact
-                fitViewport
-              />
-            </motion.div>
+          <div className="min-w-0">
+            {previewMode ? (
+              <motion.div {...fade}>
+                <BookingCard
+                  experience={experience}
+                  labels={page}
+                  statusLabels={dict.agenda.status}
+                  reserveCta={dict.agenda.reserveCta}
+                  locale={locale}
+                  compact
+                  fitViewport
+                  className="mt-4"
+                />
+              </motion.div>
+            ) : null}
 
             <motion.div {...fade}>
               <ExperienceDescription
@@ -165,7 +190,15 @@ export function ExperiencePageContent({
             </motion.div>
 
             <motion.div {...fade}>
-              <ExperienceFlow title={page.flowTitle} steps={mood.experienceFlow} />
+              <GuestQuotes title={page.guestQuotesTitle} quotes={mood.guestQuotes} />
+            </motion.div>
+
+            <motion.div {...fade}>
+              <ExperienceFlow
+                title={page.flowTitle}
+                expandLabel={page.flowExpandCta}
+                steps={mood.experienceFlow}
+              />
             </motion.div>
 
             <motion.div {...fade}>
@@ -208,10 +241,6 @@ export function ExperiencePageContent({
             ) : null}
 
             <motion.div {...fade}>
-              <GuestQuotes title={page.guestQuotesTitle} quotes={mood.guestQuotes} />
-            </motion.div>
-
-            <motion.div {...fade}>
               <PracticalInfo
                 title={page.practicalTitle}
                 experience={experience}
@@ -245,15 +274,17 @@ export function ExperiencePageContent({
 
           <div className="hidden lg:block">
             <div className="sticky top-36 pt-4">
-              <BookingCard
-                experience={experience}
-                labels={page}
-                statusLabels={dict.agenda.status}
-                reserveCta={dict.agenda.reserveCta}
-                locale={locale}
-                compact
-                fitViewport
-              />
+              <div id="booking" className="scroll-mt-36">
+                <BookingCard
+                  experience={experience}
+                  labels={page}
+                  statusLabels={dict.agenda.status}
+                  reserveCta={dict.agenda.reserveCta}
+                  locale={locale}
+                  compact
+                  fitViewport
+                />
+              </div>
             </div>
           </div>
         </div>

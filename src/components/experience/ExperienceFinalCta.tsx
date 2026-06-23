@@ -26,7 +26,7 @@ export function ExperienceFinalCta({
   locale,
 }: ExperienceFinalCtaProps) {
   return (
-    <section className="relative mt-8 overflow-hidden rounded-3xl sm:mt-12">
+    <section className="relative mt-6 overflow-hidden rounded-2xl sm:mt-8 sm:rounded-3xl lg:mt-12">
       <div className="absolute inset-0">
         <Image
           src={images.cheers}
@@ -42,15 +42,15 @@ export function ExperienceFinalCta({
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="relative px-6 py-16 text-cream sm:px-12 sm:py-20 lg:px-16"
+        className="relative px-5 py-12 text-cream sm:px-12 sm:py-20 lg:px-16"
       >
-        <h2 className="max-w-xl font-serif text-3xl font-medium leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+        <h2 className="max-w-xl font-serif text-2xl font-medium leading-tight tracking-tight sm:text-4xl lg:text-5xl">
           {headline}
         </h2>
-        <p className="mt-4 max-w-lg text-base leading-relaxed text-cream/80 sm:text-lg">
+        <p className="mt-3 max-w-lg text-sm leading-relaxed text-cream/80 sm:mt-4 sm:text-lg">
           {subheadline}
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-3">
           <Button
             href="#booking"
             variant="primary"

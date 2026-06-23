@@ -53,12 +53,12 @@ export function ExperienceGallery({
   const featuredSettings = imageSettings?.[0];
 
   return (
-    <section className="border-t border-border-subtle py-14 sm:py-20">
-      <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+    <section className="border-t border-border-subtle py-8 sm:py-14 lg:py-20">
+      <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl">
         {title}
       </h2>
 
-      <div className="mt-10 space-y-3 sm:space-y-4">
+      <div className="mt-6 space-y-2.5 sm:mt-10 sm:space-y-4">
         <GalleryTile
           src={featured}
           index={0}

@@ -8,12 +8,12 @@ export const girlsOnlyTastingFlowEn: ExperienceFlowStep[] = [
   {
     title: "Welcome & intro",
     description:
-      "You're welcomed with a first glass. The host briefly explains what the chef has planned for your table.",
+      "You're welcomed with a first glass. The host briefly explains which wines the restaurant has chosen and how they're paired.",
   },
   {
     title: "Taste at your table",
     description:
-      "Four wines and chef's bites, paired together. You sit at your own table and set the pace.",
+      "Four wines and matching bites, paired together. You sit at your own table and set the pace.",
   },
   {
     title: "Cozy, no hassle",
@@ -51,14 +51,14 @@ export const girlsOnlyTastingQuotesEn: ExperienceGuestQuote[] = [
 export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
   tagline: "Girls-only wine & bites on Sunday afternoon. No hassle.",
   description:
-    "A Sunday afternoon of wine and bites with your crew at one table. Four wines, chef's specials, and everything around the table sorted. No wine exam, just context and room to enjoy at your pace, usually two to three hours.",
+    "A Sunday afternoon of wine and bites with your crew at one table. The restaurant selects four wines and pairs them with bites. Everything around the table sorted. No wine exam, just context and room to enjoy at your pace, usually two to three hours.",
   experienceFlow: girlsOnlyTastingFlowEn,
   guestQuotes: girlsOnlyTastingQuotesEn,
   whatToExpect: [
     {
       title: "Wine and bites sorted",
       description:
-        "Four wines and chef's bites. We handle everything around the table. You just show up.",
+        "The restaurant selects four wines and pairs them with bites. We handle everything around the table. You just show up.",
     },
     {
       title: "Your own table",
@@ -97,9 +97,9 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
         "Yes. Reserve for your group and you sit together at your own table. Two, four, or more: you decide who joins.",
     },
     {
-      question: "What if I don't have a group?",
+      question: "How many friends can I bring?",
       answer:
-        "Book solo or bring a friend and join other girls at the table. MyTable makes sure you land at a cozy table.",
+        "Best with your own group: two, four, or more at your own table. Bring your friends along. Coming solo or with one friend? That works too. If you want to join other girls at the table, we'll find you a cozy spot.",
     },
     {
       question: "When are the events?",
@@ -107,14 +107,9 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
         "Every Sunday afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
     },
     {
-      question: "What is a chef's special?",
-      answer:
-        "The chef prepares dishes and pairings especially for your table. Not standard à la carte, but something that fits the wine and the group.",
-    },
-    {
       question: "Can I share dietary needs?",
       answer:
-        "Yes. Tell us when you book. The chef adjusts the specials where possible.",
+        "Yes. Tell us when you book. The restaurant accommodates where possible.",
     },
     {
       question: "Where does the tasting take place?",
@@ -136,7 +131,7 @@ export const girlsOnlyExperienceLabelsEn = {
     "Your own table with your group, or join others if you don't have a full group.",
   finalCtaHeadline: "Ready for your next Sunday afternoon wine & bites?",
   finalCtaSubheadline:
-    "Four wines, chef's bites, and good company with your girls. No date polls, no hassle.",
+    "Four wines, paired bites, and good company with your girls. No date polls, no hassle.",
   bookingSeatingOwn: "With my friends, own table",
   bookingSeatingOwnHint: "Your table, your crew. Wine, bites, no hassle.",
   bookingSeatingJoin: "I'll join others at the table",

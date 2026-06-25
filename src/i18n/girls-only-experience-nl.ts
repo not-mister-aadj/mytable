@@ -8,12 +8,12 @@ export const girlsOnlyTastingFlowNl: ExperienceFlowStep[] = [
   {
     title: "Welkom & intro",
     description:
-      "Je wordt ontvangen met een eerste glas. De host vertelt kort wat de chef voor jullie tafel heeft bedacht.",
+      "Je wordt ontvangen met een eerste glas. De host vertelt kort welke wijnen het restaurant heeft gekozen en hoe ze gepaird zijn.",
   },
   {
     title: "Proeven aan tafel",
     description:
-      "Vier wijnen en chef's bites, bij elkaar gepaird. Jullie zitten aan jullie eigen tafel en bepalen het tempo.",
+      "Vier wijnen en bijpassende bites, bij elkaar gepaird. Jullie zitten aan jullie eigen tafel en bepalen het tempo.",
   },
   {
     title: "Gezellig, zonder gedoe",
@@ -51,14 +51,14 @@ export const girlsOnlyTastingQuotesNl: ExperienceGuestQuote[] = [
 export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
   tagline: "Girls-only wijnspijs op zondagmiddag. Zonder gedoe.",
   description:
-    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Vier wijnen, chef's specials, en alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten, meestal twee tot drie uur.",
+    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Het restaurant kiest vier wijnen en pairt ze met bites. Alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten, meestal twee tot drie uur.",
   experienceFlow: girlsOnlyTastingFlowNl,
   guestQuotes: girlsOnlyTastingQuotesNl,
   whatToExpect: [
     {
       title: "Wijn en bites geregeld",
       description:
-        "Vier wijnen en bites van de chef. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
+        "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
     },
     {
       title: "Jullie eigen tafel",
@@ -97,9 +97,9 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "Ja. Reserveer voor je groep en jullie zitten samen aan een eigen tafel. Twee, vier of meer: jullie bepalen wie erbij is.",
     },
     {
-      question: "Wat als ik geen groep heb?",
+      question: "Met hoeveel vriendinnen kan ik komen?",
       answer:
-        "Boek solo of met een vriendin en schuif aan bij andere girls aan tafel. MyTable zorgt dat je aan een gezellige tafel belandt.",
+        "Het mooiste is met je eigen groepje: twee, vier of meer, aan jullie eigen tafel. Nodig gerust je vriendinnen uit. Kom je solo of met een vriendin? Dat kan ook. Wil je aanschuiven bij andere girls, dan regelen wij een gezellige plek.",
     },
     {
       question: "Wanneer zijn de events?",
@@ -107,14 +107,9 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "Elke zondagmiddag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
     },
     {
-      question: "Wat is een chef's special?",
-      answer:
-        "De chef bereidt gerechten en pairings speciaal voor jullie tafel. Geen standaard à-la-carte, wel iets dat bij de wijn en de groep past.",
-    },
-    {
       question: "Kan ik dieetwensen doorgeven?",
       answer:
-        "Ja. Geef het bij boeken door. De chef past de specials aan waar dat kan.",
+        "Ja. Geef het bij boeken door. Het restaurant houdt er rekening mee waar dat kan.",
     },
     {
       question: "Waar vindt de proeverij plaats?",
@@ -136,7 +131,7 @@ export const girlsOnlyExperienceLabelsNl = {
     "Eigen tafel met je groep, of aanschuiven als je geen volledige groep hebt.",
   finalCtaHeadline: "Klaar voor je volgende zondagmiddag wijnspijs?",
   finalCtaSubheadline:
-    "Vier wijnen, chef's bites en gezelligheid met je meiden. Zonder datumprikkers, zonder gedoe.",
+    "Vier wijnen, gepaarde bites en gezelligheid met je meiden. Zonder datumprikkers, zonder gedoe.",
   bookingSeatingOwn: "Met mijn vriendinnen, eigen tafel",
   bookingSeatingOwnHint: "Jullie tafel, jullie crew. Wijn, bites, geen gedoe.",
   bookingSeatingJoin: "Ik schuif aan bij anderen",

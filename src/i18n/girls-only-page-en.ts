@@ -2,7 +2,7 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   socialPromise:
-    "Four wines, chef's bites, one table. You book, we handle the rest.",
+    "Four wines, paired bites, one table. You book, we handle the rest.",
   meta: {
     title: "Girls-only wine & bites on Sunday afternoon",
     description:
@@ -13,7 +13,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     headlineLine1: "Good taste.",
     headlineLine2: "Great company.",
     subtitle:
-      "Every Sunday afternoon: wine tastings and chef's specials at one table. We handle everything. You come with your friends, or join solo.",
+      "Every Sunday afternoon: wine tastings with paired bites at one table. We handle everything. You come with your friends, or join solo.",
     microcopy:
       "Want something fun but your friends are busy? Join solo. We'll seat you with a great group.",
     trustLine:
@@ -26,6 +26,30 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       "Want something fun but your friends are busy? Join solo. We'll seat you with a great group.",
     imageAlt:
       "Women enjoying wine and bites during a girls-only Sunday afternoon",
+    factsIntro: "Sunday afternoon · 4 wines + bites",
+  },
+  cta: {
+    viewAllSundays: "View all Sundays",
+  },
+  faq: {
+    title: "Frequently asked questions",
+    items: [
+      {
+        question: "How many friends can I bring?",
+        answer:
+          "Best with your own group: two, four, or more at your own table. Bring your friends along. Coming solo or with one friend? That works too. If you want to join other girls at the table, we'll find you a cozy spot.",
+      },
+      {
+        question: "Do I need to know a lot about wine?",
+        answer:
+          "No. Curiosity is enough. Our host shares context about the wines without turning it into a lesson.",
+      },
+      {
+        question: "Can I cancel or exchange?",
+        answer:
+          "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book.",
+      },
+    ],
   },
   headerNav: {
     tables: "Upcoming Sundays",
@@ -53,7 +77,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           {
             title: "Show up Sunday afternoon",
             description:
-              "Four wines, chef's bites, and a relaxed afternoon at the table. We handle everything around the table.",
+              "Four wines, paired bites, and a relaxed afternoon at the table. We handle everything around the table.",
           },
         ],
       },
@@ -80,9 +104,9 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       "For a Sunday afternoon of wine & bites with your crew, and sometimes new faces at the table as a bonus.",
     items: [
       {
-        title: "Wine and food sorted",
+        title: "Wine and bites sorted",
         description:
-          "Four wines and chef's bites. We handle everything around the table. You just show up.",
+          "The restaurant selects four wines and pairs them with bites. We handle everything around the table. You just show up.",
       },
       {
         title: "Your table, your afternoon",

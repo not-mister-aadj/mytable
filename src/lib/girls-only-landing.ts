@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+import { experiencePath } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
 import { sortAgendaTimeline } from "@/lib/agenda";
 import type { EnrichedExperience } from "@/lib/experience-detail";
@@ -36,4 +37,43 @@ export function partitionGirlsOnlyEvents(items: EnrichedExperience[]): {
     (item) => item.status !== "soldOut" && item.status !== "closed",
   );
   return { bookable, soldOut };
+}
+
+/** Chronological order — status (bookable vs sold out) does not affect sort. */
+export function orderGirlsOnlyEventsForDisplay(
+  items: EnrichedExperience[],
+  locale: Locale,
+): EnrichedExperience[] {
+  return sortAgendaTimeline(items, locale);
+}
+
+export function getNextBookableGirlsOnlyEvent(
+  items: EnrichedExperience[],
+): EnrichedExperience | undefined {
+  const { bookable } = partitionGirlsOnlyEvents(items);
+  return bookable[0];
+}
+
+export function formatGirlsOnlyBookCtaLabel(
+  experience: EnrichedExperience,
+  locale: Locale,
+): string {
+  const datePart = experience.dateTime.split(" · ")[0] ?? experience.dateTime;
+  return locale === "nl"
+    ? `Boek ${datePart} – ${experience.city}`
+    : `Book ${datePart} – ${experience.city}`;
+}
+
+export function resolveGirlsOnlyPrimaryCta(
+  events: EnrichedExperience[],
+  _locale: Locale,
+  fallbackLabel: string,
+  fallbackHref = "#events",
+): { href: string; label: string; nextBookable?: EnrichedExperience } {
+  const nextBookable = getNextBookableGirlsOnlyEvent(events);
+  return {
+    href: fallbackHref,
+    label: fallbackLabel,
+    nextBookable,
+  };
 }

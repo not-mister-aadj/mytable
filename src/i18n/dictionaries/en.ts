@@ -231,11 +231,6 @@ export const en: Dictionary = {
           "Both work. Many guests come solo; others book for themselves and a friend, or join a table that is already set up. It feels normal and relaxed.",
       },
       {
-        question: "What is a chef's special and what is included?",
-        answer:
-          "Not a fixed à la carte menu: the chef prepares dishes and pairings especially for your table, matched to the wine tasting. Usually included: tasting, chef's special bites, and a host at the table. Each table card shows exactly what you get. Plan on two to three hours at your own pace.",
-      },
-      {
         question: "Do I need to know a lot about wine?",
         answer:
           "No. Curiosity is enough. Our host shares context about the wines without turning it into a lesson.",

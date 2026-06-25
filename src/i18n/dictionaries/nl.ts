@@ -232,11 +232,6 @@ export const nl: Dictionary = {
           "Beide kan. Veel gasten komen solo; anderen boeken voor zichzelf en een vriend(in), of schuiven aan bij een tafel die al staat. Het voelt normaal en ontspannen.",
       },
       {
-        question: "Wat is een chef's special en wat is inbegrepen?",
-        answer:
-          "Geen vast à-la-carte-menu: de chef bereidt gerechten en pairings speciaal voor jouw tafel, passend bij de wijnproeverij. Meestal inbegrepen: proeverij, chef's special bites en een host aan tafel. Op elke tafelkaart staat precies wat je krijgt. Reken op twee tot drie uur op eigen tempo.",
-      },
-      {
         question: "Moet ik veel van wijn weten?",
         answer:
           "Nee. Nieuwsgierigheid is genoeg. Onze host deelt context over de wijnen zonder dat het een les wordt.",

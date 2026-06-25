@@ -179,11 +179,6 @@ export const experiencePageEn: ExperiencePageLabels = {
             "Girls only means only women join the table. Mixed groups welcome everyone, solo, with friends, or on a date.",
         },
         {
-          question: "What is a chef's special?",
-          answer:
-            "The chef prepares dishes and pairings specifically for your table, not standard à la carte, but matched to the wine and the group.",
-        },
-        {
           question: "Can I share dietary requirements?",
           answer:
             "Yes. Tell us when you book. The chef adjusts the specials where possible.",

@@ -7,16 +7,24 @@ import {
   splitGirlsOnlyTestimonialRows,
 } from "@/data/girls-only-testimonials";
 import type { EnrichedExperience } from "@/lib/experience-detail";
+import {
+  orderGirlsOnlyEventsForDisplay,
+} from "@/lib/girls-only-landing";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/Button";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
-import { GirlsOnlyStickyCta } from "@/components/girls-only/GirlsOnlyStickyCta";
+import { GirlsOnlyStickyCta, GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/GirlsOnlyStickyCta";
 
 interface GirlsOnlyLandingViewProps {
   labels: GirlsOnlyPageLabels;
   locale: Locale;
   allEvents: EnrichedExperience[];
+  primaryCta: {
+    href: string;
+    label: string;
+    nextBookable?: EnrichedExperience;
+  };
 }
 
 const ctaClassName =
@@ -109,6 +117,135 @@ function EventsSection({
         )}
       </div>
     </section>
+  );
+}
+
+function FeaturedNextEvent({
+  experience,
+  locale,
+  labels,
+  cardProps,
+}: {
+  experience: EnrichedExperience;
+  locale: Locale;
+  labels: GirlsOnlyPageLabels;
+  cardProps: Omit<
+    React.ComponentProps<typeof ExperienceCard>,
+    "experience" | "href"
+  >;
+}) {
+  return (
+    <section
+      id="next-table"
+      className={`scroll-mt-20 border-b border-rose/15 bg-cream ${sectionPad}`}
+    >
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-2xl text-center">
+          <SectionEyebrow>{labels.hero.calloutLabel.replace(/:$/, "")}</SectionEyebrow>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-rose-deep sm:text-sm">
+            {labels.hero.factsIntro}
+          </p>
+        </div>
+        <div className="mx-auto mt-5 max-w-xl sm:mt-8">
+          <ExperienceCard
+            experience={experience}
+            href={experiencePath(locale, experience.slug)}
+            {...cardProps}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GirlsOnlyFaq({ labels }: { labels: GirlsOnlyPageLabels }) {
+  return (
+    <section
+      id="faq"
+      className={`scroll-mt-20 border-t border-rose/15 bg-beige/40 ${sectionPad}`}
+    >
+      <div className="mx-auto max-w-3xl px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-2xl text-center">
+          <SectionEyebrow>{labels.faq.title}</SectionEyebrow>
+          <h2 className="mt-2 font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
+            {labels.faq.title}
+          </h2>
+        </div>
+        <div className="mt-6 space-y-2.5 sm:mt-10 sm:space-y-3">
+          {labels.faq.items.map((item) => (
+            <details
+              key={item.question}
+              className="group rounded-2xl border border-rose/20 bg-white/80 px-5 py-4 transition-shadow open:shadow-sm sm:px-6"
+            >
+              <summary className="cursor-pointer list-none font-medium text-wine marker:hidden [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center justify-between gap-4">
+                  {item.question}
+                  <span className="shrink-0 font-serif text-xl text-rose-deep transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </span>
+              </summary>
+              <p className="mt-3 pb-1 text-sm leading-relaxed text-wine/75">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BenefitsSection({ labels }: { labels: GirlsOnlyPageLabels }) {
+  return (
+    <section id="why-join" className={`scroll-mt-20 ${sectionPad}`}>
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-2xl text-center">
+          <SectionEyebrow>{labels.benefits.title}</SectionEyebrow>
+          <h2 className="mt-3 font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
+            {labels.benefits.title}
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-wine/65">
+            {labels.benefits.subtitle}
+          </p>
+        </div>
+        <ul className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 sm:gap-6">
+          {labels.benefits.items.map((item) => (
+            <li
+              key={item.title}
+              className="rounded-3xl border border-rose/15 bg-gradient-to-br from-beige to-rose-soft/40 p-6 sm:p-7"
+            >
+              <h3 className="font-serif text-lg font-medium leading-snug text-wine">
+                <span aria-hidden className="mr-2">
+                  🍒
+                </span>
+                {item.title}
+              </h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-wine/70 sm:text-[15px]">
+                {item.description}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function HeroCtaBlock({
+  primaryCta,
+}: {
+  primaryCta: { href: string; label: string };
+}) {
+  return (
+    <div
+      id={GIRLS_ONLY_HERO_CTA_ID}
+      className="mt-5 flex flex-col items-center gap-3 sm:mt-6 lg:items-start"
+    >
+      <GirlsOnlyCta href={primaryCta.href} className="w-full sm:w-auto">
+        {primaryCta.label}
+      </GirlsOnlyCta>
+    </div>
   );
 }
 
@@ -247,10 +384,13 @@ export function GirlsOnlyLandingView({
   labels,
   locale,
   allEvents,
+  primaryCta,
 }: GirlsOnlyLandingViewProps) {
   const testimonials = getGirlsOnlyTestimonials(locale);
   const { top, bottom } = splitGirlsOnlyTestimonialRows(testimonials);
   const trustPills = labels.hero.trustLine.split(" · ");
+  const orderedEvents = orderGirlsOnlyEventsForDisplay(allEvents, locale);
+  const featuredEvent = primaryCta.nextBookable;
 
   const cardProps = {
     statusLabels: labels.status,
@@ -310,11 +450,7 @@ export function GirlsOnlyLandingView({
                   </p>
                 </div>
 
-                <div className="mt-5 hidden justify-center lg:flex lg:justify-start">
-                  <GirlsOnlyCta href="#events">
-                    {labels.finalCta.button}
-                  </GirlsOnlyCta>
-                </div>
+                <HeroCtaBlock primaryCta={primaryCta} />
 
                 <ul className="mt-4 flex flex-wrap items-center justify-center gap-1.5 sm:mt-6 sm:gap-2 lg:mt-6 lg:justify-start">
                   {trustPills.map((pill) => (
@@ -329,8 +465,13 @@ export function GirlsOnlyLandingView({
         </div>
       </section>
 
-      {testimonials.length > 0 ? (
-        <TestimonialsSection labels={labels} top={top} bottom={bottom} />
+      {featuredEvent ? (
+        <FeaturedNextEvent
+          experience={featuredEvent}
+          locale={locale}
+          labels={labels}
+          cardProps={cardProps}
+        />
       ) : null}
 
       <section
@@ -343,42 +484,18 @@ export function GirlsOnlyLandingView({
         </div>
       </section>
 
-      <section id="why-join" className={`scroll-mt-20 ${sectionPad} hidden lg:block`}>
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <div className="mx-auto max-w-2xl text-center">
-            <SectionEyebrow>{labels.benefits.title}</SectionEyebrow>
-            <h2 className="mt-3 font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
-              {labels.benefits.title}
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-wine/65">
-              {labels.benefits.subtitle}
-            </p>
-          </div>
-          <ul className="mt-10 grid gap-5 sm:grid-cols-2 sm:gap-6">
-            {labels.benefits.items.map((item) => (
-              <li
-                key={item.title}
-                className="rounded-3xl border border-rose/15 bg-gradient-to-br from-beige to-rose-soft/40 p-6 sm:p-7"
-              >
-                <h3 className="font-serif text-lg font-medium leading-snug text-wine">
-                  <span aria-hidden className="mr-2">
-                    🍒
-                  </span>
-                  {item.title}
-                </h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-wine/70 sm:text-[15px]">
-                  {item.description}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      {testimonials.length > 0 ? (
+        <TestimonialsSection labels={labels} top={top} bottom={bottom} />
+      ) : null}
+
+      <GirlsOnlyFaq labels={labels} />
+
+      <BenefitsSection labels={labels} />
 
       <EventsSection
         labels={labels}
         locale={locale}
-        allEvents={allEvents}
+        allEvents={orderedEvents}
         cardProps={cardProps}
       />
 
@@ -388,12 +505,12 @@ export function GirlsOnlyLandingView({
             {labels.finalCta.title}
           </h2>
           <div className="mt-8">
-            <GirlsOnlyCta href="#events">{labels.finalCta.button}</GirlsOnlyCta>
+            <GirlsOnlyCta href={primaryCta.href}>{primaryCta.label}</GirlsOnlyCta>
           </div>
         </div>
       </section>
 
-      <GirlsOnlyStickyCta label={labels.finalCta.button} />
+      <GirlsOnlyStickyCta label={primaryCta.label} href={primaryCta.href} />
     </>
   );
 }

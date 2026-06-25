@@ -14,6 +14,7 @@ interface GirlsOnlyHeaderProps {
   headerDict: Dictionary["header"];
   nav: GirlsOnlyPageLabels["headerNav"];
   ctaLabel: string;
+  ctaHref: string;
   locale: Locale;
 }
 
@@ -27,6 +28,7 @@ export function GirlsOnlyHeader({
   headerDict,
   nav,
   ctaLabel,
+  ctaHref,
   locale,
 }: GirlsOnlyHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -94,7 +96,7 @@ export function GirlsOnlyHeader({
               label={headerDict.languageSwitch}
               variant="girlsOnly"
             />
-            <Button href="#events" variant="primary" className={ctaClassName}>
+            <Button href={ctaHref} variant="primary" className={ctaClassName}>
               <span aria-hidden className="mr-1.5 opacity-90">
                 ›
               </span>
@@ -169,7 +171,7 @@ export function GirlsOnlyHeader({
           </ul>
           <div className="mt-10">
             <Button
-              href="#events"
+              href={ctaHref}
               variant="primary"
               className={`${ctaClassName} w-full`}
               onClick={closeMenu}

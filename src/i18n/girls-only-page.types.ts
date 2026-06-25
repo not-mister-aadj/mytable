@@ -18,6 +18,14 @@ export interface GirlsOnlyPageLabels {
     calloutReassurance: string;
     calloutBody: string;
     imageAlt: string;
+    factsIntro: string;
+  };
+  cta: {
+    viewAllSundays: string;
+  };
+  faq: {
+    title: string;
+    items: { question: string; answer: string }[];
   };
   headerNav: {
     tables: string;

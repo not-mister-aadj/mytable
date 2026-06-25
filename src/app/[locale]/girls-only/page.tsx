@@ -1,6 +1,5 @@
 import { Footer } from "@/components/Footer";
 import { GirlsOnlyAgendaSection } from "@/components/girls-only/GirlsOnlyAgendaSection";
-import { GirlsOnlyHeader } from "@/components/girls-only/GirlsOnlyHeader";
 import { GirlsOnlyLandingSkeleton } from "@/components/girls-only/GirlsOnlyLandingSkeleton";
 import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
 import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
@@ -43,15 +42,13 @@ export default async function GirlsOnlyPage({ params }: Props) {
 
   return (
     <>
-      <GirlsOnlyHeader
-        headerDict={dict.header}
-        nav={labels.headerNav}
-        ctaLabel={labels.finalCta.button}
-        locale={locale}
-      />
       <main className="bg-cream pb-20 lg:pb-0">
         <Suspense fallback={<GirlsOnlyLandingSkeleton />}>
-          <GirlsOnlyAgendaSection locale={locale} labels={labels} />
+          <GirlsOnlyAgendaSection
+            locale={locale}
+            labels={labels}
+            headerDict={dict.header}
+          />
         </Suspense>
       </main>
       <Footer dict={dict.footer} locale={locale} />

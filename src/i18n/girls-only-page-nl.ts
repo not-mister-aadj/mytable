@@ -2,7 +2,7 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   socialPromise:
-    "Vier wijnen, chef's bites, één tafel. Jij boekt, wij regelen de rest.",
+    "Vier wijnen, gepaarde bites, één tafel. Jij boekt, wij regelen de rest.",
   meta: {
     title: "Girls-only wijnspijs op zondagmiddag",
     description:
@@ -13,7 +13,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     headlineLine1: "Goede smaak.",
     headlineLine2: "Goed gezelschap.",
     subtitle:
-      "Elke zondagmiddag: wijnproeverijen en chef's specials aan één tafel. Wij regelen alles. Jij komt met je vriendinnen, of schuif solo aan.",
+      "Elke zondagmiddag: wijnproeverijen met gepaarde bites aan één tafel. Wij regelen alles. Jij komt met je vriendinnen, of schuif solo aan.",
     microcopy:
       "Zin in iets leuks, maar je vriendinnen zijn druk? Schuif solo aan. Wij zorgen voor een leuke groep.",
     trustLine:
@@ -26,6 +26,30 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       "Zin in iets leuks, maar je vriendinnen zijn druk? Schuif solo aan. Wij zorgen voor een leuke groep.",
     imageAlt:
       "Vrouwen genieten van wijn en bites tijdens een girls-only zondagmiddag",
+    factsIntro: "Zondagmiddag · 4 wijnen + bites",
+  },
+  cta: {
+    viewAllSundays: "Alle zondagen bekijken",
+  },
+  faq: {
+    title: "Veelgestelde vragen",
+    items: [
+      {
+        question: "Met hoeveel vriendinnen kan ik komen?",
+        answer:
+          "Het mooiste is met je eigen groepje: twee, vier of meer, aan jullie eigen tafel. Nodig gerust je vriendinnen uit. Kom je solo of met een vriendin? Dat kan ook. Wil je aanschuiven bij andere girls, dan regelen wij een gezellige plek.",
+      },
+      {
+        question: "Moet ik veel van wijn weten?",
+        answer:
+          "Nee. Nieuwsgierigheid is genoeg. Onze host deelt context over de wijnen zonder dat het een les wordt.",
+      },
+      {
+        question: "Kan ik annuleren of ruilen?",
+        answer:
+          "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren.",
+      },
+    ],
   },
   headerNav: {
     tables: "Aankomende zondagen",
@@ -53,7 +77,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           {
             title: "Kom zondagmiddag proeven",
             description:
-              "Vier wijnen, chef's bites en een ontspannen middag aan tafel. Wij regelen alles rond de tafel.",
+              "Vier wijnen, gepaarde bites en een ontspannen middag aan tafel. Wij regelen alles rond de tafel.",
           },
         ],
       },
@@ -80,9 +104,9 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       "Voor een zondagmiddag wijnspijs met je meiden, en als bonus soms nieuwe gezichten aan tafel.",
     items: [
       {
-        title: "Wijn en eten geregeld",
+        title: "Wijn en bites geregeld",
         description:
-          "Vier wijnen en bites van de chef. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
+          "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
       },
       {
         title: "Jullie eigen tafel, jullie middag",

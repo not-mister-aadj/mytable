@@ -179,11 +179,6 @@ export const experiencePageNl: ExperiencePageLabels = {
             "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom, solo, met vrienden of op date.",
         },
         {
-          question: "Wat is een chef's special?",
-          answer:
-            "De chef bereidt gerechten en pairings speciaal voor jouw tafel. Geen standaard à-la-carte, wel iets dat bij de wijn en de groep past.",
-        },
-        {
           question: "Kan ik dieetwensen doorgeven?",
           answer:
             "Ja. Geef het bij boeken door. De chef past de specials aan waar dat kan.",

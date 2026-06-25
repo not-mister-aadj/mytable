@@ -47,7 +47,7 @@ export function GirlsOnlyStickyCta({
       style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       aria-hidden={!showSticky}
     >
-      <Button href={href} className={ctaClassName} tabIndex={showSticky ? undefined : -1}>
+      <Button href={href} className={ctaClassName}>
         <span aria-hidden className="mr-2 opacity-90">
           ›
         </span>

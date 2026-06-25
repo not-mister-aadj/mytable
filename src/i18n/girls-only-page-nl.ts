@@ -10,9 +10,12 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   },
   hero: {
     eyebrow: "Girls only · Elke zondagmiddag",
-    title: "Wijnspijs op zondagmiddag met je meiden. Solo kan ook.",
+    headlineLine1: "Goede smaak.",
+    headlineLine2: "Goed gezelschap.",
     subtitle:
-      "Zin in iets leuks op zondag, maar je vriendinnen zijn druk of ver weg? Boek een zondagmiddag wijnspijs voor je groep. Vier wijnen, chef's bites, één restaurant. Geen datumprikkers, geen menu-ruzie.",
+      "Elke zondagmiddag: wijnproeverijen en chef's specials aan één tafel. Wij regelen alles. Jij komt met je vriendinnen, of schuif solo aan.",
+    microcopy:
+      "Zin in iets leuks, maar je vriendinnen zijn druk? Schuif solo aan. Wij zorgen voor een leuke groep.",
     trustLine:
       "Zondagmiddag · Met je vriendinnen · Solo ook welkom · Beginners welkom",
     calloutLabel: "Jouw volgende zondagmiddag:",
@@ -20,7 +23,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       "Je meiden, vier wijnen, één tafel. Geen datumprikkers, geen menu-gedoe.",
     calloutReassurance: "Reserveer voor je groep. Wij regelen de rest.",
     calloutBody:
-      "Geen volledige groep? Schuif solo of met een vriendin aan bij anderen.",
+      "Zin in iets leuks, maar je vriendinnen zijn druk? Schuif solo aan. Wij zorgen voor een leuke groep.",
     imageAlt:
       "Vrouwen genieten van wijn en bites tijdens een girls-only zondagmiddag",
   },

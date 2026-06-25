@@ -10,9 +10,12 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   },
   hero: {
     eyebrow: "Girls only · Every Sunday afternoon",
-    title: "Wine & bites on Sunday afternoon with your girls. Solo works too.",
+    headlineLine1: "Good taste.",
+    headlineLine2: "Great company.",
     subtitle:
-      "Want something fun on Sunday, but your friends are busy or far away? Book a Sunday afternoon wine & bites session for your group. Four wines, chef's bites, one restaurant. No date polls, no menu drama.",
+      "Every Sunday afternoon: wine tastings and chef's specials at one table. We handle everything. You come with your friends, or join solo.",
+    microcopy:
+      "Want something fun but your friends are busy? Join solo. We'll seat you with a great group.",
     trustLine:
       "Sunday afternoon · With your friends · Solo welcome too · Beginners welcome",
     calloutLabel: "Your next Sunday afternoon:",
@@ -20,7 +23,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       "Your girls, four wines, one table. No date polls, no menu drama.",
     calloutReassurance: "Book for your group. We handle the rest.",
     calloutBody:
-      "No full group? Join solo or bring a friend and sit with others.",
+      "Want something fun but your friends are busy? Join solo. We'll seat you with a great group.",
     imageAlt:
       "Women enjoying wine and bites during a girls-only Sunday afternoon",
   },

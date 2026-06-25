@@ -27,10 +27,10 @@ export const en: Dictionary = {
     headlineLine1: "Good taste.",
     headlineLine2: "Great company.",
     subheadline:
-      "Every Sunday afternoon: wine tastings and chef's specials at one table. We handle everything. You come with your friends, or join solo.",
+      "Every Sunday afternoon: wine tastings and chef's specials at one table. We handle everything. Date night, friends, your group, or solo: everyone is welcome.",
     ctaPrimary: "Pick your Sunday afternoon",
     microcopy:
-      "Want something fun but your friends are busy? Book for your group or join solo. No date polls.",
+      "Want a fun Sunday afternoon? Book for two, with friends, or your whole group. Solo works too. No date polls.",
     nextTableLabel: "Next table",
     imageAlt: "People enjoying wine and food together at the table",
   },

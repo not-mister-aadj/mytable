@@ -8,8 +8,10 @@ export interface GirlsOnlyPageLabels {
   };
   hero: {
     eyebrow: string;
-    title: string;
+    headlineLine1: string;
+    headlineLine2: string;
     subtitle: string;
+    microcopy: string;
     trustLine: string;
     calloutLabel: string;
     calloutPain: string;

@@ -172,18 +172,12 @@ function HowItWorksDesktop({ labels }: { labels: GirlsOnlyPageLabels }) {
 
 function HowItWorksMobile({ labels }: { labels: GirlsOnlyPageLabels }) {
   return (
-    <details className="group rounded-2xl border border-rose/20 bg-white/80 lg:hidden">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-left marker:content-none">
-        <span className="font-serif text-lg font-medium text-wine">
+    <div className="rounded-2xl border border-rose/20 bg-white/80 lg:hidden">
+      <div className="px-5 py-4">
+        <h2 className="font-serif text-lg font-medium text-wine">
           {labels.howItWorks.title}
-        </span>
-        <span
-          aria-hidden
-          className="text-rose-deep transition-transform group-open:rotate-180"
-        >
-          ▾
-        </span>
-      </summary>
+        </h2>
+      </div>
       <div className="space-y-4 border-t border-rose/15 px-5 pb-5 pt-4">
         <p className="text-sm leading-relaxed text-wine/65">
           {labels.howItWorks.sharedStep.description}
@@ -202,7 +196,7 @@ function HowItWorksMobile({ labels }: { labels: GirlsOnlyPageLabels }) {
           ))}
         </ul>
       </div>
-    </details>
+    </div>
   );
 }
 
@@ -288,11 +282,17 @@ export function GirlsOnlyLandingView({
               <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
                 <SectionEyebrow>{labels.hero.eyebrow}</SectionEyebrow>
                 <h1 className="mt-3 font-serif text-[1.85rem] font-medium leading-[1.08] tracking-tight text-wine sm:mt-4 sm:text-5xl lg:text-[3.35rem]">
-                  {labels.hero.title}
+                  {labels.hero.headlineLine1}
+                  <br />
+                  {labels.hero.headlineLine2}
                 </h1>
 
-                <p className="mt-3 text-sm font-medium leading-relaxed text-rose-deep sm:mt-4 sm:text-base">
-                  {labels.socialPromise}
+                <p className="mt-3 text-sm leading-relaxed text-wine/80 sm:mt-4 sm:text-lg">
+                  {labels.hero.subtitle}
+                </p>
+
+                <p className="mt-3 text-sm leading-relaxed text-wine/65 sm:mt-4 sm:text-base lg:hidden">
+                  {labels.hero.microcopy}
                 </p>
 
                 <div className="mt-5 hidden rounded-3xl border border-rose/25 bg-white/75 px-6 py-5 text-left shadow-[0_12px_40px_rgba(157,77,111,0.08)] backdrop-blur-sm sm:mt-7 sm:px-8 sm:py-6 lg:block">

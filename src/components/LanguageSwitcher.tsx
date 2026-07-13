@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { switchLocalePath, type Locale } from "@/i18n/config";
 import { trackLanguageChanged } from "@/lib/posthog/analytics";
@@ -25,6 +26,13 @@ export function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   const pathname = usePathname();
   const nextLocale: Locale = locale === "nl" ? "en" : "nl";
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    setHash(window.location.hash);
+  }, [pathname]);
+
+  const href = switchLocalePath(pathname, locale, hash);
 
   function handleClick() {
     trackLanguageChanged({
@@ -36,7 +44,7 @@ export function LanguageSwitcher({
 
   return (
     <Link
-      href={switchLocalePath(locale)}
+      href={href}
       onClick={handleClick}
       className={variants[variant]}
       aria-label={locale === "nl" ? "Switch to English" : "Schakel naar Nederlands"}

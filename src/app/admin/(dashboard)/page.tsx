@@ -1,4 +1,4 @@
-import { eq, gte, and, sql } from "drizzle-orm";
+import { eq, gte, and, gt, sql } from "drizzle-orm";
 import Link from "next/link";
 import { adminPath } from "@/lib/admin-url";
 import { bookings, events } from "@/db/schema";
@@ -37,10 +37,19 @@ export default async function AdminDashboardPage() {
       and(eq(bookings.paymentStatus, "paid"), gte(bookings.createdAt, weekAgo)),
     );
 
+  const now = new Date();
+
+  const [publishedCount] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(events)
+    .where(eq(events.workflowStatus, "published"));
+
   const upcoming = await db
     .select()
     .from(events)
-    .where(eq(events.workflowStatus, "published"))
+    .where(
+      and(eq(events.workflowStatus, "published"), gt(events.startsAt, now)),
+    )
     .orderBy(events.startsAt)
     .limit(5);
 
@@ -58,7 +67,7 @@ export default async function AdminDashboardPage() {
         />
         <Stat
           label="Gepubliceerde tafels"
-          value={String(upcoming.length)}
+          value={String(publishedCount?.count ?? 0)}
         />
       </div>
       <section className="mt-10">

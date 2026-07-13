@@ -1,5 +1,4 @@
 import type { Locale } from "@/i18n/config";
-import { experiencePath } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
 import { sortAgendaTimeline } from "@/lib/agenda";
 import type { EnrichedExperience } from "@/lib/experience-detail";
@@ -39,7 +38,7 @@ export function partitionGirlsOnlyEvents(items: EnrichedExperience[]): {
   return { bookable, soldOut };
 }
 
-/** Chronological order — status (bookable vs sold out) does not affect sort. */
+/** Chronological order; status (bookable vs sold out) does not affect sort. */
 export function orderGirlsOnlyEventsForDisplay(
   items: EnrichedExperience[],
   locale: Locale,
@@ -54,26 +53,33 @@ export function getNextBookableGirlsOnlyEvent(
   return bookable[0];
 }
 
+export function getUpcomingGirlsOnlyEvents(
+  items: EnrichedExperience[],
+  limit = 3,
+): EnrichedExperience[] {
+  const { bookable, soldOut } = partitionGirlsOnlyEvents(items);
+  return [...bookable, ...soldOut].slice(0, limit);
+}
+
+export function resolveGirlsOnlyPrimaryCta(
+  options: {
+    label: string;
+    href?: string;
+  },
+): { href: string; label: string } {
+  return {
+    href: options.href ?? "#top",
+    label: options.label,
+  };
+}
+
 export function formatGirlsOnlyBookCtaLabel(
   experience: EnrichedExperience,
   locale: Locale,
 ): string {
   const datePart = experience.dateTime.split(" · ")[0] ?? experience.dateTime;
+  const price = `€${experience.price}`;
   return locale === "nl"
-    ? `Boek ${datePart} – ${experience.city}`
-    : `Book ${datePart} – ${experience.city}`;
-}
-
-export function resolveGirlsOnlyPrimaryCta(
-  events: EnrichedExperience[],
-  _locale: Locale,
-  fallbackLabel: string,
-  fallbackHref = "#events",
-): { href: string; label: string; nextBookable?: EnrichedExperience } {
-  const nextBookable = getNextBookableGirlsOnlyEvent(events);
-  return {
-    href: fallbackHref,
-    label: fallbackLabel,
-    nextBookable,
-  };
+    ? `Boek ${datePart} · ${experience.city} · ${price}`
+    : `Book ${datePart} · ${experience.city} · ${price}`;
 }

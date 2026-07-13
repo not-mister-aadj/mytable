@@ -37,7 +37,10 @@ export function GirlsOnlyHeader({
 
   const navLinks = [
     { label: nav.howItWorks, href: "#how-it-works" },
+    { label: nav.testimonials, href: "#social-proof" },
     { label: nav.whyJoin, href: "#why-join" },
+    { label: nav.faq, href: "#faq" },
+    { label: nav.founder, href: "#founder" },
   ];
 
   useEffect(() => {

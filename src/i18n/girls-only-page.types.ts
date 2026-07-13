@@ -13,12 +13,10 @@ export interface GirlsOnlyPageLabels {
     subtitle: string;
     microcopy: string;
     trustLine: string;
-    calloutLabel: string;
-    calloutPain: string;
-    calloutReassurance: string;
-    calloutBody: string;
     imageAlt: string;
-    factsIntro: string;
+    painHeadline: string;
+    scarcityTemplate: string;
+    featuredInHeroLabel: string;
   };
   cta: {
     viewAllSundays: string;
@@ -30,16 +28,17 @@ export interface GirlsOnlyPageLabels {
   headerNav: {
     tables: string;
     howItWorks: string;
+    testimonials: string;
     whyJoin: string;
+    faq: string;
+    founder: string;
   };
   howItWorks: {
     title: string;
     subtitle: string;
-    sharedStep: { title: string; description: string };
-    paths: {
-      label: string;
-      steps: { title: string; description: string }[];
-    }[];
+    includedTitle: string;
+    includedItems: string[];
+    steps: { title: string; description: string }[];
   };
   benefits: {
     title: string;
@@ -50,10 +49,18 @@ export interface GirlsOnlyPageLabels {
     title: string;
     subtitle: string;
     empty: string;
+    viewAll: string;
   };
   testimonials: {
     eyebrow: string;
     title: string;
+  };
+  founderStory: {
+    eyebrow: string;
+    title: string;
+    paragraphs: string[];
+    signOff: string;
+    imageAlt: string;
   };
   finalCta: {
     title: string;

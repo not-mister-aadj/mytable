@@ -6,27 +6,24 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   meta: {
     title: "Girls-only wijnspijs op zondagmiddag",
     description:
-      "Elke zondagmiddag girls-only wijnproeverijen door heel Nederland. Boek een tafel voor je groep, of schuif solo aan. Wij regelen wijn, bites en een gezellige tafel.",
+      "Elke zondagmiddag girls-only wijnproeverijen door heel Nederland. Kom solo of met vriendinnen. Wij regelen wijn, bites en gezellige meiden aan tafel.",
   },
   hero: {
-    eyebrow: "Girls only · Elke zondagmiddag",
-    headlineLine1: "Goede smaak.",
-    headlineLine2: "Goed gezelschap.",
+    eyebrow: "Girls only",
+    headlineLine1: "Meet New Girls &",
+    headlineLine2: "Have More Fun",
     subtitle:
-      "Elke zondagmiddag: wijnproeverijen met gepaarde bites aan één tafel. Wij regelen alles. Jij komt met je vriendinnen, of schuif solo aan.",
+      "De leukste club voor girls (25-45 jaar) die van wijn houden en gezelligheid",
+    painHeadline:
+      "Vriendinnen druk of net verhuisd? Boek solo. Aan tafel zitten groepen én girls die alleen komen.",
     microcopy:
-      "Zin in iets leuks, maar je vriendinnen zijn druk? Schuif solo aan. Wij zorgen voor een leuke groep.",
+      "Je hoeft niemand te regelen. Solo komen is hier normaal.",
     trustLine:
-      "Zondagmiddag · Met je vriendinnen · Solo ook welkom · Beginners welkom",
-    calloutLabel: "Jouw volgende zondagmiddag:",
-    calloutPain:
-      "Je meiden, vier wijnen, één tafel. Geen datumprikkers, geen menu-gedoe.",
-    calloutReassurance: "Reserveer voor je groep. Wij regelen de rest.",
-    calloutBody:
-      "Zin in iets leuks, maar je vriendinnen zijn druk? Schuif solo aan. Wij zorgen voor een leuke groep.",
+      "Solo welkom · 25-45 jaar · Gezellige meiden · Beginners welkom",
     imageAlt:
       "Vrouwen genieten van wijn en bites tijdens een girls-only zondagmiddag",
-    factsIntro: "Zondagmiddag · 4 wijnen + bites",
+    scarcityTemplate: "Nog {count} plekken voor {city} op {date}",
+    featuredInHeroLabel: "Volgende tafel",
   },
   cta: {
     viewAllSundays: "Alle zondagen bekijken",
@@ -35,14 +32,34 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     title: "Veelgestelde vragen",
     items: [
       {
-        question: "Met hoeveel vriendinnen kan ik komen?",
+        question: "Kan ik ook alleen komen?",
         answer:
-          "Het mooiste is met je eigen groepje: twee, vier of meer, aan jullie eigen tafel. Nodig gerust je vriendinnen uit. Kom je solo of met een vriendin? Dat kan ook. Wil je aanschuiven bij andere girls, dan regelen wij een gezellige plek.",
+          "Ja, en je bent niet de enige. Veel girls boeken solo of met één vriendin. Wij zorgen dat je aan een gezellige tafel belandt, met groepen én andere girls die alleen komen.",
+      },
+      {
+        question: "Mag ik ook komen als ik niet tussen de 25-45 ben?",
+        answer:
+          "Jazeker! Die 25-45 is een richtlijn, geen strenge leeftijdsgrens. Zolang je wettelijk oud genoeg bent om te proeven en je komt voor gezelligheid aan tafel, ben je van harte welkom.",
+      },
+      {
+        question: "Is het awkward als ik alleen kom?",
+        answer:
+          "Begrijpelijk dat het spannend voelt. Aan tafel zitten altijd groepen én andere girls die solo kwamen. Het draait om wijn, bites en een gezellige middag. Geen speeddating en geen verplicht netwerkpraat.",
+      },
+      {
+        question: "Kan ik ook met mijn vriendinnen boeken?",
+        answer:
+          "Zeker. Reserveer voor je groep (twee, vier of meer) en jullie zitten samen aan een eigen tafel. Nodig gerust je vriendinnen uit.",
       },
       {
         question: "Moet ik veel van wijn weten?",
         answer:
           "Nee. Nieuwsgierigheid is genoeg. Onze host deelt context over de wijnen zonder dat het een les wordt.",
+      },
+      {
+        question: "Hoe lang duurt de wijnproeverij?",
+        answer:
+          "Het officiële deel duurt gemiddeld 3 uur. Maar eerlijk? Aan het einde blijven vaak meiden nog even zitten om bij te kletsen en nóg een glas van hun favoriete wijn te bestellen. Soms loopt de middag zó lekker dat er spontaan een dinertje van wordt. Geen verplichting, wel vaak een mooie bonus.",
       },
       {
         question: "Kan ik annuleren of ruilen?",
@@ -54,64 +71,47 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   headerNav: {
     tables: "Aankomende zondagen",
     howItWorks: "Hoe het werkt",
+    testimonials: "Wat girls zeggen",
     whyJoin: "Waarom girls komen",
+    faq: "FAQ",
+    founder: "Ons verhaal",
   },
   howItWorks: {
     title: "Hoe het werkt",
-    subtitle:
-      "Kies je zondagmiddag, boek voor je groep of schuif solo aan, en geniet aan tafel.",
-    sharedStep: {
-      title: "Kies je zondagmiddag",
-      description:
-        "Kies je stad en datum en reserveer. Je zondag staat vast. Geen heen-en-weer appen over wanneer het uitkomt.",
-    },
-    paths: [
+    subtitle: "Boek je zondag en kom langs. Solo of met vriendinnen.",
+    includedTitle: "Wat je krijgt",
+    includedItems: [
+      "4 wijnen met gepaarde bites",
+      "Zondag 14:00 tot 17:00",
+      "Solo of met vriendinnen",
+      "€49 per persoon",
+      "Gratis ruilen tot 48 uur van tevoren",
+    ],
+    steps: [
       {
-        label: "Met je vriendinnen",
-        steps: [
-          {
-            title: "Reserveer jullie eigen tafel",
-            description:
-              "Boek voor je groep: twee, vier of meer. Jullie zitten samen aan een eigen tafel.",
-          },
-          {
-            title: "Kom zondagmiddag proeven",
-            description:
-              "Vier wijnen, gepaarde bites en een ontspannen middag aan tafel. Wij regelen alles rond de tafel.",
-          },
-        ],
+        title: "Kies je zondag",
+        description: "Kies stad en datum en reserveer.",
       },
       {
-        label: "Solo of met één vriendin",
-        steps: [
-          {
-            title: "Schuif aan bij anderen",
-            description:
-              "Geen volledige groep? Boek solo of met een vriendin en schuif aan bij andere girls aan tafel.",
-          },
-          {
-            title: "MyTable regelt je plek",
-            description:
-              "Wij zorgen dat je aan een gezellige tafel belandt. Geen speeddating, gewoon een fijne zondagmiddag.",
-          },
-        ],
+        title: "Boek solo of met vriendinnen",
+        description: "Alleen of met je groep. Wij regelen je plek aan tafel.",
+      },
+      {
+        title: "Kom proeven en ontmoeten",
+        description:
+          "Vier wijnen, bites en gezellige meiden. Geen speeddating, gewoon een fijne middag.",
       },
     ],
   },
   benefits: {
     title: "Waarom girls komen",
     subtitle:
-      "Voor een zondagmiddag wijnspijs met je meiden, en als bonus soms nieuwe gezichten aan tafel.",
+      "Voor een zondagmiddag wijnspijs, ook als je vriendinnen niet kunnen of je nieuwe gezichten zoekt.",
     items: [
       {
-        title: "Wijn en bites geregeld",
+        title: "Solo? Ook prima",
         description:
-          "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
-      },
-      {
-        title: "Jullie eigen tafel, jullie middag",
-        description:
-          "Reserveer voor je groep en zit samen aan een eigen tafel. Geen gedoe met reserveren, menu's of wie wat betaalt.",
+          "Geen volledige groep nodig. Boek alleen of met een vriendin en schuif aan bij gezellige meiden. Aan tafel zitten groepen én girls die solo komen.",
       },
       {
         title: "Gezellig, niet awkward",
@@ -119,22 +119,40 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           "Geen netwerkpraat, geen speeddating-sfeer. Gewoon proeven, lachen en praten aan een kleine tafel.",
       },
       {
-        title: "Solo? Ook prima",
+        title: "Wijn en bites geregeld",
         description:
-          "Geen volledige groep? Schuif solo of met een vriendin aan. Aan tafel zitten groepen én girls die alleen komen.",
+          "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jij hoeft alleen op te komen dagen.",
+      },
+      {
+        title: "Eigen tafel met je meiden",
+        description:
+          "Heb je wél een groep? Reserveer voor je vriendinnen en zit samen aan een eigen tafel. Geen gedoe met reserveren of wie wat betaalt.",
       },
     ],
   },
   events: {
     title: "Kies je zondagmiddag",
     subtitle:
-      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en boek voor je meiden.",
+      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en boek je plek.",
     empty:
       "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
+    viewAll: "Alles bekijken",
   },
   testimonials: {
     eyebrow: "Wat girls zeggen",
-    title: "Precies zo'n zondagmiddag als we zochten",
+    title: "Ook solo, en toch gezellig aan tafel",
+  },
+  founderStory: {
+    eyebrow: "Het verhaal achter MyTable",
+    title: "Hoi, ik ben Elif",
+    paragraphs: [
+      "Ik was altijd al die ene die mensen aan elkaar koppelde. Feestje organiseren, groepen bij elkaar brengen, ervoor zorgen dat iedereen zich fijn voelt. Het motto was simpel: het moet leuk zijn voor iedereen.",
+      "MyTable is waar mijn twee grote liefdes samenkomen: wijn en gezelligheid. Ik merkte dat veel mensen, en vooral vrouwen, moeite hebben met nieuwe vriendinnen maken. Dus dacht ik: laten we dat gezellig oplossen, met een wijntje in de hand.",
+      "Geen awkward speeddating of netwerkborrel. Gewoon proeven, lachen en nieuwe girls ontmoeten op zondagmiddag. Proost.",
+      "Rechts op de foto zie je Siraadj, mijn boyfriend. Hij regelt alle technische dingen en het camerawerk. Zonder hem geen website die werkt en geen mooie plaatjes.",
+    ],
+    signOff: "Elif, oprichter van MyTable",
+    imageAlt: "Elif en Siraadj aan tafel tijdens een gezellig evenement",
   },
   finalCta: {
     title: "Klaar voor je volgende zondagmiddag wijnspijs?",

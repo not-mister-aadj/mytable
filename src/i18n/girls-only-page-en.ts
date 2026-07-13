@@ -6,27 +6,24 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   meta: {
     title: "Girls-only wine & bites on Sunday afternoon",
     description:
-      "Girls-only wine tastings every Sunday afternoon across the Netherlands. Book a table for your group, or join solo. We handle the wine, bites, and a great table.",
+      "Girls-only wine tastings every Sunday afternoon across the Netherlands. Come solo or with friends. We handle the wine, bites, and great company at the table.",
   },
   hero: {
-    eyebrow: "Girls only · Every Sunday afternoon",
-    headlineLine1: "Good taste.",
-    headlineLine2: "Great company.",
+    eyebrow: "Girls only",
+    headlineLine1: "Meet New Girls &",
+    headlineLine2: "Have More Fun",
     subtitle:
-      "Every Sunday afternoon: wine tastings with paired bites at one table. We handle everything. You come with your friends, or join solo.",
+      "The best club for girls (25-45) who love wine and good company",
+    painHeadline:
+      "Friends busy or new in town? Book solo. You'll sit with groups and girls who came alone too.",
     microcopy:
-      "Want something fun but your friends are busy? Join solo. We'll seat you with a great group.",
+      "You don't need to coordinate anyone. Coming solo is totally normal here.",
     trustLine:
-      "Sunday afternoon · With your friends · Solo welcome too · Beginners welcome",
-    calloutLabel: "Your next Sunday afternoon:",
-    calloutPain:
-      "Your girls, four wines, one table. No date polls, no menu drama.",
-    calloutReassurance: "Book for your group. We handle the rest.",
-    calloutBody:
-      "Want something fun but your friends are busy? Join solo. We'll seat you with a great group.",
+      "Solo welcome · Ages 25-45 · Great company · Beginners welcome",
     imageAlt:
       "Women enjoying wine and bites during a girls-only Sunday afternoon",
-    factsIntro: "Sunday afternoon · 4 wines + bites",
+    scarcityTemplate: "{count} spots left for {city} on {date}",
+    featuredInHeroLabel: "Next table",
   },
   cta: {
     viewAllSundays: "View all Sundays",
@@ -35,14 +32,34 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     title: "Frequently asked questions",
     items: [
       {
-        question: "How many friends can I bring?",
+        question: "Can I come alone?",
         answer:
-          "Best with your own group: two, four, or more at your own table. Bring your friends along. Coming solo or with one friend? That works too. If you want to join other girls at the table, we'll find you a cozy spot.",
+          "Yes, and you won't be the only one. Many girls book solo or with one friend. We'll seat you at a fun table with groups and other girls who came alone.",
+      },
+      {
+        question: "Can I come if I'm not between 25 and 45?",
+        answer:
+          "Absolutely! 25-45 is a guideline, not a strict age limit. As long as you're old enough to drink legally and you're here for good company at the table, you're very welcome.",
+      },
+      {
+        question: "Is it awkward if I come alone?",
+        answer:
+          "It's normal to feel nervous. There are always groups and other girls who came solo too. It's about wine, bites, and a cozy afternoon. No speed dating and no forced networking.",
+      },
+      {
+        question: "Can I book with my friends?",
+        answer:
+          "Absolutely. Reserve for your group (two, four, or more) and sit together at your own table. Bring your friends along.",
       },
       {
         question: "Do I need to know a lot about wine?",
         answer:
           "No. Curiosity is enough. Our host shares context about the wines without turning it into a lesson.",
+      },
+      {
+        question: "How long does the wine tasting last?",
+        answer:
+          "The official part lasts about 3 hours on average. But honestly? At the end, lots of girls often stick around to keep chatting and order another glass of their favorite wine. Sometimes the afternoon goes so well that someone suggests dinner together. No obligation, but often a lovely bonus.",
       },
       {
         question: "Can I cancel or exchange?",
@@ -54,64 +71,47 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   headerNav: {
     tables: "Upcoming Sundays",
     howItWorks: "How it works",
+    testimonials: "What girls say",
     whyJoin: "Why girls join",
+    faq: "FAQ",
+    founder: "Our story",
   },
   howItWorks: {
     title: "How it works",
-    subtitle:
-      "Pick your Sunday afternoon, book for your group or join solo, and enjoy your time at the table.",
-    sharedStep: {
-      title: "Pick your Sunday afternoon",
-      description:
-        "Choose your city and date and reserve. Your Sunday is set. No back-and-forth about when works for everyone.",
-    },
-    paths: [
+    subtitle: "Book your Sunday and show up. Solo or with friends.",
+    includedTitle: "What you get",
+    includedItems: [
+      "4 wines with paired bites",
+      "Sunday 2:00 PM to 5:00 PM",
+      "Solo or with friends",
+      "€49 per person",
+      "Free date exchange up to 48 hours before",
+    ],
+    steps: [
       {
-        label: "With your friends",
-        steps: [
-          {
-            title: "Book your own table",
-            description:
-              "Reserve for your group: two, four, or more. You sit together at your own table.",
-          },
-          {
-            title: "Show up Sunday afternoon",
-            description:
-              "Four wines, paired bites, and a relaxed afternoon at the table. We handle everything around the table.",
-          },
-        ],
+        title: "Pick your Sunday",
+        description: "Choose your city and date, then reserve.",
       },
       {
-        label: "Solo or with one friend",
-        steps: [
-          {
-            title: "Join others at the table",
-            description:
-              "No full group? Book solo or bring a friend and join other girls at the table.",
-          },
-          {
-            title: "MyTable finds your spot",
-            description:
-              "We make sure you land at a fun table. No speed dating, just a lovely Sunday afternoon.",
-          },
-        ],
+        title: "Book solo or with friends",
+        description: "Come alone or with your group. We'll find your spot at the table.",
+      },
+      {
+        title: "Taste, laugh, and meet girls",
+        description:
+          "Four wines, bites, and great company. No speed dating, just a lovely afternoon.",
       },
     ],
   },
   benefits: {
     title: "Why girls join",
     subtitle:
-      "For a Sunday afternoon of wine & bites with your crew, and sometimes new faces at the table as a bonus.",
+      "For a Sunday afternoon of wine & bites, even when your friends can't make it or you're looking for new faces.",
     items: [
       {
-        title: "Wine and bites sorted",
+        title: "Solo? That works too",
         description:
-          "The restaurant selects four wines and pairs them with bites. We handle everything around the table. You just show up.",
-      },
-      {
-        title: "Your table, your afternoon",
-        description:
-          "Book for your group and sit together at your own table. No juggling reservations, menus, or who pays what.",
+          "No full group needed. Book alone or with a friend and join great company. You'll sit with groups and girls who came solo.",
       },
       {
         title: "Fun, not awkward",
@@ -119,22 +119,40 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           "No networking talk, no speed-dating vibe. Just tasting, laughing, and talking at a small table.",
       },
       {
-        title: "Solo? That works too",
+        title: "Wine and bites sorted",
         description:
-          "No full group? Join solo or bring a friend. You'll sit with groups and girls who came alone.",
+          "The restaurant selects four wines and pairs them with bites. We handle everything around the table. You just show up.",
+      },
+      {
+        title: "Your own table with your crew",
+        description:
+          "Have a group? Book for your friends and sit together at your own table. No juggling reservations or who pays what.",
       },
     ],
   },
   events: {
     title: "Pick your Sunday afternoon",
     subtitle:
-      "Every Sunday, one slot per city. Pick your date, check how many spots are left, and book for your girls.",
+      "Every Sunday, one slot per city. Pick your date, check how many spots are left, and book your seat.",
     empty:
       "New girls-only tables are added regularly. Check back soon or follow MyTable for updates.",
+    viewAll: "View all",
   },
   testimonials: {
     eyebrow: "What girls say",
-    title: "Exactly the Sunday afternoon we were looking for",
+    title: "A great table even when you come solo",
+  },
+  founderStory: {
+    eyebrow: "The story behind MyTable",
+    title: "Hi, I'm Elif",
+    paragraphs: [
+      "I've always been the one connecting people. Organizing parties, bringing groups together, making sure everyone feels good. The motto was simple: everyone should have a great time.",
+      "MyTable is where my two big passions meet: wine and good company. I noticed a lot of people, especially women, struggle to make new friends. So I thought: let's make that fun, with a glass of wine in hand.",
+      "No awkward speed dating or networking drinks. Just tasting, laughing, and meeting new girls on a Sunday afternoon. Cheers.",
+      "On the right in the photo you'll see Siraadj, my boyfriend. He handles all the technical stuff and camera work. No him, no working website and no pretty photos.",
+    ],
+    signOff: "Elif, founder of MyTable",
+    imageAlt: "Elif and Siraadj at a table during a fun event",
   },
   finalCta: {
     title: "Ready for your next Sunday afternoon wine & bites?",

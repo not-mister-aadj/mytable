@@ -1,9 +1,10 @@
-import type { Locale } from "@/i18n/config";
+import { agendaPath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
 import {
   getGirlsOnlyWineEvents,
+  getUpcomingGirlsOnlyEvents,
   resolveGirlsOnlyPrimaryCta,
 } from "@/lib/girls-only-landing";
 import { warmExperienceSlugs } from "@/lib/warm-navigation-cache";
@@ -28,11 +29,12 @@ export async function GirlsOnlyAgendaSection({
   );
 
   const allEvents = getGirlsOnlyWineEvents(agendaDict.agenda.items, locale);
-  const primaryCta = resolveGirlsOnlyPrimaryCta(
-    allEvents,
-    locale,
-    labels.finalCta.button,
-  );
+  const upcomingEvents = getUpcomingGirlsOnlyEvents(allEvents, 3);
+  const agendaHref = agendaPath(locale);
+  const primaryCta = resolveGirlsOnlyPrimaryCta({
+    label: labels.cta.viewAllSundays,
+    href: agendaHref,
+  });
 
   return (
     <>
@@ -46,7 +48,8 @@ export async function GirlsOnlyAgendaSection({
       <GirlsOnlyLandingView
         labels={labels}
         locale={locale}
-        allEvents={allEvents}
+        upcomingEvents={upcomingEvents}
+        agendaHref={agendaHref}
         primaryCta={primaryCta}
       />
     </>

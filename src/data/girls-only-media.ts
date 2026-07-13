@@ -10,6 +10,13 @@ export type GirlsOnlySocialImage = {
 
 const galleryImages = [
   {
+    src: "/girls-only/table-wine-laughing.jpg",
+    alt: {
+      nl: "Vrouwen lachen aan tafel met wijn tijdens een girls-only zondagmiddag",
+      en: "Women laughing at the table with wine during a girls-only Sunday afternoon",
+    },
+  },
+  {
     src: "/girls-only/crowd-evening.jpg",
     alt: {
       nl: "Groep vrouwen ontmoet elkaar in een gezellige setting",

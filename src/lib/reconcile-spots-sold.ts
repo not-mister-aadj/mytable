@@ -33,25 +33,33 @@ export async function reconcileEventSpotsSold(
     return;
   }
 
-  const totals = await db
-    .select({
-      eventId: bookings.eventId,
-      total: sql<number>`coalesce(sum(${bookings.seats}), 0)::int`,
-    })
-    .from(bookings)
-    .where(activeAttendanceWhere)
-    .groupBy(bookings.eventId);
+  await db.execute(sql`
+    UPDATE events AS e
+    SET
+      spots_sold = COALESCE(b.total, 0),
+      updated_at = NOW()
+    FROM (
+      SELECT
+        event_id,
+        COALESCE(SUM(seats), 0)::int AS total
+      FROM bookings
+      WHERE payment_status = 'paid'
+        AND lifecycle_status = 'active'
+      GROUP BY event_id
+    ) AS b
+    WHERE e.id = b.event_id
+  `);
 
-  const paidByEvent = new Map(totals.map((r) => [r.eventId, r.total]));
-
-  const allEvents = await db.select({ id: events.id }).from(events);
-  for (const event of allEvents) {
-    const sold = paidByEvent.get(event.id) ?? 0;
-    await db
-      .update(events)
-      .set({ spotsSold: sold, updatedAt: new Date() })
-      .where(eq(events.id, event.id));
-  }
+  await db.execute(sql`
+    UPDATE events
+    SET spots_sold = 0, updated_at = NOW()
+    WHERE id NOT IN (
+      SELECT DISTINCT event_id
+      FROM bookings
+      WHERE payment_status = 'paid'
+        AND lifecycle_status = 'active'
+    )
+  `);
 }
 
 export async function reconcileAllEventSpotsSold(): Promise<void> {

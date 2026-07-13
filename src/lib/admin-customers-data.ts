@@ -15,7 +15,7 @@ import {
   resolveCustomerStatus,
 } from "@/lib/customers/status";
 import { reconcileAllCustomers } from "@/lib/customers/reconcile";
-import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
+import { syncPendingCheckoutsIfStale } from "@/lib/stripe/sync-pending-checkouts";
 import type { CustomerStatusKey } from "@/lib/customers/types";
 
 export type AdminCustomerListRow = {
@@ -129,7 +129,7 @@ function mapCustomerRow(row: typeof customers.$inferSelect): AdminCustomerListRo
 }
 
 export async function getAdminCustomersPageData(): Promise<AdminCustomersPageData> {
-  await syncPendingCheckoutsFromStripe();
+  await syncPendingCheckoutsIfStale();
   await reconcileAllCustomers();
 
   const db = getDb();

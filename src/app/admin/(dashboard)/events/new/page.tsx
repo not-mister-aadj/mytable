@@ -1,15 +1,15 @@
 import { EventEditor } from "@/components/admin/EventEditor";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getAllVenues } from "@/lib/venues";
+import { getAllVenuesForAdmin } from "@/lib/venues";
 
 type Props = { searchParams: Promise<{ type?: string }> };
 
 export default async function NewEventPage({ searchParams }: Props) {
   await requireAdmin();
   const { type } = await searchParams;
-  let allVenues: Awaited<ReturnType<typeof getAllVenues>> = [];
+  let allVenues: Awaited<ReturnType<typeof getAllVenuesForAdmin>> = [];
   try {
-    allVenues = await getAllVenues();
+    allVenues = await getAllVenuesForAdmin();
   } catch (error) {
     console.error("[admin/events/new] getAllVenues failed:", error);
   }

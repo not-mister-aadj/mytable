@@ -2,17 +2,12 @@ import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { reservationCode } from "@/lib/booking-display";
-import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
-import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import type { EventTicketsData } from "@/lib/event-tickets-types";
 
 export async function getEventTicketsData(
   eventId: string,
 ): Promise<EventTicketsData> {
-  await ensureBookingColumns();
   const db = getDb();
-
-  await reconcileEventSpotsSold([eventId]);
 
   const ticketRows = await db
     .select()
@@ -37,7 +32,13 @@ export async function getEventTicketsData(
   const destinationEvents =
     transferredToIds.length > 0
       ? await db
-          .select()
+          .select({
+            id: events.id,
+            nameNl: events.nameNl,
+            city: events.city,
+            startsAt: events.startsAt,
+            slug: events.slug,
+          })
           .from(events)
           .where(inArray(events.id, transferredToIds))
       : [];
@@ -47,7 +48,15 @@ export async function getEventTicketsData(
   );
 
   const targetRows = await db
-    .select()
+    .select({
+      id: events.id,
+      nameNl: events.nameNl,
+      city: events.city,
+      startsAt: events.startsAt,
+      capacity: events.capacity,
+      spotsSold: events.spotsSold,
+      workflowStatus: events.workflowStatus,
+    })
     .from(events)
     .where(
       and(ne(events.id, eventId), ne(events.workflowStatus, "cancelled")),

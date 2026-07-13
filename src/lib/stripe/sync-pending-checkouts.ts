@@ -17,6 +17,14 @@ export type PendingCheckoutSyncResult = {
   outcome: FulfillCheckoutResult | "skipped" | null;
 };
 
+const SYNC_COOLDOWN_MS = 2 * 60 * 1000;
+const EMAIL_CATCHUP_COOLDOWN_MS = 10 * 60 * 1000;
+const MAX_PENDING_PER_RUN = 8;
+
+let lastSyncFinishedAt = 0;
+let lastEmailCatchUpAt = 0;
+let inFlightSync: Promise<PendingCheckoutSyncResult[]> | null = null;
+
 /** Pull payment status from Stripe for pending bookings and fulfill when paid. */
 export async function syncPendingCheckoutsFromStripe(): Promise<PendingCheckoutSyncResult[]> {
   if (!isDbConfigured() || !isStripeConfigured()) {
@@ -37,7 +45,8 @@ export async function syncPendingCheckoutsFromStripe(): Promise<PendingCheckoutS
         eq(bookings.paymentStatus, "pending"),
         isNotNull(bookings.stripeCheckoutSessionId),
       ),
-    );
+    )
+    .limit(MAX_PENDING_PER_RUN);
 
   const results: PendingCheckoutSyncResult[] = [];
 
@@ -52,11 +61,39 @@ export async function syncPendingCheckoutsFromStripe(): Promise<PendingCheckoutS
     });
   }
 
-  if (results.some((r) => r.outcome === "fulfilled")) {
+  const fulfilled = results.some((r) => r.outcome === "fulfilled");
+  if (fulfilled) {
     await reconcileAllEventSpotsSold();
   }
 
-  await sendMissingBookingConfirmationEmails();
+  const now = Date.now();
+  if (fulfilled || now - lastEmailCatchUpAt >= EMAIL_CATCHUP_COOLDOWN_MS) {
+    lastEmailCatchUpAt = now;
+    await sendMissingBookingConfirmationEmails();
+  }
 
   return results;
+}
+
+/** Throttled Stripe sync for admin pages — avoids blocking every navigation. */
+export async function syncPendingCheckoutsIfStale(): Promise<void> {
+  const now = Date.now();
+  if (now - lastSyncFinishedAt < SYNC_COOLDOWN_MS) return;
+
+  if (inFlightSync) {
+    await inFlightSync.catch(() => {});
+    return;
+  }
+
+  inFlightSync = syncPendingCheckoutsFromStripe()
+    .catch((error) => {
+      console.error("[stripe sync] failed", error);
+      return [];
+    })
+    .finally(() => {
+      lastSyncFinishedAt = Date.now();
+      inFlightSync = null;
+    });
+
+  await inFlightSync;
 }

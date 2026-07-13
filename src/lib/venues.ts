@@ -204,6 +204,14 @@ export async function getAllVenues(): Promise<Venue[]> {
   return selectAllVenuesRows(db);
 }
 
+/** Cached venue list for admin editors (venues change infrequently). */
+export const getAllVenuesForAdmin = cache(async (): Promise<Venue[]> => {
+  if (!isDbConfigured()) return [];
+  await ensureVenueColumns();
+  const db = getDb();
+  return selectAllVenuesRows(db);
+});
+
 export async function getVenueById(id: string): Promise<Venue | undefined> {
   noStore();
   if (!isDbConfigured()) return undefined;

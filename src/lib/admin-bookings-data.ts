@@ -11,7 +11,7 @@ import {
   paidSeatsByEventIds,
   reconcileEventSpotsSold,
 } from "@/lib/reconcile-spots-sold";
-import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
+import { syncPendingCheckoutsIfStale } from "@/lib/stripe/sync-pending-checkouts";
 import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import type {
   AdminBookingEvent,
@@ -94,7 +94,7 @@ function crmBadgeLabel(badge: import("@/lib/admin-bookings-types").AdminCrmBadge
 }
 
 export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData> {
-  await syncPendingCheckoutsFromStripe();
+  await syncPendingCheckoutsIfStale();
 
   const db = getDb();
   const now = new Date();

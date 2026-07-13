@@ -112,10 +112,15 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     includedTitle: "Wat je krijgt",
     includedItems: [
       "4 wijnen met gepaarde bites",
+      "Een tafel vol gezellige meiden",
+      "Een bijzondere culinaire plek in de stad",
+    ],
+    detailsTitle: "De details",
+    detailsItems: [
       "Zondag 14:00 tot 17:00",
-      "Solo of met vriendinnen",
       "€49 per persoon",
       "Gratis ruilen tot 48 uur van tevoren",
+      "Solo of met vriendinnen",
     ],
     steps: [
       {
@@ -124,12 +129,13 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       },
       {
         title: "Boek solo of met vriendinnen",
-        description: "Alleen of met je groep. Wij regelen je plek aan tafel.",
+        description:
+          "Kom alleen of met je vriendinnen. Solo is hier normaal, met je groep kan ook. Wij regelen je plek aan tafel.",
       },
       {
         title: "Kom proeven en ontmoeten",
         description:
-          "Vier wijnen, bites en gezellige meiden. Geen speeddating, gewoon een fijne middag.",
+          "Vier wijnen, bites en een tafel vol gezellige meiden. Geen speeddating, gewoon een fijne middag.",
       },
     ],
   },

@@ -38,6 +38,8 @@ export interface GirlsOnlyPageLabels {
     subtitle: string;
     includedTitle: string;
     includedItems: string[];
+    detailsTitle: string;
+    detailsItems: string[];
     steps: { title: string; description: string }[];
   };
   benefits: {

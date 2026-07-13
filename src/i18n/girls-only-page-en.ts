@@ -112,10 +112,15 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     includedTitle: "What you get",
     includedItems: [
       "4 wines with paired bites",
+      "A table full of great company",
+      "A special culinary spot in the city",
+    ],
+    detailsTitle: "The details",
+    detailsItems: [
       "Sunday 2:00 PM to 5:00 PM",
-      "Solo or with friends",
       "€49 per person",
       "Free date exchange up to 48 hours before",
+      "Solo or with friends",
     ],
     steps: [
       {
@@ -124,12 +129,13 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       },
       {
         title: "Book solo or with friends",
-        description: "Come alone or with your group. We'll find your spot at the table.",
+        description:
+          "Come alone or with your friends. Solo is totally normal here, and groups are welcome too. We'll find your spot at the table.",
       },
       {
         title: "Taste, laugh, and meet girls",
         description:
-          "Four wines, bites, and great company. No speed dating, just a lovely afternoon.",
+          "Four wines, bites, and a table full of great company. No speed dating, just a lovely afternoon.",
       },
     ],
   },

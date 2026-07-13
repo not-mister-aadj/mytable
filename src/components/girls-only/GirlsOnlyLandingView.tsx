@@ -93,22 +93,45 @@ function HowItWorksSection({
         </div>
 
         <div className="mt-5 rounded-2xl border border-rose/20 bg-white/90 p-5 sm:mt-6 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-deep">
-            {labels.howItWorks.includedTitle}
-          </p>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {labels.howItWorks.includedItems.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-2 text-sm leading-snug text-wine/80"
-              >
-                <span aria-hidden className="mt-0.5 text-rose-deep">
-                  ✓
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
+          <div className="grid gap-6 sm:grid-cols-2 sm:gap-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-deep">
+                {labels.howItWorks.includedTitle}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {labels.howItWorks.includedItems.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm leading-snug text-wine/80"
+                  >
+                    <span aria-hidden className="mt-0.5 text-rose-deep">
+                      ✓
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-deep">
+                {labels.howItWorks.detailsTitle}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {labels.howItWorks.detailsItems.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm leading-snug text-wine/80"
+                  >
+                    <span aria-hidden className="mt-0.5 text-wine/40">
+                      ·
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
           <div className="my-5 border-t border-rose/15" />
 

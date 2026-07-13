@@ -174,6 +174,23 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       "New girls-only tables are added regularly. Check back soon or follow MyTable for updates.",
     viewAll: "View all",
   },
+  presaleSignup: {
+    title: "Join the Priority List",
+    subtitle:
+      "Our girls-only tables sell out fast. Sign up to hear first when new dates open in your city. Priority list members get 10% off.",
+    nameLabel: "Name",
+    namePlaceholder: "Your first name",
+    citiesLabel: "Where do you want a seat?",
+    citiesHint: "Choose one or more cities",
+    citiesRequired: "Choose at least one city",
+    cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
+    emailLabel: "Email",
+    emailPlaceholder: "you@email.com",
+    cta: "Join the priority list",
+    success:
+      "You're on the priority list! We'll email you first when spots open up.",
+    error: "Sign-up failed. Please try again later.",
+  },
   testimonials: {
     eyebrow: "What girls say",
     title: "A great table even when you come solo",

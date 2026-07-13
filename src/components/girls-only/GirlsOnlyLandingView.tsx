@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { GirlsOnlyUpcomingEvents } from "@/components/girls-only/GirlsOnlyUpcomingEvents";
+import { GirlsOnlyPresaleSignup } from "@/components/girls-only/GirlsOnlyPresaleSignup";
 import { GirlsOnlyStickyCta, GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/GirlsOnlyStickyCta";
 
 interface GirlsOnlyLandingViewProps {
@@ -404,6 +405,11 @@ export function GirlsOnlyLandingView({
         upcomingEvents={upcomingEvents}
         locale={locale}
         agendaHref={agendaHref}
+      />
+
+      <GirlsOnlyPresaleSignup
+        labels={labels.presaleSignup}
+        locale={locale}
       />
 
       {testimonials.length > 0 ? (

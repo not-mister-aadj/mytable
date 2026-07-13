@@ -6,6 +6,7 @@ import { logCustomerActivity } from "@/lib/customers/activities";
 import { recalculateCustomerStats } from "@/lib/customers/stats";
 import { CustomerActivityTypes } from "@/lib/customers/types";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
+import { ensurePriorityListFromPaidBooking } from "@/lib/priority-list-enrollment";
 import { captureServerEvent, identifyServerPerson } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { hashEmail } from "@/lib/posthog/properties";
@@ -123,6 +124,15 @@ export async function onPaymentCompleted(input: {
     paid_bookings_count: customer?.paidBookingsCount ?? 0,
     total_bookings: customer?.totalBookings ?? 0,
   });
+
+  try {
+    await ensurePriorityListFromPaidBooking({
+      booking: input.booking,
+      event: input.event,
+    });
+  } catch (err) {
+    console.error("[priority-list] auto-enroll from booking failed", err);
+  }
 }
 
 export async function onPaymentFailed(input: {
@@ -195,11 +205,13 @@ export async function onWaitlistJoined(input: {
   city: string;
   locale: string;
   waitlistId: string;
+  name?: string;
 }): Promise<string> {
   const { id: customerId } = await upsertCustomerFromEmail({
     email: input.email,
     language: input.locale,
     preferredCity: input.city,
+    customerName: input.name,
   });
 
   const db = getDb();

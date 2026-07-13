@@ -26,6 +26,11 @@ export function shouldUseStaticCatalogFallback(): boolean {
   return process.env.NODE_ENV === "development" && !process.env.DATABASE_URL;
 }
 
+/** In local dev, fall back to the static catalog when Postgres is unreachable. */
+export function shouldUseCatalogOnDbError(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
 export { getSiteUrl } from "@/lib/admin-url";
 
 export function getAdminEmails(): string[] {

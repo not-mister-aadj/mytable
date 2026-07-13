@@ -49,4 +49,5 @@ export type AnalyticsSourceSection =
   | "home"
   | "agenda"
   | "event_detail"
-  | "sold_out_cta";
+  | "sold_out_cta"
+  | "girls_only_presale";

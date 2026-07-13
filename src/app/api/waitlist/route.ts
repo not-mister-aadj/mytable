@@ -38,8 +38,11 @@ export async function POST(request: Request) {
   let body: {
     email?: string;
     city?: string;
+    cities?: string[];
+    name?: string;
     locale?: string;
     source?: "waitlist" | "newsletter";
+    signupSource?: "waitlist" | "priority_list";
     meta?: {
       fbp?: string;
       fbc?: string;
@@ -53,37 +56,60 @@ export async function POST(request: Request) {
   }
 
   const email = body.email?.trim();
-  const city = body.city?.trim();
   const locale: Locale = body.locale === "en" ? "en" : "nl";
+  const name = body.name?.trim() || undefined;
+  const cities = Array.from(
+    new Set(
+      (body.cities?.length ? body.cities : body.city ? [body.city] : [])
+        .map((city) => city.trim())
+        .filter(Boolean),
+    ),
+  );
 
-  if (!email || !city) {
+  if (!email || cities.length === 0) {
     return NextResponse.json(
-      { error: "Email and city are required." },
+      { error: "Email and at least one city are required." },
       { status: 400 },
     );
   }
 
-  const result = await createWaitlistSignup({ email, city, locale });
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+  const signupIds: string[] = [];
+  const signupSource =
+    body.signupSource === "priority_list" ? "priority_list" : "waitlist";
+
+  for (const city of cities) {
+    const result = await createWaitlistSignup({
+      email,
+      city,
+      locale,
+      name,
+      source: signupSource,
+    });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    await onWaitlistJoined({
+      email,
+      city,
+      locale,
+      waitlistId: result.id,
+      name: signupIds.length === 0 ? name : undefined,
+    });
+
+    signupIds.push(result.id);
   }
 
-  await onWaitlistJoined({
-    email,
-    city,
-    locale,
-    waitlistId: result.id,
-  });
-
   const metaContext = parseMetaTrackingContext(body.meta);
+  const primaryCity = cities[0]!;
   void sendMetaCapiLead({
     email,
-    city,
+    city: primaryCity,
     source: body.source === "newsletter" ? "newsletter" : "waitlist",
-    waitlistId: result.id,
+    waitlistId: signupIds[0]!,
     eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
     userData: metaUserDataFromRequest(request, metaContext, email),
   });
 
-  return NextResponse.json({ ok: true, id: result.id });
+  return NextResponse.json({ ok: true, id: signupIds[0], ids: signupIds });
 }

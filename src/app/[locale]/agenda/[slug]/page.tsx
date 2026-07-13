@@ -9,7 +9,6 @@ import {
   getExperienceBySlug,
   getRelatedExperiences,
 } from "@/lib/experiences";
-import { getPublishedSlugs } from "@/lib/experience-data";
 import { getExperienceByDbId } from "@/lib/experiences";
 import {
   getTypeContent,
@@ -17,8 +16,6 @@ import {
 } from "@/lib/experience-type-content";
 import { getEventVenues, getVenueRouteCoords } from "@/lib/venues";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
-import { isDbEventsEnabled } from "@/lib/env";
-import { isDbConfigured } from "@/db/index";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getRouteMapPoints } from "@/data/experience-route-map";
@@ -51,25 +48,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export async function generateStaticParams() {
   const locales: Locale[] = ["nl", "en"];
-
-  if (isDbEventsEnabled() && isDbConfigured()) {
-    try {
-      const slugs = await getPublishedSlugs();
-      return locales.flatMap((locale) =>
-        slugs.map((slug) => ({ locale, slug })),
-      );
-    } catch (err) {
-      console.error("[agenda/slug] static params failed", err);
-    }
-  }
-
   const params: { locale: string; slug: string }[] = [];
+
   for (const locale of locales) {
     const slugs = await getAllExperienceSlugs(locale);
     for (const slug of slugs) {
       params.push({ locale, slug });
     }
   }
+
   return params;
 }
 

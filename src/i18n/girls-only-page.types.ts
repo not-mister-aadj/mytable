@@ -53,6 +53,21 @@ export interface GirlsOnlyPageLabels {
     empty: string;
     viewAll: string;
   };
+  presaleSignup: {
+    title: string;
+    subtitle: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    citiesLabel: string;
+    citiesHint: string;
+    citiesRequired: string;
+    cities: string[];
+    emailLabel: string;
+    emailPlaceholder: string;
+    cta: string;
+    success: string;
+    error: string;
+  };
   testimonials: {
     eyebrow: string;
     title: string;

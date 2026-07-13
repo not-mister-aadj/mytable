@@ -203,6 +203,8 @@ export const waitlistSignups = pgTable(
     email: text("email").notNull(),
     city: text("city").notNull(),
     locale: text("locale").notNull().default("nl"),
+    name: text("name"),
+    source: text("source").notNull().default("waitlist"),
     customerId: uuid("customer_id").references(() => customers.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

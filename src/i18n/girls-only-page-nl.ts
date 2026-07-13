@@ -174,6 +174,23 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
     viewAll: "Alles bekijken",
   },
+  presaleSignup: {
+    title: "Join de Priority List",
+    subtitle:
+      "Onze girls-only tafels raken snel uitverkocht. Schrijf je in en hoor als eerste wanneer er nieuwe data openen in jouw stad. Priority list members krijgen 10% korting.",
+    nameLabel: "Naam",
+    namePlaceholder: "Je voornaam",
+    citiesLabel: "Waar wil je aan tafel?",
+    citiesHint: "Kies één of meerdere steden",
+    citiesRequired: "Kies minstens één stad",
+    cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
+    emailLabel: "E-mail",
+    emailPlaceholder: "je@email.nl",
+    cta: "Join de priority list",
+    success:
+      "Yes! Je staat op de priority list. We mailen je als eerste zodra er plekken vrijkomen.",
+    error: "Aanmelden mislukt. Probeer het later opnieuw.",
+  },
   testimonials: {
     eyebrow: "Wat girls zeggen",
     title: "Ook solo, en toch gezellig aan tafel",

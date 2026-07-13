@@ -13,6 +13,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: "Boekingen", href: adminPath("/bookings") },
   { label: "Klanten", href: adminPath("/customers") },
   { label: "Wachtlijst", href: adminPath("/waitlist") },
+  { label: "Priority List", href: adminPath("/priority-list") },
   { label: "Analytics", href: adminPath("/analytics") },
   { label: "E-mails", href: adminPath("/email-preview") },
 ];

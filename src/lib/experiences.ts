@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { isDbEventsEnabled, shouldUseStaticCatalogFallback } from "@/lib/env";
+import { isDbEventsEnabled, shouldUseCatalogOnDbError, shouldUseStaticCatalogFallback } from "@/lib/env";
 import {
   enrichPublishedRows,
   getDbExperienceBySlug,
@@ -53,16 +53,12 @@ async function loadPublishedExperiences(
           ? (err as Error & { cause?: unknown }).cause
           : err;
       console.error("[experiences] DB fetch failed", cause ?? err);
-      if (shouldUseStaticCatalogFallback()) {
-        return fetchFromCatalog(locale);
-      }
-      throw err;
+      if (!shouldUseCatalogOnDbError()) throw err;
     }
+  } else if (!shouldUseStaticCatalogFallback()) {
+    return [];
   }
-  if (shouldUseStaticCatalogFallback()) {
-    return fetchFromCatalog(locale);
-  }
-  return [];
+  return fetchFromCatalog(locale);
 }
 
 function cachePublishedExperiences(
@@ -125,15 +121,19 @@ export async function getExperienceBySlug(
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
   if (isDbEventsEnabled() && isDbConfigured()) {
-    const fromDb = await cacheExperienceBySlug(locale, slug);
-    if (fromDb) return fromDb;
+    try {
+      const fromDb = await cacheExperienceBySlug(locale, slug);
+      if (fromDb) return fromDb;
+      return undefined;
+    } catch (err) {
+      console.error("[experiences] slug lookup failed", err);
+      if (!shouldUseCatalogOnDbError()) throw err;
+    }
+  } else if (!shouldUseStaticCatalogFallback()) {
     return undefined;
   }
-  if (shouldUseStaticCatalogFallback()) {
-    const all = fetchFromCatalog(locale);
-    return all.find((item) => item.slug === slug);
-  }
-  return undefined;
+  const all = fetchFromCatalog(locale);
+  return all.find((item) => item.slug === slug);
 }
 
 export async function getExperienceByDbId(
@@ -160,10 +160,10 @@ export async function getRelatedExperiences(
       if (related.length > 0) return related;
     } catch (err) {
       console.error("[experiences] related fetch failed", err);
-      if (!shouldUseStaticCatalogFallback()) throw err;
+      if (!shouldUseCatalogOnDbError()) throw err;
     }
   }
-  if (!shouldUseStaticCatalogFallback()) return [];
+  if (!shouldUseStaticCatalogFallback() && !shouldUseCatalogOnDbError()) return [];
   const all = fetchFromCatalog(locale);
   return all
     .filter((item) => item.slug !== current.slug)
@@ -182,10 +182,11 @@ export async function getAllExperienceSlugs(locale: Locale): Promise<string[]> {
       return await getPublishedSlugs();
     } catch (err) {
       console.error("[experiences] slug list failed", err);
-      if (!shouldUseStaticCatalogFallback()) throw err;
+      if (!shouldUseCatalogOnDbError()) throw err;
     }
+  } else if (!shouldUseStaticCatalogFallback()) {
+    return [];
   }
-  if (!shouldUseStaticCatalogFallback()) return [];
   const all = fetchFromCatalog(locale);
   return all.map((item) => item.slug);
 }

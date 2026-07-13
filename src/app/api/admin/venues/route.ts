@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { isDbConfigured } from "@/db/index";
 import { requireAdminApi } from "@/lib/admin-auth";
-import { ensureVenueColumns } from "@/lib/ensure-venue-columns";
 import { getAllVenues } from "@/lib/venues";
 
 export async function GET() {
@@ -9,9 +7,6 @@ export async function GET() {
   if (denied) return denied;
 
   try {
-    if (isDbConfigured()) {
-      await ensureVenueColumns();
-    }
     const venues = await getAllVenues();
     return NextResponse.json({ venues });
   } catch (error) {

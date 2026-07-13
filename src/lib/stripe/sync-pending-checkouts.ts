@@ -8,7 +8,6 @@ import {
   type FulfillCheckoutResult,
 } from "@/lib/stripe/fulfill-checkout";
 import { sendMissingBookingConfirmationEmails } from "@/lib/email/send-missing-confirmation-emails";
-import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 
 export type PendingCheckoutSyncResult = {
   bookingId: string;
@@ -31,7 +30,6 @@ export async function syncPendingCheckoutsFromStripe(): Promise<PendingCheckoutS
     return [];
   }
 
-  await ensureBookingColumns();
   const db = getDb();
   const pending = await db
     .select({

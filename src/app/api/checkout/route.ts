@@ -12,7 +12,6 @@ import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { ensureBookingColumns } from "@/lib/ensure-booking-columns";
 import { isSeatingPreference } from "@/lib/booking-seating";
 import { isTableLanguagePreference } from "@/lib/booking-table-language";
 import {
@@ -168,7 +167,6 @@ export async function POST(request: Request) {
   }
 
   const amountCents = event.priceCents * seats;
-  await ensureBookingColumns();
   const [booking] = await db
     .insert(bookings)
     .values({

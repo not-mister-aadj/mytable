@@ -4,10 +4,10 @@ import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL;
 
-/** Supabase transaction pooler (6543): keep a single connection; avoid HMR leaks in dev. */
+/** Supabase transaction pooler (6543): small pool per instance; avoid HMR leaks in dev. */
 const postgresOptions = {
   prepare: false as const,
-  max: 1,
+  max: 3,
   idle_timeout: 20,
   connect_timeout: 10,
 };

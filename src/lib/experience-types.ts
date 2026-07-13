@@ -2,7 +2,6 @@ import { cache } from "react";
 import { eq, inArray } from "drizzle-orm";
 import { experienceTypes } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { ensureExperienceTypesSchema } from "@/lib/ensure-experience-types-schema";
 import {
   EXPERIENCE_TYPE_DEFINITIONS,
   type ExperienceTypeSlug,
@@ -19,12 +18,8 @@ export {
   DEFAULT_EXPERIENCE_TYPE,
 };
 
-/** At most once per request */
-export const ensureExperienceTypesSchemaCached = cache(ensureExperienceTypesSchema);
-
 export async function ensureExperienceTypesSeeded() {
   if (!isDbConfigured()) return;
-  await ensureExperienceTypesSchemaCached();
   const db = getDb();
   const slugs = EXPERIENCE_TYPE_DEFINITIONS.map((def) => def.slug);
   const existing = await db

@@ -72,7 +72,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingSeatingJoinHint: "Solo of met een vriendin. Nieuwe gezichten, makkelijk gesprek.",
   bookingTableLanguageLabel: "Waarin praten we lekker?",
   bookingTableLanguageHint:
-    "Allebei prima. Zolang het gezellig is aan tafel, komt het altijd goed.",
+    "Zowel Nederlands als Engels is prima, zolang het maar gezellig blijft aan tafel.",
   bookingTableLanguageBoth: "Nederlands, Engels, of een mix",
   bookingTableLanguagePreferDutch: "Liever vooral Nederlands",
   bookingStepNext: "Volgende",

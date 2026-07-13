@@ -50,11 +50,15 @@ export async function generateStaticParams() {
   const locales: Locale[] = ["nl", "en"];
   const params: { locale: string; slug: string }[] = [];
 
-  for (const locale of locales) {
-    const slugs = await getAllExperienceSlugs(locale);
-    for (const slug of slugs) {
-      params.push({ locale, slug });
+  try {
+    for (const locale of locales) {
+      const slugs = await getAllExperienceSlugs(locale);
+      for (const slug of slugs) {
+        params.push({ locale, slug });
+      }
     }
+  } catch (err) {
+    console.error("[agenda/slug] static params failed", err);
   }
 
   return params;

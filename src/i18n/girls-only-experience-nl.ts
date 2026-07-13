@@ -23,7 +23,7 @@ export const girlsOnlyTastingFlowNl: ExperienceFlowStep[] = [
   {
     title: "Afsluiten zonder haast",
     description:
-      "Reken op twee tot drie uur. Blijf gerust nog even voor een drankje aan de bar.",
+      "Plan de hele middag in. Soms gaat het daarna nog door — nawijnen, borrelen of ergens lekker uit eten met je meiden.",
   },
 ];
 
@@ -51,7 +51,7 @@ export const girlsOnlyTastingQuotesNl: ExperienceGuestQuote[] = [
 export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
   tagline: "Girls-only wijnspijs op zondagmiddag. Zonder gedoe.",
   description:
-    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Het restaurant kiest vier wijnen en pairt ze met bites. Alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten, meestal twee tot drie uur.",
+    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Het restaurant kiest vier wijnen en pairt ze met bites. Alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten — plan gerust de hele middag. En soms? Dan gaat het daarna nog door: nawijnen, borrelen of ergens lekker uit eten met je meiden.",
   experienceFlow: girlsOnlyTastingFlowNl,
   guestQuotes: girlsOnlyTastingQuotesNl,
   whatToExpect: [
@@ -83,7 +83,7 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
     {
       title: "Op eigen tempo",
       description:
-        "Reken op twee tot drie uur. Geen strak schema, ruimte om te proeven, praten en na te genieten.",
+        "Plan de hele middag in. Geen strak schema — en soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
     },
   ],
   socialParagraphs: [

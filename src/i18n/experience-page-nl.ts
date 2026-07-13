@@ -125,7 +125,7 @@ export const experiencePageNl: ExperiencePageLabels = {
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "Je schuift aan tafel, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten, meestal twee tot drie uur.",
+        "Je schuift aan tafel, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten — plan gerust de hele middag. Vaak houdt de groep het daarna nog gezellig: nawijnen, borrelen of ergens uit eten.",
       whatToExpect: [
         {
           title: "Eén restaurant, één tafel",
@@ -150,7 +150,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           title: "Op eigen tempo",
           description:
-            "Reken op twee tot drie uur. Geen strak schema, ruimte om te proeven, praten en na te genieten.",
+            "Plan de hele middag in. Geen strak schema — en soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
         },
         {
           title: "Aanpassen op verzoek",
@@ -170,7 +170,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
-      duration: "2 tot 3 uur, op eigen tempo",
+      duration: "Hele middag, op eigen tempo",
       included: "Wijnproeverij, chef's special bites en host aan tafel",
       faq: [
         {

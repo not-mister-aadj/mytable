@@ -137,7 +137,7 @@ export const nl: Dictionary = {
       {
         title: "Kom zondag aan tafel",
         description:
-          "Vier wijnen, chef's bites en gezelschap. Twee tot drie uur op eigen tempo.",
+          "Vier wijnen, chef's bites en gezelschap. Plan de hele middag — vaak gaat het daarna nog gezellig door.",
       },
     ],
   },

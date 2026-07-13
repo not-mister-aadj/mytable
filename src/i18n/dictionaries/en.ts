@@ -136,7 +136,7 @@ export const en: Dictionary = {
       {
         title: "Show up Sunday afternoon",
         description:
-          "Four wines, chef's bites, and good company. Two to three hours at your own pace.",
+          "Four wines, chef's bites, and good company. Plan for the whole afternoon — often the fun keeps going afterward.",
       },
     ],
   },

@@ -125,7 +125,7 @@ export const experiencePageEn: ExperiencePageLabels = {
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
-        "You sit down at the table, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace, usually two to three hours.",
+        "You sit down at the table, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace — plan for the whole afternoon. Often the group keeps it going afterward: more wine, drinks, or dinner out.",
       whatToExpect: [
         {
           title: "One restaurant, one table",
@@ -150,7 +150,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           title: "Your own pace",
           description:
-            "Plan for two to three hours. No tight schedule, time to taste, talk, and linger.",
+            "Plan for the whole afternoon. No tight schedule — and sometimes the group keeps the vibe going with more wine or dinner out.",
         },
         {
           title: "Adjustments on request",
@@ -170,7 +170,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
-      duration: "2 to 3 hours, at your own pace",
+      duration: "Whole afternoon, at your own pace",
       included: "Wine tasting, chef's special bites, and host at the table",
       faq: [
         {

@@ -91,7 +91,7 @@ export const tastingFlowNl: ExperienceFlowStep[] = [
   {
     title: "Afsluiten zonder haast",
     description:
-      "Reken op twee tot drie uur. Wie wil blijft nog even napraten aan de bar.",
+      "Plan de hele middag in. Veel groepen houden het daarna nog gezellig — nawijnen, borrelen of ergens uit eten.",
   },
 ];
 

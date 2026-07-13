@@ -23,7 +23,7 @@ export const girlsOnlyTastingFlowEn: ExperienceFlowStep[] = [
   {
     title: "Finish without rushing",
     description:
-      "Plan on two to three hours. Stay for a drink at the bar if you like.",
+      "Plan for the whole afternoon. Sometimes the fun continues afterward — more wine, drinks, or dinner out with your crew.",
   },
 ];
 
@@ -51,7 +51,7 @@ export const girlsOnlyTastingQuotesEn: ExperienceGuestQuote[] = [
 export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
   tagline: "Girls-only wine & bites on Sunday afternoon. No hassle.",
   description:
-    "A Sunday afternoon of wine and bites with your crew at one table. The restaurant selects four wines and pairs them with bites. Everything around the table sorted. No wine exam, just context and room to enjoy at your pace, usually two to three hours.",
+    "A Sunday afternoon of wine and bites with your crew at one table. The restaurant selects four wines and pairs them with bites. Everything around the table sorted. No wine exam, just context and room to enjoy at your pace — plan for the whole afternoon. And sometimes? The fun keeps going: more wine, drinks, or dinner out together.",
   experienceFlow: girlsOnlyTastingFlowEn,
   guestQuotes: girlsOnlyTastingQuotesEn,
   whatToExpect: [
@@ -83,7 +83,7 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
     {
       title: "Your own pace",
       description:
-        "Plan on two to three hours. No tight schedule, room to taste, talk, and linger.",
+        "Plan for the whole afternoon. No tight schedule — and sometimes the group keeps the vibe going with more wine or dinner out.",
     },
   ],
   socialParagraphs: [

@@ -91,7 +91,7 @@ export const tastingFlowEn: ExperienceFlowStep[] = [
   {
     title: "Close without rushing",
     description:
-      "Plan for two to three hours. Those who want to often chat a bit longer at the bar.",
+      "Plan for the whole afternoon. Many groups keep the vibe going afterward — more wine, drinks, or dinner out.",
   },
 ];
 

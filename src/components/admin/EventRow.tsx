@@ -91,6 +91,13 @@ export function EventRow({ event }: { event: Event }) {
         >
           Bewerken
         </Link>
+        <Link
+          href={adminPath(`/events/${event.id}/guests`)}
+          prefetch={false}
+          className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm hover:border-burgundy/30"
+        >
+          Gasten ({event.spotsSold})
+        </Link>
         <a
           href={publicUrl}
           target="_blank"

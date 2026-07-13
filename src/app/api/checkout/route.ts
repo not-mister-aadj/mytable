@@ -191,18 +191,17 @@ export async function POST(request: Request) {
   }
 
   // Enroll immediately (no need to wait for payment).
+  // Never block checkout on priority-list issues (schema mismatch, DB hiccups, etc.).
   if (body.joinPriorityList === true) {
-    try {
-      await ensurePriorityListSignup({
-        email: booking.email,
-        city: event.city,
-        locale: booking.locale,
-        name: booking.customerName ?? undefined,
-        signedUpAt: booking.createdAt,
-      });
-    } catch (err) {
+    void ensurePriorityListSignup({
+      email: booking.email,
+      city: event.city,
+      locale: booking.locale,
+      name: booking.customerName ?? undefined,
+      signedUpAt: booking.createdAt,
+    }).catch((err) => {
       console.error("[priority-list] enroll at checkout failed", err);
-    }
+    });
   }
 
   const utm = body.utm ?? {};

@@ -37,6 +37,16 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           "Ja, en je bent niet de enige. Veel girls boeken solo of met één vriendin. Wij zorgen dat je aan een gezellige tafel belandt, met groepen én andere girls die alleen komen.",
       },
       {
+        question: "Is dit dating of netwerken?",
+        answer:
+          "Nee. Het gaat om een ontspannen middag aan tafel met wijn, bites en gezellig gesprek. Geen speeddating, geen zakelijke contacten en geen verplicht smalltalk.",
+      },
+      {
+        question: "Wat is het verschil tussen girls only en gemengd?",
+        answer:
+          "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom: solo, met vrienden of op date. Het concept is hetzelfde, alleen de samenstelling van de groep verschilt.",
+      },
+      {
         question: "Mag ik ook komen als ik niet tussen de 25-45 ben?",
         answer:
           "Jazeker! Die 25-45 is een richtlijn, geen strenge leeftijdsgrens. Zolang je wettelijk oud genoeg bent om te proeven en je komt voor gezelligheid aan tafel, ben je van harte welkom.",
@@ -52,9 +62,24 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           "Zeker. Reserveer voor je groep (twee, vier of meer) en jullie zitten samen aan een eigen tafel. Nodig gerust je vriendinnen uit.",
       },
       {
+        question: "Wanneer zijn de events?",
+        answer:
+          "Elke zondagmiddag, meestal tussen 14:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+      },
+      {
+        question: "Waar vindt de proeverij plaats?",
+        answer:
+          "In één partnerrestaurant, geen route door de stad. De stad staat op de tafelkaart. Na je boeking stuur je per e-mail het restaurant, de tijd en praktische info.",
+      },
+      {
         question: "Moet ik veel van wijn weten?",
         answer:
           "Nee. Nieuwsgierigheid is genoeg. Onze host deelt context over de wijnen zonder dat het een les wordt.",
+      },
+      {
+        question: "Kan ik dieetwensen doorgeven?",
+        answer:
+          "Ja. Geef het door bij het reserveren. De chef past de specials aan waar dat kan.",
       },
       {
         question: "Hoe lang duurt de wijnproeverij?",
@@ -62,9 +87,14 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
           "Het officiële deel duurt gemiddeld 3 uur. Maar eerlijk? Aan het einde blijven vaak meiden nog even zitten om bij te kletsen en nóg een glas van hun favoriete wijn te bestellen. Soms loopt de middag zó lekker dat er spontaan een dinertje van wordt. Geen verplichting, wel vaak een mooie bonus.",
       },
       {
+        question: "Kan ik bijbestellen aan tafel?",
+        answer:
+          "Vaak wel: een extra glas of bite. Sommige partnerlocaties verkopen ook de volledige fles van een wijn die je lekker vond. Dat verschilt per restaurant.",
+      },
+      {
         question: "Kan ik annuleren of ruilen?",
         answer:
-          "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren.",
+          "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren. Mail ons als je wilt ruilen.",
       },
     ],
   },

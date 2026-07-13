@@ -37,6 +37,16 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           "Yes, and you won't be the only one. Many girls book solo or with one friend. We'll seat you at a fun table with groups and other girls who came alone.",
       },
       {
+        question: "Is this dating or networking?",
+        answer:
+          "No. It's a relaxed afternoon at the table with wine, bites, and easy conversation. No speed dating, no business networking, and no forced small talk.",
+      },
+      {
+        question: "What is the difference between girls only and mixed?",
+        answer:
+          "Girls only tables are for women only. Mixed groups welcome everyone: solo, with friends, or on a date. The concept is the same; only who sits at the table differs.",
+      },
+      {
         question: "Can I come if I'm not between 25 and 45?",
         answer:
           "Absolutely! 25-45 is a guideline, not a strict age limit. As long as you're old enough to drink legally and you're here for good company at the table, you're very welcome.",
@@ -52,9 +62,24 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           "Absolutely. Reserve for your group (two, four, or more) and sit together at your own table. Bring your friends along.",
       },
       {
+        question: "When are the events?",
+        answer:
+          "Every Sunday afternoon, usually between 2:00 PM and 5:00 PM. The exact time is on your table card and in your confirmation email.",
+      },
+      {
+        question: "Where does the tasting take place?",
+        answer:
+          "At one partner restaurant, no route through the city. The city is on the table card. After booking, we email the restaurant, time, and practical details.",
+      },
+      {
         question: "Do I need to know a lot about wine?",
         answer:
           "No. Curiosity is enough. Our host shares context about the wines without turning it into a lesson.",
+      },
+      {
+        question: "Can I share dietary requirements?",
+        answer:
+          "Yes. Tell us when you book. The chef adapts the specials where possible.",
       },
       {
         question: "How long does the wine tasting last?",
@@ -62,9 +87,14 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           "The official part lasts about 3 hours on average. But honestly? At the end, lots of girls often stick around to keep chatting and order another glass of their favorite wine. Sometimes the afternoon goes so well that someone suggests dinner together. No obligation, but often a lovely bonus.",
       },
       {
+        question: "Can I order more at the table?",
+        answer:
+          "Often yes: an extra glass or bite. Some partner venues also sell the full bottle of a wine you enjoyed. It varies by restaurant.",
+      },
+      {
         question: "Can I cancel or exchange?",
         answer:
-          "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book.",
+          "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book. Email us if you want to exchange.",
       },
     ],
   },

@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# cursor MCP config (may contain access tokens)
+.cursor/mcp.json
+
 # vercel
 .vercel
 

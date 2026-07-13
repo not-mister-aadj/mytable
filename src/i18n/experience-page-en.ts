@@ -71,6 +71,8 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingSeatingJoin: "I'll join others at the table",
   bookingSeatingJoinHint: "Solo or with a friend. New faces, easy conversation.",
   bookingTableLanguageLabel: "What language feels good at the table?",
+  bookingTableLanguageHint:
+    "Either is perfectly fine. As long as the table is fun, it always works out.",
   bookingTableLanguageBoth: "Dutch, English, or a mix of both",
   bookingTableLanguagePreferDutch: "Mostly Dutch, please",
   bookingStepNext: "Continue",

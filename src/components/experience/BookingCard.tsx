@@ -659,6 +659,13 @@ export function BookingCard({
                 <legend className={choiceLegendClass(compact)}>
                   {labels.bookingTableLanguageLabel}
                 </legend>
+                <p
+                  className={`-mt-1 mb-1 leading-relaxed text-wine/55 ${
+                    compact ? "text-[11px]" : "text-xs"
+                  }`}
+                >
+                  {labels.bookingTableLanguageHint}
+                </p>
                   {(
                     [
                       {

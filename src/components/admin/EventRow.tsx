@@ -86,9 +86,10 @@ export function EventRow({ event }: { event: Event }) {
       <div className="flex flex-wrap gap-2 sm:shrink-0">
         <Link
           href={adminPath(`/events/${event.id}/edit`)}
+          prefetch={false}
           className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm hover:border-burgundy/30"
         >
-          Edit
+          Bewerken
         </Link>
         <a
           href={publicUrl}
@@ -96,14 +97,14 @@ export function EventRow({ event }: { event: Event }) {
           rel="noopener noreferrer"
           className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm hover:border-burgundy/30"
         >
-          Preview
+          Voorbeeld
         </a>
         <form action={duplicateEventAction.bind(null, event.id)}>
           <button
             type="submit"
             className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm hover:border-burgundy/30"
           >
-            Duplicate
+            Dupliceren
           </button>
         </form>
         <form

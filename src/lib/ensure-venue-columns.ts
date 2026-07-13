@@ -9,8 +9,12 @@ async function applyVenueColumns(): Promise<void> {
   await sql`ALTER TABLE venues ADD COLUMN IF NOT EXISTS gallery_meta jsonb`;
 }
 
-/** Idempotent — safe to run before every venue read/write. */
+/** Idempotent — safe to run before venue writes. Never throws (reads degrade gracefully). */
 export async function ensureVenueColumns(): Promise<void> {
   if (!isDbConfigured()) return;
-  await runDbMigrationOnce("venue-columns", applyVenueColumns);
+  try {
+    await runDbMigrationOnce("venue-columns", applyVenueColumns);
+  } catch (error) {
+    console.error("[ensureVenueColumns]", error);
+  }
 }

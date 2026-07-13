@@ -6,7 +6,6 @@ import type { ExperienceVenue } from "@/i18n/types";
 import type { Event, Venue } from "@/db/schema";
 import { venues } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { ensureVenueColumns } from "@/lib/ensure-venue-columns";
 import { parseEventExtras } from "@/lib/event-extras";
 import { venueToExperienceVenue } from "@/lib/venue-display";
 export { venueToExperienceVenue } from "@/lib/venue-display";
@@ -200,14 +199,12 @@ export async function getAllVenues(): Promise<Venue[]> {
   noStore();
   if (!isDbConfigured()) return [];
   const db = getDb();
-  await ensureVenueColumns();
   return selectAllVenuesRows(db);
 }
 
 /** Cached venue list for admin editors (venues change infrequently). */
 export const getAllVenuesForAdmin = cache(async (): Promise<Venue[]> => {
   if (!isDbConfigured()) return [];
-  await ensureVenueColumns();
   const db = getDb();
   return selectAllVenuesRows(db);
 });
@@ -216,7 +213,6 @@ export async function getVenueById(id: string): Promise<Venue | undefined> {
   noStore();
   if (!isDbConfigured()) return undefined;
   const db = getDb();
-  await ensureVenueColumns();
   try {
     const [row] = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
     return row ? mapVenueRow(row) : undefined;

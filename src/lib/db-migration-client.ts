@@ -36,7 +36,27 @@ export function getDbMigrationClient() {
   return globalForMigrations.__mytableMigrationPostgres;
 }
 
-/** Run idempotent DDL at most once per server process. */
+const MIGRATION_TIMEOUT_MS = 8000;
+
+function withTimeout(promise: Promise<void>, ms: number): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`DB migration timed out after ${ms}ms`));
+    }, ms);
+    promise.then(
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+/** Run idempotent DDL at most once per server process (never blocks longer than the timeout). */
 export function runDbMigrationOnce(
   key: string,
   fn: (sql: ReturnType<typeof postgres>) => Promise<void>,
@@ -46,10 +66,12 @@ export function runDbMigrationOnce(
   if (!cache.has(key)) {
     cache.set(
       key,
-      fn(getDbMigrationClient()).catch((error) => {
-        cache.delete(key);
-        throw error;
-      }),
+      withTimeout(fn(getDbMigrationClient()), MIGRATION_TIMEOUT_MS).catch(
+        (error) => {
+          cache.delete(key);
+          throw error;
+        },
+      ),
     );
   }
   return cache.get(key)!;

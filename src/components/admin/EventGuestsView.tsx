@@ -439,6 +439,13 @@ function GuestTableRow({
       </td>
       <td className="px-5 py-4 font-medium text-wine">{ticket.seats}</td>
       <td className="px-5 py-4">
+        {ticket.dietaryNotes?.trim() ? (
+          <span className="text-xs text-wine/70">{ticket.dietaryNotes.trim()}</span>
+        ) : (
+          <span className="text-xs text-wine/35">–</span>
+        )}
+      </td>
+      <td className="px-5 py-4">
         <TicketStatusBadge ticket={ticket} />
         {isTransferred ? <TransferDestinationBlock ticket={ticket} /> : null}
       </td>
@@ -645,12 +652,13 @@ export function EventGuestsView({
 
           <div className="hidden overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige/50 shadow-[0_12px_40px_rgba(43,13,18,0.05)] lg:block">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[960px] text-left text-sm">
+              <table className="w-full min-w-[1080px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
                     <th className="px-5 py-3.5">Gast</th>
                     <th className="px-5 py-3.5">Code</th>
                     <th className="px-5 py-3.5">Plekken</th>
+                    <th className="px-5 py-3.5">Allergieën</th>
                     <th className="px-5 py-3.5">Status</th>
                     <th className="px-5 py-3.5">Acties</th>
                   </tr>

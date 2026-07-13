@@ -23,7 +23,10 @@ import {
   MEDIA_MARKETING_CONSENT_EVENT,
   MEDIA_MARKETING_CONSENT_VERSION,
 } from "@/lib/media-marketing-consent";
-import { PRIORITY_LIST_OPT_IN_EVENT } from "@/lib/priority-list-enrollment";
+import {
+  ensurePriorityListSignup,
+  PRIORITY_LIST_OPT_IN_EVENT,
+} from "@/lib/priority-list-enrollment";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -185,6 +188,21 @@ export async function POST(request: Request) {
       type: PRIORITY_LIST_OPT_IN_EVENT,
       payload: { optIn: body.joinPriorityList },
     });
+  }
+
+  // Enroll immediately (no need to wait for payment).
+  if (body.joinPriorityList === true) {
+    try {
+      await ensurePriorityListSignup({
+        email: booking.email,
+        city: event.city,
+        locale: booking.locale,
+        name: booking.customerName ?? undefined,
+        signedUpAt: booking.createdAt,
+      });
+    } catch (err) {
+      console.error("[priority-list] enroll at checkout failed", err);
+    }
   }
 
   const utm = body.utm ?? {};

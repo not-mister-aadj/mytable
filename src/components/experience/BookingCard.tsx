@@ -629,9 +629,9 @@ export function BookingCard({
               </button>
             </>
           ) : (
-            <div className={compact ? "space-y-4" : "space-y-5"}>
+            <div className={compact ? "space-y-3" : "space-y-3.5"}>
               <div
-                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${
+                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-2.5 ${
                   isFemaleOnly
                     ? "border-rose/25 bg-white/70"
                     : "border-border-subtle bg-white/70"
@@ -641,7 +641,7 @@ export function BookingCard({
                   <p className="truncate font-semibold text-wine">
                     {tierTitle(tier, tierLabels)}
                   </p>
-                  <p className="mt-0.5 text-xs text-wine/55">
+                  <p className="mt-0.5 text-[11px] text-wine/55">
                     {tierSeatsLabel(seats, tierLabels)} ·{" "}
                     {tierLabels.perPerson.replace(
                       "{price}",
@@ -650,7 +650,7 @@ export function BookingCard({
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 font-serif text-xl font-medium ${
+                  className={`shrink-0 font-serif text-lg font-medium ${
                     isFemaleOnly ? "text-rose-deep" : "text-burgundy"
                   }`}
                 >
@@ -662,12 +662,11 @@ export function BookingCard({
                   {labels.bookingTableLanguageLabel}
                 </legend>
                 <p
-                  className={`-mt-1 mb-1 leading-relaxed text-wine/55 ${
-                    compact ? "text-[11px]" : "text-xs"
-                  }`}
+                  className={`-mt-1 mb-1 leading-snug text-wine/55 ${compact ? "text-[11px]" : "text-xs"}`}
                 >
                   {labels.bookingTableLanguageHint}
                 </p>
+                <div className={compact ? "grid gap-2" : "grid gap-2 sm:grid-cols-2"}>
                   {(
                     [
                       {
@@ -685,7 +684,7 @@ export function BookingCard({
                       <BookingChoiceOption
                         key={option.value}
                         selected={selected}
-                        compact={compact}
+                        compact={true}
                         isFemaleOnly={isFemaleOnly}
                         name="tableLanguagePreference"
                         value={option.value}
@@ -701,21 +700,20 @@ export function BookingCard({
                       </BookingChoiceOption>
                     );
                   })}
+                </div>
               </fieldset>
               <label className={labelClass}>
                 {labels.bookingDietary}
                 <textarea
                   value={dietaryNotes}
                   onChange={(e) => setDietaryNotes(e.target.value)}
-                  rows={compact ? 2 : 3}
+                  rows={2}
                   placeholder={labels.bookingDietaryPlaceholder}
                   className={`${choiceInputClass(compact, isFemaleOnly)} resize-none`}
                 />
               </label>
               <label
-                className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 transition-colors ${
-                  compact ? "py-2.5" : "py-3"
-                } ${
+                className={`flex cursor-pointer items-start gap-2.5 rounded-xl border px-3.5 py-2.5 transition-colors ${
                   joinPriorityList
                     ? isFemaleOnly
                       ? "border-rose/40 bg-white"
@@ -734,36 +732,34 @@ export function BookingCard({
                   }`}
                 />
                 <span
-                  className={`leading-relaxed text-wine/75 ${
-                    compact ? "text-[11px]" : "text-xs"
-                  }`}
+                  className="text-xs leading-snug text-wine/75"
                 >
                   {labels.bookingPriorityList}
                 </span>
               </label>
               {error ? <p className="text-sm text-red-800">{error}</p> : null}
-              <p
-                className={`leading-relaxed text-wine/55 ${
-                  compact ? "text-[11px]" : "text-xs"
-                }`}
-              >
-                {labels.bookingMediaConsent}{" "}
-                {labels.bookingMediaConsentReadMore}{" "}
-                <Link
-                  href={termsPath(locale)}
-                  className="text-wine/70 underline-offset-2 hover:text-wine hover:underline"
-                >
-                  {labels.bookingMediaConsentTerms}
-                </Link>{" "}
-                {labels.bookingMediaConsentAnd}{" "}
-                <Link
-                  href={privacyPath(locale)}
-                  className="text-wine/70 underline-offset-2 hover:text-wine hover:underline"
-                >
-                  {labels.bookingMediaConsentPrivacy}
-                </Link>
-                .
-              </p>
+              <details className="rounded-xl border border-border-subtle bg-white/70 px-3.5 py-2.5">
+                <summary className="cursor-pointer text-xs font-medium text-wine/75">
+                  Foto’s en video’s tijdens het event
+                </summary>
+                <p className="mt-2 text-xs leading-relaxed text-wine/55">
+                  {labels.bookingMediaConsent} {labels.bookingMediaConsentReadMore}{" "}
+                  <Link
+                    href={termsPath(locale)}
+                    className="text-wine/70 underline-offset-2 hover:text-wine hover:underline"
+                  >
+                    {labels.bookingMediaConsentTerms}
+                  </Link>{" "}
+                  {labels.bookingMediaConsentAnd}{" "}
+                  <Link
+                    href={privacyPath(locale)}
+                    className="text-wine/70 underline-offset-2 hover:text-wine hover:underline"
+                  >
+                    {labels.bookingMediaConsentPrivacy}
+                  </Link>
+                  .
+                </p>
+              </details>
               <button
                 type="submit"
                 disabled={loading}

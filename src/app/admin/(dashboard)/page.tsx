@@ -1,5 +1,6 @@
 import { eq, gte, and, gt, sql } from "drizzle-orm";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { adminPath } from "@/lib/admin-url";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -20,6 +21,13 @@ export default async function AdminDashboardPage() {
   const db = getDb();
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ??
+    requestHeaders.get("host") ??
+    "localhost:3001";
+  const hostname = host.split(":")[0].toLowerCase();
 
   const [revenue] = await db
     .select({
@@ -73,13 +81,22 @@ export default async function AdminDashboardPage() {
       <section className="mt-10">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-medium text-burgundy">Aankomende tafels</h2>
-          <Link href={adminPath("/events/new")} className="text-sm text-burgundy underline">
+          <Link
+            href={adminPath("/events/new", hostname)}
+            className="text-sm text-burgundy underline"
+          >
             Nieuwe tafel
           </Link>
         </div>
         <ul className="mt-4 divide-y divide-border-subtle rounded-2xl border border-border-subtle bg-beige">
-          {upcoming.map((e) => (
-            <li key={e.id} className="flex flex-col gap-1 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          {upcoming.map((e) => {
+            const editHref = adminPath(`/events/${e.id}/edit`, hostname);
+
+            return (
+            <li
+              key={e.id}
+              className="flex flex-col gap-2 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+            >
               <span>
                 {e.nameNl} · {e.city}
                 <span className="text-wine/60">
@@ -92,14 +109,21 @@ export default async function AdminDashboardPage() {
                   )}
                 </span>
               </span>
-              <span className="shrink-0 text-wine/60">
-                {e.spotsSold}/{e.capacity} ·{" "}
-                <Link href={adminPath(`/events/${e.id}/edit`)} className="underline">
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="text-wine/60">
+                  {e.spotsSold}/{e.capacity}
+                </span>
+                <Link
+                  href={editHref}
+                  prefetch={false}
+                  className="rounded-full border border-border-subtle bg-cream px-3.5 py-1.5 text-sm font-medium text-burgundy transition hover:border-burgundy/30"
+                >
                   Bewerken
                 </Link>
-              </span>
+              </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </section>
     </div>

@@ -30,9 +30,8 @@ function handleAdminSubdomain(request: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     const stripped = pathname.slice("/admin".length) || "/";
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = stripped;
-    return NextResponse.redirect(redirectUrl);
+    const rewritePath = stripped === "/" ? "/admin" : `/admin${stripped}`;
+    return updateSupabaseSession(request, { rewritePath });
   }
 
   const rewritePath = pathname === "/" ? "/admin" : `/admin${pathname}`;

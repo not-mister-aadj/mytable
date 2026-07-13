@@ -137,6 +137,19 @@ export const girlsOnlyExperienceLabelsEn = {
   bookingSeatingJoin: "I'll join others at the table",
   bookingSeatingJoinHint:
     "Solo or with a friend. MyTable finds your spot at the table.",
+  bookingTiers: {
+    legend: "How are you coming?",
+    perPerson: "€{price} p.p.",
+    bestValue: "Best value",
+    seatOne: "1 spot",
+    seatOther: "{count} spots",
+    soloTitle: "I'm coming solo",
+    duoTitle: "Together",
+    groupTitle: "Friends table",
+    soloCta: "Reserve my spot",
+    duoCta: "Reserve our spots",
+    groupCta: "Reserve our table",
+  },
   bookingTrustBullets: [
     "Pay in full when you book",
     "Free date exchange up to 48 hours before",

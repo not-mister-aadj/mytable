@@ -90,8 +90,9 @@ export function trackSeatsSelected(
   experience: ExperienceItem,
   language: string,
   seats: number,
+  totalPriceOverride?: number,
 ): void {
-  const totalPrice = experience.price * seats;
+  const totalPrice = totalPriceOverride ?? experience.price * seats;
   capture(PostHogEvents.seatsSelected, {
     ...buildExperienceProperties(experience, language),
     seats,

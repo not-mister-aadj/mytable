@@ -137,6 +137,19 @@ export const girlsOnlyExperienceLabelsNl = {
   bookingSeatingJoin: "Ik schuif aan bij anderen",
   bookingSeatingJoinHint:
     "Solo of met een vriendin. MyTable regelt je plek aan tafel.",
+  bookingTiers: {
+    legend: "Hoe kom je?",
+    perPerson: "€{price} p.p.",
+    bestValue: "Beste keuze",
+    seatOne: "1 plek",
+    seatOther: "{count} plekken",
+    soloTitle: "Ik kom alleen",
+    duoTitle: "Samen",
+    groupTitle: "Vriendinnentafel",
+    soloCta: "Reserveer mijn plek",
+    duoCta: "Reserveer onze plekken",
+    groupCta: "Reserveer onze tafel",
+  },
   bookingTrustBullets: [
     "Alles vooraf betaald",
     "Gratis ruilen tot 48 uur van tevoren",

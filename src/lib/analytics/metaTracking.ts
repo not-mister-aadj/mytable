@@ -59,6 +59,7 @@ export function trackMetaInitiateCheckout(
   experience: ExperienceItem,
   seats: number,
   bookingId: string,
+  valueOverride?: number,
 ): void {
   initiateCheckout({
     content_name: experience.experienceName,
@@ -66,7 +67,7 @@ export function trackMetaInitiateCheckout(
     event_type: experience.experienceType ?? experience.category,
     city: experience.city,
     seats,
-    value: experience.price * seats,
+    value: valueOverride ?? experience.price * seats,
     currency: "EUR",
     booking_id: bookingId,
   });

@@ -204,7 +204,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       "No awkward speed dating or networking drinks. Just tasting, laughing, and meeting new girls on a Sunday afternoon. Cheers.",
       "On the right in the photo you'll see Siraadj, my boyfriend. He handles all the technical stuff and camera work. No him, no working website and no pretty photos.",
     ],
-    signOff: "Elif, founder of MyTable",
+    signOff: "Elif, host at MyTable",
     imageAlt: "Elif and Siraadj at a table during a fun event",
   },
   finalCta: {

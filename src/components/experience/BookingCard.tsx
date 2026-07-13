@@ -26,13 +26,17 @@ import { trackMetaInitiateCheckout } from "@/lib/analytics/metaTracking";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { getStoredUtm } from "@/lib/analytics/utm";
 import {
-  defaultSeatingForSeats,
-  type SeatingPreference,
-} from "@/lib/booking-seating";
-import {
   DEFAULT_TABLE_LANGUAGE_PREFERENCE,
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
+import {
+  computeTierPrice,
+  getBookingTierConfig,
+  getBookingTiers,
+  seatingForTier,
+  type BookingTier,
+  type BookingTierPrice,
+} from "@/lib/booking-tiers";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -111,6 +115,136 @@ function BookingChoiceOption({
   );
 }
 
+function tierFitsSpots(tier: BookingTierPrice, spotsLeft: number | null): boolean {
+  return spotsLeft === null || spotsLeft >= tier.seats;
+}
+
+/** Default to solo (smallest), falling back to the first tier that still fits. */
+function pickDefaultTier(
+  tiers: BookingTierPrice[],
+  spotsLeft: number | null,
+): BookingTier {
+  const fitting = tiers.filter((t) => tierFitsSpots(t, spotsLeft));
+  const pool = fitting.length > 0 ? fitting : tiers;
+  return (pool[0] ?? tiers[0]).tier;
+}
+
+function tierTitle(
+  tier: BookingTier,
+  labels: Dictionary["experiencePage"]["bookingTiers"],
+): string {
+  if (tier === "solo") return labels.soloTitle;
+  if (tier === "duo") return labels.duoTitle;
+  return labels.groupTitle;
+}
+
+function tierCta(
+  tier: BookingTier,
+  labels: Dictionary["experiencePage"]["bookingTiers"],
+): string {
+  if (tier === "solo") return labels.soloCta;
+  if (tier === "duo") return labels.duoCta;
+  return labels.groupCta;
+}
+
+function tierSeatsLabel(
+  seats: number,
+  labels: Dictionary["experiencePage"]["bookingTiers"],
+): string {
+  return seats === 1
+    ? labels.seatOne
+    : labels.seatOther.replace("{count}", String(seats));
+}
+
+function TierCard({
+  tierPrice,
+  labels,
+  selected,
+  disabled,
+  compact,
+  isFemaleOnly,
+  onSelect,
+}: {
+  tierPrice: BookingTierPrice;
+  labels: Dictionary["experiencePage"]["bookingTiers"];
+  selected: boolean;
+  disabled: boolean;
+  compact: boolean;
+  isFemaleOnly: boolean;
+  onSelect: () => void;
+}) {
+  const accentRing = isFemaleOnly
+    ? "border-rose bg-white ring-1 ring-rose/35 shadow-[0_4px_18px_rgba(157,77,111,0.16)]"
+    : "border-burgundy/45 bg-white ring-1 ring-burgundy/20 shadow-[0_4px_18px_rgba(43,13,18,0.1)]";
+  const idleRing = isFemaleOnly
+    ? "border-rose/20 bg-white/70 hover:border-rose/40 hover:bg-white"
+    : "border-border-subtle bg-white/80 hover:border-burgundy/30 hover:bg-white";
+  const dotOn = isFemaleOnly ? "border-rose bg-rose" : "border-burgundy bg-burgundy";
+  const dotOff = isFemaleOnly
+    ? "border-rose/30 bg-white group-hover:border-rose/45"
+    : "border-wine/20 bg-white group-hover:border-burgundy/35";
+
+  return (
+    <label
+      className={`group relative flex cursor-pointer items-center gap-3 rounded-2xl border px-4 transition-all ${
+        compact ? "py-2.5" : "py-3.5"
+      } ${selected ? accentRing : idleRing} ${
+        disabled ? "cursor-not-allowed opacity-45" : ""
+      } ${tierPrice.isBestValue ? "mt-1.5" : ""}`}
+    >
+      <input
+        type="radio"
+        name="pricingTier"
+        className="sr-only"
+        value={tierPrice.tier}
+        checked={selected}
+        disabled={disabled}
+        onChange={onSelect}
+      />
+      {tierPrice.isBestValue ? (
+        <span
+          className={`absolute -top-2.5 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream ${
+            isFemaleOnly ? "bg-rose" : "bg-gold text-wine"
+          }`}
+        >
+          <span aria-hidden>★</span>
+          {labels.bestValue}
+        </span>
+      ) : null}
+      <span
+        className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+          selected ? dotOn : dotOff
+        }`}
+        aria-hidden
+      >
+        {selected ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span
+          className={`block font-semibold text-wine ${compact ? "text-sm" : "text-[15px]"}`}
+        >
+          {tierTitle(tierPrice.tier, labels)}
+        </span>
+        <span className="mt-0.5 block text-xs text-wine/50">
+          {tierSeatsLabel(tierPrice.seats, labels)}
+        </span>
+      </span>
+      <span className="shrink-0 text-right">
+        <span
+          className={`block font-serif font-medium ${compact ? "text-lg" : "text-xl"} ${
+            isFemaleOnly ? "text-rose-deep" : "text-burgundy"
+          }`}
+        >
+          €{tierPrice.totalEuros}
+        </span>
+        <span className="mt-0.5 block text-xs text-wine/50">
+          {labels.perPerson.replace("{price}", String(tierPrice.perPersonEuros))}
+        </span>
+      </span>
+    </label>
+  );
+}
+
 export function BookingCard({
   experience,
   labels,
@@ -131,12 +265,15 @@ export function BookingCard({
   const eventDbId = getEventIdForCheckout(experience);
   const dbCheckoutEnabled = isDbEventsEnabled() && Boolean(eventDbId);
 
+  const basePriceCents = Math.round(experience.price * 100);
+  const tiers = getBookingTiers(basePriceCents);
+  const tierLabels = labels.bookingTiers;
+
   const [formStep, setFormStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [seats, setSeats] = useState(1);
-  const [seatingPreference, setSeatingPreference] = useState<SeatingPreference>(
-    defaultSeatingForSeats(1),
+  const [tier, setTier] = useState<BookingTier>(() =>
+    pickDefaultTier(tiers, spotsLeft),
   );
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
@@ -149,9 +286,15 @@ export function BookingCard({
     experience.atmosphereTags,
   );
 
+  const selectedTierPrice = computeTierPrice(basePriceCents, tier);
+  const seats = getBookingTierConfig(tier).seats;
+  const seatingPreference = seatingForTier(tier);
+
   useEffect(() => {
     setFormStep(1);
     setError(null);
+    setTier(pickDefaultTier(tiers, spotsLeft));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experience.id, eventDbId]);
 
   function validateStep1(): boolean {
@@ -190,11 +333,9 @@ export function BookingCard({
           email,
           name,
           seats,
+          pricingTier: tier,
           seatingPreference,
-          tableLanguagePreference:
-            seatingPreference === "join_others"
-              ? tableLanguagePreference
-              : DEFAULT_TABLE_LANGUAGE_PREFERENCE,
+          tableLanguagePreference,
           locale,
           dietaryNotes,
           utm: getStoredUtm(),
@@ -211,7 +352,12 @@ export function BookingCard({
         return;
       }
       if (data.bookingId) {
-        trackMetaInitiateCheckout(experience, seats, data.bookingId);
+        trackMetaInitiateCheckout(
+          experience,
+          seats,
+          data.bookingId,
+          selectedTierPrice.totalEuros,
+        );
       }
       window.location.href = data.url;
     } catch {
@@ -423,29 +569,35 @@ export function BookingCard({
                   className={inputClass}
                 />
               </label>
-              <label className={labelClass}>
-                {labels.bookingSpots}
-                <select
-                  data-booking-step="1"
-                  value={seats}
-                  onChange={(e) => {
-                    const next = Number(e.target.value);
-                    setSeats(next);
-                    setSeatingPreference(defaultSeatingForSeats(next));
-                    trackSeatsSelected(experience, locale, next);
-                  }}
-                  className={inputClass}
-                >
-                  {Array.from(
-                    { length: Math.min(spotsLeft ?? 4, 4) },
-                    (_, i) => i + 1,
-                  ).map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
+                <legend className={choiceLegendClass(compact)}>
+                  {tierLabels.legend}
+                </legend>
+                {tiers.map((tierPrice) => {
+                  const disabled = !tierFitsSpots(tierPrice, spotsLeft);
+                  return (
+                    <TierCard
+                      key={tierPrice.tier}
+                      tierPrice={tierPrice}
+                      labels={tierLabels}
+                      selected={tier === tierPrice.tier}
+                      disabled={disabled}
+                      compact={compact}
+                      isFemaleOnly={isFemaleOnly}
+                      onSelect={() => {
+                        if (disabled) return;
+                        setTier(tierPrice.tier);
+                        trackSeatsSelected(
+                          experience,
+                          locale,
+                          tierPrice.seats,
+                          tierPrice.totalEuros,
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </fieldset>
               <button
                 type="button"
                 onClick={goToStep2}
@@ -462,54 +614,37 @@ export function BookingCard({
             </>
           ) : (
             <div className={compact ? "space-y-4" : "space-y-5"}>
+              <div
+                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${
+                  isFemaleOnly
+                    ? "border-rose/25 bg-white/70"
+                    : "border-border-subtle bg-white/70"
+                }`}
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-wine">
+                    {tierTitle(tier, tierLabels)}
+                  </p>
+                  <p className="mt-0.5 text-xs text-wine/55">
+                    {tierSeatsLabel(seats, tierLabels)} ·{" "}
+                    {tierLabels.perPerson.replace(
+                      "{price}",
+                      String(selectedTierPrice.perPersonEuros),
+                    )}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 font-serif text-xl font-medium ${
+                    isFemaleOnly ? "text-rose-deep" : "text-burgundy"
+                  }`}
+                >
+                  €{selectedTierPrice.totalEuros}
+                </span>
+              </div>
               <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
                 <legend className={choiceLegendClass(compact)}>
-                  {labels.bookingSeatingLabel}
+                  {labels.bookingTableLanguageLabel}
                 </legend>
-                {(
-                  [
-                    {
-                      value: "own_table" as const,
-                      title: labels.bookingSeatingOwn,
-                      hint: labels.bookingSeatingOwnHint,
-                    },
-                    {
-                      value: "join_others" as const,
-                      title: labels.bookingSeatingJoin,
-                      hint: labels.bookingSeatingJoinHint,
-                    },
-                  ] as const
-                ).map((option) => {
-                  const selected = seatingPreference === option.value;
-                  return (
-                    <BookingChoiceOption
-                      key={option.value}
-                      selected={selected}
-                      compact={compact}
-                      isFemaleOnly={isFemaleOnly}
-                      name="seatingPreference"
-                      value={option.value}
-                      checked={selected}
-                      onChange={() => setSeatingPreference(option.value)}
-                      required
-                    >
-                      <span className="block font-medium text-wine">
-                        {option.title}
-                      </span>
-                      {!compact ? (
-                        <span className="mt-1 block text-xs leading-relaxed text-wine/60">
-                          {option.hint}
-                        </span>
-                      ) : null}
-                    </BookingChoiceOption>
-                  );
-                })}
-              </fieldset>
-              {seatingPreference === "join_others" ? (
-                <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
-                  <legend className={choiceLegendClass(compact)}>
-                    {labels.bookingTableLanguageLabel}
-                  </legend>
                   {(
                     [
                       {
@@ -543,8 +678,7 @@ export function BookingCard({
                       </BookingChoiceOption>
                     );
                   })}
-                </fieldset>
-              ) : null}
+              </fieldset>
               <label className={labelClass}>
                 {labels.bookingDietary}
                 <textarea
@@ -589,7 +723,7 @@ export function BookingCard({
                     : "bg-burgundy hover:bg-wine"
                 }`}
               >
-                {loading ? "Doorsturen…" : reserveCta}
+                {loading ? "Doorsturen…" : tierCta(tier, tierLabels)}
               </button>
               <button
                 type="button"

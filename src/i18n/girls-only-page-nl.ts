@@ -204,7 +204,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       "Geen awkward speeddating of netwerkborrel. Gewoon proeven, lachen en nieuwe girls ontmoeten op zondagmiddag. Proost.",
       "Rechts op de foto zie je Siraadj, mijn boyfriend. Hij regelt alle technische dingen en het camerawerk. Zonder hem geen website die werkt en geen mooie plaatjes.",
     ],
-    signOff: "Elif, oprichter van MyTable",
+    signOff: "Elif, gastvrouw bij MyTable",
     imageAlt: "Elif en Siraadj aan tafel tijdens een gezellig evenement",
   },
   finalCta: {

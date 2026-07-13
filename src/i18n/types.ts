@@ -99,6 +99,19 @@ export interface ExperiencePageLabels {
   bookingName: string;
   bookingDietary: string;
   bookingDietaryPlaceholder: string;
+  bookingTiers: {
+    legend: string;
+    perPerson: string;
+    bestValue: string;
+    seatOne: string;
+    seatOther: string;
+    soloTitle: string;
+    duoTitle: string;
+    groupTitle: string;
+    soloCta: string;
+    duoCta: string;
+    groupCta: string;
+  };
   bookingSeatingLabel: string;
   bookingSeatingOwn: string;
   bookingSeatingOwnHint: string;

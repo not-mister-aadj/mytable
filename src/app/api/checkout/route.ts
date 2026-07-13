@@ -12,8 +12,13 @@ import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { isSeatingPreference } from "@/lib/booking-seating";
 import { isTableLanguagePreference } from "@/lib/booking-table-language";
+import {
+  computeTierPrice,
+  isBookingTier,
+  seatingForTier,
+  tierForSeats,
+} from "@/lib/booking-tiers";
 import {
   MEDIA_MARKETING_CONSENT_EVENT,
   MEDIA_MARKETING_CONSENT_VERSION,
@@ -51,6 +56,7 @@ export async function POST(request: Request) {
   let body: {
     eventId?: string;
     seats?: number;
+    pricingTier?: string;
     email?: string;
     name?: string;
     locale?: string;
@@ -79,10 +85,10 @@ export async function POST(request: Request) {
   const eventId = body.eventId?.trim();
   const email = body.email?.trim().toLowerCase();
   const customerName = body.name?.trim();
-  const seats = Math.min(
-    getMaxSeatsPerOrder(),
-    Math.max(1, Number(body.seats) || 1),
-  );
+  const requestedTier = isBookingTier(body.pricingTier)
+    ? body.pricingTier
+    : tierForSeats(Math.max(1, Number(body.seats) || 1));
+  const seatingPreference = seatingForTier(requestedTier);
   const locale = (body.locale === "en" ? "en" : "nl") as Locale;
 
   if (!eventId || !email || !email.includes("@")) {
@@ -102,39 +108,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isSeatingPreference(body.seatingPreference)) {
-    return NextResponse.json(
-      {
-        error:
-          locale === "en"
-            ? "Choose how you'd like to join the table."
-            : "Kies hoe je aan tafel wilt.",
-      },
-      { status: 400 },
-    );
-  }
-
-  const seatingPreference = body.seatingPreference;
-
-  const tableLanguagePreference =
-    seatingPreference === "join_others"
-      ? body.tableLanguagePreference
-      : "both_fine";
-
-  if (
-    seatingPreference === "join_others" &&
-    !isTableLanguagePreference(tableLanguagePreference)
-  ) {
-    return NextResponse.json(
-      {
-        error:
-          locale === "en"
-            ? "Choose your language preference at the table."
-            : "Kies je taalvoorkeur aan tafel.",
-      },
-      { status: 400 },
-    );
-  }
+  const tableLanguagePreference = isTableLanguagePreference(
+    body.tableLanguagePreference,
+  )
+    ? body.tableLanguagePreference
+    : "both_fine";
 
   if (!checkRateLimit(`checkout:event:${eventId}:${email}`, 5, 300_000)) {
     return NextResponse.json({ error: "Te veel pogingen." }, { status: 429 });
@@ -161,12 +139,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const tierPrice = computeTierPrice(event.priceCents, requestedTier);
+  const seats = Math.min(getMaxSeatsPerOrder(), tierPrice.seats);
+
   const spotsLeft = event.capacity - event.spotsSold;
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
   }
 
-  const amountCents = event.priceCents * seats;
+  const perSeatCents = tierPrice.perPersonCents;
+  const amountCents = perSeatCents * seats;
   const [booking] = await db
     .insert(bookings)
     .values({
@@ -244,7 +226,7 @@ export async function POST(request: Request) {
         quantity: seats,
         price_data: {
           currency: event.currency.toLowerCase(),
-          unit_amount: event.priceCents,
+          unit_amount: perSeatCents,
           product_data: {
             name: productName,
             description: `${event.city} · MyTable`,
@@ -287,7 +269,8 @@ export async function POST(request: Request) {
     city: event.city,
     seats,
     total_price: amountCents / 100,
-    price_per_seat: event.priceCents / 100,
+    price_per_seat: perSeatCents / 100,
+    pricing_tier: requestedTier,
     stripe_session_id: session.id,
     language: locale,
   });

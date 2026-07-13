@@ -55,6 +55,7 @@ export const experiencePageEn: ExperiencePageLabels = {
     legend: "How are you coming?",
     perPerson: "€{price} p.p.",
     bestValue: "Best value",
+    mostChosen: "Most chosen",
     seatOne: "1 spot",
     seatOther: "{count} spots",
     soloTitle: "I'm coming solo",

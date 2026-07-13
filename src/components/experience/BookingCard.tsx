@@ -184,13 +184,29 @@ function TierCard({
     ? "border-rose/30 bg-white group-hover:border-rose/45"
     : "border-wine/20 bg-white group-hover:border-burgundy/35";
 
+  const badge = tierPrice.isBestValue
+    ? {
+        label: labels.bestValue,
+        showStar: true,
+        className: isFemaleOnly ? "bg-rose text-cream" : "bg-gold text-wine",
+      }
+    : tierPrice.isMostChosen
+      ? {
+          label: labels.mostChosen,
+          showStar: false,
+          className: isFemaleOnly
+            ? "bg-rose-soft text-rose-deep ring-1 ring-rose/30"
+            : "bg-beige text-wine ring-1 ring-border-subtle",
+        }
+      : null;
+
   return (
     <label
       className={`group relative flex cursor-pointer items-center gap-3 rounded-2xl border px-4 transition-all ${
         compact ? "py-2.5" : "py-3.5"
       } ${selected ? accentRing : idleRing} ${
         disabled ? "cursor-not-allowed opacity-45" : ""
-      } ${tierPrice.isBestValue ? "mt-1.5" : ""}`}
+      } ${badge ? "mt-1.5" : ""}`}
     >
       <input
         type="radio"
@@ -201,14 +217,12 @@ function TierCard({
         disabled={disabled}
         onChange={onSelect}
       />
-      {tierPrice.isBestValue ? (
+      {badge ? (
         <span
-          className={`absolute -top-2.5 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream ${
-            isFemaleOnly ? "bg-rose" : "bg-gold text-wine"
-          }`}
+          className={`absolute -top-2.5 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}
         >
-          <span aria-hidden>★</span>
-          {labels.bestValue}
+          {badge.showStar ? <span aria-hidden>★</span> : null}
+          {badge.label}
         </span>
       ) : null}
       <span

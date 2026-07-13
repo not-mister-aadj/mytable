@@ -103,6 +103,7 @@ export interface ExperiencePageLabels {
     legend: string;
     perPerson: string;
     bestValue: string;
+    mostChosen: string;
     seatOne: string;
     seatOther: string;
     soloTitle: string;

@@ -8,12 +8,31 @@ type TierConfig = {
   /** Per-person discount off the base price, in euros. */
   perPersonDiscountEuros: number;
   isBestValue: boolean;
+  isMostChosen: boolean;
 };
 
 const TIER_CONFIG: Record<BookingTier, TierConfig> = {
-  solo: { tier: "solo", seats: 1, perPersonDiscountEuros: 0, isBestValue: false },
-  duo: { tier: "duo", seats: 2, perPersonDiscountEuros: 2, isBestValue: false },
-  group: { tier: "group", seats: 4, perPersonDiscountEuros: 5, isBestValue: true },
+  solo: {
+    tier: "solo",
+    seats: 1,
+    perPersonDiscountEuros: 0,
+    isBestValue: false,
+    isMostChosen: true,
+  },
+  duo: {
+    tier: "duo",
+    seats: 2,
+    perPersonDiscountEuros: 2,
+    isBestValue: false,
+    isMostChosen: false,
+  },
+  group: {
+    tier: "group",
+    seats: 4,
+    perPersonDiscountEuros: 5,
+    isBestValue: true,
+    isMostChosen: false,
+  },
 };
 
 /** Never let a per-person price drop below this after applying a tier discount. */
@@ -47,6 +66,7 @@ export type BookingTierPrice = {
   perPersonEuros: number;
   totalEuros: number;
   isBestValue: boolean;
+  isMostChosen: boolean;
 };
 
 export function computeTierPrice(
@@ -67,6 +87,7 @@ export function computeTierPrice(
     perPersonEuros: Math.round(perPersonCents / 100),
     totalEuros: Math.round(totalCents / 100),
     isBestValue: cfg.isBestValue,
+    isMostChosen: cfg.isMostChosen,
   };
 }
 

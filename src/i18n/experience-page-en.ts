@@ -81,7 +81,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingPriorityList:
     "Add me to the priority list. I'll hear about new tables first and get a nice discount.",
   bookingMediaConsent:
-    "By completing your booking, you agree that photos and videos may be taken during the event and used for MyTable marketing, including our website, social media, email and online ads.",
+    "Photos and videos may be taken during the event for MyTable (website, socials and email).",
   bookingMediaConsentReadMore: "More in our",
   bookingMediaConsentTerms: "terms",
   bookingMediaConsentPrivacy: "privacy policy",

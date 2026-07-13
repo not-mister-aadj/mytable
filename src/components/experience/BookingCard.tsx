@@ -275,7 +275,6 @@ export function BookingCard({
   const bookingDisabled = isClosed || isSoldOut;
   const spotsLeft = getSpotsLeft(experience);
   const views = getViewsThisWeek(experience.id);
-  const priceLine = formatPerPerson(experience.price, labels.perPerson);
   const eventDbId = getEventIdForCheckout(experience);
   const dbCheckoutEnabled = isDbEventsEnabled() && Boolean(eventDbId);
 
@@ -304,6 +303,10 @@ export function BookingCard({
   const selectedTierPrice = computeTierPrice(basePriceCents, tier);
   const seats = getBookingTierConfig(tier).seats;
   const seatingPreference = seatingForTier(tier);
+  const priceLine = tierLabels.perPerson.replace(
+    "{price}",
+    String(selectedTierPrice.perPersonEuros),
+  );
 
   useEffect(() => {
     setFormStep(1);

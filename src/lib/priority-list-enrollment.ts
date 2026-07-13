@@ -2,7 +2,6 @@ import { and, desc, eq } from "drizzle-orm";
 import type { Booking, Event } from "@/db/schema";
 import { bookingEvents, waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
-import { onWaitlistJoined } from "@/lib/customers/hooks";
 import {
   parseEventExtras,
   resolveFemaleOnly,
@@ -51,6 +50,7 @@ async function linkWaitlistCustomer(input: {
   waitlistId: string;
   name?: string;
 }): Promise<void> {
+  const { onWaitlistJoined } = await import("@/lib/customers/hooks");
   await onWaitlistJoined({
     email: input.email,
     city: input.city,

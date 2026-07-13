@@ -23,6 +23,7 @@ import {
   MEDIA_MARKETING_CONSENT_EVENT,
   MEDIA_MARKETING_CONSENT_VERSION,
 } from "@/lib/media-marketing-consent";
+import { PRIORITY_LIST_OPT_IN_EVENT } from "@/lib/priority-list-enrollment";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import type { Locale } from "@/i18n/config";
 
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
     dietaryNotes?: string;
     seatingPreference?: string;
     tableLanguagePreference?: string;
+    joinPriorityList?: boolean;
     utm?: {
       utm_source?: string;
       utm_medium?: string;
@@ -176,6 +178,14 @@ export async function POST(request: Request) {
       locale,
     },
   });
+
+  if (typeof body.joinPriorityList === "boolean") {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: PRIORITY_LIST_OPT_IN_EVENT,
+      payload: { optIn: body.joinPriorityList },
+    });
+  }
 
   const utm = body.utm ?? {};
   const metaContext = parseMetaTrackingContext(body.meta);

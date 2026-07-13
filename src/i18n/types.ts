@@ -125,6 +125,7 @@ export interface ExperiencePageLabels {
   bookingStepNext: string;
   bookingStepBack: string;
   bookingFemaleOnlyNote: string;
+  bookingPriorityList: string;
   bookingMediaConsent: string;
   bookingMediaConsentReadMore: string;
   bookingMediaConsentTerms: string;

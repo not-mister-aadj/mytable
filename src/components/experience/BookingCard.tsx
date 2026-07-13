@@ -292,6 +292,7 @@ export function BookingCard({
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [dietaryNotes, setDietaryNotes] = useState("");
+  const [joinPriorityList, setJoinPriorityList] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -350,6 +351,7 @@ export function BookingCard({
           pricingTier: tier,
           seatingPreference,
           tableLanguagePreference,
+          joinPriorityList,
           locale,
           dietaryNotes,
           utm: getStoredUtm(),
@@ -709,6 +711,35 @@ export function BookingCard({
                   placeholder={labels.bookingDietaryPlaceholder}
                   className={`${choiceInputClass(compact, isFemaleOnly)} resize-none`}
                 />
+              </label>
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 transition-colors ${
+                  compact ? "py-2.5" : "py-3"
+                } ${
+                  joinPriorityList
+                    ? isFemaleOnly
+                      ? "border-rose/40 bg-white"
+                      : "border-burgundy/30 bg-white"
+                    : isFemaleOnly
+                      ? "border-rose/20 bg-white/70"
+                      : "border-border-subtle bg-white/70"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={joinPriorityList}
+                  onChange={(e) => setJoinPriorityList(e.target.checked)}
+                  className={`mt-0.5 h-[18px] w-[18px] shrink-0 rounded ${
+                    isFemaleOnly ? "accent-rose" : "accent-burgundy"
+                  }`}
+                />
+                <span
+                  className={`leading-relaxed text-wine/75 ${
+                    compact ? "text-[11px]" : "text-xs"
+                  }`}
+                >
+                  {labels.bookingPriorityList}
+                </span>
               </label>
               {error ? <p className="text-sm text-red-800">{error}</p> : null}
               <p

@@ -78,6 +78,8 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingStepNext: "Continue",
   bookingStepBack: "Back",
   bookingFemaleOnlyNote: "This table is for women only.",
+  bookingPriorityList:
+    "Add me to the priority list. I'll hear about new tables first and get a nice discount.",
   bookingMediaConsent:
     "By completing your booking, you agree that photos and videos may be taken during the event and used for MyTable marketing, including our website, social media, email and online ads.",
   bookingMediaConsentReadMore: "More in our",

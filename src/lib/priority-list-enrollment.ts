@@ -1,12 +1,14 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { Booking, Event } from "@/db/schema";
-import { waitlistSignups } from "@/db/schema";
+import { bookingEvents, waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { onWaitlistJoined } from "@/lib/customers/hooks";
 import {
   parseEventExtras,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
+
+export const PRIORITY_LIST_OPT_IN_EVENT = "priority_list_opt_in";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -15,6 +17,31 @@ function normalizeEmail(email: string): string {
 function isGirlsOnlyEvent(event: Event): boolean {
   const extras = parseEventExtras(event.extras);
   return resolveFemaleOnly(event.femaleOnly, extras.atmosphereTags);
+}
+
+/**
+ * The guest's priority-list choice for a booking, or null when the booking
+ * predates the explicit opt-in checkbox.
+ */
+async function readPriorityListOptIn(
+  bookingId: string,
+): Promise<boolean | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({ payload: bookingEvents.payload })
+    .from(bookingEvents)
+    .where(
+      and(
+        eq(bookingEvents.bookingId, bookingId),
+        eq(bookingEvents.type, PRIORITY_LIST_OPT_IN_EVENT),
+      ),
+    )
+    .orderBy(desc(bookingEvents.createdAt))
+    .limit(1);
+
+  if (!row) return null;
+  const optIn = (row.payload as { optIn?: unknown } | null)?.optIn;
+  return typeof optIn === "boolean" ? optIn : null;
 }
 
 async function linkWaitlistCustomer(input: {
@@ -124,13 +151,20 @@ export async function ensurePriorityListSignup(input: {
   return "created";
 }
 
-/** Add ticket buyers for girls-only events to the priority list when missing. */
+/**
+ * Add ticket buyers to the priority list after payment. Honors the explicit
+ * opt-in checkbox; when a booking predates it, girls-only buyers are still
+ * auto-enrolled to keep the previous behavior.
+ */
 export async function ensurePriorityListFromPaidBooking(input: {
   booking: Booking;
   event: Event;
 }): Promise<void> {
   if (input.booking.paymentStatus !== "paid") return;
-  if (!isGirlsOnlyEvent(input.event)) return;
+
+  const optIn = await readPriorityListOptIn(input.booking.id);
+  if (optIn === false) return;
+  if (optIn === null && !isGirlsOnlyEvent(input.event)) return;
 
   await ensurePriorityListSignup({
     email: input.booking.email,

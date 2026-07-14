@@ -55,10 +55,10 @@ export function getNextBookableGirlsOnlyEvent(
 
 export function getUpcomingGirlsOnlyEvents(
   items: EnrichedExperience[],
+  locale: Locale,
   limit = 3,
 ): EnrichedExperience[] {
-  const { bookable, soldOut } = partitionGirlsOnlyEvents(items);
-  return [...bookable, ...soldOut].slice(0, limit);
+  return orderGirlsOnlyEventsForDisplay(items, locale).slice(0, limit);
 }
 
 export function resolveGirlsOnlyPrimaryCta(

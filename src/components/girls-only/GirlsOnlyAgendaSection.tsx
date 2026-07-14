@@ -29,7 +29,7 @@ export async function GirlsOnlyAgendaSection({
   );
 
   const allEvents = getGirlsOnlyWineEvents(agendaDict.agenda.items, locale);
-  const upcomingEvents = getUpcomingGirlsOnlyEvents(allEvents, 3);
+  const upcomingEvents = getUpcomingGirlsOnlyEvents(allEvents, locale, 3);
   const agendaHref = agendaPath(locale);
   const primaryCta = resolveGirlsOnlyPrimaryCta({
     label: labels.cta.viewAllSundays,

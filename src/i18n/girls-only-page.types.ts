@@ -87,4 +87,5 @@ export interface GirlsOnlyPageLabels {
   femaleOnlyBadge: string;
   reserveCta: string;
   viewTableCta: string;
+  perPersonFrom: string;
 }

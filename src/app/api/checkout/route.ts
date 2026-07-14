@@ -161,7 +161,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const tierPrice = computeTierPrice(event.priceCents, requestedTier, seats);
+  const tierPrice = computeTierPrice(requestedTier, seats);
 
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
@@ -279,6 +279,7 @@ export async function POST(request: Request) {
     metadata: {
       booking_id: booking.id,
       event_id: event.id,
+      pricing_tier: requestedTier,
     },
     success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,

@@ -15,16 +15,38 @@ export const experiencePageEn: ExperiencePageLabels = {
   heroTrustFooter:
     "Pay in full when you book · Free date exchange up to 48 hours before · Dietary needs welcome",
   heroSpotsHint: "{count} spots left for this date",
+  heroBenefitBullets: [
+    "Four wines + paired bites at the table",
+    "Come solo or together, we find your spot",
+    "Pay upfront, no bill to split at the table",
+  ],
   pillSoloTogether: "Come alone or together",
   perPerson: "€{price} per person",
+  perPersonFrom: "From €{price} per person",
+  includedEyebrow: "What's included",
+  includedTitle: "Everything sorted for one afternoon out",
+  includedSubtitle:
+    "One restaurant, one table. You just show up, we handle wine, bites, and good company.",
+  includedItems: [
+    { value: "4", label: "wines" },
+    { value: "4", label: "bites" },
+    { value: "1", label: "restaurant" },
+    { value: "100%", label: "paid upfront" },
+  ],
   aboutTitle: "About this experience",
   expectTitle: "What to expect",
-  flowTitle: "How the experience flows",
+  flowEyebrow: "Good to know",
+  flowTitle: "How does it work?",
   flowExpandCta: "View all steps",
   venuesTitle: "Where you join the table",
   venuesSubtitle:
     "Visit one of our partner restaurants. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
   guestQuotesTitle: "What guests say",
+  guestQuotesEyebrow: "Real stories",
+  midCtaEyebrow: "Get tickets",
+  midCtaTitle: "Ready to book?",
+  midCtaTrustLine:
+    "Free exchange up to 48 hours before · Pay in full when you book · Dietary needs welcome",
   routeTitle: "An afternoon through {city}",
   routeMapEyebrow: "A feel for the route",
   routeMapTitle: "Past these spots in {city}",
@@ -54,14 +76,17 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingTiers: {
     legend: "How are you coming?",
     perPerson: "€{price} p.p.",
+    perPersonFrom: "From €{price} p.p.",
     bestValue: "Best value",
     mostChosen: "Most chosen",
     seatOne: "1 spot",
     seatOther: "{count} spots",
     seatsFrom: "From {count} spots",
     groupSeatsLabel: "Number of spots",
+    seatsJoinOthers: "join others at the table",
+    seatsOwnTable: "your own table",
     soloTitle: "Flying solo",
-    duoTitle: "Dynamic duo",
+    duoTitle: "Dynamic duo, join in",
     groupTitle: "Your own table",
     soloCta: "Reserve my spot",
     duoCta: "Reserve our spots",
@@ -145,7 +170,7 @@ export const experiencePageEn: ExperiencePageLabels = {
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
-        "You sit down at the table, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace — plan for the whole afternoon. Often the group keeps it going afterward: more wine, drinks, or dinner out.",
+        "You sit down at the table, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace. Plan for the whole afternoon. Often the group keeps it going afterward: more wine, drinks, or dinner out.",
       whatToExpect: [
         {
           title: "One restaurant, one table",
@@ -170,7 +195,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           title: "Your own pace",
           description:
-            "Plan for the whole afternoon. No tight schedule — and sometimes the group keeps the vibe going with more wine or dinner out.",
+            "Plan for the whole afternoon. No tight schedule. And sometimes the group keeps the vibe going with more wine or dinner out.",
         },
         {
           title: "Adjustments on request",

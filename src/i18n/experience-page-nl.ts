@@ -15,16 +15,38 @@ export const experiencePageNl: ExperiencePageLabels = {
   heroTrustFooter:
     "Alles vooraf betaald · Gratis ruilen tot 48 uur van tevoren · Dieetwensen mogelijk",
   heroSpotsHint: "Nog {count} plekken voor deze datum",
+  heroBenefitBullets: [
+    "Vier wijnen + gepaarde bites aan tafel",
+    "Kom solo of samen, wij regelen je plek",
+    "Alles vooraf betaald, geen rekening aan tafel",
+  ],
   pillSoloTogether: "Kom alleen of samen",
   perPerson: "€{price} per persoon",
+  perPersonFrom: "Vanaf €{price} per persoon",
+  includedEyebrow: "Wat zit erin",
+  includedTitle: "Alles geregeld voor één middag uit",
+  includedSubtitle:
+    "Eén restaurant, één tafel. Jij hoeft alleen op te komen dagen, wij regelen wijn, bites en gezelschap.",
+  includedItems: [
+    { value: "4", label: "wijnen" },
+    { value: "4", label: "bites" },
+    { value: "1", label: "restaurant" },
+    { value: "100%", label: "vooraf betaald" },
+  ],
   aboutTitle: "Over deze ervaring",
   expectTitle: "Wat kun je verwachten?",
-  flowTitle: "Hoe verloopt de ervaring?",
+  flowEyebrow: "Goed om te weten",
+  flowTitle: "Hoe werkt het?",
   flowExpandCta: "Bekijk alle stappen",
   venuesTitle: "Waar je aan tafel schuift",
   venuesSubtitle:
     "Bezoek een van onze partnerrestaurants. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
   guestQuotesTitle: "Wat gasten zeggen",
+  guestQuotesEyebrow: "Echte verhalen",
+  midCtaEyebrow: "Kaartjes kopen",
+  midCtaTitle: "Klaar om te boeken?",
+  midCtaTrustLine:
+    "Gratis ruilen tot 48 uur van tevoren · Alles vooraf betaald · Dieetwensen mogelijk",
   routeTitle: "Een middag door {city}",
   routeMapEyebrow: "Een indruk van de route",
   routeMapTitle: "Langs deze plekken in {city}",
@@ -54,14 +76,17 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingTiers: {
     legend: "Hoe kom je?",
     perPerson: "€{price} p.p.",
+    perPersonFrom: "Vanaf €{price} p.p.",
     bestValue: "Beste keuze",
     mostChosen: "Meest gekozen",
     seatOne: "1 plek",
     seatOther: "{count} plekken",
     seatsFrom: "Vanaf {count} plekken",
     groupSeatsLabel: "Aantal plekken",
+    seatsJoinOthers: "schuif aan bij anderen",
+    seatsOwnTable: "jullie eigen tafel",
     soloTitle: "Solo & schuif aan",
-    duoTitle: "Twee is feest",
+    duoTitle: "Twee is feest, schuif aan",
     groupTitle: "Jullie eigen tafel",
     soloCta: "Reserveer mijn plek",
     duoCta: "Reserveer onze plekken",
@@ -145,7 +170,7 @@ export const experiencePageNl: ExperiencePageLabels = {
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "Je schuift aan tafel, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten — plan gerust de hele middag. Vaak houdt de groep het daarna nog gezellig: nawijnen, borrelen of ergens uit eten.",
+        "Je schuift aan tafel, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten. Plan gerust de hele middag. Vaak houdt de groep het daarna nog gezellig: nawijnen, borrelen of ergens uit eten.",
       whatToExpect: [
         {
           title: "Eén restaurant, één tafel",
@@ -170,7 +195,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           title: "Op eigen tempo",
           description:
-            "Plan de hele middag in. Geen strak schema — en soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
+            "Plan de hele middag in. Geen strak schema. En soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
         },
         {
           title: "Aanpassen op verzoek",

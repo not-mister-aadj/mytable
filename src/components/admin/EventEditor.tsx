@@ -605,6 +605,10 @@ export function EventEditor({
                     name="priceEuros"
                     required
                   />
+                  <p className="-mt-2 text-xs text-wine/50 sm:col-span-2">
+                    Checkout gebruikt vaste tarieven: solo €49, duo €39 p.p., groep
+                    €44 p.p. Dit veld is voor weergave in het dashboard.
+                  </p>
                   <Field
                     label="Capaciteit"
                     type="number"

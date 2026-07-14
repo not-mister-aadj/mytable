@@ -35,6 +35,11 @@ export interface ExperienceVenue {
   title?: string;
 }
 
+export interface ExperienceIncludedItem {
+  value: string;
+  label: string;
+}
+
 export interface ExperienceFlowStep {
   title: string;
   description: string;
@@ -67,15 +72,26 @@ export interface ExperiencePageLabels {
   heroTrustBar: string;
   heroTrustFooter: string;
   heroSpotsHint: string;
+  heroBenefitBullets: string[];
   pillSoloTogether: string;
   perPerson: string;
+  perPersonFrom: string;
+  includedEyebrow: string;
+  includedTitle: string;
+  includedSubtitle: string;
+  includedItems: ExperienceIncludedItem[];
   aboutTitle: string;
   expectTitle: string;
+  flowEyebrow: string;
   flowTitle: string;
   flowExpandCta: string;
   venuesTitle: string;
   venuesSubtitle: string;
   guestQuotesTitle: string;
+  guestQuotesEyebrow: string;
+  midCtaEyebrow: string;
+  midCtaTitle: string;
+  midCtaTrustLine: string;
   routeTitle: string;
   routeMapEyebrow: string;
   routeMapTitle: string;
@@ -102,12 +118,15 @@ export interface ExperiencePageLabels {
   bookingTiers: {
     legend: string;
     perPerson: string;
+    perPersonFrom: string;
     bestValue: string;
     mostChosen: string;
     seatOne: string;
     seatOther: string;
     seatsFrom: string;
     groupSeatsLabel: string;
+    seatsJoinOthers: string;
+    seatsOwnTable: string;
     soloTitle: string;
     duoTitle: string;
     groupTitle: string;

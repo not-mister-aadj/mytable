@@ -21,6 +21,7 @@ const cardProps = (
   femaleOnlyBadge: labels.femaleOnlyBadge,
   reserveCta: labels.reserveCta,
   viewTableCta: labels.viewTableCta,
+  perPersonFromLabel: labels.perPersonFrom,
   locale,
   socialPromise: labels.socialPromise,
   sourceSection: "agenda_grid" as const,

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useCallback } from "react";
+import { type MouseEvent, type ReactNode, useCallback } from "react";
 
 interface FastLinkProps {
   href: string;
   className?: string;
   children: ReactNode;
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }
 
 export function FastLink({ href, className, children, onClick }: FastLinkProps) {

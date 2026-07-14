@@ -6,7 +6,6 @@ import type { Dictionary } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
 import type { ExperienceVenue } from "@/i18n/types";
 import type { EnrichedExperience } from "@/lib/experience-detail";
-import { getMoodContent } from "@/lib/experience-detail";
 import {
   getExperiencePageLabelsForEvent,
   getMoodContentForEvent,
@@ -14,21 +13,24 @@ import {
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getExperienceVenues } from "@/data/experience-venues";
 import { getRouteMapPoints } from "@/data/experience-route-map";
+import { resolveFemaleOnly } from "@/lib/event-extras";
+import {
+  BOOKING_DESKTOP_ID,
+  BOOKING_MOBILE_ID,
+} from "@/lib/scroll-to-booking";
 import { BookingCard } from "./BookingCard";
 import { CityRoute } from "./CityRoute";
-import { ExperienceDescription } from "./ExperienceDescription";
 import { ExperienceFaq } from "./ExperienceFaq";
-import { ExperienceFinalCta } from "./ExperienceFinalCta";
 import { ExperienceFlow } from "./ExperienceFlow";
+import { ExperienceIncluded } from "./ExperienceIncluded";
+import { ExperienceMidBookingCta } from "./ExperienceMidBookingCta";
 import { ExperienceGallery } from "./ExperienceGallery";
 import { ExperienceHero } from "./ExperienceHero";
 import { ExperienceMobileStickyCta } from "./ExperienceMobileStickyCta";
 import { ExperienceStickyBookingBar } from "./ExperienceStickyBookingBar";
 import { GuestQuotes } from "./GuestQuotes";
-import { PracticalInfo } from "./PracticalInfo";
 import { RelatedExperiences } from "./RelatedExperiences";
 import { ScrollProgress } from "./ScrollProgress";
-import { SocialAtmosphere } from "./SocialAtmosphere";
 import { VenueLineup } from "./VenueLineup";
 import { WhatToExpect } from "./WhatToExpect";
 import { trackEventDetailViewed } from "@/lib/posthog/analytics";
@@ -82,6 +84,11 @@ export function ExperiencePageContent({
     );
   const stickySentinelRef = useRef<HTMLDivElement>(null);
   const mobileBookingRef = useRef<HTMLDivElement>(null);
+  const desktopBookingRef = useRef<HTMLDivElement>(null);
+  const isFemaleOnly = resolveFemaleOnly(
+    experience.femaleOnly,
+    experience.atmosphereTags,
+  );
 
   useEffect(() => {
     if (previewMode) return;
@@ -120,28 +127,8 @@ export function ExperiencePageContent({
           locale={locale}
           sentinelRef={stickySentinelRef}
           bookingRef={mobileBookingRef}
+          desktopBookingRef={desktopBookingRef}
         />
-      )}
-
-      {previewMode ? null : (
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:hidden">
-          <motion.div
-            {...fade}
-            ref={mobileBookingRef}
-            id="booking"
-            className="scroll-mt-[5rem] pt-4"
-          >
-            <BookingCard
-              experience={experience}
-              labels={page}
-              statusLabels={dict.agenda.status}
-              reserveCta={dict.agenda.reserveCta}
-              locale={locale}
-              compact
-              fitViewport
-            />
-          </motion.div>
-        </div>
       )}
 
       {previewMode ? null : (
@@ -162,9 +149,31 @@ export function ExperiencePageContent({
         />
       ) : null}
 
-      <div className="mx-auto max-w-7xl px-5 pb-[max(5.5rem,env(safe-area-inset-bottom))] sm:px-8 lg:px-10 lg:pb-0">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">
-          <div className="min-w-0">
+          {previewMode ? null : (
+            <div className="relative z-10 hidden lg:col-start-2 lg:row-start-1 lg:row-end-[-1] lg:block">
+              <div className="sticky top-36 pt-4">
+                <div
+                  ref={desktopBookingRef}
+                  id={BOOKING_DESKTOP_ID}
+                  className="scroll-mt-36"
+                >
+                  <BookingCard
+                    experience={experience}
+                    labels={page}
+                    statusLabels={dict.agenda.status}
+                    reserveCta={dict.agenda.reserveCta}
+                    locale={locale}
+                    compact
+                    fitViewport
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="min-w-0 lg:col-start-1">
             {previewMode ? (
               <motion.div {...fade}>
                 <BookingCard
@@ -181,53 +190,85 @@ export function ExperiencePageContent({
             ) : null}
 
             <motion.div {...fade}>
-              <ExperienceDescription
-                title={page.aboutTitle}
-                description={
-                  experience.customDescription ?? mood.description
-                }
+              <ExperienceIncluded
+                eyebrow={page.includedEyebrow}
+                title={page.includedTitle}
+                subtitle={page.includedSubtitle}
+                items={page.includedItems}
+                isFemaleOnly={isFemaleOnly}
               />
             </motion.div>
 
             <motion.div {...fade}>
-              <GuestQuotes title={page.guestQuotesTitle} quotes={mood.guestQuotes} />
-            </motion.div>
-
-            <motion.div {...fade}>
               <ExperienceFlow
+                eyebrow={page.flowEyebrow}
                 title={page.flowTitle}
                 expandLabel={page.flowExpandCta}
                 steps={mood.experienceFlow}
               />
             </motion.div>
 
+            {previewMode ? null : (
+              <motion.div
+                {...fade}
+                ref={mobileBookingRef}
+                id={BOOKING_MOBILE_ID}
+                className="scroll-mt-[5rem] pb-8 pt-6 lg:hidden"
+              >
+                <BookingCard
+                  experience={experience}
+                  labels={page}
+                  statusLabels={dict.agenda.status}
+                  reserveCta={dict.agenda.reserveCta}
+                  locale={locale}
+                  compact
+                />
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <motion.div {...fade}>
+        <GuestQuotes
+          eyebrow={page.guestQuotesEyebrow}
+          title={page.guestQuotesTitle}
+          locale={locale}
+          isFemaleOnly={isFemaleOnly}
+        />
+      </motion.div>
+
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">
+          <div className="min-w-0 lg:col-start-1">
             <motion.div {...fade}>
               <WhatToExpect title={page.expectTitle} items={mood.whatToExpect} />
             </motion.div>
+          </div>
 
-            <motion.div {...fade}>
-              <SocialAtmosphere
-                title={page.socialTitle}
-                subtitle={page.socialSubtitle}
-                paragraphs={mood.socialParagraphs}
-                image={mood.gallery[0] ?? experience.image}
-                imageAlt={experience.experienceName}
-              />
-            </motion.div>
+          {previewMode ? null : (
+            <div className="hidden lg:col-start-2 lg:row-start-1 lg:block" aria-hidden />
+          )}
+        </div>
+      </div>
 
-            <motion.div {...fade}>
-              <ExperienceGallery
-                title={page.galleryTitle}
-                images={
-                  experience.galleryImages?.length
-                    ? experience.galleryImages
-                    : mood.gallery
-                }
-                imageSettings={experience.galleryImageSettings}
-                experienceName={experience.experienceName}
-              />
-            </motion.div>
+      <motion.div {...fade}>
+        <ExperienceGallery
+          title={page.galleryTitle}
+          images={
+            experience.galleryImages?.length
+              ? experience.galleryImages
+              : mood.gallery
+          }
+          imageSettings={experience.galleryImageSettings}
+          experienceName={experience.experienceName}
+          isFemaleOnly={isFemaleOnly}
+        />
+      </motion.div>
 
+      <div className="mx-auto max-w-7xl px-5 pb-[max(5.5rem,env(safe-area-inset-bottom))] sm:px-8 lg:px-10 lg:pb-0">
+        <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">
+          <div className="min-w-0 lg:col-start-1">
             {routePoints.length > 0 ? (
               <motion.div {...fade}>
                 <CityRoute
@@ -241,15 +282,6 @@ export function ExperiencePageContent({
             ) : null}
 
             <motion.div {...fade}>
-              <PracticalInfo
-                title={page.practicalTitle}
-                experience={experience}
-                mood={mood}
-                labels={page}
-              />
-            </motion.div>
-
-            <motion.div {...fade}>
               <ExperienceFaq
                 title={page.faqTitle}
                 items={
@@ -260,33 +292,25 @@ export function ExperiencePageContent({
               />
             </motion.div>
 
-            <motion.div {...fade}>
-              <ExperienceFinalCta
-                experience={experience}
-                headline={page.finalCtaHeadline}
-                subheadline={page.finalCtaSubheadline}
-                primaryCta={page.finalCtaPrimary}
-                secondaryCta={page.finalCtaSecondary}
-                locale={locale}
-              />
-            </motion.div>
+            {previewMode ? null : (
+              <motion.div {...fade}>
+                <ExperienceMidBookingCta
+                  experience={experience}
+                  locale={locale}
+                  reserveCta={dict.agenda.reserveCta}
+                  eyebrow={page.midCtaEyebrow}
+                  title={page.midCtaTitle}
+                  trustLine={page.midCtaTrustLine}
+                  perPersonFromLabel={page.perPersonFrom}
+                  spotsHintLabel={page.heroSpotsHint}
+                />
+              </motion.div>
+            )}
           </div>
 
-          <div className="hidden lg:block">
-            <div className="sticky top-36 pt-4">
-              <div id="booking" className="scroll-mt-36">
-                <BookingCard
-                  experience={experience}
-                  labels={page}
-                  statusLabels={dict.agenda.status}
-                  reserveCta={dict.agenda.reserveCta}
-                  locale={locale}
-                  compact
-                  fitViewport
-                />
-              </div>
-            </div>
-          </div>
+          {previewMode ? null : (
+            <div className="hidden lg:col-start-2 lg:row-start-1 lg:block" aria-hidden />
+          )}
         </div>
 
         {previewMode ? null : (

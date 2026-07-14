@@ -13,6 +13,7 @@ interface EventGridProps {
   femaleOnlyBadge: string;
   reserveCta: string;
   viewTableCta: string;
+  perPersonFromLabel: string;
   locale: Locale;
   filterKey: string;
 }
@@ -24,6 +25,7 @@ export function EventGrid({
   femaleOnlyBadge,
   reserveCta,
   viewTableCta,
+  perPersonFromLabel,
   locale,
   filterKey,
 }: EventGridProps) {
@@ -65,6 +67,7 @@ export function EventGrid({
                   femaleOnlyBadge={femaleOnlyBadge}
                   reserveCta={reserveCta}
                   viewTableCta={viewTableCta}
+                  perPersonFromLabel={perPersonFromLabel}
                   href={experiencePath(locale, experience.slug)}
                   locale={locale}
                   sourceSection="agenda_grid"

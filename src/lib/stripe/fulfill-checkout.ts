@@ -74,7 +74,9 @@ async function runPostPaymentSideEffects(
       city: updated.ev.city,
       seats: updated.booking.seats,
       total_paid: updated.booking.amountCents / 100,
-      price_per_seat: updated.ev.priceCents / 100,
+      price_per_seat: Math.round(
+        updated.booking.amountCents / Math.max(1, updated.booking.seats),
+      ) / 100,
       stripe_session_id: session.id,
       is_first_booking: priorPaid === 0,
       customer_email_hash: hashEmail(updated.booking.email),

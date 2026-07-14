@@ -75,6 +75,7 @@ export function AgendaPageContent({
           femaleOnlyBadge={dict.femaleOnlyBadge}
           reserveCta={dict.reserveCta}
           viewTableCta={pageLabels.viewTableCta}
+          perPersonFromLabel={pageLabels.perPersonFrom}
           locale={locale}
           filterKey={activeTab}
         />

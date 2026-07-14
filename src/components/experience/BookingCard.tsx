@@ -7,7 +7,6 @@ import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { privacyPath, termsPath, type Locale } from "@/i18n/config";
 import {
   canReserve,
-  formatPerPerson,
   formatSpotsBadge,
   formatViewsLabel,
   getEventIdForCheckout,
@@ -17,7 +16,6 @@ import {
 } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
 import { resolveFemaleOnly } from "@/lib/event-extras";
-import { isDbEventsEnabled } from "@/lib/env";
 import {
   trackBookingStarted,
   trackSeatsSelected,
@@ -34,6 +32,7 @@ import {
   computeTierPrice,
   getBookingTierConfig,
   getBookingTiers,
+  getLowestTierPerPersonEuros,
   GROUP_MIN_SEATS,
   maxGroupSeats,
   seatingForTier,
@@ -50,7 +49,7 @@ interface BookingCardProps {
   className?: string;
   /** Tighter layout — hides social proof and trust bullets. */
   compact?: boolean;
-  /** Cap height to viewport and scroll inside the card (header + sticky bar safe area). */
+  /** Cap height on desktop sticky sidebar only; mobile grows with the page. */
   fitViewport?: boolean;
 }
 
@@ -166,20 +165,22 @@ function tierSeatsDisplay(
   labels: Dictionary["experiencePage"]["bookingTiers"],
 ): string {
   if (tier === "group") {
-    if (selected) return tierSeatsLabel(groupSeats, labels);
-    return labels.seatsFrom.replace("{count}", String(GROUP_MIN_SEATS));
+    const seats = selected
+      ? tierSeatsLabel(groupSeats, labels)
+      : labels.seatsFrom.replace("{count}", String(GROUP_MIN_SEATS));
+    return `${seats} · ${labels.seatsOwnTable}`;
   }
-  return tierSeatsLabel(getBookingTierConfig(tier).seats, labels);
+  const seats = tierSeatsLabel(getBookingTierConfig(tier).seats, labels);
+  return `${seats} · ${labels.seatsJoinOthers}`;
 }
 
 function displayTierPriceForCard(
   tierPrice: BookingTierPrice,
   selectedTier: BookingTier,
   groupSeats: number,
-  basePriceCents: number,
 ): BookingTierPrice {
   if (tierPrice.tier === "group" && selectedTier === "group") {
-    return computeTierPrice(basePriceCents, "group", groupSeats);
+    return computeTierPrice("group", groupSeats);
   }
   return tierPrice;
 }
@@ -261,7 +262,6 @@ function TierCard({
   isFemaleOnly,
   groupSeats,
   selectedTier,
-  basePriceCents,
   onSelect,
 }: {
   tierPrice: BookingTierPrice;
@@ -272,7 +272,6 @@ function TierCard({
   isFemaleOnly: boolean;
   groupSeats: number;
   selectedTier: BookingTier;
-  basePriceCents: number;
   onSelect: () => void;
 }) {
   const accentRing = isFemaleOnly
@@ -306,7 +305,6 @@ function TierCard({
     tierPrice,
     selectedTier,
     groupSeats,
-    basePriceCents,
   );
 
   return (
@@ -315,7 +313,7 @@ function TierCard({
         compact ? "py-2.5" : "py-3.5"
       } ${selected ? accentRing : idleRing} ${
         disabled ? "cursor-not-allowed opacity-45" : ""
-      } ${badge ? "mt-1.5" : ""}`}
+      }`}
     >
       <input
         type="radio"
@@ -326,14 +324,6 @@ function TierCard({
         disabled={disabled}
         onChange={onSelect}
       />
-      {badge ? (
-        <span
-          className={`absolute -top-2.5 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}
-        >
-          {badge.showStar ? <span aria-hidden>★</span> : null}
-          {badge.label}
-        </span>
-      ) : null}
       <span
         className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
           selected ? dotOn : dotOff
@@ -344,9 +334,19 @@ function TierCard({
       </span>
       <span className="min-w-0 flex-1">
         <span
-          className={`block font-semibold text-wine ${compact ? "text-sm" : "text-[15px]"}`}
+          className={`flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold text-wine ${
+            compact ? "text-sm" : "text-[15px]"
+          }`}
         >
           {tierTitle(tierPrice.tier, labels)}
+          {badge ? (
+            <span
+              className={`inline-flex shrink-0 items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}
+            >
+              {badge.showStar ? <span aria-hidden>★</span> : null}
+              {badge.label}
+            </span>
+          ) : null}
         </span>
         <span className="mt-0.5 block text-xs text-wine/50">
           {tierSeatsDisplay(tierPrice.tier, selected, groupSeats, labels)}
@@ -385,10 +385,9 @@ export function BookingCard({
   const spotsLeft = getSpotsLeft(experience);
   const views = getViewsThisWeek(experience.id);
   const eventDbId = getEventIdForCheckout(experience);
-  const dbCheckoutEnabled = isDbEventsEnabled() && Boolean(eventDbId);
+  const showBookingForm = !bookingDisabled;
 
-  const basePriceCents = Math.round(experience.price * 100);
-  const tiers = getBookingTiers(basePriceCents);
+  const tiers = getBookingTiers();
   const tierLabels = labels.bookingTiers;
 
   const [formStep, setFormStep] = useState<1 | 2>(1);
@@ -411,17 +410,22 @@ export function BookingCard({
   );
 
   const selectedTierPrice = computeTierPrice(
-    basePriceCents,
     tier,
     tier === "group" ? groupSeats : undefined,
   );
   const seats = tier === "group" ? groupSeats : getBookingTierConfig(tier).seats;
   const groupSeatsMax = maxGroupSeats(spotsLeft);
   const seatingPreference = seatingForTier(tier);
-  const priceLine = tierLabels.perPerson.replace(
-    "{price}",
-    String(selectedTierPrice.perPersonEuros),
-  );
+  const priceLine =
+    formStep === 2
+      ? tierLabels.perPerson.replace(
+          "{price}",
+          String(selectedTierPrice.perPersonEuros),
+        )
+      : tierLabels.perPersonFrom.replace(
+          "{price}",
+          String(getLowestTierPerPersonEuros()),
+        );
 
   useEffect(() => {
     setFormStep(1);
@@ -457,7 +461,15 @@ export function BookingCard({
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault();
-    if (!eventDbId || formStep !== 2) return;
+    if (!eventDbId) {
+      setError(
+        locale === "nl"
+          ? "Online boeken is voor dit event nog niet beschikbaar."
+          : "Online booking is not available for this event yet.",
+      );
+      return;
+    }
+    if (formStep !== 2) return;
     setLoading(true);
     setError(null);
     trackBookingStarted(experience, locale, "detail_page", seats);
@@ -525,7 +537,7 @@ export function BookingCard({
         compact ? "p-4" : "p-6 sm:p-7"
       } ${
         fitViewport
-          ? "max-h-[calc(100dvh-9.5rem-env(safe-area-inset-bottom,0px))] overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))] [-webkit-overflow-scrolling:touch]"
+          ? "lg:max-h-[calc(100dvh-9.5rem-env(safe-area-inset-bottom,0px))] lg:overflow-y-auto lg:overscroll-contain lg:pb-[max(1rem,env(safe-area-inset-bottom))] lg:[-webkit-overflow-scrolling:touch]"
           : ""
       } ${
         isFemaleOnly
@@ -653,7 +665,7 @@ export function BookingCard({
         </div>
       ) : null}
 
-      {dbCheckoutEnabled && !bookingDisabled ? (
+      {showBookingForm ? (
         <form
           ref={formRef}
           onSubmit={handleCheckout}
@@ -725,7 +737,6 @@ export function BookingCard({
                       isFemaleOnly={isFemaleOnly}
                       groupSeats={groupSeats}
                       selectedTier={tier}
-                      basePriceCents={basePriceCents}
                       onSelect={() => {
                         if (disabled) return;
                         setTier(tierPrice.tier);
@@ -744,7 +755,6 @@ export function BookingCard({
                             tierPrice,
                             tierPrice.tier,
                             groupSeats,
-                            basePriceCents,
                           ).totalEuros,
                         );
                       }}
@@ -766,7 +776,7 @@ export function BookingCard({
                       experience,
                       locale,
                       next,
-                      computeTierPrice(basePriceCents, "group", next).totalEuros,
+                      computeTierPrice("group", next).totalEuros,
                     );
                   }}
                 />
@@ -959,16 +969,18 @@ export function BookingCard({
         </a>
       )}
 
-      {!compact && formStep === 1 ? (
+      {formStep === 1 ? (
         <ul
-          className={`mt-6 space-y-2.5 border-t pt-6 ${
+          className={`space-y-2 border-t pt-4 mt-3 ${
             isFemaleOnly ? "border-rose/20" : "border-border-subtle"
-          }`}
+          } ${compact ? "" : "sm:mt-6 sm:pt-6"}`}
         >
           {labels.bookingTrustBullets.map((line) => (
             <li
               key={line}
-              className="flex items-start gap-2 text-sm text-wine/70"
+              className={`flex items-start gap-2 text-wine/70 ${
+                compact ? "text-[11px] leading-snug" : "text-sm"
+              }`}
             >
               <span
                 className={`mt-0.5 ${isFemaleOnly ? "text-rose-deep" : "text-gold"}`}

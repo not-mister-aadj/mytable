@@ -125,6 +125,7 @@ export function LivePreviewPanel({
           femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
           reserveCta={dict.experiences.reserveCta}
           viewTableCta={dict.experiencePage.viewTableCta}
+          perPersonFromLabel={dict.experiencePage.perPersonFrom}
           href="#preview"
           locale={locale}
         />

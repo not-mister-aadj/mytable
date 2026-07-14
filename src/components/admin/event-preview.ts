@@ -95,6 +95,7 @@ export function buildCardPreviewExperience(
     spotsSold,
     tagline: locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
     atmosphereTags: extras.atmosphereTags,
+    ...(data.eventId ? { eventDbId: data.eventId } : {}),
   };
 }
 
@@ -171,5 +172,6 @@ export function buildDetailPreviewExperience(
       : extras.faqNl,
     galleryImages: extras.galleryImageSettings?.map((g) => g.url),
     galleryImageSettings: extras.galleryImageSettings,
+    ...(data.eventId ? { eventDbId: data.eventId } : {}),
   };
 }

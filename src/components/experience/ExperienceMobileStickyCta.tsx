@@ -3,9 +3,10 @@
 import { useEffect, useState, type RefObject } from "react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
-import { canReserve, formatPerPerson } from "@/lib/experience-booking";
+import { canReserve, formatFromPerPerson } from "@/lib/experience-booking";
 import { resolveFemaleOnly } from "@/lib/event-extras";
 import { trackBookingStarted } from "@/lib/posthog/analytics";
+import { handleBookingNavClick } from "@/lib/scroll-to-booking";
 import { Button } from "../ui/Button";
 
 interface ExperienceMobileStickyCtaProps {
@@ -29,7 +30,7 @@ export function ExperienceMobileStickyCta({
     experience.femaleOnly,
     experience.atmosphereTags,
   );
-  const priceLine = formatPerPerson(experience.price, labels.perPerson);
+  const priceLine = formatFromPerPerson(experience.price, labels.perPersonFrom);
 
   useEffect(() => {
     const booking = bookingRef.current;
@@ -71,9 +72,13 @@ export function ExperienceMobileStickyCta({
           </p>
         </div>
         <Button
-          href="#booking"
+          href="#booking-mobile"
           variant="primary"
-          onClick={() => trackBookingStarted(experience, locale, "mobile_sticky")}
+          onClick={(event) =>
+            handleBookingNavClick(event, () =>
+              trackBookingStarted(experience, locale, "mobile_sticky"),
+            )
+          }
           className={`shrink-0 px-5 py-2.5 text-sm ${
             isSoldOut ? "pointer-events-none opacity-50" : ""
           } ${isFemaleOnly ? "bg-rose hover:bg-rose-deep" : ""}`}

@@ -6,52 +6,54 @@ import type {
 
 export const girlsOnlyTastingFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Welkom & intro",
+    title: "Boek online",
     description:
-      "Je wordt ontvangen met een eerste glas. De host vertelt kort welke wijnen het restaurant heeft gekozen en hoe ze gepaird zijn.",
+      "Kies je plek, betaal vooraf en je ontvangt direct een bevestiging per mail. Geen wachtlijst, geen gedoe.",
   },
   {
-    title: "Proeven aan tafel",
+    title: "Geef je wensen door",
     description:
-      "Vier wijnen en bijpassende bites, bij elkaar gepaird. Jullie zitten aan jullie eigen tafel en bepalen het tempo.",
+      "Dieetwensen of allergieën? Geef het bij boeken door. Tot 48 uur van tevoren kun je nog gratis ruilen naar een andere datum.",
   },
   {
-    title: "Gezellig, zonder gedoe",
+    title: "Schuif zondag aan",
     description:
-      "Geen menu-ruzie, geen rekening splitsen. Gewoon proeven, lachen en bijpraten zoals een middag uit met je meiden.",
-  },
-  {
-    title: "Afsluiten zonder haast",
-    description:
-      "Plan de hele middag in. Soms gaat het daarna nog door — nawijnen, borrelen of ergens lekker uit eten met je meiden.",
+      "De host verwelkomt je aan tafel. Vier wijnen en bijpassende bites komen naar je toe: solo, met vriendin of aan jullie eigen vriendinnentafel.",
   },
 ];
 
 export const girlsOnlyTastingQuotesNl: ExperienceGuestQuote[] = [
   {
     quote:
-      "Ik kwam solo en was echt nerveus. Maar binnen tien minuten zat ik al te kletsen. Veel leuker dan ik had verwacht.",
+      "Ik kwam solo en was echt nerveus. Binnen tien minuten zat ik al te kletsen, alsof ik vriendinnen had meegenomen.",
     name: "Lisa",
-    detail: "met 3 vriendinnen",
+    detail: "solo, Rotterdam",
   },
   {
     quote:
-      "Met mijn zus en twee vriendinnen geboekt. Eigen tafel, alles geregeld. Waarom hebben we dit niet eerder gedaan?",
+      "Alles was al betaald. Geen gedoe met de rekening, geen menu-ruzie. Gewoon genieten met mijn meiden.",
     name: "Sanne",
     detail: "groep van 4",
   },
   {
     quote:
-      "Mijn vriendinnen konden niet, dus solo gegaan. Het voelde alsof ik met gezellige meiden uit eten was. Niet awkward, gewoon fijn.",
+      "Met mijn vriendin geboekt voor €39 p.p. Scheelde flink t.o.v. solo. Waarom hebben we dit niet eerder gedaan?",
     name: "Noor",
+    detail: "duo",
+  },
+  {
+    quote:
+      "Mijn vriendinnen konden niet, dus solo gegaan. Het voelde alsof ik met gezellige meiden uit eten was. Niet awkward, gewoon fijn.",
+    name: "Emma",
     detail: "solo",
   },
 ];
 
 export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
-  tagline: "Girls-only wijnspijs op zondagmiddag. Zonder gedoe.",
+  tagline:
+    "Maak van je zondag een middag uit: wijn, bites en gezellige meiden aan tafel.",
   description:
-    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Het restaurant kiest vier wijnen en pairt ze met bites. Alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten — plan gerust de hele middag. En soms? Dan gaat het daarna nog door: nawijnen, borrelen of ergens lekker uit eten met je meiden.",
+    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Het restaurant kiest vier wijnen en pairt ze met bites. Alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten. Plan gerust de hele middag. En soms? Dan gaat het daarna nog door: nawijnen, borrelen of ergens lekker uit eten met je meiden.",
   experienceFlow: girlsOnlyTastingFlowNl,
   guestQuotes: girlsOnlyTastingQuotesNl,
   whatToExpect: [
@@ -61,9 +63,9 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
     },
     {
-      title: "Jullie eigen tafel",
+      title: "Eigen vriendinnentafel of aanschuiven",
       description:
-        "Reserveer voor je groep en zit samen aan een eigen tafel. Twee, vier of meer: jullie bepalen wie erbij is.",
+        "Met 3+ vriendinnen? Jullie eigen tafel. Solo of met z'n tweeën? Wij schuiven je aan bij gezellige meiden.",
     },
     {
       title: "Eén restaurant, één zondagmiddag",
@@ -83,7 +85,7 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
     {
       title: "Op eigen tempo",
       description:
-        "Plan de hele middag in. Geen strak schema — en soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
+        "Plan de hele middag in. Geen strak schema. En soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
     },
   ],
   socialParagraphs: [
@@ -92,19 +94,19 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
   ],
   faq: [
     {
-      question: "Kan ik met mijn vriendinnen boeken?",
+      question: "Wat kost het en wat krijg ik ervoor?",
       answer:
-        "Ja. Reserveer voor je groep en jullie zitten samen aan een eigen tafel. Twee, vier of meer: jullie bepalen wie erbij is.",
+        "Alleen €49 per persoon; met z'n tweeën €39 per persoon (duo-tarief). Per persoon krijg je vier wijnen met bijpassende bites, een hele zondagmiddag aan tafel en alles vooraf geregeld. Geen rekening aan tafel.",
     },
     {
-      question: "Met hoeveel vriendinnen kan ik komen?",
+      question: "Kan ik solo komen?",
       answer:
-        "Het mooiste is met je eigen groepje: twee, vier of meer, aan jullie eigen tafel. Nodig gerust je vriendinnen uit. Kom je solo of met een vriendin? Dat kan ook. Wil je aanschuiven bij andere girls, dan regelen wij een gezellige plek.",
+        "Ja, en je bent niet de enige. Veel girls boeken solo of met één vriendin. Wij schuiven je aan bij een gezellige tafel met andere meiden.",
     },
     {
-      question: "Wanneer zijn de events?",
+      question: "Kan ik annuleren of ruilen?",
       answer:
-        "Elke zondagmiddag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+        "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren.",
     },
     {
       question: "Kan ik dieetwensen doorgeven?",
@@ -117,15 +119,41 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "In één partnerrestaurant per stad. De exacte locatie staat op je boekingsbevestiging.",
     },
     {
-      question: "Kan ik annuleren of ruilen?",
+      question: "Met hoeveel vriendinnen kan ik komen?",
       answer:
-        "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren.",
+        "Met 3 of meer reserveer je jullie eigen vriendinnentafel. Solo of met z'n tweeën schuif je aan bij anderen. Kleine tafels, meestal 8 tot 14 vrouwen per middag.",
     },
   ],
 };
 
 export const girlsOnlyExperienceLabelsNl = {
-  pillSoloTogether: "Met je vriendinnen · solo ook welkom",
+  heroBenefitBullets: [
+    "Vier wijnen + gepaarde bites aan tafel",
+    "Girls Only · solo mag, vriendinnen welkom",
+    "Alles vooraf betaald · geen rekening aan tafel",
+  ],
+  includedEyebrow: "Wat zit erin",
+  includedTitle: "Alles geregeld voor jullie middag uit",
+  includedSubtitle:
+    "Eén restaurant, één tafel. Jij reserveert, wij regelen wijn, bites en gezellige meiden.",
+  includedItems: [
+    { value: "4", label: "wijnen" },
+    { value: "4", label: "bites" },
+    { value: "1", label: "restaurant" },
+    { value: "100%", label: "vooraf betaald" },
+  ],
+  flowEyebrow: "Goed om te weten",
+  flowTitle: "Hoe werkt het?",
+  guestQuotesEyebrow: "Echte verhalen",
+  guestQuotesTitle: "Wat andere meiden zeggen",
+  midCtaEyebrow: "Kaartjes kopen",
+  midCtaTitle: "Klaar voor zondagmiddag wijnspijs?",
+  midCtaTrustLine:
+    "Gratis ruilen tot 48 uur van tevoren · Alles vooraf betaald · Dieetwensen mogelijk",
+  venuesTitle: "Waar je aan tafel schuift",
+  venuesSubtitle:
+    "Eén zorgvuldig gekozen partnerrestaurant per stad. Superleuk aan tafel: vier wijnen, gepaarde bites en gezellige meiden.",
+  pillSoloTogether: "Solo of met je vriendinnen",
   socialTitle: "Girls-only wijnspijs op zondagmiddag.",
   socialSubtitle:
     "Eigen tafel met je groep, of aanschuiven als je geen volledige groep hebt.",
@@ -140,14 +168,17 @@ export const girlsOnlyExperienceLabelsNl = {
   bookingTiers: {
     legend: "Hoe kom je?",
     perPerson: "€{price} p.p.",
+    perPersonFrom: "Vanaf €{price} p.p.",
     bestValue: "Beste keuze",
     mostChosen: "Meest gekozen",
     seatOne: "1 plek",
     seatOther: "{count} plekken",
     seatsFrom: "Vanaf {count} plekken",
     groupSeatsLabel: "Aantal plekken",
+    seatsJoinOthers: "schuif aan bij anderen",
+    seatsOwnTable: "jullie eigen tafel",
     soloTitle: "Solo & schuif aan",
-    duoTitle: "Twee is feest",
+    duoTitle: "Twee is feest, schuif aan",
     groupTitle: "Vriendinnentafel, jullie eigen tafel",
     soloCta: "Reserveer mijn plek",
     duoCta: "Reserveer onze plekken",

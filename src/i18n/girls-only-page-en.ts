@@ -221,4 +221,5 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   femaleOnlyBadge: "Girls only",
   reserveCta: "Reserve",
   viewTableCta: "View table",
+  perPersonFrom: "From €{price} per person",
 };

@@ -4,13 +4,14 @@ import { useEffect, useState, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
-import { canReserve, formatPerPerson } from "@/lib/experience-booking";
+import { canReserve, formatFromPerPerson } from "@/lib/experience-booking";
 import { splitDateTime } from "@/lib/experience-detail";
 import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
 import { trackBookingStarted } from "@/lib/posthog/analytics";
+import { handleBookingNavClick } from "@/lib/scroll-to-booking";
 import { Button } from "../ui/Button";
 
 interface ExperienceStickyBookingBarProps {
@@ -21,6 +22,7 @@ interface ExperienceStickyBookingBarProps {
   locale: Locale;
   sentinelRef: RefObject<HTMLElement | null>;
   bookingRef?: RefObject<HTMLElement | null>;
+  desktopBookingRef?: RefObject<HTMLElement | null>;
 }
 
 function MetaItem({
@@ -83,11 +85,12 @@ export function ExperienceStickyBookingBar({
   locale,
   sentinelRef,
   bookingRef,
+  desktopBookingRef,
 }: ExperienceStickyBookingBarProps) {
   const [heroPast, setHeroPast] = useState(false);
   const [bookingInView, setBookingInView] = useState(false);
   const { date, time } = splitDateTime(experience.dateTime);
-  const priceLine = formatPerPerson(experience.price, labels.perPerson);
+  const priceLine = formatFromPerPerson(experience.price, labels.perPersonFrom);
   const isSoldOut = !canReserve(experience);
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
@@ -113,7 +116,12 @@ export function ExperienceStickyBookingBar({
   }, [sentinelRef]);
 
   useEffect(() => {
-    const booking = bookingRef?.current;
+    const pickTarget = () =>
+      window.matchMedia("(min-width: 1024px)").matches
+        ? desktopBookingRef?.current ?? bookingRef?.current
+        : bookingRef?.current;
+
+    const booking = pickTarget();
     if (!booking) return;
 
     const headerOffsetPx = Math.round(
@@ -130,8 +138,19 @@ export function ExperienceStickyBookingBar({
     );
 
     observer.observe(booking);
-    return () => observer.disconnect();
-  }, [bookingRef]);
+
+    const onResize = () => {
+      observer.disconnect();
+      const next = pickTarget();
+      if (next) observer.observe(next);
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [bookingRef, desktopBookingRef]);
 
   const visible = heroPast && !bookingInView;
 
@@ -197,10 +216,12 @@ export function ExperienceStickyBookingBar({
               </div>
 
               <Button
-                href="#booking"
+                href="#booking-desktop"
                 variant="primary"
-                onClick={() =>
-                  trackBookingStarted(experience, locale, "sticky_bar")
+                onClick={(event) =>
+                  handleBookingNavClick(event, () =>
+                    trackBookingStarted(experience, locale, "sticky_bar"),
+                  )
                 }
                 className={`w-full shrink-0 px-5 py-2.5 text-sm sm:w-auto ${
                   isSoldOut ? "pointer-events-none opacity-50" : ""

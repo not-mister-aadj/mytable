@@ -10,7 +10,7 @@ import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
-import { getSpotsLeft } from "@/lib/experience-booking";
+import { getSpotsLeft, formatFromPerPerson } from "@/lib/experience-booking";
 import { formatAlmostFullImageHint, formatCardDateTimeLine, formatSpotsLeftHint } from "@/lib/event-display";
 
 const statusBadgeStyles: Record<
@@ -34,6 +34,7 @@ interface ExperienceCardProps {
   femaleOnlyBadge: string;
   reserveCta: string;
   viewTableCta: string;
+  perPersonFromLabel: string;
   href: string;
   locale?: Locale;
   socialPromise?: string;
@@ -48,6 +49,7 @@ export function ExperienceCard({
   femaleOnlyBadge,
   reserveCta: _reserveCta,
   viewTableCta,
+  perPersonFromLabel,
   href,
   locale = "nl",
   sourceSection = "agenda_grid",
@@ -214,7 +216,7 @@ export function ExperienceCard({
 
         <div className="mt-3 flex items-end justify-between gap-3">
           <p className="font-serif text-2xl font-medium leading-none text-burgundy sm:text-[1.65rem]">
-            €{experience.price}
+            {formatFromPerPerson(experience.price, perPersonFromLabel)}
           </p>
           <span
             className={`shrink-0 text-sm font-medium transition-colors ${

@@ -6,7 +6,8 @@ import { useRef } from "react";
 import type { Dictionary, ExperienceItem, ExperienceMoodContent } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
 import {
-  formatPerPerson,
+  canReserve,
+  formatFromPerPerson,
   formatSpotsBadge,
   getSpotsLeft,
 } from "@/lib/experience-booking";
@@ -16,6 +17,7 @@ import {
   resolveFemaleOnly,
 } from "@/lib/event-extras";
 import { trackBookingStarted } from "@/lib/posthog/analytics";
+import { handleBookingNavClick } from "@/lib/scroll-to-booking";
 import { Button } from "../ui/Button";
 
 interface ExperienceHeroProps {
@@ -58,7 +60,7 @@ export function ExperienceHero({
 
   const tagline = getExperienceTagline(experience, mood);
   const { date, time } = splitDateTime(experience.dateTime);
-  const priceLabel = formatPerPerson(experience.price, labels.perPerson);
+  const priceLabel = formatFromPerPerson(experience.price, labels.perPersonFrom);
   const spots = getSpotsLeft(experience);
 
   const pills = [
@@ -152,11 +154,32 @@ export function ExperienceHero({
           {tagline}
         </motion.p>
 
-        {visibleTags.length > 0 ? (
+        {labels.heroBenefitBullets.length > 0 ? (
           <motion.ul
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.22 }}
+            className="mt-4 max-w-xl space-y-2"
+          >
+            {labels.heroBenefitBullets.map((bullet) => (
+              <li
+                key={bullet}
+                className="flex items-start gap-2 text-sm leading-snug text-cream/85 sm:text-base"
+              >
+                <span className="mt-0.5 shrink-0 text-gold" aria-hidden>
+                  ✓
+                </span>
+                {bullet}
+              </li>
+            ))}
+          </motion.ul>
+        ) : null}
+
+        {visibleTags.length > 0 ? (
+          <motion.ul
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.24 }}
             className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2"
           >
             {visibleTags.map((tag) => (
@@ -186,6 +209,34 @@ export function ExperienceHero({
           ))}
         </motion.ul>
 
+        {!previewMode && experience.status !== "closed" && canReserve(experience) ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.28 }}
+            className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-cream/25 bg-cream/10 px-4 py-3 backdrop-blur-sm lg:hidden"
+          >
+            <div className="min-w-0">
+              <p className="font-serif text-xl font-medium text-cream">{priceLabel}</p>
+              <p className="mt-0.5 truncate text-[11px] text-cream/70">
+                {labels.heroTrustFooter}
+              </p>
+            </div>
+            <Button
+              href="#booking-mobile"
+              variant="primary"
+              className="shrink-0 px-5 py-2.5 text-sm"
+              onClick={(event) =>
+                handleBookingNavClick(event, () =>
+                  trackBookingStarted(experience, locale, "hero"),
+                )
+              }
+            >
+              {reserveCta}
+            </Button>
+          </motion.div>
+        ) : null}
+
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,9 +244,13 @@ export function ExperienceHero({
           className="mt-6 hidden flex-wrap gap-3 sm:mt-8 sm:flex"
         >
           <Button
-            href="#booking"
+            href="#booking-mobile"
             variant="primary"
-            onClick={() => trackBookingStarted(experience, locale, "hero")}
+            onClick={(event) =>
+              handleBookingNavClick(event, () =>
+                trackBookingStarted(experience, locale, "hero"),
+              )
+            }
           >
             {reserveCta}
           </Button>
@@ -208,7 +263,7 @@ export function ExperienceHero({
           className="mt-4 hidden max-w-xl text-xs leading-relaxed text-cream/65 sm:mt-6 sm:block sm:text-sm"
         >
           {labels.heroTrustFooter}
-          {spots !== null && spots > 0 && spots <= 6 ? (
+          {spots !== null && spots > 0 && spots <= 15 ? (
             <span className="mt-1 block text-gold/90">
               · {formatSpotsBadge(labels.heroSpotsHint, spots)}
             </span>

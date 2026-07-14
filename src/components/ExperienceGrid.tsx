@@ -11,6 +11,7 @@ interface ExperienceGridProps {
   femaleOnlyBadge: string;
   reserveCta: string;
   viewTableCta: string;
+  perPersonFromLabel: string;
   locale: Locale;
   items: Dictionary["experiences"]["items"];
   className?: string;
@@ -25,6 +26,7 @@ export function ExperienceGrid({
   femaleOnlyBadge,
   reserveCta,
   viewTableCta,
+  perPersonFromLabel,
   locale,
   items,
   className = "",
@@ -51,6 +53,7 @@ export function ExperienceGrid({
               femaleOnlyBadge={femaleOnlyBadge}
               reserveCta={reserveCta}
               viewTableCta={viewTableCta}
+              perPersonFromLabel={perPersonFromLabel}
               href={experiencePath(locale, experience.slug)}
               locale={locale}
               sourceSection="home_grid"

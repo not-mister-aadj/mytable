@@ -1,69 +1,84 @@
-"use client";
-
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { ExperienceGuestQuote } from "@/i18n/types";
+import type { Locale } from "@/i18n/config";
+import {
+  getGirlsOnlyTestimonials,
+  splitGirlsOnlyTestimonialRows,
+} from "@/data/girls-only-testimonials";
+import {
+  getTestimonials,
+  splitTestimonialRows,
+} from "@/data/testimonials";
+import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 
 interface GuestQuotesProps {
+  eyebrow: string;
   title: string;
-  quotes: ExperienceGuestQuote[];
+  locale: Locale;
+  isFemaleOnly: boolean;
 }
 
-function formatAttribution(quote: ExperienceGuestQuote): string {
-  if (quote.detail) return `${quote.name}, ${quote.detail}`;
-  if (quote.age) return `${quote.name}, ${quote.age}`;
-  return quote.name;
-}
+export function GuestQuotes({
+  eyebrow,
+  title,
+  locale,
+  isFemaleOnly,
+}: GuestQuotesProps) {
+  const { top, bottom } = isFemaleOnly
+    ? splitGirlsOnlyTestimonialRows(getGirlsOnlyTestimonials(locale))
+    : splitTestimonialRows(getTestimonials(locale));
 
-export function GuestQuotes({ title, quotes }: GuestQuotesProps) {
-  const [active, setActive] = useState(0);
-  const current = quotes[active] ?? quotes[0];
+  if (top.length === 0) return null;
 
-  if (!current) return null;
+  if (isFemaleOnly) {
+    return (
+      <section className="overflow-hidden border-y border-rose/15 bg-gradient-to-b from-rose-soft/50 to-cream py-8 sm:py-12 lg:py-16">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+              {eyebrow}
+            </p>
+            <h2 className="mt-2 font-serif text-xl font-medium tracking-tight text-wine sm:mt-3 sm:text-3xl">
+              {title}
+            </h2>
+          </div>
+        </div>
+        <div className="lg:hidden">
+          <TestimonialMarquee
+            top={top}
+            bottom={bottom}
+            fadeFromClassName="from-rose-soft/50"
+            cardClassName="border-rose/15 bg-white/90"
+            singleRow
+          />
+        </div>
+        <div className="hidden lg:block">
+          <TestimonialMarquee
+            top={top}
+            bottom={bottom}
+            fadeFromClassName="from-rose-soft/50"
+            cardClassName="border-rose/15 bg-white/90"
+          />
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="border-t border-border-subtle py-8 sm:py-14 lg:py-20">
-      <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl">
-        {title}
-      </h2>
-
-      <div className="relative mt-6 overflow-hidden rounded-2xl border border-border-subtle bg-beige px-5 py-8 sm:mt-10 sm:rounded-3xl sm:px-12 sm:py-14">
-        <span className="font-serif text-5xl leading-none text-gold/50 sm:text-6xl" aria-hidden>
-          &ldquo;
-        </span>
-
-        <AnimatePresence mode="wait">
-          <motion.blockquote
-            key={active}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35 }}
-          >
-            <p className="mt-2 max-w-3xl font-serif text-xl leading-relaxed text-wine sm:text-3xl">
-              {current.quote}
-            </p>
-            <footer className="mt-6 text-sm font-medium text-wine/55">
-              {formatAttribution(current)}
-            </footer>
-          </motion.blockquote>
-        </AnimatePresence>
-
-        <div className="mt-8 flex items-center gap-3">
-          {quotes.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => setActive(index)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === active
-                  ? "w-8 bg-burgundy"
-                  : "w-2 bg-burgundy/25 hover:bg-burgundy/40"
-              }`}
-              aria-label={`Testimonial ${index + 1}`}
-            />
-          ))}
+    <section className="overflow-hidden border-t border-border-subtle py-8 sm:py-14 lg:py-20">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+            {eyebrow}
+          </p>
+          <h2 className="mt-2 font-serif text-2xl font-medium tracking-tight text-wine sm:mt-3 sm:text-4xl">
+            {title}
+          </h2>
         </div>
+      </div>
+      <div className="lg:hidden">
+        <TestimonialMarquee top={top} bottom={bottom} singleRow />
+      </div>
+      <div className="hidden lg:block">
+        <TestimonialMarquee top={top} bottom={bottom} />
       </div>
     </section>
   );

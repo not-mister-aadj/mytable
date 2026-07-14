@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { ExperienceFlowStep } from "@/i18n/types";
 
 interface ExperienceFlowProps {
+  eyebrow: string;
   title: string;
   expandLabel: string;
   steps: ExperienceFlowStep[];
@@ -11,7 +12,7 @@ interface ExperienceFlowProps {
 
 function FlowStepsList({ steps }: { steps: ExperienceFlowStep[] }) {
   return (
-    <ol className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4 lg:gap-6">
+    <ol className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 lg:gap-8">
       {steps.map((step, index) => (
         <motion.li
           key={step.title}
@@ -39,14 +40,27 @@ function FlowStepsList({ steps }: { steps: ExperienceFlowStep[] }) {
   );
 }
 
-export function ExperienceFlow({ title, expandLabel, steps }: ExperienceFlowProps) {
+export function ExperienceFlow({
+  eyebrow,
+  title,
+  expandLabel,
+  steps,
+}: ExperienceFlowProps) {
   return (
     <section className="rounded-2xl bg-beige/80 px-4 py-8 sm:rounded-3xl sm:px-10 sm:py-16">
+      <motion.p
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-xs font-semibold uppercase tracking-[0.24em] text-wine/45"
+      >
+        {eyebrow}
+      </motion.p>
       <motion.h2
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl"
+        className="mt-2 font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl"
       >
         {title}
       </motion.h2>

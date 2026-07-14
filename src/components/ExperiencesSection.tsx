@@ -28,6 +28,7 @@ export function ExperiencesSection({
           femaleOnlyBadge={dict.femaleOnlyBadge}
           reserveCta={dict.reserveCta}
           viewTableCta={pageLabels.viewTableCta}
+          perPersonFromLabel={pageLabels.perPersonFrom}
           locale={locale}
           items={dict.items.slice(0, HOME_EXPERIENCE_CARD_LIMIT)}
           compact

@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type MouseEvent, type ReactNode } from "react";
 import { FastLink } from "./FastLink";
 
 type ButtonVariant = "primary" | "secondary" | "outline";
@@ -9,7 +9,7 @@ interface ButtonProps {
   variant?: ButtonVariant;
   className?: string;
   type?: "button" | "submit";
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => void;
 }
 
 const variants: Record<ButtonVariant, string> = {

@@ -1,5 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
+import { formatFromPerPerson } from "@/lib/experience-booking";
 import { sortAgendaTimeline } from "@/lib/agenda";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { enrichExperience } from "@/lib/experience-detail";
@@ -78,7 +79,10 @@ export function formatGirlsOnlyBookCtaLabel(
   locale: Locale,
 ): string {
   const datePart = experience.dateTime.split(" · ")[0] ?? experience.dateTime;
-  const price = `€${experience.price}`;
+  const price = formatFromPerPerson(
+    experience.price,
+    locale === "nl" ? "€{price}" : "€{price}",
+  );
   return locale === "nl"
     ? `Boek ${datePart} · ${experience.city} · ${price}`
     : `Book ${datePart} · ${experience.city} · ${price}`;

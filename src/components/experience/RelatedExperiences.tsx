@@ -32,6 +32,7 @@ export function RelatedExperiences({
             femaleOnlyBadge={dict.agenda.femaleOnlyBadge}
             reserveCta={dict.agenda.reserveCta}
             viewTableCta={dict.experiencePage.viewTableCta}
+            perPersonFromLabel={dict.experiencePage.perPersonFrom}
             href={experiencePath(locale, experience.slug)}
             locale={locale}
             sourceSection="related"

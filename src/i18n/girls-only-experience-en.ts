@@ -6,52 +6,54 @@ import type {
 
 export const girlsOnlyTastingFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Welcome & intro",
+    title: "Book online",
     description:
-      "You're welcomed with a first glass. The host briefly explains which wines the restaurant has chosen and how they're paired.",
+      "Pick your spot, pay upfront, and get instant confirmation by email. No waitlist, no hassle.",
   },
   {
-    title: "Taste at your table",
+    title: "Share your preferences",
     description:
-      "Four wines and matching bites, paired together. You sit at your own table and set the pace.",
+      "Dietary needs or allergies? Tell us when you book. You can still exchange for free up to 48 hours before.",
   },
   {
-    title: "Cozy, no hassle",
+    title: "Join us on Sunday",
     description:
-      "No menu drama, no splitting the bill. Just tasting, laughing, and catching up like an afternoon out with your crew.",
-  },
-  {
-    title: "Finish without rushing",
-    description:
-      "Plan for the whole afternoon. Sometimes the fun continues afterward — more wine, drinks, or dinner out with your crew.",
+      "The host welcomes you at the table. Four wines and paired bites come to you: solo, with a friend, or at your own friends' table.",
   },
 ];
 
 export const girlsOnlyTastingQuotesEn: ExperienceGuestQuote[] = [
   {
     quote:
-      "I came solo and was genuinely nervous. But within ten minutes I was chatting away. Way more fun than I expected.",
+      "I came solo and was genuinely nervous. Within ten minutes I was chatting like I'd brought friends along.",
     name: "Lisa",
-    detail: "with 3 friends",
+    detail: "solo, Rotterdam",
   },
   {
     quote:
-      "Booked with my sister and two friends. Our own table, everything sorted. Why didn't we do this sooner?",
+      "Everything was already paid. No bill drama, no menu arguments. Just enjoying the afternoon with my girls.",
     name: "Sanne",
     detail: "group of 4",
   },
   {
     quote:
-      "My friends couldn't make it, so I went solo. It felt like dining out with fun girls. Not awkward, just nice.",
+      "Booked with my friend at €39 pp. Much better than going solo. Why didn't we do this sooner?",
     name: "Noor",
+    detail: "duo",
+  },
+  {
+    quote:
+      "My friends couldn't make it, so I went solo. It felt like dining out with fun girls. Not awkward, just nice.",
+    name: "Emma",
     detail: "solo",
   },
 ];
 
 export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
-  tagline: "Girls-only wine & bites on Sunday afternoon. No hassle.",
+  tagline:
+    "Turn your Sunday into an afternoon out: wine, bites, and good company at the table.",
   description:
-    "A Sunday afternoon of wine and bites with your crew at one table. The restaurant selects four wines and pairs them with bites. Everything around the table sorted. No wine exam, just context and room to enjoy at your pace — plan for the whole afternoon. And sometimes? The fun keeps going: more wine, drinks, or dinner out together.",
+    "A Sunday afternoon of wine and bites with your crew at one table. The restaurant selects four wines and pairs them with bites. Everything around the table sorted. No wine exam, just context and room to enjoy at your pace. Plan for the whole afternoon. And sometimes? The fun keeps going: more wine, drinks, or dinner out together.",
   experienceFlow: girlsOnlyTastingFlowEn,
   guestQuotes: girlsOnlyTastingQuotesEn,
   whatToExpect: [
@@ -61,9 +63,9 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
         "The restaurant selects four wines and pairs them with bites. We handle everything around the table. You just show up.",
     },
     {
-      title: "Your own table",
+      title: "Your own table or join others",
       description:
-        "Book for your group and sit together at your own table. Two, four, or more: you decide who joins.",
+        "Three or more friends? Your own table. Solo or as a duo? We'll seat you with other girls.",
     },
     {
       title: "One restaurant, one Sunday afternoon",
@@ -83,7 +85,7 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
     {
       title: "Your own pace",
       description:
-        "Plan for the whole afternoon. No tight schedule — and sometimes the group keeps the vibe going with more wine or dinner out.",
+        "Plan for the whole afternoon. No tight schedule. And sometimes the group keeps the vibe going with more wine or dinner out.",
     },
   ],
   socialParagraphs: [
@@ -92,19 +94,19 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
   ],
   faq: [
     {
-      question: "Can I book with my friends?",
+      question: "What's included and what does it cost?",
       answer:
-        "Yes. Reserve for your group and you sit together at your own table. Two, four, or more: you decide who joins.",
+        "Solo is €49 per person; with a friend it's €39 per person (duo rate). Per person you get four wines with paired bites, a full Sunday afternoon at the table, and everything sorted upfront. No bill at the table.",
     },
     {
-      question: "How many friends can I bring?",
+      question: "Can I come solo?",
       answer:
-        "Best with your own group: two, four, or more at your own table. Bring your friends along. Coming solo or with one friend? That works too. If you want to join other girls at the table, we'll find you a cozy spot.",
+        "Yes, and you won't be the only one. Many girls book solo or with one friend. We'll seat you at a cozy table with other women.",
     },
     {
-      question: "When are the events?",
+      question: "Can I cancel or exchange?",
       answer:
-        "Every Sunday afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
+        "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book.",
     },
     {
       question: "Can I share dietary needs?",
@@ -117,15 +119,41 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
         "At one partner restaurant per city. The exact location is on your booking confirmation.",
     },
     {
-      question: "Can I cancel or exchange?",
+      question: "How many friends can I bring?",
       answer:
-        "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book.",
+        "With 3 or more you get your own friends' table. Solo or as a duo, you join others. Small tables, usually 8 to 14 women per afternoon.",
     },
   ],
 };
 
 export const girlsOnlyExperienceLabelsEn = {
-  pillSoloTogether: "With your friends · solo welcome too",
+  heroBenefitBullets: [
+    "Four wines + paired bites at the table",
+    "Girls Only · solo welcome, friends too",
+    "Pay upfront · no bill to split at the table",
+  ],
+  includedEyebrow: "What's included",
+  includedTitle: "Everything sorted for your afternoon out",
+  includedSubtitle:
+    "One restaurant, one table. You reserve, we handle wine, bites, and good company.",
+  includedItems: [
+    { value: "4", label: "wines" },
+    { value: "4", label: "bites" },
+    { value: "1", label: "restaurant" },
+    { value: "100%", label: "paid upfront" },
+  ],
+  flowEyebrow: "Good to know",
+  flowTitle: "How does it work?",
+  guestQuotesEyebrow: "Real stories",
+  guestQuotesTitle: "What other girls say",
+  midCtaEyebrow: "Get tickets",
+  midCtaTitle: "Ready for Sunday wine & bites?",
+  midCtaTrustLine:
+    "Free exchange up to 48 hours before · Pay in full when you book · Dietary needs welcome",
+  venuesTitle: "Where you join the table",
+  venuesSubtitle:
+    "One carefully chosen partner restaurant per city. Four wines, paired bites, and good company at the table.",
+  pillSoloTogether: "Solo or with your friends",
   socialTitle: "Girls-only wine & bites on Sunday afternoon.",
   socialSubtitle:
     "Your own table with your group, or join others if you don't have a full group.",
@@ -140,14 +168,17 @@ export const girlsOnlyExperienceLabelsEn = {
   bookingTiers: {
     legend: "How are you coming?",
     perPerson: "€{price} p.p.",
+    perPersonFrom: "From €{price} p.p.",
     bestValue: "Best value",
     mostChosen: "Most chosen",
     seatOne: "1 spot",
     seatOther: "{count} spots",
     seatsFrom: "From {count} spots",
     groupSeatsLabel: "Number of spots",
+    seatsJoinOthers: "join others at the table",
+    seatsOwnTable: "your own table",
     soloTitle: "Flying solo",
-    duoTitle: "Dynamic duo",
+    duoTitle: "Dynamic duo, join in",
     groupTitle: "Your own friends' table",
     soloCta: "Reserve my spot",
     duoCta: "Reserve our spots",

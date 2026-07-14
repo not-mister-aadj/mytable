@@ -106,6 +106,8 @@ export interface ExperiencePageLabels {
     mostChosen: string;
     seatOne: string;
     seatOther: string;
+    seatsFrom: string;
+    groupSeatsLabel: string;
     soloTitle: string;
     duoTitle: string;
     groupTitle: string;

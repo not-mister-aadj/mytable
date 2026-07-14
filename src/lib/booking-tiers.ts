@@ -2,6 +2,12 @@ export type BookingTier = "solo" | "duo" | "group";
 
 export const BOOKING_TIER_ORDER: BookingTier[] = ["solo", "duo", "group"];
 
+/** Minimum seats for the friends-table (group) tier. */
+export const GROUP_MIN_SEATS = 3;
+
+/** Upper cap for group bookings per order (also limited by spots left). */
+export const GROUP_MAX_SEATS = 8;
+
 type TierConfig = {
   tier: BookingTier;
   seats: number;
@@ -22,13 +28,13 @@ const TIER_CONFIG: Record<BookingTier, TierConfig> = {
   duo: {
     tier: "duo",
     seats: 2,
-    perPersonDiscountEuros: 4,
+    perPersonDiscountEuros: 10,
     isBestValue: true,
-    isMostChosen: false,
+    isMostChosen: true,
   },
   group: {
     tier: "group",
-    seats: 4,
+    seats: GROUP_MIN_SEATS,
     perPersonDiscountEuros: 5,
     isBestValue: false,
     isMostChosen: false,
@@ -48,9 +54,39 @@ export function getBookingTierConfig(tier: BookingTier): TierConfig {
 
 /** Map a raw seat count to its tier (fallback when no explicit tier is sent). */
 export function tierForSeats(seats: number): BookingTier {
-  if (seats >= 4) return "group";
+  if (seats >= GROUP_MIN_SEATS) return "group";
   if (seats >= 2) return "duo";
   return "solo";
+}
+
+export function maxGroupSeats(spotsLeft: number | null): number {
+  if (spotsLeft === null) return GROUP_MAX_SEATS;
+  return Math.min(GROUP_MAX_SEATS, spotsLeft);
+}
+
+export function clampGroupSeats(
+  seats: number,
+  spotsLeft: number | null,
+): number {
+  return Math.min(
+    maxGroupSeats(spotsLeft),
+    Math.max(GROUP_MIN_SEATS, Math.floor(seats) || GROUP_MIN_SEATS),
+  );
+}
+
+export function resolveSeatsForTier(
+  tier: BookingTier,
+  requestedSeats: number,
+  spotsLeft: number | null,
+): number | null {
+  const cfg = getBookingTierConfig(tier);
+  if (tier === "group") {
+    const seats = clampGroupSeats(requestedSeats, spotsLeft);
+    if (spotsLeft !== null && seats > spotsLeft) return null;
+    return seats;
+  }
+  const seats = Math.floor(requestedSeats) || cfg.seats;
+  return seats === cfg.seats ? cfg.seats : null;
 }
 
 /** Solo guests join an existing table; duo and group get their own table. */
@@ -72,16 +108,21 @@ export type BookingTierPrice = {
 export function computeTierPrice(
   basePriceCents: number,
   tier: BookingTier,
+  seatCount?: number,
 ): BookingTierPrice {
   const cfg = TIER_CONFIG[tier];
+  const seats =
+    tier === "group"
+      ? clampGroupSeats(seatCount ?? cfg.seats, null)
+      : cfg.seats;
   const perPersonCents = Math.max(
     MIN_PER_PERSON_CENTS,
     basePriceCents - cfg.perPersonDiscountEuros * 100,
   );
-  const totalCents = perPersonCents * cfg.seats;
+  const totalCents = perPersonCents * seats;
   return {
     tier,
-    seats: cfg.seats,
+    seats,
     perPersonCents,
     totalCents,
     perPersonEuros: Math.round(perPersonCents / 100),

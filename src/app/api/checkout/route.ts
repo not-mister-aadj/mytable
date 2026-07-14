@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { getMaxSeatsPerOrder, getSiteUrl } from "@/lib/env";
+import { getSiteUrl } from "@/lib/env";
 import { onBookingCreated, onCheckoutStarted } from "@/lib/customers/hooks";
 import {
   sendMetaCapiInitiateCheckout,
@@ -16,6 +16,7 @@ import { isTableLanguagePreference } from "@/lib/booking-table-language";
 import {
   computeTierPrice,
   isBookingTier,
+  resolveSeatsForTier,
   seatingForTier,
   tierForSeats,
 } from "@/lib/booking-tiers";
@@ -144,16 +145,30 @@ export async function POST(request: Request) {
     );
   }
 
-  const tierPrice = computeTierPrice(event.priceCents, requestedTier);
-  const seats = Math.min(getMaxSeatsPerOrder(), tierPrice.seats);
-
   const spotsLeft = event.capacity - event.spotsSold;
+  const requestedSeats = Math.max(1, Number(body.seats) || 1);
+  const seats = resolveSeatsForTier(requestedTier, requestedSeats, spotsLeft);
+
+  if (seats === null) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en"
+            ? "Invalid number of seats for this option."
+            : "Ongeldig aantal plekken voor deze optie.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const tierPrice = computeTierPrice(event.priceCents, requestedTier, seats);
+
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
   }
 
   const perSeatCents = tierPrice.perPersonCents;
-  const amountCents = perSeatCents * seats;
+  const amountCents = tierPrice.totalCents;
   const [booking] = await db
     .insert(bookings)
     .values({

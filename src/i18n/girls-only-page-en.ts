@@ -15,7 +15,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     subtitle:
       "The best club for girls (25-45) who love wine and good company",
     painHeadline:
-      "Friends busy or new in town? Book solo. You'll sit with groups and girls who came alone too.",
+      "Book solo. You'll sit with girls who came alone, and friend groups you can easily join too.",
     microcopy:
       "You don't need to coordinate anyone. Coming solo is totally normal here.",
     trustLine:

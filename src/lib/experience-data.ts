@@ -18,7 +18,10 @@ import {
   parseTypeContent,
   type ExperienceTypeContent,
 } from "@/lib/experience-type-content.types";
-import { publishedAgendaEventsWhere } from "@/lib/published-events-filter";
+import {
+  publishedAgendaEventsWhere,
+  publishedEventDetailWhere,
+} from "@/lib/published-events-filter";
 
 export async function loadTypeContentMap(
   slugs: string[],
@@ -47,7 +50,7 @@ export const getAgendaEventRowBySlug = cache(
     const [row] = await db
       .select()
       .from(events)
-      .where(and(publishedAgendaEventsWhere(), eq(events.slug, slug)))
+      .where(and(publishedEventDetailWhere(), eq(events.slug, slug)))
       .limit(1);
     return row;
   },
@@ -157,10 +160,5 @@ export async function getDbExperienceBySlug(
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
   if (!isDbEventsEnabled() || !isDbConfigured()) return undefined;
-  try {
-    return await getPublishedExperienceBySlug(locale, slug);
-  } catch (err) {
-    console.error("[experience-data] slug fetch failed", err);
-    return undefined;
-  }
+  return getPublishedExperienceBySlug(locale, slug);
 }

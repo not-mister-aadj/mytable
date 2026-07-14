@@ -105,24 +105,13 @@ export async function getAllExperiences(
   return getLandingExperiences(locale);
 }
 
-function cacheExperienceBySlug(locale: Locale, slug: string) {
-  return unstable_cache(
-    async () => getDbExperienceBySlug(locale, slug),
-    ["experience-by-slug", locale, slug],
-    {
-      revalidate: PUBLISHED_CACHE_SECONDS,
-      tags: [PUBLISHED_EVENTS_CACHE_TAG, `experience:${slug}`],
-    },
-  )();
-}
-
 export async function getExperienceBySlug(
   locale: Locale,
   slug: string,
 ): Promise<EnrichedExperience | undefined> {
   if (isDbEventsEnabled() && isDbConfigured()) {
     try {
-      const fromDb = await cacheExperienceBySlug(locale, slug);
+      const fromDb = await getDbExperienceBySlug(locale, slug);
       if (fromDb) return fromDb;
       return undefined;
     } catch (err) {

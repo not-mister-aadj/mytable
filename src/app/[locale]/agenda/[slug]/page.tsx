@@ -32,6 +32,7 @@ type Props = {
 };
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;

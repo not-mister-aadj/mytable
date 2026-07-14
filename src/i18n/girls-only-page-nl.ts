@@ -15,7 +15,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     subtitle:
       "De leukste club voor girls (25-45 jaar) die van wijn houden en gezelligheid",
     painHeadline:
-      "Vriendinnen druk of net verhuisd? Boek solo. Aan tafel zitten groepen én girls die alleen komen.",
+      "Boek solo. Aan tafel zitten girls die alleen komen, en ook vriendinnengroepen waar je fijn bij aanschuift.",
     microcopy:
       "Je hoeft niemand te regelen. Solo komen is hier normaal.",
     trustLine:

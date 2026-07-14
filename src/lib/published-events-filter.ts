@@ -18,6 +18,11 @@ export function publishedLandingEventsWhere(now = new Date()) {
   );
 }
 
+/** Any published event — used for direct /agenda/[slug] links (bookmarks, admin preview). */
+export function publishedEventDetailWhere() {
+  return eq(events.workflowStatus, "published");
+}
+
 /** Published events on the agenda page (incl. closed, up to 7 days after start). */
 export function publishedAgendaEventsWhere(now = new Date()) {
   const agendaCutoff = new Date(

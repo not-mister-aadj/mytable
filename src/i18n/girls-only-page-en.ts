@@ -15,7 +15,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     subtitle:
       "The best club for girls (25-45) who love wine and good company",
     painHeadline:
-      "Book solo. You'll sit with girls who came alone, and friend groups you can easily join too.",
+      "Book solo and sit with other girls who came alone. With friends? Reserve your own table.",
     microcopy:
       "You don't need to coordinate anyone. Coming solo is totally normal here.",
     trustLine:
@@ -102,42 +102,21 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     tables: "Upcoming Sundays",
     howItWorks: "How it works",
     testimonials: "What girls say",
-    whyJoin: "Why girls join",
     faq: "FAQ",
     founder: "Our story",
   },
   howItWorks: {
-    title: "How it works",
-    subtitle: "Book your Sunday and show up. Solo or with friends.",
-    includedTitle: "What you get",
-    includedItems: [
+    eyebrow: "Girls-only wine & bites",
+    title: "Ready for a fun Sunday?",
+    subtitle:
+      "Four wines, bites, and great company at the table. Solo or with friends.",
+    highlights: [
+      "Sunday 2:00–5:00 PM",
       "4 wines with paired bites",
-      "A table full of great company",
-      "A special culinary spot in the city",
+      "Solo welcome, we'll seat you",
+      "From €39 pp · free exchange up to 48 hours",
     ],
-    detailsTitle: "The details",
-    detailsItems: [
-      "Sunday 2:00 PM to 5:00 PM",
-      "€49 per person",
-      "Free date exchange up to 48 hours before",
-      "Solo or with friends",
-    ],
-    steps: [
-      {
-        title: "Pick your Sunday",
-        description: "Choose your city and date, then reserve.",
-      },
-      {
-        title: "Book solo or with friends",
-        description:
-          "Come alone or with your friends. Solo is totally normal here, and groups are welcome too. We'll find your spot at the table.",
-      },
-      {
-        title: "Taste, laugh, and meet girls",
-        description:
-          "Four wines, bites, and a table full of great company. No speed dating, just a lovely afternoon.",
-      },
-    ],
+    cta: "View the agenda",
   },
   benefits: {
     title: "Why girls join",

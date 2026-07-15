@@ -29,18 +29,15 @@ export interface GirlsOnlyPageLabels {
     tables: string;
     howItWorks: string;
     testimonials: string;
-    whyJoin: string;
     faq: string;
     founder: string;
   };
   howItWorks: {
+    eyebrow: string;
     title: string;
     subtitle: string;
-    includedTitle: string;
-    includedItems: string[];
-    detailsTitle: string;
-    detailsItems: string[];
-    steps: { title: string; description: string }[];
+    highlights: string[];
+    cta: string;
   };
   benefits: {
     title: string;

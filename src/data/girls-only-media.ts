@@ -8,14 +8,15 @@ export type GirlsOnlySocialImage = {
   };
 };
 
-const galleryImages = [
-  {
-    src: "/girls-only/table-wine-laughing.jpg",
-    alt: {
-      nl: "Vrouwen lachen aan tafel met wijn tijdens een girls-only zondagmiddag",
-      en: "Women laughing at the table with wine during a girls-only Sunday afternoon",
-    },
+const howItWorksImage = {
+  src: "/girls-only/table-wine-laughing.jpg",
+  alt: {
+    nl: "Vrouwen lachen aan tafel met wijn tijdens een girls-only zondagmiddag",
+    en: "Women laughing at the table with wine during a girls-only Sunday afternoon",
   },
+} as const satisfies GirlsOnlySocialImage;
+
+const galleryImages = [
   {
     src: "/girls-only/crowd-evening.jpg",
     alt: {
@@ -96,4 +97,12 @@ export function getGirlsOnlyHeroSlideshowImages(locale: Locale) {
     src: image.src,
     alt: image.alt[lang],
   }));
+}
+
+export function getGirlsOnlyHowItWorksImage(locale: Locale) {
+  const lang = locale === "en" ? "en" : "nl";
+  return {
+    src: howItWorksImage.src,
+    alt: howItWorksImage.alt[lang],
+  };
 }

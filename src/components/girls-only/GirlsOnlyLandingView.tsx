@@ -13,6 +13,7 @@ import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { GirlsOnlyUpcomingEvents } from "@/components/girls-only/GirlsOnlyUpcomingEvents";
 import { GirlsOnlyPresaleSignup } from "@/components/girls-only/GirlsOnlyPresaleSignup";
 import { GirlsOnlyStickyCta, GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/GirlsOnlyStickyCta";
+import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
 
 interface GirlsOnlyLandingViewProps {
   labels: GirlsOnlyPageLabels;
@@ -78,83 +79,69 @@ function HowItWorksSection({
   locale: Locale;
   agendaHref: string;
 }) {
+  const { howItWorks } = labels;
+  const howItWorksImage = getGirlsOnlyHowItWorksImage(locale);
+
   return (
     <section
       id="how-it-works"
       className={`scroll-mt-20 bg-rose-soft/35 ${sectionPad}`}
     >
-      <div className="mx-auto max-w-3xl px-5 sm:px-8 lg:px-10">
-        <div className="text-center">
-          <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
-            {labels.howItWorks.title}
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-wine/65 sm:text-base">
-            {labels.howItWorks.subtitle}
-          </p>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-rose/20 bg-white/90 p-5 sm:mt-6 sm:p-6">
-          <div className="grid gap-6 sm:grid-cols-2 sm:gap-8">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-deep">
-                {labels.howItWorks.includedTitle}
-              </p>
-              <ul className="mt-3 space-y-2">
-                {labels.howItWorks.includedItems.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm leading-snug text-wine/80"
-                  >
-                    <span aria-hidden className="mt-0.5 text-rose-deep">
-                      ✓
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 xl:gap-16">
+          <figure className="relative mx-auto w-full max-w-lg lg:max-w-none">
+            <div
+              className="pointer-events-none absolute -left-3 top-6 h-24 w-24 rounded-full bg-rose/25 blur-2xl sm:h-32 sm:w-32"
+              aria-hidden
+            />
+            <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.2)]">
+              <div className="aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={howItWorksImage.src}
+                  alt={howItWorksImage.alt}
+                  className="h-full w-full object-cover"
+                />
+              </div>
             </div>
+          </figure>
 
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-deep">
-                {labels.howItWorks.detailsTitle}
-              </p>
-              <ul className="mt-3 space-y-2">
-                {labels.howItWorks.detailsItems.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm leading-snug text-wine/80"
+          <div className="text-center lg:text-left">
+            <SectionEyebrow>{howItWorks.eyebrow}</SectionEyebrow>
+            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]">
+              {howItWorks.title}
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-wine/70 sm:text-lg lg:mx-0">
+              {howItWorks.subtitle}
+            </p>
+
+            <ul className="mx-auto mt-6 max-w-md space-y-3 text-left lg:mx-0 lg:max-w-lg">
+              {howItWorks.highlights.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-start gap-3 text-sm leading-snug text-wine/85 sm:text-base"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose/15 text-xs text-rose-deep"
                   >
-                    <span aria-hidden className="mt-0.5 text-wine/40">
-                      ·
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+                    ✓
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-8 flex justify-center lg:justify-start">
+              <GirlsOnlyCta href={agendaHref} className="w-full sm:w-auto">
+                {howItWorks.cta}
+              </GirlsOnlyCta>
             </div>
           </div>
-
-          <div className="my-5 border-t border-rose/15" />
-
-          <ol className="space-y-4">
-            {labels.howItWorks.steps.map((step, index) => (
-              <li key={step.title} className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose font-serif text-sm font-medium text-cream">
-                  {index + 1}
-                </span>
-                <div>
-                  <h3 className="font-medium text-wine">{step.title}</h3>
-                  <p className="mt-0.5 text-sm leading-relaxed text-wine/65">
-                    {step.description}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
         </div>
       </div>
 
-      <div className="px-5 sm:px-8 lg:px-10">
+      <div className="mt-10 px-5 sm:mt-12 sm:px-8 lg:mt-14 lg:px-10">
         <GirlsOnlyUpcomingEvents
           events={upcomingEvents}
           locale={locale}

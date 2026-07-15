@@ -15,7 +15,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     subtitle:
       "De leukste club voor girls (25-45 jaar) die van wijn houden en gezelligheid",
     painHeadline:
-      "Boek solo. Aan tafel zitten girls die alleen komen, en ook vriendinnengroepen waar je fijn bij aanschuift.",
+      "Boek solo en zit aan bij andere girls die alleen komen. Met vriendinnen? Reserveer jullie eigen tafel.",
     microcopy:
       "Je hoeft niemand te regelen. Solo komen is hier normaal.",
     trustLine:
@@ -102,42 +102,21 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     tables: "Aankomende zondagen",
     howItWorks: "Hoe het werkt",
     testimonials: "Wat girls zeggen",
-    whyJoin: "Waarom girls komen",
     faq: "FAQ",
     founder: "Ons verhaal",
   },
   howItWorks: {
-    title: "Hoe het werkt",
-    subtitle: "Boek je zondag en kom langs. Solo of met vriendinnen.",
-    includedTitle: "Wat je krijgt",
-    includedItems: [
-      "4 wijnen met gepaarde bites",
-      "Een tafel vol gezellige meiden",
-      "Een bijzondere culinaire plek in de stad",
+    eyebrow: "Girls-only wijnspijs",
+    title: "Klaar voor een gezellige zondag?",
+    subtitle:
+      "Vier wijnen, bites en meiden aan tafel. Solo of met vriendinnen.",
+    highlights: [
+      "Zondag 14:00–17:00",
+      "4 wijnen met bijpassende bites",
+      "Solo welkom, wij regelen je plek",
+      "Vanaf €39 p.p. · gratis ruilen tot 48 uur",
     ],
-    detailsTitle: "De details",
-    detailsItems: [
-      "Zondag 14:00 tot 17:00",
-      "€49 per persoon",
-      "Gratis ruilen tot 48 uur van tevoren",
-      "Solo of met vriendinnen",
-    ],
-    steps: [
-      {
-        title: "Kies je zondag",
-        description: "Kies stad en datum en reserveer.",
-      },
-      {
-        title: "Boek solo of met vriendinnen",
-        description:
-          "Kom alleen of met je vriendinnen. Solo is hier normaal, met je groep kan ook. Wij regelen je plek aan tafel.",
-      },
-      {
-        title: "Kom proeven en ontmoeten",
-        description:
-          "Vier wijnen, bites en een tafel vol gezellige meiden. Geen speeddating, gewoon een fijne middag.",
-      },
-    ],
+    cta: "Bekijk de agenda",
   },
   benefits: {
     title: "Waarom girls komen",

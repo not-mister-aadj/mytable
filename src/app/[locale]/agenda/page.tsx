@@ -4,8 +4,17 @@ import { AgendaGridSkeleton } from "@/components/agenda/AgendaGridSkeleton";
 import { NewsletterCTA } from "@/components/agenda/NewsletterCTA";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { isValidLocale } from "@/i18n/config";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { agendaPath, experiencePath, isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { getAgendaExperiences } from "@/lib/experiences";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import {
+  breadcrumbJsonLd,
+  itemListJsonLd,
+  organizationJsonLd,
+} from "@/lib/seo/json-ld";
+import { absoluteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -21,10 +30,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
   const dict = getDictionary(locale);
-  return {
-    title: `${dict.agenda.hero.title} | MyTable`,
+  const title =
+    locale === "en"
+      ? `Wine tasting agenda Netherlands | MyTable`
+      : `Agenda wijnproeverijen Nederland | MyTable`;
+  return buildPageMetadata({
+    locale,
+    kind: "agenda",
+    title,
     description: dict.agenda.hero.subtitle,
-  };
+  });
 }
 
 export function generateStaticParams() {
@@ -36,9 +51,39 @@ export default async function AgendaPage({ params }: Props) {
   if (!isValidLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
+  const experiences = await getAgendaExperiences(locale as Locale);
+  const pageUrl = absoluteUrl(agendaPath(locale));
 
   return (
     <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          breadcrumbJsonLd([
+            { name: "MyTable", path: locale === "en" ? "/en" : "/" },
+            {
+              name: locale === "en" ? "Agenda" : "Agenda",
+              path: agendaPath(locale),
+            },
+          ]),
+          itemListJsonLd({
+            name:
+              locale === "en"
+                ? "Upcoming MyTable experiences"
+                : "Aankomende MyTable tafels",
+            description: dict.agenda.hero.subtitle,
+            pageUrl,
+            items: experiences
+              .filter((item) => item.slug)
+              .slice(0, 30)
+              .map((item, index) => ({
+                name: `${item.experienceName} · ${item.city}`,
+                url: absoluteUrl(experiencePath(locale, item.slug)),
+                position: index + 1,
+              })),
+          }),
+        ]}
+      />
       <Header dict={dict.header} locale={locale} />
       <main className="bg-cream">
         <AgendaHero hero={dict.agenda.hero} />

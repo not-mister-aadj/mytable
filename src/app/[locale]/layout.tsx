@@ -17,7 +17,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isValidLocale(locale)) return {};
   const dict = getDictionary(locale);
   return {
-    title: dict.meta.title,
+    title: {
+      default: dict.meta.title,
+      template: "%s",
+    },
     description: dict.meta.description,
   };
 }

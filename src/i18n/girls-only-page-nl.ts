@@ -4,9 +4,9 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   socialPromise:
     "Vier wijnen, gepaarde bites, één tafel. Jij boekt, wij regelen de rest.",
   meta: {
-    title: "Girls-only wijnspijs op zondagmiddag",
+    title: "Girls-only wijnproeverij op zondag | Solo of met vriendinnen",
     description:
-      "Elke zondagmiddag girls-only wijnproeverijen door heel Nederland. Kom solo of met vriendinnen. Wij regelen wijn, bites en gezellige meiden aan tafel.",
+      "Girls-only wijnspijs elke zondagmiddag in Nederland. Boek solo of met vriendinnen, wij regelen wijn, bites en een gezellige tafel. Rotterdam, Den Haag, Amsterdam, Utrecht en meer.",
   },
   hero: {
     eyebrow: "Girls only",

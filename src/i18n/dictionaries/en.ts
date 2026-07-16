@@ -5,9 +5,9 @@ import { bookingOutcomeEn } from "../booking-outcome-en";
 
 export const en: Dictionary = {
   meta: {
-    title: "MyTable · Good food. Fine wines. Great tables.",
+    title: "MyTable · Wine tastings & social tables in the Netherlands",
     description:
-      "From wine tastings to chef's specials: discover social tables at special venues across the Netherlands.",
+      "Book a wine tasting or chef's special at one table. Girls only or mixed, solo or with friends. Every Sunday in cities across the Netherlands.",
   },
   header: {
     nav: {

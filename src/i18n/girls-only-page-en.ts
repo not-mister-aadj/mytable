@@ -4,9 +4,9 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   socialPromise:
     "Four wines, paired bites, one table. You book, we handle the rest.",
   meta: {
-    title: "Girls-only wine & bites on Sunday afternoon",
+    title: "Girls-only wine tasting on Sunday | Solo or with friends",
     description:
-      "Girls-only wine tastings every Sunday afternoon across the Netherlands. Come solo or with friends. We handle the wine, bites, and great company at the table.",
+      "Girls-only wine & bites every Sunday afternoon in the Netherlands. Book solo or with friends — we handle wine, bites and a fun table. Rotterdam, The Hague, Amsterdam, Utrecht and more.",
   },
   hero: {
     eyebrow: "Girls only",

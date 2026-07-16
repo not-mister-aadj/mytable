@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ExperiencesSection } from "@/components/ExperiencesSection";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
@@ -7,11 +8,12 @@ import { HomeStickyCta } from "@/components/HomeStickyCta";
 import { HowItWorks } from "@/components/HowItWorks";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { PrefetchCriticalRoutes } from "@/components/PrefetchCriticalRoutes";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { Testimonials } from "@/components/Testimonials";
 import { ValueStrip } from "@/components/ValueStrip";
 import { VenueCTA } from "@/components/VenueCTA";
 import { VenueDiscovery } from "@/components/VenueDiscovery";
-import { agendaPath, experiencePath, isValidLocale } from "@/i18n/config";
+import { agendaPath, experiencePath, isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionaryWithLanding } from "@/i18n/get-dictionary";
 import {
   enrichExperience,
@@ -20,6 +22,13 @@ import {
 } from "@/lib/experience-detail";
 import { getNextUpcomingExperience } from "@/lib/upcoming-event";
 import { warmNavigationCaches } from "@/lib/warm-navigation-cache";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import {
+  faqPageJsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/json-ld";
+import { absoluteUrl } from "@/lib/seo/site";
 import { notFound } from "next/navigation";
 
 /** Revalidate published events every minute; admin publish calls revalidateEventPaths. */
@@ -28,6 +37,18 @@ export const revalidate = 60;
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+  const dict = await getDictionaryWithLanding(locale);
+  return buildPageMetadata({
+    locale,
+    kind: "home",
+    title: dict.meta.title,
+    description: dict.meta.description,
+  });
+}
 
 export default async function Home({ params }: Props) {
   const { locale } = await params;
@@ -60,8 +81,17 @@ export default async function Home({ params }: Props) {
       })()
     : null;
 
+  const homeUrl = absoluteUrl(locale === "en" ? "/en" : "/");
+
   return (
     <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          websiteJsonLd(locale as Locale),
+          faqPageJsonLd(dict.faq.items, homeUrl),
+        ]}
+      />
       <PrefetchCriticalRoutes locale={locale} hrefs={prefetchHrefs} />
       <Header dict={dict.header} locale={locale} />
       <main className="pb-20 lg:pb-0">

@@ -5,9 +5,9 @@ import { bookingOutcomeNl } from "../booking-outcome-nl";
 
 export const nl: Dictionary = {
   meta: {
-    title: "MyTable · Goed eten. Mooie wijnen. Gezellige tafels.",
+    title: "MyTable · Wijnproeverijen & gezellige tafels in Nederland",
     description:
-      "Van wijnproeverijen tot chef's specials: ontdek sociale tafels op bijzondere locaties door heel Nederland.",
+      "Boek een wijnproeverij of chef's special aan één tafel. Girls only of gemengd, solo of met vriendinnen. Elke zondag in steden door heel Nederland.",
   },
   header: {
     nav: {

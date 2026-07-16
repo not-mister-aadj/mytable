@@ -2,8 +2,8 @@
 export const companyLegal = {
   legalName: "DevBux",
   tradeName: "MyTable",
-  website: "mytable.club",
-  websiteUrl: "https://mytable.club",
+  website: "www.mytable.club",
+  websiteUrl: "https://www.mytable.club",
   email: "info@mytable.club",
   address: {
     line1: "Hm van Randwijkhove 77",

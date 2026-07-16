@@ -5,6 +5,7 @@ import {
   LegalPage,
 } from "@/components/legal/LegalPage";
 import { getLegalDocument } from "@/i18n/get-legal-document";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -14,7 +15,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (locale !== "nl") return {};
   const document = getLegalDocument("nl", "terms");
-  return { title: document.metaTitle };
+  return buildPageMetadata({
+    locale: "nl",
+    kind: "terms",
+    title: `${document.metaTitle} | MyTable`,
+    description:
+      "Algemene voorwaarden voor boekingen en deelname aan MyTable-ervaringen.",
+  });
 }
 
 export default async function TermsNlPage({ params }: Props) {

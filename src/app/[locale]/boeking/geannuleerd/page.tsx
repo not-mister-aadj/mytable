@@ -6,6 +6,12 @@ import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getEventSummaryBySlug } from "@/lib/booking-outcome-data";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: "Boeking geannuleerd | MyTable",
+};
 
 type Props = {
   params: Promise<{ locale: string }>;

@@ -17,6 +17,7 @@ export function revalidateEventPaths(slug: string) {
     "/en",
     "/girls-only",
     "/en/girls-only",
+    "/sitemap.xml",
     "/admin/bookings",
   ]) {
     revalidatePath(path);

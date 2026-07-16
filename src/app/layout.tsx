@@ -9,10 +9,41 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: "MyTable",
+  authors: [{ name: "MyTable", url: siteUrl }],
+  creator: "MyTable",
+  publisher: "MyTable",
+  category: "food",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   icons: {
     icon: "/icon.png",
     apple: "/apple-touch-icon.png",
     shortcut: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "MyTable",
+    locale: "nl_NL",
+    alternateLocale: ["en_GB"],
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 

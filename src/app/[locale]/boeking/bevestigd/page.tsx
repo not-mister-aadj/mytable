@@ -17,8 +17,14 @@ import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
 import { ensureConfirmationEmailForCheckoutSession } from "@/lib/email/ensure-confirmation-email";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: "Boeking bevestigd | MyTable",
+};
 
 type Props = {
   params: Promise<{ locale: string }>;

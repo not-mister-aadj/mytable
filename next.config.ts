@@ -13,6 +13,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/girls-only",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/en/girls-only",
+        destination: "/en",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

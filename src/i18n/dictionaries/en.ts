@@ -136,7 +136,7 @@ export const en: Dictionary = {
       {
         title: "Show up Sunday afternoon",
         description:
-          "Four wines, chef's bites, and good company. Plan for the whole afternoon — often the fun keeps going afterward.",
+          "Four wines, chef's bites, and good company. Plan for the whole afternoon, often the fun keeps going afterward.",
       },
     ],
   },
@@ -271,6 +271,15 @@ export const en: Dictionary = {
   bookingOutcome: bookingOutcomeEn,
   footer: {
     tagline: "Good taste. Great company.",
+    description:
+      "Social wine tastings at one table across the Netherlands. Book solo or with friends. We handle wine, bites, and the right table mix.",
+    nationwide: "All of the Netherlands",
+    columns: {
+      explore: "Explore",
+      info: "Information",
+      popularCities: "Popular cities",
+    },
+    allCitiesCta: "All cities",
     links: {
       experiences: "Available tables",
       howItWorks: "How it works",

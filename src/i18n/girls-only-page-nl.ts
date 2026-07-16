@@ -1,3 +1,4 @@
+import { listGirlsOnlyCityNames } from "@/data/girls-only-cities";
 import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
@@ -101,6 +102,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   headerNav: {
     tables: "Aankomende zondagen",
     howItWorks: "Hoe het werkt",
+    priorityList: "Priority list",
     testimonials: "Wat girls zeggen",
     faq: "FAQ",
     founder: "Ons verhaal",
@@ -162,7 +164,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     citiesLabel: "Waar wil je aan tafel?",
     citiesHint: "Kies één of meerdere steden",
     citiesRequired: "Kies minstens één stad",
-    cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
+    cities: listGirlsOnlyCityNames(),
     emailLabel: "E-mail",
     emailPlaceholder: "je@email.nl",
     cta: "Join de priority list",

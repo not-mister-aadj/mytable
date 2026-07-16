@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import type { Locale } from "@/i18n/config";
+import { girlsOnlyCityPath } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import {
   getGirlsOnlyTestimonials,
   splitGirlsOnlyTestimonialRows,
 } from "@/data/girls-only-testimonials";
+import { listGirlsOnlyCities } from "@/data/girls-only-cities";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 import { Button } from "@/components/ui/Button";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
@@ -404,6 +407,29 @@ export function GirlsOnlyLandingView({
       ) : null}
 
       <BenefitsSection labels={labels} />
+
+      <section
+        id="cities"
+        className="scroll-mt-20 border-t border-rose/10 bg-cream py-10 sm:py-12"
+      >
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-deep">
+            {locale === "nl" ? "Kies jouw stad" : "Choose your city"}
+          </p>
+          <ul className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">
+            {listGirlsOnlyCities().map((city) => (
+              <li key={city.slug}>
+                <Link
+                  href={girlsOnlyCityPath(locale, city.slug)}
+                  className="inline-flex min-h-11 items-center rounded-full border border-rose/20 bg-beige/80 px-5 py-2.5 text-sm font-medium text-wine transition hover:border-rose hover:bg-rose-soft/40"
+                >
+                  {city.cityName}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
       <GirlsOnlyFaq labels={labels} />
 

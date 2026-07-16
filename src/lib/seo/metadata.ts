@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import {
   agendaPath,
   experiencePath,
-  girlsOnlyPath,
+  girlsOnlyCityPath,
   localePath,
   privacyPath,
   termsPath,
@@ -14,6 +14,7 @@ export type SeoPathKind =
   | "home"
   | "agenda"
   | "girlsOnly"
+  | "girlsOnlyCity"
   | "experience"
   | "privacy"
   | "terms";
@@ -21,11 +22,13 @@ export type SeoPathKind =
 function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
   switch (kind) {
     case "home":
+    case "girlsOnly":
       return localePath(locale);
     case "agenda":
       return agendaPath(locale);
-    case "girlsOnly":
-      return girlsOnlyPath(locale);
+    case "girlsOnlyCity":
+      if (!slug) throw new Error("girlsOnlyCity SEO path requires city slug");
+      return girlsOnlyCityPath(locale, slug);
     case "experience":
       if (!slug) throw new Error("experience SEO path requires slug");
       return experiencePath(locale, slug);

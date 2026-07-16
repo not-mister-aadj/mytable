@@ -1,11 +1,12 @@
 import {
   agendaPath,
   experiencePath,
-  girlsOnlyPath,
+  girlsOnlyCityPath,
   localePath,
   privacyPath,
   termsPath,
 } from "@/i18n/config";
+import { listGirlsOnlyCities } from "@/data/girls-only-cities";
 import { getAgendaExperiences } from "@/lib/experiences";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
 
@@ -90,19 +91,21 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
     ...pair({
       nlPath: localePath("nl"),
       enPath: localePath("en"),
-      changefreq: "weekly",
+      changefreq: "daily",
       priority: 1,
       lastmod: now,
       images: [absoluteUrl("/girls-only/hero-poster.jpg")],
     }),
-    ...pair({
-      nlPath: girlsOnlyPath("nl"),
-      enPath: girlsOnlyPath("en"),
-      changefreq: "daily",
-      priority: 0.95,
-      lastmod: now,
-      images: [absoluteUrl("/girls-only/hero-poster.jpg")],
-    }),
+    ...listGirlsOnlyCities().flatMap((city) =>
+      pair({
+        nlPath: girlsOnlyCityPath("nl", city.slug),
+        enPath: girlsOnlyCityPath("en", city.slug),
+        changefreq: "daily",
+        priority: 0.92,
+        lastmod: now,
+        images: [absoluteUrl(city.heroImage)],
+      }),
+    ),
     ...pair({
       nlPath: agendaPath("nl"),
       enPath: agendaPath("en"),

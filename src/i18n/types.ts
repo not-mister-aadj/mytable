@@ -379,6 +379,14 @@ export interface Dictionary {
   bookingOutcome: BookingOutcomeLabels;
   footer: {
     tagline: string;
+    description: string;
+    nationwide: string;
+    columns: {
+      explore: string;
+      info: string;
+      popularCities: string;
+    };
+    allCitiesCta: string;
     links: {
       experiences: string;
       howItWorks: string;

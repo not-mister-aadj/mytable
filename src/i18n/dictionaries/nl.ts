@@ -137,7 +137,7 @@ export const nl: Dictionary = {
       {
         title: "Kom zondag aan tafel",
         description:
-          "Vier wijnen, chef's bites en gezelschap. Plan de hele middag — vaak gaat het daarna nog gezellig door.",
+          "Vier wijnen, chef's bites en gezelschap. Plan de hele middag, vaak gaat het daarna nog gezellig door.",
       },
     ],
   },
@@ -272,6 +272,15 @@ export const nl: Dictionary = {
   bookingOutcome: bookingOutcomeNl,
   footer: {
     tagline: "Goede smaak. Goed gezelschap.",
+    description:
+      "Sociale wijnproeverijen aan één tafel door heel Nederland. Boek solo of met vrienden. Wij regelen wijn, bites en de juiste tafelmix.",
+    nationwide: "Heel Nederland",
+    columns: {
+      explore: "Ontdekken",
+      info: "Informatie",
+      popularCities: "Populaire steden",
+    },
+    allCitiesCta: "Alle steden",
     links: {
       experiences: "Beschikbare tafels",
       howItWorks: "Zo werkt het",

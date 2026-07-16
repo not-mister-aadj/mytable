@@ -12,7 +12,9 @@ import { Logo } from "@/components/Logo";
 
 interface GirlsOnlyHeaderProps {
   headerDict: Dictionary["header"];
-  nav: GirlsOnlyPageLabels["headerNav"];
+  nav?: GirlsOnlyPageLabels["headerNav"];
+  /** Override default landing-page anchors (e.g. city pages). */
+  navLinks?: { label: string; href: string }[];
   ctaLabel: string;
   ctaHref: string;
   locale: Locale;
@@ -27,6 +29,7 @@ const ctaClassName =
 export function GirlsOnlyHeader({
   headerDict,
   nav,
+  navLinks,
   ctaLabel,
   ctaHref,
   locale,
@@ -35,12 +38,17 @@ export function GirlsOnlyHeader({
   const [scrolled, setScrolled] = useState(false);
   const pageRoot = girlsOnlyPath(locale);
 
-  const navLinks = [
-    { label: nav.howItWorks, href: "#how-it-works" },
-    { label: nav.testimonials, href: "#social-proof" },
-    { label: nav.faq, href: "#faq" },
-    { label: nav.founder, href: "#founder" },
-  ];
+  const resolvedNavLinks =
+    navLinks ??
+    (nav
+      ? [
+          { label: nav.howItWorks, href: "#how-it-works" },
+          { label: nav.priorityList, href: "#presale" },
+          { label: nav.testimonials, href: "#social-proof" },
+          { label: nav.faq, href: "#faq" },
+          { label: nav.founder, href: "#founder" },
+        ]
+      : []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -81,7 +89,7 @@ export function GirlsOnlyHeader({
             className="hidden items-center gap-6 lg:flex xl:gap-8"
             aria-label="Main navigation"
           >
-            {navLinks.map((link) => (
+            {resolvedNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -159,7 +167,7 @@ export function GirlsOnlyHeader({
       >
         <div className="flex flex-1 flex-col justify-center px-8 pb-10 pt-24">
           <ul className="flex flex-col gap-5">
-            {navLinks.map((link) => (
+            {resolvedNavLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}

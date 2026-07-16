@@ -74,5 +74,12 @@ export function privacyPath(locale: Locale): string {
 }
 
 export function girlsOnlyPath(locale: Locale): string {
-  return locale === "en" ? "/en/girls-only" : "/girls-only";
+  /** National girls-only landing is the site home. */
+  return localePath(locale);
+}
+
+export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
+  return locale === "en"
+    ? `/en/girls-only/${citySlug}`
+    : `/girls-only/${citySlug}`;
 }

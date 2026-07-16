@@ -28,6 +28,7 @@ export interface GirlsOnlyPageLabels {
   headerNav: {
     tables: string;
     howItWorks: string;
+    priorityList: string;
     testimonials: string;
     faq: string;
     founder: string;

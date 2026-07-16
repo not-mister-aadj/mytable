@@ -1,3 +1,4 @@
+import { listGirlsOnlyCityNames } from "@/data/girls-only-cities";
 import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
@@ -6,7 +7,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   meta: {
     title: "Girls-only wine tasting on Sunday | Solo or with friends",
     description:
-      "Girls-only wine & bites every Sunday afternoon in the Netherlands. Book solo or with friends — we handle wine, bites and a fun table. Rotterdam, The Hague, Amsterdam, Utrecht and more.",
+      "Girls-only wine & bites every Sunday afternoon in the Netherlands. Book solo or with friends, we handle wine, bites and a fun table. Rotterdam, The Hague, Amsterdam, Utrecht and more.",
   },
   hero: {
     eyebrow: "Girls only",
@@ -101,6 +102,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   headerNav: {
     tables: "Upcoming Sundays",
     howItWorks: "How it works",
+    priorityList: "Priority list",
     testimonials: "What girls say",
     faq: "FAQ",
     founder: "Our story",
@@ -162,7 +164,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     citiesLabel: "Where do you want a seat?",
     citiesHint: "Choose one or more cities",
     citiesRequired: "Choose at least one city",
-    cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
+    cities: listGirlsOnlyCityNames(),
     emailLabel: "Email",
     emailPlaceholder: "you@email.com",
     cta: "Join the priority list",

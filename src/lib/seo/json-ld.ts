@@ -193,3 +193,58 @@ export function itemListJsonLd(input: {
     })),
   };
 }
+
+/** City landing page: Service + WebPage for local SEO. */
+export function girlsOnlyCityJsonLd(input: {
+  pageUrl: string;
+  locale: Locale;
+  cityName: string;
+  region: string;
+  title: string;
+  description: string;
+}): JsonLd[] {
+  const { pageUrl, locale, cityName, region, title, description } = input;
+  const inLanguage = locale === "en" ? "en" : "nl";
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: title,
+      description,
+      inLanguage,
+      isPartOf: { "@id": websiteId() },
+      about: { "@id": `${pageUrl}#service` },
+      breadcrumb: { "@id": `${pageUrl}#breadcrumb` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "@id": `${pageUrl}#service`,
+      name: title,
+      description,
+      url: pageUrl,
+      provider: { "@id": orgId() },
+      serviceType:
+        locale === "en"
+          ? "Girls-only wine tasting"
+          : "Girls-only wijnproeverij",
+      areaServed: {
+        "@type": "City",
+        name: cityName,
+        containedInPlace: {
+          "@type": "AdministrativeArea",
+          name: region,
+        },
+      },
+      offers: {
+        "@type": "Offer",
+        availability: "https://schema.org/InStock",
+        priceCurrency: "EUR",
+        url: pageUrl,
+      },
+    },
+  ];
+}

@@ -18,3 +18,16 @@ export function absoluteImageUrl(src: string | undefined | null): string | undef
   if (!src?.trim()) return undefined;
   return absoluteUrl(src.trim());
 }
+
+/**
+ * Next.js does not XML-escape `&` in sitemap `image:loc` values.
+ * Unsplash/CDN URLs with query strings (`?w=600&q=80`) break the XML parser.
+ */
+export function sitemapXmlUrl(url: string): string {
+  return url
+    .replace(/&/g, "&amp;")
+    .replace(/'/g, "&apos;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}

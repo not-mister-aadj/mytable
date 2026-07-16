@@ -8,10 +8,22 @@ import {
   termsPath,
 } from "@/i18n/config";
 import { getAgendaExperiences } from "@/lib/experiences";
-import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
+import {
+  absoluteImageUrl,
+  absoluteUrl,
+  getSeoSiteUrl,
+  sitemapXmlUrl,
+} from "@/lib/seo/site";
 
 /** Refresh when events publish / sell out. */
 export const revalidate = 3600;
+
+function sitemapImages(urls: Array<string | undefined | null>): string[] | undefined {
+  const escaped = urls
+    .filter((url): url is string => Boolean(url))
+    .map(sitemapXmlUrl);
+  return escaped.length ? escaped : undefined;
+}
 
 function localizedEntry(input: {
   nlPath: string;
@@ -24,6 +36,7 @@ function localizedEntry(input: {
   const nlUrl = absoluteUrl(input.nlPath);
   const enUrl = absoluteUrl(input.enPath);
   const languages = { nl: nlUrl, en: enUrl, "x-default": nlUrl };
+  const images = input.images ? sitemapImages(input.images) : undefined;
 
   return [
     {
@@ -32,7 +45,7 @@ function localizedEntry(input: {
       changeFrequency: input.changeFrequency,
       priority: input.priority,
       alternates: { languages },
-      ...(input.images?.length ? { images: input.images } : {}),
+      ...(images ? { images } : {}),
     },
     {
       url: enUrl,
@@ -40,7 +53,7 @@ function localizedEntry(input: {
       changeFrequency: input.changeFrequency,
       priority: Math.max(0.1, input.priority - 0.05),
       alternates: { languages },
-      ...(input.images?.length ? { images: input.images } : {}),
+      ...(images ? { images } : {}),
     },
   ];
 }

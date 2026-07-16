@@ -23,7 +23,6 @@ type SitemapUrl = {
   lastmod: string;
   changefreq: ChangeFreq;
   priority: number;
-  alternates?: { nl: string; en: string };
   images?: string[];
 };
 
@@ -62,26 +61,22 @@ function pair(input: {
   lastmod?: Date | string | null;
   images?: string[];
 }): SitemapUrl[] {
-  const nl = absoluteUrl(input.nlPath);
-  const en = absoluteUrl(input.enPath);
   const lastmod = toLastmod(input.lastmod);
   const images = input.images?.map(cleanImageUrl).filter(Boolean);
 
   return [
     {
-      loc: nl,
+      loc: absoluteUrl(input.nlPath),
       lastmod,
       changefreq: input.changefreq,
       priority: input.priority,
-      alternates: { nl, en },
       images,
     },
     {
-      loc: en,
+      loc: absoluteUrl(input.enPath),
       lastmod,
       changefreq: input.changefreq,
       priority: Math.max(0.1, Number((input.priority - 0.05).toFixed(2))),
-      alternates: { nl, en },
       images,
     },
   ];
@@ -156,47 +151,38 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
   return urls;
 }
 
+/**
+ * Match the browser-friendly format used by sites like glazenwasser.nl:
+ * single-line urlset attrs, no xhtml:link (that namespace makes Chrome
+ * render the file as HTML and hide the tags).
+ * Hreflang stays on page metadata — that is the primary signal for Google.
+ */
 export function renderSitemapXml(urls: SitemapUrl[]): string {
   const body = urls
     .map((entry) => {
-      const lines = [
-        "  <url>",
-        `    <loc>${escapeXml(entry.loc)}</loc>`,
-      ];
-
-      if (entry.alternates) {
-        lines.push(
-          `    <xhtml:link rel="alternate" hreflang="nl" href="${escapeXml(entry.alternates.nl)}" />`,
-          `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(entry.alternates.en)}" />`,
-          `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(entry.alternates.nl)}" />`,
-        );
-      }
+      const parts = [`<url>`, `<loc>${escapeXml(entry.loc)}</loc>`];
 
       for (const image of entry.images ?? []) {
-        lines.push(
-          "    <image:image>",
-          `      <image:loc>${escapeXml(image)}</image:loc>`,
-          "    </image:image>",
+        parts.push(
+          `<image:image>`,
+          `<image:loc>${escapeXml(image)}</image:loc>`,
+          `</image:image>`,
         );
       }
 
-      lines.push(
-        `    <lastmod>${escapeXml(entry.lastmod)}</lastmod>`,
-        `    <changefreq>${entry.changefreq}</changefreq>`,
-        `    <priority>${entry.priority}</priority>`,
-        "  </url>",
+      parts.push(
+        `<lastmod>${escapeXml(entry.lastmod)}</lastmod>`,
+        `<changefreq>${entry.changefreq}</changefreq>`,
+        `<priority>${entry.priority}</priority>`,
+        `</url>`,
       );
 
-      return lines.join("\n");
+      return parts.join("\n");
     })
     .join("\n");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml"
-  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${body}
 </urlset>
 `;

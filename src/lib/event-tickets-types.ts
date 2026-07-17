@@ -37,3 +37,33 @@ export type EventTicketsData = {
   tickets: EventTicketRow[];
   transferTargets: TransferTargetEvent[];
 };
+
+export type EventGuestExportRow = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dietaryNotes: string;
+  ticketType: string;
+  seats: number;
+  locale: string;
+  tableLanguage: string;
+  seatingPreference: string;
+  reservationCode: string;
+  amount: string;
+  status: string;
+  adminNotes: string;
+  bookedAt: string;
+  transferDestination: string;
+};
+
+export type EventGuestsExportData = {
+  event: {
+    id: string;
+    nameNl: string;
+    city: string;
+    slug: string;
+    startsAt: string;
+  };
+  rows: EventGuestExportRow[];
+};

@@ -527,6 +527,12 @@ export function EventGuestsView({
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <a
+                href={`/api/admin/events/${event.id}/guests/export`}
+                className="rounded-full bg-burgundy px-4 py-2 text-sm font-medium text-cream transition hover:bg-burgundy/90"
+              >
+                Exporteer Excel
+              </a>
               <Link
                 href={adminPath(`/events/${event.id}/edit`)}
                 prefetch={false}

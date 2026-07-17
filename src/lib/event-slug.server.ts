@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { events } from "@/db/schema";
-import type { getDb } from "@/db/index";
+import { eventSlugRedirects, events } from "@/db/schema";
+import { getDb, isDbConfigured } from "@/db/index";
 import { MAX_SLUG_LENGTH } from "@/lib/event-slug";
 
 type Db = ReturnType<typeof getDb>;
@@ -16,7 +16,7 @@ export async function resolveUniqueEventSlug(
   }
 
   let candidate = trimmed;
-  let suffix = 2;
+  let suffix = 1;
 
   while (suffix < 10_000) {
     const [row] = await db
@@ -35,4 +35,50 @@ export async function resolveUniqueEventSlug(
   }
 
   throw new Error("Kon geen unieke slug vinden. Pas tafelnaam of datum aan.");
+}
+
+export async function recordEventSlugRedirect(
+  db: Db,
+  input: { fromSlug: string; toSlug: string; eventId: string },
+): Promise<void> {
+  if (input.fromSlug === input.toSlug) return;
+
+  await db
+    .insert(eventSlugRedirects)
+    .values({
+      fromSlug: input.fromSlug,
+      toSlug: input.toSlug,
+      eventId: input.eventId,
+    })
+    .onConflictDoUpdate({
+      target: eventSlugRedirects.fromSlug,
+      set: {
+        toSlug: input.toSlug,
+        eventId: input.eventId,
+      },
+    });
+
+  await db
+    .update(eventSlugRedirects)
+    .set({ toSlug: input.toSlug })
+    .where(eq(eventSlugRedirects.toSlug, input.fromSlug));
+
+  await db
+    .delete(eventSlugRedirects)
+    .where(eq(eventSlugRedirects.fromSlug, input.toSlug));
+}
+
+export async function resolveEventSlugRedirect(
+  fromSlug: string,
+): Promise<string | null> {
+  if (!isDbConfigured()) return null;
+
+  const db = getDb();
+  const [row] = await db
+    .select({ toSlug: eventSlugRedirects.toSlug })
+    .from(eventSlugRedirects)
+    .where(eq(eventSlugRedirects.fromSlug, fromSlug))
+    .limit(1);
+
+  return row?.toSlug ?? null;
 }

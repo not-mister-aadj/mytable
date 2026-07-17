@@ -19,6 +19,7 @@
     "db:migrate-customers": "tsx scripts/apply-customers-migration.ts",
     "db:migrate-venue-gallery": "tsx scripts/apply-experience-types-migration.ts",
     "db:migrate-schema": "tsx scripts/apply-schema-consolidation.ts",
+    "db:migrate-event-slugs": "tsx scripts/apply-event-slug-redirects-migration.ts",
     "db:backfill-customers": "tsx scripts/backfill-customers.ts",
     "db:backfill-priority-list": "tsx scripts/backfill-priority-list-from-bookings.ts",
     "email:test": "tsx scripts/send-test-email.ts",

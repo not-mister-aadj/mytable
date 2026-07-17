@@ -21,7 +21,10 @@ import {
 } from "@/lib/event-form-validation";
 import { parseEventDateTimeLocal } from "@/lib/event-datetime-local";
 import { generateEventSlug } from "@/lib/event-slug";
-import { resolveUniqueEventSlug } from "@/lib/event-slug.server";
+import {
+  recordEventSlugRedirect,
+  resolveUniqueEventSlug,
+} from "@/lib/event-slug.server";
 import { DEFAULT_EVENT_IMAGE, isUsableImageUrl } from "@/lib/image-settings";
 import {
   DEFAULT_EXPERIENCE_TYPE,
@@ -170,11 +173,32 @@ async function applyEventUpdate(id: string, formData: FormData) {
   if (!existing) {
     throw new Error("Event niet gevonden");
   }
+
+  const nextSlug = await resolveUniqueEventSlug(
+    db,
+    generateEventSlug({
+      nameNl: values.nameNl,
+      city: values.city,
+      startsAt: values.startsAt,
+    }),
+    id,
+  );
+
   const [row] = await db
     .update(events)
-    .set({ ...values, slug: existing.slug })
+    .set({ ...values, slug: nextSlug })
     .where(eq(events.id, id))
     .returning();
+
+  if (existing.slug !== nextSlug) {
+    await recordEventSlugRedirect(db, {
+      fromSlug: existing.slug,
+      toSlug: nextSlug,
+      eventId: id,
+    });
+    revalidateEventPaths(existing.slug);
+  }
+
   if (row.workflowStatus === "published") {
     revalidateEventPaths(row.slug);
   }

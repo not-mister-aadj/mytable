@@ -29,10 +29,20 @@ export function slugifySegment(text: string): string {
 }
 
 export function formatDateForEventSlug(date: Date): string {
-  const day = date.getDate();
-  const month = SLUG_MONTHS[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Amsterdam",
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+  }).formatToParts(date);
+
+  const pick = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value);
+
+  const day = pick("day");
+  const month = pick("month");
+  const year = pick("year");
+  return `${day}-${SLUG_MONTHS[month - 1]}-${year}`;
 }
 
 /** Readable public URL slug from table name, city, and start date. */

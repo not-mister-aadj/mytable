@@ -98,6 +98,18 @@ export const events = pgTable("events", {
     .defaultNow(),
 });
 
+/** Old public agenda slugs → current event slug (308 redirects). */
+export const eventSlugRedirects = pgTable("event_slug_redirects", {
+  fromSlug: text("from_slug").primaryKey(),
+  toSlug: text("to_slug").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const customers = pgTable(
   "customers",
   {
@@ -237,4 +249,5 @@ export type CustomerActivity = typeof customerActivities.$inferSelect;
 export type ExperienceType = typeof experienceTypes.$inferSelect;
 export type Venue = typeof venues.$inferSelect;
 export type Event = typeof events.$inferSelect;
+export type EventSlugRedirect = typeof eventSlugRedirects.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;

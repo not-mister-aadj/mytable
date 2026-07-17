@@ -37,7 +37,8 @@ import {
 } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { resolveEventSlugRedirect } from "@/lib/event-slug.server";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -66,7 +67,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) return {};
   const experience = await getExperienceBySlug(locale, slug);
-  if (!experience) return {};
+  if (!experience) {
+    const targetSlug = await resolveEventSlugRedirect(slug);
+    if (targetSlug) permanentRedirect(experiencePath(locale, targetSlug));
+    return {};
+  }
   const dict = getDictionary(locale);
   const mood = getMoodContentForEvent(dict, experience, locale);
   const description = getExperienceTagline(experience, mood);
@@ -110,7 +115,11 @@ export default async function ExperienceDetailPage({ params }: Props) {
 
   const dict = getDictionary(locale);
   const experience = await getExperienceBySlug(locale, slug);
-  if (!experience) notFound();
+  if (!experience) {
+    const targetSlug = await resolveEventSlugRedirect(slug);
+    if (targetSlug) permanentRedirect(experiencePath(locale, targetSlug));
+    notFound();
+  }
 
   const related = await getRelatedExperiences(locale, experience);
   const mood = getMoodContentForEvent(dict, experience, locale);

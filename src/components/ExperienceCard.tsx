@@ -153,9 +153,15 @@ export function ExperienceCard({
         )}
 
         {showUrgencyHint ? (
-          <p className="absolute bottom-3 left-3 z-10 max-w-[88%] text-xs font-medium leading-snug text-white drop-shadow-[0_1px_3px_rgba(43,13,18,0.65)] sm:text-sm">
+          <span
+            className={`absolute bottom-3 left-3 z-10 max-w-[calc(100%-1.5rem)] rounded-full px-3 py-1.5 text-xs font-semibold leading-snug shadow-sm backdrop-blur-md sm:text-sm ${
+              isAlmostFull
+                ? "bg-gold text-wine"
+                : "bg-cream/95 text-burgundy ring-1 ring-burgundy/15"
+            }`}
+          >
             {urgencyHintText}
-          </p>
+          </span>
         ) : null}
       </div>
 

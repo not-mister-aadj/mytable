@@ -61,9 +61,9 @@ export function formatAlmostFullImageHint(
   locale: Locale,
 ): string {
   if (locale === "nl") {
-    return `Bijna uitverkocht, ${spotsLeft} tickets beschikbaar`;
+    return `Nog ${spotsLeft} tickets`;
   }
-  return `Almost sold out, ${spotsLeft} tickets available`;
+  return `${spotsLeft} tickets left`;
 }
 
 export function deriveDisplayStatus(

@@ -1,12 +1,10 @@
 import { Footer } from "@/components/Footer";
 import { GirlsOnlyAgendaSection } from "@/components/girls-only/GirlsOnlyAgendaSection";
 import { GirlsOnlyLandingSkeleton } from "@/components/girls-only/GirlsOnlyLandingSkeleton";
-import { PrefetchCriticalRoutes } from "@/components/PrefetchCriticalRoutes";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
 import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
 import {
-  agendaPath,
   girlsOnlyPath,
   isValidLocale,
   type Locale,
@@ -58,7 +56,6 @@ export default async function Home({ params }: Props) {
   const dict = getDictionary(locale);
   const labels = getGirlsOnlyLabels(locale);
   const pageUrl = absoluteUrl(girlsOnlyPath(locale));
-  const agendaHref = agendaPath(locale);
 
   await warmNavigationCaches(locale);
 
@@ -71,7 +68,6 @@ export default async function Home({ params }: Props) {
           faqPageJsonLd(labels.faq.items, pageUrl),
         ]}
       />
-      <PrefetchCriticalRoutes locale={locale} hrefs={[agendaHref]} />
       <main className="bg-cream pb-20 lg:pb-0">
         <Suspense fallback={<GirlsOnlyLandingSkeleton />}>
           <GirlsOnlyAgendaSection

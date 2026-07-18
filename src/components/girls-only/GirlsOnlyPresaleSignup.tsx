@@ -109,7 +109,7 @@ export function GirlsOnlyPresaleSignup({
             <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
               {labels.title}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-wine/70 sm:text-base">
+            <p className="mt-2 text-sm leading-relaxed text-wine/75 sm:text-base">
               {labels.subtitle}
             </p>
           </div>

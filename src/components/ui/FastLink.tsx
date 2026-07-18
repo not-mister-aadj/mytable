@@ -8,10 +8,11 @@ interface FastLinkProps {
   href: string;
   className?: string;
   children: ReactNode;
+  tabIndex?: number;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }
 
-export function FastLink({ href, className, children, onClick }: FastLinkProps) {
+export function FastLink({ href, className, children, tabIndex, onClick }: FastLinkProps) {
   const router = useRouter();
   const prefetchRoute = useCallback(() => {
     router.prefetch(href);
@@ -22,6 +23,7 @@ export function FastLink({ href, className, children, onClick }: FastLinkProps) 
       href={href}
       prefetch
       className={className}
+      tabIndex={tabIndex}
       onClick={onClick}
       onPointerEnter={prefetchRoute}
       onTouchStart={prefetchRoute}

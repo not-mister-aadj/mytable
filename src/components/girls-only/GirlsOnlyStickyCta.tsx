@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/girls-only-ids";
 
 const ctaClassName =
   "w-full bg-rose text-cream hover:bg-rose-deep px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] sm:text-sm";
 
-export const GIRLS_ONLY_HERO_CTA_ID = "girls-only-hero-cta";
+export { GIRLS_ONLY_HERO_CTA_ID };
 
 interface GirlsOnlyStickyCtaProps {
   label: string;
@@ -46,8 +47,9 @@ export function GirlsOnlyStickyCta({
       }`}
       style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       aria-hidden={!showSticky}
+      inert={!showSticky ? true : undefined}
     >
-      <Button href={href} className={ctaClassName}>
+      <Button href={href} className={ctaClassName} tabIndex={showSticky ? 0 : -1}>
         <span aria-hidden className="mr-2 opacity-90">
           ›
         </span>

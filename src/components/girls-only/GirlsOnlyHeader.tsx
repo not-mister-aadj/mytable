@@ -153,6 +153,7 @@ export function GirlsOnlyHeader({
           menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!menuOpen}
+        inert={!menuOpen ? true : undefined}
         onClick={closeMenu}
       />
 
@@ -164,6 +165,7 @@ export function GirlsOnlyHeader({
         }`}
         aria-label="Mobile navigation"
         aria-hidden={!menuOpen}
+        inert={!menuOpen ? true : undefined}
       >
         <div className="flex flex-1 flex-col justify-center px-8 pb-10 pt-24">
           <ul className="flex flex-col gap-5">

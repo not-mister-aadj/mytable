@@ -1,3 +1,5 @@
+"use client";
+
 import { type MouseEvent, type ReactNode } from "react";
 import { FastLink } from "./FastLink";
 
@@ -9,6 +11,7 @@ interface ButtonProps {
   variant?: ButtonVariant;
   className?: string;
   type?: "button" | "submit";
+  tabIndex?: number;
   onClick?: (event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => void;
 }
 
@@ -27,6 +30,7 @@ export function Button({
   variant = "primary",
   className = "",
   type = "button",
+  tabIndex,
   onClick,
 }: ButtonProps) {
   const base =
@@ -36,14 +40,14 @@ export function Button({
 
   if (href) {
     return (
-      <FastLink href={href} className={classes} onClick={onClick}>
+      <FastLink href={href} className={classes} onClick={onClick} tabIndex={tabIndex}>
         {children}
       </FastLink>
     );
   }
 
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} className={classes} tabIndex={tabIndex}>
       {children}
     </button>
   );

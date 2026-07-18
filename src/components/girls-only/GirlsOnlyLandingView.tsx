@@ -1,5 +1,4 @@
-"use client";
-
+import Image from "next/image";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { girlsOnlyCityPath } from "@/i18n/config";
@@ -10,12 +9,15 @@ import {
 } from "@/data/girls-only-testimonials";
 import { listGirlsOnlyCities } from "@/data/girls-only-cities";
 import type { EnrichedExperience } from "@/lib/experience-detail";
-import { Button } from "@/components/ui/Button";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { GirlsOnlyUpcomingEvents } from "@/components/girls-only/GirlsOnlyUpcomingEvents";
 import { GirlsOnlyPresaleSignup } from "@/components/girls-only/GirlsOnlyPresaleSignup";
-import { GirlsOnlyStickyCta, GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/GirlsOnlyStickyCta";
+import {
+  GirlsOnlyStickyCta,
+} from "@/components/girls-only/GirlsOnlyStickyCta";
+import { GirlsOnlyCta } from "@/components/girls-only/GirlsOnlyCta";
+import { GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/girls-only-ids";
 import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
 
 interface GirlsOnlyLandingViewProps {
@@ -29,43 +31,19 @@ interface GirlsOnlyLandingViewProps {
   };
 }
 
-const ctaClassName =
-  "bg-rose text-cream hover:bg-rose-deep px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] sm:text-sm";
-
 const sectionPad = "py-8 sm:py-12 lg:py-16";
 
 function TrustBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-rose/30 bg-white/70 px-3 py-1 text-[11px] font-medium text-rose-deep shadow-sm sm:px-3.5 sm:py-1.5 sm:text-xs">
+    <span className="rounded-full border border-rose/40 bg-white/80 px-3 py-1 text-[11px] font-medium text-wine/80 shadow-sm sm:px-3.5 sm:py-1.5 sm:text-xs">
       {children}
     </span>
   );
 }
 
-function GirlsOnlyCta({
-  href,
-  children,
-  className = "",
-  onClick,
-}: {
-  href: string;
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}) {
-  return (
-    <Button href={href} className={`${ctaClassName} ${className}`} onClick={onClick}>
-      <span aria-hidden className="mr-2 opacity-90">
-        ›
-      </span>
-      {children}
-    </Button>
-  );
-}
-
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-wine/75">
       {children}
     </p>
   );
@@ -98,12 +76,13 @@ function HowItWorksSection({
               aria-hidden
             />
             <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.2)]">
-              <div className="aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              <div className="relative aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5]">
+                <Image
                   src={howItWorksImage.src}
                   alt={howItWorksImage.alt}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(max-width: 1024px) 90vw, 480px"
+                  className="object-cover"
                 />
               </div>
             </div>
@@ -114,7 +93,7 @@ function HowItWorksSection({
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]">
               {howItWorks.title}
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-wine/70 sm:text-lg lg:mx-0">
+            <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-wine/75 sm:text-lg lg:mx-0">
               {howItWorks.subtitle}
             </p>
 
@@ -182,7 +161,7 @@ function GirlsOnlyFaq({ labels }: { labels: GirlsOnlyPageLabels }) {
                   </span>
                 </span>
               </summary>
-              <p className="mt-3 pb-1 text-sm leading-relaxed text-wine/75">
+              <p className="mt-3 pb-1 text-sm leading-relaxed text-wine/80">
                 {item.answer}
               </p>
             </details>
@@ -201,7 +180,7 @@ function BenefitsSection({ labels }: { labels: GirlsOnlyPageLabels }) {
           <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
             {labels.benefits.title}
           </h2>
-          <p className="mt-3 text-base leading-relaxed text-wine/65">
+          <p className="mt-3 text-base leading-relaxed text-wine/75">
             {labels.benefits.subtitle}
           </p>
         </div>
@@ -217,7 +196,7 @@ function BenefitsSection({ labels }: { labels: GirlsOnlyPageLabels }) {
                 </span>
                 {item.title}
               </h3>
-              <p className="mt-2.5 text-sm leading-relaxed text-wine/70 sm:text-[15px]">
+              <p className="mt-2.5 text-sm leading-relaxed text-wine/75 sm:text-[15px]">
                 {item.description}
               </p>
             </li>
@@ -262,7 +241,7 @@ function FounderStorySection({ labels }: { labels: GirlsOnlyPageLabels }) {
               {labels.founderStory.paragraphs.map((paragraph) => (
                 <p
                   key={paragraph}
-                  className="text-sm leading-relaxed text-wine/75 sm:text-base"
+                  className="text-sm leading-relaxed text-wine/80 sm:text-base"
                 >
                   {paragraph}
                 </p>
@@ -274,12 +253,13 @@ function FounderStorySection({ labels }: { labels: GirlsOnlyPageLabels }) {
           </div>
 
           <figure className="order-1 mx-auto w-full max-w-md overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.18)] lg:order-2 lg:max-w-none">
-            <div className="aspect-[4/5] overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative aspect-[4/5] overflow-hidden">
+              <Image
                 src="/girls-only/elif-siraadj.png"
                 alt={labels.founderStory.imageAlt}
-                className="h-full w-full object-cover object-[42%_45%]"
+                fill
+                sizes="(max-width: 1024px) 90vw, 480px"
+                className="object-cover object-[42%_45%]"
               />
             </div>
           </figure>
@@ -413,7 +393,7 @@ export function GirlsOnlyLandingView({
         className="scroll-mt-20 border-t border-rose/10 bg-cream py-10 sm:py-12"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-deep">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-wine/75">
             {locale === "nl" ? "Kies jouw stad" : "Choose your city"}
           </p>
           <ul className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">

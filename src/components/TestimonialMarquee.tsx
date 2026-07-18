@@ -27,7 +27,7 @@ function TestimonialCard({
         </span>
         <div className="min-w-0">
           <p className="truncate font-semibold text-wine">{item.name}</p>
-          <p className="truncate text-sm text-wine/55">{item.detail}</p>
+          <p className="truncate text-sm text-wine/70">{item.detail}</p>
         </div>
       </header>
       <p className="mt-4 text-[15px] leading-relaxed text-wine/80 sm:text-base">

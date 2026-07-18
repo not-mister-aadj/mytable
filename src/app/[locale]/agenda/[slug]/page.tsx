@@ -165,7 +165,7 @@ export default async function ExperienceDetailPage({ params }: Props) {
       <JsonLd
         data={[
           organizationJsonLd(),
-          breadcrumbJsonLd([
+          breadcrumbJsonLd(pageUrl, [
             { name: "MyTable", path: locale === "en" ? "/en" : "/" },
             {
               name: locale === "en" ? "Agenda" : "Agenda",

@@ -94,7 +94,7 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
             description: labels.meta.description,
           }),
           faqPageJsonLd(labels.faq.items, pageUrl),
-          breadcrumbJsonLd([
+          breadcrumbJsonLd(pageUrl, [
             {
               name: labels.breadcrumbHome,
               path: locale === "en" ? "/en" : "/",

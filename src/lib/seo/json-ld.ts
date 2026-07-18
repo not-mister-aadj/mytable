@@ -82,11 +82,13 @@ export function faqPageJsonLd(
 }
 
 export function breadcrumbJsonLd(
+  pageUrl: string,
   items: { name: string; path: string }[],
 ): JsonLd {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    "@id": `${pageUrl}#breadcrumb`,
     itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,

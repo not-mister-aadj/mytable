@@ -59,7 +59,7 @@ export default async function AgendaPage({ params }: Props) {
       <JsonLd
         data={[
           organizationJsonLd(),
-          breadcrumbJsonLd([
+          breadcrumbJsonLd(pageUrl, [
             { name: "MyTable", path: locale === "en" ? "/en" : "/" },
             {
               name: locale === "en" ? "Agenda" : "Agenda",

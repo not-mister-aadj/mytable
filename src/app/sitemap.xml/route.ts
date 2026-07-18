@@ -11,9 +11,10 @@ export async function GET() {
 
   return new Response(xml, {
     headers: {
-      // text/xml triggers Chrome's XML tree view more reliably than application/xml
-      "Content-Type": "text/xml; charset=utf-8",
+      // Google expects application/xml; charset helps parsers and GSC.
+      "Content-Type": "application/xml; charset=utf-8",
       "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

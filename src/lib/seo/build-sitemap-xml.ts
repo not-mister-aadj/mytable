@@ -50,8 +50,11 @@ function cleanImageUrl(url: string): string {
 
 function toLastmod(value?: Date | string | null): string {
   const date = value ? new Date(value) : new Date();
-  if (Number.isNaN(date.getTime())) return new Date().toISOString();
-  return date.toISOString();
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  }
+  // Seconds precision — widely accepted by Google/sitemap validators.
+  return date.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 function pair(input: {

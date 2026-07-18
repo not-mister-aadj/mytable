@@ -26,11 +26,32 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/sitemap",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/xml; charset=utf-8",
+          },
+          {
+            key: "Content-Disposition",
+            value: "inline",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+        ],
+      },
+      {
         source: "/sitemap.xml",
         headers: [
           {
             key: "Content-Type",
             value: "application/xml; charset=utf-8",
+          },
+          {
+            key: "Content-Disposition",
+            value: "inline",
           },
           {
             key: "X-Content-Type-Options",

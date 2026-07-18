@@ -68,6 +68,14 @@ export async function middleware(request: NextRequest) {
   }
 
   if (
+    pathname === "/sitemap" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt"
+  ) {
+    return NextResponse.next();
+  }
+
+  if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/icon") ||
@@ -108,6 +116,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon|icon.png|apple-icon|apple-icon.png|apple-touch-icon.png).*)",
+    /*
+     * Skip SEO/static assets so Googlebot never hits middleware for sitemaps.
+     * (Known Next.js + GSC “Couldn't fetch” cause.)
+     */
+    "/((?!_next/static|_next/image|favicon\\.ico|icon(?:\\.png)?|apple-icon(?:\\.png)?|apple-touch-icon\\.png|robots\\.txt|sitemap(?:\\.xml)?).*)",
   ],
 };

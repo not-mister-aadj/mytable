@@ -285,6 +285,7 @@ export interface Dictionary {
       howItWorks: string;
       forVenues: string;
       faq: string;
+      blog: string;
     };
     cta: string;
     languageSwitch: string;
@@ -392,6 +393,7 @@ export interface Dictionary {
       howItWorks: string;
       forVenues: string;
       faq: string;
+      blog: string;
       instagram: string;
       contact: string;
       terms: string;

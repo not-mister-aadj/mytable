@@ -5,7 +5,7 @@ import { FastLink } from "./ui/FastLink";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { agendaPath, localePath } from "@/i18n/config";
+import { agendaPath, blogPath, localePath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/Button";
@@ -38,6 +38,7 @@ export function Header({ dict, locale }: HeaderProps) {
   const navLinks = [
     { label: dict.nav.experiences, href: agenda },
     { label: dict.nav.girlsOnly, href: home },
+    { label: dict.nav.blog, href: blogPath(locale) },
     { label: dict.nav.howItWorks, href: `${home}#how-it-works` },
     { label: dict.nav.faq, href: `${home}#faq` },
   ];

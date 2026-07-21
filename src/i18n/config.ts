@@ -83,3 +83,22 @@ export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
     ? `/en/girls-only/${citySlug}`
     : `/girls-only/${citySlug}`;
 }
+
+export function blogPath(locale: Locale): string {
+  return locale === "en" ? "/en/blog" : "/blog";
+}
+
+export function blogPostPath(locale: Locale, slug: string): string {
+  return `${blogPath(locale)}/${slug}`;
+}
+
+export function blogCategoryPath(
+  locale: Locale,
+  category: string,
+): string {
+  return `${blogPath(locale)}/categorie/${category}`;
+}
+
+export function blogFeedPath(locale: Locale): string {
+  return `${blogPath(locale)}/feed.xml`;
+}

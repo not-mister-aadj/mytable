@@ -1,11 +1,18 @@
 import {
   agendaPath,
+  blogCategoryPath,
+  blogPath,
+  blogPostPath,
   experiencePath,
   girlsOnlyCityPath,
   localePath,
   privacyPath,
   termsPath,
 } from "@/i18n/config";
+import {
+  BLOG_CATEGORY_ORDER,
+  getBlogPostsSorted,
+} from "@/data/blog";
 import { listGirlsOnlyCities } from "@/data/girls-only-cities";
 import { getAgendaExperiences } from "@/lib/experiences";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
@@ -116,6 +123,32 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
       priority: 0.9,
       lastmod: now,
     }),
+    ...pair({
+      nlPath: blogPath("nl"),
+      enPath: blogPath("en"),
+      changefreq: "weekly",
+      priority: 0.75,
+      lastmod: now,
+    }),
+    ...BLOG_CATEGORY_ORDER.flatMap((category) =>
+      pair({
+        nlPath: blogCategoryPath("nl", category),
+        enPath: blogCategoryPath("en", category),
+        changefreq: "weekly",
+        priority: 0.68,
+        lastmod: now,
+      }),
+    ),
+    ...getBlogPostsSorted().flatMap((post) =>
+      pair({
+        nlPath: blogPostPath("nl", post.slug),
+        enPath: blogPostPath("en", post.slug),
+        changefreq: "monthly",
+        priority: post.featured ? 0.72 : 0.65,
+        lastmod: post.updatedAt ?? post.publishedAt,
+        images: [absoluteUrl(post.image)],
+      }),
+    ),
     ...pair({
       nlPath: privacyPath("nl"),
       enPath: privacyPath("en"),

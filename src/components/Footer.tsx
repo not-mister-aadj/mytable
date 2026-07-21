@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import {
   agendaPath,
+  blogPath,
   girlsOnlyCityPath,
   girlsOnlyPath,
   localePath,
@@ -38,6 +39,7 @@ export function Footer({ dict, locale }: FooterProps) {
   const exploreLinks = [
     { label: dict.links.girlsOnly, href: girlsOnlyPath(locale) },
     { label: dict.links.experiences, href: agendaPath(locale) },
+    { label: dict.links.blog, href: blogPath(locale) },
     { label: dict.links.howItWorks, href: localePath(locale, "#how-it-works") },
     { label: dict.links.faq, href: localePath(locale, "#faq") },
   ];

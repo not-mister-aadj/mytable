@@ -4,6 +4,13 @@ import { defaultLocale, type Locale } from "./i18n/config";
 import { getAdminUrl, isAdminHost, isLocalDevHost, usesAdminSubdomainFromEnv } from "@/lib/admin-url";
 import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
+const BLOG_CATEGORY_IDS = new Set([
+  "tips",
+  "girls-only",
+  "cities",
+  "how-it-works",
+]);
+
 function resolveLocale(pathname: string): Locale | null {
   if (pathname === "/en" || pathname.startsWith("/en/")) return "en";
   if (pathname === "/nl" || pathname.startsWith("/nl/")) return "nl";
@@ -75,6 +82,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Legacy blog category query → clean SEO URL
+  const categoryQuery = request.nextUrl.searchParams.get("category");
+  if (
+    categoryQuery &&
+    BLOG_CATEGORY_IDS.has(categoryQuery) &&
+    (pathname === "/blog" || pathname === "/en/blog" || pathname === "/nl/blog")
+  ) {
+    const target = request.nextUrl.clone();
+    target.search = "";
+    if (pathname.startsWith("/en")) {
+      target.pathname = `/en/blog/categorie/${categoryQuery}`;
+    } else {
+      target.pathname = `/blog/categorie/${categoryQuery}`;
+    }
+    return NextResponse.redirect(target, 308);
+  }
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -82,7 +106,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/apple-icon") ||
     pathname.startsWith("/apple-touch-icon") ||
     pathname.startsWith("/favicon") ||
-    pathname.includes(".")
+    (pathname.includes(".") && !pathname.endsWith("/feed.xml"))
   ) {
     return NextResponse.next();
   }

@@ -1,6 +1,6 @@
 import type { ExperienceFaqItem, ExperienceItem } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
-import { experiencePath } from "@/i18n/config";
+import { blogPath, blogPostPath, experiencePath } from "@/i18n/config";
 import { companyLegal } from "@/lib/company-legal";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
 
@@ -194,6 +194,124 @@ export function itemListJsonLd(input: {
       url: item.url,
     })),
   };
+}
+
+export function blogJsonLd(input: {
+  locale: Locale;
+  title: string;
+  description: string;
+  posts: {
+    slug: string;
+    title: string;
+    description: string;
+    publishedAt: string;
+    updatedAt?: string;
+    image: string;
+  }[];
+}): JsonLd {
+  const pageUrl = absoluteUrl(blogPath(input.locale));
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${pageUrl}#blog`,
+    name: input.title,
+    description: input.description,
+    url: pageUrl,
+    inLanguage: input.locale === "en" ? "en" : "nl",
+    publisher: { "@id": orgId() },
+    isPartOf: { "@id": websiteId() },
+    blogPost: input.posts.map((post) => ({
+      "@type": "BlogPosting",
+      "@id": `${absoluteUrl(blogPostPath(input.locale, post.slug))}#article`,
+      headline: post.title,
+      description: post.description,
+      datePublished: post.publishedAt,
+      dateModified: post.updatedAt ?? post.publishedAt,
+      url: absoluteUrl(blogPostPath(input.locale, post.slug)),
+      image: absoluteImageUrl(post.image) ?? absoluteUrl(post.image),
+    })),
+  };
+}
+
+export function blogPostingJsonLd(input: {
+  locale: Locale;
+  slug: string;
+  title: string;
+  description: string;
+  publishedAt: string;
+  updatedAt?: string;
+  image: string;
+  categoryLabel: string;
+  readMinutes: number;
+  wordCount: number;
+  keywords?: string[];
+}): JsonLd[] {
+  const pageUrl = absoluteUrl(blogPostPath(input.locale, input.slug));
+  const blogUrl = absoluteUrl(blogPath(input.locale));
+  const image = absoluteImageUrl(input.image) ?? absoluteUrl(input.image);
+  const modified = input.updatedAt ?? input.publishedAt;
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "@id": `${pageUrl}#article`,
+      headline: input.title,
+      description: input.description,
+      datePublished: input.publishedAt,
+      dateModified: modified,
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": `${pageUrl}#webpage`,
+      },
+      image: {
+        "@type": "ImageObject",
+        url: image,
+        width: 1200,
+        height: 630,
+      },
+      author: {
+        "@type": "Organization",
+        "@id": orgId(),
+        name: "MyTable",
+      },
+      publisher: {
+        "@type": "Organization",
+        "@id": orgId(),
+        name: "MyTable",
+        logo: {
+          "@type": "ImageObject",
+          url: absoluteUrl("/icon-192.png"),
+        },
+      },
+      articleSection: input.categoryLabel,
+      wordCount: input.wordCount,
+      timeRequired: `PT${Math.max(1, input.readMinutes)}M`,
+      keywords: input.keywords?.join(", "),
+      inLanguage: input.locale === "en" ? "en" : "nl",
+      url: pageUrl,
+      isPartOf: {
+        "@type": "Blog",
+        "@id": `${blogUrl}#blog`,
+        name: "MyTable blog",
+        url: blogUrl,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: input.title,
+      description: input.description,
+      inLanguage: input.locale === "en" ? "en" : "nl",
+      isPartOf: { "@id": websiteId() },
+      primaryImageOfPage: image,
+      datePublished: input.publishedAt,
+      dateModified: modified,
+      breadcrumb: { "@id": `${pageUrl}#breadcrumb` },
+    },
+  ];
 }
 
 /** City landing page: Service + WebPage for local SEO. */

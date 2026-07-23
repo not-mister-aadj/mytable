@@ -46,6 +46,7 @@ function buildCityPageEn(
       subtitle: `Reserve your seat for the next girls-only Sunday in ${enName}.`,
       emptyTitle: `No girls-only table in ${enName} planned yet`,
       emptyBody: `New ${enName} Sundays open once the venue is set. Join the waitlist. You’ll hear first.`,
+      emptyCta: "Go to the waitlist",
       viewAll: "See all Sundays",
     },
     priority: {

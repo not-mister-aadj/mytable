@@ -22,6 +22,7 @@ export type GirlsOnlyCityPageLabels = {
     subtitle: string;
     emptyTitle: string;
     emptyBody: string;
+    emptyCta: string;
     viewAll: string;
   };
   priority: {

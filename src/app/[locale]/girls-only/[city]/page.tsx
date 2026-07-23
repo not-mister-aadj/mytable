@@ -13,6 +13,7 @@ import {
   agendaPath,
   girlsOnlyCityPath,
   isValidLocale,
+  waitlistPath,
   type Locale,
 } from "@/i18n/config";
 import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
@@ -77,6 +78,7 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
   const hasBookable = cityHasBookableGirlsOnlyEvent(events);
   const pageUrl = absoluteUrl(girlsOnlyCityPath(locale, city.slug));
   const agendaHref = agendaPath(locale);
+  const waitlistHref = waitlistPath(locale);
   const region = girlsOnlyCityDisplayRegion(city, locale);
 
   return (
@@ -117,6 +119,7 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
           events={events}
           hasBookable={hasBookable}
           agendaHref={agendaHref}
+          waitlistHref={waitlistHref}
         />
       </main>
       <Footer dict={dict.footer} locale={locale} />

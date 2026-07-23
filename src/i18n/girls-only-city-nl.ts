@@ -45,6 +45,7 @@ function buildCityPageNl(
       subtitle: `Reserveer je plek voor de volgende girls-only zondag in ${name}.`,
       emptyTitle: `Nog geen girls-only tafel in ${name} gepland`,
       emptyBody: `Nieuwe ${name}-zondagen openen zodra de locatie rond is. Zet je op de wachtlijst. Jij hoort het als eerste.`,
+      emptyCta: "Naar de wachtlijst",
       viewAll: "Bekijk alle zondagen",
     },
     priority: {

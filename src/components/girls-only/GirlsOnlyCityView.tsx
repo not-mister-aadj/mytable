@@ -33,6 +33,7 @@ interface GirlsOnlyCityViewProps {
   events: EnrichedExperience[];
   hasBookable: boolean;
   agendaHref: string;
+  waitlistHref: string;
 }
 
 export function GirlsOnlyCityView({
@@ -42,8 +43,14 @@ export function GirlsOnlyCityView({
   events,
   hasBookable,
   agendaHref,
+  waitlistHref,
 }: GirlsOnlyCityViewProps) {
-  const primaryHref = hasBookable ? "#events" : "#priority";
+  const hasEvents = events.length > 0;
+  const primaryHref = hasBookable
+    ? "#events"
+    : hasEvents
+      ? "#priority"
+      : waitlistHref;
   const primaryLabel = hasBookable
     ? labels.hero.ctaBook
     : labels.hero.ctaPriority;
@@ -125,7 +132,7 @@ export function GirlsOnlyCityView({
               </Button>
               {hasBookable ? (
                 <Button
-                  href="#priority"
+                  href={waitlistHref}
                   className="border border-cream/35 bg-transparent px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-cream/10 sm:text-sm"
                 >
                   {labels.hero.ctaPriority}
@@ -146,63 +153,124 @@ export function GirlsOnlyCityView({
               {labels.events.eyebrow}
             </p>
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {events.length > 0
-                ? labels.events.title
-                : labels.events.emptyTitle}
+              {hasEvents ? labels.events.title : labels.events.emptyTitle}
             </h2>
             <p className="mt-3 text-base leading-relaxed text-wine/70">
-              {events.length > 0
-                ? labels.events.subtitle
-                : labels.events.emptyBody}
+              {hasEvents ? labels.events.subtitle : labels.events.emptyBody}
             </p>
+            {!hasEvents ? (
+              <div className="mt-7 flex justify-center">
+                <Button
+                  href={waitlistHref}
+                  className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+                >
+                  <span aria-hidden className="mr-2 opacity-90">
+                    ›
+                  </span>
+                  {labels.events.emptyCta}
+                </Button>
+              </div>
+            ) : null}
           </motion.div>
 
           <div className="mt-10 space-y-12">
-            <GirlsOnlyCityPrioritySignup
-              labels={labels.priority}
-              locale={locale}
-              cityName={city.cityName}
-              heroImage={city.heroImage}
-              hook={locale === "en" ? city.hookEn : city.hookNl}
-            />
-
-            {events.length > 0 ? (
-              <motion.div {...fade} className="space-y-8">
-                <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0">
-                  {events.map((experience) => (
-                    <div
-                      key={experience.id}
-                      className="w-[min(85vw,18rem)] shrink-0 snap-start lg:w-auto lg:shrink"
-                    >
-                      <ExperienceCard
-                        experience={experience}
-                        href={experiencePath(locale, experience.slug)}
-                        statusLabels={labels.status}
-                        femaleOnlyBadge={labels.femaleOnlyBadge}
-                        reserveCta={labels.reserveCta}
-                        viewTableCta={labels.viewTableCta}
-                        perPersonFromLabel={labels.perPersonFrom}
-                        locale={locale}
-                        socialPromise={labels.socialPromise}
-                        sourceSection="agenda_grid"
-                        compact
+            {!hasEvents ? (
+              <motion.div id="priority" {...fade} className="scroll-mt-24">
+                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-rose-soft/80 via-cream to-beige shadow-[0_28px_70px_rgba(90,15,27,0.1)]">
+                  <div className="relative grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                    <div className="relative min-h-[14rem] overflow-hidden sm:min-h-[16rem] lg:min-h-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={city.heroImage}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover"
+                        aria-hidden
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-wine/80 via-wine/35 to-wine/20 lg:bg-gradient-to-r lg:from-wine/15 lg:via-wine/45 lg:to-wine/75" />
+                      <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 lg:p-10">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-rose-soft">
+                          {labels.priority.eyebrow}
+                        </p>
+                        <p className="mt-3 font-serif text-4xl font-medium leading-none tracking-tight text-cream sm:text-5xl">
+                          {city.cityName}
+                        </p>
+                        <p className="mt-3 max-w-xs text-sm leading-relaxed text-cream/75">
+                          {locale === "en" ? city.hookEn : city.hookNl}
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <div className="flex justify-center">
-                  <Button
-                    href={agendaHref}
-                    className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
-                  >
-                    <span aria-hidden className="mr-2 opacity-90">
-                      ›
-                    </span>
-                    {labels.events.viewAll}
-                  </Button>
+                    <div className="relative flex flex-col justify-center px-6 py-8 sm:px-9 sm:py-10 lg:px-11 lg:py-12">
+                      <h3 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-[1.85rem] sm:leading-tight">
+                        {labels.priority.title}
+                      </h3>
+                      <p className="mt-2.5 max-w-md text-sm leading-relaxed text-wine/65 sm:text-[15px]">
+                        {labels.events.emptyBody}
+                      </p>
+                      <div className="mt-7">
+                        <Button
+                          href={waitlistHref}
+                          className="bg-rose px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream shadow-[0_12px_28px_rgba(157,77,111,0.28)] transition hover:bg-rose-deep hover:shadow-[0_16px_32px_rgba(157,77,111,0.34)] sm:text-sm"
+                        >
+                          <span aria-hidden className="mr-2 opacity-90">
+                            ›
+                          </span>
+                          {labels.events.emptyCta}
+                        </Button>
+                        <p className="mt-3 max-w-sm text-xs leading-snug text-wine/45">
+                          {labels.priority.privacyNote}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
-            ) : null}
+            ) : (
+              <>
+                <GirlsOnlyCityPrioritySignup
+                  labels={labels.priority}
+                  locale={locale}
+                  cityName={city.cityName}
+                  heroImage={city.heroImage}
+                  hook={locale === "en" ? city.hookEn : city.hookNl}
+                />
+
+                <motion.div {...fade} className="space-y-8">
+                  <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0">
+                    {events.map((experience) => (
+                      <div
+                        key={experience.id}
+                        className="w-[min(85vw,18rem)] shrink-0 snap-start lg:w-auto lg:shrink"
+                      >
+                        <ExperienceCard
+                          experience={experience}
+                          href={experiencePath(locale, experience.slug)}
+                          statusLabels={labels.status}
+                          femaleOnlyBadge={labels.femaleOnlyBadge}
+                          reserveCta={labels.reserveCta}
+                          viewTableCta={labels.viewTableCta}
+                          perPersonFromLabel={labels.perPersonFrom}
+                          locale={locale}
+                          socialPromise={labels.socialPromise}
+                          sourceSection="agenda_grid"
+                          compact
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-center">
+                    <Button
+                      href={agendaHref}
+                      className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+                    >
+                      <span aria-hidden className="mr-2 opacity-90">
+                        ›
+                      </span>
+                      {labels.events.viewAll}
+                    </Button>
+                  </div>
+                </motion.div>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -217,6 +217,7 @@ export const waitlistSignups = pgTable(
     locale: text("locale").notNull().default("nl"),
     name: text("name"),
     source: text("source").notNull().default("waitlist"),
+    preferences: jsonb("preferences").$type<Record<string, unknown>>(),
     customerId: uuid("customer_id").references(() => customers.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -244,6 +245,15 @@ export const customerActivities = pgTable("customer_activities", {
     .defaultNow(),
 });
 
+/** Key/value site config (e.g. waitlist WhatsApp invite links) */
+export const siteSettings = pgTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").$type<Record<string, unknown>>().notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Customer = typeof customers.$inferSelect;
 export type CustomerActivity = typeof customerActivities.$inferSelect;
 export type ExperienceType = typeof experienceTypes.$inferSelect;
@@ -251,3 +261,4 @@ export type Venue = typeof venues.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventSlugRedirect = typeof eventSlugRedirects.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
+export type SiteSetting = typeof siteSettings.$inferSelect;

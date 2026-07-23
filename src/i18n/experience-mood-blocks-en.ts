@@ -33,14 +33,14 @@ export const chefsSpecialFlowEn: ExperienceFlowStep[] = [
       "You arrive at the restaurant and are welcomed at the MyTable table.",
   },
   {
-    title: "Let yourself be surprised",
+    title: "Taste family style",
     description:
-      "The chef or restaurant serves a special menu or multiple courses.",
+      "Multiple starters, mains and dessert arrive in the middle. You share everything with the table.",
   },
   {
-    title: "Eat together",
+    title: "The best of the kitchen",
     description:
-      "The table is set up for relaxed conversation, without a networking vibe.",
+      "The chef shapes the evening so you taste more of the restaurant than with a single plate of your own.",
   },
   {
     title: "Stay a while",

@@ -216,7 +216,7 @@ export const GIRLS_ONLY_CITIES: Record<
       points: [
         "Snel bereikbaar vanuit Almere, Weesp en Amsterdam",
         "Rustige setting, warme tafelenergie",
-        "Priority list als er nog geen datum openstaat",
+        "Wachtlijst als er nog geen datum openstaat",
       ],
     },
     localEn: {
@@ -224,7 +224,7 @@ export const GIRLS_ONLY_CITIES: Record<
       points: [
         "Quick from Almere, Weesp, and Amsterdam",
         "Calm setting, warm table energy",
-        "Priority list when no date is open yet",
+        "Waitlist when no date is open yet",
       ],
     },
   },
@@ -316,7 +316,7 @@ export const GIRLS_ONLY_CITIES: Record<
       points: [
         "Goed bereikbaar vanuit Arnhem, Nijmegen en Apeldoorn",
         "Intieme tafels, geen nette netwerkpraat",
-        "Priority list als de agenda nog leeg is",
+        "Wachtlijst als de agenda nog leeg is",
       ],
     },
     localEn: {
@@ -324,7 +324,7 @@ export const GIRLS_ONLY_CITIES: Record<
       points: [
         "Easy from Arnhem, Nijmegen, and Apeldoorn",
         "Intimate tables, no stiff networking talk",
-        "Priority list when the agenda is still empty",
+        "Waitlist when the agenda is still empty",
       ],
     },
   },

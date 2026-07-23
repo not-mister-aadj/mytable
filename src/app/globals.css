@@ -193,6 +193,7 @@ html.samsung-force-light picture {
 }
 
 /* Girls-only landing — navbar palette (premium blush / burgundy) */
+.site-header,
 .girls-only-header {
   --go-blush-mist: #f3e4ea;
   --go-blush-veil: #f7eef2;
@@ -217,20 +218,25 @@ html.samsung-force-light picture {
   --go-nav-lang-text: #5a0f1b;
 }
 
+.site-header--scrolled,
 .girls-only-header--scrolled {
   background-color: var(--go-nav-bg-scrolled);
   border-bottom-color: var(--go-nav-border);
 }
 
+.site-header--top,
 .girls-only-header--top {
   background-color: var(--go-nav-bg);
   border-bottom-color: transparent;
 }
 
+.site-header__nav-link,
 .girls-only-header__nav-link {
   color: var(--go-nav-link);
 }
 
+.site-header__nav-link:hover,
+.site-header__nav-link:focus-visible,
 .girls-only-header__nav-link:hover,
 .girls-only-header__nav-link:focus-visible {
   color: var(--go-nav-link-hover);
@@ -270,15 +276,18 @@ html.samsung-force-light picture {
   box-shadow: 0 6px 22px rgba(90, 15, 27, 0.24);
 }
 
+.site-header__menu-btn,
 .girls-only-header__menu-btn {
   border-color: var(--go-nav-border-strong);
   background-color: var(--go-nav-lang-bg);
 }
 
+.site-header__menu-icon,
 .girls-only-header__menu-icon {
   background-color: var(--go-burgundy);
 }
 
+.site-header__mobile-menu,
 .girls-only-header__mobile-menu {
   background-color: var(--go-cream);
 }

@@ -64,6 +64,8 @@ export function ExperienceHero({
   const spots = getSpotsLeft(experience);
 
   const pills = [
+    mood.dayOfWeek,
+    mood.partOfDay,
     date,
     time,
     priceLabel,

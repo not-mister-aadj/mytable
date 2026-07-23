@@ -35,6 +35,8 @@ export function stripLocalePrefix(pathname: string): {
 function localizePathForLocale(path: string, locale: Locale): string {
   if (locale === "en" && path === "/algemene-voorwaarden") return "/terms";
   if (locale === "nl" && path === "/terms") return "/algemene-voorwaarden";
+  if (locale === "en" && path === "/wachtlijst") return "/waitlist";
+  if (locale === "nl" && path === "/waitlist") return "/wachtlijst";
   return path;
 }
 
@@ -101,4 +103,8 @@ export function blogCategoryPath(
 
 export function blogFeedPath(locale: Locale): string {
   return `${blogPath(locale)}/feed.xml`;
+}
+
+export function waitlistPath(locale: Locale): string {
+  return locale === "en" ? "/en/waitlist" : "/wachtlijst";
 }

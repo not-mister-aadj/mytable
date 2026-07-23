@@ -51,16 +51,16 @@ export const girlsOnlyTastingQuotesNl: ExperienceGuestQuote[] = [
 
 export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
   tagline:
-    "Maak van je zondag een middag uit: wijn, bites en gezellige meiden aan tafel.",
+    "Vier wijnen en bite-pairings, gezellig met je meiden aan tafel.",
   description:
-    "Een zondagmiddag wijn en bites met je meiden aan één tafel. Het restaurant kiest vier wijnen en pairt ze met bites. Alles rond de tafel geregeld. Geen wijnexamen, wel context en ruimte om op jullie tempo te genieten. Plan gerust de hele middag. En soms? Dan gaat het daarna nog door: nawijnen, borrelen of ergens lekker uit eten met je meiden.",
+    "Een zondagmiddag met vier wijnen en bite-pairings, gekozen door de wijnbar. Jullie genieten aan één tafel: solo, met vriendin of met je groep. Geen wijnexamen, wel een gezellige middag. Plan gerust de hele middag. En soms? Dan gaat het daarna nog door: nawijnen, borrelen of ergens lekker uit eten.",
   experienceFlow: girlsOnlyTastingFlowNl,
   guestQuotes: girlsOnlyTastingQuotesNl,
   whatToExpect: [
     {
-      title: "Wijn en bites geregeld",
+      title: "Vier wijnen, gekozen door de wijnbar",
       description:
-        "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jullie hoeven alleen op te komen dagen.",
+        "De wijnbar stelt de proeverij samen: vier wijnen met bijpassende bite-pairings. Jullie hoeven alleen op te komen dagen.",
     },
     {
       title: "Eigen vriendinnentafel of aanschuiven",
@@ -68,19 +68,14 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
         "Met 3+ vriendinnen? Jullie eigen tafel. Solo of met z'n tweeën? Wij schuiven je aan bij gezellige meiden.",
     },
     {
-      title: "Eén restaurant, één zondagmiddag",
+      title: "Eén plek, één zondagmiddag",
       description:
-        "Geen stops door de stad. Alles gebeurt op één zorgvuldig gekozen plek.",
+        "Geen stops door de stad. Alles gebeurt op één zorgvuldig gekozen wijnbar.",
     },
     {
       title: "Solo? Ook prima",
       description:
         "Geen volledige groep? Boek solo of met een vriendin en schuif aan bij andere girls. MyTable regelt je plek.",
-    },
-    {
-      title: "Toegankelijke begeleiding",
-      description:
-        "Onze host deelt achtergrond over de wijnen zonder dat het een examen wordt.",
     },
     {
       title: "Op eigen tempo",
@@ -93,6 +88,11 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
     "Proeven, lachen, bijpraten. Geen netwerkpraat en geen speeddating-sfeer. Gewoon een fijne girls-only zondagmiddag.",
   ],
   faq: [
+    {
+      question: "Wanneer zijn de events?",
+      answer:
+        "Altijd op zondag, in de middag. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+    },
     {
       question: "Wat kost het en wat krijg ik ervoor?",
       answer:

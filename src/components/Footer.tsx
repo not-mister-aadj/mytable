@@ -8,6 +8,7 @@ import {
   localePath,
   privacyPath,
   termsPath,
+  waitlistPath,
   type Locale,
 } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
@@ -19,26 +20,15 @@ interface FooterProps {
   locale: Locale;
 }
 
-const POPULAR_CITY_SLUGS = [
-  "amsterdam",
-  "rotterdam",
-  "den-haag",
-  "utrecht",
-  "eindhoven",
-  "groningen",
-] as const;
-
 export function Footer({ dict, locale }: FooterProps) {
   const home = localePath(locale);
   const year = new Date().getFullYear();
   const cities = listGirlsOnlyCities();
-  const popularCities = POPULAR_CITY_SLUGS.map((slug) =>
-    cities.find((city) => city.slug === slug),
-  ).filter(Boolean) as typeof cities;
 
   const exploreLinks = [
     { label: dict.links.girlsOnly, href: girlsOnlyPath(locale) },
     { label: dict.links.experiences, href: agendaPath(locale) },
+    { label: dict.links.waitlist, href: waitlistPath(locale) },
     { label: dict.links.blog, href: blogPath(locale) },
     { label: dict.links.howItWorks, href: localePath(locale, "#how-it-works") },
     { label: dict.links.faq, href: localePath(locale, "#faq") },
@@ -132,8 +122,8 @@ export function Footer({ dict, locale }: FooterProps) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-deep">
               {dict.columns.popularCities}
             </p>
-            <ul className="mt-4 space-y-3">
-              {popularCities.map((city) => (
+            <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
+              {cities.map((city) => (
                 <li key={city.slug}>
                   <Link
                     href={girlsOnlyCityPath(locale, city.slug)}
@@ -143,15 +133,6 @@ export function Footer({ dict, locale }: FooterProps) {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href={girlsOnlyPath(locale)}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-rose-deep transition-colors hover:text-burgundy"
-                >
-                  {dict.allCitiesCta}
-                  <span aria-hidden>→</span>
-                </Link>
-              </li>
             </ul>
           </nav>
         </div>

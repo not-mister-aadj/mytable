@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/girls-only-ids";
+import {
+  GIRLS_ONLY_FINAL_CTA_ID,
+  GIRLS_ONLY_HERO_CTA_ID,
+} from "@/components/girls-only/girls-only-ids";
 
 const ctaClassName =
   "w-full bg-rose text-cream hover:bg-rose-deep px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] sm:text-sm";
@@ -13,32 +16,48 @@ interface GirlsOnlyStickyCtaProps {
   label: string;
   href: string;
   observeTargetId?: string;
+  hideNearId?: string;
 }
 
 export function GirlsOnlyStickyCta({
   label,
   href,
   observeTargetId = GIRLS_ONLY_HERO_CTA_ID,
+  hideNearId = GIRLS_ONLY_FINAL_CTA_ID,
 }: GirlsOnlyStickyCtaProps) {
-  const [showSticky, setShowSticky] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(true);
+  const [finalVisible, setFinalVisible] = useState(false);
 
   useEffect(() => {
-    const target = document.getElementById(observeTargetId);
-    if (!target) {
-      setShowSticky(true);
-      return;
+    const hero = document.getElementById(observeTargetId);
+    const finalBanner = document.getElementById(hideNearId);
+
+    const observers: IntersectionObserver[] = [];
+
+    if (hero) {
+      const heroObserver = new IntersectionObserver(
+        ([entry]) => setHeroVisible(entry.isIntersecting),
+        { threshold: 0 },
+      );
+      heroObserver.observe(hero);
+      observers.push(heroObserver);
+    } else {
+      setHeroVisible(false);
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowSticky(!entry.isIntersecting);
-      },
-      { threshold: 0 },
-    );
+    if (finalBanner) {
+      const finalObserver = new IntersectionObserver(
+        ([entry]) => setFinalVisible(entry.isIntersecting),
+        { threshold: 0.15 },
+      );
+      finalObserver.observe(finalBanner);
+      observers.push(finalObserver);
+    }
 
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [observeTargetId]);
+    return () => observers.forEach((observer) => observer.disconnect());
+  }, [observeTargetId, hideNearId]);
+
+  const showSticky = !heroVisible && !finalVisible;
 
   return (
     <div

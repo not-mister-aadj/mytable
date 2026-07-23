@@ -79,6 +79,7 @@ export interface GirlsOnlyPageLabels {
   };
   finalCta: {
     title: string;
+    subtitle: string;
     button: string;
   };
   status: Record<ExperienceStatusKey, string>;

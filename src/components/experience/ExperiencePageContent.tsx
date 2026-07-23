@@ -85,6 +85,7 @@ export function ExperiencePageContent({
   const stickySentinelRef = useRef<HTMLDivElement>(null);
   const mobileBookingRef = useRef<HTMLDivElement>(null);
   const desktopBookingRef = useRef<HTMLDivElement>(null);
+  const scheduleNote = `${mood.dayOfWeek} · ${mood.partOfDay}`;
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
     experience.atmosphereTags,
@@ -125,6 +126,7 @@ export function ExperiencePageContent({
           reserveCta={dict.agenda.reserveCta}
           femaleOnlyBadge={dict.experiences.femaleOnlyBadge}
           locale={locale}
+          scheduleNote={scheduleNote}
           sentinelRef={stickySentinelRef}
           bookingRef={mobileBookingRef}
           desktopBookingRef={desktopBookingRef}
@@ -167,6 +169,7 @@ export function ExperiencePageContent({
                     locale={locale}
                     compact
                     fitViewport
+                    scheduleNote={scheduleNote}
                   />
                 </div>
               </div>
@@ -184,6 +187,7 @@ export function ExperiencePageContent({
                   locale={locale}
                   compact
                   fitViewport
+                  scheduleNote={scheduleNote}
                   className="mt-4"
                 />
               </motion.div>
@@ -222,6 +226,7 @@ export function ExperiencePageContent({
                   reserveCta={dict.agenda.reserveCta}
                   locale={locale}
                   compact
+                  scheduleNote={scheduleNote}
                 />
               </motion.div>
             )}

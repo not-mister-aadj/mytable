@@ -106,7 +106,7 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingStepBack: "Back",
   bookingFemaleOnlyNote: "This table is for women only.",
   bookingPriorityList:
-    "Add me to the priority list. I'll hear about new tables first and get a nice discount.",
+    "Add me to the waitlist. I'll hear about new tables first and get a nice discount.",
   bookingMediaConsent:
     "Photos and videos may be taken during the event for MyTable (website, socials and email).",
   bookingMediaConsentReadMore: "More in our",
@@ -127,6 +127,8 @@ export const experiencePageEn: ExperiencePageLabels = {
     "Relaxed atmosphere, no forced small talk",
   ],
   practicalLabels: {
+    dayOfWeek: "Day",
+    partOfDay: "Part of day",
     startTime: "Start time",
     duration: "Duration",
     city: "City",
@@ -166,31 +168,26 @@ export const experiencePageEn: ExperiencePageLabels = {
   closedCta: "Sold out",
   moods: {
     tastings: {
-      tagline: "Wine tasting on Sunday afternoon, girls only or mixed group",
+      tagline: "Four wines and bite pairings, a fun afternoon at one table.",
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
-        "You sit down at the table, taste several wines with matching bites, and enjoy what the chef prepares as specials for the table. No wine lecture, just context and room to enjoy at your own pace. Plan for the whole afternoon. Often the group keeps it going afterward: more wine, drinks, or dinner out.",
+        "On Sunday afternoon you take a seat for four wines with bite pairings, chosen by the wine bar. No wine exam, just a fun afternoon with your table. Plan for the whole afternoon. Often the group keeps it going afterward: more wine, drinks, or dinner out.",
       whatToExpect: [
         {
-          title: "One restaurant, one table",
+          title: "One wine bar, one table",
           description:
-            "No stops across the city. Everything happens at one carefully chosen venue.",
+            "Everything happens at one place. You show up for the afternoon; we handle the rest around the table.",
         },
         {
-          title: "Chef's special for the group",
+          title: "Four wines, chosen by the wine bar",
           description:
-            "The chef creates specials for everyone at the table. Wine and food are matched.",
+            "The wine bar puts the tasting together: four wines with matching bite pairings.",
         },
         {
-          title: "Book your own table or join one",
+          title: "A fun afternoon with your table",
           description:
-            "Reserve for friends or a date, or come solo and join others who are up for a relaxed Sunday afternoon.",
-        },
-        {
-          title: "Accessible guidance",
-          description:
-            "Our host shares background on the wines without turning it into an exam.",
+            "Book with friends or a date, or come solo and join others who want a lovely Sunday afternoon.",
         },
         {
           title: "Your own pace",
@@ -200,12 +197,12 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           title: "Adjustments on request",
           description:
-            "Dietary needs or preferences? Tell us when you book and we align with the chef where possible.",
+            "Dietary needs or preferences? Tell us when you book and we align where possible.",
         },
       ],
       socialParagraphs: [
         "Book your own table with friends, come alone, or pull up a chair with people who want a fun Sunday afternoon.",
-        "Taste, laugh, catch up without the fuss. Nobody's grading your wine knowledge; everyone's just curious.",
+        "Taste, laugh, catch up. Nobody's grading your wine knowledge; everyone's just curious.",
       ],
       gallery: [
         images.wineBar,
@@ -215,8 +212,10 @@ export const experiencePageEn: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
+      dayOfWeek: "Always on Sunday",
+      partOfDay: "Afternoon",
       duration: "Whole afternoon, at your own pace",
-      included: "Wine tasting, chef's special bites, and host at the table",
+      included: "Four wines with bite pairings, chosen by the wine bar",
       faq: [
         {
           question: "What's the difference between girls only and mixed?",
@@ -241,7 +240,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "When are the events?",
           answer:
-            "Every Sunday afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
+            "Always on Sunday, in the afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
         },
         {
           question: "Can I cancel or exchange?",
@@ -251,19 +250,20 @@ export const experiencePageEn: ExperiencePageLabels = {
       ],
     },
     wineWalk: {
-      tagline: "A relaxed walk full of wine, great spots, and good company.",
+      tagline: "Discover the city: several spots, each with wine and food.",
       description:
-        "A MyTable wine walk is not a scripted tour, but a relaxed afternoon in the city. You pass characterful spots, taste something nice along the way, and meet people naturally. The route gives structure, but the vibe stays easy and social.",
+        "A MyTable Wine Walk is a Sunday afternoon through the city. You visit several venues and at each stop taste wine with food. That way you discover new places naturally: walk, taste, catch up. Not a scripted tour, but a route with character.",
       experienceFlow: wineWalkFlowEn,
       guestQuotes: wineWalkQuotesEn,
       whatToExpect: [
         {
-          title: "Several selected venues",
-          description: "You visit different restaurants and wine bars in the city.",
+          title: "Several spots in the city",
+          description:
+            "You visit different venues and discover the city by tasting along the way.",
         },
         {
-          title: "Wine and bites along the way",
-          description: "At each stop something is ready to try.",
+          title: "Wine and food at every stop",
+          description: "At each venue a pairing is ready to try.",
         },
         {
           title: "Relaxed walking pace",
@@ -294,6 +294,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
+      dayOfWeek: "Always on Sunday",
+      partOfDay: "Afternoon",
       duration: "About 3 to 4 hours",
       included: "Wine tastings, bites, and route guidance",
       walkingDistance: "Usually 2 to 4 km, depending on the city",
@@ -314,6 +316,11 @@ export const experiencePageEn: ExperiencePageLabels = {
             "At each stop you get wine, a bite, or a small pairing. Exact details can vary by city.",
         },
         {
+          question: "When are the wine walks?",
+          answer:
+            "Always on Sunday, during the afternoon. The exact time is on your table card and in your confirmation email.",
+        },
+        {
           question: "When do I get the route?",
           answer:
             "You receive practical info and the start location in advance. Venues may be shared before or closer to the date depending on the format.",
@@ -326,40 +333,44 @@ export const experiencePageEn: ExperiencePageLabels = {
       ],
     },
     chefsSpecial: {
-      tagline: "A special evening at the table, curated by the chef.",
+      tagline: "The best of the restaurant, family style on Sunday evening.",
       description:
-        "Chef's Special is an evening where you do not have to choose everything yourself. The restaurant sets the direction, the chef creates something special, and you join a table with good company. It is an accessible way to experience a restaurant differently.",
+        "Chef's Table is a Sunday evening to discover the restaurant the way the chef intended. Multiple starters, mains and a dessert arrive family style: shared with your table, so everyone tastes more. No menu stress, just the best of the kitchen in one night.",
       experienceFlow: chefsSpecialFlowEn,
       guestQuotes: tastingQuotesEn,
       whatToExpect: [
         {
-          title: "A special menu or multiple courses",
-          description: "The restaurant shapes the evening.",
+          title: "Multiple courses, family style",
+          description:
+            "Starters, mains and dessert land in the middle of the table. Everyone shares and tastes along.",
         },
         {
-          title: "One selected restaurant",
-          description: "Everything happens at one venue.",
+          title: "The best of the kitchen",
+          description:
+            "The chef shapes the evening so you taste more of the restaurant than with a single plate of your own.",
+        },
+        {
+          title: "One restaurant, one table",
+          description:
+            "Everything happens at one venue. Often at a long, shared table.",
         },
         {
           title: "Great atmosphere at the table",
-          description: "Small group, relaxed conversation.",
+          description: "Small group, easy conversation, food you share together.",
         },
         {
           title: "Come alone or together",
           description: "Coming alone is very normal and welcome.",
         },
         {
-          title: "Small group",
-          description: "Usually 8 to 14 guests.",
-        },
-        {
           title: "No decision fatigue",
-          description: "The chef or restaurant decides the lineup.",
+          description:
+            "You do not build a menu. The chef decides what comes out.",
         },
       ],
       socialParagraphs: [
-        "Your own table with friends or pull up a chair: both work. Great food, good vibes, people who want a night out.",
-        "Small enough to stay cozy, relaxed enough to just be yourself. Wine newbie or fan, everyone's welcome.",
+        "Your own table with friends or pull up a chair: both work. Dishes in the middle, conversations that start themselves, an evening of tasting together.",
+        "Small enough to stay cozy, relaxed enough to just be yourself. Foodie or curious newcomer: everyone shares.",
       ],
       gallery: [
         images.restaurantDining,
@@ -369,13 +380,21 @@ export const experiencePageEn: ExperiencePageLabels = {
         images.wineBar,
         images.heroMain,
       ],
+      dayOfWeek: "Always on Sunday",
+      partOfDay: "Evening",
       duration: "About 2.5 to 3 hours",
-      included: "Menu or multiple courses as described on the event page",
+      included:
+        "Multiple starters, mains and dessert, shared family style at the table",
       faq: [
         {
           question: "Will I know what I eat in advance?",
           answer:
-            "Sometimes yes, sometimes no. For Chef's Special the restaurant decides. If there is a fixed menu, we show it on the page.",
+            "Sometimes yes, sometimes no. For Chef's Table the chef shapes the evening. If there is a fixed menu, we show it on the page.",
+        },
+        {
+          question: "What does family style mean?",
+          answer:
+            "Dishes come to the middle of the table for sharing. That way you taste more of the restaurant: multiple starters, mains and dessert.",
         },
         {
           question: "Are drinks included?",
@@ -393,9 +412,14 @@ export const experiencePageEn: ExperiencePageLabels = {
             "Yes. The table is set up so coming alone feels normal and relaxed.",
         },
         {
+          question: "When are the Chef's Tables?",
+          answer:
+            "Always on Sunday, in the evening. The exact time is on your table card and in your confirmation email.",
+        },
+        {
           question: "Is this fine dining?",
           answer:
-            "Not necessarily. Chef's Special means the restaurant puts together something special for the evening.",
+            "Not necessarily. Chef's Table mainly means you taste the best of the kitchen family style, with your table.",
         },
       ],
     },

@@ -8,9 +8,9 @@ export const EXPERIENCE_TYPE_DEFINITIONS = [
     nameEn: "Wine tasting",
     mood: "tastings" as ExperienceMoodKey,
     descriptionNl:
-      "Eén restaurant, één tafel. Wijnproeverij met chef's specials en gezellig gezelschap.",
+      "Vier wijnen en bite-pairings, gekozen door de wijnbar. Een gezellige middag aan één tafel.",
     descriptionEn:
-      "One restaurant, one table. Wine tasting with chef's specials and good company.",
+      "Four wines and bite pairings, chosen by the wine bar. A fun afternoon at one table.",
   },
   {
     slug: "wine-walk",
@@ -18,19 +18,19 @@ export const EXPERIENCE_TYPE_DEFINITIONS = [
     nameEn: "Wine walk",
     mood: "wineWalk" as ExperienceMoodKey,
     descriptionNl:
-      "Ontspannen wandeling langs restaurants en wijnbars met wijn, bites en nieuwe mensen.",
+      "De stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs.",
     descriptionEn:
-      "A relaxed walk past restaurants and wine bars with wine, bites, and new people.",
+      "Discover the city by trying several venues, each with wine and food.",
   },
   {
     slug: "chefs-special",
-    nameNl: "Chef's Special",
-    nameEn: "Chef's Special",
+    nameNl: "Chef's Table",
+    nameEn: "Chef's Table",
     mood: "chefsSpecial" as ExperienceMoodKey,
     descriptionNl:
-      "Avond aan tafel met een speciaal menu of meerdere gangen, samengesteld door de chef.",
+      "Zondagavond family style: meerdere voorgerechten, hoofdgerechten en dessert, zodat je het beste van het restaurant proeft met je tafel.",
     descriptionEn:
-      "An evening at the table with a special menu or multiple courses from the chef.",
+      "Sunday evening family style: multiple starters, mains and dessert, so you taste the best of the restaurant with your table.",
   },
 ] as const;
 

@@ -1,4 +1,4 @@
-import { listGirlsOnlyCityNames } from "@/data/girls-only-cities";
+import { listTopNlCityNames } from "@/data/nl-top-cities";
 import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
@@ -164,7 +164,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     citiesLabel: "Where do you want a seat?",
     citiesHint: "Choose one or more cities",
     citiesRequired: "Choose at least one city",
-    cities: listGirlsOnlyCityNames(),
+    cities: listTopNlCityNames(),
     emailLabel: "Email",
     emailPlaceholder: "you@email.com",
     cta: "Join the priority list",
@@ -190,6 +190,8 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   },
   finalCta: {
     title: "Ready for your next Sunday afternoon wine & bites?",
+    subtitle:
+      "Four wines, bites, and a table of great women. Solo or with friends.",
     button: "View upcoming Sundays",
   },
   status: {

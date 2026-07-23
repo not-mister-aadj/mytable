@@ -51,6 +51,8 @@ interface BookingCardProps {
   compact?: boolean;
   /** Cap height on desktop sticky sidebar only; mobile grows with the page. */
   fitViewport?: boolean;
+  /** e.g. "Altijd op zondag · Middag" */
+  scheduleNote?: string;
 }
 
 function choiceLegendClass(compact: boolean): string {
@@ -377,6 +379,7 @@ export function BookingCard({
   className = "",
   compact = false,
   fitViewport = false,
+  scheduleNote,
 }: BookingCardProps) {
   const { date, time } = splitDateTime(experience.dateTime);
   const isClosed = experience.status === "closed";
@@ -607,6 +610,11 @@ export function BookingCard({
           <div>
             <p className="text-wine/50">{labels.bookingDate}</p>
             <p className="mt-0.5 font-medium text-wine">{date}</p>
+            {scheduleNote ? (
+              <p className="mt-0.5 text-[10px] font-medium text-gold sm:text-[11px]">
+                {scheduleNote}
+              </p>
+            ) : null}
           </div>
           {time ? (
             <div>
@@ -627,7 +635,14 @@ export function BookingCard({
         >
           <div className="flex justify-between gap-4">
             <dt className="text-wine/55">{labels.bookingDate}</dt>
-            <dd className="text-right font-medium text-wine">{date}</dd>
+            <dd className="text-right font-medium text-wine">
+              <span className="block">{date}</span>
+              {scheduleNote ? (
+                <span className="mt-0.5 block text-xs font-medium text-gold">
+                  {scheduleNote}
+                </span>
+              ) : null}
+            </dd>
           </div>
           {time ? (
             <div className="flex justify-between gap-4">

@@ -60,6 +60,10 @@ export interface ExperienceMoodContent {
   guestQuotes: ExperienceGuestQuote[];
   socialParagraphs: string[];
   gallery: string[];
+  /** e.g. "Altijd op zondag" / "Always on Sunday" */
+  dayOfWeek: string;
+  /** e.g. "Middag" / "Avond" / "Ochtend" */
+  partOfDay: string;
   duration: string;
   included: string;
   walkingDistance?: string;
@@ -157,6 +161,8 @@ export interface ExperiencePageLabels {
   bookingTrustBullets: string[];
   trustLines: string[];
   practicalLabels: {
+    dayOfWeek: string;
+    partOfDay: string;
     startTime: string;
     duration: string;
     city: string;
@@ -280,14 +286,10 @@ export interface Dictionary {
   };
   header: {
     nav: {
-      experiences: string;
       girlsOnly: string;
-      howItWorks: string;
-      forVenues: string;
-      faq: string;
-      blog: string;
+      calendar: string;
+      waitlist: string;
     };
-    cta: string;
     languageSwitch: string;
     openMenu: string;
     closeMenu: string;
@@ -394,6 +396,7 @@ export interface Dictionary {
       forVenues: string;
       faq: string;
       blog: string;
+      waitlist: string;
       instagram: string;
       contact: string;
       terms: string;

@@ -155,6 +155,13 @@ export function trackEmailSignupCompleted(props: {
   });
 }
 
+export function trackWhatsappJoinClicked(props: {
+  interest: string;
+  locale: string;
+}): void {
+  capture(PostHogEvents.whatsappJoinClicked, props);
+}
+
 export function trackAgendaTabChange(
   tabs: Array<{ id: AgendaTabKey; label: string }>,
   previous: AgendaTabKey,

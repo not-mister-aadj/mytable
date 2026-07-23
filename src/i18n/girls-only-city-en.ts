@@ -23,7 +23,7 @@ function buildCityPageEn(
   return {
     meta: {
       title: `Girls-only wine tasting in ${enName}`,
-      description: `Girls-only wine tasting in ${enName} on Sunday afternoon. Book solo or with friends. Four wines, bites, one table. No date? Priority list.`,
+      description: `Girls-only wine tasting in ${enName} on Sunday afternoon. Book solo or with friends. Four wines, bites, one table. No date? Waitlist.`,
     },
     breadcrumbHome: "Home",
     breadcrumbGirlsOnly: "Girls-only",
@@ -37,7 +37,7 @@ function buildCityPageEn(
         "25-45 · beginners OK",
       ],
       ctaBook: `See ${enName} tables`,
-      ctaPriority: "Join priority list",
+      ctaPriority: "Join the waitlist",
       imageAlt: `Women enjoying wine and bites at a girls-only afternoon in ${enName}`,
     },
     events: {
@@ -45,11 +45,11 @@ function buildCityPageEn(
       title: `Upcoming girls-only tables in ${enName}`,
       subtitle: `Reserve your seat for the next girls-only Sunday in ${enName}.`,
       emptyTitle: `No girls-only table in ${enName} planned yet`,
-      emptyBody: `New ${enName} Sundays open once the venue is set. Join the priority list. You’ll hear first.`,
+      emptyBody: `New ${enName} Sundays open once the venue is set. Join the waitlist. You’ll hear first.`,
       viewAll: "See all Sundays",
     },
     priority: {
-      eyebrow: "Priority list",
+      eyebrow: "Waitlist",
       title: `Be first in line in ${enName}`,
       subtitle: `Leave your email. When a girls-only table opens in ${enName}, you’ll hear first, before the public agenda.`,
       nameLabel: "First name",
@@ -99,7 +99,7 @@ function buildCityPageEn(
       steps: [
         {
           title: "Pick your Sunday",
-          description: `Browse open tables in ${enName}, or join the priority list if no date is open yet.`,
+          description: `Browse open tables in ${enName}, or join the waitlist if no date is open yet.`,
         },
         {
           title: "Book solo or as a group",
@@ -136,7 +136,7 @@ function buildCityPageEn(
         },
         {
           question: `What if no ${enName} date is open?`,
-          answer: `Join the priority list. When we open a new girls-only Sunday in ${enName}, you get the first email, before the public agenda.`,
+          answer: `Join the waitlist. When we open a new girls-only Sunday in ${enName}, you get the first email, before the public agenda.`,
         },
         {
           question: `Is girls-only in ${enName} a dating event?`,
@@ -152,9 +152,9 @@ function buildCityPageEn(
     },
     finalCta: {
       title: `Ready for girls-only in ${enName}?`,
-      subtitle: `Book an open table, or join the priority list for the next ${enName} Sunday.`,
+      subtitle: `Book an open table, or join the waitlist for the next ${enName} Sunday.`,
       ctaBook: `See ${enName} tables`,
-      ctaPriority: "Join priority list",
+      ctaPriority: "Join the waitlist",
     },
     status: sharedStatus,
     femaleOnlyBadge: "Girls only",

@@ -1,6 +1,13 @@
 import type { ExperienceFaqItem, ExperienceItem } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
-import { blogPath, blogPostPath, experiencePath } from "@/i18n/config";
+import {
+  agendaPath,
+  blogPath,
+  blogPostPath,
+  experiencePath,
+  localePath,
+  waitlistPath,
+} from "@/i18n/config";
 import { companyLegal } from "@/lib/company-legal";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
 
@@ -58,6 +65,32 @@ export function websiteJsonLd(locale: Locale): JsonLd {
         : "Sociale wijnproeverijen en chef's specials aan één tafel door heel Nederland.",
     inLanguage: ["nl", "en"],
     publisher: { "@id": orgId() },
+  };
+}
+
+export function siteNavigationJsonLd(locale: Locale): JsonLd {
+  const items =
+    locale === "en"
+      ? [
+          { name: "Girls only", path: localePath("en") },
+          { name: "Calendar", path: agendaPath("en") },
+          { name: "Your table", path: waitlistPath("en") },
+        ]
+      : [
+          { name: "Girls only", path: localePath("nl") },
+          { name: "Agenda", path: agendaPath("nl") },
+          { name: "Jouw tafel", path: waitlistPath("nl") },
+        ];
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "SiteNavigationElement",
+    name: "Main navigation",
+    hasPart: items.map((item) => ({
+      "@type": "WebPage",
+      name: item.name,
+      url: absoluteUrl(item.path),
+    })),
   };
 }
 

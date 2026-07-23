@@ -15,6 +15,7 @@ import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
   faqPageJsonLd,
   organizationJsonLd,
+  siteNavigationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
@@ -65,6 +66,7 @@ export default async function Home({ params }: Props) {
         data={[
           organizationJsonLd(),
           websiteJsonLd(locale),
+          siteNavigationJsonLd(locale),
           faqPageJsonLd(labels.faq.items, pageUrl),
         ]}
       />

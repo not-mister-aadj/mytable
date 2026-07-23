@@ -206,6 +206,7 @@ export async function onWaitlistJoined(input: {
   locale: string;
   waitlistId: string;
   name?: string;
+  preferences?: Record<string, unknown> | null;
 }): Promise<string> {
   const { id: customerId } = await upsertCustomerFromEmail({
     email: input.email,
@@ -226,7 +227,11 @@ export async function onWaitlistJoined(input: {
     type: CustomerActivityTypes.waitlistJoined,
     title: "Wachtlijst",
     description: `Aangemeld voor ${input.city}`,
-    metadata: { city: input.city, waitlistId: input.waitlistId },
+    metadata: {
+      city: input.city,
+      waitlistId: input.waitlistId,
+      ...(input.preferences ? { preferences: input.preferences } : {}),
+    },
   });
 
   await recalculateCustomerStats(customerId);

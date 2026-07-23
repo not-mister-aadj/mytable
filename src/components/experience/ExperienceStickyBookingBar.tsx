@@ -20,6 +20,7 @@ interface ExperienceStickyBookingBarProps {
   reserveCta: string;
   femaleOnlyBadge: string;
   locale: Locale;
+  scheduleNote?: string;
   sentinelRef: RefObject<HTMLElement | null>;
   bookingRef?: RefObject<HTMLElement | null>;
   desktopBookingRef?: RefObject<HTMLElement | null>;
@@ -83,6 +84,7 @@ export function ExperienceStickyBookingBar({
   reserveCta,
   femaleOnlyBadge,
   locale,
+  scheduleNote,
   sentinelRef,
   bookingRef,
   desktopBookingRef,
@@ -179,6 +181,14 @@ export function ExperienceStickyBookingBar({
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-wine/70 sm:text-[13px]">
                   <MetaItem icon="calendar">{date}</MetaItem>
+                  {scheduleNote ? (
+                    <>
+                      <span className="hidden text-wine/20 sm:inline" aria-hidden>
+                        |
+                      </span>
+                      <span className="font-medium text-gold">{scheduleNote}</span>
+                    </>
+                  ) : null}
                   {time ? (
                     <>
                       <span className="hidden text-wine/20 sm:inline" aria-hidden>

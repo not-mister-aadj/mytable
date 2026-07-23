@@ -1,6 +1,6 @@
 import { Footer } from "@/components/Footer";
 import { GirlsOnlyCityView } from "@/components/girls-only/GirlsOnlyCityView";
-import { GirlsOnlyHeader } from "@/components/girls-only/GirlsOnlyHeader";
+import { Header } from "@/components/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   GIRLS_ONLY_CITY_SLUGS,
@@ -107,18 +107,7 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
         ]}
       />
 
-      <GirlsOnlyHeader
-        headerDict={dict.header}
-        locale={locale}
-        ctaLabel={labels.events.viewAll}
-        ctaHref={agendaHref}
-        navLinks={[
-          { label: labels.events.eyebrow, href: "#events" },
-          { label: labels.included.eyebrow, href: "#included" },
-          { label: labels.howItWorks.eyebrow, href: "#how-it-works" },
-          { label: "FAQ", href: "#faq" },
-        ]}
-      />
+      <Header dict={dict.header} locale={locale} />
 
       <main>
         <GirlsOnlyCityView

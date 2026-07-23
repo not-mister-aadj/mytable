@@ -12,11 +12,11 @@ import type { EnrichedExperience } from "@/lib/experience-detail";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { GirlsOnlyUpcomingEvents } from "@/components/girls-only/GirlsOnlyUpcomingEvents";
-import { GirlsOnlyPresaleSignup } from "@/components/girls-only/GirlsOnlyPresaleSignup";
 import {
   GirlsOnlyStickyCta,
 } from "@/components/girls-only/GirlsOnlyStickyCta";
 import { GirlsOnlyCta } from "@/components/girls-only/GirlsOnlyCta";
+import { GirlsOnlyFinalCtaBanner } from "@/components/girls-only/GirlsOnlyFinalCtaBanner";
 import { GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/girls-only-ids";
 import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
 
@@ -224,51 +224,6 @@ function HeroCtaBlock({
   );
 }
 
-function FounderStorySection({ labels }: { labels: GirlsOnlyPageLabels }) {
-  return (
-    <section
-      id="founder"
-      className={`scroll-mt-20 border-t border-rose/15 bg-cream ${sectionPad}`}
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-        <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16">
-          <div className="order-2 lg:order-1">
-            <SectionEyebrow>{labels.founderStory.eyebrow}</SectionEyebrow>
-            <h2 className="mt-3 font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
-              {labels.founderStory.title}
-            </h2>
-            <div className="mt-4 space-y-4">
-              {labels.founderStory.paragraphs.map((paragraph) => (
-                <p
-                  key={paragraph}
-                  className="text-sm leading-relaxed text-wine/80 sm:text-base"
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-            <p className="mt-5 font-serif text-base font-medium text-rose-deep sm:text-lg">
-              {labels.founderStory.signOff}
-            </p>
-          </div>
-
-          <figure className="order-1 mx-auto w-full max-w-md overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.18)] lg:order-2 lg:max-w-none">
-            <div className="relative aspect-[4/5] overflow-hidden">
-              <Image
-                src="/girls-only/elif-siraadj.png"
-                alt={labels.founderStory.imageAlt}
-                fill
-                sizes="(max-width: 1024px) 90vw, 480px"
-                className="object-cover object-[42%_45%]"
-              />
-            </div>
-          </figure>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function TestimonialsSection({
   labels,
   top,
@@ -377,11 +332,6 @@ export function GirlsOnlyLandingView({
         agendaHref={agendaHref}
       />
 
-      <GirlsOnlyPresaleSignup
-        labels={labels.presaleSignup}
-        locale={locale}
-      />
-
       {testimonials.length > 0 ? (
         <TestimonialsSection labels={labels} top={top} bottom={bottom} />
       ) : null}
@@ -413,18 +363,17 @@ export function GirlsOnlyLandingView({
 
       <GirlsOnlyFaq labels={labels} />
 
-      <FounderStorySection labels={labels} />
-
-      <section className="hidden border-t border-rose/20 bg-gradient-to-b from-rose-soft/70 via-rose-soft/40 to-cream py-14 sm:py-16 lg:block">
-        <div className="mx-auto max-w-7xl px-5 text-center sm:px-8 lg:px-10">
-          <h2 className="mx-auto max-w-xl font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-            {labels.finalCta.title}
-          </h2>
-          <div className="mt-8">
-            <GirlsOnlyCta href={primaryCta.href}>{primaryCta.label}</GirlsOnlyCta>
-          </div>
-        </div>
-      </section>
+      <GirlsOnlyFinalCtaBanner
+        title={labels.finalCta.title}
+        subtitle={labels.finalCta.subtitle}
+        ctaLabel={primaryCta.label}
+        ctaHref={primaryCta.href}
+        imageAlt={
+          locale === "nl"
+            ? "Vrouwen lachen en praten tijdens een girls-only avond uit"
+            : "Women laughing and chatting during a girls-only night out"
+        }
+      />
 
       <GirlsOnlyStickyCta label={primaryCta.label} href={primaryCta.href} />
     </>

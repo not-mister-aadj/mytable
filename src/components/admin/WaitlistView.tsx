@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { WaitlistSignupRow } from "@/lib/waitlist-data";
+import type { WaitlistWhatsappLinks } from "@/lib/waitlist-whatsapp";
+import { WaitlistWhatsappLinksForm } from "./WaitlistWhatsappLinksForm";
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("nl-NL", {
@@ -13,7 +15,13 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
-export function WaitlistView({ signups }: { signups: WaitlistSignupRow[] }) {
+export function WaitlistView({
+  signups,
+  whatsappLinks,
+}: {
+  signups: WaitlistSignupRow[];
+  whatsappLinks: WaitlistWhatsappLinks;
+}) {
   const [cityFilter, setCityFilter] = useState("all");
   const [search, setSearch] = useState("");
 
@@ -45,7 +53,8 @@ export function WaitlistView({ signups }: { signups: WaitlistSignupRow[] }) {
             Wachtlijst
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-            Aanmeldingen via &ldquo;Als eerste aan tafel&rdquo; op de website.
+            Aanmeldingen via &ldquo;Jouw tafel&rdquo; op de website. WhatsApp-links
+            stel je hieronder in.
           </p>
         </div>
         <a
@@ -55,6 +64,8 @@ export function WaitlistView({ signups }: { signups: WaitlistSignupRow[] }) {
           Exporteer Excel
         </a>
       </div>
+
+      <WaitlistWhatsappLinksForm initialLinks={whatsappLinks} />
 
       <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)] sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

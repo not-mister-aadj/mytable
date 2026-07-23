@@ -34,7 +34,7 @@ export const blogUiNl: BlogUiLabels = {
   breadcrumbBlog: "Blog",
   finalCtaTitle: "Liever meteen een tafel boeken?",
   finalCtaBody:
-    "Bekijk open girls-only zondagen, of zet je op de priority list voor jouw stad.",
+    "Bekijk open girls-only zondagen, of zet je op de wachtlijst voor jouw stad.",
   finalCtaButton: "Bekijk beschikbare tafels",
   emptyCategory: "Nog geen artikelen in deze categorie.",
   keepReading: "Verder lezen op MyTable",
@@ -60,7 +60,7 @@ export const blogUiEn: BlogUiLabels = {
   breadcrumbBlog: "Blog",
   finalCtaTitle: "Rather book a table now?",
   finalCtaBody:
-    "See open girls-only Sundays, or join the priority list for your city.",
+    "See open girls-only Sundays, or join the waitlist for your city.",
   finalCtaButton: "See available tables",
   emptyCategory: "No articles in this category yet.",
   keepReading: "Keep exploring on MyTable",

@@ -9,6 +9,7 @@ import {
   localePath,
   privacyPath,
   termsPath,
+  waitlistPath,
   type Locale,
 } from "@/i18n/config";
 import { absoluteImageUrl, absoluteUrl } from "@/lib/seo/site";
@@ -22,6 +23,7 @@ export type SeoPathKind =
   | "blog"
   | "blogPost"
   | "blogCategory"
+  | "waitlist"
   | "privacy"
   | "terms";
 
@@ -46,6 +48,8 @@ function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
     case "blogCategory":
       if (!slug) throw new Error("blogCategory SEO path requires category");
       return blogCategoryPath(locale, slug);
+    case "waitlist":
+      return waitlistPath(locale);
     case "privacy":
       return privacyPath(locale);
     case "terms":

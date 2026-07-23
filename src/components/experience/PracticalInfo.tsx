@@ -67,6 +67,8 @@ export function PracticalInfo({
   const { time } = splitDateTime(experience.dateTime);
 
   const rows: { icon: IconKey; label: string; value: string }[] = [
+    { icon: "clock", label: labels.practicalLabels.dayOfWeek, value: mood.dayOfWeek },
+    { icon: "duration", label: labels.practicalLabels.partOfDay, value: mood.partOfDay },
     { icon: "clock", label: labels.practicalLabels.startTime, value: time || "n.v.t." },
     { icon: "duration", label: labels.practicalLabels.duration, value: mood.duration },
     { icon: "city", label: labels.practicalLabels.city, value: experience.city },

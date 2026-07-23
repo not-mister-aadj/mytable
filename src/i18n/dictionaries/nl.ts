@@ -11,14 +11,10 @@ export const nl: Dictionary = {
   },
   header: {
     nav: {
-      experiences: "Beschikbare tafels",
       girlsOnly: "Girls only",
-      howItWorks: "Zo werkt het",
-      forVenues: "Voor locaties",
-      faq: "FAQ",
-      blog: "Blog",
+      calendar: "Agenda",
+      waitlist: "Jouw tafel",
     },
-    cta: "Aan tafel",
     languageSwitch: "EN",
     openMenu: "Menu openen",
     closeMenu: "Menu sluiten",
@@ -279,7 +275,7 @@ export const nl: Dictionary = {
     columns: {
       explore: "Ontdekken",
       info: "Informatie",
-      popularCities: "Populaire steden",
+      popularCities: "Steden",
     },
     allCitiesCta: "Alle steden",
     links: {
@@ -288,6 +284,7 @@ export const nl: Dictionary = {
       forVenues: "Voor locaties",
       faq: "FAQ",
       blog: "Blog",
+      waitlist: "Jouw tafel",
       instagram: "Instagram",
       contact: "Contact",
       terms: "Algemene voorwaarden",

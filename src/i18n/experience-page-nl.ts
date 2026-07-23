@@ -106,7 +106,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingStepBack: "Terug",
   bookingFemaleOnlyNote: "Deze tafel is alleen voor vrouwen.",
   bookingPriorityList:
-    "Zet me op de priority lijst. Ik hoor als eerste over nieuwe tafels en krijg een mooie korting.",
+    "Zet me op de wachtlijst. Ik hoor als eerste over nieuwe tafels en krijg een mooie korting.",
   bookingMediaConsent:
     "Tijdens het event kunnen foto's en video's gemaakt worden voor MyTable (website, socials en e-mail).",
   bookingMediaConsentReadMore: "Meer in onze",
@@ -127,6 +127,8 @@ export const experiencePageNl: ExperiencePageLabels = {
     "Ontspannen sfeer, geen verplicht smalltalk",
   ],
   practicalLabels: {
+    dayOfWeek: "Dag",
+    partOfDay: "Dagdeel",
     startTime: "Starttijd",
     duration: "Duur",
     city: "Stad",
@@ -166,31 +168,26 @@ export const experiencePageNl: ExperiencePageLabels = {
   closedCta: "Uitverkocht",
   moods: {
     tastings: {
-      tagline: "Wijnproeverij op zondagmiddag, girls only of gemengde groep",
+      tagline: "Vier wijnen en bite-pairings, gezellig aan één tafel.",
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "Je schuift aan tafel, proeft meerdere wijnen met bijpassende bites en eet wat de chef als special voor de tafel bereidt. Geen wijnles, wel context en ruimte om op je eigen tempo te genieten. Plan gerust de hele middag. Vaak houdt de groep het daarna nog gezellig: nawijnen, borrelen of ergens uit eten.",
+        "Op zondagmiddag schuif je aan tafel voor vier wijnen met bite-pairings, gekozen door de wijnbar. Geen wijnexamen, wel een gezellige middag met je tafel. Plan gerust de hele middag. Vaak houdt de groep het daarna nog vast: nawijnen, borrelen of ergens uit eten.",
       whatToExpect: [
         {
-          title: "Eén restaurant, één tafel",
+          title: "Eén wijnbar, één tafel",
           description:
-            "Geen stops door de stad. Alles speelt zich af op één plek die we zorgvuldig kiezen.",
+            "Alles speelt zich af op één plek. Jij komt voor de middag, wij regelen de rest rond de tafel.",
         },
         {
-          title: "Chef's special voor de groep",
+          title: "Vier wijnen, gekozen door de wijnbar",
           description:
-            "De chef maakt specials voor iedereen aan tafel. Wijn en spijs zijn op elkaar afgestemd.",
+            "De wijnbar stelt de proeverij samen: vier wijnen met bijpassende bite-pairings.",
         },
         {
-          title: "Maak je eigen tafel of sluit aan",
+          title: "Gezellig met je tafel",
           description:
-            "Boek een plek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige zondagmiddag.",
-        },
-        {
-          title: "Toegankelijke uitleg",
-          description:
-            "Onze host deelt achtergrond over de wijnen zonder dat het een examen wordt.",
+            "Boek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige zondagmiddag.",
         },
         {
           title: "Op eigen tempo",
@@ -200,12 +197,12 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           title: "Aanpassen op verzoek",
           description:
-            "Dieetwensen of voorkeuren? Meld het bij boeken, dan stemmen we met de chef af waar mogelijk.",
+            "Dieetwensen of voorkeuren? Meld het bij boeken, dan stemmen we af waar mogelijk.",
         },
       ],
       socialParagraphs: [
         "Boek je eigen tafel met vrienden, kom alleen of schuif aan bij mensen die ook zin hebben in een gezellige zondagmiddag.",
-        "Proeven, lachen, bijpraten zonder gedoe. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
+        "Proeven, lachen, bijpraten. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
       ],
       gallery: [
         images.wineBar,
@@ -215,8 +212,10 @@ export const experiencePageNl: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
+      dayOfWeek: "Altijd op zondag",
+      partOfDay: "Middag",
       duration: "Hele middag, op eigen tempo",
-      included: "Wijnproeverij, chef's special bites en host aan tafel",
+      included: "Vier wijnen met bite-pairings, gekozen door de wijnbar",
       faq: [
         {
           question: "Wat is het verschil tussen girls only en gemengd?",
@@ -241,7 +240,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Wanneer zijn de events?",
           answer:
-            "Elke zondagmiddag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+            "Altijd op zondag, in de middag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
         },
         {
           question: "Kan ik annuleren of ruilen?",
@@ -251,19 +250,20 @@ export const experiencePageNl: ExperiencePageLabels = {
       ],
     },
     wineWalk: {
-      tagline: "Een ontspannen wandeling vol wijn, mooie plekken en goed gezelschap.",
+      tagline: "De stad ontdekken: meerdere locaties, telkens wijn en spijs.",
       description:
-        "Een Wijnwalk bij MyTable is geen rondleiding met script, maar een ontspannen middag door de stad. Je loopt langs plekken met karakter, proeft onderweg iets lekkers en ontmoet mensen op een natuurlijke manier. De route geeft structuur, maar de sfeer blijft los en gezellig.",
+        "Een Wine Walk bij MyTable is een zondagmiddag door de stad. Je bezoekt meerdere locaties en proeft bij elke stop wijn met spijs. Zo ontdek je nieuwe plekken op een natuurlijke manier: wandelen, proeven, bijpraten. Geen strakke rondleiding, wel een route met karakter.",
       experienceFlow: wineWalkFlowNl,
       guestQuotes: wineWalkQuotesNl,
       whatToExpect: [
         {
-          title: "Meerdere geselecteerde locaties",
-          description: "Je bezoekt verschillende restaurants en wijnbars in de stad.",
+          title: "Meerdere locaties in de stad",
+          description:
+            "Je bezoekt verschillende plekken en ontdekt zo de stad door te proeven.",
         },
         {
-          title: "Wijn en bites onderweg",
-          description: "Bij elke stop staat er iets klaar om te proeven.",
+          title: "Wijn en spijs bij elke stop",
+          description: "Bij elke locatie staat een pairing klaar om te proeven.",
         },
         {
           title: "Rustig wandeltempo",
@@ -294,6 +294,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         images.heroMain,
         images.restaurantDining,
       ],
+      dayOfWeek: "Altijd op zondag",
+      partOfDay: "Middag",
       duration: "Ongeveer 3 tot 4 uur",
       included: "Wijnproeverijen, bites en routebegeleiding",
       walkingDistance: "Meestal 2 tot 4 km, afhankelijk van de stad",
@@ -314,6 +316,11 @@ export const experiencePageNl: ExperiencePageLabels = {
             "Per locatie krijg je een wijn, bite of kleine pairing. De exacte invulling kan per stad verschillen.",
         },
         {
+          question: "Wanneer zijn de wine walks?",
+          answer:
+            "Altijd op zondag, overdag in de middag. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+        },
+        {
           question: "Wanneer krijg ik de route?",
           answer:
             "Je ontvangt de praktische informatie en startlocatie vooraf. De locaties kunnen afhankelijk van het format vooraf of later bekend worden gemaakt.",
@@ -326,40 +333,44 @@ export const experiencePageNl: ExperiencePageLabels = {
       ],
     },
     chefsSpecial: {
-      tagline: "Een bijzondere avond aan tafel, samengesteld door de chef.",
+      tagline: "Het beste van het restaurant, family style op zondagavond.",
       description:
-        "Chef's Special draait om een avond waarin je niet alles zelf hoeft te kiezen. Het restaurant bepaalt de richting, de chef maakt iets moois en jij schuift aan bij een tafel met goed gezelschap. Het is een toegankelijke manier om een restaurant anders te beleven.",
+        "Chef's Table is een zondagavond waarbij je het restaurant leert kennen zoals de chef het bedoeld heeft. Meerdere voorgerechten, hoofdgerechten en een dessert komen family style op tafel: gedeeld met je tafel, zodat iedereen meer kan proeven. Geen keuzestress, wel het beste van de keuken in één avond.",
       experienceFlow: chefsSpecialFlowNl,
       guestQuotes: tastingQuotesNl,
       whatToExpect: [
         {
-          title: "Een speciaal menu of meerdere gangen",
-          description: "Het restaurant stelt de avond samen.",
+          title: "Meerdere gangen, family style",
+          description:
+            "Voorgerechten, hoofdgerechten en dessert komen in het midden van de tafel. Iedereen deelt en proeft mee.",
         },
         {
-          title: "Eén geselecteerd restaurant",
-          description: "Alles speelt zich af op één plek.",
+          title: "Het beste van de keuken",
+          description:
+            "De chef stelt de avond samen, zodat je meer van het restaurant proeft dan met één eigen bord.",
+        },
+        {
+          title: "Eén restaurant, één tafel",
+          description:
+            "Alles speelt zich af op één plek. Vaak aan een lange, gedeelde tafel.",
         },
         {
           title: "Goede sfeer aan tafel",
-          description: "Kleine groep, ontspannen gesprek.",
+          description: "Kleine groep, ontspannen gesprek, eten dat je samen deelt.",
         },
         {
           title: "Kom alleen of samen",
           description: "Alleen komen is heel normaal en welkom.",
         },
         {
-          title: "Kleine groep",
-          description: "Meestal 8 tot 14 gasten.",
-        },
-        {
           title: "Geen keuzestress",
-          description: "De chef of het restaurant bepaalt de invulling.",
+          description:
+            "Jij hoeft geen menu samen te stellen. De chef bepaalt wat er komt.",
         },
       ],
       socialParagraphs: [
-        "Eigen tafel met je vrienden of erbij gaan zitten: beide kan. Lekker eten, goede sfeer, mensen die ook zin hebben in een avond uit.",
-        "Klein genoeg om het gezellig te houden, relaxed genoeg om gewoon jezelf te zijn. Of je nu veel of weinig weet van wijn: iedereen doet lekker mee.",
+        "Eigen tafel met je vrienden of erbij gaan zitten: beide kan. Gerechten in het midden, gesprekken die vanzelf komen, een avond waarin je samen proeft.",
+        "Klein genoeg om het gezellig te houden, relaxed genoeg om gewoon jezelf te zijn. Of je nu veel of weinig van eten weet: iedereen deelt mee.",
       ],
       gallery: [
         images.restaurantDining,
@@ -369,13 +380,21 @@ export const experiencePageNl: ExperiencePageLabels = {
         images.wineBar,
         images.heroMain,
       ],
+      dayOfWeek: "Altijd op zondag",
+      partOfDay: "Avond",
       duration: "Ongeveer 2,5 tot 3 uur",
-      included: "Menu of meerdere gangen zoals omschreven op de eventpagina",
+      included:
+        "Meerdere voorgerechten, hoofdgerechten en dessert, family style gedeeld aan tafel",
       faq: [
         {
           question: "Weet ik vooraf wat ik eet?",
           answer:
-            "Soms wel, soms niet. Bij Chef's Special bepaalt het restaurant de invulling. Als er een vast menu is, tonen we dit op de pagina.",
+            "Soms wel, soms niet. Bij Chef's Table stelt de chef de avond samen. Als er een vast menu is, tonen we dit op de pagina.",
+        },
+        {
+          question: "Wat betekent family style?",
+          answer:
+            "Gerechten komen in het midden van de tafel, zodat je met je tafel deelt. Zo proef je meer van het restaurant: meerdere voorgerechten, hoofdgerechten en dessert.",
         },
         {
           question: "Zijn drankjes inbegrepen?",
@@ -393,9 +412,14 @@ export const experiencePageNl: ExperiencePageLabels = {
             "Ja. De tafel is juist ingericht zodat alleen komen normaal en ontspannen voelt.",
         },
         {
+          question: "Wanneer zijn de Chef's Tables?",
+          answer:
+            "Altijd op zondag, in de avond. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+        },
+        {
           question: "Is dit fine dining?",
           answer:
-            "Niet per se. Chef's Special betekent vooral dat het restaurant iets bijzonders samenstelt voor de avond.",
+            "Niet per se. Chef's Table betekent vooral dat je family style het beste van de keuken proeft, samen met je tafel.",
         },
       ],
     },

@@ -33,14 +33,14 @@ export const chefsSpecialFlowNl: ExperienceFlowStep[] = [
       "Je komt aan bij het restaurant en wordt ontvangen aan de MyTable-tafel.",
   },
   {
-    title: "Laat je verrassen",
+    title: "Proef family style",
     description:
-      "De chef of het restaurant serveert een speciaal menu of meerdere gangen.",
+      "Meerdere voorgerechten, hoofdgerechten en dessert komen in het midden. Jullie delen alles met de tafel.",
   },
   {
-    title: "Eet samen",
+    title: "Het beste van de keuken",
     description:
-      "De tafel is ingericht voor ontspannen gesprek, zonder dat het voelt als networking.",
+      "De chef stelt de avond samen, zodat je meer van het restaurant proeft dan met één eigen bord.",
   },
   {
     title: "Blijf hangen",

@@ -1,4 +1,4 @@
-import { listGirlsOnlyCityNames } from "@/data/girls-only-cities";
+import { listTopNlCityNames } from "@/data/nl-top-cities";
 import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
@@ -164,7 +164,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     citiesLabel: "Waar wil je aan tafel?",
     citiesHint: "Kies één of meerdere steden",
     citiesRequired: "Kies minstens één stad",
-    cities: listGirlsOnlyCityNames(),
+    cities: listTopNlCityNames(),
     emailLabel: "E-mail",
     emailPlaceholder: "je@email.nl",
     cta: "Join de priority list",
@@ -190,6 +190,8 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   },
   finalCta: {
     title: "Klaar voor je volgende zondagmiddag wijnspijs?",
+    subtitle:
+      "Vier wijnen, bites en een tafel vol meiden. Solo of met vriendinnen.",
     button: "Bekijk aankomende zondagen",
   },
   status: {

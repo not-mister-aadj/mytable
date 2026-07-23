@@ -8,7 +8,7 @@ import {
   resolveGirlsOnlyPrimaryCta,
 } from "@/lib/girls-only-landing";
 import { warmExperienceSlugs } from "@/lib/warm-navigation-cache";
-import { GirlsOnlyHeader } from "./GirlsOnlyHeader";
+import { Header } from "@/components/Header";
 import { GirlsOnlyLandingView } from "./GirlsOnlyLandingView";
 
 interface GirlsOnlyAgendaSectionProps {
@@ -38,13 +38,7 @@ export async function GirlsOnlyAgendaSection({
 
   return (
     <>
-      <GirlsOnlyHeader
-        headerDict={headerDict}
-        nav={labels.headerNav}
-        ctaLabel={primaryCta.label}
-        ctaHref={primaryCta.href}
-        locale={locale}
-      />
+      <Header dict={headerDict} locale={locale} />
       <GirlsOnlyLandingView
         labels={labels}
         locale={locale}

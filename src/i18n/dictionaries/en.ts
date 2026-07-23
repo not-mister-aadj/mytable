@@ -11,14 +11,10 @@ export const en: Dictionary = {
   },
   header: {
     nav: {
-      experiences: "Available tables",
       girlsOnly: "Girls only",
-      howItWorks: "How it works",
-      forVenues: "For venues",
-      faq: "FAQ",
-      blog: "Blog",
+      calendar: "Calendar",
+      waitlist: "Your table",
     },
-    cta: "Join the table",
     languageSwitch: "NL",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -278,7 +274,7 @@ export const en: Dictionary = {
     columns: {
       explore: "Explore",
       info: "Information",
-      popularCities: "Popular cities",
+      popularCities: "Cities",
     },
     allCitiesCta: "All cities",
     links: {
@@ -287,6 +283,7 @@ export const en: Dictionary = {
       forVenues: "For venues",
       faq: "FAQ",
       blog: "Blog",
+      waitlist: "Your table",
       instagram: "Instagram",
       contact: "Contact",
       terms: "Terms and conditions",

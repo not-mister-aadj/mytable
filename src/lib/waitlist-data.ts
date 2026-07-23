@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
+import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 
 export type WaitlistSignupRow = {
   id: string;
@@ -8,8 +9,39 @@ export type WaitlistSignupRow = {
   city: string;
   locale: string;
   source: string;
+  name: string | null;
+  preferences: WaitlistPreferences | null;
   createdAt: string;
 };
+
+function asPreferences(
+  value: Record<string, unknown> | null | undefined,
+): WaitlistPreferences | null {
+  if (!value || typeof value !== "object") return null;
+  const interests = Array.isArray(value.interests)
+    ? value.interests.filter((item): item is string => typeof item === "string")
+    : [];
+  const why = Array.isArray(value.why)
+    ? value.why.filter((item): item is string => typeof item === "string")
+    : [];
+  const company = Array.isArray(value.company)
+    ? value.company.filter((item): item is string => typeof item === "string")
+    : [];
+  const tableType = Array.isArray(value.tableType)
+    ? value.tableType.filter((item): item is string => typeof item === "string")
+    : [];
+  const cities = Array.isArray(value.cities)
+    ? value.cities.filter((item): item is string => typeof item === "string")
+    : [];
+  return {
+    interests: interests as WaitlistPreferences["interests"],
+    why: why as WaitlistPreferences["why"],
+    company: company as WaitlistPreferences["company"],
+    tableType: tableType as WaitlistPreferences["tableType"],
+    cities,
+    regionFlexible: Boolean(value.regionFlexible),
+  };
+}
 
 export async function getWaitlistSignups(): Promise<WaitlistSignupRow[]> {
   const db = getDb();
@@ -25,6 +57,8 @@ export async function getWaitlistSignups(): Promise<WaitlistSignupRow[]> {
     city: row.city,
     locale: row.locale,
     source: row.source,
+    name: row.name,
+    preferences: asPreferences(row.preferences),
     createdAt: row.createdAt.toISOString(),
   }));
 }
@@ -35,6 +69,7 @@ export async function createWaitlistSignup(input: {
   locale: string;
   name?: string;
   source?: "waitlist" | "priority_list";
+  preferences?: WaitlistPreferences | null;
 }): Promise<
   { ok: true; id: string; created: boolean } | { ok: false; error: string }
 > {
@@ -42,6 +77,7 @@ export async function createWaitlistSignup(input: {
   const city = input.city.trim();
   const name = input.name?.trim() || null;
   const source = input.source ?? "waitlist";
+  const preferences = input.preferences ?? null;
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, error: "Invalid email" };
@@ -56,7 +92,14 @@ export async function createWaitlistSignup(input: {
   try {
     const [inserted] = await db
       .insert(waitlistSignups)
-      .values({ email, city, locale, name, source })
+      .values({
+        email,
+        city,
+        locale,
+        name,
+        source,
+        preferences: preferences ?? undefined,
+      })
       .onConflictDoNothing({
         target: [waitlistSignups.email, waitlistSignups.city],
       })
@@ -81,24 +124,67 @@ export async function createWaitlistSignup(input: {
       return { ok: false, error: "Could not save signup" };
     }
 
+    if (preferences || name) {
+      await db
+        .update(waitlistSignups)
+        .set({
+          ...(name ? { name } : {}),
+          ...(preferences ? { preferences } : {}),
+          ...(source ? { source } : {}),
+        })
+        .where(eq(waitlistSignups.id, existing.id));
+    }
+
     return { ok: true, id: existing.id, created: false };
-  } catch {
+  } catch (error) {
+    console.error("[waitlist] createWaitlistSignup failed:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      /ENOTFOUND|ECONNREFUSED|connect_timeout|Tenant or user not found|XX000/i.test(
+        message,
+      )
+    ) {
+      return { ok: false, error: "database_unavailable" };
+    }
     return { ok: false, error: "Could not save signup" };
   }
 }
 
+function formatPreferencesCell(
+  preferences: WaitlistPreferences | null,
+  key: keyof Omit<WaitlistPreferences, "regionFlexible">,
+): string {
+  return preferences?.[key]?.join(", ") ?? "";
+}
+
 export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
-  const header = ["E-mail", "Stad", "Taal", "Aangemeld op"];
-  const escape = (value: string) =>
-    `"${value.replace(/"/g, '""')}"`;
+  const header = [
+    "E-mail",
+    "Naam",
+    "Stad",
+    "Taal",
+    "Interesses",
+    "Waarom",
+    "Hoe komen",
+    "Type tafel",
+    "Flexibel regio",
+    "Aangemeld op",
+  ];
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
   const lines = [
     header.map(escape).join(";"),
     ...rows.map((row) =>
       [
         row.email,
+        row.name ?? "",
         row.city,
         row.locale.toUpperCase(),
+        formatPreferencesCell(row.preferences, "interests"),
+        formatPreferencesCell(row.preferences, "why"),
+        formatPreferencesCell(row.preferences, "company"),
+        formatPreferencesCell(row.preferences, "tableType"),
+        row.preferences?.regionFlexible ? "ja" : "nee",
         new Intl.DateTimeFormat("nl-NL", {
           day: "2-digit",
           month: "2-digit",

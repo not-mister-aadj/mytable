@@ -12,6 +12,7 @@ export function inferPageType(pathname: string): AnalyticsPageType {
   if (path === "/" || path === "") return "home";
   if (path === "/agenda") return "agenda";
   if (path.startsWith("/agenda/")) return "event_detail";
+  if (path === "/wachtlijst" || path === "/waitlist") return "other";
   if (path.startsWith("/boeking/bevestigd")) return "success";
   if (path.startsWith("/boeking/geannuleerd")) return "failed";
   if (

@@ -5,10 +5,9 @@ import { FastLink } from "./ui/FastLink";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { agendaPath, blogPath, localePath } from "@/i18n/config";
+import { agendaPath, localePath, waitlistPath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Button } from "./ui/Button";
 
 interface HeaderProps {
   dict: Dictionary["header"];
@@ -19,28 +18,13 @@ export function Header({ dict, locale }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const home = localePath(locale);
-  const banner = localePath(locale, "#banner");
   const agenda = agendaPath(locale);
-
-  const scrollToBanner = () => {
-    document.getElementById("banner")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.history.replaceState(null, "", banner);
-    setMenuOpen(false);
-  };
-
-  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (window.location.pathname === home) {
-      e.preventDefault();
-      scrollToBanner();
-    }
-  };
+  const waitlist = waitlistPath(locale);
 
   const navLinks = [
-    { label: dict.nav.experiences, href: agenda },
     { label: dict.nav.girlsOnly, href: home },
-    { label: dict.nav.blog, href: blogPath(locale) },
-    { label: dict.nav.howItWorks, href: `${home}#how-it-works` },
-    { label: dict.nav.faq, href: `${home}#faq` },
+    { label: dict.nav.calendar, href: agenda },
+    { label: dict.nav.waitlist, href: waitlist },
   ];
 
   useEffect(() => {
@@ -62,32 +46,31 @@ export function Header({ dict, locale }: HeaderProps) {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-[60] transition-all duration-300 ${
+        className={`site-header fixed inset-x-0 top-0 z-[60] border-b backdrop-blur-md transition-all duration-300 ${
           scrolled || menuOpen
-            ? "border-b border-border-subtle !bg-cream shadow-sm"
-            : "!bg-cream"
+            ? "site-header--scrolled shadow-[0_8px_30px_rgba(90,15,27,0.06)]"
+            : "site-header--top"
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8 lg:px-10">
           <Link
-            href={banner}
-            scroll
-            onClick={handleLogoClick}
+            href={home}
             className="relative shrink-0 transition-opacity hover:opacity-90"
             aria-label={dict.homeAria}
+            onClick={closeMenu}
           >
             <Logo variant="header" priority />
           </Link>
 
           <nav
-            className="hidden items-center gap-6 xl:gap-8 lg:flex"
+            className="hidden items-center gap-8 lg:flex"
             aria-label="Main navigation"
           >
             {navLinks.map((link) => (
               <FastLink
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-wine/80 transition-colors hover:text-burgundy"
+                className="site-header__nav-link text-sm font-medium tracking-wide transition-colors duration-200"
               >
                 {link.label}
               </FastLink>
@@ -95,33 +78,38 @@ export function Header({ dict, locale }: HeaderProps) {
           </nav>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <LanguageSwitcher locale={locale} label={dict.languageSwitch} />
-            <Button href={agenda} variant="primary">
-              {dict.cta}
-            </Button>
+            <LanguageSwitcher
+              locale={locale}
+              label={dict.languageSwitch}
+              variant="girlsOnly"
+            />
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <LanguageSwitcher locale={locale} label={dict.languageSwitch} />
+            <LanguageSwitcher
+              locale={locale}
+              label={dict.languageSwitch}
+              variant="girlsOnly"
+            />
             <button
               type="button"
-              className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border border-border-subtle bg-beige"
+              className="site-header__menu-btn flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
               onClick={() => setMenuOpen((open) => !open)}
             >
               <span
-                className={`h-0.5 w-5 bg-burgundy transition-all duration-300 ${
+                className={`site-header__menu-icon h-0.5 w-5 transition-all duration-300 ${
                   menuOpen ? "translate-y-2 rotate-45" : ""
                 }`}
               />
               <span
-                className={`h-0.5 w-5 bg-burgundy transition-all duration-300 ${
+                className={`site-header__menu-icon h-0.5 w-5 transition-all duration-300 ${
                   menuOpen ? "opacity-0" : ""
                 }`}
               />
               <span
-                className={`h-0.5 w-5 bg-burgundy transition-all duration-300 ${
+                className={`site-header__menu-icon h-0.5 w-5 transition-all duration-300 ${
                   menuOpen ? "-translate-y-2 -rotate-45" : ""
                 }`}
               />
@@ -135,25 +123,27 @@ export function Header({ dict, locale }: HeaderProps) {
           menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!menuOpen}
+        inert={!menuOpen ? true : undefined}
         onClick={closeMenu}
       />
 
       <nav
-        className={`fixed inset-0 z-50 flex flex-col bg-cream transition-all duration-300 lg:hidden ${
+        className={`site-header__mobile-menu fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-rose-soft via-cream to-cream transition-all duration-300 lg:hidden ${
           menuOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
         }`}
         aria-label="Mobile navigation"
         aria-hidden={!menuOpen}
+        inert={!menuOpen ? true : undefined}
       >
         <div className="flex flex-1 flex-col justify-center px-8 pb-10 pt-24">
-          <ul className="flex flex-col gap-5">
+          <ul className="flex flex-col gap-6">
             {navLinks.map((link) => (
               <li key={link.href}>
                 <FastLink
                   href={link.href}
-                  className="block font-serif text-2xl font-medium text-wine transition-colors hover:text-burgundy"
+                  className="site-header__nav-link block font-serif text-3xl font-medium transition-colors"
                   onClick={closeMenu}
                 >
                   {link.label}
@@ -161,16 +151,6 @@ export function Header({ dict, locale }: HeaderProps) {
               </li>
             ))}
           </ul>
-          <div className="mt-10">
-            <Button
-              href={agenda}
-              variant="primary"
-              className="w-full"
-              onClick={closeMenu}
-            >
-              {dict.cta}
-            </Button>
-          </div>
         </div>
       </nav>
     </>

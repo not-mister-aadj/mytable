@@ -22,7 +22,7 @@ function buildCityPageNl(
   return {
     meta: {
       title: `Girls-only wijnproeverij in ${name}`,
-      description: `Girls-only wijnproeverij in ${name} op zondagmiddag. Boek solo of met vriendinnen. Vier wijnen, bites, één tafel. Geen datum? Priority list.`,
+      description: `Girls-only wijnproeverij in ${name} op zondagmiddag. Boek solo of met vriendinnen. Vier wijnen, bites, één tafel. Geen datum? Wachtlijst.`,
     },
     breadcrumbHome: "Home",
     breadcrumbGirlsOnly: "Girls-only",
@@ -36,7 +36,7 @@ function buildCityPageNl(
         "25-45 · beginners oké",
       ],
       ctaBook: `Bekijk ${name}-tafels`,
-      ctaPriority: "Op de priority list",
+      ctaPriority: "Op de wachtlijst",
       imageAlt: `Vrouwen genieten van wijn en bites tijdens een girls-only middag in ${name}`,
     },
     events: {
@@ -44,11 +44,11 @@ function buildCityPageNl(
       title: `Aankomende girls-only tafels in ${name}`,
       subtitle: `Reserveer je plek voor de volgende girls-only zondag in ${name}.`,
       emptyTitle: `Nog geen girls-only tafel in ${name} gepland`,
-      emptyBody: `Nieuwe ${name}-zondagen openen zodra de locatie rond is. Zet je op de priority list. Jij hoort het als eerste.`,
+      emptyBody: `Nieuwe ${name}-zondagen openen zodra de locatie rond is. Zet je op de wachtlijst. Jij hoort het als eerste.`,
       viewAll: "Bekijk alle zondagen",
     },
     priority: {
-      eyebrow: "Priority list",
+      eyebrow: "Wachtlijst",
       title: `Als eerste erbij in ${name}`,
       subtitle: `Laat je e-mail achter. Zodra er een girls-only tafel in ${name} opent, krijg jij als eerste bericht, vóór de open agenda.`,
       nameLabel: "Voornaam",
@@ -98,7 +98,7 @@ function buildCityPageNl(
       steps: [
         {
           title: "Kies je zondag",
-          description: `Bekijk open tafels in ${name}, of zet je op de priority list als er nog geen datum openstaat.`,
+          description: `Bekijk open tafels in ${name}, of zet je op de wachtlijst als er nog geen datum openstaat.`,
         },
         {
           title: "Boek solo of als groep",
@@ -135,7 +135,7 @@ function buildCityPageNl(
         },
         {
           question: `Wat als er geen ${name}-datum openstaat?`,
-          answer: `Zet je op de priority list. Zodra we een nieuwe girls-only zondag in ${name} openen, krijg jij als eerste een mail, vóór de open agenda.`,
+          answer: `Zet je op de wachtlijst. Zodra we een nieuwe girls-only zondag in ${name} openen, krijg jij als eerste een mail, vóór de open agenda.`,
         },
         {
           question: `Is girls-only in ${name} een dating-event?`,
@@ -151,9 +151,9 @@ function buildCityPageNl(
     },
     finalCta: {
       title: `Klaar voor girls-only in ${name}?`,
-      subtitle: `Boek een open tafel, of zet je op de priority list voor de volgende ${name}-zondag.`,
+      subtitle: `Boek een open tafel, of zet je op de wachtlijst voor de volgende ${name}-zondag.`,
       ctaBook: `Bekijk ${name}-tafels`,
-      ctaPriority: "Op de priority list",
+      ctaPriority: "Op de wachtlijst",
     },
     status: sharedStatus,
     femaleOnlyBadge: "Girls only",

@@ -332,6 +332,7 @@ export interface Dictionary {
       title: string;
       text: string;
       showAllCities: string;
+      waitlistCta: string;
     };
     status: Record<ExperienceStatusKey, string>;
     femaleOnlyBadge: string;
@@ -373,6 +374,12 @@ export interface Dictionary {
     success: string;
     error: string;
     cities: string[];
+    /** Banner when agenda has no bookable tables */
+    emptyAgenda: {
+      title: string;
+      subtitle: string;
+      cta: string;
+    };
   };
   faq: {
     title: string;

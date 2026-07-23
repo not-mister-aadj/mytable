@@ -92,7 +92,15 @@ export default async function AgendaPage({ params }: Props) {
             <AgendaEventsSection locale={locale} />
           </Suspense>
         </div>
-        <NewsletterCTA dict={dict.newsletter} locale={locale} />
+        <NewsletterCTA
+          dict={dict.newsletter}
+          locale={locale}
+          promoteWaitlist={
+            !experiences.some(
+              (item) => item.status !== "soldOut" && item.status !== "closed",
+            )
+          }
+        />
       </main>
       <Footer dict={dict.footer} locale={locale} />
     </>

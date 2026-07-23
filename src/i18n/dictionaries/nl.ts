@@ -80,9 +80,10 @@ export const nl: Dictionary = {
         "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en reserveer.",
     },
     empty: {
-      title: "Geen tafels gevonden",
-      text: "Er zijn nog geen tafels voor dit filter. Kies een andere optie of bekijk alle tafels.",
+      title: "Geen beschikbare tafels",
+      text: "Er staan nu geen open tafels voor dit filter. Zet je op de wachtlijst — jij hoort als eerste wanneer er plekken vrijkomen.",
       showAllCities: "Alle tafels tonen",
+      waitlistCta: "Naar de wachtlijst",
     },
     status: {
       available: "Beschikbaar",
@@ -199,11 +200,17 @@ export const nl: Dictionary = {
     emailLabel: "E-mail",
     emailPlaceholder: "Je e-mailadres",
     cityLabel: "Stad",
-    cta: "Op de lijst",
+    cta: "Naar de wachtlijst",
     success:
       "Bedankt. Je staat op de lijst. We nemen contact op zodra de volgende tafel in jouw stad opent.",
     error: "Aanmelden mislukt. Probeer het later opnieuw.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
+    emptyAgenda: {
+      title: "Geen open tafel? Op de wachtlijst.",
+      subtitle:
+        "Vertel wat je zoekt. We mailen je zodra er nieuwe tafels openen in jouw stad — vóór de open agenda.",
+      cta: "Naar de wachtlijst",
+    },
   },
   faq: {
     title: "Veelgestelde vragen",

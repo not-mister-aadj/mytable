@@ -79,9 +79,10 @@ export const en: Dictionary = {
         "Every Sunday, one slot per city. Pick your date, check how many spots are left, and reserve.",
     },
     empty: {
-      title: "No tables found",
-      text: "There are no tables for this filter yet. Try another option or view all tables.",
+      title: "No tables available",
+      text: "There are no open tables for this filter right now. Join the waitlist — you’ll hear first when seats open.",
       showAllCities: "Show all tables",
+      waitlistCta: "Go to the waitlist",
     },
     status: {
       available: "Available",
@@ -198,11 +199,17 @@ export const en: Dictionary = {
     emailLabel: "Email",
     emailPlaceholder: "Your email",
     cityLabel: "City",
-    cta: "Join the list",
+    cta: "Go to the waitlist",
     success:
       "Thank you. You're on the list. We'll be in touch when the next table opens in your city.",
     error: "Sign-up failed. Please try again later.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
+    emptyAgenda: {
+      title: "No open table? Join the waitlist.",
+      subtitle:
+        "Tell us what you’re looking for. We’ll email you when new tables open in your city — before the public agenda.",
+      cta: "Go to the waitlist",
+    },
   },
   faq: {
     title: "FAQ",

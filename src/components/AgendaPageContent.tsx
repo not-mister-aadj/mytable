@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Dictionary, AgendaTabKey, ExperienceItem } from "@/i18n/types";
+import { waitlistPath } from "@/i18n/config";
 import { trackAgendaViewed, trackAgendaTabChange } from "@/lib/posthog/analytics";
 import { filterAgendaItems, sortAgendaTimeline } from "@/lib/agenda";
 import { enrichExperience } from "@/lib/experience-detail";
@@ -81,7 +82,12 @@ export function AgendaPageContent({
         />
       ) : (
         <section className="mt-16 sm:mt-20">
-          <EmptyAgendaState empty={dict.empty} onShowAll={clearFilters} />
+          <EmptyAgendaState
+            empty={dict.empty}
+            onShowAll={clearFilters}
+            waitlistHref={waitlistPath(locale)}
+            hasOtherTables={items.length > 0 && activeTab !== "all"}
+          />
         </section>
       )}
     </div>

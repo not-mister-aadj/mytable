@@ -148,32 +148,21 @@ export function GirlsOnlyCityView({
         className="scroll-mt-24 border-b border-rose/10 bg-gradient-to-b from-rose-soft/40 via-cream to-cream py-12 sm:py-16"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <motion.div {...fade} className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
-              {labels.events.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {hasEvents ? labels.events.title : labels.events.emptyTitle}
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-wine/70">
-              {hasEvents ? labels.events.subtitle : labels.events.emptyBody}
-            </p>
-            {!hasEvents ? (
-              <div className="mt-7 flex justify-center">
-                <Button
-                  href={waitlistHref}
-                  className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
-                >
-                  <span aria-hidden className="mr-2 opacity-90">
-                    ›
-                  </span>
-                  {labels.events.emptyCta}
-                </Button>
-              </div>
-            ) : null}
-          </motion.div>
+          {hasEvents ? (
+            <motion.div {...fade} className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+                {labels.events.eyebrow}
+              </p>
+              <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+                {labels.events.title}
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-wine/70">
+                {labels.events.subtitle}
+              </p>
+            </motion.div>
+          ) : null}
 
-          <div className="mt-10 space-y-12">
+          <div className={`${hasEvents ? "mt-10" : ""} space-y-12`}>
             {!hasEvents ? (
               <motion.div id="priority" {...fade} className="scroll-mt-24">
                 <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-rose-soft/80 via-cream to-beige shadow-[0_28px_70px_rgba(90,15,27,0.1)]">
@@ -200,9 +189,9 @@ export function GirlsOnlyCityView({
                       </div>
                     </div>
                     <div className="relative flex flex-col justify-center px-6 py-8 sm:px-9 sm:py-10 lg:px-11 lg:py-12">
-                      <h3 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-[1.85rem] sm:leading-tight">
-                        {labels.priority.title}
-                      </h3>
+                      <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-[1.85rem] sm:leading-tight">
+                        {labels.events.emptyTitle}
+                      </h2>
                       <p className="mt-2.5 max-w-md text-sm leading-relaxed text-wine/65 sm:text-[15px]">
                         {labels.events.emptyBody}
                       </p>

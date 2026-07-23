@@ -13,7 +13,7 @@ export const nl: Dictionary = {
     nav: {
       girlsOnly: "Girls only",
       calendar: "Agenda",
-      waitlist: "Jouw tafel",
+      waitlist: "Wachtlijst",
     },
     languageSwitch: "EN",
     openMenu: "Menu openen",
@@ -284,7 +284,7 @@ export const nl: Dictionary = {
       forVenues: "Voor locaties",
       faq: "FAQ",
       blog: "Blog",
-      waitlist: "Jouw tafel",
+      waitlist: "Wachtlijst",
       instagram: "Instagram",
       contact: "Contact",
       terms: "Algemene voorwaarden",

@@ -403,18 +403,15 @@ export function WaitlistLandingView({
       </div>
 
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-xl flex-col px-5 pb-28 pt-24 sm:px-8 sm:pb-16 sm:pt-28">
-        <div className="mb-2 flex items-center justify-between gap-4">
-          <p className="font-serif text-2xl font-medium tracking-tight text-wine">
-            {labels.brand}
-          </p>
-          {isQuestion ? (
+        {isQuestion ? (
+          <div className="mb-2 flex items-center justify-end">
             <p className="text-[11px] tracking-[0.18em] text-wine/40 uppercase">
               {labels.progressLabel
                 .replace("{current}", String(questionIndex + 1))
                 .replace("{total}", String(QUESTION_STEPS.length))}
             </p>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         <AnimatePresence mode="wait">
           <motion.div

@@ -93,26 +93,33 @@ export function Header({ dict, locale }: HeaderProps) {
             />
             <button
               type="button"
-              className="site-header__menu-btn flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border"
+              className="site-header__menu-btn flex h-10 w-10 items-center justify-center rounded-full border text-burgundy"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
               onClick={() => setMenuOpen((open) => !open)}
             >
-              <span
-                className={`site-header__menu-icon h-0.5 w-5 transition-all duration-300 ${
-                  menuOpen ? "translate-y-2 rotate-45" : ""
-                }`}
-              />
-              <span
-                className={`site-header__menu-icon h-0.5 w-5 transition-all duration-300 ${
-                  menuOpen ? "opacity-0" : ""
-                }`}
-              />
-              <span
-                className={`site-header__menu-icon h-0.5 w-5 transition-all duration-300 ${
-                  menuOpen ? "-translate-y-2 -rotate-45" : ""
-                }`}
-              />
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                {menuOpen ? (
+                  <>
+                    <path d="M6 6l12 12" />
+                    <path d="M18 6L6 18" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M5 7h14" />
+                    <path d="M5 12h14" />
+                    <path d="M5 17h14" />
+                  </>
+                )}
+              </svg>
             </button>
           </div>
         </div>

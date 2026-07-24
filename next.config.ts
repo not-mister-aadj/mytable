@@ -73,16 +73,6 @@ const nextConfig: NextConfig = {
         destination: "/en",
         permanent: true,
       },
-      {
-        source: "/waitlist",
-        destination: "/wachtlijst",
-        permanent: true,
-      },
-      {
-        source: "/en/wachtlijst",
-        destination: "/en/waitlist",
-        permanent: true,
-      },
     ];
   },
 };

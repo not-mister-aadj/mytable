@@ -66,6 +66,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(subPath, getAdminUrl()));
   }
 
+  // Marketing-only waitlist path aliases (must not run on dashboard host —
+  // admin waitlist lives at /waitlist there).
+  if (pathname === "/waitlist") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/wachtlijst";
+    return NextResponse.redirect(target, 308);
+  }
+  if (pathname === "/en/wachtlijst") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/en/waitlist";
+    return NextResponse.redirect(target, 308);
+  }
+
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/api/auth") ||

@@ -52,4 +52,5 @@ export type AnalyticsSourceSection =
   | "event_detail"
   | "sold_out_cta"
   | "girls_only_presale"
-  | "girls_only_city_priority";
+  | "girls_only_city_priority"
+  | "waitlist";

@@ -278,8 +278,8 @@ export function WaitlistLandingView({
           name: name.trim(),
           cities,
           locale,
-          source: "newsletter",
-          signupSource: "priority_list",
+          source: "waitlist",
+          signupSource: "waitlist",
           preferences,
           meta: {
             ...getMetaBrowserCookies(),
@@ -304,12 +304,12 @@ export function WaitlistLandingView({
         email: email.trim(),
         city: citySummary,
         language: locale,
-        source_section: "girls_only_presale",
+        source_section: "waitlist",
       });
 
       if (payload.id) {
         trackMetaLead({
-          source: "newsletter",
+          source: "waitlist",
           city: cities[0] ?? citySummary,
           waitlistId: payload.id,
         });

@@ -2,6 +2,10 @@ import { and, desc, eq } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
+import {
+  formatWaitlistPreferenceLabels,
+  joinPreferenceLabels,
+} from "@/lib/waitlist-preference-labels";
 
 export type WaitlistSignupRow = {
   id: string;
@@ -150,20 +154,14 @@ export async function createWaitlistSignup(input: {
   }
 }
 
-function formatPreferencesCell(
-  preferences: WaitlistPreferences | null,
-  key: keyof Omit<WaitlistPreferences, "regionFlexible">,
-): string {
-  return preferences?.[key]?.join(", ") ?? "";
-}
-
 export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
   const header = [
-    "E-mail",
     "Naam",
-    "Stad",
+    "E-mail",
+    "Stad (primair)",
+    "Steden",
     "Taal",
-    "Interesses",
+    "Ervaringen",
     "Waarom",
     "Hoe komen",
     "Type tafel",
@@ -174,17 +172,21 @@ export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
 
   const lines = [
     header.map(escape).join(";"),
-    ...rows.map((row) =>
-      [
-        row.email,
+    ...rows.map((row) => {
+      const labels = formatWaitlistPreferenceLabels(row.preferences);
+      return [
         row.name ?? "",
+        row.email,
         row.city,
+        joinPreferenceLabels(
+          labels.cities.length > 0 ? labels.cities : [row.city],
+        ),
         row.locale.toUpperCase(),
-        formatPreferencesCell(row.preferences, "interests"),
-        formatPreferencesCell(row.preferences, "why"),
-        formatPreferencesCell(row.preferences, "company"),
-        formatPreferencesCell(row.preferences, "tableType"),
-        row.preferences?.regionFlexible ? "ja" : "nee",
+        joinPreferenceLabels(labels.interests),
+        joinPreferenceLabels(labels.why),
+        joinPreferenceLabels(labels.company),
+        joinPreferenceLabels(labels.tableType),
+        labels.regionFlexible ? "ja" : "nee",
         new Intl.DateTimeFormat("nl-NL", {
           day: "2-digit",
           month: "2-digit",
@@ -194,8 +196,8 @@ export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
         }).format(new Date(row.createdAt)),
       ]
         .map(escape)
-        .join(";"),
-    ),
+        .join(";");
+    }),
   ];
 
   return `\uFEFF${lines.join("\r\n")}`;

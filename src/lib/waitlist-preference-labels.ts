@@ -6,14 +6,14 @@ import type {
   WaitlistWhyId,
 } from "@/i18n/waitlist-page.types";
 
-const INTEREST_LABELS: Record<WaitlistInterestId, string> = {
+export const INTEREST_LABELS: Record<WaitlistInterestId, string> = {
   wine_tasting: "Wijnproeverij",
   chefs_special: "Chef's Table",
   wine_walk: "Wine Walk",
   aperitivo: "Golden Hour Aperitivo",
 };
 
-const WHY_LABELS: Record<WaitlistWhyId, string> = {
+export const WHY_LABELS: Record<WaitlistWhyId, string> = {
   discover_wines: "Nieuwe wijnen ontdekken",
   discover_flavours: "Nieuwe smaken ontdekken",
   discover_places: "Nieuwe locaties ontdekken",
@@ -22,14 +22,14 @@ const WHY_LABELS: Record<WaitlistWhyId, string> = {
   new_city: "Nieuw in de stad",
 };
 
-const COMPANY_LABELS: Record<WaitlistCompanyId, string> = {
+export const COMPANY_LABELS: Record<WaitlistCompanyId, string> = {
   meet_new: "Nieuwe mensen ontmoeten",
   bring_friends: "Met vriendinnen of vrienden",
   bring_partner: "Met partner",
   solo: "Solo",
 };
 
-const TABLE_TYPE_LABELS: Record<WaitlistTableTypeId, string> = {
+export const TABLE_TYPE_LABELS: Record<WaitlistTableTypeId, string> = {
   girls_only: "Girls only",
   mixed: "Gemengde tafel",
 };

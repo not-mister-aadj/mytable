@@ -2,6 +2,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
+import { groupWaitlistPeople } from "@/lib/waitlist-admin-stats";
 import {
   formatWaitlistPreferenceLabels,
   joinPreferenceLabels,
@@ -194,6 +195,54 @@ export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
           hour: "2-digit",
           minute: "2-digit",
         }).format(new Date(row.createdAt)),
+      ]
+        .map(escape)
+        .join(";");
+    }),
+  ];
+
+  return `\uFEFF${lines.join("\r\n")}`;
+}
+
+export function waitlistPeopleToExcelCsv(rows: WaitlistSignupRow[]): string {
+  const people = groupWaitlistPeople(rows);
+  const header = [
+    "Naam",
+    "E-mail",
+    "Steden",
+    "Taal",
+    "Ervaringen",
+    "Waarom",
+    "Hoe komen",
+    "Type tafel",
+    "Flexibel regio",
+    "Quiz ingevuld",
+    "Aangemeld op",
+  ];
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+
+  const lines = [
+    header.map(escape).join(";"),
+    ...people.map((person) => {
+      const labels = formatWaitlistPreferenceLabels(person.preferences);
+      return [
+        person.name ?? "",
+        person.email,
+        joinPreferenceLabels(person.cities),
+        person.locale.toUpperCase(),
+        joinPreferenceLabels(labels.interests),
+        joinPreferenceLabels(labels.why),
+        joinPreferenceLabels(labels.company),
+        joinPreferenceLabels(labels.tableType),
+        labels.regionFlexible ? "ja" : "nee",
+        person.hasQuiz ? "ja" : "nee",
+        new Intl.DateTimeFormat("nl-NL", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(person.createdAt)),
       ]
         .map(escape)
         .join(";");

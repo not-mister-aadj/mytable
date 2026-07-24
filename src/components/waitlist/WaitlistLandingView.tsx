@@ -10,6 +10,7 @@ import type {
   WaitlistInterestId,
   WaitlistPageLabels,
   WaitlistPreferences,
+  WaitlistPriceRangeId,
   WaitlistTableTypeId,
   WaitlistWhyId,
 } from "@/i18n/waitlist-page.types";
@@ -26,6 +27,7 @@ import { resolveWhatsappInvitesForInterests } from "@/lib/waitlist-whatsapp";
 type FunnelStep =
   | "intro"
   | "interests"
+  | "price"
   | "why"
   | "company"
   | "tableType"
@@ -35,12 +37,17 @@ type FunnelStep =
 
 const QUESTION_STEPS: FunnelStep[] = [
   "interests",
+  "price",
   "why",
   "company",
   "tableType",
   "where",
   "contact",
 ];
+
+type PriceRangesState = Partial<
+  Record<WaitlistInterestId, WaitlistPriceRangeId[]>
+>;
 
 interface WaitlistLandingViewProps {
   labels: WaitlistPageLabels;
@@ -156,6 +163,7 @@ export function WaitlistLandingView({
 }: WaitlistLandingViewProps) {
   const [step, setStep] = useState<FunnelStep>("intro");
   const [interests, setInterests] = useState<WaitlistInterestId[]>([]);
+  const [priceRanges, setPriceRanges] = useState<PriceRangesState>({});
   const [why, setWhy] = useState<WaitlistWhyId[]>([]);
   const [company, setCompany] = useState<WaitlistCompanyId[]>([]);
   const [tableType, setTableType] = useState<WaitlistTableTypeId[]>([]);
@@ -199,13 +207,14 @@ export function WaitlistLandingView({
   const preferences: WaitlistPreferences = useMemo(
     () => ({
       interests,
+      priceRanges,
       why,
       company,
       tableType,
       cities,
       regionFlexible,
     }),
-    [interests, why, company, tableType, cities, regionFlexible],
+    [interests, priceRanges, why, company, tableType, cities, regionFlexible],
   );
 
   function goTo(next: FunnelStep) {
@@ -214,11 +223,44 @@ export function WaitlistLandingView({
     setStep(next);
   }
 
+  function prunePriceRangesForInterests(
+    selected: WaitlistInterestId[],
+  ): PriceRangesState {
+    const next: PriceRangesState = {};
+    for (const id of selected) {
+      const ranges = priceRanges[id];
+      if (ranges?.length) next[id] = ranges;
+    }
+    return next;
+  }
+
+  function togglePriceRange(
+    interestId: WaitlistInterestId,
+    rangeId: WaitlistPriceRangeId,
+  ) {
+    setPriceRanges((current) => {
+      const existing = current[interestId] ?? [];
+      return {
+        ...current,
+        [interestId]: toggleValue(existing, rangeId),
+      };
+    });
+  }
+
   function validateCurrent(): boolean {
     setStepError(null);
     if (step === "interests" && interests.length === 0) {
       setStepError(labels.steps.interests.required);
       return false;
+    }
+    if (step === "price") {
+      const incomplete = interests.some(
+        (id) => !(priceRanges[id]?.length),
+      );
+      if (incomplete) {
+        setStepError(labels.steps.price.required);
+        return false;
+      }
     }
     if (step === "why" && why.length === 0) {
       setStepError(labels.steps.why.required);
@@ -241,6 +283,9 @@ export function WaitlistLandingView({
 
   function goNext() {
     if (!validateCurrent()) return;
+    if (step === "interests") {
+      setPriceRanges(prunePriceRangesForInterests(interests));
+    }
     const idx = QUESTION_STEPS.indexOf(step);
     if (idx < 0) return;
     const next = QUESTION_STEPS[idx + 1];
@@ -455,6 +500,7 @@ export function WaitlistLandingView({
             ) : null}
 
             {step === "interests" ||
+            step === "price" ||
             step === "why" ||
             step === "company" ||
             step === "tableType" ||
@@ -536,24 +582,28 @@ export function WaitlistLandingView({
                     <h1 className="font-serif text-[2rem] font-medium leading-tight tracking-tight text-wine text-balance sm:text-[2.4rem]">
                       {step === "interests"
                         ? labels.steps.interests.title
-                        : step === "why"
-                          ? labels.steps.why.title
-                          : step === "company"
-                            ? labels.steps.company.title
-                            : step === "tableType"
-                              ? labels.steps.tableType.title
-                              : labels.steps.where.title}
+                        : step === "price"
+                          ? labels.steps.price.title
+                          : step === "why"
+                            ? labels.steps.why.title
+                            : step === "company"
+                              ? labels.steps.company.title
+                              : step === "tableType"
+                                ? labels.steps.tableType.title
+                                : labels.steps.where.title}
                     </h1>
                     <p className="mt-3 max-w-md text-sm leading-relaxed text-wine/60 sm:text-base">
                       {step === "interests"
                         ? labels.steps.interests.subtitle
-                        : step === "why"
-                          ? labels.steps.why.subtitle
-                          : step === "company"
-                            ? labels.steps.company.subtitle
-                            : step === "tableType"
-                              ? labels.steps.tableType.subtitle
-                              : labels.steps.where.subtitle}
+                        : step === "price"
+                          ? labels.steps.price.subtitle
+                          : step === "why"
+                            ? labels.steps.why.subtitle
+                            : step === "company"
+                              ? labels.steps.company.subtitle
+                              : step === "tableType"
+                                ? labels.steps.tableType.subtitle
+                                : labels.steps.where.subtitle}
                     </p>
                     {step === "tableType" ? null : (
                       <p className="mt-2 text-[11px] tracking-[0.16em] text-wine/35 uppercase">
@@ -578,6 +628,35 @@ export function WaitlistLandingView({
                             />
                           ))
                         : null}
+
+                      {step === "price" ? (
+                        <div className="space-y-7">
+                          {interests.map((interestId) => {
+                            const interestLabel =
+                              labels.outcomes[interestId]?.title ?? interestId;
+                            const selected = priceRanges[interestId] ?? [];
+                            return (
+                              <div key={interestId}>
+                                <p className="font-serif text-xl font-medium text-wine sm:text-2xl">
+                                  {interestLabel}
+                                </p>
+                                <div className="mt-3 flex flex-wrap gap-2.5">
+                                  {labels.steps.price.options.map((option) => (
+                                    <Chip
+                                      key={option.id}
+                                      label={option.title}
+                                      selected={selected.includes(option.id)}
+                                      onClick={() =>
+                                        togglePriceRange(interestId, option.id)
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
 
                       {step === "why"
                         ? labels.steps.why.options.map((option, index) => (

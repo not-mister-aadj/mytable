@@ -9,6 +9,20 @@ import type { Locale } from "@/i18n/config";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import { getSiteUrl } from "@/lib/env";
 
+const PRICE_RANGE_IDS = new Set([
+  "upto_50",
+  "50_75",
+  "75_100",
+  "100_plus",
+]);
+
+const INTEREST_IDS = new Set([
+  "wine_tasting",
+  "chefs_special",
+  "wine_walk",
+  "aperitivo",
+]);
+
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
 function checkRateLimit(key: string, max = 8, windowMs = 60_000): boolean {
@@ -21,6 +35,30 @@ function checkRateLimit(key: string, max = 8, windowMs = 60_000): boolean {
   if (entry.count >= max) return false;
   entry.count += 1;
   return true;
+}
+
+function parsePriceRanges(
+  value: unknown,
+): WaitlistPreferences["priceRanges"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const raw = value as Record<string, unknown>;
+  const result: WaitlistPreferences["priceRanges"] = {};
+
+  for (const [key, ranges] of Object.entries(raw)) {
+    if (!INTEREST_IDS.has(key) || !Array.isArray(ranges)) continue;
+    const cleaned = ranges.filter(
+      (item): item is string =>
+        typeof item === "string" && PRICE_RANGE_IDS.has(item),
+    );
+    if (cleaned.length > 0) {
+      result[key as keyof WaitlistPreferences["priceRanges"]] =
+        cleaned as NonNullable<
+          WaitlistPreferences["priceRanges"][keyof WaitlistPreferences["priceRanges"]]
+        >;
+    }
+  }
+
+  return result;
 }
 
 function parsePreferences(
@@ -41,6 +79,7 @@ function parsePreferences(
   const tableType = Array.isArray(raw.tableType)
     ? raw.tableType.filter((item): item is string => typeof item === "string")
     : [];
+  const priceRanges = parsePriceRanges(raw.priceRanges);
 
   if (
     !interests.length &&
@@ -53,6 +92,7 @@ function parsePreferences(
 
   return {
     interests: interests as WaitlistPreferences["interests"],
+    priceRanges,
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
     tableType: tableType as WaitlistPreferences["tableType"],

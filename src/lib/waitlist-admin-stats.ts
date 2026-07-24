@@ -2,10 +2,12 @@ import type { WaitlistSignupRow } from "@/lib/waitlist-data";
 import {
   COMPANY_LABELS,
   INTEREST_LABELS,
+  PRICE_RANGE_LABELS,
   TABLE_TYPE_LABELS,
   WHY_LABELS,
   formatWaitlistPreferenceLabels,
 } from "@/lib/waitlist-preference-labels";
+import type { WaitlistPriceRangeId } from "@/i18n/waitlist-page.types";
 
 export type WaitlistPerson = {
   email: string;
@@ -33,6 +35,7 @@ export type WaitlistAdminStats = {
   last30d: number;
   regionFlexible: number;
   interests: WaitlistCountItem[];
+  priceRanges: WaitlistCountItem[];
   why: WaitlistCountItem[];
   company: WaitlistCountItem[];
   tableType: WaitlistCountItem[];
@@ -126,6 +129,7 @@ export function computeWaitlistAdminStats(
   people: WaitlistPerson[],
 ): WaitlistAdminStats {
   const interests = new Map<string, { label: string; count: number }>();
+  const priceRanges = new Map<string, { label: string; count: number }>();
   const why = new Map<string, { label: string; count: number }>();
   const company = new Map<string, { label: string; count: number }>();
   const tableType = new Map<string, { label: string; count: number }>();
@@ -147,6 +151,20 @@ export function computeWaitlistAdminStats(
     for (const id of person.preferences?.interests ?? []) {
       bump(interests, id, INTEREST_LABELS[id] ?? id);
     }
+
+    const seenRanges = new Set<string>();
+    for (const ranges of Object.values(person.preferences?.priceRanges ?? {})) {
+      for (const id of ranges ?? []) {
+        if (seenRanges.has(id)) continue;
+        seenRanges.add(id);
+        bump(
+          priceRanges,
+          id,
+          PRICE_RANGE_LABELS[id as WaitlistPriceRangeId] ?? id,
+        );
+      }
+    }
+
     for (const id of person.preferences?.why ?? []) {
       bump(why, id, WHY_LABELS[id] ?? id);
     }
@@ -163,6 +181,7 @@ export function computeWaitlistAdminStats(
 
   const quizBase = Math.max(withQuiz, 1);
   const interestCounts = toCounts(interests, quizBase);
+  const priceCounts = toCounts(priceRanges, quizBase);
   const whyCounts = toCounts(why, quizBase);
   const companyCounts = toCounts(company, quizBase);
   const tableCounts = toCounts(tableType, quizBase);
@@ -172,6 +191,11 @@ export function computeWaitlistAdminStats(
   if (interestCounts[0]) {
     insights.push(
       `Meest gevraagd: ${interestCounts[0].label} (${Math.round(interestCounts[0].share * 100)}% van quiz-aanmeldingen).`,
+    );
+  }
+  if (priceCounts[0]) {
+    insights.push(
+      `Populairste prijsrange: ${priceCounts[0].label} (${Math.round(priceCounts[0].share * 100)}% van quiz-aanmeldingen).`,
     );
   }
   if (cityCounts[0]) {
@@ -207,6 +231,7 @@ export function computeWaitlistAdminStats(
     last30d,
     regionFlexible,
     interests: interestCounts,
+    priceRanges: priceCounts,
     why: whyCounts,
     company: companyCounts,
     tableType: tableCounts,

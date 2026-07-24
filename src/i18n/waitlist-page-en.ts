@@ -51,6 +51,18 @@ export const waitlistPageEn: WaitlistPageLabels = {
         },
       ],
     },
+    price: {
+      title: "Which price fits?",
+      subtitle:
+        "For each experience you chose, pick the price ranges you're okay with. Multiple welcome.",
+      required: "Choose at least one price range per experience",
+      options: [
+        { id: "upto_50", title: "Up to €50" },
+        { id: "50_75", title: "€50–€75" },
+        { id: "75_100", title: "€75–€100" },
+        { id: "100_plus", title: "€100–€130" },
+      ],
+    },
     why: {
       title: "What draws you in?",
       subtitle: "Choose what comes closest.",

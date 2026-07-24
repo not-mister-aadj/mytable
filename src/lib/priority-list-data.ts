@@ -43,6 +43,7 @@ function asPreferences(
   }
   return {
     interests: interests as WaitlistPreferences["interests"],
+    priceRanges: {},
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
     tableType: tableType as WaitlistPreferences["tableType"],

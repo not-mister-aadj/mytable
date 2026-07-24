@@ -22,6 +22,13 @@ export type WaitlistCompanyId =
 
 export type WaitlistTableTypeId = "girls_only" | "mixed";
 
+/** Willing-to-pay bands, chosen per experience */
+export type WaitlistPriceRangeId =
+  | "upto_50"
+  | "50_75"
+  | "75_100"
+  | "100_plus";
+
 export type WaitlistOptionCard<T extends string> = {
   id: T;
   title: string;
@@ -39,6 +46,8 @@ export type WaitlistOutcome = {
 
 export type WaitlistPreferences = {
   interests: WaitlistInterestId[];
+  /** Price bands the person is okay with, keyed by selected interest */
+  priceRanges: Partial<Record<WaitlistInterestId, WaitlistPriceRangeId[]>>;
   why: WaitlistWhyId[];
   company: WaitlistCompanyId[];
   tableType: WaitlistTableTypeId[];
@@ -69,6 +78,12 @@ export interface WaitlistPageLabels {
       subtitle: string;
       required: string;
       options: WaitlistOptionCard<WaitlistInterestId>[];
+    };
+    price: {
+      title: string;
+      subtitle: string;
+      required: string;
+      options: WaitlistOptionCard<WaitlistPriceRangeId>[];
     };
     why: {
       title: string;

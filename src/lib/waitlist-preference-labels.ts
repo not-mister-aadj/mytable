@@ -2,6 +2,7 @@ import type {
   WaitlistCompanyId,
   WaitlistInterestId,
   WaitlistPreferences,
+  WaitlistPriceRangeId,
   WaitlistTableTypeId,
   WaitlistWhyId,
 } from "@/i18n/waitlist-page.types";
@@ -11,6 +12,13 @@ export const INTEREST_LABELS: Record<WaitlistInterestId, string> = {
   chefs_special: "Chef's Table",
   wine_walk: "Wine Walk",
   aperitivo: "Golden Hour Aperitivo",
+};
+
+export const PRICE_RANGE_LABELS: Record<WaitlistPriceRangeId, string> = {
+  upto_50: "Tot €50",
+  "50_75": "€50–€75",
+  "75_100": "€75–€100",
+  "100_plus": "€100–€130",
 };
 
 export const WHY_LABELS: Record<WaitlistWhyId, string> = {
@@ -42,11 +50,48 @@ function mapIds<T extends string>(
   return ids.map((id) => labels[id] ?? id);
 }
 
+export function formatPriceRangesByInterest(
+  preferences: WaitlistPreferences | null | undefined,
+): string[] {
+  const priceRanges = preferences?.priceRanges;
+  if (!priceRanges) return [];
+
+  const interestOrder = preferences?.interests?.length
+    ? preferences.interests
+    : (Object.keys(priceRanges) as WaitlistInterestId[]);
+
+  const lines: string[] = [];
+  const seen = new Set<string>();
+
+  for (const interestId of interestOrder) {
+    const ranges = priceRanges[interestId];
+    if (!ranges?.length || seen.has(interestId)) continue;
+    seen.add(interestId);
+    const interestLabel = INTEREST_LABELS[interestId] ?? interestId;
+    const rangeLabels = mapIds(ranges, PRICE_RANGE_LABELS).join(", ");
+    lines.push(`${interestLabel}: ${rangeLabels}`);
+  }
+
+  for (const [interestId, ranges] of Object.entries(priceRanges)) {
+    if (seen.has(interestId) || !ranges?.length) continue;
+    const interestLabel =
+      INTEREST_LABELS[interestId as WaitlistInterestId] ?? interestId;
+    const rangeLabels = mapIds(
+      ranges as WaitlistPriceRangeId[],
+      PRICE_RANGE_LABELS,
+    ).join(", ");
+    lines.push(`${interestLabel}: ${rangeLabels}`);
+  }
+
+  return lines;
+}
+
 export function formatWaitlistPreferenceLabels(
   preferences: WaitlistPreferences | null | undefined,
 ) {
   return {
     interests: mapIds(preferences?.interests, INTEREST_LABELS),
+    priceRanges: formatPriceRangesByInterest(preferences),
     why: mapIds(preferences?.why, WHY_LABELS),
     company: mapIds(preferences?.company, COMPANY_LABELS),
     tableType: mapIds(preferences?.tableType, TABLE_TYPE_LABELS),

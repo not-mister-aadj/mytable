@@ -39,8 +39,29 @@ function asPreferences(
   const cities = Array.isArray(value.cities)
     ? value.cities.filter((item): item is string => typeof item === "string")
     : [];
+
+  const priceRanges: WaitlistPreferences["priceRanges"] = {};
+  const rawPrice = value.priceRanges;
+  if (rawPrice && typeof rawPrice === "object" && !Array.isArray(rawPrice)) {
+    for (const [key, ranges] of Object.entries(
+      rawPrice as Record<string, unknown>,
+    )) {
+      if (!Array.isArray(ranges)) continue;
+      const cleaned = ranges.filter(
+        (item): item is string => typeof item === "string",
+      );
+      if (cleaned.length > 0) {
+        priceRanges[key as keyof WaitlistPreferences["priceRanges"]] =
+          cleaned as NonNullable<
+            WaitlistPreferences["priceRanges"][keyof WaitlistPreferences["priceRanges"]]
+          >;
+      }
+    }
+  }
+
   return {
     interests: interests as WaitlistPreferences["interests"],
+    priceRanges,
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
     tableType: tableType as WaitlistPreferences["tableType"],
@@ -164,6 +185,7 @@ export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
     "Steden",
     "Taal",
     "Ervaringen",
+    "Prijsranges",
     "Waarom",
     "Hoe komen",
     "Type tafel",
@@ -185,6 +207,7 @@ export function waitlistRowsToExcelCsv(rows: WaitlistSignupRow[]): string {
         ),
         row.locale.toUpperCase(),
         joinPreferenceLabels(labels.interests),
+        joinPreferenceLabels(labels.priceRanges),
         joinPreferenceLabels(labels.why),
         joinPreferenceLabels(labels.company),
         joinPreferenceLabels(labels.tableType),
@@ -213,6 +236,7 @@ export function waitlistPeopleToExcelCsv(rows: WaitlistSignupRow[]): string {
     "Steden",
     "Taal",
     "Ervaringen",
+    "Prijsranges",
     "Waarom",
     "Hoe komen",
     "Type tafel",
@@ -232,6 +256,7 @@ export function waitlistPeopleToExcelCsv(rows: WaitlistSignupRow[]): string {
         joinPreferenceLabels(person.cities),
         person.locale.toUpperCase(),
         joinPreferenceLabels(labels.interests),
+        joinPreferenceLabels(labels.priceRanges),
         joinPreferenceLabels(labels.why),
         joinPreferenceLabels(labels.company),
         joinPreferenceLabels(labels.tableType),

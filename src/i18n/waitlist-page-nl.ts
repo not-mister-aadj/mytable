@@ -51,6 +51,18 @@ export const waitlistPageNl: WaitlistPageLabels = {
         },
       ],
     },
+    price: {
+      title: "Welke prijs past?",
+      subtitle:
+        "Geef per ervaring aan welke prijsranges voor jou oké zijn. Meerdere mogelijk.",
+      required: "Kies per ervaring minstens één prijsrange",
+      options: [
+        { id: "upto_50", title: "Tot €50" },
+        { id: "50_75", title: "€50–€75" },
+        { id: "75_100", title: "€75–€100" },
+        { id: "100_plus", title: "€100–€130" },
+      ],
+    },
     why: {
       title: "Waarom spreekt dit je aan?",
       subtitle: "Kies wat het dichtst bij komt.",

@@ -178,6 +178,10 @@ function PersonRow({
               value={joinPreferenceLabels(labels.interests)}
             />
             <CompactMeta
+              label="Prijs"
+              value={joinPreferenceLabels(labels.priceRanges)}
+            />
+            <CompactMeta
               label="Waarom"
               value={joinPreferenceLabels(labels.why)}
             />
@@ -308,6 +312,7 @@ export function WaitlistView({
         person.name ?? "",
         joinPreferenceLabels(person.cities),
         joinPreferenceLabels(labels.interests),
+        joinPreferenceLabels(labels.priceRanges),
         joinPreferenceLabels(labels.why),
         joinPreferenceLabels(labels.company),
         joinPreferenceLabels(labels.tableType),
@@ -442,6 +447,11 @@ export function WaitlistView({
               title="Ervaringen"
               subtitle="Waar vraag naartoe gaat — open hier eerst."
               items={stats.interests}
+            />
+            <BreakdownChart
+              title="Prijsranges"
+              subtitle="Waar mensen oké mee zijn (per persoon, over ervaringen)."
+              items={stats.priceRanges}
             />
             <BreakdownChart
               title="Steden"

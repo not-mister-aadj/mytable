@@ -19,16 +19,77 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
-function AnswersCell({ values }: { values: string[] }) {
-  if (values.length === 0) {
-    return <span className="text-wine/35">—</span>;
+type GroupedSignup = {
+  email: string;
+  name: string | null;
+  locale: string;
+  createdAt: string;
+  cities: string[];
+  preferences: WaitlistSignupRow["preferences"];
+  rowCount: number;
+};
+
+function groupSignups(signups: WaitlistSignupRow[]): GroupedSignup[] {
+  const byEmail = new Map<string, WaitlistSignupRow[]>();
+  for (const row of signups) {
+    const key = row.email.toLowerCase();
+    const list = byEmail.get(key) ?? [];
+    list.push(row);
+    byEmail.set(key, list);
   }
+
+  return [...byEmail.values()]
+    .map((rows) => {
+      const sorted = [...rows].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      const withPrefs =
+        sorted.find((row) => row.preferences != null) ?? sorted[0]!;
+      const labels = formatWaitlistPreferenceLabels(withPrefs.preferences);
+      const citySet = new Set<string>();
+      for (const row of sorted) {
+        if (row.city) citySet.add(row.city);
+        for (const city of row.preferences?.cities ?? []) citySet.add(city);
+      }
+      for (const city of labels.cities) citySet.add(city);
+
+      return {
+        email: withPrefs.email,
+        name: sorted.find((row) => row.name?.trim())?.name ?? null,
+        locale: withPrefs.locale,
+        createdAt: sorted[0]!.createdAt,
+        cities: [...citySet].sort(),
+        preferences: withPrefs.preferences,
+        rowCount: sorted.length,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+}
+
+function AnswerBlock({
+  label,
+  values,
+}: {
+  label: string;
+  values: string[];
+}) {
   return (
-    <ul className="space-y-0.5">
-      {values.map((value) => (
-        <li key={value}>{value}</li>
-      ))}
-    </ul>
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-wine/45">
+        {label}
+      </p>
+      {values.length === 0 ? (
+        <p className="mt-1 text-sm text-wine/35">—</p>
+      ) : (
+        <p className="mt-1 text-sm leading-relaxed text-wine/80">
+          {values.join(" · ")}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -42,43 +103,41 @@ export function WaitlistView({
   const [cityFilter, setCityFilter] = useState("all");
   const [search, setSearch] = useState("");
 
+  const grouped = useMemo(() => groupSignups(signups), [signups]);
+
   const cities = useMemo(() => {
     const set = new Set<string>();
-    for (const row of signups) {
-      if (row.city) set.add(row.city);
-      for (const city of row.preferences?.cities ?? []) set.add(city);
+    for (const row of grouped) {
+      for (const city of row.cities) set.add(city);
     }
     return [...set].sort();
-  }, [signups]);
+  }, [grouped]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return signups.filter((row) => {
+    return grouped.filter((row) => {
       const labels = formatWaitlistPreferenceLabels(row.preferences);
       const cityMatch =
-        cityFilter === "all" ||
-        row.city === cityFilter ||
-        labels.cities.includes(cityFilter);
+        cityFilter === "all" || row.cities.includes(cityFilter);
       if (!cityMatch) return false;
       if (!q) return true;
       const haystack = [
         row.email,
         row.name ?? "",
-        row.city,
+        joinPreferenceLabels(row.cities),
         joinPreferenceLabels(labels.interests),
         joinPreferenceLabels(labels.why),
         joinPreferenceLabels(labels.company),
         joinPreferenceLabels(labels.tableType),
-        joinPreferenceLabels(labels.cities),
       ]
         .join(" ")
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [signups, cityFilter, search]);
+  }, [grouped, cityFilter, search]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 lg:max-w-none">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-wine/45">
@@ -88,8 +147,8 @@ export function WaitlistView({
             Wachtlijst
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-            Aanmeldingen via de wachtlijst-quiz. Alle antwoorden staan per rij.
-            WhatsApp-links stel je hieronder in.
+            Eén kaart per persoon met alle quiz-antwoorden. Oudere
+            e-mailaanmeldingen zonder quiz tonen streepjes bij de antwoorden.
           </p>
         </div>
         <a
@@ -127,7 +186,7 @@ export function WaitlistView({
             </select>
             <p className="text-sm text-wine/55">
               {filtered.length}{" "}
-              {filtered.length === 1 ? "inschrijving" : "inschrijvingen"}
+              {filtered.length === 1 ? "persoon" : "personen"}
             </p>
           </div>
         </div>
@@ -141,71 +200,42 @@ export function WaitlistView({
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige/50 shadow-[0_12px_40px_rgba(43,13,18,0.05)]">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
-                  <th className="px-5 py-3.5">Naam</th>
-                  <th className="px-5 py-3.5">E-mail</th>
-                  <th className="px-5 py-3.5">Ervaringen</th>
-                  <th className="px-5 py-3.5">Waarom</th>
-                  <th className="px-5 py-3.5">Hoe komen</th>
-                  <th className="px-5 py-3.5">Type tafel</th>
-                  <th className="px-5 py-3.5">Steden</th>
-                  <th className="px-5 py-3.5">Flexibel</th>
-                  <th className="px-5 py-3.5">Taal</th>
-                  <th className="px-5 py-3.5">Aangemeld</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((row) => {
-                  const labels = formatWaitlistPreferenceLabels(row.preferences);
-                  const citiesShown =
-                    labels.cities.length > 0 ? labels.cities : [row.city];
+        <ul className="space-y-4">
+          {filtered.map((row) => {
+            const labels = formatWaitlistPreferenceLabels(row.preferences);
+            return (
+              <li
+                key={row.email}
+                className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.04)] sm:p-6"
+              >
+                <div className="flex flex-col gap-3 border-b border-border-subtle/60 pb-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-serif text-xl text-burgundy">
+                      {row.name?.trim() || "Geen naam"}
+                    </p>
+                    <p className="mt-1 text-sm text-wine/70">{row.email}</p>
+                  </div>
+                  <div className="text-sm text-wine/55 sm:text-right">
+                    <p className="uppercase tracking-[0.08em]">{row.locale}</p>
+                    <p className="mt-1">{formatDate(row.createdAt)}</p>
+                  </div>
+                </div>
 
-                  return (
-                    <tr
-                      key={row.id}
-                      className="border-b border-border-subtle/50 align-top last:border-0"
-                    >
-                      <td className="px-5 py-4 font-medium text-wine">
-                        {row.name?.trim() || (
-                          <span className="font-normal text-wine/35">—</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-4 text-wine/80">{row.email}</td>
-                      <td className="px-5 py-4 text-wine/75">
-                        <AnswersCell values={labels.interests} />
-                      </td>
-                      <td className="px-5 py-4 text-wine/75">
-                        <AnswersCell values={labels.why} />
-                      </td>
-                      <td className="px-5 py-4 text-wine/75">
-                        <AnswersCell values={labels.company} />
-                      </td>
-                      <td className="px-5 py-4 text-wine/75">
-                        <AnswersCell values={labels.tableType} />
-                      </td>
-                      <td className="px-5 py-4 text-wine/75">
-                        <AnswersCell values={citiesShown} />
-                      </td>
-                      <td className="px-5 py-4 text-wine/75">
-                        {labels.regionFlexible ? "Ja" : "Nee"}
-                      </td>
-                      <td className="px-5 py-4 uppercase text-wine/60">
-                        {row.locale}
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-wine/75">
-                        {formatDate(row.createdAt)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <AnswerBlock label="Ervaringen" values={labels.interests} />
+                  <AnswerBlock label="Waarom" values={labels.why} />
+                  <AnswerBlock label="Hoe komen" values={labels.company} />
+                  <AnswerBlock label="Type tafel" values={labels.tableType} />
+                  <AnswerBlock label="Steden" values={row.cities} />
+                  <AnswerBlock
+                    label="Flexibel in regio"
+                    values={[labels.regionFlexible ? "Ja" : "Nee"]}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

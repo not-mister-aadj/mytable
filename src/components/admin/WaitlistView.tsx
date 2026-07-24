@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { removeWaitlistSignupAction } from "@/app/admin/(dashboard)/waitlist/actions";
 import type {
   WaitlistInterestId,
   WaitlistTableTypeId,
@@ -27,10 +29,26 @@ function formatDate(iso: string) {
   return new Intl.DateTimeFormat("nl-NL", {
     day: "numeric",
     month: "short",
-    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
 }
 
 function StatCard({
@@ -101,87 +119,155 @@ function BreakdownChart({
   );
 }
 
-function AnswerBlock({
+function CompactMeta({
   label,
-  values,
+  value,
 }: {
   label: string;
-  values: string[];
+  value: string;
 }) {
   return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-wine/45">
+    <span className="inline-flex max-w-full items-baseline gap-1.5">
+      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-wine/40">
         {label}
-      </p>
-      {values.length === 0 ? (
-        <p className="mt-1 text-sm text-wine/35">—</p>
-      ) : (
-        <p className="mt-1 text-sm leading-relaxed text-wine/80">
-          {values.join(" · ")}
-        </p>
-      )}
-    </div>
+      </span>
+      <span className="truncate text-wine/80">{value || "—"}</span>
+    </span>
   );
 }
 
-function PersonCard({ person }: { person: WaitlistPerson }) {
+function PersonRow({
+  person,
+  removing,
+  onRemove,
+}: {
+  person: WaitlistPerson;
+  removing: boolean;
+  onRemove: () => void;
+}) {
   const labels = formatWaitlistPreferenceLabels(person.preferences);
+
   return (
-    <li className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.04)] sm:p-6">
-      <div className="flex flex-col gap-3 border-b border-border-subtle/60 pb-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-serif text-xl text-burgundy">
+    <li className="rounded-xl border border-border-subtle/70 bg-beige/40 px-3.5 py-3 sm:px-4">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="truncate font-medium text-wine">
               {person.name?.trim() || "Geen naam"}
             </p>
-            {person.hasQuiz ? (
-              <span className="rounded-full bg-burgundy/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-burgundy">
-                Quiz
-              </span>
-            ) : (
-              <span className="rounded-full bg-wine/8 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-wine/45">
-                Alleen e-mail
-              </span>
-            )}
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                person.hasQuiz
+                  ? "bg-burgundy/10 text-burgundy"
+                  : "bg-wine/8 text-wine/45"
+              }`}
+            >
+              {person.hasQuiz ? "Quiz" : "E-mail"}
+            </span>
+            <span className="text-xs uppercase tracking-[0.08em] text-wine/40">
+              {person.locale}
+            </span>
+            <span className="text-xs text-wine/40">
+              {formatDate(person.createdAt)}
+            </span>
           </div>
-          <p className="mt-1 text-sm text-wine/70">{person.email}</p>
+          <p className="mt-0.5 truncate text-sm text-wine/60">{person.email}</p>
+          <div className="mt-2 grid gap-0.5 text-sm sm:grid-cols-2">
+            <CompactMeta
+              label="Ervaring"
+              value={joinPreferenceLabels(labels.interests)}
+            />
+            <CompactMeta
+              label="Waarom"
+              value={joinPreferenceLabels(labels.why)}
+            />
+            <CompactMeta
+              label="Gezelschap"
+              value={joinPreferenceLabels(labels.company)}
+            />
+            <CompactMeta
+              label="Tafel"
+              value={joinPreferenceLabels(labels.tableType)}
+            />
+            <CompactMeta
+              label="Steden"
+              value={joinPreferenceLabels(person.cities)}
+            />
+            <CompactMeta
+              label="Flexibel"
+              value={labels.regionFlexible ? "Ja" : "Nee"}
+            />
+          </div>
         </div>
-        <div className="text-sm text-wine/55 sm:text-right">
-          <p className="uppercase tracking-[0.08em]">{person.locale}</p>
-          <p className="mt-1">{formatDate(person.createdAt)}</p>
-        </div>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <AnswerBlock label="Ervaringen" values={labels.interests} />
-        <AnswerBlock label="Waarom" values={labels.why} />
-        <AnswerBlock label="Hoe komen" values={labels.company} />
-        <AnswerBlock label="Type tafel" values={labels.tableType} />
-        <AnswerBlock label="Steden" values={person.cities} />
-        <AnswerBlock
-          label="Flexibel in regio"
-          values={[labels.regionFlexible ? "Ja" : "Nee"]}
-        />
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={removing}
+          aria-label={`${person.name ?? person.email} verwijderen`}
+          title="Verwijderen"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-cream text-wine/55 transition hover:border-red-800/35 hover:bg-red-50 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <CloseIcon />
+        </button>
       </div>
     </li>
   );
 }
 
 export function WaitlistView({
-  signups,
+  signups: initialSignups,
   whatsappLinks,
 }: {
   signups: WaitlistSignupRow[];
   whatsappLinks: WaitlistWhatsappLinks;
 }) {
+  const router = useRouter();
   const [tab, setTab] = useState<TabId>("dashboard");
+  const [signups, setSignups] = useState(initialSignups);
   const [cityFilter, setCityFilter] = useState("all");
   const [interestFilter, setInterestFilter] = useState("all");
   const [tableFilter, setTableFilter] = useState("all");
   const [quizFilter, setQuizFilter] = useState<"all" | "quiz" | "email">("all");
   const [search, setSearch] = useState("");
+  const [removingEmail, setRemovingEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSignups(initialSignups);
+  }, [initialSignups]);
 
   const people = useMemo(() => groupWaitlistPeople(signups), [signups]);
   const stats = useMemo(() => computeWaitlistAdminStats(people), [people]);
+
+  async function handleRemove(person: WaitlistPerson) {
+    const label = person.name?.trim() || person.email;
+    const cities =
+      person.cities.length > 0
+        ? `\n\nSteden: ${person.cities.join(", ")}`
+        : "";
+    if (
+      !confirm(
+        `Weet je zeker dat je ${label} van de wachtlijst wilt halen?${cities}\n\nDit kan niet ongedaan worden gemaakt.`,
+      )
+    ) {
+      return;
+    }
+
+    setRemovingEmail(person.email);
+    const result = await removeWaitlistSignupAction(person.email);
+    setRemovingEmail(null);
+
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+
+    setSignups((current) =>
+      current.filter(
+        (row) => row.email.toLowerCase() !== person.email.toLowerCase(),
+      ),
+    );
+    router.refresh();
+  }
 
   const cities = useMemo(() => {
     const set = new Set<string>();
@@ -398,20 +484,20 @@ export function WaitlistView({
       ) : null}
 
       {tab === "list" ? (
-        <div className="space-y-5">
-          <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)] sm:p-6">
-            <div className="grid gap-3 lg:grid-cols-[1fr_repeat(4,minmax(0,11rem))]">
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border-subtle/80 bg-cream/60 p-4">
+            <div className="grid gap-2.5 lg:grid-cols-[1fr_repeat(4,minmax(0,10.5rem))]">
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Zoek naam, e-mail, stad, antwoord…"
-                className="w-full rounded-full border border-border-subtle bg-cream px-4 py-2.5 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
+                className="w-full rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
               />
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2.5 text-sm text-wine outline-none focus:border-burgundy/40"
+                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
                 aria-label="Filter op stad"
               >
                 <option value="all">Alle steden</option>
@@ -424,7 +510,7 @@ export function WaitlistView({
               <select
                 value={interestFilter}
                 onChange={(e) => setInterestFilter(e.target.value)}
-                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2.5 text-sm text-wine outline-none focus:border-burgundy/40"
+                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
                 aria-label="Filter op ervaring"
               >
                 <option value="all">Alle ervaringen</option>
@@ -437,7 +523,7 @@ export function WaitlistView({
               <select
                 value={tableFilter}
                 onChange={(e) => setTableFilter(e.target.value)}
-                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2.5 text-sm text-wine outline-none focus:border-burgundy/40"
+                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
                 aria-label="Filter op type tafel"
               >
                 <option value="all">Alle tafels</option>
@@ -452,7 +538,7 @@ export function WaitlistView({
                 onChange={(e) =>
                   setQuizFilter(e.target.value as "all" | "quiz" | "email")
                 }
-                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2.5 text-sm text-wine outline-none focus:border-burgundy/40"
+                className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
                 aria-label="Filter op quiz"
               >
                 <option value="all">Quiz + e-mail</option>
@@ -460,25 +546,28 @@ export function WaitlistView({
                 <option value="email">Alleen e-mail</option>
               </select>
             </div>
-            <p className="mt-3 text-sm text-wine/55">
+            <p className="mt-2.5 text-sm text-wine/55">
               {filtered.length}{" "}
               {filtered.length === 1 ? "persoon" : "personen"}
             </p>
           </div>
 
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border-subtle bg-beige/40 px-6 py-16 text-center">
-              <p className="font-serif text-xl text-burgundy">
-                Geen resultaten
-              </p>
-              <p className="mt-2 text-sm text-wine/60">
+            <div className="rounded-xl border border-dashed border-border-subtle bg-beige/40 px-6 py-12 text-center">
+              <p className="font-serif text-lg text-burgundy">Geen resultaten</p>
+              <p className="mt-1 text-sm text-wine/60">
                 Pas je filters aan of wis de zoekopdracht.
               </p>
             </div>
           ) : (
-            <ul className="space-y-4">
+            <ul className="space-y-2">
               {filtered.map((person) => (
-                <PersonCard key={person.email} person={person} />
+                <PersonRow
+                  key={person.email}
+                  person={person}
+                  removing={removingEmail === person.email}
+                  onRemove={() => void handleRemove(person)}
+                />
               ))}
             </ul>
           )}

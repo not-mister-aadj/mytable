@@ -1,6 +1,7 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
+import { recalculateCustomerStats } from "@/lib/customers/stats";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import { groupWaitlistPeople } from "@/lib/waitlist-admin-stats";
 import {
@@ -242,7 +243,7 @@ export function waitlistPeopleToExcelCsv(rows: WaitlistSignupRow[]): string {
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
-        }).format(new Date(person.createdAt)),
+        })        .format(new Date(person.createdAt)),
       ]
         .map(escape)
         .join(";");
@@ -250,4 +251,43 @@ export function waitlistPeopleToExcelCsv(rows: WaitlistSignupRow[]): string {
   ];
 
   return `\uFEFF${lines.join("\r\n")}`;
+}
+
+export async function removeWaitlistSignupByEmail(email: string): Promise<number> {
+  const normalized = email.trim().toLowerCase();
+  const db = getDb();
+
+  const rows = await db
+    .select({
+      id: waitlistSignups.id,
+      customerId: waitlistSignups.customerId,
+    })
+    .from(waitlistSignups)
+    .where(
+      and(
+        sql`lower(${waitlistSignups.email}) = ${normalized}`,
+        eq(waitlistSignups.source, "waitlist"),
+      ),
+    );
+
+  if (rows.length === 0) return 0;
+
+  await db
+    .delete(waitlistSignups)
+    .where(
+      and(
+        sql`lower(${waitlistSignups.email}) = ${normalized}`,
+        eq(waitlistSignups.source, "waitlist"),
+      ),
+    );
+
+  const customerIds = [
+    ...new Set(rows.map((row) => row.customerId).filter(Boolean)),
+  ] as string[];
+
+  for (const customerId of customerIds) {
+    await recalculateCustomerStats(customerId);
+  }
+
+  return rows.length;
 }

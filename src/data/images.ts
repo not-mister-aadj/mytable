@@ -31,7 +31,7 @@ export const blogImages = {
     "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1200&q=80",
   winePour:
     "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=1200&q=80",
-  friendsTable: images.cheers,
+  friendsTable: images.wineGlasses,
   friendsOutdoor: "/blog/amsterdam-restaurant.jpg",
   dinnerTable: images.restaurantDining,
   wineBar: images.wineBar,
@@ -44,6 +44,8 @@ export const blogImages = {
   brunch: images.brunch,
   restaurant: "/blog/amsterdam-restaurant.jpg",
   socialIdeas: images.longTable,
+  clayWorkshop:
+    "https://images.unsplash.com/photo-1493106819501-66d381c466f1?w=1200&q=80",
   spaCalm:
     "https://images.unsplash.com/photo-1560624052-449f5ddf0c31?w=1200&q=80",
   outdoorWalk:

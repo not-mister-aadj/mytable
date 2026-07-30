@@ -402,7 +402,7 @@ export const blogPosts: BlogPost[] = [
     category: "girls-only",
     publishedAt: "2026-07-10",
     readMinutes: 7,
-    image: blogImages.winePour,
+    image: blogImages.wineBar,
     featured: false,
     title: {
       nl: "Solo naar een girls-only wijnproeverij: zo werkt het echt",

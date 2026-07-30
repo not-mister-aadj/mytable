@@ -6,11 +6,11 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
     return {
       brand: "MyTable",
       tagline:
-        "Meet new people at Sunday Table, or book culinary experiences right away with your group or date.",
-      line: "Good taste is better with the right people. Already have a group? Open the agenda. Solo or still looking? Claim your seat at Sunday Table. Every first Sunday of the month. Then book culinary experiences together with your new group.",
+        "Meet new people at Sunday Table, or book culinary experiences with your group or date.",
+      line: "Great food is better with the right company. Already have a group? Browse the agenda. Solo, or still looking for people to go with? Take a seat at Sunday Table on the first Sunday of every month. Then book your next culinary experiences together.",
       cta: "Sunday Table",
       ctaSignedIn: "Continue",
-      agendaCta: "Open the agenda",
+      agendaCta: "Browse the agenda",
       howItWorks: {
         title: "Two paths",
         subtitle: "Pick what fits.",

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { agendaPath, blogCategoryPath, blogPath, blogPostPath } from "@/i18n/config";
 import type { BlogUiLabels } from "@/i18n/blog-ui";
+import { blogImages } from "@/data/images";
 import {
   BLOG_CATEGORIES,
   BLOG_CATEGORY_ORDER,
@@ -77,15 +78,27 @@ export function BlogIndexView({
 
   return (
     <>
-      <section className="border-b border-rose/15 bg-gradient-to-b from-wine via-burgundy to-burgundy pt-[4.5rem] sm:pt-24">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose">
+      <section className="relative isolate min-h-[min(42vh,400px)] overflow-hidden bg-wine text-cream">
+        <Image
+          src={blogImages.dinnerTable}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-[#14060a]/70 sm:bg-[#14060a]/58" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#14060a]/90 via-[#14060a]/55 to-[#14060a]/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#14060a]/85 via-transparent to-[#14060a]/30" />
+
+        <div className="relative mx-auto flex min-h-[min(42vh,400px)] max-w-lg flex-col justify-end px-5 pb-10 pt-24 sm:max-w-7xl sm:px-8 sm:pb-12 lg:px-10 lg:pb-14">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
             {labels.eyebrow}
           </p>
-          <h1 className="mt-3 max-w-3xl font-serif text-[2rem] font-medium leading-[1.08] tracking-tight text-cream sm:text-5xl">
+          <h1 className="mt-3 max-w-3xl font-serif text-[2.15rem] font-medium leading-[1.05] tracking-tight text-cream text-balance sm:text-[2.65rem] lg:text-[3rem]">
             {labels.title}
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-cream/75 sm:text-lg">
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-cream/90 sm:text-lg">
             {labels.subtitle}
           </p>
 

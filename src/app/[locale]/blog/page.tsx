@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     kind: "blog",
     title:
       locale === "en"
-        ? "Blog | Girls-only wine tasting tips & guides | MyTable"
-        : "Blog | Tips & gidsen girls-only wijnproeverijen | MyTable",
+        ? "Blog | Wine tasting tips & guides | MyTable"
+        : "Blog | Tips & gidsen wijnproeverijen | MyTable",
     description: labels.subtitle,
     image: blogImages.socialIdeas,
   });

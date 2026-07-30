@@ -1,0 +1,968 @@
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import type Stripe from "stripe";
+import { getDb } from "@/db/index";
+import {
+  clubMemberships,
+  sundayTableSignups,
+  type ClubMembership,
+  type ClubPlanId,
+  type SundayTableSignupProfile,
+} from "@/db/schema";
+import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
+import { isClubPlanId, isClubPlanIdForSale } from "@/lib/club/plans";
+import {
+  isSundayTableRsvpOpen,
+  parseAmsterdamDateIso,
+} from "@/lib/sunday-wine-table";
+
+export type MemberSundaySignup = {
+  id: string;
+  city: string;
+  tableDate: string;
+  tableType: "girls_only" | "mixed";
+  planId: string;
+  status: string;
+  plusOne: boolean;
+  cancelledAt: string | null;
+  createdAt: string;
+};
+
+function periodEndFromSubscription(
+  sub: Stripe.Subscription,
+): Date | null {
+  const raw = readSubscriptionUnix(sub, "current_period_end");
+  if (!raw) return null;
+  return new Date(raw * 1000);
+}
+
+function cancelAtPeriodEndFromSubscription(sub: Stripe.Subscription): boolean {
+  const s = sub as Stripe.Subscription & {
+    cancel_at_period_end?: boolean;
+    cancel_at?: number | null;
+  };
+  if (s.cancel_at_period_end === true) return true;
+  if (typeof s.cancel_at === "number" && s.cancel_at > 0) return true;
+  return false;
+}
+
+function readSubscriptionUnix(
+  sub: Stripe.Subscription,
+  key: "current_period_end",
+): number | null {
+  const top = (sub as Stripe.Subscription & Record<string, unknown>)[key];
+  if (typeof top === "number") return top;
+  const item = sub.items?.data?.[0] as
+    | (Stripe.SubscriptionItem & { current_period_end?: number })
+    | undefined;
+  if (typeof item?.current_period_end === "number") {
+    return item.current_period_end;
+  }
+  return null;
+}
+
+export async function getActiveMembershipForUser(input: {
+  userId?: string | null;
+  email: string;
+}): Promise<ClubMembership | null> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+
+  if (input.userId) {
+    const byUser = await db
+      .select()
+      .from(clubMemberships)
+      .where(
+        and(
+          eq(clubMemberships.userId, input.userId),
+          sql`${clubMemberships.status} in ('active', 'past_due')`,
+        ),
+      )
+      .orderBy(desc(clubMemberships.createdAt))
+      .limit(1);
+    if (byUser[0]) return byUser[0];
+  }
+
+  const byEmail = await db
+    .select()
+    .from(clubMemberships)
+    .where(
+      and(
+        sql`lower(${clubMemberships.email}) = ${email}`,
+        sql`${clubMemberships.status} in ('active', 'past_due')`,
+      ),
+    )
+    .orderBy(desc(clubMemberships.createdAt))
+    .limit(1);
+
+  return byEmail[0] ?? null;
+}
+
+export async function getMemberSundaySignups(input: {
+  userId?: string | null;
+  email: string;
+}): Promise<MemberSundaySignup[]> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+
+  const rows = await db
+    .select()
+    .from(sundayTableSignups)
+    .where(
+      input.userId
+        ? sql`(${sundayTableSignups.userId} = ${input.userId} or lower(${sundayTableSignups.email}) = ${email})`
+        : sql`lower(${sundayTableSignups.email}) = ${email}`,
+    )
+    .orderBy(desc(sundayTableSignups.tableDate), desc(sundayTableSignups.createdAt));
+
+  return rows.map((row) => ({
+    id: row.id,
+    city: row.city,
+    tableDate:
+      typeof row.tableDate === "string"
+        ? row.tableDate.slice(0, 10)
+        : String(row.tableDate).slice(0, 10),
+    tableType:
+      row.tableType === "girls_only" || row.tableType === "mixed"
+        ? row.tableType
+        : "mixed",
+    planId: row.planId,
+    status: row.status,
+    plusOne: row.plusOne,
+    cancelledAt: row.cancelledAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
+function memberSignupOwnerFilter(
+  email: string,
+  userId?: string | null,
+) {
+  return userId
+    ? sql`(${sundayTableSignups.userId} = ${userId} or lower(${sundayTableSignups.email}) = ${email})`
+    : sql`lower(${sundayTableSignups.email}) = ${email}`;
+}
+
+/**
+ * One physical seat per Sunday: only one confirmed RSVP per calendar date.
+ * Confirming `keepSignupId` cancels other confirmed/pending RSVPs that day.
+ */
+export async function releaseOtherSignupsOnSameDate(input: {
+  keepSignupId: string;
+  email: string;
+  userId?: string | null;
+  tableDate: string;
+}): Promise<void> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+  const tableDate = input.tableDate.slice(0, 10);
+
+  const toCancel = await db
+    .select()
+    .from(sundayTableSignups)
+    .where(
+      and(
+        memberSignupOwnerFilter(email, input.userId),
+        eq(sundayTableSignups.tableDate, tableDate),
+        ne(sundayTableSignups.id, input.keepSignupId),
+        inArray(sundayTableSignups.status, ["confirmed", "pending_payment"]),
+      ),
+    );
+
+  if (toCancel.length === 0) return;
+
+  await db
+    .update(sundayTableSignups)
+    .set({
+      status: "cancelled",
+      plusOne: false,
+      cancelledAt: new Date(),
+    })
+    .where(
+      inArray(
+        sundayTableSignups.id,
+        toCancel.map((row) => row.id),
+      ),
+    );
+
+  try {
+    const { voidSundayTableCancelEmail } = await import(
+      "@/lib/email/sendSundayTableBookingEmails"
+    );
+    for (const row of toCancel) {
+      if (row.status === "confirmed") {
+        voidSundayTableCancelEmail(row);
+      }
+    }
+  } catch (err) {
+    console.error("[club] Sunday Table cancel emails", err);
+  }
+}
+
+/**
+ * Heal duplicate "Je gaat" rows (same date). Keeps the newest confirmed RSVP.
+ */
+export async function enforceOneConfirmedPerDate(input: {
+  email: string;
+  userId?: string | null;
+}): Promise<number> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+
+  const confirmed = await db
+    .select({
+      id: sundayTableSignups.id,
+      tableDate: sundayTableSignups.tableDate,
+      createdAt: sundayTableSignups.createdAt,
+    })
+    .from(sundayTableSignups)
+    .where(
+      and(
+        eq(sundayTableSignups.status, "confirmed"),
+        memberSignupOwnerFilter(email, input.userId),
+      ),
+    )
+    .orderBy(desc(sundayTableSignups.createdAt));
+
+  const keepByDate = new Map<string, string>();
+  const toCancel: string[] = [];
+
+  for (const row of confirmed) {
+    const tableDate =
+      typeof row.tableDate === "string"
+        ? row.tableDate.slice(0, 10)
+        : String(row.tableDate).slice(0, 10);
+    const existing = keepByDate.get(tableDate);
+    if (!existing) {
+      keepByDate.set(tableDate, row.id);
+      continue;
+    }
+    toCancel.push(row.id);
+  }
+
+  if (toCancel.length === 0) return 0;
+
+  await db
+    .update(sundayTableSignups)
+    .set({
+      status: "cancelled",
+      plusOne: false,
+      cancelledAt: new Date(),
+    })
+    .where(inArray(sundayTableSignups.id, toCancel));
+
+  return toCancel.length;
+}
+
+export async function createPendingClubCheckout(input: {
+  email: string;
+  name?: string | null;
+  userId?: string | null;
+  planId: ClubPlanId;
+  locale: string;
+  city: string;
+  tableDate: string;
+  tableType: "girls_only" | "mixed";
+  profile?: SundayTableSignupProfile | null;
+}): Promise<{ membershipId: string; signupId: string; newlyConfirmed: boolean }> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+  const name = input.name?.trim() || null;
+
+  const { id: customerId } = await upsertCustomerFromEmail({
+    email,
+    customerName: name || undefined,
+    language: input.locale,
+    preferredCity: input.city,
+  });
+
+  const existingActive = await getActiveMembershipForUser({
+    userId: input.userId,
+    email,
+  });
+
+  let membershipId = existingActive?.id;
+
+  if (!membershipId) {
+    const pending = await db
+      .select({ id: clubMemberships.id })
+      .from(clubMemberships)
+      .where(
+        and(
+          sql`lower(${clubMemberships.email}) = ${email}`,
+          eq(clubMemberships.status, "pending"),
+        ),
+      )
+      .orderBy(desc(clubMemberships.createdAt))
+      .limit(1);
+
+    if (pending[0]) {
+      membershipId = pending[0].id;
+      await db
+        .update(clubMemberships)
+        .set({
+          planId: input.planId,
+          name,
+          userId: input.userId ?? null,
+          customerId,
+          locale: input.locale,
+          updatedAt: new Date(),
+        })
+        .where(eq(clubMemberships.id, pending[0].id));
+    } else {
+      const [membership] = await db
+        .insert(clubMemberships)
+        .values({
+          email,
+          name,
+          userId: input.userId ?? null,
+          customerId,
+          planId: input.planId,
+          status: "pending",
+          locale: input.locale,
+        })
+        .returning({ id: clubMemberships.id });
+      membershipId = membership!.id;
+    }
+  }
+
+  const existingSignup = await db
+    .select({
+      id: sundayTableSignups.id,
+      status: sundayTableSignups.status,
+    })
+    .from(sundayTableSignups)
+    .where(
+      and(
+        sql`lower(${sundayTableSignups.email}) = ${email}`,
+        eq(sundayTableSignups.city, input.city),
+        eq(sundayTableSignups.tableDate, input.tableDate),
+        eq(sundayTableSignups.tableType, input.tableType),
+      ),
+    )
+    .limit(1);
+
+  if (existingSignup[0]) {
+    const wasConfirmed = existingSignup[0].status === "confirmed";
+    const status = existingActive
+      ? "confirmed"
+      : existingSignup[0].status === "confirmed"
+        ? "confirmed"
+        : "pending_payment";
+    const newlyConfirmed = status === "confirmed" && !wasConfirmed;
+
+    await db
+      .update(sundayTableSignups)
+      .set({
+        name,
+        planId: input.planId,
+        locale: input.locale,
+        userId: input.userId ?? null,
+        customerId,
+        membershipId,
+        profile: input.profile ?? null,
+        status,
+        cancelledAt: status === "confirmed" ? null : undefined,
+        ...(existingSignup[0].status !== "confirmed" && status === "confirmed"
+          ? { plusOne: false }
+          : {}),
+      })
+      .where(eq(sundayTableSignups.id, existingSignup[0].id));
+
+    if (status === "confirmed") {
+      await releaseOtherSignupsOnSameDate({
+        keepSignupId: existingSignup[0].id,
+        email,
+        userId: input.userId,
+        tableDate: input.tableDate,
+      });
+    }
+
+    return {
+      membershipId,
+      signupId: existingSignup[0].id,
+      newlyConfirmed,
+    };
+  }
+
+  const [signup] = await db
+    .insert(sundayTableSignups)
+    .values({
+      email,
+      name,
+      city: input.city,
+      tableDate: input.tableDate,
+      tableType: input.tableType,
+      planId: input.planId,
+      locale: input.locale,
+      userId: input.userId ?? null,
+      customerId,
+      membershipId,
+      profile: input.profile ?? null,
+      status: existingActive ? "confirmed" : "pending_payment",
+      plusOne: false,
+    })
+    .returning({ id: sundayTableSignups.id });
+
+  if (existingActive) {
+    await releaseOtherSignupsOnSameDate({
+      keepSignupId: signup!.id,
+      email,
+      userId: input.userId,
+      tableDate: input.tableDate,
+    });
+  }
+
+  return {
+    membershipId,
+    signupId: signup!.id,
+    newlyConfirmed: Boolean(existingActive),
+  };
+}
+
+export async function attachCheckoutSession(input: {
+  membershipId: string;
+  signupId: string;
+  sessionId: string;
+}): Promise<void> {
+  const db = getDb();
+  await db
+    .update(clubMemberships)
+    .set({
+      stripeCheckoutSessionId: input.sessionId,
+      updatedAt: new Date(),
+    })
+    .where(eq(clubMemberships.id, input.membershipId));
+
+  await db
+    .update(sundayTableSignups)
+    .set({
+      stripeCheckoutSessionId: input.sessionId,
+    })
+    .where(eq(sundayTableSignups.id, input.signupId));
+}
+
+export async function fulfillClubCheckoutSession(
+  session: Stripe.Checkout.Session,
+): Promise<"fulfilled" | "skipped" | "not_found"> {
+  if (session.mode !== "subscription") return "skipped";
+  if (session.metadata?.mytable_kind !== "club_membership") return "skipped";
+
+  const membershipId = session.metadata.membership_id;
+  const signupId = session.metadata.signup_id;
+  if (!membershipId) return "not_found";
+
+  const db = getDb();
+  const stripeCustomerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id ?? null;
+  const stripeSubscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id ?? null;
+
+  let periodEnd: Date | null = null;
+  let cancelAtPeriodEnd = false;
+  let planId: ClubPlanId | null = isClubPlanId(session.metadata.plan_id)
+    ? session.metadata.plan_id
+    : null;
+
+  if (stripeSubscriptionId) {
+    const { getStripe } = await import("@/lib/stripe");
+    const stripe = getStripe();
+    const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+    periodEnd = periodEndFromSubscription(sub);
+    cancelAtPeriodEnd = cancelAtPeriodEndFromSubscription(sub);
+    const metaPlan = sub.metadata?.mytable_plan_id;
+    if (isClubPlanId(metaPlan)) planId = metaPlan;
+  }
+
+  const [updated] = await db
+    .update(clubMemberships)
+    .set({
+      status: "active",
+      stripeCustomerId,
+      stripeSubscriptionId,
+      stripeCheckoutSessionId: session.id,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd,
+      ...(planId ? { planId } : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(clubMemberships.id, membershipId))
+    .returning();
+
+  if (!updated) return "not_found";
+
+  if (signupId) {
+    await db
+      .update(sundayTableSignups)
+      .set({
+        status: "confirmed",
+        membershipId,
+        stripeCheckoutSessionId: session.id,
+        cancelledAt: null,
+      })
+      .where(eq(sundayTableSignups.id, signupId));
+
+    const [signup] = await db
+      .select()
+      .from(sundayTableSignups)
+      .where(eq(sundayTableSignups.id, signupId))
+      .limit(1);
+
+    if (signup) {
+      const tableDate =
+        typeof signup.tableDate === "string"
+          ? signup.tableDate.slice(0, 10)
+          : String(signup.tableDate).slice(0, 10);
+      await releaseOtherSignupsOnSameDate({
+        keepSignupId: signupId,
+        email: updated.email,
+        userId: updated.userId,
+        tableDate,
+      });
+
+      try {
+        const { voidSundayTableConfirmationEmail } = await import(
+          "@/lib/email/sendSundayTableBookingEmails"
+        );
+        voidSundayTableConfirmationEmail(signup);
+      } catch (err) {
+        console.error("[club fulfill] Sunday Table confirmation email", err);
+      }
+    }
+  }
+
+  // Subscribers can join any Sunday Table — never leave other RSVPs pending.
+  await confirmPendingSignupsForMember({
+    membershipId: updated.id,
+    email: updated.email,
+    userId: updated.userId,
+  });
+
+  try {
+    const { getOrCreateReferralCode } = await import("@/lib/referral");
+    await getOrCreateReferralCode({
+      email: updated.email,
+      userId: updated.userId,
+      membershipId: updated.id,
+      locale: updated.locale === "en" ? "en" : "nl",
+    });
+  } catch (err) {
+    console.error("[club fulfill] referral code", err);
+  }
+
+  try {
+    const { captureServerEvent } = await import("@/lib/posthog/server");
+    const { PostHogEvents } = await import("@/lib/posthog/events");
+    void captureServerEvent(updated.email, PostHogEvents.clubmemberPaid, {
+      plan_id: updated.planId,
+      locale: updated.locale,
+    });
+  } catch {
+    // ignore analytics errors
+  }
+
+  try {
+    const { sendMetaCapiClubPurchase } = await import(
+      "@/lib/analytics/metaCapi"
+    );
+    const { CLUB_PLAN_PRICING, isClubPlanId } = await import(
+      "@/lib/club/plan-pricing"
+    );
+    const planId = isClubPlanId(updated.planId) ? updated.planId : "6m";
+    const plan = CLUB_PLAN_PRICING[planId];
+    const amountTotal =
+      typeof session.amount_total === "number" ? session.amount_total : null;
+    const value =
+      amountTotal != null && amountTotal >= 0
+        ? amountTotal / 100
+        : plan.amountCents / 100;
+    void sendMetaCapiClubPurchase({
+      membershipId: updated.id,
+      planId,
+      email: updated.email,
+      name: updated.name,
+      city: session.metadata?.city?.trim() || "unknown",
+      value,
+      currency: (session.currency ?? "eur").toUpperCase(),
+      locale: updated.locale === "en" ? "en" : "nl",
+    });
+  } catch (err) {
+    console.error("[club fulfill] meta capi purchase", err);
+  }
+
+  return "fulfilled";
+}
+
+/** Active members: promote pending RSVPs, but still only one confirmed table per date. */
+export async function confirmPendingSignupsForMember(input: {
+  membershipId: string;
+  email: string;
+  userId?: string | null;
+}): Promise<number> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+
+  const pending = await db
+    .select({
+      id: sundayTableSignups.id,
+      tableDate: sundayTableSignups.tableDate,
+    })
+    .from(sundayTableSignups)
+    .where(
+      and(
+        eq(sundayTableSignups.status, "pending_payment"),
+        memberSignupOwnerFilter(email, input.userId),
+      ),
+    )
+    .orderBy(asc(sundayTableSignups.createdAt));
+
+  const confirmed = await db
+    .select({
+      tableDate: sundayTableSignups.tableDate,
+    })
+    .from(sundayTableSignups)
+    .where(
+      and(
+        eq(sundayTableSignups.status, "confirmed"),
+        memberSignupOwnerFilter(email, input.userId),
+      ),
+    );
+
+  const takenDates = new Set(
+    confirmed.map((row) =>
+      typeof row.tableDate === "string"
+        ? row.tableDate.slice(0, 10)
+        : String(row.tableDate).slice(0, 10),
+    ),
+  );
+
+  let confirmedCount = 0;
+  for (const row of pending) {
+    const tableDate =
+      typeof row.tableDate === "string"
+        ? row.tableDate.slice(0, 10)
+        : String(row.tableDate).slice(0, 10);
+
+    if (takenDates.has(tableDate)) {
+      await db
+        .update(sundayTableSignups)
+        .set({
+          status: "cancelled",
+          plusOne: false,
+          cancelledAt: new Date(),
+        })
+        .where(eq(sundayTableSignups.id, row.id));
+      continue;
+    }
+
+    await db
+      .update(sundayTableSignups)
+      .set({
+        status: "confirmed",
+        membershipId: input.membershipId,
+        cancelledAt: null,
+      })
+      .where(eq(sundayTableSignups.id, row.id));
+
+    const [confirmed] = await db
+      .select()
+      .from(sundayTableSignups)
+      .where(eq(sundayTableSignups.id, row.id))
+      .limit(1);
+    if (confirmed) {
+      try {
+        const { voidSundayTableConfirmationEmail } = await import(
+          "@/lib/email/sendSundayTableBookingEmails"
+        );
+        voidSundayTableConfirmationEmail(confirmed);
+      } catch (err) {
+        console.error("[club] Sunday Table confirmation email", err);
+      }
+    }
+
+    takenDates.add(tableDate);
+    confirmedCount += 1;
+  }
+
+  return confirmedCount;
+}
+
+export async function syncClubMembershipFromSubscription(
+  sub: Stripe.Subscription,
+): Promise<void> {
+  const db = getDb();
+  const membershipId = sub.metadata?.membership_id;
+  const status =
+    sub.status === "active" || sub.status === "trialing"
+      ? "active"
+      : sub.status === "past_due"
+        ? "past_due"
+        : sub.status === "canceled" || sub.status === "unpaid"
+          ? "canceled"
+          : null;
+
+  if (!status) return;
+
+  const metaPlan = sub.metadata?.plan_id ?? sub.metadata?.mytable_plan_id;
+  const patch = {
+    status: status as "active" | "past_due" | "canceled",
+    currentPeriodEnd: periodEndFromSubscription(sub),
+    cancelAtPeriodEnd: cancelAtPeriodEndFromSubscription(sub),
+    stripeCustomerId:
+      typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+    stripeSubscriptionId: sub.id,
+    updatedAt: new Date(),
+    ...(isClubPlanId(metaPlan) ? { planId: metaPlan } : {}),
+  };
+
+  if (membershipId) {
+    await db
+      .update(clubMemberships)
+      .set(patch)
+      .where(eq(clubMemberships.id, membershipId));
+    return;
+  }
+
+  await db
+    .update(clubMemberships)
+    .set(patch)
+    .where(eq(clubMemberships.stripeSubscriptionId, sub.id));
+}
+
+/** Pull latest cancel/renewal state from Stripe (portal changes + missed webhooks). */
+export async function refreshMembershipFromStripe(
+  membership: ClubMembership,
+): Promise<ClubMembership> {
+  if (!membership.stripeSubscriptionId) return membership;
+
+  try {
+    const { getStripe, isStripeConfigured } = await import("@/lib/stripe");
+    if (!isStripeConfigured()) return membership;
+    const stripe = getStripe();
+    const sub = await stripe.subscriptions.retrieve(
+      membership.stripeSubscriptionId,
+    );
+    await syncClubMembershipFromSubscription(sub);
+
+    const db = getDb();
+    const [fresh] = await db
+      .select()
+      .from(clubMemberships)
+      .where(eq(clubMemberships.id, membership.id))
+      .limit(1);
+    return fresh ?? membership;
+  } catch (err) {
+    console.error("[club] refreshMembershipFromStripe", err);
+    return membership;
+  }
+}
+
+/** Switch an active membership between for-sale plans (1m ↔ 6m) with Stripe proration. */
+export async function changeClubMembershipPlan(input: {
+  membershipId: string;
+  planId: ClubPlanId;
+  locale?: "nl" | "en";
+}): Promise<{ ok: true; membership: ClubMembership } | { error: string }> {
+  if (!isClubPlanIdForSale(input.planId)) {
+    return { error: "Invalid plan" };
+  }
+
+  const db = getDb();
+  const [membership] = await db
+    .select()
+    .from(clubMemberships)
+    .where(eq(clubMemberships.id, input.membershipId))
+    .limit(1);
+
+  if (!membership?.stripeSubscriptionId) {
+    return { error: "No active subscription" };
+  }
+  if (membership.planId === input.planId) {
+    return { ok: true, membership };
+  }
+
+  const { getStripe, isStripeConfigured } = await import("@/lib/stripe");
+  const { getOrCreateClubPriceId } = await import("@/lib/club/plans");
+  if (!isStripeConfigured()) return { error: "Payments are not configured" };
+
+  const stripe = getStripe();
+  const sub = await stripe.subscriptions.retrieve(
+    membership.stripeSubscriptionId,
+  );
+  const item = sub.items.data[0];
+  if (!item?.id) return { error: "Subscription item missing" };
+
+  const priceId = await getOrCreateClubPriceId(
+    input.planId,
+    input.locale ?? "nl",
+  );
+
+  const updated = await stripe.subscriptions.update(sub.id, {
+    items: [{ id: item.id, price: priceId }],
+    proration_behavior: "create_prorations",
+    metadata: {
+      ...sub.metadata,
+      mytable_kind: "club_membership",
+      membership_id: membership.id,
+      plan_id: input.planId,
+      mytable_plan_id: input.planId,
+    },
+  });
+
+  await syncClubMembershipFromSubscription(updated);
+
+  const [fresh] = await db
+    .select()
+    .from(clubMemberships)
+    .where(eq(clubMemberships.id, membership.id))
+    .limit(1);
+
+  if (!fresh) return { error: "Membership sync failed" };
+  return { ok: true, membership: fresh };
+}
+
+export async function abandonPendingCheckoutSession(
+  sessionId: string,
+): Promise<void> {
+  const db = getDb();
+  await db
+    .update(sundayTableSignups)
+    .set({
+      status: "cancelled",
+      plusOne: false,
+      cancelledAt: new Date(),
+    })
+    .where(
+      and(
+        eq(sundayTableSignups.stripeCheckoutSessionId, sessionId),
+        eq(sundayTableSignups.status, "pending_payment"),
+      ),
+    );
+}
+
+export async function updateSundayTableRsvp(input: {
+  signupId: string;
+  email: string;
+  userId?: string | null;
+  plusOne?: boolean;
+  cancel?: boolean;
+  reactivate?: boolean;
+}): Promise<{ ok: true } | { error: string }> {
+  const db = getDb();
+  const email = input.email.trim().toLowerCase();
+
+  const [row] = await db
+    .select()
+    .from(sundayTableSignups)
+    .where(eq(sundayTableSignups.id, input.signupId))
+    .limit(1);
+
+  if (!row) return { error: "Not found" };
+  if (row.email.toLowerCase() !== email) {
+    if (!input.userId || row.userId !== input.userId) {
+      return { error: "Forbidden" };
+    }
+  }
+
+  if (row.status === "pending_payment" && !input.cancel && !input.reactivate) {
+    return { error: "Payment required" };
+  }
+
+  if (input.cancel) {
+    await db
+      .update(sundayTableSignups)
+      .set({
+        status: "cancelled",
+        plusOne: false,
+        cancelledAt: new Date(),
+      })
+      .where(eq(sundayTableSignups.id, input.signupId));
+
+    if (row.status === "confirmed") {
+      try {
+        const { voidSundayTableCancelEmail } = await import(
+          "@/lib/email/sendSundayTableBookingEmails"
+        );
+        voidSundayTableCancelEmail(row);
+      } catch (err) {
+        console.error("[club] Sunday Table cancel email", err);
+      }
+    }
+
+    return { ok: true };
+  }
+
+  const tableDateIso =
+    typeof row.tableDate === "string"
+      ? row.tableDate.slice(0, 10)
+      : String(row.tableDate).slice(0, 10);
+  const tableSunday = parseAmsterdamDateIso(tableDateIso);
+  const rsvpOpen = tableSunday ? isSundayTableRsvpOpen(tableSunday) : false;
+
+  if (input.reactivate) {
+    if (!rsvpOpen) return { error: "Signup closed" };
+    const membership = await getActiveMembershipForUser({
+      userId: input.userId,
+      email,
+    });
+    if (!membership) return { error: "Active membership required" };
+    if (
+      row.status !== "cancelled" &&
+      row.status !== "pending_payment" &&
+      row.status !== "confirmed"
+    ) {
+      return { error: "Cannot reactivate" };
+    }
+    await db
+      .update(sundayTableSignups)
+      .set({
+        status: "confirmed",
+        cancelledAt: null,
+        membershipId: membership.id,
+        ...(typeof input.plusOne === "boolean" ? { plusOne: input.plusOne } : {}),
+      })
+      .where(eq(sundayTableSignups.id, input.signupId));
+
+    await releaseOtherSignupsOnSameDate({
+      keepSignupId: input.signupId,
+      email,
+      userId: input.userId,
+      tableDate: tableDateIso,
+    });
+
+    const [confirmed] = await db
+      .select()
+      .from(sundayTableSignups)
+      .where(eq(sundayTableSignups.id, input.signupId))
+      .limit(1);
+    if (confirmed && row.status !== "confirmed") {
+      try {
+        const { voidSundayTableConfirmationEmail } = await import(
+          "@/lib/email/sendSundayTableBookingEmails"
+        );
+        voidSundayTableConfirmationEmail(confirmed);
+      } catch (err) {
+        console.error("[club] Sunday Table confirmation email", err);
+      }
+    }
+
+    return { ok: true };
+  }
+
+  if (typeof input.plusOne === "boolean") {
+    if (!rsvpOpen) return { error: "Signup closed" };
+    if (row.status !== "confirmed") {
+      return { error: "Only confirmed RSVPs can bring a +1" };
+    }
+    await db
+      .update(sundayTableSignups)
+      .set({ plusOne: input.plusOne })
+      .where(eq(sundayTableSignups.id, input.signupId));
+    return { ok: true };
+  }
+
+  return { error: "Nothing to update" };
+}

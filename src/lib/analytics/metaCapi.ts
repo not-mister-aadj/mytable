@@ -1,8 +1,18 @@
-import type { Booking, Event } from "@/db/schema";
+import type { Booking, ClubPlanId, Event } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
-import { bookingEvents, bookings, events } from "@/db/schema";
+import {
+  bookingEvents,
+  bookings,
+  clubMemberships,
+  events,
+} from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import { experiencePath, type Locale } from "@/i18n/config";
+import {
+  clubmemberConfirmedPath,
+  clubmemberPath,
+  experiencePath,
+  type Locale,
+} from "@/i18n/config";
 import {
   sendMetaCapiEvent,
   type MetaCapiUserData,
@@ -16,6 +26,11 @@ import {
   loadCheckoutMetaContext,
   metaUserDataFromStoredContext,
 } from "@/lib/analytics/metaCapiContext";
+import { getClubConfirmationPurchase } from "@/lib/analytics/clubConfirmationPurchase";
+import {
+  CLUB_PLAN_PRICING,
+  isClubPlanId,
+} from "@/lib/club/plan-pricing";
 import { getSiteUrl } from "@/lib/env";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
@@ -186,4 +201,128 @@ export async function sendMetaCapiPurchaseForSession(
   }
 
   return sent;
+}
+
+function clubConfirmationUrl(locale: Locale): string {
+  return `${getSiteUrl()}${clubmemberConfirmedPath(locale)}`;
+}
+
+export async function sendMetaCapiClubInitiateCheckout(input: {
+  membershipId: string;
+  planId: ClubPlanId;
+  email: string;
+  name?: string | null;
+  city: string;
+  locale: Locale;
+  userData?: MetaCapiUserData;
+}): Promise<boolean> {
+  const plan = CLUB_PLAN_PRICING[input.planId];
+  return sendMetaCapiEvent({
+    eventName: "InitiateCheckout",
+    eventId: metaInitiateCheckoutEventId(input.membershipId),
+    eventSourceUrl: `${getSiteUrl()}${clubmemberPath(input.locale)}`,
+    userData: {
+      email: input.email,
+      firstName: input.name?.split(/\s+/)[0] ?? null,
+      ...input.userData,
+    },
+    customData: {
+      content_name:
+        input.locale === "en" ? plan.nameEn : plan.nameNl,
+      content_ids: [`club_${input.planId}`],
+      content_type: "product",
+      event_type: "club_membership",
+      city: input.city,
+      seats: 1,
+      value: plan.amountCents / 100,
+      currency: "EUR",
+      booking_id: input.membershipId,
+    },
+  });
+}
+
+export async function sendMetaCapiClubPurchase(input: {
+  membershipId: string;
+  planId: ClubPlanId;
+  email: string;
+  name?: string | null;
+  city: string;
+  value: number;
+  currency: string;
+  locale: Locale;
+  userData?: MetaCapiUserData;
+}): Promise<boolean> {
+  const plan = CLUB_PLAN_PRICING[input.planId];
+  return sendMetaCapiEvent({
+    eventName: "Purchase",
+    eventId: metaPurchaseEventId(input.membershipId),
+    eventSourceUrl: clubConfirmationUrl(input.locale),
+    userData: {
+      email: input.email,
+      firstName: input.name?.split(/\s+/)[0] ?? null,
+      ...input.userData,
+    },
+    customData: {
+      value: input.value,
+      currency: input.currency.toUpperCase(),
+      content_name:
+        input.locale === "en" ? plan.nameEn : plan.nameNl,
+      content_ids: [`club_${input.planId}`],
+      content_type: "product",
+      event_type: "club_membership",
+      city: input.city,
+      seats: 1,
+      booking_id: input.membershipId,
+      num_items: 1,
+    },
+  });
+}
+
+/** Browser confirmation fallback — Meta dedupes via shared event_id with fulfill. */
+export async function sendMetaCapiClubPurchaseForSession(
+  sessionId: string,
+  requestHeaders?: Headers,
+): Promise<boolean> {
+  if (!isDbConfigured() || !isStripeConfigured()) return false;
+
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const locale = (session.metadata?.locale === "en" ? "en" : "nl") as Locale;
+
+  const purchase = await getClubConfirmationPurchase(sessionId, locale);
+  if (!purchase) return false;
+
+  const db = getDb();
+  const [membership] = await db
+    .select()
+    .from(clubMemberships)
+    .where(eq(clubMemberships.id, purchase.membershipId))
+    .limit(1);
+  if (!membership) return false;
+
+  const membershipLocale =
+    membership.locale === "en" ? "en" : locale;
+  const planId = isClubPlanId(purchase.planId)
+    ? purchase.planId
+    : isClubPlanId(membership.planId)
+      ? membership.planId
+      : "6m";
+
+  return sendMetaCapiClubPurchase({
+    membershipId: purchase.membershipId,
+    planId,
+    email: membership.email,
+    name: membership.name,
+    city: purchase.city,
+    value: purchase.value,
+    currency: purchase.currency,
+    locale: membershipLocale,
+    userData: {
+      clientIpAddress:
+        requestHeaders?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        requestHeaders?.get("x-real-ip") ??
+        null,
+      clientUserAgent: requestHeaders?.get("user-agent") ?? null,
+    },
+  });
 }

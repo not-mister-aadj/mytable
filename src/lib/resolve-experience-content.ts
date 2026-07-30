@@ -11,11 +11,6 @@ import { getVenueSectionLabels } from "@/lib/experience-template-defaults";
 import type { EventExtras } from "@/lib/event-extras";
 import { getMoodContent } from "@/lib/experience-detail";
 import {
-  getGirlsOnlyDefaultCardText,
-  getGirlsOnlyDefaultTagline,
-} from "@/lib/girls-only-experience-content";
-import { resolveFemaleOnly } from "@/lib/event-extras";
-import {
   getEventFormDefaults,
 } from "@/lib/experience-template-defaults";
 import {
@@ -69,18 +64,11 @@ export function resolveCardText(
   typeSlug: ExperienceTypeSlug,
   extras: EventExtras,
   locale: Locale,
-  femaleOnly?: boolean,
 ): string {
   const slug = isValidExperienceType(typeSlug) ? typeSlug : "wine-tasting";
   const custom =
     locale === "nl" ? extras.cardTextNl : extras.cardTextEn;
   if (custom?.trim()) return custom.trim();
-  if (
-    resolveFemaleOnly(femaleOnly, extras.atmosphereTags) &&
-    slug === "wine-tasting"
-  ) {
-    return getGirlsOnlyDefaultCardText(locale);
-  }
   const defaults = getEventFormDefaults(slug);
   return locale === "nl" ? defaults.cardTextNl : defaults.cardTextEn;
 }
@@ -98,10 +86,9 @@ export function displayNamesFromEvent(
   extras: EventExtras,
   locale: Locale,
   typeSlug: ExperienceTypeSlug,
-  femaleOnly?: boolean,
+  _femaleOnly?: boolean,
 ) {
   const lang = locale === "nl" ? "nl" : "en";
-  const isFemaleOnly = resolveFemaleOnly(femaleOnly, extras.atmosphereTags);
   const heroTitle =
     lang === "nl"
       ? extras.heroTitleNl || row.nameNl
@@ -114,13 +101,9 @@ export function displayNamesFromEvent(
     lang === "nl"
       ? extras.cardCategoryNl || row.categoryNl
       : extras.cardCategoryEn || row.categoryEn;
-  const cardText = resolveCardText(typeSlug, extras, locale, isFemaleOnly);
+  const cardText = resolveCardText(typeSlug, extras, locale);
   const rowTagline = lang === "nl" ? row.taglineNl : row.taglineEn;
-  const tagline =
-    rowTagline?.trim() ||
-    (isFemaleOnly && typeSlug === "wine-tasting"
-      ? getGirlsOnlyDefaultTagline(locale)
-      : undefined);
+  const tagline = rowTagline?.trim() || undefined;
 
   const cardSettings =
     extras.cardImage ??

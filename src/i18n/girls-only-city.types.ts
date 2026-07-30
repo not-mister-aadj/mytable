@@ -15,6 +15,8 @@ export type GirlsOnlyCityPageLabels = {
     ctaBook: string;
     ctaPriority: string;
     imageAlt: string;
+    /** "{count} seats left · {city} · {date}" */
+    seatsLeft: string;
   };
   events: {
     eyebrow: string;

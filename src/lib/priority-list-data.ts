@@ -46,6 +46,7 @@ function asPreferences(
     priceRanges: {},
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
+    joinIntent: [],
     tableType: tableType as WaitlistPreferences["tableType"],
     cities,
     regionFlexible: Boolean(value.regionFlexible),

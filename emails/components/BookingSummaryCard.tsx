@@ -9,9 +9,15 @@ export type BookingSummaryRow = { label: string; value: string };
 
 const iconMap: Record<string, "calendar" | "clock" | "people" | "card"> = {
   Datum: "calendar",
+  Date: "calendar",
   Tijd: "clock",
+  Time: "clock",
   Plekken: "people",
+  Seats: "people",
+  Tafel: "people",
+  Table: "people",
   Betaald: "card",
+  Paid: "card",
 };
 
 export function BookingSummaryCard({

@@ -18,18 +18,15 @@ import {
   girlsOnlyWineTastingTaglineNl,
 } from "@/i18n/girls-only-experience-nl";
 import { getMoodContent } from "@/lib/experience-detail";
-import { resolveFemaleOnly } from "@/lib/event-extras";
 
 type GirlsOnlyExperienceRef = Pick<
   ExperienceItem,
   "femaleOnly" | "experienceType" | "mood" | "atmosphereTags"
 >;
 
-export function isGirlsOnlyExperience(experience: GirlsOnlyExperienceRef): boolean {
-  return resolveFemaleOnly(
-    experience.femaleOnly,
-    experience.atmosphereTags,
-  );
+export function isGirlsOnlyExperience(_experience: GirlsOnlyExperienceRef): boolean {
+  // Culinary/agenda experiences are never girls-only; only Clubmember Sunday Tables can be.
+  return false;
 }
 
 export function isGirlsOnlyWineTasting(experience: GirlsOnlyExperienceRef): boolean {

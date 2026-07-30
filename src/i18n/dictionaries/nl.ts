@@ -5,15 +5,22 @@ import { bookingOutcomeNl } from "../booking-outcome-nl";
 
 export const nl: Dictionary = {
   meta: {
-    title: "MyTable · Wijnproeverijen & gezellige tafels in Nederland",
+    title: "MyTable · Goede smaak. Goed gezelschap.",
     description:
-      "Boek een wijnproeverij of chef's special aan één tafel. Girls only of gemengd, solo of met vriendinnen. Elke zondag in steden door heel Nederland.",
+      "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
   },
   header: {
     nav: {
-      girlsOnly: "Girls only",
+      girlsOnly: "Sunday Table",
       calendar: "Agenda",
-      waitlist: "Wachtlijst",
+      account: "Account",
+      clubmember: "Clubmember",
+      experiences: "Agenda",
+      blog: "Blog",
+      myAccount: "My account",
+      logIn: "Inloggen",
+      signUp: "Aanmelden",
+      navAria: "Hoofdnavigatie",
     },
     languageSwitch: "EN",
     openMenu: "Menu openen",
@@ -55,35 +62,59 @@ export const nl: Dictionary = {
   },
   agenda: {
     hero: {
-      title: "Vind je zondagmiddag.",
+      eyebrow: "De agenda",
+      title: "Zoek en boek je culinaire tafel",
       subtitle:
-        "Wijnproeverijen op zondagmiddag op de leukste plekken in Nederland. Goed eten, mooie wijnen, ontspannen sfeer.",
-      supportLine:
-        "Wij regelen alles rond de tafel. Jij geniet van wijn en spijs.",
+        "Wine Walks, proeverijen en diners, all-in, met je eigen gezelschap.",
+      cta: "Bekijk de agenda",
     },
-    tabsAriaLabel: "Kies je zondagmiddag",
+    crossFeed: {
+      eyebrow: "Nog niemand om mee te gaan?",
+      title: "Ontmoet mensen via Clubmember",
+      body: "Sunday Table is voor wie solo wil aanschuiven, en daarna samen iets van de agenda wil boeken.",
+      benefits: [
+        "Solo aan tafel bij Sunday Table",
+        "Nieuwe mensen in jouw stad",
+        "10% korting op culinaire ervaringen",
+      ],
+      cta: "Naar Clubmember",
+    },
+    sundayTableGroup: {
+      title: "Boek met je Sunday Table",
+      body: "Kies een Wine Walk of Food Walk in jouw stad. Leden krijgen 10% korting.",
+    },
+    browse: {
+      cityLabel: "Stad",
+      cityAll: "Alle steden",
+      dateLabel: "Datum",
+      dateAll: "Alle data",
+      results: "{count} resultaten",
+      clear: "Filters wissen",
+    },
+    tabsAriaLabel: "Filter op type",
     tabs: [
-      { id: "all", label: "Alle tafels" },
-      { id: "girlsOnly", label: "Girls only" },
-      { id: "mixed", label: "Date, wijn of solo" },
+      { id: "all", label: "Alles" },
+      { id: "tastings", label: "Proeverij" },
+      { id: "wineWalk", label: "Wijnwalk" },
+      { id: "foodWalk", label: "Foodwalk" },
+      { id: "chefsSpecial", label: "Chef's special" },
     ],
     tabHints: {
       all: "",
-      girlsOnly:
-        "Eén tafel, alleen vrouwen. Dezelfde proeverij, andere sfeer.",
-      mixed:
-        "Iedereen welkom. Kom voor de wijn, een date, met vrienden of gewoon alleen.",
+      tastings: "Wijn en foodpairings aan één tafel.",
+      wineWalk: "Door de stad, wijn bij elke stop.",
+      foodWalk: "Door de stad, proeven bij meerdere plekken.",
+      chefsSpecial: "De beste voor-, hoofd- en nagerechten van het huis.",
     },
     grid: {
-      title: "Kies je zondagmiddag",
-      subtitle:
-        "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en reserveer.",
+      title: "Komende tafels",
+      subtitle: "Wine Walks, proeverijen en diners. Kies datum, stad en aantal tickets.",
     },
     empty: {
-      title: "Geen beschikbare tafels",
-      text: "Er staan nu geen open tafels voor dit filter. Zet je op de wachtlijst — jij hoort als eerste wanneer er plekken vrijkomen.",
-      showAllCities: "Alle tafels tonen",
-      waitlistCta: "Naar de wachtlijst",
+      title: "Geen beschikbare ervaringen",
+      text: "Er staan nu geen open tafels voor dit filter. Bekijk Sunday Table of kom later terug voor nieuwe data.",
+      showAllCities: "Alle ervaringen tonen",
+      communityCta: "Naar Sunday Table",
     },
     status: {
       available: "Beschikbaar",
@@ -125,12 +156,12 @@ export const nl: Dictionary = {
       {
         title: "Kies je zondagmiddag",
         description:
-          "Kies je stad en datum. Girls only of gemengd, met wijn en spijs als middelpunt.",
+          "Kies je stad en datum. Boek tickets voor jezelf of je gezelschap, met wijn en spijs als middelpunt.",
       },
       {
         title: "Reserveer online",
         description:
-          "Boek voor je groep of schuif solo aan. Alles betaal je vooraf, direct bevestigd.",
+          "Boek 1 tot 6 tickets. Alles betaal je vooraf, direct bevestigd.",
       },
       {
         title: "Kom zondag aan tafel",
@@ -200,16 +231,16 @@ export const nl: Dictionary = {
     emailLabel: "E-mail",
     emailPlaceholder: "Je e-mailadres",
     cityLabel: "Stad",
-    cta: "Naar de wachtlijst",
+    cta: "Naar Sunday Table",
     success:
       "Bedankt. Je staat op de lijst. We nemen contact op zodra de volgende tafel in jouw stad opent.",
     error: "Aanmelden mislukt. Probeer het later opnieuw.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
     emptyAgenda: {
-      title: "Geen open tafel? Op de wachtlijst.",
+      title: "Word lid van de MyTable Club",
       subtitle:
-        "Vertel wat je zoekt. We mailen je zodra er nieuwe tafels openen in jouw stad — vóór de open agenda.",
-      cta: "Naar de wachtlijst",
+        "Via Sunday Table hoor je als eerste wanneer er nieuwe tafels openen in jouw stad.",
+      cta: "Naar Sunday Table",
     },
   },
   faq: {
@@ -218,12 +249,12 @@ export const nl: Dictionary = {
       {
         question: "Wat is MyTable?",
         answer:
-          "Wijnproeverijen aan één tafel in één partnerrestaurant. Je kiest een tafel (girls only of gemengde groep), reserveert je plek en schuift aan bij een kleine groep. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid.",
+          "Culinaire evenementen in partnerrestaurants: wijnproeverijen en meer. Je boekt tickets voor jezelf of je gezelschap en komt met je eigen party. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid. Nieuwe mensen ontmoeten doe je via Clubmember / Sunday Table.",
       },
       {
-        question: "Wat is het verschil tussen girls only en gemengd?",
+        question: "Kom ik bij onbekenden aan tafel?",
         answer:
-          "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom: solo, met vrienden of op date. Het concept is hetzelfde, alleen de samenstelling van de groep verschilt.",
+          "Nee. Op de agenda boek je je eigen plekken: solo of met vrienden. Matching met nieuwe mensen gebeurt alleen via Clubmember en Sunday Table.",
       },
       {
         question: "Wanneer zijn de events?",
@@ -233,7 +264,7 @@ export const nl: Dictionary = {
       {
         question: "Kan ik alleen komen of iemand meenemen?",
         answer:
-          "Beide kan. Veel gasten komen solo; anderen boeken voor zichzelf en een vriend(in), of schuiven aan bij een tafel die al staat. Het voelt normaal en ontspannen.",
+          "Beide kan. Boek 1 tot 6 tickets voor jezelf of je gezelschap. Het voelt normaal en ontspannen.",
       },
       {
         question: "Moet ik veel van wijn weten?",
@@ -277,7 +308,7 @@ export const nl: Dictionary = {
   footer: {
     tagline: "Goede smaak. Goed gezelschap.",
     description:
-      "Sociale wijnproeverijen aan één tafel door heel Nederland. Boek solo of met vrienden. Wij regelen wijn, bites en de juiste tafelmix.",
+      "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
     nationwide: "Heel Nederland",
     columns: {
       explore: "Ontdekken",
@@ -291,12 +322,11 @@ export const nl: Dictionary = {
       forVenues: "Voor locaties",
       faq: "FAQ",
       blog: "Blog",
-      waitlist: "Wachtlijst",
       instagram: "Instagram",
       contact: "Contact",
       terms: "Algemene voorwaarden",
       privacy: "Privacy",
-      girlsOnly: "Girls-only proeverijen",
+      girlsOnly: "Sunday Table",
     },
     legal: {
       eyebrow: "Juridisch",

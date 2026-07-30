@@ -11,19 +11,12 @@ export function PageLoadingShell() {
           </div>
         </div>
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
-            {Array.from({ length: 6 }).map((_, index) => (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
-                className="overflow-hidden rounded-2xl border border-border-subtle bg-beige"
-              >
-                <div className="aspect-[2/1] animate-pulse bg-wine/10" />
-                <div className="space-y-3 p-4">
-                  <div className="h-8 w-2/3 animate-pulse rounded-lg bg-wine/10" />
-                  <div className="h-4 w-1/2 animate-pulse rounded-lg bg-wine/10" />
-                  <div className="h-4 w-3/4 animate-pulse rounded-lg bg-wine/10" />
-                </div>
-              </div>
+                className="aspect-[4/5] animate-pulse overflow-hidden rounded-[1.75rem] bg-wine/10 sm:rounded-[2rem]"
+              />
             ))}
           </div>
         </div>

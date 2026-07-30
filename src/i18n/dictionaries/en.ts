@@ -5,15 +5,22 @@ import { bookingOutcomeEn } from "../booking-outcome-en";
 
 export const en: Dictionary = {
   meta: {
-    title: "MyTable · Wine tastings & social tables in the Netherlands",
+    title: "MyTable · Good taste. Great company.",
     description:
-      "Book a wine tasting or chef's special at one table. Girls only or mixed, solo or with friends. Every Sunday in cities across the Netherlands.",
+      "Every first Sunday. New people. Then culinary experiences.",
   },
   header: {
     nav: {
-      girlsOnly: "Girls only",
-      calendar: "Calendar",
-      waitlist: "Waitlist",
+      girlsOnly: "Sunday Table",
+      calendar: "Agenda",
+      account: "Account",
+      clubmember: "Clubmember",
+      experiences: "Agenda",
+      blog: "Blog",
+      myAccount: "My account",
+      logIn: "Log in",
+      signUp: "Sign up",
+      navAria: "Main navigation",
     },
     languageSwitch: "NL",
     openMenu: "Open menu",
@@ -55,34 +62,59 @@ export const en: Dictionary = {
   },
   agenda: {
     hero: {
-      title: "Find your Sunday afternoon.",
+      eyebrow: "The agenda",
+      title: "Find and book your culinary table",
       subtitle:
-        "Wine tastings on Sunday afternoon at the best spots in the Netherlands. Great food, fine wines, relaxed vibe.",
-      supportLine: "Come alone, bring someone, or simply pull up a chair.",
+        "Wine Walks, tastings and dinners, all-in, with your own party.",
+      cta: "Browse the agenda",
     },
-    tabsAriaLabel: "Choose your Sunday afternoon",
+    crossFeed: {
+      eyebrow: "No one to go with yet?",
+      title: "Meet people via Clubmember",
+      body: "Sunday Table is for joining solo, then booking something from the agenda together.",
+      benefits: [
+        "Join Sunday Table on your own",
+        "Meet new people in your city",
+        "10% off culinary experiences",
+      ],
+      cta: "Go to Clubmember",
+    },
+    sundayTableGroup: {
+      title: "Book with your Sunday Table",
+      body: "Pick a Wine Walk or Food Walk in your city. Members get 10% off.",
+    },
+    browse: {
+      cityLabel: "City",
+      cityAll: "All cities",
+      dateLabel: "Date",
+      dateAll: "All dates",
+      results: "{count} results",
+      clear: "Clear filters",
+    },
+    tabsAriaLabel: "Filter by type",
     tabs: [
-      { id: "all", label: "All tables" },
-      { id: "girlsOnly", label: "Girls only" },
-      { id: "mixed", label: "Date, wine or solo" },
+      { id: "all", label: "All" },
+      { id: "tastings", label: "Tasting" },
+      { id: "wineWalk", label: "Wine walk" },
+      { id: "foodWalk", label: "Food walk" },
+      { id: "chefsSpecial", label: "Chef's special" },
     ],
     tabHints: {
       all: "",
-      girlsOnly:
-        "One table, women only. Same tasting, a different vibe.",
-      mixed:
-        "Everyone welcome. Come for the wine, a date, friends, or dining solo.",
+      tastings: "Wine and food pairings at one table.",
+      wineWalk: "Through the city, wine at every stop.",
+      foodWalk: "Through the city, tasting at multiple spots.",
+      chefsSpecial: "The best starters, mains and desserts from the house.",
     },
     grid: {
-      title: "Pick your Sunday afternoon",
-      subtitle:
-        "Every Sunday, one slot per city. Pick your date, check how many spots are left, and reserve.",
+      title: "Upcoming tables",
+      subtitle: "Wine Walks, tastings and dinners. Pick date, city and number of tickets.",
     },
     empty: {
-      title: "No tables available",
-      text: "There are no open tables for this filter right now. Join the waitlist — you’ll hear first when seats open.",
-      showAllCities: "Show all tables",
-      waitlistCta: "Go to the waitlist",
+      title: "No experiences available",
+      text: "There are no open tables for this filter right now. Check Sunday Table or come back later for new dates.",
+      showAllCities: "Show all experiences",
+      communityCta: "Go to Sunday Table",
     },
     status: {
       available: "Available",
@@ -124,12 +156,12 @@ export const en: Dictionary = {
       {
         title: "Pick your Sunday afternoon",
         description:
-          "Choose your city and date. Girls only or mixed group, with wine and food at the center.",
+          "Choose your city and date. Book tickets for yourself or your party, with wine and food at the center.",
       },
       {
         title: "Reserve online",
         description:
-          "Book for your group or join solo. Pay in full upfront, confirmed right away.",
+          "Book 1 to 6 tickets. Pay in full upfront, confirmed right away.",
       },
       {
         title: "Show up Sunday afternoon",
@@ -199,16 +231,16 @@ export const en: Dictionary = {
     emailLabel: "Email",
     emailPlaceholder: "Your email",
     cityLabel: "City",
-    cta: "Go to the waitlist",
+    cta: "Go to Sunday Table",
     success:
       "Thank you. You're on the list. We'll be in touch when the next table opens in your city.",
     error: "Sign-up failed. Please try again later.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
     emptyAgenda: {
-      title: "No open table? Join the waitlist.",
+      title: "Join the MyTable Club",
       subtitle:
-        "Tell us what you’re looking for. We’ll email you when new tables open in your city — before the public agenda.",
-      cta: "Go to the waitlist",
+        "Via Sunday Table you hear first when new tables open in your city.",
+      cta: "Go to Sunday Table",
     },
   },
   faq: {
@@ -217,12 +249,12 @@ export const en: Dictionary = {
       {
         question: "What is MyTable?",
         answer:
-          "Wine tastings at one table in one partner restaurant. You pick a table (girls only or mixed group), reserve your spot, and join a small group. We handle everything around the table; you come for good wine, chef's specials, and good company.",
+          "Culinary events at partner restaurants: wine tastings and more. You book tickets for yourself or your party and bring your own group. We handle everything around the table; you come for good wine, chef's specials, and good company. Meeting new people happens through Clubmember / Sunday Table.",
       },
       {
-        question: "What is the difference between girls only and mixed?",
+        question: "Will I sit with strangers?",
         answer:
-          "Girls only tables are for women only. Mixed groups welcome everyone: solo, with friends, or on a date. The concept is the same; only who sits at the table differs.",
+          "No. On the agenda you book your own seats: solo or with friends. Matching with new people only happens through Clubmember and Sunday Table.",
       },
       {
         question: "When are the events?",
@@ -232,7 +264,7 @@ export const en: Dictionary = {
       {
         question: "Can I come alone or bring someone?",
         answer:
-          "Both work. Many guests come solo; others book for themselves and a friend, or join a table that is already set up. It feels normal and relaxed.",
+          "Both work. Book 1 to 6 tickets for yourself or your party. It feels normal and relaxed.",
       },
       {
         question: "Do I need to know a lot about wine?",
@@ -276,7 +308,7 @@ export const en: Dictionary = {
   footer: {
     tagline: "Good taste. Great company.",
     description:
-      "Social wine tastings at one table across the Netherlands. Book solo or with friends. We handle wine, bites, and the right table mix.",
+      "Every first Sunday. New people. Then culinary experiences.",
     nationwide: "All of the Netherlands",
     columns: {
       explore: "Explore",
@@ -290,12 +322,11 @@ export const en: Dictionary = {
       forVenues: "For venues",
       faq: "FAQ",
       blog: "Blog",
-      waitlist: "Waitlist",
       instagram: "Instagram",
       contact: "Contact",
       terms: "Terms and conditions",
       privacy: "Privacy",
-      girlsOnly: "Girls-only wine tastings",
+      girlsOnly: "Sunday Table",
     },
     legal: {
       eyebrow: "Legal",

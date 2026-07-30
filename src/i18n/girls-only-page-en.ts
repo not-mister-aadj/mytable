@@ -3,196 +3,258 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   socialPromise:
-    "Four wines, paired bites, one table. You book, we handle the rest.",
+    "Meet the people you’ll make plans with. We arrange the table.",
   meta: {
-    title: "Girls-only wine tasting on Sunday | Solo or with friends",
+    title: "MyTable · Tell us what you’re looking for | Sunday Table or culinary experiences",
     description:
-      "Girls-only wine & bites every Sunday afternoon in the Netherlands. Book solo or with friends, we handle wine, bites and a fun table. Rotterdam, The Hague, Amsterdam, Utrecht and more.",
+      "Looking to meet people on a Sunday afternoon, or ready for Wine Walks and dinners? Choose your path - we’ll show what fits.",
   },
   hero: {
-    eyebrow: "Girls only",
-    headlineLine1: "Meet New Girls &",
-    headlineLine2: "Have More Fun",
+    eyebrow: "MyTable",
+    headlineLine1: "Tell us what",
+    headlineLine2: "you’re looking for.",
     subtitle:
-      "The best club for girls (25-45) who love wine and good company",
-    painHeadline:
-      "Book solo and sit with other girls who came alone. With friends? Reserve your own table.",
+      "Meet new people on Sunday afternoon - or jump straight into culinary walks and tables. You choose; we guide you well.",
+    painHeadline: "One choice. No agenda overload.",
     microcopy:
-      "You don't need to coordinate anyone. Coming solo is totally normal here.",
+      "Not dating. Not networking. Just good taste and good company.",
     trustLine:
-      "Solo welcome · Ages 25-45 · Great company · Beginners welcome",
+      "Free · About 2 min · No obligation",
     imageAlt:
-      "Women enjoying wine and bites during a girls-only Sunday afternoon",
+      "People enjoying wine together at a lively MyTable table",
     scarcityTemplate: "{count} spots left for {city} on {date}",
-    featuredInHeroLabel: "Next table",
+    featuredInHeroLabel: "Next Sunday Table",
+  },
+  intent: {
+    brand: "MyTable",
+    question: "What are you looking for?",
+    subtitle:
+      "Choose your path. We’ll remember it - and only show what matters.",
+    meet: {
+      id: "meet",
+      title: "Meet new people",
+      description:
+        "Sunday afternoon Sunday Table - solo welcome, real introductions, then make plans.",
+      detailEyebrow: "Sunday Table · Community",
+      detailTitle: "Join the table",
+      detailBody:
+        "Monthly Sunday afternoons with new faces. Membership means early access to Sunday Tables and 10% off every culinary experience.",
+      perks: [
+        "Sunday Tables to meet new people",
+        "10% off Wine Walks, tastings and dinners",
+        "First to hear when seats open",
+        "Solo welcome - we arrange table and introductions",
+      ],
+      primaryCta: "Join community + 10% waitlist",
+      secondaryCta: "How Sunday Table works",
+    },
+    culinary: {
+      id: "culinary",
+      title: "Culinary experiences",
+      description:
+        "Wine Walks, tastings and dinners - book with friends, a partner or a group.",
+      detailEyebrow: "Experiences · Agenda",
+      detailTitle: "All culinary tables",
+      detailBody:
+        "No community funnel needed. Straight to the agenda: walks, tastings and dinners in your city.",
+      perks: [
+        "Wine Walks through the city",
+        "Tastings and chef tables",
+        "Book for two, a group or solo",
+        "Clear dates, cities and prices",
+      ],
+      primaryCta: "Browse culinary experiences",
+      secondaryCta: "Rather meet people first?",
+    },
+    changePath: "Choose differently",
   },
   cta: {
-    viewAllSundays: "View all Sundays",
+    viewAllSundays: "Reserve your seat",
+    choosePath: "Tell us what you want",
   },
   faq: {
     title: "Frequently asked questions",
     items: [
       {
+        question: "What’s the difference between Sunday Table and culinary experiences?",
+        answer:
+          "Sunday Table is our Sunday-afternoon community: meet new people. Culinary experiences (Wine Walks, tastings, dinners) live on the agenda - book with friends, someone you met, or solo. On the homepage you choose which path fits first.",
+      },
+      {
+        question: "What does membership / the 10% discount mean?",
+        answer:
+          "If you join via the community path, you’re listed for Sunday Tables and early access. Membership includes 10% off culinary experiences. The discount appears once membership is active; until then we keep you on the waitlist.",
+      },
+      {
+        question: "What is a Sunday Table?",
+        answer:
+          "Every first Sunday. New people. Then culinary experiences.",
+      },
+      {
         question: "Can I come alone?",
         answer:
-          "Yes, and you won't be the only one. Many girls book solo or with one friend. We'll seat you at a fun table with groups and other girls who came alone.",
+          "Yes - that’s the point of Sunday Table. Many guests arrive solo. We arrange the table, host and introductions. Later you book premium experiences with people you met here, or with your own friends.",
       },
       {
         question: "Is this dating or networking?",
         answer:
-          "No. It's a relaxed afternoon at the table with wine, bites, and easy conversation. No speed dating, no business networking, and no forced small talk.",
+          "No. MyTable is hospitality: good taste, good company and shared experiences. No speed dating and no business networking night.",
       },
       {
-        question: "What is the difference between girls only and mixed?",
+        question: "What’s the difference between girls only and mixed?",
         answer:
-          "Girls only tables are for women only. Mixed groups welcome everyone: solo, with friends, or on a date. The concept is the same; only who sits at the table differs.",
+          "It’s a table preference. Girls only is women only. Mixed welcomes everyone. The concept - table, host, wine - stays the same.",
       },
       {
-        question: "Can I come if I'm not between 25 and 45?",
+        question: "How do premium experiences fit in?",
         answer:
-          "Absolutely! 25-45 is a guideline, not a strict age limit. As long as you're old enough to drink legally and you're here for good company at the table, you're very welcome.",
+          "After Sunday Table you plan a Wine Walk, tasting or dinner together. Book with friends, someone you met at the table, or individually. Groups are welcome and make tables fill faster.",
       },
       {
-        question: "Is it awkward if I come alone?",
+        question: "Can I book with friends or a group?",
         answer:
-          "It's normal to feel nervous. There are always groups and other girls who came solo too. It's about wine, bites, and a cozy afternoon. No speed dating and no forced networking.",
+          "Absolutely. On premium experiences choose the two of you, a group, or a full table. Tickets in one booking sit together.",
       },
       {
-        question: "Can I book with my friends?",
+        question: "When are Sunday Tables?",
         answer:
-          "Absolutely. Reserve for your group (two, four, or more) and sit together at your own table. Bring your friends along.",
+          "Around the first Sunday of the month, usually in the afternoon. Exact dates are on the agenda and your table card.",
       },
       {
-        question: "When are the events?",
+        question: "Where does it take place?",
         answer:
-          "Every Sunday afternoon, usually between 2:00 PM and 5:00 PM. The exact time is on your table card and in your confirmation email.",
-      },
-      {
-        question: "Where does the tasting take place?",
-        answer:
-          "At one partner restaurant, no route through the city. The city is on the table card. After booking, we email the restaurant, time, and practical details.",
+          "At a partner restaurant. The city is on the table card. After booking we email the venue, time and practical details.",
       },
       {
         question: "Do I need to know a lot about wine?",
         answer:
-          "No. Curiosity is enough. Our host shares context about the wines without turning it into a lesson.",
+          "No. Curiosity is enough. The host shares context without turning it into a lecture.",
       },
       {
-        question: "Can I share dietary requirements?",
+        question: "Can I share dietary needs?",
         answer:
-          "Yes. Tell us when you book. The chef adapts the specials where possible.",
-      },
-      {
-        question: "How long does the wine tasting last?",
-        answer:
-          "The official part lasts about 3 hours on average. But honestly? At the end, lots of girls often stick around to keep chatting and order another glass of their favorite wine. Sometimes the afternoon goes so well that someone suggests dinner together. No obligation, but often a lovely bonus.",
-      },
-      {
-        question: "Can I order more at the table?",
-        answer:
-          "Often yes: an extra glass or bite. Some partner venues also sell the full bottle of a wine you enjoyed. It varies by restaurant.",
+          "Yes. Tell us when you book. The chef adjusts where possible.",
       },
       {
         question: "Can I cancel or exchange?",
         answer:
-          "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book. Email us if you want to exchange.",
+          "Cancellations aren’t available. You can exchange free of charge to another date up to 48 hours before start. Everything is paid upfront.",
       },
     ],
   },
   headerNav: {
-    tables: "Upcoming Sundays",
+    tables: "Sunday Tables",
     howItWorks: "How it works",
-    priorityList: "Priority list",
-    testimonials: "What girls say",
+    priorityList: "Waitlist",
+    testimonials: "What guests say",
     faq: "FAQ",
     founder: "Our story",
   },
   howItWorks: {
-    eyebrow: "Girls-only wine & bites",
-    title: "Ready for a fun Sunday?",
+    eyebrow: "Two paths, one MyTable",
+    title: "Choose first, book later",
     subtitle:
-      "Four wines, bites, and great company at the table. Solo or with friends.",
+      "Community on Sunday, or straight to the culinary agenda. We never sell you the wrong thing.",
     highlights: [
-      "Sunday 2:00–5:00 PM",
-      "4 wines with paired bites",
-      "Solo welcome, we'll seat you",
-      "From €39 pp · free exchange up to 48 hours",
+      "Path 1: Sunday Table → new people → membership with 10% off",
+      "Path 2: Wine Walks, tastings and dinners on the agenda",
+      "You choose what you’re looking for in one click",
+      "We only show what fits after that",
     ],
-    cta: "View the agenda",
+    cta: "Choose your path",
   },
   benefits: {
-    title: "Why girls join",
+    title: "Why guests book",
     subtitle:
-      "For a Sunday afternoon of wine & bites, even when your friends can't make it or you're looking for new faces.",
+      "A clear table. A good host. And plans that stick.",
     items: [
       {
-        title: "Solo? That works too",
+        title: "Come solo - nobody sits alone",
         description:
-          "No full group needed. Book alone or with a friend and join great company. You'll sit with groups and girls who came solo.",
+          "Sunday Table is built to meet new people. We arrange the table, host and introductions.",
       },
       {
-        title: "Fun, not awkward",
+        title: "Then continue together",
         description:
-          "No networking talk, no speed-dating vibe. Just tasting, laughing, and talking at a small table.",
+          "Invite someone you met at the table, or bring your own friends to a Wine Walk, tasting or dinner.",
       },
       {
-        title: "Wine and bites sorted",
+        title: "All-in for €49",
         description:
-          "The restaurant selects four wines and pairs them with bites. We handle everything around the table. You just show up.",
+          "Wine, bites and host included. No surprises. Free exchange until 48 hours before.",
       },
       {
-        title: "Your own table with your crew",
+        title: "Not dating. Not networking.",
         description:
-          "Have a group? Book for your friends and sit together at your own table. No juggling reservations or who pays what.",
+          "Hospitality with good taste and good company. Spots are limited - book early.",
       },
     ],
   },
   events: {
-    title: "Pick your Sunday afternoon",
+    title: "Choose your Sunday Table",
     subtitle:
-      "Every Sunday, one slot per city. Pick your date, check how many spots are left, and book your seat.",
+      "One moment per city. Pick your date, check availability and plan your table.",
     empty:
-      "New girls-only tables are added regularly. Check back soon or follow MyTable for updates.",
+      "New Sunday Tables are added regularly. Check back soon or join the waitlist.",
     viewAll: "View all",
   },
+  sundayTable: {
+    eyebrow: "Sunday Table",
+    title: "Meet the people you’ll make plans with.",
+    body: "Join a welcoming table every first Sunday of the month. Come solo, meet new people and discover who you want to share your next experience with.",
+  },
+  premium: {
+    eyebrow: "Next: culinary experiences",
+    title: "Bring your table together again.",
+    body: "After Sunday Table, book a Wine Walk, tasting or dinner - with people you met here, or with your own group.",
+    cta: "Browse culinary experiences",
+  },
+  nextTable: {
+    eyebrow: "Next step",
+    title: "Who would you share the next table with?",
+    body: "Met someone you’d happily make plans with again? Choose a Wine Walk, tasting or dinner together.",
+    cta: "Browse culinary experiences",
+    shareWhatsapp: "Share on WhatsApp",
+    copyLink: "Copy link",
+    copied: "Copied",
+  },
   presaleSignup: {
-    title: "Join the Priority List",
+    title: "Join the waitlist",
     subtitle:
-      "Our girls-only tables sell out fast. Sign up to hear first when new dates open in your city. Priority list members get 10% off.",
+      "Sunday Tables and premium experiences sell out fast. Sign up and hear first when spots open in your city.",
     nameLabel: "Name",
     namePlaceholder: "Your first name",
-    citiesLabel: "Where do you want a seat?",
+    citiesLabel: "Where do you want a table?",
     citiesHint: "Choose one or more cities",
     citiesRequired: "Choose at least one city",
     cities: listTopNlCityNames(),
     emailLabel: "Email",
     emailPlaceholder: "you@email.com",
-    cta: "Join the priority list",
-    success:
-      "You're on the priority list! We'll email you first when spots open up.",
-    error: "Sign-up failed. Please try again later.",
+    cta: "Keep me posted",
+    success: "You’re on the list. We’ll email you when spots open.",
+    error: "Signup failed. Please try again later.",
   },
   testimonials: {
-    eyebrow: "What girls say",
-    title: "A great table even when you come solo",
+    eyebrow: "What guests say",
+    title: "From new faces to real plans",
   },
   founderStory: {
     eyebrow: "The story behind MyTable",
-    title: "Hi, I'm Elif",
+    title: "Hi, I’m Elif",
     paragraphs: [
-      "I've always been the one connecting people. Organizing parties, bringing groups together, making sure everyone feels good. The motto was simple: everyone should have a great time.",
-      "MyTable is where my two big passions meet: wine and good company. I noticed a lot of people, especially women, struggle to make new friends. So I thought: let's make that fun, with a glass of wine in hand.",
-      "No awkward speed dating or networking drinks. Just tasting, laughing, and meeting new girls on a Sunday afternoon. Cheers.",
-      "On the right in the photo you'll see Siraadj, my boyfriend. He handles all the technical stuff and camera work. No him, no working website and no pretty photos.",
+      "I’ve always been the one connecting people. Organising gatherings, bringing groups together, making sure everyone feels at ease.",
+      "MyTable is where good taste and good company meet. Sunday Table helps you meet new people. Then you book the experiences that matter - together.",
+      "Not a dating platform, not a networking night. Just tasting, laughing and making plans around the table.",
+      "On the right is Siraadj, my boyfriend. He handles the tech and the camera work.",
     ],
     signOff: "Elif, host at MyTable",
-    imageAlt: "Elif and Siraadj at a table during a fun event",
+    imageAlt: "Elif and Siraadj at the table during a lively evening",
   },
   finalCta: {
-    title: "Ready for your next Sunday afternoon wine & bites?",
+    title: "Haven’t chosen yet?",
     subtitle:
-      "Four wines, bites, and a table of great women. Solo or with friends.",
-    button: "View upcoming Sundays",
+      "Tell us what you’re looking for - Sunday community, or culinary experiences. We’ll guide you well.",
+    button: "Tell us what you want",
   },
   status: {
     available: "Available",
@@ -203,6 +265,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   },
   femaleOnlyBadge: "Girls only",
   reserveCta: "Reserve",
-  viewTableCta: "View table",
-  perPersonFrom: "From €{price} per person",
+  viewTableCta: "Plan your table",
+  joinIndividuallyCta: "Join individually",
+  perPersonFrom: "€{price} per person",
 };

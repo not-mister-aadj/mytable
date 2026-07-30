@@ -1,7 +1,7 @@
 import { AgendaHero } from "@/components/agenda/AgendaHero";
 import { AgendaEventsSection } from "@/components/agenda/AgendaEventsSection";
+import { AgendaCrossFeed } from "@/components/agenda/AgendaCrossFeed";
 import { AgendaGridSkeleton } from "@/components/agenda/AgendaGridSkeleton";
-import { NewsletterCTA } from "@/components/agenda/NewsletterCTA";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -32,8 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dict = getDictionary(locale);
   const title =
     locale === "en"
-      ? `Wine tasting agenda Netherlands | MyTable`
-      : `Agenda wijnproeverijen Nederland | MyTable`;
+      ? `Agenda · Wine Walks & tastings | MyTable`
+      : `Agenda · Wine Walks & proeverijen | MyTable`;
   return buildPageMetadata({
     locale,
     kind: "agenda",
@@ -62,15 +62,15 @@ export default async function AgendaPage({ params }: Props) {
           breadcrumbJsonLd(pageUrl, [
             { name: "MyTable", path: locale === "en" ? "/en" : "/" },
             {
-              name: locale === "en" ? "Agenda" : "Agenda",
+              name: "Agenda",
               path: agendaPath(locale),
             },
           ]),
           itemListJsonLd({
             name:
               locale === "en"
-                ? "Upcoming MyTable experiences"
-                : "Aankomende MyTable tafels",
+                ? "Upcoming MyTable agenda"
+                : "Aankomende MyTable agenda",
             description: dict.agenda.hero.subtitle,
             pageUrl,
             items: experiences
@@ -87,20 +87,14 @@ export default async function AgendaPage({ params }: Props) {
       <Header dict={dict.header} locale={locale} />
       <main className="bg-cream">
         <AgendaHero hero={dict.agenda.hero} />
-        <div className="pb-8 pt-10 sm:pb-12 sm:pt-12">
+        <div id="agenda" className="scroll-mt-24 pb-8 pt-8 sm:pb-12 sm:pt-10">
           <Suspense fallback={<AgendaGridSkeleton />}>
             <AgendaEventsSection locale={locale} />
           </Suspense>
         </div>
-        <NewsletterCTA
-          dict={dict.newsletter}
-          locale={locale}
-          promoteWaitlist={
-            !experiences.some(
-              (item) => item.status !== "soldOut" && item.status !== "closed",
-            )
-          }
-        />
+        {dict.agenda.crossFeed ? (
+          <AgendaCrossFeed labels={dict.agenda.crossFeed} locale={locale} />
+        ) : null}
       </main>
       <Footer dict={dict.footer} locale={locale} />
     </>

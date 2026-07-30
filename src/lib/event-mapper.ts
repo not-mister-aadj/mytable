@@ -3,16 +3,11 @@ import type { Locale } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
 import { getExperienceSlug } from "@/data/experience-slugs";
 import { deriveDisplayStatus, formatDateTime } from "@/lib/event-display";
-import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
+import { GIRLS_ONLY_ATMOSPHERE_TAG, parseEventExtras, stripGirlsOnlyCulinaryCopy } from "@/lib/event-extras";
 import { mergeTypeContentIntoItem } from "@/lib/experience-type-content";
 import type { ExperienceTypeContent } from "@/lib/experience-type-content.types";
 import { getTypeContent } from "@/lib/experience-type-content";
 import { DEFAULT_EXPERIENCE_TYPE } from "@/lib/experience-type-definitions";
-import {
-  isGirlsOnlyWineTasting,
-  resolveGirlsOnlyCardText,
-  resolveGirlsOnlyTagline,
-} from "@/lib/girls-only-experience-content";
 import {
   displayNamesFromEvent,
   resolveHeroImageSettings,
@@ -46,19 +41,10 @@ export function mapDbEventToExperienceItem(
     extras,
     locale,
     typeSlug,
-    row.femaleOnly,
+    false,
   );
-  const itemForGirlsOnlyCheck = {
-    femaleOnly: resolveFemaleOnly(row.femaleOnly, extras.atmosphereTags),
-    experienceType: typeSlug,
-    mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
-  };
-  const cardText = isGirlsOnlyWineTasting(itemForGirlsOnlyCheck)
-    ? resolveGirlsOnlyCardText(names.cardText, locale)
-    : names.cardText;
-  const tagline = isGirlsOnlyWineTasting(itemForGirlsOnlyCheck)
-    ? resolveGirlsOnlyTagline(names.tagline, locale)
-    : names.tagline;
+  const cardText = stripGirlsOnlyCulinaryCopy(names.cardText);
+  const tagline = stripGirlsOnlyCulinaryCopy(names.tagline) || undefined;
   const lang = locale === "nl" ? "nl" : "en";
   const customDescription =
     lang === "nl"
@@ -88,13 +74,13 @@ export function mapDbEventToExperienceItem(
     id: row.legacyId ?? row.id,
     slug: row.slug,
     city: row.city,
-    experienceName: names.experienceName,
-    cardTitle: names.cardTitle,
+    experienceName: stripGirlsOnlyCulinaryCopy(names.experienceName),
+    cardTitle: stripGirlsOnlyCulinaryCopy(names.cardTitle),
     cardText,
     cardImage: cardSettings?.url,
     cardImageSettings: cardSettings,
     heroImageSettings: heroSettings,
-    category: names.category,
+    category: stripGirlsOnlyCulinaryCopy(names.category),
     experienceType: typeSlug,
     pageSections: resolvePageSections(typeSlug, locale, extras),
     dateTime: formatDateTime(startsAt, endsAt, locale),
@@ -106,14 +92,16 @@ export function mapDbEventToExperienceItem(
       row.publishedAt ? new Date(row.publishedAt) : null,
       startsAt,
     ),
-    mood: itemForGirlsOnlyCheck.mood,
+    mood: (typeDef?.mood ?? row.mood) as ExperienceItem["mood"],
     image: heroUrl,
-    femaleOnly: itemForGirlsOnlyCheck.femaleOnly,
+    femaleOnly: false,
     tagline,
     capacity: row.capacity,
     spotsSold: row.spotsSold,
     eventDbId: row.id,
-    atmosphereTags: extras.atmosphereTags,
+    atmosphereTags: (extras.atmosphereTags ?? []).filter(
+      (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+    ),
     customDescription: customDescription || undefined,
     customFaq: customFaq?.length ? customFaq : undefined,
     galleryImages: gallerySettings?.map((g) => g.url),

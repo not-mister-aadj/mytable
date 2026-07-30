@@ -19,6 +19,7 @@ import {
   organizationJsonLd,
 } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
+import { blogImages } from "@/data/images";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ? "Blog | Girls-only wine tasting tips & guides | MyTable"
         : "Blog | Tips & gidsen girls-only wijnproeverijen | MyTable",
     description: labels.subtitle,
-    image: "/blog/25-sociale-activiteiten-voor-volwassenen.png",
+    image: blogImages.socialIdeas,
   });
   return {
     ...meta,
@@ -122,7 +123,7 @@ export default async function BlogIndexPage({ params }: Props) {
           categoryCounts={categoryCounts}
         />
       </main>
-      <Footer dict={dict.footer} locale={locale} />
+      <Footer dict={dict.footer} locale={locale} showSeoLinks />
     </>
   );
 }

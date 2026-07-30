@@ -117,7 +117,7 @@ export function VenueImagePicker({
             {catalog.length} foto&apos;s beschikbaar
             {galleryCount > 0
               ? ` (${galleryCount} galerij)`
-              : " — alleen hero, geen galerij opgeslagen bij venue"}
+              : " - alleen hero, geen galerij opgeslagen bij venue"}
           </p>
         </div>
         {onRefresh ? (
@@ -133,7 +133,7 @@ export function VenueImagePicker({
 
       {galleryCount === 0 && catalog.length > 0 ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Deze venue heeft nog geen galerijfoto&apos;s opgeslagen — alleen de hero is
+          Deze venue heeft nog geen galerijfoto&apos;s opgeslagen - alleen de hero is
           zichtbaar. Ga naar <strong>Admin → Venues</strong>, voeg foto&apos;s toe
           onder <strong>Galerij</strong>, klik <strong>Opslaan</strong>, en druk
           hier op <strong>Vernieuwen</strong>.

@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/Button";
 import {
   experiencePath,
   girlsOnlyCityPath,
-  girlsOnlyPath,
+  clubmemberPath,
+  joinPath,
   type Locale,
 } from "@/i18n/config";
 import type { GirlsOnlyCityDefinition } from "@/data/girls-only-cities";
@@ -33,7 +34,11 @@ interface GirlsOnlyCityViewProps {
   events: EnrichedExperience[];
   hasBookable: boolean;
   agendaHref: string;
-  waitlistHref: string;
+  /** Next Sunday Table scarcity line for this city. */
+  sundayScarcity?: {
+    seatsLeft: number;
+    dateLabel: string;
+  } | null;
 }
 
 export function GirlsOnlyCityView({
@@ -43,17 +48,23 @@ export function GirlsOnlyCityView({
   events,
   hasBookable,
   agendaHref,
-  waitlistHref,
+  sundayScarcity = null,
 }: GirlsOnlyCityViewProps) {
   const hasEvents = events.length > 0;
-  const primaryHref = hasBookable
-    ? "#events"
-    : hasEvents
-      ? "#priority"
-      : waitlistHref;
-  const primaryLabel = hasBookable
-    ? labels.hero.ctaBook
-    : labels.hero.ctaPriority;
+  const quizHref = joinPath(locale);
+  const claimHref = `${clubmemberPath(locale)}?claim=1#happening`;
+  const primaryHref =
+    sundayScarcity && sundayScarcity.seatsLeft > 0
+      ? claimHref
+      : hasBookable
+        ? "#events"
+        : quizHref;
+  const primaryLabel =
+    sundayScarcity && sundayScarcity.seatsLeft > 0
+      ? labels.hero.ctaBook
+      : hasBookable
+        ? labels.hero.ctaBook
+        : labels.events.emptyCta;
   const otherCities = listGirlsOnlyCities().filter((c) => c.slug !== city.slug);
   const region = girlsOnlyCityDisplayRegion(city, locale);
   const homeHref = locale === "en" ? "/en" : "/";
@@ -69,7 +80,7 @@ export function GirlsOnlyCityView({
           aria-hidden
         />
         <div className="absolute inset-0 bg-gradient-to-b from-wine/75 via-wine/55 to-wine/85" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(232,180,196,0.22),_transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(197,154,91,0.14),_transparent_55%)]" />
 
         <div className="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-end px-5 pb-14 pt-28 sm:px-8 sm:pb-16 lg:px-10 lg:pb-20">
           <motion.div
@@ -99,7 +110,7 @@ export function GirlsOnlyCityView({
               </ol>
             </nav>
 
-            <p className="font-serif text-2xl tracking-tight text-rose-soft/95 sm:text-3xl">
+            <p className="font-serif text-2xl tracking-tight text-gold sm:text-3xl">
               MyTable
             </p>
             <h1 className="mt-2 font-serif text-[2.35rem] font-medium leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
@@ -108,6 +119,15 @@ export function GirlsOnlyCityView({
             <p className="mt-5 max-w-xl text-base leading-relaxed text-cream/85 sm:text-lg">
               {labels.hero.subheadline}
             </p>
+
+            {sundayScarcity && sundayScarcity.seatsLeft > 0 ? (
+              <p className="mt-4 text-sm font-medium tracking-wide text-gold sm:text-base">
+                {labels.hero.seatsLeft
+                  .replace("{count}", String(sundayScarcity.seatsLeft))
+                  .replace("{city}", city.cityName)
+                  .replace("{date}", sundayScarcity.dateLabel)}
+              </p>
+            ) : null}
 
             <ul className="mt-5 flex flex-wrap gap-2">
               {labels.hero.trustBullets.map((bullet) => (
@@ -123,7 +143,7 @@ export function GirlsOnlyCityView({
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
                 href={primaryHref}
-                className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+                className="bg-wine px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-burgundy sm:text-sm"
               >
                 <span aria-hidden className="mr-2 opacity-90">
                   ›
@@ -132,7 +152,7 @@ export function GirlsOnlyCityView({
               </Button>
               {hasBookable ? (
                 <Button
-                  href={waitlistHref}
+                  href="#priority"
                   className="border border-cream/35 bg-transparent px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-cream/10 sm:text-sm"
                 >
                   {labels.hero.ctaPriority}
@@ -145,12 +165,12 @@ export function GirlsOnlyCityView({
 
       <section
         id="events"
-        className="scroll-mt-24 border-b border-rose/10 bg-gradient-to-b from-rose-soft/40 via-cream to-cream py-12 sm:py-16"
+        className="scroll-mt-24 border-b border-wine/10 bg-gradient-to-b from-beige/50 via-cream to-cream py-12 sm:py-16"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           {hasEvents ? (
             <motion.div {...fade} className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-burgundy">
                 {labels.events.eyebrow}
               </p>
               <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
@@ -164,8 +184,8 @@ export function GirlsOnlyCityView({
 
           <div className={`${hasEvents ? "mt-10" : ""} space-y-12`}>
             {!hasEvents ? (
-              <motion.div id="priority" {...fade} className="scroll-mt-24">
-                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-rose-soft/80 via-cream to-beige shadow-[0_28px_70px_rgba(90,15,27,0.1)]">
+              <motion.div id="sunday-table" {...fade} className="scroll-mt-24">
+                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-beige via-cream to-beige shadow-[0_28px_70px_rgba(90,15,27,0.1)]">
                   <div className="relative grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                     <div className="relative min-h-[14rem] overflow-hidden sm:min-h-[16rem] lg:min-h-full">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -177,8 +197,8 @@ export function GirlsOnlyCityView({
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-wine/80 via-wine/35 to-wine/20 lg:bg-gradient-to-r lg:from-wine/15 lg:via-wine/45 lg:to-wine/75" />
                       <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 lg:p-10">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-rose-soft">
-                          {labels.priority.eyebrow}
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+                          {labels.breadcrumbGirlsOnly}
                         </p>
                         <p className="mt-3 font-serif text-4xl font-medium leading-none tracking-tight text-cream sm:text-5xl">
                           {city.cityName}
@@ -197,17 +217,14 @@ export function GirlsOnlyCityView({
                       </p>
                       <div className="mt-7">
                         <Button
-                          href={waitlistHref}
-                          className="bg-rose px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream shadow-[0_12px_28px_rgba(157,77,111,0.28)] transition hover:bg-rose-deep hover:shadow-[0_16px_32px_rgba(157,77,111,0.34)] sm:text-sm"
+                          href={quizHref}
+                          className="bg-wine px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-burgundy hover:shadow-[0_16px_32px_rgba(90,15,27,0.28)] sm:text-sm"
                         >
                           <span aria-hidden className="mr-2 opacity-90">
                             ›
                           </span>
                           {labels.events.emptyCta}
                         </Button>
-                        <p className="mt-3 max-w-sm text-xs leading-snug text-wine/45">
-                          {labels.priority.privacyNote}
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -249,7 +266,7 @@ export function GirlsOnlyCityView({
                   <div className="flex justify-center">
                     <Button
                       href={agendaHref}
-                      className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+                      className="bg-wine px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-burgundy sm:text-sm"
                     >
                       <span aria-hidden className="mr-2 opacity-90">
                         ›
@@ -266,11 +283,11 @@ export function GirlsOnlyCityView({
 
       <section
         id="included"
-        className="scroll-mt-24 border-b border-rose/10 bg-beige/40 py-12 sm:py-16"
+        className="scroll-mt-24 border-b border-wine/10 bg-beige/40 py-12 sm:py-16"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <motion.div {...fade} className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-burgundy">
               {labels.included.eyebrow}
             </p>
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
@@ -297,11 +314,11 @@ export function GirlsOnlyCityView({
 
       <section
         id="local"
-        className="scroll-mt-24 bg-rose-soft/30 py-12 sm:py-16"
+        className="scroll-mt-24 bg-beige/40 py-12 sm:py-16"
       >
         <div className="mx-auto grid max-w-7xl items-start gap-10 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:px-10">
           <motion.div {...fade}>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-burgundy">
               {labels.local.eyebrow}
             </p>
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
@@ -319,7 +336,7 @@ export function GirlsOnlyCityView({
               >
                 <span
                   aria-hidden
-                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose/15 text-xs text-rose-deep"
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-wine/10 text-xs text-burgundy"
                 >
                   ✓
                 </span>
@@ -332,11 +349,11 @@ export function GirlsOnlyCityView({
 
       <section
         id="how-it-works"
-        className="scroll-mt-24 border-t border-rose/10 bg-cream py-12 sm:py-16"
+        className="scroll-mt-24 border-t border-wine/10 bg-cream py-12 sm:py-16"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <motion.div {...fade} className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-deep">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-burgundy">
               {labels.howItWorks.eyebrow}
             </p>
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
@@ -351,7 +368,7 @@ export function GirlsOnlyCityView({
                 transition={{ ...fade.transition, delay: index * 0.08 }}
                 className="relative"
               >
-                <p className="font-serif text-4xl text-rose/35">{index + 1}</p>
+                <p className="font-serif text-4xl text-wine/20">{index + 1}</p>
                 <h3 className="mt-2 font-medium text-wine">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-wine/70">
                   {step.description}
@@ -364,7 +381,7 @@ export function GirlsOnlyCityView({
 
       <section
         id="faq"
-        className="scroll-mt-24 border-t border-rose/15 bg-beige/40 py-12 sm:py-16"
+        className="scroll-mt-24 border-t border-wine/10 bg-beige/40 py-12 sm:py-16"
       >
         <div className="mx-auto max-w-3xl px-5 sm:px-8 lg:px-10">
           <h2 className="text-center font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
@@ -374,12 +391,12 @@ export function GirlsOnlyCityView({
             {labels.faq.items.map((item) => (
               <details
                 key={item.question}
-                className="group rounded-2xl border border-rose/20 bg-white/80 px-5 py-4 transition-shadow open:shadow-sm sm:px-6"
+                className="group rounded-2xl border border-wine/12 bg-white/80 px-5 py-4 transition-shadow open:shadow-sm sm:px-6"
               >
                 <summary className="cursor-pointer list-none font-medium text-wine marker:hidden [&::-webkit-details-marker]:hidden">
                   <span className="flex items-center justify-between gap-4">
                     {item.question}
-                    <span className="shrink-0 font-serif text-xl text-rose-deep transition-transform group-open:rotate-45">
+                    <span className="shrink-0 font-serif text-xl text-burgundy transition-transform group-open:rotate-45">
                       +
                     </span>
                   </span>
@@ -393,7 +410,7 @@ export function GirlsOnlyCityView({
         </div>
       </section>
 
-      <section className="border-t border-rose/10 bg-cream py-12 sm:py-14">
+      <section className="border-t border-wine/10 bg-cream py-12 sm:py-14">
         <div className="mx-auto max-w-7xl px-5 text-center sm:px-8 lg:px-10">
           <h2 className="font-serif text-2xl font-medium text-wine sm:text-3xl">
             {labels.otherCities.title}
@@ -404,16 +421,16 @@ export function GirlsOnlyCityView({
               <Link
                 key={other.slug}
                 href={girlsOnlyCityPath(locale, other.slug)}
-                className="rounded-full border border-rose/25 bg-white px-5 py-2.5 text-sm font-medium text-wine transition hover:border-rose hover:bg-rose-soft/40"
+                className="rounded-full border border-wine/15 bg-white px-5 py-2.5 text-sm font-medium text-wine transition hover:border-burgundy/40 hover:bg-beige/50"
               >
-                Girls-only {other.cityName}
+                {other.cityName}
               </Link>
             ))}
           </div>
           <div className="mt-8 flex justify-center">
             <Button
-              href={girlsOnlyPath(locale)}
-              className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+              href={clubmemberPath(locale)}
+              className="bg-wine px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-burgundy sm:text-sm"
             >
               <span aria-hidden className="mr-2 opacity-90">
                 ›
@@ -424,7 +441,7 @@ export function GirlsOnlyCityView({
         </div>
       </section>
 
-      <section className="border-t border-rose/15 bg-gradient-to-b from-rose-soft/60 to-cream py-14 sm:py-16">
+      <section className="border-t border-wine/10 bg-gradient-to-b from-beige to-cream py-14 sm:py-16">
         <div className="mx-auto max-w-2xl px-5 text-center sm:px-8">
           <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
             {labels.finalCta.title}
@@ -435,14 +452,14 @@ export function GirlsOnlyCityView({
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button
               href={primaryHref}
-              className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+              className="bg-wine px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-burgundy sm:text-sm"
             >
               <span aria-hidden className="mr-2 opacity-90">
                 ›
               </span>
               {hasBookable
                 ? labels.finalCta.ctaBook
-                : labels.finalCta.ctaPriority}
+                : labels.events.emptyCta}
             </Button>
           </div>
         </div>

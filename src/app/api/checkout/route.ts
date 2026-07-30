@@ -20,6 +20,8 @@ import {
   seatingForTier,
   tierForSeats,
 } from "@/lib/booking-tiers";
+import { getActiveMembershipForUser } from "@/lib/club/memberships";
+import { getMemberUser } from "@/lib/member-auth";
 import {
   MEDIA_MARKETING_CONSENT_EVENT,
   MEDIA_MARKETING_CONSENT_VERSION,
@@ -69,6 +71,9 @@ export async function POST(request: Request) {
     seatingPreference?: string;
     tableLanguagePreference?: string;
     joinPriorityList?: boolean;
+    affiliateCode?: string;
+    referralCode?: string;
+    fromSundayTable?: boolean;
     utm?: {
       utm_source?: string;
       utm_medium?: string;
@@ -161,7 +166,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const tierPrice = computeTierPrice(requestedTier, seats);
+  const memberUser = await getMemberUser();
+  let clubMemberDiscount = false;
+  if (memberUser?.email) {
+    const membership = await getActiveMembershipForUser({
+      userId: memberUser.id,
+      email: memberUser.email,
+    });
+    clubMemberDiscount = Boolean(
+      membership &&
+        (membership.status === "active" || membership.status === "past_due"),
+    );
+  }
+  const tierPrice = computeTierPrice(requestedTier, seats, {
+    clubMemberDiscount,
+  });
 
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
@@ -182,6 +201,9 @@ export async function POST(request: Request) {
       seatingPreference,
       tableLanguagePreference,
       paymentStatus: "pending",
+      affiliateCode: body.affiliateCode?.trim().toUpperCase() || null,
+      referralCode: body.referralCode?.trim().toUpperCase() || null,
+      fromSundayTable: body.fromSundayTable === true,
     })
     .returning();
 
@@ -280,6 +302,9 @@ export async function POST(request: Request) {
       booking_id: booking.id,
       event_id: event.id,
       pricing_tier: requestedTier,
+      club_member_discount: clubMemberDiscount ? "1" : "0",
+      affiliate_code: booking.affiliateCode ?? "",
+      from_sunday_table: booking.fromSundayTable ? "1" : "0",
     },
     success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,

@@ -201,7 +201,7 @@ export function PriorityListView({
                       className="border-b border-border-subtle/50 last:border-0"
                     >
                       <td className="px-5 py-4 font-medium text-wine">
-                        {row.name ?? <span className="text-wine/35">—</span>}
+                        {row.name ?? <span className="text-wine/35">-</span>}
                       </td>
                       <td className="px-5 py-4 text-wine/80">{row.email}</td>
                       <td className="px-5 py-4 text-wine/75">

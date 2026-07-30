@@ -5,181 +5,179 @@ import type {
 
 export const wineWalkFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Start bij de eerste locatie",
+    title: "Tickets in de voorverkoop",
     description:
-      "We beginnen op de eerste locatie met een korte introductie, zodat iedereen rustig kan landen.",
+      "Je boekt vooraf via deze pagina. Na betaling ontvang je je bevestiging per mail. Ruilen kan tot 48 uur voor de start.",
   },
   {
-    title: "Proef onderweg",
+    title: "Start bij het eerste restaurant",
     description:
-      "Bij iedere stop staat er iets klaar om te proeven. Denk aan wijn, bites of een kleine pairing.",
+      "Je komt op tijd bij de eerste locatie van je route. Daar toon je je ticket en geniet je van de eerste wijn-spijs combinatie.",
   },
   {
-    title: "Wandel op rustig tempo",
+    title: "Door naar de volgende stop",
     description:
-      "Tussen de locaties wandel je samen door de stad. Geen haast, geen strak programma.",
+      "Klaar? Je loopt met je eigen gezelschap naar het volgende restaurant. Geen gids, wel een vaste route op eigen tempo.",
   },
   {
-    title: "Ontmoet nieuwe mensen",
+    title: "Proef bij elke plek",
     description:
-      "Omdat je onderweg wisselt van plek en gesprek, voelt ontmoeten natuurlijk en ontspannen.",
+      "Bij iedere stop staat een pairing klaar. Zo ontdek je meerdere restaurants in één middag, zonder keuzestress.",
   },
 ];
 
 export const chefsSpecialFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Schuif aan",
+    title: "Reserveer je tickets",
     description:
-      "Je komt aan bij het restaurant en wordt ontvangen aan de MyTable-tafel.",
+      "Je boekt vooraf voor jezelf of je gezelschap. Alles is betaald voordat je aankomt.",
   },
   {
-    title: "Proef family style",
+    title: "Aankomst in het restaurant",
     description:
-      "Meerdere voorgerechten, hoofdgerechten en dessert komen in het midden. Jullie delen alles met de tafel.",
+      "Je wordt ontvangen op de gereserveerde plek. De chef heeft de avond voor je samengesteld.",
   },
   {
-    title: "Het beste van de keuken",
+    title: "Family style aan tafel",
     description:
-      "De chef stelt de avond samen, zodat je meer van het restaurant proeft dan met één eigen bord.",
+      "Meerdere voor-, hoofd- en nagerechten komen in het midden. Jullie delen en proeven wat het huis te bieden heeft.",
   },
   {
-    title: "Blijf hangen",
+    title: "Op eigen tempo",
     description:
-      "Na afloop kun je vaak nog blijven voor een drankje of verder praten.",
+      "Geen strak schema. Geniet van de avond; daarna kun je vaak nog nablijven voor een drankje.",
   },
 ];
 
 export const sharedDinnerFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Welkom aan tafel",
+    title: "Boek je plekken",
     description:
-      "Je begint met een drankje en een korte intro, zodat iedereen meteen op zijn gemak is.",
+      "Je reserveert tickets voor je eigen gezelschap. Betaling gebeurt vooraf.",
+  },
+  {
+    title: "Welkom in het restaurant",
+    description:
+      "Je wordt ontvangen en krijgt een korte uitleg over het menu van de avond.",
   },
   {
     title: "Gedeeld menu",
     description:
-      "Het restaurant serveert een doordacht menu terwijl gesprekken vanzelf op gang komen.",
-  },
-  {
-    title: "Open tafel",
-    description:
-      "Iedereen zit aan dezelfde lange tafel. Geen speeches, geen verplicht smalltalk.",
+      "Het restaurant serveert een doordacht menu. Gerechten worden gedeeld, zodat je meer proeft.",
   },
   {
     title: "Rustig afronden",
     description:
-      "Na het dessert is er ruimte om door te praten of op tijd naar huis te gaan.",
+      "Na het dessert is er ruimte om na te praten of op tijd verder te gaan.",
   },
 ];
 
 export const tastingFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Ontvangst & intro",
+    title: "Boek vooraf",
     description:
-      "Je wordt verwelkomd met een eerste glas. De host legt kort uit wat de chef voor de tafel heeft bedacht.",
+      "Je koopt tickets voor jezelf of je groep. Na betaling staat alles klaar in je bevestiging.",
   },
   {
-    title: "Chef's special aan tafel",
+    title: "Ontvangst met een eerste glas",
     description:
-      "Het restaurant serveert specials voor de hele groep, wijn en bites die bij elkaar passen, op eigen tempo.",
+      "Je wordt verwelkomd in het restaurant. De host of wijnbar legt kort uit wat er op tafel komt.",
   },
   {
-    title: "Gesprekken aan tafel",
+    title: "Vier wijnen met bites",
     description:
-      "De tafel is klein genoeg voor intimiteit en groot genoeg voor nieuwe ontmoetingen.",
+      "Je proeft vier wijnen met bijpassende hapjes, op één plek, op eigen tempo.",
   },
   {
     title: "Afsluiten zonder haast",
     description:
-      "Plan de hele middag in. Veel groepen houden het daarna nog gezellig, nawijnen, borrelen of ergens uit eten.",
+      "Plan de middag in. Extra bestellen kan vaak aan tafel; de bediening vertelt wat er mogelijk is.",
   },
 ];
 
-export const sundayFlowNl: ExperienceFlowStep[] = [
-  {
-    title: "Zondagse start",
-    description:
-      "Koffie, brunch en een warm welkom voordat de tafel echt vol wordt.",
-  },
-  {
-    title: "Langzaam tempo",
-    description:
-      "Geen haast: de middag is bedoeld om te ontspannen en bij te komen.",
-  },
-  {
-    title: "Nieuwe gezichten",
-    description:
-      "Aan tafel ontmoet je mensen die ook zin hebben in een ontspannen zondag.",
-  },
-  {
-    title: "Zachte afronding",
-    description:
-      "Vaak blijft de tafel nog even zitten voor een laatste kopje of glas.",
-  },
-];
+export const sundayFlowNl: ExperienceFlowStep[] = tastingFlowNl;
 
 export const mysteryFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Ontvangst op geheime locatie",
+    title: "Boek je avond",
     description:
-      "Na boeking ontvang je de details. Je weet waar je moet zijn, niet per se waar je eindigt.",
+      "Na boeking ontvang je de praktische details. Je weet waar je moet zijn.",
   },
   {
     title: "Verrassingsmenu",
     description:
-      "Het restaurant serveert een avond die past bij de sfeer van de mystery tafel.",
+      "Het restaurant serveert een avond die past bij de sfeer van de locatie.",
   },
   {
-    title: "Gedeelde tafel",
+    title: "Jouw gezelschap, één tafel",
     description:
-      "Je schuift aan bij mensen die ook zin hebben in iets anders dan standaard uit eten.",
+      "Je zit met wie je hebt geboekt. Wij regelen het restaurant en het menu.",
   },
   {
-    title: "Onthulling achteraf",
+    title: "Details achteraf",
     description:
-      "Na de avond delen we vaak waar je bent geweest, zodat je de plek terug kunt vinden.",
+      "Na de avond kun je de locatie terugvinden via je bevestiging of onze follow-up.",
   },
 ];
 
 export const tastingQuotesNl: ExperienceGuestQuote[] = [
   {
     quote:
-      "Ik dacht dat het misschien awkward zou worden, maar binnen tien minuten voelde het normaal. Vier wijnen, lekkere bites, en geen gedoe.",
+      "Vier wijnen, lekkere bites, geen gedoe. We hoefden nergens over na te denken.",
     name: "Anna",
     age: 31,
   },
   {
     quote:
-      "Oké wacht… veel leuker dan ik had verwacht. Ruim twee uur geproefd en gekletst, op ons tempo. Waarom heb ik dit niet eerder gedaan?",
+      "Ruim twee uur geproefd op ons tempo. De pairings klopten; precies wat we zochten voor een zondagmiddag.",
     name: "Petra",
     age: 45,
   },
   {
     quote:
-      "We kwamen voor de wijn en bleven hangen voor de gesprekken. Gewoon gezellig, zonder dat iemand je test op wijnkennis.",
+      "We kwamen voor de wijn en bleven hangen voor de sfeer. Geen examen, wel goede smaak.",
     name: "Kim & Sam",
     detail: "Duo",
   },
 ];
 
-export const wineWalkQuotesNl: ExperienceGuestQuote[] = tastingQuotesNl;
+export const wineWalkQuotesNl: ExperienceGuestQuote[] = [
+  {
+    quote:
+      "Meerdere restaurants in één middag, zonder zelf te plannen. Elke stop een sterke pairing.",
+    name: "Mark",
+    age: 34,
+  },
+  {
+    quote:
+      "Het tempo was rustig, de route helder. Ideaal met vrienden: wandelen, proeven, verder.",
+    name: "Sanne",
+    age: 29,
+  },
+  {
+    quote:
+      "We ontdekten drie plekken die we anders nooit hadden bezocht. Alles vooraf geregeld.",
+    name: "Tom & Eva",
+    detail: "Duo",
+  },
+];
 
 export const sharedDinnerQuotesNl: ExperienceGuestQuote[] = [
   {
     quote:
-      "Alsof je uit eten gaat met vrienden die je nog niet kent. Precies de juiste sfeer.",
+      "Family style was precies goed: meer proeven van de keuken zonder keuzestress.",
     name: "Lisa",
     age: 29,
   },
   {
     quote:
-      "Ik was nerveus om alleen te komen, maar binnen tien minuten voelde het normaal.",
+      "Het menu klopte van voor tot dessert. Fijn dat drank en dieetwensen duidelijk waren geregeld.",
     name: "David",
     age: 36,
   },
   {
     quote:
-      "De chef's specials waren verrassend goed en de gesprekken liepen vanzelf door tot laat.",
+      "Alsof we een privéavond in het restaurant hadden, maar dan zonder organisatiestress.",
     name: "Noor",
     age: 33,
   },

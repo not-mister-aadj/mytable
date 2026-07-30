@@ -2,6 +2,7 @@ export type WaitlistInterestId =
   | "wine_tasting"
   | "chefs_special"
   | "wine_walk"
+  | "food_walk"
   | "aperitivo";
 
 /** Why someone would buy / book */
@@ -20,7 +21,14 @@ export type WaitlistCompanyId =
   | "bring_partner"
   | "solo";
 
-export type WaitlistTableTypeId = "girls_only" | "mixed";
+export type WaitlistTableTypeId = "girls_only" | "mixed" | "no_preference";
+
+/** How someone wants to join MyTable overall */
+export type WaitlistJoinIntentId =
+  | "meet_new"
+  | "bring_someone"
+  | "with_group"
+  | "depends";
 
 /** Willing-to-pay bands, chosen per experience */
 export type WaitlistPriceRangeId =
@@ -29,113 +37,15 @@ export type WaitlistPriceRangeId =
   | "75_100"
   | "100_plus";
 
-export type WaitlistOptionCard<T extends string> = {
-  id: T;
-  title: string;
-  description?: string;
-};
-
-export type WaitlistOutcome = {
-  id: WaitlistInterestId;
-  eyebrow: string;
-  title: string;
-  body: string;
-  image: string;
-  imageAlt: string;
-};
-
+/** Stored prefs on priority-list / signup rows (legacy waitlist shape). */
 export type WaitlistPreferences = {
   interests: WaitlistInterestId[];
   /** Price bands the person is okay with, keyed by selected interest */
   priceRanges: Partial<Record<WaitlistInterestId, WaitlistPriceRangeId[]>>;
   why: WaitlistWhyId[];
   company: WaitlistCompanyId[];
+  joinIntent: WaitlistJoinIntentId[];
   tableType: WaitlistTableTypeId[];
   cities: string[];
   regionFlexible: boolean;
 };
-
-export interface WaitlistPageLabels {
-  meta: {
-    title: string;
-    description: string;
-  };
-  brand: string;
-  progressLabel: string;
-  back: string;
-  next: string;
-  start: string;
-  trustLine: string;
-  multiHint: string;
-  intro: {
-    eyebrow: string;
-    title: string;
-    subtitle: string;
-  };
-  steps: {
-    interests: {
-      title: string;
-      subtitle: string;
-      required: string;
-      options: WaitlistOptionCard<WaitlistInterestId>[];
-    };
-    price: {
-      title: string;
-      subtitle: string;
-      required: string;
-      options: WaitlistOptionCard<WaitlistPriceRangeId>[];
-    };
-    why: {
-      title: string;
-      subtitle: string;
-      required: string;
-      options: WaitlistOptionCard<WaitlistWhyId>[];
-    };
-    company: {
-      title: string;
-      subtitle: string;
-      required: string;
-      options: WaitlistOptionCard<WaitlistCompanyId>[];
-    };
-    tableType: {
-      title: string;
-      subtitle: string;
-      required: string;
-      options: WaitlistOptionCard<WaitlistTableTypeId>[];
-    };
-    where: {
-      title: string;
-      subtitle: string;
-      citiesHint: string;
-      citiesRequired: string;
-      cities: string[];
-      flexibleLabel: string;
-      flexibleHint: string;
-    };
-    contact: {
-      title: string;
-      subtitle: string;
-      tease: string;
-      choiceHint: string;
-      nameLabel: string;
-      namePlaceholder: string;
-      emailLabel: string;
-      emailPlaceholder: string;
-      cta: string;
-      submitting: string;
-    };
-  };
-  outcomes: Record<WaitlistInterestId, WaitlistOutcome>;
-  success: {
-    eyebrow: string;
-    waitlistNote: string;
-    whatsappTitle: string;
-    whatsappBody: string;
-    whatsappCta: string;
-    agendaLabel: string;
-  };
-  error: string;
-  databaseUnavailable: string;
-  breadcrumbHome: string;
-  breadcrumbWaitlist: string;
-}

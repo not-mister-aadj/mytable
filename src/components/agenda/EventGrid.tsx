@@ -16,6 +16,8 @@ interface EventGridProps {
   perPersonFromLabel: string;
   locale: Locale;
   filterKey: string;
+  /** Query string without `?` for experience deep links (e.g. from=sunday-table). */
+  linkQuery?: string;
 }
 
 export function EventGrid({
@@ -28,19 +30,20 @@ export function EventGrid({
   perPersonFromLabel,
   locale,
   filterKey,
+  linkQuery = "",
 }: EventGridProps) {
   return (
-    <section className="mt-16 sm:mt-20">
-      <div className="max-w-2xl">
-        <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+    <section className="mt-8 sm:mt-10">
+      <div>
+        <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-[1.75rem]">
           {grid.title}
         </h2>
-        <p className="mt-3 text-base leading-relaxed text-wine/65 sm:text-lg">
+        <p className="mt-1.5 text-sm leading-relaxed text-wine/55">
           {grid.subtitle}
         </p>
       </div>
 
-      <div className="mt-6 min-h-[280px] sm:mt-8">
+      <div className="mt-5 min-h-[240px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={filterKey}
@@ -48,7 +51,7 @@ export function EventGrid({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5"
           >
             {items.map((experience, index) => (
               <motion.div
@@ -68,7 +71,9 @@ export function EventGrid({
                   reserveCta={reserveCta}
                   viewTableCta={viewTableCta}
                   perPersonFromLabel={perPersonFromLabel}
-                  href={experiencePath(locale, experience.slug)}
+                  href={`${experiencePath(locale, experience.slug)}${
+                    linkQuery ? `?${linkQuery}` : ""
+                  }`}
                   locale={locale}
                   sourceSection="agenda_grid"
                 />

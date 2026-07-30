@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #f7f1e8;
+  --cream: #f6f1ea;
   --burgundy: #5a0f1b;
   --wine: #2b0d12;
   --gold: #c59a5b;
-  --beige: #fff8ef;
-  --rose: #e8a4b8;
-  --rose-deep: #9d4d6f;
-  --rose-soft: #f8e8ef;
-  --border-subtle: rgba(90, 15, 27, 0.12);
+  --beige: #faf6f0;
+  /* Dusty wine accents — hospitality, not bubblegum pink */
+  --rose: #a86b78;
+  --rose-deep: #7a3d4a;
+  --rose-soft: #f1ebe6;
+  --border-subtle: rgba(43, 13, 18, 0.12);
 }
 
 @theme inline {
@@ -44,15 +45,15 @@ body {
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: only light;
-    --cream: #f7f1e8;
+    --cream: #f6f1ea;
     --burgundy: #5a0f1b;
     --wine: #2b0d12;
     --gold: #c59a5b;
-    --beige: #fff8ef;
-    --rose: #e8a4b8;
-    --rose-deep: #9d4d6f;
-    --rose-soft: #f8e8ef;
-    --border-subtle: rgba(90, 15, 27, 0.12);
+    --beige: #faf6f0;
+    --rose: #a86b78;
+    --rose-deep: #7a3d4a;
+    --rose-soft: #f1ebe6;
+    --border-subtle: rgba(43, 13, 18, 0.12);
   }
 
   html[data-color-mode="light"],
@@ -143,11 +144,18 @@ html.samsung-force-light picture {
 }
 
 .animate-marquee-left {
-  animation: marquee-left 55s linear infinite;
+  animation: marquee-left 75s linear infinite;
 }
 
 .animate-marquee-right {
-  animation: marquee-right 55s linear infinite;
+  animation: marquee-right 75s linear infinite;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group\/marquee:hover .animate-marquee-left,
+  .group\/marquee:hover .animate-marquee-right {
+    animation-duration: 220s;
+  }
 }
 
 @keyframes toast-in {
@@ -184,6 +192,7 @@ html.samsung-force-light picture {
   .animate-marquee-left,
   .animate-marquee-right {
     animation: none;
+    transform: translateX(0);
   }
 
   .animate-toast-in,
@@ -192,29 +201,29 @@ html.samsung-force-light picture {
   }
 }
 
-/* Girls-only landing — navbar palette (premium blush / burgundy) */
+/* Site header — wine / cream hospitality palette */
 .site-header,
 .girls-only-header {
-  --go-blush-mist: #f3e4ea;
-  --go-blush-veil: #f7eef2;
-  --go-cream: #f7f1e8;
-  --go-rose-muted: #c991a8;
-  --go-rose-deep: #9d4d6f;
+  --go-blush-mist: #f3ebe4;
+  --go-blush-veil: #f6f1ea;
+  --go-cream: #f6f1ea;
+  --go-rose-muted: #a86b78;
+  --go-rose-deep: #7a3d4a;
   --go-burgundy: #5a0f1b;
   --go-wine: #2b0d12;
-  --go-nav-charcoal: #463238;
-  --go-nav-bg: rgba(243, 228, 234, 0.78);
-  --go-nav-bg-scrolled: rgba(247, 241, 232, 0.94);
-  --go-nav-border: rgba(157, 77, 111, 0.16);
-  --go-nav-border-strong: rgba(157, 77, 111, 0.24);
-  --go-nav-link: #463238;
+  --go-nav-charcoal: #3a2428;
+  --go-nav-bg: rgba(246, 241, 234, 0.88);
+  --go-nav-bg-scrolled: rgba(246, 241, 234, 0.96);
+  --go-nav-border: rgba(43, 13, 18, 0.1);
+  --go-nav-border-strong: rgba(43, 13, 18, 0.16);
+  --go-nav-link: #3a2428;
   --go-nav-link-hover: #5a0f1b;
-  --go-nav-cta-start: #7a3b52;
-  --go-nav-cta-end: #5a0f1b;
-  --go-nav-cta-hover-start: #6b3448;
-  --go-nav-cta-hover-end: #4a0c16;
-  --go-nav-lang-bg: rgba(255, 248, 239, 0.88);
-  --go-nav-lang-border: rgba(157, 77, 111, 0.22);
+  --go-nav-cta-start: #5a0f1b;
+  --go-nav-cta-end: #2b0d12;
+  --go-nav-cta-hover-start: #4a0c16;
+  --go-nav-cta-hover-end: #1a080c;
+  --go-nav-lang-bg: rgba(250, 246, 240, 0.92);
+  --go-nav-lang-border: rgba(43, 13, 18, 0.14);
   --go-nav-lang-text: #5a0f1b;
 }
 

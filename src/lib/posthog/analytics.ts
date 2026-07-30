@@ -78,11 +78,17 @@ export function trackBookingStarted(
   language: string,
   source: "detail_page" | "agenda_card" | "hero" | "sticky_bar" | "final_cta" | "mobile_sticky" | "mid_cta",
   seatsSelected?: number,
+  extras?: {
+    join_option?: string;
+    ticket_quantity?: number;
+    is_multi_ticket?: boolean;
+  },
 ): void {
   capture(PostHogEvents.bookingStarted, {
     ...buildExperienceProperties(experience, language),
     seats_selected: seatsSelected,
     source,
+    ...extras,
   });
 }
 
@@ -91,12 +97,18 @@ export function trackSeatsSelected(
   language: string,
   seats: number,
   totalPriceOverride?: number,
+  extras?: {
+    join_option?: string;
+    ticket_quantity?: number;
+    is_multi_ticket?: boolean;
+  },
 ): void {
   const totalPrice = totalPriceOverride ?? experience.price * seats;
   capture(PostHogEvents.seatsSelected, {
     ...buildExperienceProperties(experience, language),
     seats,
     total_price: totalPrice,
+    ...extras,
   });
 }
 
@@ -160,6 +172,56 @@ export function trackWhatsappJoinClicked(props: {
   locale: string;
 }): void {
   capture(PostHogEvents.whatsappJoinClicked, props);
+}
+
+export function trackSundayTableCtaClicked(props: {
+  cta: string;
+  source?: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.sundayTableCtaClicked, props);
+}
+
+export function trackPremiumExperienceViewed(props: AnalyticsProperties): void {
+  capture(PostHogEvents.premiumExperienceViewed, props);
+}
+
+export function trackGroupInvitationStarted(props: {
+  source?: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.groupInvitationStarted, props);
+}
+
+export function trackGroupInvitationShared(props: {
+  channel: string;
+  source?: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.groupInvitationShared, props);
+  capture(PostHogEvents.inviteShareClicked, props);
+}
+
+export function trackClubmemberPaid(props: {
+  plan_id?: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.clubmemberPaid, props);
+}
+
+export function trackSundayRsvp(props: {
+  city?: string;
+  table_type?: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.sundayRsvp, props);
+}
+
+export function trackInviteShareClicked(props: {
+  channel: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.inviteShareClicked, props);
 }
 
 export function trackAgendaTabChange(

@@ -18,8 +18,38 @@ export interface GirlsOnlyPageLabels {
     scarcityTemplate: string;
     featuredInHeroLabel: string;
   };
+  /** Homepage dual-path router (meet vs culinary). */
+  intent: {
+    brand: string;
+    question: string;
+    subtitle: string;
+    meet: {
+      id: "meet";
+      title: string;
+      description: string;
+      detailEyebrow: string;
+      detailTitle: string;
+      detailBody: string;
+      perks: string[];
+      primaryCta: string;
+      secondaryCta: string;
+    };
+    culinary: {
+      id: "culinary";
+      title: string;
+      description: string;
+      detailEyebrow: string;
+      detailTitle: string;
+      detailBody: string;
+      perks: string[];
+      primaryCta: string;
+      secondaryCta: string;
+    };
+    changePath: string;
+  };
   cta: {
     viewAllSundays: string;
+    choosePath: string;
   };
   faq: {
     title: string;
@@ -82,9 +112,30 @@ export interface GirlsOnlyPageLabels {
     subtitle: string;
     button: string;
   };
+  sundayTable: {
+    eyebrow: string;
+    title: string;
+    body: string;
+  };
+  premium: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    cta: string;
+  };
+  nextTable: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    cta: string;
+    shareWhatsapp: string;
+    copyLink: string;
+    copied: string;
+  };
   status: Record<ExperienceStatusKey, string>;
   femaleOnlyBadge: string;
   reserveCta: string;
   viewTableCta: string;
+  joinIndividuallyCta: string;
   perPersonFrom: string;
 }

@@ -6,7 +6,6 @@ import {
   blogPostPath,
   experiencePath,
   localePath,
-  waitlistPath,
 } from "@/i18n/config";
 import { companyLegal } from "@/lib/company-legal";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
@@ -61,8 +60,8 @@ export function websiteJsonLd(locale: Locale): JsonLd {
     alternateName: "MyTable Club",
     description:
       locale === "en"
-        ? "Social wine tastings and chef's specials at one table across the Netherlands."
-        : "Sociale wijnproeverijen en chef's specials aan één tafel door heel Nederland.",
+        ? "Culinary discoveries around the table. Good taste. Great company."
+        : "Culinaire ontdekkingen rond de tafel. Goede smaak. Goed gezelschap.",
     inLanguage: ["nl", "en"],
     publisher: { "@id": orgId() },
   };
@@ -72,14 +71,12 @@ export function siteNavigationJsonLd(locale: Locale): JsonLd {
   const items =
     locale === "en"
       ? [
-          { name: "Girls only", path: localePath("en") },
-          { name: "Calendar", path: agendaPath("en") },
-          { name: "Your table", path: waitlistPath("en") },
+          { name: "Sunday Table", path: localePath("en") },
+          { name: "Experiences", path: agendaPath("en") },
         ]
       : [
-          { name: "Girls only", path: localePath("nl") },
-          { name: "Agenda", path: agendaPath("nl") },
-          { name: "Jouw tafel", path: waitlistPath("nl") },
+          { name: "Sunday Table", path: localePath("nl") },
+          { name: "Ervaringen", path: agendaPath("nl") },
         ];
 
   return {

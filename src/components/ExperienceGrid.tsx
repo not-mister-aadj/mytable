@@ -42,7 +42,7 @@ export function ExperienceGrid({
         hideSubtitleOnMobile={hideSubtitleOnMobile}
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
         {items.map((item) => {
           const experience = enrichExperience(item);
           return (

@@ -44,7 +44,7 @@ export const blogUiNl: BlogUiLabels = {
   sidebarCtaBody:
     "Boek een wijnproeverij bij MyTable: vier wijnen, bites en een tafelmix die klopt.",
   sidebarCtaButton: "Bekijk beschikbare tafels",
-  sidebarCtaFootnote: "Solo welkom · Vanaf €39 · 2 min boeken",
+  sidebarCtaFootnote: "Solo welkom · €49 p.p. · 2 min boeken",
 };
 
 export const blogUiEn: BlogUiLabels = {
@@ -70,7 +70,7 @@ export const blogUiEn: BlogUiLabels = {
   sidebarCtaBody:
     "Book a MyTable wine tasting: four wines, bites and a table mix that works.",
   sidebarCtaButton: "See available tables",
-  sidebarCtaFootnote: "Solo welcome · From €39 · 2 min to book",
+  sidebarCtaFootnote: "Solo welcome · €49 pp · 2 min to book",
 };
 
 export function getBlogUiLabels(locale: "nl" | "en"): BlogUiLabels {

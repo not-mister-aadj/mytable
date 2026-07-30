@@ -60,7 +60,7 @@ export function MetaConfirmationPurchase({ initial, locale }: Props) {
     if (!sessionId) {
       if (process.env.NODE_ENV === "development") {
         console.warn(
-          "[Meta Pixel] Geen session_id in URL op bevestigingspagina — Purchase kan niet vuren.",
+          "[Meta Pixel] Geen session_id in URL op bevestigingspagina - Purchase kan niet vuren.",
           "URL moet zijn: /boeking/bevestigd?session_id=cs_...",
         );
       }

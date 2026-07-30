@@ -141,8 +141,17 @@ export function pageView(params?: Record<string, unknown>): void {
   logMetaEvent("PageView", payload);
 }
 
-/** Homepage + agenda — distinct from event detail (ViewContent). */
-export function landingPageView(pathname: string, pageType: "home" | "agenda"): void {
+/** Acquisition / funnel landings — distinct from event detail (ViewContent). */
+export function landingPageView(
+  pathname: string,
+  pageType:
+    | "home"
+    | "agenda"
+    | "join"
+    | "girls_only"
+    | "clubmember"
+    | "waitlist",
+): void {
   const params = withUtm({
     page_type: pageType,
     page_path: pathname,

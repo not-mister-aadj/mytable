@@ -32,15 +32,16 @@ export function formatCardMetaLine(
 /** Date and time only — city is shown separately on the card */
 export function formatCardDateTimeLine(
   dateTime: string,
-  locale: Locale,
+  _locale: Locale,
 ): string {
   const parts = dateTime.split(" · ");
   const datePart = parts[0] ?? dateTime;
   const timePart = parts.slice(1).join(" · ");
-  const shortDate = datePart
-    .replace(locale === "nl" ? WEEKDAY_PREFIX_NL : WEEKDAY_PREFIX_EN, "")
-    .trim();
-  return [shortDate, timePart].filter(Boolean).join(" · ");
+  const capitalizedDate =
+    datePart.length > 0
+      ? datePart.charAt(0).toUpperCase() + datePart.slice(1)
+      : datePart;
+  return [capitalizedDate, timePart].filter(Boolean).join(" · ");
 }
 
 /** Spots remaining at or below this → agenda card shows “bijna vol” */

@@ -167,7 +167,7 @@ export function ExperienceStickyBookingBar({
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           className={`fixed inset-x-0 top-[4.25rem] z-[48] hidden border-b shadow-sm backdrop-blur-md lg:block ${
             isFemaleOnly
-              ? "border-rose/25 bg-rose-soft/95"
+              ? "border-wine/10 bg-beige/95"
               : "border-border-subtle bg-cream/95"
           }`}
           role="region"
@@ -205,7 +205,7 @@ export function ExperienceStickyBookingBar({
                 {hasTags ? (
                   <ul className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     {isFemaleOnly ? (
-                      <li className="rounded-full bg-rose px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream sm:text-xs">
+                      <li className="rounded-full bg-burgundy px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream sm:text-xs">
                         {femaleOnlyBadge}
                       </li>
                     ) : null}
@@ -214,7 +214,7 @@ export function ExperienceStickyBookingBar({
                         key={tag}
                         className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium sm:text-xs ${
                           isFemaleOnly
-                            ? "bg-rose/15 text-rose-deep"
+                            ? "bg-burgundy/10 text-burgundy"
                             : "bg-wine/8 text-wine/75"
                         }`}
                       >
@@ -235,7 +235,7 @@ export function ExperienceStickyBookingBar({
                 }
                 className={`w-full shrink-0 px-5 py-2.5 text-sm sm:w-auto ${
                   isSoldOut ? "pointer-events-none opacity-50" : ""
-                } ${isFemaleOnly ? "bg-rose hover:bg-rose-deep" : ""}`}
+                } ${isFemaleOnly ? "bg-wine hover:bg-burgundy" : ""}`}
               >
                 {reserveCta}
               </Button>

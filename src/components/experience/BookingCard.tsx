@@ -28,17 +28,14 @@ import {
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
 import {
-  clampGroupSeats,
+  clampTicketSeats,
   computeTierPrice,
-  getBookingTierConfig,
-  getBookingTiers,
-  getLowestTierPerPersonEuros,
-  GROUP_MIN_SEATS,
-  maxGroupSeats,
+  FLAT_PER_PERSON_CENTS,
+  maxTicketSeats,
   seatingForTier,
-  type BookingTier,
-  type BookingTierPrice,
+  tierForSeats,
 } from "@/lib/booking-tiers";
+import { useAuthSession } from "@/features/auth/AuthSessionContext";
 
 interface BookingCardProps {
   experience: ExperienceItem;
@@ -47,12 +44,20 @@ interface BookingCardProps {
   reserveCta: string;
   locale: Locale;
   className?: string;
-  /** Tighter layout — hides social proof and trust bullets. */
+  /** Tighter layout - hides social proof and trust bullets. */
   compact?: boolean;
   /** Cap height on desktop sticky sidebar only; mobile grows with the page. */
   fitViewport?: boolean;
   /** e.g. "Altijd op zondag · Middag" */
   scheduleNote?: string;
+  /** Active Clubmember — 10% off culinary tickets. */
+  clubMemberDiscount?: boolean;
+  /** Booked via post-Sunday Table group CTA. */
+  fromSundayTable?: boolean;
+  /** Optional ambassador code from URL. */
+  affiliateCode?: string | null;
+  /** Optional referral code from URL. */
+  referralCode?: string | null;
 }
 
 function choiceLegendClass(compact: boolean): string {
@@ -119,38 +124,6 @@ function BookingChoiceOption({
   );
 }
 
-function tierFitsSpots(tier: BookingTierPrice, spotsLeft: number | null): boolean {
-  return spotsLeft === null || spotsLeft >= tier.seats;
-}
-
-/** Default to solo (smallest), falling back to the first tier that still fits. */
-function pickDefaultTier(
-  tiers: BookingTierPrice[],
-  spotsLeft: number | null,
-): BookingTier {
-  const fitting = tiers.filter((t) => tierFitsSpots(t, spotsLeft));
-  const pool = fitting.length > 0 ? fitting : tiers;
-  return (pool[0] ?? tiers[0]).tier;
-}
-
-function tierTitle(
-  tier: BookingTier,
-  labels: Dictionary["experiencePage"]["bookingTiers"],
-): string {
-  if (tier === "solo") return labels.soloTitle;
-  if (tier === "duo") return labels.duoTitle;
-  return labels.groupTitle;
-}
-
-function tierCta(
-  tier: BookingTier,
-  labels: Dictionary["experiencePage"]["bookingTiers"],
-): string {
-  if (tier === "solo") return labels.soloCta;
-  if (tier === "duo") return labels.duoCta;
-  return labels.groupCta;
-}
-
 function tierSeatsLabel(
   seats: number,
   labels: Dictionary["experiencePage"]["bookingTiers"],
@@ -158,216 +131,6 @@ function tierSeatsLabel(
   return seats === 1
     ? labels.seatOne
     : labels.seatOther.replace("{count}", String(seats));
-}
-
-function tierSeatsDisplay(
-  tier: BookingTier,
-  selected: boolean,
-  groupSeats: number,
-  labels: Dictionary["experiencePage"]["bookingTiers"],
-): string {
-  if (tier === "group") {
-    const seats = selected
-      ? tierSeatsLabel(groupSeats, labels)
-      : labels.seatsFrom.replace("{count}", String(GROUP_MIN_SEATS));
-    return `${seats} · ${labels.seatsOwnTable}`;
-  }
-  const seats = tierSeatsLabel(getBookingTierConfig(tier).seats, labels);
-  return `${seats} · ${labels.seatsJoinOthers}`;
-}
-
-function displayTierPriceForCard(
-  tierPrice: BookingTierPrice,
-  selectedTier: BookingTier,
-  groupSeats: number,
-): BookingTierPrice {
-  if (tierPrice.tier === "group" && selectedTier === "group") {
-    return computeTierPrice("group", groupSeats);
-  }
-  return tierPrice;
-}
-
-function GroupSeatsStepper({
-  value,
-  min,
-  max,
-  onChange,
-  label,
-  compact,
-  isFemaleOnly,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (next: number) => void;
-  label: string;
-  compact: boolean;
-  isFemaleOnly: boolean;
-}) {
-  const btnClass = `flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-lg font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
-    isFemaleOnly
-      ? "border-rose/30 bg-white text-rose-deep hover:border-rose hover:bg-rose/5"
-      : "border-border-subtle bg-white text-wine hover:border-burgundy/35 hover:bg-burgundy/5"
-  }`;
-
-  return (
-    <div
-      className={`flex items-center justify-between gap-3 rounded-2xl border px-4 ${
-        compact ? "py-2.5" : "py-3"
-      } ${
-        isFemaleOnly
-          ? "border-rose/25 bg-white/80"
-          : "border-border-subtle bg-white/80"
-      }`}
-    >
-      <span className={`font-medium text-wine ${compact ? "text-xs" : "text-sm"}`}>
-        {label}
-      </span>
-      <div className="flex items-center gap-2.5">
-        <button
-          type="button"
-          aria-label="Minder plekken"
-          className={btnClass}
-          disabled={value <= min}
-          onClick={() => onChange(Math.max(min, value - 1))}
-        >
-          −
-        </button>
-        <span
-          className={`min-w-[2ch] text-center font-semibold tabular-nums text-wine ${
-            compact ? "text-sm" : "text-base"
-          }`}
-          aria-live="polite"
-        >
-          {value}
-        </span>
-        <button
-          type="button"
-          aria-label="Meer plekken"
-          className={btnClass}
-          disabled={value >= max}
-          onClick={() => onChange(Math.min(max, value + 1))}
-        >
-          +
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TierCard({
-  tierPrice,
-  labels,
-  selected,
-  disabled,
-  compact,
-  isFemaleOnly,
-  groupSeats,
-  selectedTier,
-  onSelect,
-}: {
-  tierPrice: BookingTierPrice;
-  labels: Dictionary["experiencePage"]["bookingTiers"];
-  selected: boolean;
-  disabled: boolean;
-  compact: boolean;
-  isFemaleOnly: boolean;
-  groupSeats: number;
-  selectedTier: BookingTier;
-  onSelect: () => void;
-}) {
-  const accentRing = isFemaleOnly
-    ? "border-rose bg-white ring-1 ring-rose/35 shadow-[0_4px_18px_rgba(157,77,111,0.16)]"
-    : "border-burgundy/45 bg-white ring-1 ring-burgundy/20 shadow-[0_4px_18px_rgba(43,13,18,0.1)]";
-  const idleRing = isFemaleOnly
-    ? "border-rose/20 bg-white/70 hover:border-rose/40 hover:bg-white"
-    : "border-border-subtle bg-white/80 hover:border-burgundy/30 hover:bg-white";
-  const dotOn = isFemaleOnly ? "border-rose bg-rose" : "border-burgundy bg-burgundy";
-  const dotOff = isFemaleOnly
-    ? "border-rose/30 bg-white group-hover:border-rose/45"
-    : "border-wine/20 bg-white group-hover:border-burgundy/35";
-
-  const badge = tierPrice.isBestValue
-    ? {
-        label: labels.bestValue,
-        showStar: true,
-        className: isFemaleOnly ? "bg-rose text-cream" : "bg-gold text-wine",
-      }
-    : tierPrice.isMostChosen
-      ? {
-          label: labels.mostChosen,
-          showStar: false,
-          className: isFemaleOnly
-            ? "bg-rose-soft text-rose-deep ring-1 ring-rose/30"
-            : "bg-beige text-wine ring-1 ring-border-subtle",
-        }
-      : null;
-
-  const displayPrice = displayTierPriceForCard(
-    tierPrice,
-    selectedTier,
-    groupSeats,
-  );
-
-  return (
-    <label
-      className={`group relative flex cursor-pointer items-center gap-3 rounded-2xl border px-4 transition-all ${
-        compact ? "py-2.5" : "py-3.5"
-      } ${selected ? accentRing : idleRing} ${
-        disabled ? "cursor-not-allowed opacity-45" : ""
-      }`}
-    >
-      <input
-        type="radio"
-        name="pricingTier"
-        className="sr-only"
-        value={tierPrice.tier}
-        checked={selected}
-        disabled={disabled}
-        onChange={onSelect}
-      />
-      <span
-        className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-          selected ? dotOn : dotOff
-        }`}
-        aria-hidden
-      >
-        {selected ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span
-          className={`flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold text-wine ${
-            compact ? "text-sm" : "text-[15px]"
-          }`}
-        >
-          {tierTitle(tierPrice.tier, labels)}
-          {badge ? (
-            <span
-              className={`inline-flex shrink-0 items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}
-            >
-              {badge.showStar ? <span aria-hidden>★</span> : null}
-              {badge.label}
-            </span>
-          ) : null}
-        </span>
-        <span className="mt-0.5 block text-xs text-wine/50">
-          {tierSeatsDisplay(tierPrice.tier, selected, groupSeats, labels)}
-        </span>
-      </span>
-      <span className="shrink-0 text-right">
-        <span
-          className={`block font-serif font-medium ${compact ? "text-lg" : "text-xl"} ${
-            isFemaleOnly ? "text-rose-deep" : "text-burgundy"
-          }`}
-        >
-          €{displayPrice.totalEuros}
-        </span>
-        <span className="mt-0.5 block text-xs text-wine/50">
-          {labels.perPerson.replace("{price}", String(displayPrice.perPersonEuros))}
-        </span>
-      </span>
-    </label>
-  );
 }
 
 export function BookingCard({
@@ -380,7 +143,12 @@ export function BookingCard({
   compact = false,
   fitViewport = false,
   scheduleNote,
+  clubMemberDiscount = false,
+  fromSundayTable = false,
+  affiliateCode = null,
+  referralCode = null,
 }: BookingCardProps) {
+  const { user } = useAuthSession();
   const { date, time } = splitDateTime(experience.dateTime);
   const isClosed = experience.status === "closed";
   const isSoldOut = !isClosed && !canReserve(experience);
@@ -390,16 +158,15 @@ export function BookingCard({
   const eventDbId = getEventIdForCheckout(experience);
   const showBookingForm = !bookingDisabled;
 
-  const tiers = getBookingTiers();
   const tierLabels = labels.bookingTiers;
+  const ticketOptionsMax = maxTicketSeats(spotsLeft);
 
   const [formStep, setFormStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [tier, setTier] = useState<BookingTier>(() =>
-    pickDefaultTier(tiers, spotsLeft),
+  const [ticketCount, setTicketCount] = useState(() =>
+    clampTicketSeats(1, spotsLeft),
   );
-  const [groupSeats, setGroupSeats] = useState(GROUP_MIN_SEATS);
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [dietaryNotes, setDietaryNotes] = useState("");
@@ -412,34 +179,42 @@ export function BookingCard({
     experience.atmosphereTags,
   );
 
-  const selectedTierPrice = computeTierPrice(
-    tier,
-    tier === "group" ? groupSeats : undefined,
-  );
-  const seats = tier === "group" ? groupSeats : getBookingTierConfig(tier).seats;
-  const groupSeatsMax = maxGroupSeats(spotsLeft);
+  useEffect(() => {
+    if (!user) return;
+    const meta = user.user_metadata as Record<string, unknown> | null;
+    const metaName =
+      (typeof meta?.full_name === "string" && meta.full_name.trim()) ||
+      (typeof meta?.name === "string" && meta.name.trim()) ||
+      "";
+    setEmail((prev) => prev || user.email || "");
+    setName((prev) => prev || metaName);
+  }, [user]);
+
+  const seats = clampTicketSeats(ticketCount, spotsLeft);
+  const tier = tierForSeats(seats);
+  const selectedTierPrice = computeTierPrice(tier, seats, {
+    clubMemberDiscount,
+  });
+  const listPerPersonEuros = Math.round(FLAT_PER_PERSON_CENTS / 100);
   const seatingPreference = seatingForTier(tier);
-  const priceLine =
-    formStep === 2
-      ? tierLabels.perPerson.replace(
-          "{price}",
-          String(selectedTierPrice.perPersonEuros),
-        )
-      : tierLabels.perPersonFrom.replace(
-          "{price}",
-          String(getLowestTierPerPersonEuros()),
-        );
+  const priceLine = clubMemberDiscount
+    ? `€${selectedTierPrice.totalEuros} · €${selectedTierPrice.perPersonEuros} p.p.`
+    : `€${selectedTierPrice.totalEuros} · ${tierLabels.perPerson.replace(
+        "{price}",
+        String(selectedTierPrice.perPersonEuros),
+      )}`;
+  const clubDiscountHint =
+    locale === "en" ? "Clubmember −10%" : "Clubmember −10%";
 
   useEffect(() => {
     setFormStep(1);
     setError(null);
-    setTier(pickDefaultTier(tiers, spotsLeft));
-    setGroupSeats(clampGroupSeats(GROUP_MIN_SEATS, spotsLeft));
+    setTicketCount(clampTicketSeats(1, spotsLeft));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experience.id, eventDbId]);
 
   useEffect(() => {
-    setGroupSeats((current) => clampGroupSeats(current, spotsLeft));
+    setTicketCount((current) => clampTicketSeats(current, spotsLeft));
   }, [spotsLeft]);
 
   function validateStep1(): boolean {
@@ -475,7 +250,10 @@ export function BookingCard({
     if (formStep !== 2) return;
     setLoading(true);
     setError(null);
-    trackBookingStarted(experience, locale, "detail_page", seats);
+    trackBookingStarted(experience, locale, "detail_page", seats, {
+      ticket_quantity: seats,
+      is_multi_ticket: seats > 1,
+    });
     try {
       const metaCookies = getMetaBrowserCookies();
       const res = await fetch("/api/checkout", {
@@ -492,6 +270,9 @@ export function BookingCard({
           joinPriorityList,
           locale,
           dietaryNotes,
+          fromSundayTable,
+          affiliateCode: affiliateCode || undefined,
+          referralCode: referralCode || undefined,
           utm: getStoredUtm(),
           meta: {
             ...metaCookies,
@@ -555,6 +336,18 @@ export function BookingCard({
       >
         {priceLine}
       </p>
+      {clubMemberDiscount ? (
+        <p
+          className={`text-xs font-medium ${
+            compact ? "mt-1" : "mt-1.5"
+          } ${isFemaleOnly ? "text-rose-deep/80" : "text-burgundy/80"}`}
+        >
+          {clubDiscountHint}
+          <span className="ml-1.5 text-wine/40 line-through">
+            €{listPerPersonEuros} p.p.
+          </span>
+        </p>
+      ) : null}
 
       {isClosed || isSoldOut ? (
         <span
@@ -735,67 +528,55 @@ export function BookingCard({
                   className={inputClass}
                 />
               </label>
-              <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
-                <legend className={choiceLegendClass(compact)}>
-                  {tierLabels.legend}
-                </legend>
-                {tiers.map((tierPrice) => {
-                  const disabled = !tierFitsSpots(tierPrice, spotsLeft);
-                  return (
-                    <TierCard
-                      key={tierPrice.tier}
-                      tierPrice={tierPrice}
-                      labels={tierLabels}
-                      selected={tier === tierPrice.tier}
-                      disabled={disabled}
-                      compact={compact}
-                      isFemaleOnly={isFemaleOnly}
-                      groupSeats={groupSeats}
-                      selectedTier={tier}
-                      onSelect={() => {
-                        if (disabled) return;
-                        setTier(tierPrice.tier);
-                        if (tierPrice.tier === "group") {
-                          setGroupSeats((current) =>
-                            clampGroupSeats(current, spotsLeft),
-                          );
-                        }
-                        trackSeatsSelected(
-                          experience,
-                          locale,
-                          tierPrice.tier === "group"
-                            ? groupSeats
-                            : tierPrice.seats,
-                          displayTierPriceForCard(
-                            tierPrice,
-                            tierPrice.tier,
-                            groupSeats,
-                          ).totalEuros,
-                        );
-                      }}
-                    />
-                  );
-                })}
-              </fieldset>
-              {tier === "group" ? (
-                <GroupSeatsStepper
-                  value={groupSeats}
-                  min={GROUP_MIN_SEATS}
-                  max={groupSeatsMax}
-                  label={tierLabels.groupSeatsLabel}
-                  compact={compact}
-                  isFemaleOnly={isFemaleOnly}
-                  onChange={(next) => {
-                    setGroupSeats(next);
-                    trackSeatsSelected(
-                      experience,
-                      locale,
-                      next,
-                      computeTierPrice("group", next).totalEuros,
-                    );
-                  }}
-                />
-              ) : null}
+              <div>
+                <label className={labelClass}>
+                  {tierLabels.groupSeatsLabel}
+                  <select
+                    required
+                    data-booking-step="1"
+                    value={seats}
+                    onChange={(e) => {
+                      const next = clampTicketSeats(
+                        Number(e.target.value),
+                        spotsLeft,
+                      );
+                      setTicketCount(next);
+                      const nextPrice = computeTierPrice(
+                        tierForSeats(next),
+                        next,
+                        { clubMemberDiscount },
+                      );
+                      trackSeatsSelected(
+                        experience,
+                        locale,
+                        next,
+                        nextPrice.totalEuros,
+                        {
+                          ticket_quantity: next,
+                          is_multi_ticket: next > 1,
+                        },
+                      );
+                    }}
+                    className={inputClass}
+                  >
+                    {Array.from({ length: ticketOptionsMax }, (_, i) => {
+                      const n = i + 1;
+                      return (
+                        <option key={n} value={n}>
+                          {tierSeatsLabel(n, tierLabels)}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+                <p
+                  className={`mt-1.5 leading-snug text-wine/55 ${
+                    compact ? "text-[11px]" : "text-xs"
+                  }`}
+                >
+                  {tierLabels.seatingTogetherHint}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={goToStep2}
@@ -821,10 +602,9 @@ export function BookingCard({
               >
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-wine">
-                    {tierTitle(tier, tierLabels)}
+                    {tierSeatsLabel(seats, tierLabels)}
                   </p>
                   <p className="mt-0.5 text-[11px] text-wine/55">
-                    {tierSeatsLabel(seats, tierLabels)} ·{" "}
                     {tierLabels.perPerson.replace(
                       "{price}",
                       String(selectedTierPrice.perPersonEuros),
@@ -953,7 +733,7 @@ export function BookingCard({
                     : "bg-burgundy hover:bg-wine"
                 }`}
               >
-                {loading ? "Doorsturen…" : tierCta(tier, tierLabels)}
+                {loading ? "Doorsturen…" : reserveCta}
               </button>
               <button
                 type="button"

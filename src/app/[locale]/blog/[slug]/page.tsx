@@ -138,7 +138,7 @@ export default async function BlogArticlePage({ params }: Props) {
           related={related}
         />
       </main>
-      <Footer dict={dict.footer} locale={locale} />
+      <Footer dict={dict.footer} locale={locale} showSeoLinks />
     </>
   );
 }

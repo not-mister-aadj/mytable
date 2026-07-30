@@ -40,6 +40,11 @@ export function LanguageSwitcher({
       to_language: nextLocale,
       page_path: pathname,
     });
+    try {
+      localStorage.setItem("mytable_locale_pref", nextLocale);
+    } catch {
+      /* ignore */
+    }
   }
 
   return (

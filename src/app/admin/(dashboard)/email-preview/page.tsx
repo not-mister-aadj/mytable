@@ -28,6 +28,30 @@ export default async function EmailPreviewIndexPage() {
             Boeking verplaatst
           </Link>
         </li>
+        <li>
+          <Link
+            href={adminPath("/email-preview/sunday-table-confirmation")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Sunday Table bevestiging
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={adminPath("/email-preview/sunday-table-cancel")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Sunday Table annulering
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={adminPath("/email-preview/sunday-table-location")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Sunday Table locatie (24u)
+          </Link>
+        </li>
       </ul>
     </div>
   );

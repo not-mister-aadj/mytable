@@ -39,7 +39,7 @@ function FunnelStrip({ steps }: { steps: AnalyticsSummary["funnel7d"] }) {
     <section className="rounded-2xl border border-border-subtle bg-beige p-6">
       <h2 className="text-lg font-medium text-burgundy">Groei-funnel (7 dagen)</h2>
       <p className="mt-1 text-sm text-wine/60">
-        Stappen op mytable.club — vult aan naarmate er traffic binnenkomt.
+        Stappen op mytable.club - vult aan naarmate er traffic binnenkomt.
       </p>
       <ol className="mt-6 space-y-3">
         {steps.map((step, index) => {
@@ -47,7 +47,7 @@ function FunnelStrip({ steps }: { steps: AnalyticsSummary["funnel7d"] }) {
           const conversion =
             prev && prev > 0
               ? `${Math.round((step.count / prev) * 100)}%`
-              : "—";
+              : "-";
           const width = `${Math.max(8, (step.count / max) * 100)}%`;
 
           return (
@@ -95,7 +95,7 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
         <div>
           <h1 className="font-serif text-3xl text-burgundy">Analytics</h1>
           <p className="mt-2 text-sm text-wine/70">
-            CEO-overzicht — traffic, intent, checkout, revenue (7 dagen).
+            CEO-overzicht - traffic, intent, checkout, revenue (7 dagen).
           </p>
         </div>
         {adminApiOn ? (
@@ -130,7 +130,7 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
             "PostHog → Settings → Personal API keys → Create key",
             "Voeg POSTHOG_PERSONAL_API_KEY toe (Vercel Production, sensitive)",
             "Voeg NEXT_PUBLIC_POSTHOG_PROJECT_ID toe (Project Settings → Project ID)",
-            "Redeploy — daarna verschijnen de kaarten hier",
+            "Redeploy - daarna verschijnen de kaarten hier",
           ]}
         />
       )}

@@ -11,6 +11,8 @@ import {
   viewContent,
 } from "@/lib/analytics/metaPixel";
 import { inferPageType } from "@/lib/analytics/inferPageType";
+import type { ClubPlanId } from "@/db/schema";
+import { CLUB_PLAN_PRICING } from "@/lib/club/plan-pricing";
 
 export function trackMetaPageView(pathname: string): void {
   const pageType = inferPageType(pathname);
@@ -20,7 +22,14 @@ export function trackMetaPageView(pathname: string): void {
     return;
   }
 
-  if (pageType === "home" || pageType === "agenda") {
+  if (
+    pageType === "home" ||
+    pageType === "agenda" ||
+    pageType === "join" ||
+    pageType === "girls_only" ||
+    pageType === "clubmember" ||
+    pageType === "waitlist"
+  ) {
     landingPageView(pathname, pageType);
     return;
   }
@@ -28,7 +37,12 @@ export function trackMetaPageView(pathname: string): void {
   pageView({
     page_type: pageType,
     page_path: pathname,
-    page_category: "other",
+    page_category:
+      pageType === "success" || pageType === "failed"
+        ? "checkout"
+        : pageType === "blog"
+          ? "content"
+          : "other",
   });
 }
 
@@ -73,6 +87,25 @@ export function trackMetaInitiateCheckout(
   });
 }
 
+export function trackMetaClubInitiateCheckout(input: {
+  membershipId: string;
+  planId: ClubPlanId;
+  city: string;
+  locale: "nl" | "en";
+}): void {
+  const plan = CLUB_PLAN_PRICING[input.planId];
+  initiateCheckout({
+    content_name: input.locale === "en" ? plan.nameEn : plan.nameNl,
+    content_ids: [`club_${input.planId}`],
+    event_type: "club_membership",
+    city: input.city,
+    seats: 1,
+    value: plan.amountCents / 100,
+    currency: "EUR",
+    booking_id: input.membershipId,
+  });
+}
+
 export function trackMetaPurchase(summary: BookingOutcomeSummary): void {
   if (!summary.bookingId || summary.amountCents == null) return;
 
@@ -107,6 +140,26 @@ export function trackMetaPurchasePayload(data: {
     seats: data.seats,
     booking_id: data.bookingId,
     content_ids: data.eventId ? [`event_${data.eventId}`] : undefined,
+  });
+}
+
+export function trackMetaClubPurchase(data: {
+  membershipId: string;
+  planId: string;
+  value: number;
+  currency: string;
+  contentName: string;
+  city: string;
+}): boolean {
+  return purchase({
+    value: data.value,
+    currency: data.currency,
+    content_name: data.contentName,
+    event_type: "club_membership",
+    city: data.city,
+    seats: 1,
+    booking_id: data.membershipId,
+    content_ids: [`club_${data.planId}`],
   });
 }
 

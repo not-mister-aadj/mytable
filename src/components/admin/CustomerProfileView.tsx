@@ -123,25 +123,25 @@ export function CustomerProfileView({
             <div className="flex justify-between gap-4">
               <dt className="text-wine/55">Favoriete stad</dt>
               <dd className="font-medium text-wine">
-                {profile.favoriteCity ?? "—"}
+                {profile.favoriteCity ?? "-"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-wine/55">Favoriet type</dt>
               <dd className="font-medium text-wine">
-                {profile.favoriteEventType ?? "—"}
+                {profile.favoriteEventType ?? "-"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-wine/55">Taal</dt>
               <dd className="font-medium text-wine">
-                {profile.language?.toUpperCase() ?? "—"}
+                {profile.language?.toUpperCase() ?? "-"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-wine/55">Tags</dt>
               <dd className="font-medium text-wine">
-                {profile.tags.length > 0 ? profile.tags.join(", ") : "—"}
+                {profile.tags.length > 0 ? profile.tags.join(", ") : "-"}
               </dd>
             </div>
           </dl>
@@ -152,7 +152,7 @@ export function CustomerProfileView({
             Interne notities
           </h2>
           <p className="mt-2 text-xs text-wine/50">
-            Alleen zichtbaar in admin — niet voor de gast.
+            Alleen zichtbaar in admin - niet voor de gast.
           </p>
           <textarea
             value={notes}

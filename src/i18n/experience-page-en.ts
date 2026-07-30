@@ -9,7 +9,7 @@ import {
 } from "./experience-mood-blocks-en";
 
 export const experiencePageEn: ExperiencePageLabels = {
-  viewTableCta: "View table",
+  viewTableCta: "Plan your table",
   secondaryCta: "Back to agenda",
   heroTrustBar: "★★★★★ 4.8 · 1200+ guests at the table since 2024",
   heroTrustFooter:
@@ -17,16 +17,16 @@ export const experiencePageEn: ExperiencePageLabels = {
   heroSpotsHint: "{count} spots left for this date",
   heroBenefitBullets: [
     "Four wines + paired bites at the table",
-    "Come solo or together, we find your spot",
+    "Book for yourself or your own party",
     "Pay upfront, no bill to split at the table",
   ],
-  pillSoloTogether: "Come alone or together",
+  pillSoloTogether: "Book your tickets",
   perPerson: "€{price} per person",
-  perPersonFrom: "From €{price} per person",
+  perPersonFrom: "€{price} per person",
   includedEyebrow: "What's included",
   includedTitle: "Everything sorted for one afternoon out",
   includedSubtitle:
-    "One restaurant, one table. You just show up, we handle wine, bites, and good company.",
+    "One restaurant, one table. You book ahead; we arrange wine, bites and the experience.",
   includedItems: [
     { value: "4", label: "wines" },
     { value: "4", label: "bites" },
@@ -38,32 +38,32 @@ export const experiencePageEn: ExperiencePageLabels = {
   flowEyebrow: "Good to know",
   flowTitle: "How does it work?",
   flowExpandCta: "View all steps",
-  venuesTitle: "Where you join the table",
+  venuesTitle: "The restaurants",
   venuesSubtitle:
-    "Visit one of our partner restaurants. Super fun at the table: the chef prepares specials to surprise you, with wine and food in one place.",
+    "At a partner restaurant: chef specials with wine and food in one place.",
   guestQuotesTitle: "What guests say",
-  guestQuotesEyebrow: "Real stories",
+  guestQuotesEyebrow: "Experiences",
   midCtaEyebrow: "Get tickets",
   midCtaTitle: "Ready to book?",
   midCtaTrustLine:
     "Free exchange up to 48 hours before · Pay in full when you book · Dietary needs welcome",
   routeTitle: "An afternoon through {city}",
-  routeMapEyebrow: "A feel for the route",
+  routeMapEyebrow: "The route",
   routeMapTitle: "Past these spots in {city}",
   routeSubtitle:
-    "Get a feel for the vibe and neighbourhood. All stops and addresses are on this page. We'll email them again one day before.",
-  socialTitle: "A Sunday afternoon out, your way.",
+    "All stops are on this page. We email the details again one day before.",
+  socialTitle: "Your evening, our organisation.",
   socialSubtitle:
-    "Your own table, come solo, or join others. You choose how social it gets.",
+    "Book tickets for yourself, a date, friends or a group. We arrange wine, food and the venue.",
   galleryTitle: "Atmosphere",
   practicalTitle: "Practical info",
   faqTitle: "Frequently asked questions",
-  relatedTitle: "More tables to discover",
-  finalCtaHeadline: "Join a table with good wine and great company.",
+  relatedTitle: "More experiences",
+  finalCtaHeadline: "Reserve your spot for great wine and food.",
   finalCtaSubheadline:
-    "Chef's special, one restaurant, and conversation that flows naturally.",
-  finalCtaPrimary: "Reserve your seat",
-  finalCtaSecondary: "View other tables",
+    "Chef's special or tasting: one restaurant, everything arranged ahead.",
+  finalCtaPrimary: "Plan your table",
+  finalCtaSecondary: "See other dates",
   bookingDate: "Date",
   bookingTime: "Time",
   bookingCity: "City",
@@ -74,39 +74,43 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingDietary: "Anything we should know about food?",
   bookingDietaryPlaceholder: "Allergies, veggie, no fish…",
   bookingTiers: {
-    legend: "How are you coming?",
+    legend: "Number of tickets",
     perPerson: "€{price} p.p.",
-    perPersonFrom: "From €{price} p.p.",
-    bestValue: "Best value",
+    perPersonFrom: "€{price} p.p.",
+    bestValue: "Recommended",
     mostChosen: "Most chosen",
     seatOne: "1 spot",
     seatOther: "{count} spots",
     seatsFrom: "From {count} spots",
-    groupSeatsLabel: "Number of spots",
-    seatsJoinOthers: "join others at the table",
-    seatsOwnTable: "your own table",
-    soloTitle: "Flying solo",
-    duoTitle: "Dynamic duo, join in",
-    groupTitle: "Your own table",
+    groupSeatsLabel: "Number of tickets",
+    seatsJoinOthers: "ticket",
+    seatsOwnTable: "you'll sit together",
+    seatingTogetherHint:
+      "Book the number of tickets for yourself or your party. You sit with the people you bring.",
+    soloTitle: "Just me",
+    duoTitle: "The two of us",
+    groupTitle: "Bring a group",
+    tableTitle: "Reserve a table",
     soloCta: "Reserve my spot",
     duoCta: "Reserve our spots",
-    groupCta: "Reserve the table",
+    groupCta: "Reserve our spots",
+    tableCta: "Reserve the table",
   },
   bookingSeatingLabel: "Who's coming with you?",
-  bookingSeatingOwn: "Just our group, own table",
-  bookingSeatingOwnHint: "Your table, your people. Wine and bites, no strangers.",
-  bookingSeatingJoin: "I'll join others at the table",
-  bookingSeatingJoinHint: "Solo or with a friend. New faces, easy conversation.",
-  bookingTableLanguageLabel: "What language feels good at the table?",
+  bookingSeatingOwn: "Own party",
+  bookingSeatingOwnHint: "Your table, your group. Wine and bites included.",
+  bookingSeatingJoin: "Just me",
+  bookingSeatingJoinHint: "Book one or more tickets for yourself.",
+  bookingTableLanguageLabel: "Preferred language at the table",
   bookingTableLanguageHint:
-    "Both Dutch and English are perfectly fine, as long as the table stays fun.",
+    "Helpful for the staff. Dutch and English are both fine.",
   bookingTableLanguageBoth: "Dutch, English, or a mix of both",
   bookingTableLanguagePreferDutch: "Mostly Dutch, please",
   bookingStepNext: "Continue",
   bookingStepBack: "Back",
-  bookingFemaleOnlyNote: "This table is for women only.",
+  bookingFemaleOnlyNote: "This experience is for women only.",
   bookingPriorityList:
-    "Add me to the waitlist. I'll hear about new tables first and get a nice discount.",
+    "Add me to the waitlist. I'll hear about new dates first and get a nice discount.",
   bookingMediaConsent:
     "Photos and videos may be taken during the event for MyTable (website, socials and email).",
   bookingMediaConsentReadMore: "More in our",
@@ -114,17 +118,17 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingMediaConsentPrivacy: "privacy policy",
   bookingMediaConsentAnd: "and",
   spotsLeftBadge: "{count} spots still available",
-  bookingViewsLabel: "{count} people viewed this table this week",
+  bookingViewsLabel: "{count} people viewed this experience this week",
   bookingTrustBullets: [
     "Pay in full when you book",
     "Free date exchange up to 48 hours before",
     "Dietary needs welcome",
-    "Come alone or together",
+    "Book for yourself or your group",
   ],
   trustLines: [
-    "Curated venues and hosts",
-    "Come alone, with friends, or as a duo",
-    "Relaxed atmosphere, no forced small talk",
+    "Selected restaurants and hosts",
+    "Book for yourself or your own party",
+    "Wine, food and atmosphere, arranged ahead",
   ],
   practicalLabels: {
     dayOfWeek: "Day",
@@ -134,19 +138,20 @@ export const experiencePageEn: ExperiencePageLabels = {
     city: "City",
     included: "Included",
     dietary: "Dietary needs",
-    solo: "Coming alone",
+    solo: "Booking individually",
     payment: "Payment",
     exchange: "Exchanges",
     walking: "Walking distance",
     weather: "Weather",
-    arrival: "Arrival",
+    arrival:
+      "Arrive 10 minutes before start. The host or staff will show you to your seats.",
     routeReveal: "Route & venues",
-    groupSize: "Group size",
+    groupSize: "Depends on the format; details are on the event page",
   },
   practicalValues: {
     dietary:
       "Tell us when you book. The chef adjusts the specials where possible.",
-    solo: "Arriving alone is completely normal and welcome",
+    solo: "You book tickets for yourself or your party",
     payment: "Everything is paid in full when you reserve.",
     exchange:
       "Free exchange to another date up to 48 hours before start. Cancellations are not available.",
@@ -168,16 +173,16 @@ export const experiencePageEn: ExperiencePageLabels = {
   closedCta: "Sold out",
   moods: {
     tastings: {
-      tagline: "Four wines and bite pairings, a fun afternoon at one table.",
+      tagline: "Four wines and bite pairings at one table.",
       experienceFlow: tastingFlowEn,
       guestQuotes: tastingQuotesEn,
       description:
-        "On Sunday afternoon you take a seat for four wines with bite pairings, chosen by the wine bar. No wine exam, just a fun afternoon with your table. Plan for the whole afternoon. Often the group keeps it going afterward: more wine, drinks, or dinner out.",
+        "On Sunday afternoon you sit down for four wines with bite pairings, chosen by the wine bar. No wine exam: a tasting in one place, paid ahead, at your own pace.",
       whatToExpect: [
         {
           title: "One wine bar, one table",
           description:
-            "Everything happens at one place. You show up for the afternoon; we handle the rest around the table.",
+            "Everything happens in one place. You book ahead; we arrange wine, bites and the organisation.",
         },
         {
           title: "Four wines, chosen by the wine bar",
@@ -185,14 +190,14 @@ export const experiencePageEn: ExperiencePageLabels = {
             "The wine bar puts the tasting together: four wines with matching bite pairings.",
         },
         {
-          title: "A fun afternoon with your table",
+          title: "With your own party",
           description:
-            "Book with friends or a date, or come solo and join others who want a lovely Sunday afternoon.",
+            "Book tickets for yourself, a date, friends or a group. You sit with the people you bring.",
         },
         {
           title: "Your own pace",
           description:
-            "Plan for the whole afternoon. No tight schedule. And sometimes the group keeps the vibe going with more wine or dinner out.",
+            "Plan for the afternoon. No tight schedule. Extra orders are often possible at the table.",
         },
         {
           title: "Adjustments on request",
@@ -201,8 +206,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Book your own table with friends, come alone, or pull up a chair with people who want a fun Sunday afternoon.",
-        "Taste, laugh, catch up. Nobody's grading your wine knowledge; everyone's just curious.",
+        "Book tickets for your own party. We arrange the tasting, the venue and the organisation.",
+        "Taste without wine knowledge. Everything is paid ahead; you come to enjoy.",
       ],
       gallery: [
         images.wineBar,
@@ -218,9 +223,9 @@ export const experiencePageEn: ExperiencePageLabels = {
       included: "Four wines with bite pairings, chosen by the wine bar",
       faq: [
         {
-          question: "What's the difference between girls only and mixed?",
+          question: "Will I sit with strangers?",
           answer:
-            "Girls only means only women join the table. Mixed groups welcome everyone, solo, with friends, or on a date.",
+            "No. You book tickets for yourself or your party. Matching with new people happens only via Clubmember and Sunday Table, not on this experience.",
         },
         {
           question: "Can I share dietary requirements?",
@@ -230,7 +235,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I order more?",
           answer:
-            "At the table you can often order extras, such as another course, bite, or glass. Some partner venues also sell the full bottle of a wine you enjoyed. It varies by restaurant; the host or staff will explain what's possible.",
+            "At the table you can often order extras, such as another course, bite, or glass. Some partner venues also sell the full bottle. It varies by restaurant; staff will explain.",
         },
         {
           question: "Where does the tasting take place?",
@@ -240,7 +245,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "When are the events?",
           answer:
-            "Always on Sunday, in the afternoon, usually between 12:00 and 17:00. The exact time is on your table card and in your confirmation email.",
+            "Usually on Sunday afternoon. The exact time is on the event page and in your confirmation email.",
         },
         {
           question: "Can I cancel or exchange?",
@@ -250,41 +255,39 @@ export const experiencePageEn: ExperiencePageLabels = {
       ],
     },
     wineWalk: {
-      tagline: "Discover the city: several spots, each with wine and food.",
+      tagline: "Several restaurants, wine and food at every stop.",
       description:
-        "A MyTable Wine Walk is a Sunday afternoon through the city. You visit several venues and at each stop taste wine with food. That way you discover new places naturally: walk, taste, catch up. Not a scripted tour, but a route with character.",
+        "A Wine Walk is a culinary walk through the city. You visit several restaurants and taste a pairing at each stop. Not a guided tour: a fixed route with your own party, at a relaxed pace.",
       experienceFlow: wineWalkFlowEn,
       guestQuotes: wineWalkQuotesEn,
       whatToExpect: [
         {
-          title: "Several spots in the city",
+          title: "Several restaurants",
           description:
-            "You visit different venues and discover the city by tasting along the way.",
+            "You visit different places and discover the city by tasting.",
         },
         {
           title: "Wine and food at every stop",
-          description: "At each venue a pairing is ready to try.",
+          description: "At each venue a pairing is ready.",
         },
         {
           title: "Relaxed walking pace",
-          description: "No rush between venues.",
+          description: "No rush between venues. Distances stay manageable.",
         },
         {
-          title: "Small social group",
-          description: "Enough people to feel lively, not too large.",
+          title: "With your own party",
+          description:
+            "You walk and taste with the people you booked for. No matching with other guests.",
         },
         {
-          title: "Come alone or together",
-          description: "Coming alone is very normal and welcome.",
-        },
-        {
-          title: "No forced small talk",
-          description: "Meeting people feels natural through the route and stops.",
+          title: "Everything arranged ahead",
+          description:
+            "Tickets, route and pairings are paid and organised in advance.",
         },
       ],
       socialParagraphs: [
-        "With your own group or just along for the walk. You'll meet others who want a good afternoon out.",
-        "Walk, taste, laugh. Not a dull tour: great stops and time to chat whenever you feel like it.",
+        "Book for yourself, a duo or a group. Along the way you follow the route with your own party.",
+        "Walk, taste, move on. Not a dull tour: clear stops and space at your pace.",
       ],
       gallery: [
         images.wineBar,
@@ -297,13 +300,19 @@ export const experiencePageEn: ExperiencePageLabels = {
       dayOfWeek: "Always on Sunday",
       partOfDay: "Afternoon",
       duration: "About 3 to 4 hours",
-      included: "Wine tastings, bites, and route guidance",
+      included: "Wine and food pairings and route",
       walkingDistance: "Usually 2 to 4 km, depending on the city",
       faq: [
         {
-          question: "Can I come alone?",
+          question:
+            "What's the difference between a wine-food walk and a food walk?",
           answer:
-            "Yes. Many people come alone. The route and group are set up so you can easily chat with others.",
+            "On a wine-food walk (Wine Walk), the focus is on the wines, with a matching pairing at each stop. On a food walk, the food is the star. Matching wines may be offered, but they're optional: you can enjoy the walk without wine too.",
+        },
+        {
+          question: "Can I book alone?",
+          answer:
+            "Yes. You book tickets for yourself. You follow the route with your own party; we do not match you with other guests.",
         },
         {
           question: "Do I have to walk a lot?",
@@ -318,31 +327,31 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "When are the wine walks?",
           answer:
-            "Always on Sunday, during the afternoon. The exact time is on your table card and in your confirmation email.",
+            "Usually on Sunday during the day. The exact time is on the event page and in your confirmation email.",
         },
         {
           question: "When do I get the route?",
           answer:
-            "You receive practical info and the start location in advance. Venues may be shared before or closer to the date depending on the format.",
+            "You receive practical info and the start location in advance. Stops are also on this page.",
         },
         {
           question: "What if it rains?",
           answer:
-            "The experience usually goes ahead. Bring a jacket or umbrella if unsure. We keep the pace relaxed.",
+            "The experience usually goes ahead. Bring a jacket or umbrella if unsure. The pace stays relaxed.",
         },
       ],
     },
     chefsSpecial: {
-      tagline: "The best of the restaurant, family style on Sunday evening.",
+      tagline: "The best of the restaurant, family style.",
       description:
-        "Chef's Table is a Sunday evening to discover the restaurant the way the chef intended. Multiple starters, mains and a dessert arrive family style: shared with your table, so everyone tastes more. No menu stress, just the best of the kitchen in one night.",
+        "Chef's Table is an evening to discover the restaurant the way the chef intended. Multiple starters, mains and desserts arrive family style: shared with your party, so everyone tastes more.",
       experienceFlow: chefsSpecialFlowEn,
       guestQuotes: tastingQuotesEn,
       whatToExpect: [
         {
           title: "Multiple courses, family style",
           description:
-            "Starters, mains and dessert land in the middle of the table. Everyone shares and tastes along.",
+            "Starters, mains and dessert land in the middle of the table.",
         },
         {
           title: "The best of the kitchen",
@@ -350,17 +359,9 @@ export const experiencePageEn: ExperiencePageLabels = {
             "The chef shapes the evening so you taste more of the restaurant than with a single plate of your own.",
         },
         {
-          title: "One restaurant, one table",
+          title: "One restaurant",
           description:
-            "Everything happens at one venue. Often at a long, shared table.",
-        },
-        {
-          title: "Great atmosphere at the table",
-          description: "Small group, easy conversation, food you share together.",
-        },
-        {
-          title: "Come alone or together",
-          description: "Coming alone is very normal and welcome.",
+            "Everything happens in one place. You book ahead for your party.",
         },
         {
           title: "No decision fatigue",
@@ -369,8 +370,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Your own table with friends or pull up a chair: both work. Dishes in the middle, conversations that start themselves, an evening of tasting together.",
-        "Small enough to stay cozy, relaxed enough to just be yourself. Foodie or curious newcomer: everyone shares.",
+        "Book a table or tickets for your own party. Dishes in the middle, taste first.",
+        "Family style so you taste more of the kitchen, without organising it yourself.",
       ],
       gallery: [
         images.restaurantDining,
@@ -384,7 +385,7 @@ export const experiencePageEn: ExperiencePageLabels = {
       partOfDay: "Evening",
       duration: "About 2.5 to 3 hours",
       included:
-        "Multiple starters, mains and dessert, shared family style at the table",
+        "Multiple starters, mains and dessert, family style",
       faq: [
         {
           question: "Will I know what I eat in advance?",
@@ -394,7 +395,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "What does family style mean?",
           answer:
-            "Dishes come to the middle of the table for sharing. That way you taste more of the restaurant: multiple starters, mains and dessert.",
+            "Dishes come to the middle of the table so you share with your party and taste more of the kitchen.",
         },
         {
           question: "Are drinks included?",
@@ -407,21 +408,22 @@ export const experiencePageEn: ExperiencePageLabels = {
             "Yes. Tell us when you book and we align with the restaurant.",
         },
         {
-          question: "Can I come alone?",
+          question: "Can I book alone?",
           answer:
-            "Yes. The table is set up so coming alone feels normal and relaxed.",
+            "Yes. You book tickets for yourself. You sit with the people you bring, not with strangers.",
         },
         {
           question: "When are the Chef's Tables?",
           answer:
-            "Always on Sunday, in the evening. The exact time is on your table card and in your confirmation email.",
+            "Usually on Sunday evening. The exact time is on the event page and in your confirmation email.",
         },
         {
           question: "Is this fine dining?",
           answer:
-            "Not necessarily. Chef's Table mainly means you taste the best of the kitchen family style, with your table.",
+            "Not necessarily. Chef's Table mainly means you taste the best of the kitchen family style.",
         },
       ],
     },
   },
 };
+

@@ -9,7 +9,7 @@ import {
 } from "./experience-mood-blocks-nl";
 
 export const experiencePageNl: ExperiencePageLabels = {
-  viewTableCta: "Bekijk tafel",
+  viewTableCta: "Plan je tafel",
   secondaryCta: "Terug naar agenda",
   heroTrustBar: "★★★★★ 4.8 · 1200+ gasten aan tafel sinds 2024",
   heroTrustFooter:
@@ -17,16 +17,16 @@ export const experiencePageNl: ExperiencePageLabels = {
   heroSpotsHint: "Nog {count} plekken voor deze datum",
   heroBenefitBullets: [
     "Vier wijnen + gepaarde bites aan tafel",
-    "Kom solo of samen, wij regelen je plek",
+    "Boek voor jezelf of je eigen gezelschap",
     "Alles vooraf betaald, geen rekening aan tafel",
   ],
-  pillSoloTogether: "Kom alleen of samen",
+  pillSoloTogether: "Boek je tickets",
   perPerson: "€{price} per persoon",
   perPersonFrom: "Vanaf €{price} per persoon",
   includedEyebrow: "Wat zit erin",
   includedTitle: "Alles geregeld voor één middag uit",
   includedSubtitle:
-    "Eén restaurant, één tafel. Jij hoeft alleen op te komen dagen, wij regelen wijn, bites en gezelschap.",
+    "Eén restaurant, één tafel. Jij boekt vooraf; wij regelen wijn, hapjes en de ervaring.",
   includedItems: [
     { value: "4", label: "wijnen" },
     { value: "4", label: "bites" },
@@ -38,32 +38,32 @@ export const experiencePageNl: ExperiencePageLabels = {
   flowEyebrow: "Goed om te weten",
   flowTitle: "Hoe werkt het?",
   flowExpandCta: "Bekijk alle stappen",
-  venuesTitle: "Waar je aan tafel schuift",
+  venuesTitle: "De restaurants",
   venuesSubtitle:
-    "Bezoek een van onze partnerrestaurants. Superleuk aan tafel: de chef bereidt specials die je verassen, met wijn en spijs op één plek.",
+    "Bij een partnerrestaurant aan tafel: specials van de chef, met wijn en spijs op één plek.",
   guestQuotesTitle: "Wat gasten zeggen",
-  guestQuotesEyebrow: "Echte verhalen",
+  guestQuotesEyebrow: "Ervaringen",
   midCtaEyebrow: "Kaartjes kopen",
   midCtaTitle: "Klaar om te boeken?",
   midCtaTrustLine:
     "Gratis ruilen tot 48 uur van tevoren · Alles vooraf betaald · Dieetwensen mogelijk",
   routeTitle: "Een middag door {city}",
-  routeMapEyebrow: "Een indruk van de route",
+  routeMapEyebrow: "De route",
   routeMapTitle: "Langs deze plekken in {city}",
   routeSubtitle:
-    "Zo krijg je alvast een beeld van de sfeer en de buurt. Alle stops en adressen staan op deze pagina. Een dag van tevoren mailen we je ze nog even.",
-  socialTitle: "Een zondagmiddag uit, op jouw manier.",
+    "Alle stops staan op deze pagina. Een dag van tevoren mailen we de details nog even.",
+  socialTitle: "Jouw avond, onze organisatie.",
   socialSubtitle:
-    "Eigen tafel, alleen komen of aanschuiven bij anderen. Jij kiest hoe gezellig het wordt.",
+    "Boek tickets voor jezelf, een date, vrienden of een groep. Wij regelen wijn, eten en de locatie.",
   galleryTitle: "Sfeerimpressie",
   practicalTitle: "Praktische info",
   faqTitle: "Veelgestelde vragen",
-  relatedTitle: "Meer tafels om te ontdekken",
-  finalCtaHeadline: "Schuif aan bij een tafel met goede wijn en gezelschap.",
+  relatedTitle: "Meer ervaringen",
+  finalCtaHeadline: "Reserveer je plek voor goede wijn en spijs.",
   finalCtaSubheadline:
-    "Chef's special, één restaurant en gesprekken die vanzelf ontstaan.",
+    "Chef's special of proeverij: één restaurant, alles vooraf geregeld.",
   finalCtaPrimary: "Reserveer je plek",
-  finalCtaSecondary: "Bekijk andere tafels",
+  finalCtaSecondary: "Bekijk andere data",
   bookingDate: "Datum",
   bookingTime: "Tijd",
   bookingCity: "Stad",
@@ -74,39 +74,43 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingDietary: "Iets dat we moeten weten over eten?",
   bookingDietaryPlaceholder: "Allergie, vegetarisch, geen vis…",
   bookingTiers: {
-    legend: "Hoe kom je?",
+    legend: "Aantal tickets",
     perPerson: "€{price} p.p.",
-    perPersonFrom: "Vanaf €{price} p.p.",
-    bestValue: "Beste keuze",
+    perPersonFrom: "€{price} p.p.",
+    bestValue: "Aanbevolen",
     mostChosen: "Meest gekozen",
     seatOne: "1 plek",
     seatOther: "{count} plekken",
     seatsFrom: "Vanaf {count} plekken",
-    groupSeatsLabel: "Aantal plekken",
-    seatsJoinOthers: "schuif aan bij anderen",
-    seatsOwnTable: "jullie eigen tafel",
-    soloTitle: "Solo & schuif aan",
-    duoTitle: "Twee is feest, schuif aan",
-    groupTitle: "Jullie eigen tafel",
+    groupSeatsLabel: "Aantal tickets",
+    seatsJoinOthers: "ticket",
+    seatsOwnTable: "jullie zitten samen",
+    seatingTogetherHint:
+      "Boek het aantal tickets voor jezelf of je gezelschap. Je zit met wie je meeneemt.",
+    soloTitle: "Alleen ik",
+    duoTitle: "Met z'n tweeën",
+    groupTitle: "Met een groep",
+    tableTitle: "Reserveer een tafel",
     soloCta: "Reserveer mijn plek",
     duoCta: "Reserveer onze plekken",
-    groupCta: "Reserveer de tafel",
+    groupCta: "Reserveer onze plekken",
+    tableCta: "Reserveer de tafel",
   },
   bookingSeatingLabel: "Met wie kom je?",
-  bookingSeatingOwn: "Gewoon wij, eigen tafel",
-  bookingSeatingOwnHint: "Jullie tafel, jullie crew. Wijn, bites, geen vreemden.",
-  bookingSeatingJoin: "Ik schuif aan bij anderen",
-  bookingSeatingJoinHint: "Solo of met een vriendin. Nieuwe gezichten, makkelijk gesprek.",
-  bookingTableLanguageLabel: "Waarin praten we lekker?",
+  bookingSeatingOwn: "Eigen gezelschap",
+  bookingSeatingOwnHint: "Jullie tafel, jullie groep. Wijn en hapjes inbegrepen.",
+  bookingSeatingJoin: "Individueel",
+  bookingSeatingJoinHint: "Boek één of meer tickets voor jezelf.",
+  bookingTableLanguageLabel: "Voorkeurstaal aan tafel",
   bookingTableLanguageHint:
-    "Zowel Nederlands als Engels is prima, zolang het maar gezellig blijft aan tafel.",
+    "Handig voor de bediening. Nederlands en Engels zijn beide mogelijk.",
   bookingTableLanguageBoth: "Nederlands, Engels, of een mix",
   bookingTableLanguagePreferDutch: "Liever vooral Nederlands",
   bookingStepNext: "Volgende",
   bookingStepBack: "Terug",
-  bookingFemaleOnlyNote: "Deze tafel is alleen voor vrouwen.",
+  bookingFemaleOnlyNote: "Deze ervaring is alleen voor vrouwen.",
   bookingPriorityList:
-    "Zet me op de wachtlijst. Ik hoor als eerste over nieuwe tafels en krijg een mooie korting.",
+    "Zet me op de wachtlijst. Ik hoor als eerste over nieuwe data en krijg een mooie korting.",
   bookingMediaConsent:
     "Tijdens het event kunnen foto's en video's gemaakt worden voor MyTable (website, socials en e-mail).",
   bookingMediaConsentReadMore: "Meer in onze",
@@ -114,17 +118,17 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingMediaConsentPrivacy: "privacyverklaring",
   bookingMediaConsentAnd: "en",
   spotsLeftBadge: "Nog {count} plekken beschikbaar",
-  bookingViewsLabel: "{count} mensen bekeken deze tafel deze week",
+  bookingViewsLabel: "{count} mensen bekeken deze ervaring deze week",
   bookingTrustBullets: [
     "Alles vooraf betaald",
     "Gratis ruilen tot 48 uur van tevoren",
     "Dieetwensen mogelijk",
-    "Kom alleen of samen",
+    "Boek voor jezelf of je groep",
   ],
   trustLines: [
-    "Gecureerde locaties en hosts",
-    "Kom alleen, met vrienden of als duo",
-    "Ontspannen sfeer, geen verplicht smalltalk",
+    "Geselecteerde restaurants en hosts",
+    "Boek voor jezelf of je eigen gezelschap",
+    "Wijn, spijs en sfeer, vooraf geregeld",
   ],
   practicalLabels: {
     dayOfWeek: "Dag",
@@ -134,7 +138,7 @@ export const experiencePageNl: ExperiencePageLabels = {
     city: "Stad",
     included: "Inbegrepen",
     dietary: "Dieetwensen",
-    solo: "Alleen komen",
+    solo: "Individueel boeken",
     payment: "Betaling",
     exchange: "Ruilen",
     walking: "Wandelafstand",
@@ -146,17 +150,17 @@ export const experiencePageNl: ExperiencePageLabels = {
   practicalValues: {
     dietary:
       "Geef het door bij boeken. De chef past de specials aan waar dat kan.",
-    solo: "Alleen aankomen is heel normaal en juist welkom",
+    solo: "Je boekt tickets voor jezelf of je gezelschap",
     payment: "Alles betaal je vooraf bij het reserveren.",
     exchange:
       "Gratis ruilen naar een andere datum tot 48 uur voor de start. Annuleren is niet mogelijk.",
     weather:
       "Meestal binnen in het restaurant. Bij mooi weer en een beschikbaar terras kan de tafel daar plaatsvinden.",
     arrival:
-      "Kom 10 minuten voor starttijd. De host verwelkomt je en wijst de groep aan.",
+      "Kom 10 minuten voor starttijd. De host of bediening wijst je je plek.",
     routeReveal:
       "Het restaurant en adres ontvang je per e-mail na bevestiging van je boeking.",
-    groupSize: "Kleine groepen, meestal 8 tot 14 gasten per tafel",
+    groupSize: "Afhankelijk van het format; details staan op de eventpagina",
   },
   spotsByStatus: {
     available: "Nog voldoende plekken beschikbaar",
@@ -168,16 +172,16 @@ export const experiencePageNl: ExperiencePageLabels = {
   closedCta: "Uitverkocht",
   moods: {
     tastings: {
-      tagline: "Vier wijnen en bite-pairings, gezellig aan één tafel.",
+      tagline: "Vier wijnen en bite-pairings aan één tafel.",
       experienceFlow: tastingFlowNl,
       guestQuotes: tastingQuotesNl,
       description:
-        "Op zondagmiddag schuif je aan tafel voor vier wijnen met bite-pairings, gekozen door de wijnbar. Geen wijnexamen, wel een gezellige middag met je tafel. Plan gerust de hele middag. Vaak houdt de groep het daarna nog vast: nawijnen, borrelen of ergens uit eten.",
+        "Op zondagmiddag zit je aan tafel voor vier wijnen met bite-pairings, gekozen door de wijnbar. Geen wijnexamen: een proeverij op één plek, vooraf betaald, op eigen tempo.",
       whatToExpect: [
         {
           title: "Eén wijnbar, één tafel",
           description:
-            "Alles speelt zich af op één plek. Jij komt voor de middag, wij regelen de rest rond de tafel.",
+            "Alles speelt zich af op één plek. Jij boekt vooraf; wij regelen wijn, hapjes en de organisatie.",
         },
         {
           title: "Vier wijnen, gekozen door de wijnbar",
@@ -185,14 +189,14 @@ export const experiencePageNl: ExperiencePageLabels = {
             "De wijnbar stelt de proeverij samen: vier wijnen met bijpassende bite-pairings.",
         },
         {
-          title: "Gezellig met je tafel",
+          title: "Met je eigen gezelschap",
           description:
-            "Boek met vrienden of op date, of kom solo en schuif aan bij anderen die ook zin hebben in een gezellige zondagmiddag.",
+            "Boek tickets voor jezelf, een date, vrienden of een groep. Je zit met wie je meeneemt.",
         },
         {
           title: "Op eigen tempo",
           description:
-            "Plan de hele middag in. Geen strak schema. En soms pakt de groep het zelf nog lekker vast met nawijnen of ergens uit eten.",
+            "Plan de middag in. Geen strak schema. Extra bestellen kan vaak aan tafel.",
         },
         {
           title: "Aanpassen op verzoek",
@@ -201,8 +205,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Boek je eigen tafel met vrienden, kom alleen of schuif aan bij mensen die ook zin hebben in een gezellige zondagmiddag.",
-        "Proeven, lachen, bijpraten. Niemand kijkt hoeveel je van wijn weet; iedereen is gewoon nieuwsgierig.",
+        "Boek tickets voor je eigen gezelschap. Wij regelen de proeverij, de locatie en de organisatie.",
+        "Proeven zonder wijnkennis. Alles is vooraf betaald; jij komt genieten.",
       ],
       gallery: [
         images.wineBar,
@@ -218,9 +222,9 @@ export const experiencePageNl: ExperiencePageLabels = {
       included: "Vier wijnen met bite-pairings, gekozen door de wijnbar",
       faq: [
         {
-          question: "Wat is het verschil tussen girls only en gemengd?",
+          question: "Zit ik met onbekenden?",
           answer:
-            "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom, solo, met vrienden of op date.",
+            "Nee. Je boekt tickets voor jezelf of je gezelschap. Matching met nieuwe mensen gebeurt alleen via Clubmember en Sunday Table, niet op deze ervaring.",
         },
         {
           question: "Kan ik dieetwensen doorgeven?",
@@ -230,7 +234,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik bijbestellen?",
           answer:
-            "Aan tafel kun je vaak extra bestellen, bijvoorbeeld een extra gang, bite of glas. Sommige partnerlocaties verkopen ook de volledige fles van een wijn die je lekker vond. Dat verschilt per restaurant; de host of bediening legt het je uit.",
+            "Aan tafel kun je vaak extra bestellen, bijvoorbeeld een extra gang, bite of glas. Sommige partnerlocaties verkopen ook de volle fles. Dat verschilt per restaurant; de bediening legt het uit.",
         },
         {
           question: "Waar vindt de proeverij plaats?",
@@ -240,51 +244,49 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Wanneer zijn de events?",
           answer:
-            "Altijd op zondag, in de middag, meestal tussen 12:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+            "Meestal op zondag in de middag. De exacte tijd staat op de eventpagina en in je bevestigingsmail.",
         },
         {
           question: "Kan ik annuleren of ruilen?",
           answer:
-            "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren. Mail ons als je wilt ruilen.",
+            "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf. Mail ons als je wilt ruilen.",
         },
       ],
     },
     wineWalk: {
-      tagline: "De stad ontdekken: meerdere locaties, telkens wijn en spijs.",
+      tagline: "Meerdere restaurants, telkens wijn en spijs.",
       description:
-        "Een Wine Walk bij MyTable is een zondagmiddag door de stad. Je bezoekt meerdere locaties en proeft bij elke stop wijn met spijs. Zo ontdek je nieuwe plekken op een natuurlijke manier: wandelen, proeven, bijpraten. Geen strakke rondleiding, wel een route met karakter.",
+        "Een Wine Walk is een culinaire wandeling door de stad. Je bezoekt meerdere restaurants en proeft bij elke stop een pairing. Geen gidsrondleiding: een vaste route met je eigen gezelschap, op rustig tempo.",
       experienceFlow: wineWalkFlowNl,
       guestQuotes: wineWalkQuotesNl,
       whatToExpect: [
         {
-          title: "Meerdere locaties in de stad",
+          title: "Meerdere restaurants",
           description:
-            "Je bezoekt verschillende plekken en ontdekt zo de stad door te proeven.",
+            "Je bezoekt verschillende plekken en ontdekt de stad door te proeven.",
         },
         {
           title: "Wijn en spijs bij elke stop",
-          description: "Bij elke locatie staat een pairing klaar om te proeven.",
+          description: "Bij elke locatie staat een pairing klaar.",
         },
         {
           title: "Rustig wandeltempo",
-          description: "Geen haast tussen de locaties.",
+          description: "Geen haast tussen de locaties. Afstanden blijven overzichtelijk.",
         },
         {
-          title: "Kleine sociale groep",
-          description: "Genoeg mensen om gezellig te zijn, niet te groot.",
+          title: "Met je eigen gezelschap",
+          description:
+            "Je loopt en proeft met wie je hebt geboekt. Geen matching met andere gasten.",
         },
         {
-          title: "Kom alleen of samen",
-          description: "Alleen komen is heel normaal en welkom.",
-        },
-        {
-          title: "Geen verplichte smalltalk",
-          description: "Ontmoeten voelt natuurlijk door de route en de stops.",
+          title: "Alles vooraf geregeld",
+          description:
+            "Tickets, route en pairings zijn vooraf betaald en georganiseerd.",
         },
       ],
       socialParagraphs: [
-        "Met je eigen groep of gewoon meelopen. Onderweg kom je andere mensen tegen die ook zin hebben in een leuke middag.",
-        "Lopen, proeven, lachen. Geen saaie rondleiding: fijne stops en ruimte om te praten wanneer jij daar zin in hebt.",
+        "Boek voor jezelf, een duo of een groep. Onderweg volg je de route met je eigen gezelschap.",
+        "Wandelen, proeven, verder. Geen saaie rondleiding: heldere stops en ruimte op jullie tempo.",
       ],
       gallery: [
         images.wineBar,
@@ -297,13 +299,19 @@ export const experiencePageNl: ExperiencePageLabels = {
       dayOfWeek: "Altijd op zondag",
       partOfDay: "Middag",
       duration: "Ongeveer 3 tot 4 uur",
-      included: "Wijnproeverijen, bites en routebegeleiding",
+      included: "Wijn-spijs pairings en route",
       walkingDistance: "Meestal 2 tot 4 km, afhankelijk van de stad",
       faq: [
         {
-          question: "Kan ik alleen komen?",
+          question:
+            "Wat is het verschil tussen een wijnspijs-wandeling en een foodwandeling?",
           answer:
-            "Ja. Veel mensen komen alleen. De route en groep zijn zo ingericht dat je makkelijk met anderen in gesprek komt.",
+            "Bij een wijnspijs-wandeling (Wine Walk) ligt de nadruk op de wijnen, met bij elke stop een bijpassende pairing. Bij een foodwandeling staat het eten centraal. Er kunnen bijpassende wijnen bij zitten, maar die zijn optioneel: je kunt de wandeling ook zonder wijnen genieten.",
+        },
+        {
+          question: "Kan ik alleen boeken?",
+          answer:
+            "Ja. Je boekt tickets voor jezelf. Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten.",
         },
         {
           question: "Moet ik veel wandelen?",
@@ -318,31 +326,31 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Wanneer zijn de wine walks?",
           answer:
-            "Altijd op zondag, overdag in de middag. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+            "Meestal op zondag overdag. De exacte tijd staat op de eventpagina en in je bevestigingsmail.",
         },
         {
           question: "Wanneer krijg ik de route?",
           answer:
-            "Je ontvangt de praktische informatie en startlocatie vooraf. De locaties kunnen afhankelijk van het format vooraf of later bekend worden gemaakt.",
+            "Je ontvangt de praktische informatie en startlocatie vooraf. Stops staan ook op deze pagina.",
         },
         {
           question: "Wat als het regent?",
           answer:
-            "De ervaring gaat meestal door. Neem bij twijfel een jas of paraplu mee. We houden het tempo ontspannen.",
+            "De ervaring gaat meestal door. Neem bij twijfel een jas of paraplu mee. Het tempo blijft ontspannen.",
         },
       ],
     },
     chefsSpecial: {
-      tagline: "Het beste van het restaurant, family style op zondagavond.",
+      tagline: "Het beste van het restaurant, family style.",
       description:
-        "Chef's Table is een zondagavond waarbij je het restaurant leert kennen zoals de chef het bedoeld heeft. Meerdere voorgerechten, hoofdgerechten en een dessert komen family style op tafel: gedeeld met je tafel, zodat iedereen meer kan proeven. Geen keuzestress, wel het beste van de keuken in één avond.",
+        "Chef's Table is een avond waarbij je het restaurant leert kennen zoals de chef het bedoeld heeft. Meerdere voor-, hoofd- en nagerechten komen family style op tafel: gedeeld met je gezelschap, zodat iedereen meer kan proeven.",
       experienceFlow: chefsSpecialFlowNl,
       guestQuotes: tastingQuotesNl,
       whatToExpect: [
         {
           title: "Meerdere gangen, family style",
           description:
-            "Voorgerechten, hoofdgerechten en dessert komen in het midden van de tafel. Iedereen deelt en proeft mee.",
+            "Voorgerechten, hoofdgerechten en dessert komen in het midden van de tafel.",
         },
         {
           title: "Het beste van de keuken",
@@ -350,17 +358,9 @@ export const experiencePageNl: ExperiencePageLabels = {
             "De chef stelt de avond samen, zodat je meer van het restaurant proeft dan met één eigen bord.",
         },
         {
-          title: "Eén restaurant, één tafel",
+          title: "Eén restaurant",
           description:
-            "Alles speelt zich af op één plek. Vaak aan een lange, gedeelde tafel.",
-        },
-        {
-          title: "Goede sfeer aan tafel",
-          description: "Kleine groep, ontspannen gesprek, eten dat je samen deelt.",
-        },
-        {
-          title: "Kom alleen of samen",
-          description: "Alleen komen is heel normaal en welkom.",
+            "Alles speelt zich af op één plek. Jij boekt vooraf voor je gezelschap.",
         },
         {
           title: "Geen keuzestress",
@@ -369,8 +369,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         },
       ],
       socialParagraphs: [
-        "Eigen tafel met je vrienden of erbij gaan zitten: beide kan. Gerechten in het midden, gesprekken die vanzelf komen, een avond waarin je samen proeft.",
-        "Klein genoeg om het gezellig te houden, relaxed genoeg om gewoon jezelf te zijn. Of je nu veel of weinig van eten weet: iedereen deelt mee.",
+        "Boek een tafel of tickets voor je eigen gezelschap. Gerechten in het midden, smaak centraal.",
+        "Family style zodat je meer van de keuken proeft, zonder zelf te organiseren.",
       ],
       gallery: [
         images.restaurantDining,
@@ -384,7 +384,7 @@ export const experiencePageNl: ExperiencePageLabels = {
       partOfDay: "Avond",
       duration: "Ongeveer 2,5 tot 3 uur",
       included:
-        "Meerdere voorgerechten, hoofdgerechten en dessert, family style gedeeld aan tafel",
+        "Meerdere voorgerechten, hoofdgerechten en dessert, family style",
       faq: [
         {
           question: "Weet ik vooraf wat ik eet?",
@@ -394,7 +394,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Wat betekent family style?",
           answer:
-            "Gerechten komen in het midden van de tafel, zodat je met je tafel deelt. Zo proef je meer van het restaurant: meerdere voorgerechten, hoofdgerechten en dessert.",
+            "Gerechten komen in het midden van de tafel, zodat je met je gezelschap deelt en meer van de keuken proeft.",
         },
         {
           question: "Zijn drankjes inbegrepen?",
@@ -407,19 +407,19 @@ export const experiencePageNl: ExperiencePageLabels = {
             "Ja. Geef dit door bij het boeken, dan stemmen wij dit af met het restaurant.",
         },
         {
-          question: "Kan ik alleen komen?",
+          question: "Kan ik alleen boeken?",
           answer:
-            "Ja. De tafel is juist ingericht zodat alleen komen normaal en ontspannen voelt.",
+            "Ja. Je boekt tickets voor jezelf. Je zit met wie je meeneemt, niet met onbekenden.",
         },
         {
           question: "Wanneer zijn de Chef's Tables?",
           answer:
-            "Altijd op zondag, in de avond. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
+            "Meestal op zondagavond. De exacte tijd staat op de eventpagina en in je bevestigingsmail.",
         },
         {
           question: "Is dit fine dining?",
           answer:
-            "Niet per se. Chef's Table betekent vooral dat je family style het beste van de keuken proeft, samen met je tafel.",
+            "Niet per se. Chef's Table betekent vooral dat je family style het beste van de keuken proeft.",
         },
       ],
     },

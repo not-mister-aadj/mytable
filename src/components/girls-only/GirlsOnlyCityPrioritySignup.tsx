@@ -98,13 +98,13 @@ export function GirlsOnlyCityPrioritySignup({
       transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
       className="scroll-mt-24"
     >
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-rose-soft/80 via-cream to-beige shadow-[0_28px_70px_rgba(90,15,27,0.1)]">
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-beige via-cream to-beige shadow-[0_28px_70px_rgba(90,15,27,0.1)]">
         <div
-          className="pointer-events-none absolute -left-16 top-0 h-56 w-56 rounded-full bg-rose/20 blur-3xl"
+          className="pointer-events-none absolute -left-16 top-0 h-56 w-56 rounded-full bg-wine/10 blur-3xl"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-rose-deep/10 blur-3xl"
+          className="pointer-events-none absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-burgundy/10 blur-3xl"
           aria-hidden
         />
 
@@ -119,7 +119,7 @@ export function GirlsOnlyCityPrioritySignup({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-wine/80 via-wine/35 to-wine/20 lg:bg-gradient-to-r lg:from-wine/15 lg:via-wine/45 lg:to-wine/75" />
             <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 lg:p-10">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-rose-soft">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {labels.eyebrow}
               </p>
               <p className="mt-3 font-serif text-4xl font-medium leading-none tracking-tight text-cream sm:text-5xl">
@@ -147,7 +147,7 @@ export function GirlsOnlyCityPrioritySignup({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.4 }}
-                  className="mt-8 rounded-2xl border border-rose/20 bg-white/70 px-5 py-6 text-center"
+                  className="mt-8 rounded-2xl border border-wine/12 bg-white/70 px-5 py-6 text-center"
                   role="status"
                 >
                   <p className="font-serif text-xl text-wine">{labels.success}</p>
@@ -165,7 +165,7 @@ export function GirlsOnlyCityPrioritySignup({
                     <div>
                       <label
                         htmlFor="city-priority-name"
-                        className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-deep"
+                        className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy"
                       >
                         {labels.nameLabel}
                       </label>
@@ -177,13 +177,13 @@ export function GirlsOnlyCityPrioritySignup({
                         autoComplete="name"
                         disabled={isSubmitting}
                         placeholder={labels.namePlaceholder}
-                        className="mt-2 w-full rounded-2xl border border-rose/15 bg-white/80 px-4 py-3.5 text-sm text-wine outline-none transition placeholder:text-wine/35 focus:border-rose/50 focus:bg-white focus:ring-2 focus:ring-rose/15 disabled:opacity-60"
+                        className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3.5 text-sm text-wine outline-none transition placeholder:text-wine/35 focus:border-burgundy/40 focus:bg-white focus:ring-2 focus:ring-burgundy/15 disabled:opacity-60"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="city-priority-email"
-                        className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-deep"
+                        className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy"
                       >
                         {labels.emailLabel}
                       </label>
@@ -195,13 +195,13 @@ export function GirlsOnlyCityPrioritySignup({
                         autoComplete="email"
                         disabled={isSubmitting}
                         placeholder={labels.emailPlaceholder}
-                        className="mt-2 w-full rounded-2xl border border-rose/15 bg-white/80 px-4 py-3.5 text-sm text-wine outline-none transition placeholder:text-wine/35 focus:border-rose/50 focus:bg-white focus:ring-2 focus:ring-rose/15 disabled:opacity-60"
+                        className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3.5 text-sm text-wine outline-none transition placeholder:text-wine/35 focus:border-burgundy/40 focus:bg-white focus:ring-2 focus:ring-burgundy/15 disabled:opacity-60"
                       />
                     </div>
                   </div>
 
                   {error ? (
-                    <p className="text-sm text-rose-deep" role="alert">
+                    <p className="text-sm text-burgundy" role="alert">
                       {error}
                     </p>
                   ) : null}
@@ -209,7 +209,7 @@ export function GirlsOnlyCityPrioritySignup({
                   <div className="flex flex-col items-start gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
                     <Button
                       type="submit"
-                      className={`bg-rose px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream shadow-[0_12px_28px_rgba(157,77,111,0.28)] transition hover:bg-rose-deep hover:shadow-[0_16px_32px_rgba(157,77,111,0.34)] sm:text-sm ${isSubmitting ? "pointer-events-none opacity-60" : ""}`}
+                      className={`bg-wine px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-burgundy hover:shadow-[0_16px_32px_rgba(90,15,27,0.28)] sm:text-sm ${isSubmitting ? "pointer-events-none opacity-60" : ""}`}
                     >
                       <span aria-hidden className="mr-2 opacity-90">
                         ›

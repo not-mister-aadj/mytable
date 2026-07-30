@@ -267,7 +267,7 @@ function GuestActions({
   if (isTransferred) {
     return (
       <p className="text-xs text-wine/50">
-        Alleen ter referentie — telt niet mee voor bezetting.
+        Alleen ter referentie - telt niet mee voor bezetting.
       </p>
     );
   }

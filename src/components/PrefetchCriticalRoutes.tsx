@@ -2,7 +2,7 @@
 
 import {
   agendaPath,
-  girlsOnlyPath,
+  clubmemberPath,
   type Locale,
 } from "@/i18n/config";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ export function PrefetchCriticalRoutes({
   const router = useRouter();
 
   useEffect(() => {
-    const routes = [agendaPath(locale), girlsOnlyPath(locale), ...hrefs];
+    const routes = [agendaPath(locale), clubmemberPath(locale), ...hrefs];
     for (const href of routes) {
       router.prefetch(href);
     }

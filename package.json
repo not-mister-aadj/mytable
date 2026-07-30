@@ -14,7 +14,6 @@
     "db:sync-dev": "tsx scripts/sync-dev-from-prod.ts",
     "db:setup-dev": "tsx scripts/ensure-dev-database.ts",
     "db:migrate-lifecycle": "tsx scripts/apply-booking-lifecycle-migration.ts",
-    "db:migrate-waitlist": "tsx scripts/apply-waitlist-migration.ts",
     "db:migrate-priority-list": "tsx scripts/apply-priority-list-migration.ts",
     "db:migrate-customers": "tsx scripts/apply-customers-migration.ts",
     "db:migrate-venue-gallery": "tsx scripts/apply-experience-types-migration.ts",

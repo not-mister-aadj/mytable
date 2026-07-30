@@ -35,8 +35,8 @@ export function stripLocalePrefix(pathname: string): {
 function localizePathForLocale(path: string, locale: Locale): string {
   if (locale === "en" && path === "/algemene-voorwaarden") return "/terms";
   if (locale === "nl" && path === "/terms") return "/algemene-voorwaarden";
-  if (locale === "en" && path === "/wachtlijst") return "/waitlist";
-  if (locale === "nl" && path === "/waitlist") return "/wachtlijst";
+  if (locale === "en" && path === "/inloggen") return "/login";
+  if (locale === "nl" && path === "/login") return "/inloggen";
   return path;
 }
 
@@ -76,8 +76,25 @@ export function privacyPath(locale: Locale): string {
 }
 
 export function girlsOnlyPath(locale: Locale): string {
-  /** National girls-only landing is the site home. */
-  return localePath(locale);
+  return locale === "en" ? "/en/girls-only" : "/girls-only";
+}
+
+/** Member-only Clubmember hub (Sunday Wine Table). */
+export function clubmemberPath(locale: Locale): string {
+  return locale === "en" ? "/en/clubmember" : "/clubmember";
+}
+
+export function clubmemberConfirmedPath(locale: Locale): string {
+  return `${clubmemberPath(locale)}/bevestigd`;
+}
+
+export function clubmemberCancelledPath(locale: Locale): string {
+  return `${clubmemberPath(locale)}/geannuleerd`;
+}
+
+/** Pre-auth onboarding funnel (commit → vibe → signup). */
+export function joinPath(locale: Locale): string {
+  return locale === "en" ? "/en/join" : "/join";
 }
 
 export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
@@ -105,6 +122,10 @@ export function blogFeedPath(locale: Locale): string {
   return `${blogPath(locale)}/feed.xml`;
 }
 
-export function waitlistPath(locale: Locale): string {
-  return locale === "en" ? "/en/waitlist" : "/wachtlijst";
+export function loginPath(locale: Locale): string {
+  return locale === "en" ? "/en?signin=1" : "/?signin=1";
+}
+
+export function accountPath(locale: Locale): string {
+  return locale === "en" ? "/en/account" : "/account";
 }

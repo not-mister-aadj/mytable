@@ -47,11 +47,7 @@ export function ExperienceMidBookingCta({
 
   return (
     <section
-      className={`my-8 rounded-2xl border px-5 py-8 sm:my-10 sm:rounded-3xl sm:px-10 sm:py-10 ${
-        isFemaleOnly
-          ? "border-rose/20 bg-gradient-to-br from-rose/8 to-cream"
-          : "border-border-subtle bg-gradient-to-br from-beige to-cream"
-      }`}
+      className={`my-8 rounded-2xl border border-border-subtle bg-gradient-to-br from-beige to-cream px-5 py-8 sm:my-10 sm:rounded-3xl sm:px-10 sm:py-10`}
     >
       <motion.p
         initial={{ opacity: 0, y: 8 }}
@@ -76,11 +72,7 @@ export function ExperienceMidBookingCta({
         className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <p
-            className={`font-serif text-3xl font-medium sm:text-4xl ${
-              isFemaleOnly ? "text-rose-deep" : "text-burgundy"
-            }`}
-          >
+          <p className="font-serif text-3xl font-medium text-burgundy sm:text-4xl">
             {formatFromPerPerson(experience.price, perPersonFromLabel)}
           </p>
           {spots !== null && spots > 0 && spots <= 15 ? (
@@ -97,7 +89,7 @@ export function ExperienceMidBookingCta({
           variant="primary"
           className={
             isFemaleOnly
-              ? "bg-rose hover:bg-rose-deep sm:shrink-0"
+              ? "bg-wine hover:bg-burgundy sm:shrink-0"
               : "sm:shrink-0"
           }
           onClick={(event) =>

@@ -28,6 +28,7 @@ import {
   organizationJsonLd,
 } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
+import { blogImages } from "@/data/images";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: seo.title,
     description: seo.description,
     slug: category,
-    image: "/blog/25-sociale-activiteiten-voor-volwassenen.png",
+    image: blogImages.socialIdeas,
   });
 }
 
@@ -115,7 +116,7 @@ export default async function BlogCategoryPage({ params }: Props) {
           categoryCounts={categoryCounts}
         />
       </main>
-      <Footer dict={dict.footer} locale={locale} />
+      <Footer dict={dict.footer} locale={locale} showSeoLinks />
     </>
   );
 }

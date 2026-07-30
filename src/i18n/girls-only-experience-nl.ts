@@ -37,7 +37,7 @@ export const girlsOnlyTastingQuotesNl: ExperienceGuestQuote[] = [
   },
   {
     quote:
-      "Met mijn vriendin geboekt voor €39 p.p. Scheelde flink t.o.v. solo. Waarom hebben we dit niet eerder gedaan?",
+      "Met mijn vriendin geboekt. Samen aan tafel voelde meteen goed. Waarom hebben we dit niet eerder gedaan?",
     name: "Noor",
     detail: "duo",
   },
@@ -96,7 +96,7 @@ export const girlsOnlyTastingsMoodNl: Partial<ExperienceMoodContent> = {
     {
       question: "Wat kost het en wat krijg ik ervoor?",
       answer:
-        "Alleen €49 per persoon; met z'n tweeën €39 per persoon (duo-tarief). Per persoon krijg je vier wijnen met bijpassende bites, een hele zondagmiddag aan tafel en alles vooraf geregeld. Geen rekening aan tafel.",
+        "€49 per persoon, of je nu solo, met z'n tweeën of met een groep komt. Per persoon krijg je vier wijnen met bijpassende bites, een hele zondagmiddag aan tafel en alles vooraf geregeld. Geen rekening aan tafel.",
     },
     {
       question: "Kan ik solo komen?",
@@ -153,45 +153,49 @@ export const girlsOnlyExperienceLabelsNl = {
   venuesTitle: "Waar je aan tafel schuift",
   venuesSubtitle:
     "Eén zorgvuldig gekozen partnerrestaurant per stad. Superleuk aan tafel: vier wijnen, gepaarde bites en gezellige meiden.",
-  pillSoloTogether: "Solo of met je vriendinnen",
-  socialTitle: "Girls-only wijnspijs op zondagmiddag.",
+  pillSoloTogether: "Plan je tafel",
+  socialTitle: "Goede plannen beginnen rond de tafel.",
   socialSubtitle:
-    "Eigen tafel met je groep, of aanschuiven als je geen volledige groep hebt.",
+    "Neem je vriendinnen mee, nodig iemand van je Sunday Table uit of schuif individueel aan. Wij regelen de wijn, het eten en de ervaring.",
   finalCtaHeadline: "Klaar voor je volgende zondagmiddag wijnspijs?",
   finalCtaSubheadline:
-    "Vier wijnen, gepaarde bites en gezelligheid met je meiden. Zonder datumprikkers, zonder gedoe.",
+    "Vier wijnen, gepaarde bites en gezelligheid. Zonder datumprikkers, zonder gedoe.",
   bookingSeatingOwn: "Met mijn vriendinnen, eigen tafel",
   bookingSeatingOwnHint: "Jullie tafel, jullie crew. Wijn, bites, geen gedoe.",
   bookingSeatingJoin: "Ik schuif aan bij anderen",
   bookingSeatingJoinHint:
     "Solo of met een vriendin. MyTable regelt je plek aan tafel.",
   bookingTiers: {
-    legend: "Hoe kom je?",
+    legend: "Aantal tickets",
     perPerson: "€{price} p.p.",
-    perPersonFrom: "Vanaf €{price} p.p.",
-    bestValue: "Beste keuze",
+    perPersonFrom: "€{price} p.p.",
+    bestValue: "Aanbevolen",
     mostChosen: "Meest gekozen",
     seatOne: "1 plek",
     seatOther: "{count} plekken",
     seatsFrom: "Vanaf {count} plekken",
-    groupSeatsLabel: "Aantal plekken",
-    seatsJoinOthers: "schuif aan bij anderen",
-    seatsOwnTable: "jullie eigen tafel",
-    soloTitle: "Solo & schuif aan",
-    duoTitle: "Twee is feest, schuif aan",
-    groupTitle: "Vriendinnentafel, jullie eigen tafel",
+    groupSeatsLabel: "Aantal tickets",
+    seatsJoinOthers: "ticket",
+    seatsOwnTable: "jullie zitten samen",
+    seatingTogetherHint:
+      "Boek het aantal tickets voor jezelf of je gezelschap. Je zit met wie je meeneemt.",
+    soloTitle: "Alleen ik",
+    duoTitle: "Met z'n tweeën",
+    groupTitle: "Met een groep",
+    tableTitle: "Reserveer een tafel",
     soloCta: "Reserveer mijn plek",
     duoCta: "Reserveer onze plekken",
-    groupCta: "Reserveer onze tafel",
+    groupCta: "Reserveer onze plekken",
+    tableCta: "Reserveer de tafel",
   },
   bookingTrustBullets: [
     "Alles vooraf betaald",
     "Gratis ruilen tot 48 uur van tevoren",
     "Dieetwensen mogelijk",
-    "Met je vriendinnen of solo",
+    "Met vriendinnen, als duo of individueel",
   ],
   practicalValues: {
-    solo: "Geen groep? Solo of met een vriendin aanschuiven kan ook",
+    solo: "Individueel aanschuiven kan; met je groep is van harte welkom",
     groupSize: "Kleine tafels, meestal 8 tot 14 vrouwen per zondagmiddag",
   },
 };

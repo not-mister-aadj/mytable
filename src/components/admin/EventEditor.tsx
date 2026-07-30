@@ -34,7 +34,6 @@ import {
   emptyEventExtras,
   GIRLS_ONLY_ATMOSPHERE_TAG,
   parseEventExtras,
-  resolveFemaleOnly,
   serializeEventExtras,
   type EventExtras,
 } from "@/lib/event-extras";
@@ -142,9 +141,6 @@ export function EventEditor({
     event ? String(event.priceCents / 100) : "49",
   );
   const [capacity, setCapacity] = useState(String(event?.capacity ?? 14));
-  const [femaleOnly, setFemaleOnly] = useState(() =>
-    resolveFemaleOnly(event?.femaleOnly, initialExtras.atmosphereTags),
-  );
   const [imageUrl, setImageUrl] = useState(event?.imageUrl ?? "");
   const [taglineNl, setTaglineNl] = useState(
     event?.taglineNl ?? templateDefaults.taglineNl,
@@ -283,9 +279,6 @@ export function EventEditor({
     formData.set("categoryEn", categoryEn);
     formData.set("taglineNl", resolvedTaglines.taglineNl);
     formData.set("taglineEn", resolvedTaglines.taglineEn);
-    if (femaleOnly) {
-      formData.set("femaleOnly", "on");
-    }
     return formData;
   }
 
@@ -309,7 +302,7 @@ export function EventEditor({
       endsAt,
       priceEuros,
       capacity,
-      femaleOnly,
+      femaleOnly: false,
       imageUrl: resolvedImageUrl,
       nameNl,
       nameEn,
@@ -385,7 +378,7 @@ export function EventEditor({
       imageUrl: resolvedImageUrl,
       categoryNl,
       categoryEn,
-      femaleOnly,
+      femaleOnly: false,
       experienceType,
       workflowStatus: event?.workflowStatus,
       extras: previewExtras,
@@ -408,7 +401,6 @@ export function EventEditor({
       resolvedImageUrl,
       categoryNl,
       categoryEn,
-      femaleOnly,
       experienceType,
       previewExtras,
       previewLocale,
@@ -537,9 +529,6 @@ export function EventEditor({
             <input type="hidden" name="categoryEn" value={categoryEn} />
             <input type="hidden" name="taglineNl" value={resolvedTaglines.taglineNl} />
             <input type="hidden" name="taglineEn" value={resolvedTaglines.taglineEn} />
-            {femaleOnly ? (
-              <input type="hidden" name="femaleOnly" value="on" />
-            ) : null}
 
             {step === 0 ? (
               <Section title="Basis">
@@ -606,8 +595,8 @@ export function EventEditor({
                     required
                   />
                   <p className="-mt-2 text-xs text-wine/50 sm:col-span-2">
-                    Checkout gebruikt vaste tarieven: solo €49, duo €39 p.p., groep
-                    €44 p.p. Dit veld is voor weergave in het dashboard.
+                    Checkout gebruikt één vast tarief: €49 p.p. voor solo, duo en
+                    groep. Dit veld is voor weergave in het dashboard.
                   </p>
                   <Field
                     label="Capaciteit"
@@ -618,40 +607,21 @@ export function EventEditor({
                     required
                   />
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={femaleOnly}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setFemaleOnly(checked);
-                      const tags = extras.atmosphereTags ?? [];
-                      if (checked && !tags.includes(GIRLS_ONLY_ATMOSPHERE_TAG)) {
-                        updateExtras({
-                          atmosphereTags: [...tags, GIRLS_ONLY_ATMOSPHERE_TAG],
-                        });
-                      } else if (!checked) {
-                        updateExtras({
-                          atmosphereTags: tags.filter(
-                            (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
-                          ),
-                        });
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  Girls only
-                </label>
                 <div>
                   <label className="block text-sm font-medium text-wine">
                     Sfeer-tags
                   </label>
                   <div className="mt-2">
                     <AtmosphereTags
-                      selected={extras.atmosphereTags ?? []}
+                      selected={(extras.atmosphereTags ?? []).filter(
+                        (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+                      )}
                       onChange={(tags) => {
-                        setFemaleOnly(tags.includes(GIRLS_ONLY_ATMOSPHERE_TAG));
-                        updateExtras({ atmosphereTags: tags });
+                        updateExtras({
+                          atmosphereTags: tags.filter(
+                            (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+                          ),
+                        });
                       }}
                     />
                   </div>

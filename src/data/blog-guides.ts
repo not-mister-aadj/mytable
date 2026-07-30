@@ -1,4 +1,5 @@
 import type { BlogPost } from "./blog-types";
+import { blogImages } from "./images";
 
 /**
  * Long-form SEO guides adapted from drafts into MyTable voice.
@@ -10,7 +11,7 @@ export const blogGuidePosts: BlogPost[] = [
     category: "tips",
     publishedAt: "2026-07-21",
     readMinutes: 11,
-    image: "/blog/25-sociale-activiteiten-voor-volwassenen.png",
+    image: blogImages.socialIdeas,
     featured: true,
     relatedPaths: [
       {
@@ -274,7 +275,7 @@ export const blogGuidePosts: BlogPost[] = [
     category: "tips",
     publishedAt: "2026-07-20",
     readMinutes: 9,
-    image: "/blog/leuk-uitje-met-vriendinnen.png",
+    image: blogImages.friendsOutdoor,
     relatedPaths: [
       {
         path: "/agenda",
@@ -505,7 +506,7 @@ export const blogGuidePosts: BlogPost[] = [
     category: "tips",
     publishedAt: "2026-07-19",
     readMinutes: 9,
-    image: "/blog/vriendinnenuitje-in-nederland.png",
+    image: blogImages.foodPairing,
     relatedPaths: [
       {
         path: "/agenda",
@@ -716,7 +717,7 @@ export const blogGuidePosts: BlogPost[] = [
     category: "girls-only",
     publishedAt: "2026-07-18",
     readMinutes: 8,
-    image: "/blog/leuke-activiteiten-alleen.png",
+    image: blogImages.cafeCoffee,
     relatedPaths: [
       {
         path: "/agenda",
@@ -897,7 +898,7 @@ export const blogGuidePosts: BlogPost[] = [
     category: "girls-only",
     publishedAt: "2026-07-17",
     readMinutes: 8,
-    image: "/blog/solo-uitjes-in-nederland.png",
+    image: blogImages.dinnerTable,
     relatedPaths: [
       {
         path: "/agenda",

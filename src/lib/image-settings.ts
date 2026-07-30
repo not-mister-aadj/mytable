@@ -40,7 +40,7 @@ const USAGE_DEFAULT_RATIO: Record<ImageUsage, ImageAspectRatio> = {
 };
 
 export const RATIO_OPTIONS: Record<ImageUsage, ImageAspectRatio[]> = {
-  "agenda-card": ["16:10", "4:3"],
+  "agenda-card": ["16:10", "4:3", "4:5"],
   hero: ["21:9", "16:9"],
   "hero-mobile": ["4:5", "4:3"],
   gallery: ["1:1", "4:3", "3:4"],

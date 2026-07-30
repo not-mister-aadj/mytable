@@ -1,13 +1,14 @@
 import {
+  boolean,
+  date,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
   timestamp,
-  uuid,
-  boolean,
-  jsonb,
   uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const workflowStatusEnum = pgEnum("workflow_status", [
@@ -181,6 +182,9 @@ export const bookings = pgTable("bookings", {
   confirmationEmailSentAt: timestamp("confirmation_email_sent_at", {
     withTimezone: true,
   }),
+  affiliateCode: text("affiliate_code"),
+  referralCode: text("referral_code"),
+  fromSundayTable: boolean("from_sunday_table").notNull().default(false),
   lifecycleStatus: bookingLifecycleStatusEnum("lifecycle_status")
     .notNull()
     .default("active"),
@@ -254,6 +258,198 @@ export const siteSettings = pgTable("site_settings", {
     .defaultNow(),
 });
 
+export type SundayTableSignupProfile = {
+  gender?: string | null;
+  personality?: string | null;
+  birthDate?: string | null;
+  joinIntent?: string | null;
+  company?: string | null;
+  cities?: string[];
+  cityFlexible?: boolean;
+  preferredTableType?: string | null;
+  interests?: string[];
+};
+
+export type ClubPlanId = "1m" | "3m" | "6m";
+export type ClubMembershipStatus =
+  | "pending"
+  | "active"
+  | "past_due"
+  | "canceled";
+export type SundayTableSignupStatus =
+  | "pending_payment"
+  | "confirmed"
+  | "cancelled";
+
+export const clubMemberships = pgTable(
+  "club_memberships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    name: text("name"),
+    userId: uuid("user_id"),
+    customerId: uuid("customer_id").references(() => customers.id),
+    planId: text("plan_id").notNull(),
+    status: text("status").notNull().default("pending"),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    locale: text("locale").notNull().default("nl"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    stripeSubscriptionUnique: uniqueIndex(
+      "club_memberships_stripe_subscription_unique",
+    ).on(table.stripeSubscriptionId),
+    stripeSessionUnique: uniqueIndex(
+      "club_memberships_stripe_session_unique",
+    ).on(table.stripeCheckoutSessionId),
+  }),
+);
+
+export const sundayTableSignups = pgTable(
+  "sunday_table_signups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    name: text("name"),
+    city: text("city").notNull(),
+    tableDate: date("table_date").notNull(),
+    tableType: text("table_type").notNull(),
+    planId: text("plan_id").notNull(),
+    locale: text("locale").notNull().default("nl"),
+    userId: uuid("user_id"),
+    customerId: uuid("customer_id").references(() => customers.id),
+    membershipId: uuid("membership_id").references(() => clubMemberships.id),
+    status: text("status").notNull().default("pending_payment"),
+    plusOne: boolean("plus_one").notNull().default(false),
+    attendedAt: timestamp("attended_at", { withTimezone: true }),
+    inviteEmailSentAt: timestamp("invite_email_sent_at", {
+      withTimezone: true,
+    }),
+    culinaryEmailSentAt: timestamp("culinary_email_sent_at", {
+      withTimezone: true,
+    }),
+    confirmationEmailSentAt: timestamp("confirmation_email_sent_at", {
+      withTimezone: true,
+    }),
+    locationEmailSentAt: timestamp("location_email_sent_at", {
+      withTimezone: true,
+    }),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
+    profile: jsonb("profile").$type<SundayTableSignupProfile>(),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    emailCityDateTypeUnique: uniqueIndex(
+      "sunday_table_signups_email_city_date_type_unique",
+    ).on(table.email, table.city, table.tableDate, table.tableType),
+  }),
+);
+
+export const sundayTableLocations = pgTable(
+  "sunday_table_locations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    city: text("city").notNull(),
+    tableDate: date("table_date").notNull(),
+    tableType: text("table_type").notNull(),
+    venueName: text("venue_name").notNull(),
+    address: text("address").notNull(),
+    notes: text("notes"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    keyUnique: uniqueIndex("sunday_table_locations_key_unique").on(
+      table.city,
+      table.tableDate,
+      table.tableType,
+    ),
+  }),
+);
+
+export const referralCodes = pgTable(
+  "referral_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull().unique(),
+    userId: uuid("user_id"),
+    email: text("email").notNull(),
+    membershipId: uuid("membership_id").references(() => clubMemberships.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
+
+export const referralAttributions = pgTable(
+  "referral_attributions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    referralCodeId: uuid("referral_code_id")
+      .notNull()
+      .references(() => referralCodes.id),
+    refereeEmail: text("referee_email").notNull(),
+    refereeUserId: uuid("referee_user_id"),
+    status: text("status").notNull().default("signed_up"),
+    rewardedAt: timestamp("rewarded_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
+
+export const affiliateCodes = pgTable("affiliate_codes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  active: boolean("active").notNull().default(true),
+  commissionCentsPerTicket: integer("commission_cents_per_ticket")
+    .notNull()
+    .default(1000),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const affiliateCommissions = pgTable(
+  "affiliate_commissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    affiliateCodeId: uuid("affiliate_code_id")
+      .notNull()
+      .references(() => affiliateCodes.id),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id),
+    amountCents: integer("amount_cents").notNull(),
+    status: text("status").notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    bookingUnique: uniqueIndex("affiliate_commissions_booking_unique").on(
+      table.bookingId,
+    ),
+  }),
+);
+
 export type Customer = typeof customers.$inferSelect;
 export type CustomerActivity = typeof customerActivities.$inferSelect;
 export type ExperienceType = typeof experienceTypes.$inferSelect;
@@ -262,3 +458,9 @@ export type Event = typeof events.$inferSelect;
 export type EventSlugRedirect = typeof eventSlugRedirects.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
+export type ClubMembership = typeof clubMemberships.$inferSelect;
+export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type ReferralAttribution = typeof referralAttributions.$inferSelect;
+export type AffiliateCode = typeof affiliateCodes.$inferSelect;
+export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;

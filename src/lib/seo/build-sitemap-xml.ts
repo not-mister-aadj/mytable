@@ -8,7 +8,6 @@ import {
   localePath,
   privacyPath,
   termsPath,
-  waitlistPath,
 } from "@/i18n/config";
 import {
   BLOG_CATEGORY_ORDER,
@@ -122,13 +121,6 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
       enPath: agendaPath("en"),
       changefreq: "daily",
       priority: 0.9,
-      lastmod: now,
-    }),
-    ...pair({
-      nlPath: waitlistPath("nl"),
-      enPath: waitlistPath("en"),
-      changefreq: "weekly",
-      priority: 0.88,
       lastmod: now,
     }),
     ...pair({

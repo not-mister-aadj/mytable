@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Dictionary } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
@@ -13,7 +14,6 @@ import {
 import type { RouteMapPoint } from "@/data/experience-route-map";
 import { getExperienceVenues } from "@/data/experience-venues";
 import { getRouteMapPoints } from "@/data/experience-route-map";
-import { resolveFemaleOnly } from "@/lib/event-extras";
 import {
   BOOKING_DESKTOP_ID,
   BOOKING_MOBILE_ID,
@@ -23,7 +23,6 @@ import { CityRoute } from "./CityRoute";
 import { ExperienceFaq } from "./ExperienceFaq";
 import { ExperienceFlow } from "./ExperienceFlow";
 import { ExperienceIncluded } from "./ExperienceIncluded";
-import { ExperienceMidBookingCta } from "./ExperienceMidBookingCta";
 import { ExperienceGallery } from "./ExperienceGallery";
 import { ExperienceHero } from "./ExperienceHero";
 import { ExperienceMobileStickyCta } from "./ExperienceMobileStickyCta";
@@ -32,8 +31,7 @@ import { GuestQuotes } from "./GuestQuotes";
 import { RelatedExperiences } from "./RelatedExperiences";
 import { ScrollProgress } from "./ScrollProgress";
 import { VenueLineup } from "./VenueLineup";
-import { WhatToExpect } from "./WhatToExpect";
-import { trackEventDetailViewed } from "@/lib/posthog/analytics";
+import { trackEventDetailViewed, trackPremiumExperienceViewed } from "@/lib/posthog/analytics";
 import { trackMetaViewContent } from "@/lib/analytics/metaTracking";
 
 const fade = {
@@ -54,6 +52,8 @@ interface ExperiencePageContentProps {
   routePoints?: RouteMapPoint[];
   /** Admin live preview: same layout, no sticky bar / related / scroll chrome */
   previewMode?: boolean;
+  /** Active Clubmember — show and charge 10% off. */
+  clubMemberDiscount?: boolean;
 }
 
 export function ExperiencePageContent({
@@ -64,7 +64,12 @@ export function ExperiencePageContent({
   eventVenues,
   routePoints: routePointsProp,
   previewMode = false,
+  clubMemberDiscount = false,
 }: ExperiencePageContentProps) {
+  const searchParams = useSearchParams();
+  const fromSundayTable = searchParams.get("from") === "sunday-table";
+  const affiliateCode = searchParams.get("aff")?.trim() || null;
+  const referralCode = searchParams.get("ref")?.trim() || null;
   const page = getExperiencePageLabelsForEvent(dict, locale, experience);
   const mood = getMoodContentForEvent(dict, experience, locale);
   const venuesTitle =
@@ -86,14 +91,18 @@ export function ExperiencePageContent({
   const mobileBookingRef = useRef<HTMLDivElement>(null);
   const desktopBookingRef = useRef<HTMLDivElement>(null);
   const scheduleNote = `${mood.dayOfWeek} · ${mood.partOfDay}`;
-  const isFemaleOnly = resolveFemaleOnly(
-    experience.femaleOnly,
-    experience.atmosphereTags,
-  );
+  // Culinary experiences are never girls-only (Clubmember Sunday Tables only).
+  const isFemaleOnly = false;
 
   useEffect(() => {
     if (previewMode) return;
     trackEventDetailViewed(experience, locale);
+    trackPremiumExperienceViewed({
+      event_slug: experience.slug,
+      city: experience.city,
+      language: locale,
+      product_role: "premium_experience",
+    });
     trackMetaViewContent(experience, locale);
   }, [
     experience.slug,
@@ -170,6 +179,10 @@ export function ExperiencePageContent({
                     compact
                     fitViewport
                     scheduleNote={scheduleNote}
+                    clubMemberDiscount={clubMemberDiscount}
+                    fromSundayTable={fromSundayTable}
+                    affiliateCode={affiliateCode}
+                    referralCode={referralCode}
                   />
                 </div>
               </div>
@@ -189,9 +202,22 @@ export function ExperiencePageContent({
                   fitViewport
                   scheduleNote={scheduleNote}
                   className="mt-4"
+                  clubMemberDiscount={clubMemberDiscount}
+                  fromSundayTable={fromSundayTable}
+                  affiliateCode={affiliateCode}
+                  referralCode={referralCode}
                 />
               </motion.div>
             ) : null}
+
+            <motion.div {...fade}>
+              <ExperienceFlow
+                eyebrow={page.flowEyebrow}
+                title={page.flowTitle}
+                expandLabel={page.flowExpandCta}
+                steps={mood.experienceFlow}
+              />
+            </motion.div>
 
             <motion.div {...fade}>
               <ExperienceIncluded
@@ -203,21 +229,12 @@ export function ExperiencePageContent({
               />
             </motion.div>
 
-            <motion.div {...fade}>
-              <ExperienceFlow
-                eyebrow={page.flowEyebrow}
-                title={page.flowTitle}
-                expandLabel={page.flowExpandCta}
-                steps={mood.experienceFlow}
-              />
-            </motion.div>
-
             {previewMode ? null : (
               <motion.div
                 {...fade}
                 ref={mobileBookingRef}
                 id={BOOKING_MOBILE_ID}
-                className="scroll-mt-[5rem] pb-8 pt-6 lg:hidden"
+                className="scroll-mt-[5rem] border-t border-wine/8 pb-10 pt-8 lg:hidden"
               >
                 <BookingCard
                   experience={experience}
@@ -227,6 +244,10 @@ export function ExperiencePageContent({
                   locale={locale}
                   compact
                   scheduleNote={scheduleNote}
+                  clubMemberDiscount={clubMemberDiscount}
+                  fromSundayTable={fromSundayTable}
+                  affiliateCode={affiliateCode}
+                  referralCode={referralCode}
                 />
               </motion.div>
             )}
@@ -242,20 +263,6 @@ export function ExperiencePageContent({
           isFemaleOnly={isFemaleOnly}
         />
       </motion.div>
-
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-        <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-14 xl:gap-20">
-          <div className="min-w-0 lg:col-start-1">
-            <motion.div {...fade}>
-              <WhatToExpect title={page.expectTitle} items={mood.whatToExpect} />
-            </motion.div>
-          </div>
-
-          {previewMode ? null : (
-            <div className="hidden lg:col-start-2 lg:row-start-1 lg:block" aria-hidden />
-          )}
-        </div>
-      </div>
 
       <motion.div {...fade}>
         <ExperienceGallery
@@ -296,21 +303,6 @@ export function ExperiencePageContent({
                 }
               />
             </motion.div>
-
-            {previewMode ? null : (
-              <motion.div {...fade}>
-                <ExperienceMidBookingCta
-                  experience={experience}
-                  locale={locale}
-                  reserveCta={dict.agenda.reserveCta}
-                  eyebrow={page.midCtaEyebrow}
-                  title={page.midCtaTitle}
-                  trustLine={page.midCtaTrustLine}
-                  perPersonFromLabel={page.perPersonFrom}
-                  spotsHintLabel={page.heroSpotsHint}
-                />
-              </motion.div>
-            )}
           </div>
 
           {previewMode ? null : (

@@ -13,6 +13,10 @@ export {
 } from "@/lib/email/sendBookingConfirmationEmail";
 export { sendBookingMovedEmail } from "@/lib/email/sendBookingMovedEmail";
 export {
+  sendSundayTableConfirmationEmail,
+  sendSundayTableCancelEmail,
+} from "@/lib/email/sendSundayTableBookingEmails";
+export {
   buildBookingConfirmationEmailProps,
   buildBookingMovedEmailProps,
 } from "@/lib/email/build-email-props";

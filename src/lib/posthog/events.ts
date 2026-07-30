@@ -21,6 +21,15 @@ export const PostHogEvents = {
   /** @deprecated use emailSignupCompleted */
   waitlistSignup: "waitlist_signup",
   whatsappJoinClicked: "whatsapp_join_clicked",
+  sundayTableCtaClicked: "sunday_table_cta_clicked",
+  premiumExperienceViewed: "premium_experience_viewed",
+  groupInvitationStarted: "group_invitation_started",
+  groupInvitationShared: "group_invitation_shared",
+  clubmemberPaid: "clubmember_paid",
+  sundayRsvp: "sunday_rsvp",
+  sundayShowUp: "sunday_show_up",
+  inviteShareClicked: "invite_share_clicked",
+  culinaryBookedWithin30dOfSunday: "culinary_booked_within_30d_of_sunday",
   customerCreated: "customer_created",
   customerUpdated: "customer_updated",
   customerProfileViewed: "customer_profile_viewed",
@@ -38,6 +47,13 @@ export type PageType =
   | "success"
   | "failed"
   | "legal"
+  | "join"
+  | "clubmember"
+  | "girls_only"
+  | "blog"
+  | "account"
+  | "auth"
+  | "waitlist"
   | "other";
 
 export type AnalyticsSourceSection =
@@ -53,4 +69,5 @@ export type AnalyticsSourceSection =
   | "sold_out_cta"
   | "girls_only_presale"
   | "girls_only_city_priority"
+  | "member_club_sunday_table"
   | "waitlist";

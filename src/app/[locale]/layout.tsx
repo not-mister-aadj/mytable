@@ -4,7 +4,8 @@ import { PostHogProvider } from "@/components/PostHogProvider";
 import { MetaPixelProvider } from "@/components/MetaPixelProvider";
 import { PrefetchCriticalRoutes } from "@/components/PrefetchCriticalRoutes";
 import { SetHtmlLang } from "@/components/SetHtmlLang";
-import { isValidLocale } from "@/i18n/config";
+import { AuthProviders } from "@/features/auth/AuthProviders";
+import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 type Props = {
@@ -28,13 +29,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
+  const dict = getDictionary(locale);
 
   return (
     <PostHogProvider>
       <MetaPixelProvider>
-        <SetHtmlLang locale={locale} />
-        <PrefetchCriticalRoutes locale={locale} />
-        {children}
+        <AuthProviders locale={locale as Locale} nav={dict.header.nav}>
+          <SetHtmlLang locale={locale} />
+          <PrefetchCriticalRoutes locale={locale} />
+          {children}
+        </AuthProviders>
       </MetaPixelProvider>
     </PostHogProvider>
   );

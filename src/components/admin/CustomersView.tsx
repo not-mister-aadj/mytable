@@ -17,7 +17,7 @@ type FilterKey =
   | "failed_payments";
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—";
+  if (!iso) return "-";
   return new Intl.DateTimeFormat("nl-NL", {
     day: "numeric",
     month: "short",
@@ -87,7 +87,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
           Klanten
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Betalende gasten op basis van e-mailadres — voltooide boekingen,
+          Betalende gasten op basis van e-mailadres - voltooide boekingen,
           omzet en activiteit in de tijd.
         </p>
       </div>
@@ -204,7 +204,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
                     </td>
                     <td className="px-5 py-4 text-wine/70">{row.email}</td>
                     <td className="px-5 py-4 text-wine/70">
-                      {row.favoriteCity ?? "—"}
+                      {row.favoriteCity ?? "-"}
                     </td>
                     <td className="px-5 py-4 font-medium text-wine">
                       {row.paidBookingsCount}

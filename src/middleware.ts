@@ -2,7 +2,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { defaultLocale, type Locale } from "./i18n/config";
 import { getAdminUrl, isAdminHost, isLocalDevHost, usesAdminSubdomainFromEnv } from "@/lib/admin-url";
-import { updateSupabaseSession } from "@/lib/supabase/middleware";
+import {
+  updateSupabaseSession,
+  updateSupabaseSessionWithUser,
+} from "@/lib/supabase/middleware";
 
 const BLOG_CATEGORY_IDS = new Set([
   "tips",
@@ -15,6 +18,32 @@ function resolveLocale(pathname: string): Locale | null {
   if (pathname === "/en" || pathname.startsWith("/en/")) return "en";
   if (pathname === "/nl" || pathname.startsWith("/nl/")) return "nl";
   return null;
+}
+
+/** Path without /en or /nl prefix. */
+function stripLocaleVisible(pathname: string): string {
+  if (pathname === "/en" || pathname === "/nl") return "/";
+  if (pathname.startsWith("/en/")) return pathname.slice(3) || "/";
+  if (pathname.startsWith("/nl/")) return pathname.slice(3) || "/";
+  return pathname || "/";
+}
+
+function isMemberGatedPath(pathname: string): boolean {
+  const p = stripLocaleVisible(pathname);
+  if (p.startsWith("/account")) return true;
+  if (p === "/clubmember" || p.startsWith("/clubmember/")) return true;
+  return false;
+}
+
+function signInHomeRedirect(request: NextRequest): NextResponse {
+  const target = request.nextUrl.clone();
+  const isEn =
+    request.nextUrl.pathname === "/en" ||
+    request.nextUrl.pathname.startsWith("/en/");
+  target.pathname = isEn ? "/en" : "/";
+  target.search = "";
+  target.searchParams.set("signin", "1");
+  return NextResponse.redirect(target);
 }
 
 function handleAdminSubdomain(request: NextRequest) {
@@ -66,25 +95,69 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(subPath, getAdminUrl()));
   }
 
-  // Marketing-only waitlist path aliases (must not run on dashboard host —
-  // admin waitlist lives at /waitlist there).
-  if (pathname === "/waitlist") {
+  if (pathname === "/login") {
     const target = request.nextUrl.clone();
-    target.pathname = "/wachtlijst";
+    target.pathname = "/";
+    target.searchParams.set("signin", "1");
     return NextResponse.redirect(target, 308);
   }
-  if (pathname === "/en/wachtlijst") {
+  if (pathname === "/inloggen") {
     const target = request.nextUrl.clone();
-    target.pathname = "/en/waitlist";
+    target.pathname = "/";
+    target.searchParams.set("signin", "1");
+    return NextResponse.redirect(target, 308);
+  }
+  if (pathname === "/en/login" || pathname === "/en/inloggen") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/en";
+    target.searchParams.set("signin", "1");
     return NextResponse.redirect(target, 308);
   }
 
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/admin")
+    pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/auth/")
   ) {
     return updateSupabaseSession(request);
+  }
+
+  // Signed-in members skip the marketing landing → account
+  if (pathname === "/" || pathname === "/en") {
+    const isEn = pathname === "/en";
+    const rewritePath = isEn ? "/en" : `/${defaultLocale}`;
+    const { response, user } = await updateSupabaseSessionWithUser(request, {
+      rewritePath,
+    });
+    if (user) {
+      const target = request.nextUrl.clone();
+      target.pathname = isEn ? "/en/account" : "/account";
+      target.search = "";
+      const redirect = NextResponse.redirect(target);
+      for (const cookie of response.cookies.getAll()) {
+        redirect.cookies.set(cookie);
+      }
+      return redirect;
+    }
+    return response;
+  }
+
+  if (isMemberGatedPath(pathname)) {
+    const isEn = pathname === "/en" || pathname.startsWith("/en/");
+    const bare = stripLocaleVisible(pathname);
+    const rewritePath = isEn
+      ? pathname
+      : `/${defaultLocale}${bare === "/" ? "" : bare}`;
+
+    const { response, user } = await updateSupabaseSessionWithUser(request, {
+      rewritePath,
+    });
+
+    if (!user) {
+      return signInHomeRedirect(request);
+    }
+    return response;
   }
 
   if (
@@ -95,7 +168,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Legacy blog category query → clean SEO URL
   const categoryQuery = request.nextUrl.searchParams.get("category");
   if (
     categoryQuery &&
@@ -153,10 +225,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Skip SEO/static assets so Googlebot never hits middleware for sitemaps.
-     * (Known Next.js + GSC “Couldn't fetch” cause.)
-     */
     "/((?!_next/static|_next/image|favicon\\.ico|icon(?:\\.png)?|apple-icon(?:\\.png)?|apple-touch-icon\\.png|robots\\.txt|sitemap(?:\\.xml)?).*)",
   ],
 };

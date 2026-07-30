@@ -81,7 +81,7 @@ export function PreviewDeviceFrame({
           />
         </div>
         <p className="mt-2 text-center text-[10px] text-wine/50">
-          {frame.label} · {frame.width}×{frame.height} — zelfde viewport als op
+          {frame.label} · {frame.width}×{frame.height} - zelfde viewport als op
           de site ({frame.device})
         </p>
       </div>

@@ -2,7 +2,8 @@ import type { ExperienceItem, ExperienceMoodKey } from "@/i18n/types";
 import { formatDateTime, deriveDisplayStatus } from "@/lib/event-display";
 import { parseEventDateTimeLocal } from "@/lib/event-datetime-local";
 import {
-  resolveFemaleOnly,
+  stripGirlsOnlyCulinaryCopy,
+  GIRLS_ONLY_ATMOSPHERE_TAG,
   type EventExtras,
 } from "@/lib/event-extras";
 import type { ExperienceTypeSlug } from "@/lib/experience-type-definitions";
@@ -36,7 +37,7 @@ export type PreviewEventData = {
   workflowStatus?: "draft" | "published" | "cancelled";
   extras: EventExtras;
   previewLocale?: "nl" | "en";
-  /** Saved event — enables iframe preview with real viewport width */
+  /** Saved event - enables iframe preview with real viewport width */
   eventId?: string;
   /** Changes after save to refresh iframe */
   previewRevision?: number;
@@ -69,19 +70,15 @@ export function buildCardPreviewExperience(
     extras.cardImage ??
     coerceImageSettings(extras.cardImageUrl, "agenda-card");
   const cardUrl = cardSettings?.url;
-  const isFemaleOnly = resolveFemaleOnly(
-    data.femaleOnly,
-    extras.atmosphereTags,
-  );
 
   return {
     id: "preview",
     slug: "preview",
     city: data.city || "Stad",
-    experienceName: cardTitle || "Tafel",
-    cardTitle,
-    cardText,
-    category: category || "PROEVERIJ",
+    experienceName: stripGirlsOnlyCulinaryCopy(cardTitle) || "Tafel",
+    cardTitle: stripGirlsOnlyCulinaryCopy(cardTitle),
+    cardText: stripGirlsOnlyCulinaryCopy(cardText),
+    category: stripGirlsOnlyCulinaryCopy(category) || "PROEVERIJ",
     experienceType: data.experienceType,
     dateTime: formatDateTime(startsAt, endsAt, locale),
     price: data.priceEuros || 0,
@@ -90,11 +87,15 @@ export function buildCardPreviewExperience(
     image: cardUrl ?? "",
     cardImage: cardUrl,
     cardImageSettings: cardSettings,
-    femaleOnly: isFemaleOnly,
+    femaleOnly: false,
     capacity,
     spotsSold,
-    tagline: locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
-    atmosphereTags: extras.atmosphereTags,
+    tagline: stripGirlsOnlyCulinaryCopy(
+      locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
+    ) || undefined,
+    atmosphereTags: (extras.atmosphereTags ?? []).filter(
+      (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+    ),
     ...(data.eventId ? { eventDbId: data.eventId } : {}),
   };
 }
@@ -129,20 +130,17 @@ export function buildDetailPreviewExperience(
   const heroUrl =
     heroSettings?.url ??
     (isUsableImageUrl(data.imageUrl) ? data.imageUrl : DEFAULT_EVENT_IMAGE);
-  const isFemaleOnly = resolveFemaleOnly(
-    data.femaleOnly,
-    extras.atmosphereTags,
-  );
 
   return {
     id: "preview",
     slug: "preview",
     city: data.city || "Stad",
-    experienceName: heroTitle || "Tafel",
-    category:
+    experienceName: stripGirlsOnlyCulinaryCopy(heroTitle) || "Tafel",
+    category: stripGirlsOnlyCulinaryCopy(
       locale === "nl"
         ? extras.cardCategoryNl || data.categoryNl
         : extras.cardCategoryEn || data.categoryNl,
+    ),
     experienceType: data.experienceType,
     pageSections: {
       venuesTitle: sections.title,
@@ -158,12 +156,18 @@ export function buildDetailPreviewExperience(
     image: heroUrl,
     heroImageSettings: heroSettings,
     cardImageSettings: extras.cardImage,
-    femaleOnly: isFemaleOnly,
+    femaleOnly: false,
     capacity,
     spotsSold,
-    tagline: locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
-    cardText: resolveCardText(data.experienceType, extras, locale),
-    atmosphereTags: extras.atmosphereTags,
+    tagline: stripGirlsOnlyCulinaryCopy(
+      locale === "nl" ? data.taglineNl : data.taglineEn || data.taglineNl,
+    ) || undefined,
+    cardText: stripGirlsOnlyCulinaryCopy(
+      resolveCardText(data.experienceType, extras, locale),
+    ),
+    atmosphereTags: (extras.atmosphereTags ?? []).filter(
+      (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+    ),
     customDescription: aboutOverride || mood.description,
     customFaq: extras.sectionOverrides?.faqNl?.length
       ? locale === "nl"

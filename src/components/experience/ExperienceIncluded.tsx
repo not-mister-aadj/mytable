@@ -8,6 +8,7 @@ interface ExperienceIncludedProps {
   title: string;
   subtitle: string;
   items: ExperienceIncludedItem[];
+  /** @deprecated Kept for call-site compatibility; styling is unified. */
   isFemaleOnly?: boolean;
 }
 
@@ -16,18 +17,14 @@ export function ExperienceIncluded({
   title,
   subtitle,
   items,
-  isFemaleOnly = false,
 }: ExperienceIncludedProps) {
-  const accent = isFemaleOnly ? "text-rose-deep" : "text-burgundy";
-  const cardBg = isFemaleOnly ? "border-rose/15 bg-rose/5" : "border-border-subtle bg-beige/80";
-
   return (
-    <section className="py-8 sm:py-12 lg:py-16">
+    <section className="py-10 sm:py-14 lg:py-16">
       <motion.p
         initial={{ opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="text-xs font-semibold uppercase tracking-[0.24em] text-wine/45"
+        className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold"
       >
         {eyebrow}
       </motion.p>
@@ -35,7 +32,7 @@ export function ExperienceIncluded({
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="mt-2 max-w-2xl font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl"
+        className="mt-3 max-w-2xl font-serif text-2xl font-medium tracking-tight text-wine sm:text-4xl"
       >
         {title}
       </motion.h2>
@@ -43,25 +40,25 @@ export function ExperienceIncluded({
         initial={{ opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="mt-3 max-w-2xl text-sm leading-relaxed text-wine/65 sm:text-base"
+        className="mt-3 max-w-xl text-sm leading-relaxed text-wine/60 sm:text-base"
       >
         {subtitle}
       </motion.p>
 
-      <ul className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
+      <ul className="mt-8 divide-y divide-wine/10 border-y border-wine/10 sm:mt-10 sm:grid sm:grid-cols-4 sm:gap-6 sm:divide-y-0 sm:border-0">
         {items.map((item, index) => (
           <motion.li
             key={item.label}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: index * 0.06 }}
-            className={`rounded-2xl border px-4 py-5 text-center sm:rounded-3xl sm:px-5 sm:py-6 ${cardBg}`}
+            transition={{ delay: index * 0.05 }}
+            className="flex items-baseline justify-between gap-4 py-4 sm:flex-col sm:items-start sm:justify-start sm:py-0"
           >
-            <span className={`block font-serif text-3xl font-medium sm:text-4xl ${accent}`}>
+            <span className="font-serif text-2xl font-medium text-burgundy sm:text-4xl">
               {item.value}
             </span>
-            <span className="mt-1 block text-xs font-medium uppercase tracking-wide text-wine/55 sm:text-sm">
+            <span className="text-right text-sm text-wine/55 sm:mt-1 sm:text-left sm:text-xs sm:font-medium sm:uppercase sm:tracking-wide">
               {item.label}
             </span>
           </motion.li>

@@ -37,7 +37,7 @@ export const girlsOnlyTastingQuotesEn: ExperienceGuestQuote[] = [
   },
   {
     quote:
-      "Booked with my friend at €39 pp. Much better than going solo. Why didn't we do this sooner?",
+      "Booked with my friend. Sharing the table felt right immediately. Why didn't we do this sooner?",
     name: "Noor",
     detail: "duo",
   },
@@ -96,7 +96,7 @@ export const girlsOnlyTastingsMoodEn: Partial<ExperienceMoodContent> = {
     {
       question: "What's included and what does it cost?",
       answer:
-        "Solo is €49 per person; with a friend it's €39 per person (duo rate). Per person you get four wines with paired bites, a full Sunday afternoon at the table, and everything sorted upfront. No bill at the table.",
+        "€49 per person whether you come solo, as a pair or with a group. Per person you get four wines with paired bites, a full Sunday afternoon at the table, and everything sorted upfront. No bill at the table.",
     },
     {
       question: "Can I come solo?",
@@ -153,45 +153,49 @@ export const girlsOnlyExperienceLabelsEn = {
   venuesTitle: "Where you join the table",
   venuesSubtitle:
     "One carefully chosen partner restaurant per city. Four wines, paired bites, and good company at the table.",
-  pillSoloTogether: "Solo or with your friends",
-  socialTitle: "Girls-only wine & bites on Sunday afternoon.",
+  pillSoloTogether: "Plan your table",
+  socialTitle: "Good plans deserve a table.",
   socialSubtitle:
-    "Your own table with your group, or join others if you don't have a full group.",
+    "Bring your friends, invite someone from Sunday Table, or join individually. We arrange the wine, food and experience.",
   finalCtaHeadline: "Ready for your next Sunday afternoon wine & bites?",
   finalCtaSubheadline:
-    "Four wines, paired bites, and good company with your girls. No date polls, no hassle.",
+    "Four wines, paired bites, and good company. No date polls, no hassle.",
   bookingSeatingOwn: "With my friends, own table",
   bookingSeatingOwnHint: "Your table, your crew. Wine, bites, no hassle.",
   bookingSeatingJoin: "I'll join others at the table",
   bookingSeatingJoinHint:
     "Solo or with a friend. MyTable finds your spot at the table.",
   bookingTiers: {
-    legend: "How are you coming?",
+    legend: "Number of tickets",
     perPerson: "€{price} p.p.",
-    perPersonFrom: "From €{price} p.p.",
-    bestValue: "Best value",
+    perPersonFrom: "€{price} p.p.",
+    bestValue: "Recommended",
     mostChosen: "Most chosen",
     seatOne: "1 spot",
     seatOther: "{count} spots",
     seatsFrom: "From {count} spots",
-    groupSeatsLabel: "Number of spots",
-    seatsJoinOthers: "join others at the table",
-    seatsOwnTable: "your own table",
-    soloTitle: "Flying solo",
-    duoTitle: "Dynamic duo, join in",
-    groupTitle: "Your own friends' table",
+    groupSeatsLabel: "Number of tickets",
+    seatsJoinOthers: "a place at a shared table",
+    seatsOwnTable: "you'll sit together",
+    seatingTogetherHint:
+      "Book the number of tickets for yourself or your party. You sit with the people you bring.",
+    soloTitle: "Just me",
+    duoTitle: "The two of us",
+    groupTitle: "Bring a group",
+    tableTitle: "Reserve a table",
     soloCta: "Reserve my spot",
     duoCta: "Reserve our spots",
-    groupCta: "Reserve our table",
+    groupCta: "Reserve our spots",
+    tableCta: "Reserve the table",
   },
   bookingTrustBullets: [
     "Pay in full when you book",
     "Free date exchange up to 48 hours before",
     "Dietary needs welcome",
-    "With friends or solo",
+    "With friends, as a pair, or individually",
   ],
   practicalValues: {
-    solo: "No group? Join solo or bring a friend",
+    solo: "Joining individually is welcome; groups are encouraged",
     groupSize: "Small tables, usually 8 to 14 women per Sunday afternoon",
   },
 };

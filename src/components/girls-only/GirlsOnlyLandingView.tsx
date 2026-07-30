@@ -8,42 +8,25 @@ import {
   splitGirlsOnlyTestimonialRows,
 } from "@/data/girls-only-testimonials";
 import { listGirlsOnlyCities } from "@/data/girls-only-cities";
-import type { EnrichedExperience } from "@/lib/experience-detail";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
-import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
-import { GirlsOnlyUpcomingEvents } from "@/components/girls-only/GirlsOnlyUpcomingEvents";
-import {
-  GirlsOnlyStickyCta,
-} from "@/components/girls-only/GirlsOnlyStickyCta";
+import { HomeIntentHero } from "@/components/girls-only/HomeIntentHero";
+import { GirlsOnlyStickyCta } from "@/components/girls-only/GirlsOnlyStickyCta";
 import { GirlsOnlyCta } from "@/components/girls-only/GirlsOnlyCta";
 import { GirlsOnlyFinalCtaBanner } from "@/components/girls-only/GirlsOnlyFinalCtaBanner";
-import { GIRLS_ONLY_HERO_CTA_ID } from "@/components/girls-only/girls-only-ids";
 import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
+import { GirlsOnlyPremiumJourneySection } from "@/components/girls-only/GirlsOnlyTrackedSections";
 
 interface GirlsOnlyLandingViewProps {
   labels: GirlsOnlyPageLabels;
   locale: Locale;
-  upcomingEvents: EnrichedExperience[];
   agendaHref: string;
-  primaryCta: {
-    href: string;
-    label: string;
-  };
 }
 
 const sectionPad = "py-8 sm:py-12 lg:py-16";
 
-function TrustBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border border-rose/40 bg-white/80 px-3 py-1 text-[11px] font-medium text-wine/80 shadow-sm sm:px-3.5 sm:py-1.5 sm:text-xs">
-      {children}
-    </span>
-  );
-}
-
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-wine/75">
+    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">
       {children}
     </p>
   );
@@ -51,14 +34,10 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 function HowItWorksSection({
   labels,
-  upcomingEvents,
   locale,
-  agendaHref,
 }: {
   labels: GirlsOnlyPageLabels;
-  upcomingEvents: EnrichedExperience[];
   locale: Locale;
-  agendaHref: string;
 }) {
   const { howItWorks } = labels;
   const howItWorksImage = getGirlsOnlyHowItWorksImage(locale);
@@ -66,16 +45,12 @@ function HowItWorksSection({
   return (
     <section
       id="how-it-works"
-      className={`scroll-mt-20 bg-rose-soft/35 ${sectionPad}`}
+      className={`scroll-mt-20 bg-beige/60 ${sectionPad}`}
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 xl:gap-16">
           <figure className="relative mx-auto w-full max-w-lg lg:max-w-none">
-            <div
-              className="pointer-events-none absolute -left-3 top-6 h-24 w-24 rounded-full bg-rose/25 blur-2xl sm:h-32 sm:w-32"
-              aria-hidden
-            />
-            <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(157,77,111,0.2)]">
+            <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_rgba(43,13,18,0.14)]">
               <div className="relative aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5]">
                 <Image
                   src={howItWorksImage.src}
@@ -93,7 +68,7 @@ function HowItWorksSection({
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]">
               {howItWorks.title}
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-wine/75 sm:text-lg lg:mx-0">
+            <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-wine/70 sm:text-lg lg:mx-0">
               {howItWorks.subtitle}
             </p>
 
@@ -105,7 +80,7 @@ function HowItWorksSection({
                 >
                   <span
                     aria-hidden
-                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose/15 text-xs text-rose-deep"
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-wine text-[10px] text-cream"
                   >
                     ✓
                   </span>
@@ -115,21 +90,12 @@ function HowItWorksSection({
             </ul>
 
             <div className="mt-8 flex justify-center lg:justify-start">
-              <GirlsOnlyCta href={agendaHref} className="w-full sm:w-auto">
+              <GirlsOnlyCta href="#top" className="w-full sm:w-auto">
                 {howItWorks.cta}
               </GirlsOnlyCta>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-10 px-5 sm:mt-12 sm:px-8 lg:mt-14 lg:px-10">
-        <GirlsOnlyUpcomingEvents
-          events={upcomingEvents}
-          locale={locale}
-          labels={labels}
-          agendaHref={agendaHref}
-        />
       </div>
     </section>
   );
@@ -139,7 +105,7 @@ function GirlsOnlyFaq({ labels }: { labels: GirlsOnlyPageLabels }) {
   return (
     <section
       id="faq"
-      className={`scroll-mt-20 border-t border-rose/15 bg-beige/40 ${sectionPad}`}
+      className={`scroll-mt-20 border-t border-wine/10 bg-beige/50 ${sectionPad}`}
     >
       <div className="mx-auto max-w-3xl px-5 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-2xl text-center">
@@ -151,17 +117,17 @@ function GirlsOnlyFaq({ labels }: { labels: GirlsOnlyPageLabels }) {
           {labels.faq.items.map((item) => (
             <details
               key={item.question}
-              className="group rounded-2xl border border-rose/20 bg-white/80 px-5 py-4 transition-shadow open:shadow-sm sm:px-6"
+              className="group rounded-2xl border border-wine/10 bg-white/90 px-5 py-4 transition-shadow open:shadow-sm sm:px-6"
             >
               <summary className="cursor-pointer list-none font-medium text-wine marker:hidden [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center justify-between gap-4">
                   {item.question}
-                  <span className="shrink-0 font-serif text-xl text-rose-deep transition-transform group-open:rotate-45">
+                  <span className="shrink-0 font-serif text-xl text-burgundy transition-transform group-open:rotate-45">
                     +
                   </span>
                 </span>
               </summary>
-              <p className="mt-3 pb-1 text-sm leading-relaxed text-wine/80">
+              <p className="mt-3 pb-1 text-sm leading-relaxed text-wine/75">
                 {item.answer}
               </p>
             </details>
@@ -180,7 +146,7 @@ function BenefitsSection({ labels }: { labels: GirlsOnlyPageLabels }) {
           <h2 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
             {labels.benefits.title}
           </h2>
-          <p className="mt-3 text-base leading-relaxed text-wine/75">
+          <p className="mt-3 text-base leading-relaxed text-wine/70">
             {labels.benefits.subtitle}
           </p>
         </div>
@@ -188,15 +154,12 @@ function BenefitsSection({ labels }: { labels: GirlsOnlyPageLabels }) {
           {labels.benefits.items.map((item) => (
             <li
               key={item.title}
-              className="rounded-3xl border border-rose/15 bg-gradient-to-br from-beige to-rose-soft/40 p-6 sm:p-7"
+              className="rounded-3xl border border-wine/10 bg-beige p-6 sm:p-7"
             >
               <h3 className="font-serif text-lg font-medium leading-snug text-wine">
-                <span aria-hidden className="mr-2">
-                  🍒
-                </span>
                 {item.title}
               </h3>
-              <p className="mt-2.5 text-sm leading-relaxed text-wine/75 sm:text-[15px]">
+              <p className="mt-2.5 text-sm leading-relaxed text-wine/70 sm:text-[15px]">
                 {item.description}
               </p>
             </li>
@@ -204,23 +167,6 @@ function BenefitsSection({ labels }: { labels: GirlsOnlyPageLabels }) {
         </ul>
       </div>
     </section>
-  );
-}
-
-function HeroCtaBlock({
-  primaryCta,
-}: {
-  primaryCta: GirlsOnlyLandingViewProps["primaryCta"];
-}) {
-  return (
-    <div
-      id={GIRLS_ONLY_HERO_CTA_ID}
-      className="mt-5 flex flex-col items-center gap-3 sm:mt-6 lg:items-start"
-    >
-      <GirlsOnlyCta href={primaryCta.href} className="w-full sm:w-auto">
-        {primaryCta.label}
-      </GirlsOnlyCta>
-    </div>
   );
 }
 
@@ -236,7 +182,7 @@ function TestimonialsSection({
   return (
     <section
       id="social-proof"
-      className={`overflow-hidden border-b border-rose/15 bg-gradient-to-b from-rose-soft/50 to-cream ${sectionPad}`}
+      className={`overflow-hidden border-b border-wine/10 bg-beige/40 ${sectionPad}`}
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-2xl text-center">
@@ -250,8 +196,8 @@ function TestimonialsSection({
         <TestimonialMarquee
           top={top}
           bottom={bottom}
-          fadeFromClassName="from-rose-soft/50"
-          cardClassName="border-rose/15 bg-white/90"
+          fadeFromClassName="from-beige/40"
+          cardClassName="border-wine/10 bg-white/95"
           singleRow
         />
       </div>
@@ -259,8 +205,8 @@ function TestimonialsSection({
         <TestimonialMarquee
           top={top}
           bottom={bottom}
-          fadeFromClassName="from-rose-soft/50"
-          cardClassName="border-rose/15 bg-white/90"
+          fadeFromClassName="from-beige/40"
+          cardClassName="border-wine/10 bg-white/95"
         />
       </div>
     </section>
@@ -270,66 +216,26 @@ function TestimonialsSection({
 export function GirlsOnlyLandingView({
   labels,
   locale,
-  upcomingEvents,
   agendaHref,
-  primaryCta,
 }: GirlsOnlyLandingViewProps) {
   const testimonials = getGirlsOnlyTestimonials(locale);
   const { top, bottom } = splitGirlsOnlyTestimonialRows(testimonials);
-  const trustPills = labels.hero.trustLine.split(" · ");
+  const howItWorksImage = getGirlsOnlyHowItWorksImage(locale);
 
   return (
     <>
-      <section
-        id="top"
-        className="relative scroll-mt-20 overflow-hidden border-b border-rose/20 bg-gradient-to-b from-rose-soft via-cream to-cream pt-[4.25rem] sm:pt-24"
-      >
-        <div className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-rose/25 blur-3xl" />
-        <div className="absolute -right-16 top-32 h-72 w-72 rounded-full bg-rose-deep/10 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl px-5 py-6 sm:px-8 sm:py-12 lg:px-10 lg:py-16">
-          <div className="grid items-start gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16">
-            <div className="order-2 lg:order-1">
-              <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
-                <SectionEyebrow>{labels.hero.eyebrow}</SectionEyebrow>
-                <h1 className="mt-3 font-serif text-[1.85rem] font-medium leading-[1.08] tracking-tight text-wine sm:mt-4 sm:text-5xl lg:text-[3.35rem]">
-                  {labels.hero.headlineLine1}
-                  <br />
-                  {labels.hero.headlineLine2}
-                </h1>
-
-                <p className="mt-3 text-sm leading-relaxed text-wine/80 sm:mt-4 sm:text-lg">
-                  {labels.hero.subtitle}
-                </p>
-
-                <p className="mt-3 text-sm font-medium leading-relaxed text-wine sm:text-base">
-                  {labels.hero.painHeadline}
-                </p>
-
-                <HeroCtaBlock primaryCta={primaryCta} />
-
-                <ul className="mt-4 flex flex-wrap items-center justify-center gap-1.5 sm:mt-6 sm:gap-2 lg:justify-start">
-                  {trustPills.map((pill) => (
-                    <li key={pill}>
-                      <TrustBadge>{pill}</TrustBadge>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="order-1 mx-auto w-full max-w-md lg:order-2 lg:max-w-none">
-              <GirlsOnlyHeroMedia locale={locale} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <HowItWorksSection
+      <HomeIntentHero
         labels={labels}
-        upcomingEvents={upcomingEvents}
         locale={locale}
         agendaHref={agendaHref}
+      />
+
+      <HowItWorksSection labels={labels} locale={locale} />
+
+      <GirlsOnlyPremiumJourneySection
+        labels={labels}
+        agendaHref={agendaHref}
+        locale={locale}
       />
 
       {testimonials.length > 0 ? (
@@ -340,10 +246,10 @@ export function GirlsOnlyLandingView({
 
       <section
         id="cities"
-        className="scroll-mt-20 border-t border-rose/10 bg-cream py-10 sm:py-12"
+        className="scroll-mt-20 border-t border-wine/10 bg-cream py-10 sm:py-12"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-wine/75">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
             {locale === "nl" ? "Kies jouw stad" : "Choose your city"}
           </p>
           <ul className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">
@@ -351,7 +257,7 @@ export function GirlsOnlyLandingView({
               <li key={city.slug}>
                 <Link
                   href={girlsOnlyCityPath(locale, city.slug)}
-                  className="inline-flex min-h-11 items-center rounded-full border border-rose/20 bg-beige/80 px-5 py-2.5 text-sm font-medium text-wine transition hover:border-rose hover:bg-rose-soft/40"
+                  className="inline-flex min-h-11 items-center rounded-full border border-wine/12 bg-beige px-5 py-2.5 text-sm font-medium text-wine transition hover:border-burgundy/40 hover:bg-white"
                 >
                   {city.cityName}
                 </Link>
@@ -366,16 +272,15 @@ export function GirlsOnlyLandingView({
       <GirlsOnlyFinalCtaBanner
         title={labels.finalCta.title}
         subtitle={labels.finalCta.subtitle}
-        ctaLabel={primaryCta.label}
-        ctaHref={primaryCta.href}
-        imageAlt={
-          locale === "nl"
-            ? "Vrouwen lachen en praten tijdens een girls-only avond uit"
-            : "Women laughing and chatting during a girls-only night out"
-        }
+        ctaLabel={labels.cta.choosePath}
+        ctaHref="#top"
+        imageAlt={howItWorksImage.alt}
       />
 
-      <GirlsOnlyStickyCta label={primaryCta.label} href={primaryCta.href} />
+      <GirlsOnlyStickyCta
+        label={labels.cta.choosePath}
+        href="#top"
+      />
     </>
   );
 }

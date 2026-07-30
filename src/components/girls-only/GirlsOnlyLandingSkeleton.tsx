@@ -6,18 +6,12 @@ export function GirlsOnlyLandingSkeleton() {
         <div className="mx-auto h-12 w-full max-w-xl animate-pulse rounded-lg bg-wine/10" />
         <div className="mx-auto h-5 w-full max-w-md animate-pulse rounded-lg bg-wine/10" />
       </div>
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, index) => (
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="overflow-hidden rounded-2xl border border-border-subtle bg-beige"
-          >
-            <div className="aspect-[2/1] animate-pulse bg-wine/10" />
-            <div className="space-y-3 p-4">
-              <div className="h-8 w-2/3 animate-pulse rounded-lg bg-wine/10" />
-              <div className="h-4 w-1/2 animate-pulse rounded-lg bg-wine/10" />
-            </div>
-          </div>
+            className="aspect-[4/5] animate-pulse overflow-hidden rounded-[1.75rem] bg-wine/10 sm:rounded-[2rem]"
+          />
         ))}
       </div>
     </div>

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
+import {
+  fulfillClubCheckoutSession,
+  syncClubMembershipFromSubscription,
+} from "@/lib/club/memberships";
 import { onPaymentFailed } from "@/lib/customers/hooks";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
@@ -39,7 +43,19 @@ export async function POST(request: Request) {
     event.type === "checkout.session.async_payment_succeeded"
   ) {
     const session = event.data.object as import("stripe").Stripe.Checkout.Session;
-    if (isCheckoutPaymentSettled(session)) {
+
+    if (session.metadata?.mytable_kind === "club_membership") {
+      if (
+        session.payment_status === "paid" ||
+        session.status === "complete"
+      ) {
+        try {
+          await fulfillClubCheckoutSession(session);
+        } catch (err) {
+          console.error("[stripe webhook] club fulfill", err);
+        }
+      }
+    } else if (isCheckoutPaymentSettled(session)) {
       const result = await fulfillPaidCheckoutSession(session);
       if (result === "not_paid") {
         console.info(
@@ -47,6 +63,18 @@ export async function POST(request: Request) {
           session.id,
         );
       }
+    }
+  }
+
+  if (
+    event.type === "customer.subscription.updated" ||
+    event.type === "customer.subscription.deleted"
+  ) {
+    const sub = event.data.object as import("stripe").Stripe.Subscription;
+    try {
+      await syncClubMembershipFromSubscription(sub);
+    } catch (err) {
+      console.error("[stripe webhook] subscription sync", err);
     }
   }
 

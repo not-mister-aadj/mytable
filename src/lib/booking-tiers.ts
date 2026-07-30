@@ -5,14 +5,33 @@ export const BOOKING_TIER_ORDER: BookingTier[] = ["solo", "duo", "group"];
 /** Minimum seats for the friends-table (group) tier. */
 export const GROUP_MIN_SEATS = 3;
 
-/** When capacity is unknown (should not happen for DB events), allow large groups. */
-const GROUP_SEATS_FALLBACK_MAX = 999;
+/** Max tickets per booking (UI + server). */
+export const MAX_BOOKING_SEATS = 6;
+
+/** Minimum tickets per booking. */
+export const MIN_BOOKING_SEATS = 1;
+
+/** Flat per-person price in cents — same for every ticket quantity. */
+export const FLAT_PER_PERSON_CENTS = 4900;
+
+/** Active Clubmembers get this % off culinary experience tickets. */
+export const CLUBMEMBER_EXPERIENCE_DISCOUNT_PERCENT = 10;
+
+export function applyClubmemberDiscount(
+  amountCents: number,
+  isClubMember: boolean,
+): number {
+  if (!isClubMember || amountCents <= 0) return amountCents;
+  return Math.round(
+    amountCents * (1 - CLUBMEMBER_EXPERIENCE_DISCOUNT_PERCENT / 100),
+  );
+}
 
 /** Fixed per-person prices in cents — server-authoritative at checkout. */
 export const TIER_PER_PERSON_CENTS: Record<BookingTier, number> = {
-  solo: 4900,
-  duo: 3900,
-  group: 4400,
+  solo: FLAT_PER_PERSON_CENTS,
+  duo: FLAT_PER_PERSON_CENTS,
+  group: FLAT_PER_PERSON_CENTS,
 };
 
 type TierConfig = {
@@ -32,8 +51,8 @@ const TIER_CONFIG: Record<BookingTier, TierConfig> = {
   duo: {
     tier: "duo",
     seats: 2,
-    isBestValue: true,
-    isMostChosen: true,
+    isBestValue: false,
+    isMostChosen: false,
   },
   group: {
     tier: "group",
@@ -58,11 +77,29 @@ export function tierForSeats(seats: number): BookingTier {
   return "solo";
 }
 
-export function maxGroupSeats(spotsLeft: number | null): number {
-  if (spotsLeft === null) return GROUP_SEATS_FALLBACK_MAX;
-  return Math.max(GROUP_MIN_SEATS, spotsLeft);
+/** Max selectable tickets given remaining capacity. */
+export function maxTicketSeats(spotsLeft: number | null): number {
+  if (spotsLeft === null) return MAX_BOOKING_SEATS;
+  return Math.max(0, Math.min(MAX_BOOKING_SEATS, spotsLeft));
 }
 
+export function clampTicketSeats(
+  seats: number,
+  spotsLeft: number | null,
+): number {
+  const max = maxTicketSeats(spotsLeft);
+  if (max < MIN_BOOKING_SEATS) return MIN_BOOKING_SEATS;
+  const raw = Math.floor(seats);
+  const n = Number.isFinite(raw) && raw > 0 ? raw : MIN_BOOKING_SEATS;
+  return Math.min(max, Math.max(MIN_BOOKING_SEATS, n));
+}
+
+/** @deprecated Prefer maxTicketSeats — kept for older group-stepper call sites. */
+export function maxGroupSeats(spotsLeft: number | null): number {
+  return Math.max(GROUP_MIN_SEATS, maxTicketSeats(spotsLeft));
+}
+
+/** @deprecated Prefer clampTicketSeats. */
 export function clampGroupSeats(
   seats: number,
   spotsLeft: number | null,
@@ -78,19 +115,20 @@ export function resolveSeatsForTier(
   requestedSeats: number,
   spotsLeft: number | null,
 ): number | null {
-  const cfg = getBookingTierConfig(tier);
-  if (tier === "group") {
-    const seats = clampGroupSeats(requestedSeats, spotsLeft);
-    if (spotsLeft !== null && seats > spotsLeft) return null;
-    return seats;
-  }
-  const seats = Math.floor(requestedSeats) || cfg.seats;
-  return seats === cfg.seats ? cfg.seats : null;
+  const seats = Math.floor(requestedSeats);
+  if (!Number.isFinite(seats)) return null;
+  if (seats < MIN_BOOKING_SEATS || seats > MAX_BOOKING_SEATS) return null;
+  if (spotsLeft !== null && seats > spotsLeft) return null;
+  if (tierForSeats(seats) !== tier) return null;
+  return seats;
 }
 
-/** Solo and duo join an existing table; group gets their own table. */
-export function seatingForTier(tier: BookingTier): "own_table" | "join_others" {
-  return tier === "group" ? "own_table" : "join_others";
+/**
+ * Experiences no longer match strangers into shared tables.
+ * Guests bring their own party (1–6 tickets).
+ */
+export function seatingForTier(_tier: BookingTier): "own_table" | "join_others" {
+  return "own_table";
 }
 
 export type BookingTierPrice = {
@@ -107,13 +145,17 @@ export type BookingTierPrice = {
 export function computeTierPrice(
   tier: BookingTier,
   seatCount?: number,
+  options?: { clubMemberDiscount?: boolean },
 ): BookingTierPrice {
   const cfg = TIER_CONFIG[tier];
   const seats =
-    tier === "group"
-      ? clampGroupSeats(seatCount ?? cfg.seats, null)
+    seatCount != null
+      ? clampTicketSeats(seatCount, null)
       : cfg.seats;
-  const perPersonCents = TIER_PER_PERSON_CENTS[tier];
+  const perPersonCents = applyClubmemberDiscount(
+    TIER_PER_PERSON_CENTS[tier],
+    Boolean(options?.clubMemberDiscount),
+  );
   const totalCents = perPersonCents * seats;
   return {
     tier,
@@ -131,11 +173,7 @@ export function getBookingTiers(): BookingTierPrice[] {
   return BOOKING_TIER_ORDER.map((tier) => computeTierPrice(tier));
 }
 
-/** Lowest per-person price across tiers (duo: €39). */
+/** Flat per-person price in euros (all tiers). */
 export function getLowestTierPerPersonEuros(): number {
-  return Math.min(
-    ...BOOKING_TIER_ORDER.map(
-      (tier) => TIER_PER_PERSON_CENTS[tier] / 100,
-    ),
-  );
+  return FLAT_PER_PERSON_CENTS / 100;
 }

@@ -20,6 +20,7 @@ const INTEREST_IDS = new Set([
   "wine_tasting",
   "chefs_special",
   "wine_walk",
+  "food_walk",
   "aperitivo",
 ]);
 
@@ -95,6 +96,9 @@ function parsePreferences(
     priceRanges,
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
+    joinIntent: (Array.isArray(raw.joinIntent)
+      ? raw.joinIntent.filter((item): item is string => typeof item === "string")
+      : []) as WaitlistPreferences["joinIntent"],
     tableType: tableType as WaitlistPreferences["tableType"],
     cities,
     regionFlexible: Boolean(raw.regionFlexible),

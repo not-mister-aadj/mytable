@@ -21,6 +21,7 @@ const cardProps = (
   femaleOnlyBadge: labels.femaleOnlyBadge,
   reserveCta: labels.reserveCta,
   viewTableCta: labels.viewTableCta,
+  joinIndividuallyCta: labels.joinIndividuallyCta,
   perPersonFromLabel: labels.perPersonFrom,
   locale,
   socialPromise: labels.socialPromise,
@@ -57,7 +58,7 @@ export function GirlsOnlyUpcomingEvents({
         </div>
       </div>
 
-      <div className="hidden gap-6 lg:grid lg:grid-cols-3">
+      <div className="hidden gap-5 lg:grid lg:grid-cols-3 xl:grid-cols-4">
         {events.map((experience) => (
           <ExperienceCard
             key={experience.id}
@@ -71,7 +72,7 @@ export function GirlsOnlyUpcomingEvents({
       <div className="mt-6 flex justify-center sm:mt-8">
         <Button
           href={agendaHref}
-          className="bg-rose px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-rose-deep sm:text-sm"
+          className="bg-wine px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-burgundy sm:text-sm"
         >
           <span aria-hidden className="mr-2 opacity-90">
             ›

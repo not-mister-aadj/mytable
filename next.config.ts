@@ -17,15 +17,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/girls-only/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
         source: "/sitemap",
         headers: [
           {
@@ -62,18 +53,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    return [
-      {
-        source: "/girls-only",
-        destination: "/",
-        permanent: true,
-      },
-      {
-        source: "/en/girls-only",
-        destination: "/en",
-        permanent: true,
-      },
-    ];
+    return [];
   },
 };
 

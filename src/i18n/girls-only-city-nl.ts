@@ -21,155 +21,143 @@ function buildCityPageNl(
 
   return {
     meta: {
-      title: `Girls-only wijnproeverij in ${name}`,
-      description: `Girls-only wijnproeverij in ${name} op zondagmiddag. Boek solo of met vriendinnen. Vier wijnen, bites, één tafel. Geen datum? Wachtlijst.`,
+      title: `Sunday Table in ${name} · MyTable`,
+      description: `Sunday Table in ${name}. Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.`,
     },
     breadcrumbHome: "Home",
-    breadcrumbGirlsOnly: "Girls-only",
+    breadcrumbGirlsOnly: "Sunday Table",
     hero: {
       regionLabel: city.regionNl,
-      headline: `Girls-only wijnproeverij in ${name}`,
-      subheadline: `Girls-only wijnspijs in ${name} zonder gedoe: jij boekt, MyTable regelt wijn, bites en een tafel vol meiden. Solo welkom. Met vriendinnen krijg je jullie eigen tafel.`,
-      trustBullets: [
-        `Solo welkom in ${name}`,
-        "Geen dating",
-        "25-45 · beginners oké",
-      ],
-      ctaBook: `Bekijk ${name}-tafels`,
-      ctaPriority: "Op de wachtlijst",
-      imageAlt: `Vrouwen genieten van wijn en bites tijdens een girls-only middag in ${name}`,
+      headline: `Sunday Table in ${name}`,
+      subheadline:
+        "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+      trustBullets: ["Solo welkom", "Matching", "Daarna culinaire plannen"],
+      ctaBook: "Claim je plek",
+      ctaPriority: "Naar Sunday Table",
+      imageAlt: `Sunday Table in ${name}`,
+      seatsLeft: "{count} plekken over · {city} · {date}",
     },
     events: {
       eyebrow: "Agenda",
-      title: `Aankomende girls-only tafels in ${name}`,
-      subtitle: `Reserveer je plek voor de volgende girls-only zondag in ${name}.`,
-      emptyTitle: `Nog geen girls-only tafel in ${name} gepland`,
-      emptyBody: `Nieuwe ${name}-zondagen openen zodra de locatie rond is. Zet je op de wachtlijst. Jij hoort het als eerste.`,
-      emptyCta: "Naar de wachtlijst",
-      viewAll: "Bekijk alle zondagen",
+      title: `Tafels in ${name}`,
+      subtitle: `Volgende Sunday Table in ${name}.`,
+      emptyTitle: `Elke eerste zondag in ${name}`,
+      emptyBody: "Claim je plek. Wij matchen je aan tafel.",
+      emptyCta: "Naar Sunday Table",
+      viewAll: "Alle zondagen",
     },
     priority: {
-      eyebrow: "Wachtlijst",
-      title: `Als eerste erbij in ${name}`,
-      subtitle: `Laat je e-mail achter. Zodra er een girls-only tafel in ${name} opent, krijg jij als eerste bericht, vóór de open agenda.`,
+      eyebrow: "Sunday Table",
+      title: `${name}`,
+      subtitle: "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
       nameLabel: "Voornaam",
       namePlaceholder: "Je voornaam",
       emailLabel: "E-mail",
       emailPlaceholder: "jij@email.nl",
-      cta: "Zet me op de lijst",
-      success: `Je staat erop. We mailen je zodra ${name} opent.`,
-      error: "Aanmelden mislukte. Probeer het later opnieuw.",
-      privacyNote: "Geen spam. Alleen als er een tafel in jouw stad opent.",
+      cta: "Naar Sunday Table",
+      success: "Je staat erop.",
+      error: "Aanmelden mislukte. Probeer later opnieuw.",
+      privacyNote: "Alleen updates over Sunday Table.",
     },
     included: {
-      eyebrow: "Wat je krijgt",
-      title: `Girls-only wijnspijs in ${name}`,
-      subtitle: `Alles geregeld voor een zondagmiddag in ${name}: wijn, bites en de juiste tafelmix.`,
+      eyebrow: "Het aanbod",
+      title: `Sunday Table in ${name}`,
+      subtitle: "Elke eerste zondag. Nieuwe mensen. Culinaire plannen.",
       items: [
         {
-          title: "Vier wijnen",
-          description:
-            "Een begeleide proeverij met uitleg. Beginners en wijnfans zitten naast elkaar.",
+          title: "Elke eerste zondag",
+          description: "Vaste ritme. Elke maand.",
         },
         {
-          title: "Gepaaarde bites",
-          description:
-            "Kleine gerechtjes die bij de wijnen passen. Geen formeel diner, wel écht lekker.",
+          title: "Nieuwe mensen",
+          description: "Matching aan tafel. Solo welkom.",
         },
         {
-          title: "Solo of met vriendinnen",
-          description: `Solo schuif je aan bij andere girls in ${name}. Met vriendinnen reserveer je jullie eigen tafel.`,
+          title: "Een drankje",
+          description: "Consumpties op locatie.",
         },
         {
-          title: "Partnerlocatie in de stad",
-          description:
-            "Eén restaurant, geen stadswandeling. Adres en tijd krijg je na je boeking.",
+          title: "Daarna culinaire ervaringen",
+          description: "Wine Walks, proeverijen, diners.",
         },
       ],
     },
     local: {
-      eyebrow: `Over ${name}`,
-      title: `Girls-only wijnspijs zoeken in ${name}`,
+      eyebrow: name,
+      title: `Sunday Table in ${name}`,
       body: city.localNl.body,
       points: [...city.localNl.points],
     },
     howItWorks: {
-      eyebrow: "Hoe het werkt",
-      title: `Girls-only tafel boeken in ${name}`,
+      eyebrow: "Het aanbod",
+      title: `${name}`,
       steps: [
         {
-          title: "Kies je zondag",
-          description: `Bekijk open tafels in ${name}, of zet je op de wachtlijst als er nog geen datum openstaat.`,
+          title: "Clubmember",
+          description: "Toegang tot Sunday Table.",
         },
         {
-          title: "Boek solo of als groep",
-          description:
-            "Solo zit je bij andere solo's en duo's. Met vriendinnen krijg je een eigen tafel.",
+          title: "Eerste zondag",
+          description: "Nieuwe mensen. Matching.",
         },
         {
-          title: "Kom aan en geniet",
-          description:
-            "Wij regelen wijn, bites en sfeer. Jij geniet van een middag zonder gedoe.",
+          title: "Daarna",
+          description: "Samen culinaire ervaringen.",
         },
       ],
     },
     faq: {
-      title: `Veelgestelde vragen over girls-only in ${name}`,
+      title: `FAQ · ${name}`,
       items: [
         {
-          question: `Wat is een girls-only wijnproeverij in ${name}?`,
-          answer: `Een zondagmiddag met vier wijnen, gepaarde bites en een tafel vol vrouwen. MyTable regelt de locatie en tafelmix in ${name}. Jij boekt solo of met vriendinnen.`,
-        },
-        {
-          question: `Kan ik solo een girls-only tafel in ${name} boeken?`,
+          question: `Wat is Sunday Table in ${name}?`,
           answer:
-            "Ja. Solo is de standaard. Je zit aan bij andere girls die ook alleen of als duo komen, niet bij bestaande vriendinnengroepen.",
+            "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
         },
         {
-          question: `Waar in ${name} vindt de wijnproeverij plaats?`,
-          answer: `Bij één partnerrestaurant in ${name}. De stad staat op de tafelkaart. Na je boeking sturen we adres, tijd en praktische info per mail.`,
+          question: "Solo?",
+          answer: "Ja. Solo is standaard.",
         },
         {
-          question: `Wat kost een girls-only tafel in ${name}?`,
+          question: `Waar in ${name}?`,
+          answer: "Partnerlocatie. Adres na matching.",
+        },
+        {
+          question: "Kosten?",
           answer:
-            "De prijs per persoon staat op de tafelkaart en in de checkout. Die dekt vier wijnen, bites en de begeleide middag. Geen verborgen bijkomende kosten.",
+            "Via Clubmember. Drank en hapjes op locatie. Culinaire tickets apart, 10% korting.",
         },
         {
-          question: `Wat als er geen ${name}-datum openstaat?`,
-          answer: `Zet je op de wachtlijst. Zodra we een nieuwe girls-only zondag in ${name} openen, krijg jij als eerste een mail, vóór de open agenda.`,
+          question: "Wanneer?",
+          answer: "Elke eerste zondag van de maand.",
         },
         {
-          question: `Is girls-only in ${name} een dating-event?`,
-          answer:
-            "Nee. Het gaat om wijn, bites en een ontspannen middag. Geen speeddating en geen verplicht netwerken.",
+          question: "Dating?",
+          answer: "Nee.",
         },
       ],
     },
     otherCities: {
-      title: "Girls-only in andere steden",
-      subtitle: "Ook actief elders in Nederland. Kies jouw stad.",
-      nationalCta: "Bekijk alle steden",
+      title: "Andere steden",
+      subtitle: "Kies jouw stad.",
+      nationalCta: "Alle steden",
     },
     finalCta: {
-      title: `Klaar voor girls-only in ${name}?`,
-      subtitle: `Boek een open tafel, of zet je op de wachtlijst voor de volgende ${name}-zondag.`,
-      ctaBook: `Bekijk ${name}-tafels`,
-      ctaPriority: "Op de wachtlijst",
+      title: `Sunday Table in ${name}`,
+      subtitle: "Elke eerste zondag. Nieuwe mensen. Culinaire plannen.",
+      ctaBook: "Claim je plek",
+      ctaPriority: "Naar Sunday Table",
     },
     status: sharedStatus,
     femaleOnlyBadge: "Girls only",
     reserveCta: "Reserveer",
     viewTableCta: "Bekijk tafel",
     perPersonFrom: "vanaf",
-    socialPromise:
-      "Vier wijnen, gepaarde bites, één tafel. Jij boekt, wij regelen de rest.",
+    socialPromise: "Elke eerste zondag. Nieuwe mensen. Culinaire plannen.",
   };
 }
 
-export const girlsOnlyCityPagesNl: Record<
-  GirlsOnlyCitySlug,
-  GirlsOnlyCityPageLabels
-> = Object.fromEntries(
+export const girlsOnlyCityPagesNl = Object.fromEntries(
   GIRLS_ONLY_CITY_SLUGS.map((slug) => [
     slug,
     buildCityPageNl(GIRLS_ONLY_CITIES[slug]),

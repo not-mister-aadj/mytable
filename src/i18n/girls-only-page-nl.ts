@@ -3,162 +3,225 @@ import type { GirlsOnlyPageLabels } from "./girls-only-page.types";
 
 export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   socialPromise:
-    "Vier wijnen, gepaarde bites, één tafel. Jij boekt, wij regelen de rest.",
+    "Meet the people you’ll make plans with. Wij regelen de tafel.",
   meta: {
-    title: "Girls-only wijnproeverij op zondag | Solo of met vriendinnen",
+    title: "MyTable · Vertel wat je zoekt | Sunday Table of culinaire ervaringen",
     description:
-      "Girls-only wijnspijs elke zondagmiddag in Nederland. Boek solo of met vriendinnen, wij regelen wijn, bites en een gezellige tafel. Rotterdam, Den Haag, Amsterdam, Utrecht en meer.",
+      "Zoek je nieuwe mensen op zondagmiddag, of liever Wine Walks en diners? Kies je pad - wij tonen precies wat bij je past.",
   },
   hero: {
-    eyebrow: "Girls only",
-    headlineLine1: "Meet New Girls &",
-    headlineLine2: "Have More Fun",
+    eyebrow: "MyTable",
+    headlineLine1: "Vertel wat",
+    headlineLine2: "je zoekt.",
     subtitle:
-      "De leukste club voor girls (25-45 jaar) die van wijn houden en gezelligheid",
-    painHeadline:
-      "Boek solo en zit aan bij andere girls die alleen komen. Met vriendinnen? Reserveer jullie eigen tafel.",
+      "Nieuwe mensen leren kennen op zondag - of meteen culinaire wandelingen en tafels. Jij kiest; wij leiden je goed.",
+    painHeadline: "Eén keuze. Geen agenda-overload.",
     microcopy:
-      "Je hoeft niemand te regelen. Solo komen is hier normaal.",
+      "Geen dating. Geen netwerkborrel. Wel goede smaak en goed gezelschap.",
     trustLine:
-      "Solo welkom · 25-45 jaar · Gezellige meiden · Beginners welkom",
+      "Gratis aanvraag · ±2 min · Vrijblijvend",
     imageAlt:
-      "Vrouwen genieten van wijn en bites tijdens een girls-only zondagmiddag",
+      "Mensen genieten samen van wijn aan een levendige MyTable-tafel",
     scarcityTemplate: "Nog {count} plekken voor {city} op {date}",
-    featuredInHeroLabel: "Volgende tafel",
+    featuredInHeroLabel: "Volgende Sunday Table",
+  },
+  intent: {
+    brand: "MyTable",
+    question: "Wat zoek je?",
+    subtitle:
+      "Kies je pad. We onthouden het - en tonen alleen wat ertoe doet.",
+    meet: {
+      id: "meet",
+      title: "Nieuwe mensen ontmoeten",
+      description:
+        "Zondagmiddag Sunday Table - solo welkom, echte introducties, daarna plannen maken.",
+      detailEyebrow: "Sunday Table · Community",
+      detailTitle: "Word onderdeel van de tafel",
+      detailBody:
+        "Maandelijks zondagmiddag nieuwe gezichten. Lidmaatschap geeft vroege toegang tot Sunday Tables én 10% korting op alle culinaire ervaringen.",
+      perks: [
+        "Sunday Tables om nieuwe mensen te leren kennen",
+        "10% korting op Wine Walks, proeverijen en diners",
+        "Als eerste horen wanneer er plekken openen",
+        "Solo welkom - wij regelen tafel en introducties",
+      ],
+      primaryCta: "Schrijf je in voor community + 10%",
+      secondaryCta: "Hoe Sunday Table werkt",
+    },
+    culinary: {
+      id: "culinary",
+      title: "Culinaire ervaringen",
+      description:
+        "Wine Walks, proeverijen en diners - boeken met vrienden, partner of groep.",
+      detailEyebrow: "Ervaringen · Agenda",
+      detailTitle: "Alle culinaire tafels",
+      detailBody:
+        "Geen community-funnel nodig. Direct de agenda: wandelingen, proeverijen en diners in jouw stad.",
+      perks: [
+        "Wine Walks door de stad",
+        "Proeverijen en chef-tafels",
+        "Boek voor twee, groep of solo",
+        "Duidelijke data, steden en prijzen",
+      ],
+      primaryCta: "Bekijk culinaire ervaringen",
+      secondaryCta: "Liever eerst mensen ontmoeten?",
+    },
+    changePath: "Andere keuze",
   },
   cta: {
-    viewAllSundays: "Alle zondagen bekijken",
+    viewAllSundays: "Reserveer je plek",
+    choosePath: "Vertel wat je zoekt",
   },
   faq: {
     title: "Veelgestelde vragen",
     items: [
       {
+        question: "Wat is het verschil tussen Sunday Table en culinaire ervaringen?",
+        answer:
+          "Sunday Table is onze community op zondagmiddag: nieuwe mensen ontmoeten. Culinaire ervaringen (Wine Walks, proeverijen, diners) boeken je in de agenda - met vrienden, iemand die je ontmoette, of solo. Op de homepage kies je eerst welk pad bij je past.",
+      },
+      {
+        question: "Wat houdt het lidmaatschap / de 10% korting in?",
+        answer:
+          "Wie via het community-pad inschrijft, komt op de lijst voor Sunday Tables én early access. Lidmaatschap geeft 10% korting op culinaire ervaringen. De korting wordt zichtbaar zodra je lidmaatschap actief is; tot die tijd zetten we je klaar op de wachtlijst.",
+      },
+      {
+        question: "Wat is een Sunday Table?",
+        answer:
+          "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+      },
+      {
         question: "Kan ik ook alleen komen?",
         answer:
-          "Ja, en je bent niet de enige. Veel girls boeken solo of met één vriendin. Wij zorgen dat je aan een gezellige tafel belandt, met groepen én andere girls die alleen komen.",
+          "Ja - dat is juist het punt van Sunday Table. Veel gasten komen solo. Wij regelen tafel, host en introducties. Later boek je premium ervaringen graag met mensen die je hier leerde kennen, of met je eigen vrienden.",
       },
       {
         question: "Is dit dating of netwerken?",
         answer:
-          "Nee. Het gaat om een ontspannen middag aan tafel met wijn, bites en gezellig gesprek. Geen speeddating, geen zakelijke contacten en geen verplicht smalltalk.",
+          "Nee. MyTable is hospitality: goede smaak, goed gezelschap en gedeelde ervaringen. Geen speeddating en geen zakelijke netwerkborrel.",
       },
       {
         question: "Wat is het verschil tussen girls only en gemengd?",
         answer:
-          "Bij girls only schuiven alleen vrouwen aan. Bij een gemengde groep is iedereen welkom: solo, met vrienden of op date. Het concept is hetzelfde, alleen de samenstelling van de groep verschilt.",
+          "Dat is een tafelvoorkeur. Bij girls only schuiven alleen vrouwen aan. Bij gemengd is iedereen welkom. Het concept - tafel, host, wijn - blijft hetzelfde.",
       },
       {
-        question: "Mag ik ook komen als ik niet tussen de 25-45 ben?",
+        question: "Hoe werkt de stap naar premium ervaringen?",
         answer:
-          "Jazeker! Die 25-45 is een richtlijn, geen strenge leeftijdsgrens. Zolang je wettelijk oud genoeg bent om te proeven en je komt voor gezelligheid aan tafel, ben je van harte welkom.",
+          "Na Sunday Table plan je samen een Wine Walk, proeverij of diner. Boek met vrienden, iemand die je aan tafel leerde kennen, of individueel. Groepen zijn welkom en maken het makkelijker om een tafel te vullen.",
       },
       {
-        question: "Is het awkward als ik alleen kom?",
+        question: "Kan ik met mijn vriendinnen of groep boeken?",
         answer:
-          "Begrijpelijk dat het spannend voelt. Aan tafel zitten altijd groepen én andere girls die solo kwamen. Het draait om wijn, bites en een gezellige middag. Geen speeddating en geen verplicht netwerkpraat.",
+          "Zeker. Op premium ervaringen kies je met z’n tweeën, met een groep, of een hele tafel. Plekken in één boeking zitten samen.",
       },
       {
-        question: "Kan ik ook met mijn vriendinnen boeken?",
+        question: "Wanneer zijn de Sunday Tables?",
         answer:
-          "Zeker. Reserveer voor je groep (twee, vier of meer) en jullie zitten samen aan een eigen tafel. Nodig gerust je vriendinnen uit.",
+          "Rond de eerste zondag van de maand, meestal ’s middags. Exacte data staan in de agenda en op je tafelkaart.",
       },
       {
-        question: "Wanneer zijn de events?",
+        question: "Waar vindt het plaats?",
         answer:
-          "Elke zondagmiddag, meestal tussen 14:00 en 17:00. De exacte tijd staat op je tafelkaart en in je bevestigingsmail.",
-      },
-      {
-        question: "Waar vindt de proeverij plaats?",
-        answer:
-          "In één partnerrestaurant, geen route door de stad. De stad staat op de tafelkaart. Na je boeking stuur je per e-mail het restaurant, de tijd en praktische info.",
+          "In een partnerrestaurant. De stad staat op de tafelkaart. Na je boeking mailen we locatie, tijd en praktische info.",
       },
       {
         question: "Moet ik veel van wijn weten?",
         answer:
-          "Nee. Nieuwsgierigheid is genoeg. Onze host deelt context over de wijnen zonder dat het een les wordt.",
+          "Nee. Nieuwsgierigheid is genoeg. De host deelt context zonder dat het een les wordt.",
       },
       {
         question: "Kan ik dieetwensen doorgeven?",
         answer:
-          "Ja. Geef het door bij het reserveren. De chef past de specials aan waar dat kan.",
-      },
-      {
-        question: "Hoe lang duurt de wijnproeverij?",
-        answer:
-          "Het officiële deel duurt gemiddeld 3 uur. Maar eerlijk? Aan het einde blijven vaak meiden nog even zitten om bij te kletsen en nóg een glas van hun favoriete wijn te bestellen. Soms loopt de middag zó lekker dat er spontaan een dinertje van wordt. Geen verplichting, wel vaak een mooie bonus.",
-      },
-      {
-        question: "Kan ik bijbestellen aan tafel?",
-        answer:
-          "Vaak wel: een extra glas of bite. Sommige partnerlocaties verkopen ook de volledige fles van een wijn die je lekker vond. Dat verschilt per restaurant.",
+          "Ja. Geef het door bij het reserveren. De chef past waar mogelijk aan.",
       },
       {
         question: "Kan ik annuleren of ruilen?",
         answer:
-          "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf bij het reserveren. Mail ons als je wilt ruilen.",
+          "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf.",
       },
     ],
   },
   headerNav: {
-    tables: "Aankomende zondagen",
+    tables: "Sunday Tables",
     howItWorks: "Hoe het werkt",
-    priorityList: "Priority list",
-    testimonials: "Wat girls zeggen",
+    priorityList: "Wachtlijst",
+    testimonials: "Wat gasten zeggen",
     faq: "FAQ",
     founder: "Ons verhaal",
   },
   howItWorks: {
-    eyebrow: "Girls-only wijnspijs",
-    title: "Klaar voor een gezellige zondag?",
+    eyebrow: "Twee paden, één MyTable",
+    title: "Eerst kiezen, dan pas boeken",
     subtitle:
-      "Vier wijnen, bites en meiden aan tafel. Solo of met vriendinnen.",
+      "Community op zondag, of meteen de culinaire agenda. Zo verkopen we je nooit het verkeerde.",
     highlights: [
-      "Zondag 14:00–17:00",
-      "4 wijnen met bijpassende bites",
-      "Solo welkom, wij regelen je plek",
-      "Vanaf €39 p.p. · gratis ruilen tot 48 uur",
+      "Pad 1: Sunday Table → nieuwe mensen → lidmaatschap met 10%",
+      "Pad 2: Wine Walks, proeverijen en diners in de agenda",
+      "Jij kiest in één klik wat je zoekt",
+      "Wij tonen daarna alleen wat past",
     ],
-    cta: "Bekijk de agenda",
+    cta: "Kies je pad",
   },
   benefits: {
-    title: "Waarom girls komen",
+    title: "Waarom gasten boeken",
     subtitle:
-      "Voor een zondagmiddag wijnspijs, ook als je vriendinnen niet kunnen of je nieuwe gezichten zoekt.",
+      "Duidelijke tafel. Goede host. En daarna plannen die blijven.",
     items: [
       {
-        title: "Solo? Ook prima",
+        title: "Kom solo - niemand zit alleen",
         description:
-          "Geen volledige groep nodig. Boek alleen of met een vriendin en schuif aan bij gezellige meiden. Aan tafel zitten groepen én girls die solo komen.",
+          "Sunday Table is gemaakt om nieuwe mensen te ontmoeten. Wij regelen tafel, host en introducties.",
       },
       {
-        title: "Gezellig, niet awkward",
+        title: "Daarna samen verder",
         description:
-          "Geen netwerkpraat, geen speeddating-sfeer. Gewoon proeven, lachen en praten aan een kleine tafel.",
+          "Nodig iemand uit die je aan tafel leerde kennen, of breng je eigen vrienden mee naar een Wine Walk, proeverij of diner.",
       },
       {
-        title: "Wijn en bites geregeld",
+        title: "Alles all-in voor €49",
         description:
-          "Het restaurant kiest vier wijnen en pairt ze met bites. Wij regelen alles rond de tafel. Jij hoeft alleen op te komen dagen.",
+          "Wijn, hapjes en host inbegrepen. Geen verrassingen. Gratis ruilen tot 48 uur van tevoren.",
       },
       {
-        title: "Eigen tafel met je meiden",
+        title: "Geen dating, geen netwerkborrel",
         description:
-          "Heb je wél een groep? Reserveer voor je vriendinnen en zit samen aan een eigen tafel. Geen gedoe met reserveren of wie wat betaalt.",
+          "Hospitality met goede smaak en goed gezelschap. Plekken zijn beperkt - boek op tijd.",
       },
     ],
   },
   events: {
-    title: "Kies je zondagmiddag",
+    title: "Kies je Sunday Table",
     subtitle:
-      "Elke zondag, één moment per stad. Kies je datum, check hoeveel plekken er zijn, en boek je plek.",
+      "Eén moment per stad. Kies je datum, check de plekken en plan je tafel.",
     empty:
-      "Er komen regelmatig nieuwe girls-only tafels bij. Kom binnenkort terug of volg MyTable voor updates.",
+      "Er komen regelmatig nieuwe Sunday Tables bij. Kom binnenkort terug of join de wachtlijst.",
     viewAll: "Alles bekijken",
   },
+  sundayTable: {
+    eyebrow: "Sunday Table",
+    title: "Meet the people you’ll make plans with.",
+    body: "Join een warme tafel elke eerste zondag van de maand. Kom solo, ontmoet nieuwe mensen en ontdek met wie je je volgende ervaring wilt delen.",
+  },
+  premium: {
+    eyebrow: "Daarna: culinaire ervaringen",
+    title: "Bring your table together again.",
+    body: "Na Sunday Table boek je een Wine Walk, proeverij of diner - met mensen die je hier leerde kennen, of met je eigen groep.",
+    cta: "Bekijk culinaire ervaringen",
+  },
+  nextTable: {
+    eyebrow: "Volgende stap",
+    title: "Met wie deel je de volgende tafel?",
+    body: "Iemand ontmoet die je graag opnieuw zou zien? Kies samen een Wine Walk, proeverij of diner.",
+    cta: "Bekijk culinaire ervaringen",
+    shareWhatsapp: "Deel via WhatsApp",
+    copyLink: "Kopieer link",
+    copied: "Gekopieerd",
+  },
   presaleSignup: {
-    title: "Join de Priority List",
+    title: "Join de wachtlijst",
     subtitle:
-      "Onze girls-only tafels raken snel uitverkocht. Schrijf je in en hoor als eerste wanneer er nieuwe data openen in jouw stad. Priority list members krijgen 10% korting.",
+      "Sunday Tables en premium ervaringen raken snel vol. Schrijf je in en hoor als eerste wanneer er plekken openen in jouw stad.",
     nameLabel: "Naam",
     namePlaceholder: "Je voornaam",
     citiesLabel: "Waar wil je aan tafel?",
@@ -167,32 +230,32 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     cities: listTopNlCityNames(),
     emailLabel: "E-mail",
     emailPlaceholder: "je@email.nl",
-    cta: "Join de priority list",
+    cta: "Houd me op de hoogte",
     success:
-      "Yes! Je staat op de priority list. We mailen je als eerste zodra er plekken vrijkomen.",
+      "Je staat op de lijst. We mailen je zodra er plekken openen.",
     error: "Aanmelden mislukt. Probeer het later opnieuw.",
   },
   testimonials: {
-    eyebrow: "Wat girls zeggen",
-    title: "Ook solo, en toch gezellig aan tafel",
+    eyebrow: "Wat gasten zeggen",
+    title: "Van nieuwe gezichten naar echte plannen",
   },
   founderStory: {
     eyebrow: "Het verhaal achter MyTable",
     title: "Hoi, ik ben Elif",
     paragraphs: [
-      "Ik was altijd al die ene die mensen aan elkaar koppelde. Feestje organiseren, groepen bij elkaar brengen, ervoor zorgen dat iedereen zich fijn voelt. Het motto was simpel: het moet leuk zijn voor iedereen.",
-      "MyTable is waar mijn twee grote liefdes samenkomen: wijn en gezelligheid. Ik merkte dat veel mensen, en vooral vrouwen, moeite hebben met nieuwe vriendinnen maken. Dus dacht ik: laten we dat gezellig oplossen, met een wijntje in de hand.",
-      "Geen awkward speeddating of netwerkborrel. Gewoon proeven, lachen en nieuwe girls ontmoeten op zondagmiddag. Proost.",
-      "Rechts op de foto zie je Siraadj, mijn boyfriend. Hij regelt alle technische dingen en het camerawerk. Zonder hem geen website die werkt en geen mooie plaatjes.",
+      "Ik was altijd al die ene die mensen aan elkaar koppelde. Feestje organiseren, groepen bij elkaar brengen, ervoor zorgen dat iedereen zich fijn voelt.",
+      "MyTable is waar goede smaak en goed gezelschap samenkomen. Sunday Table helpt je nieuwe mensen te ontmoeten. Daarna boek je samen de ervaringen die ertoe doen.",
+      "Geen datingplatform, geen netwerkborrel. Gewoon proeven, lachen en plannen maken rond de tafel.",
+      "Rechts op de foto zie je Siraadj, mijn boyfriend. Hij regelt alle technische dingen en het camerawerk.",
     ],
     signOff: "Elif, gastvrouw bij MyTable",
     imageAlt: "Elif en Siraadj aan tafel tijdens een gezellig evenement",
   },
   finalCta: {
-    title: "Klaar voor je volgende zondagmiddag wijnspijs?",
+    title: "Nog geen keuze gemaakt?",
     subtitle:
-      "Vier wijnen, bites en een tafel vol meiden. Solo of met vriendinnen.",
-    button: "Bekijk aankomende zondagen",
+      "Vertel wat je zoekt - community op zondag, of culinaire ervaringen. Wij leiden je goed.",
+    button: "Vertel wat je zoekt",
   },
   status: {
     available: "Beschikbaar",
@@ -203,6 +266,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   },
   femaleOnlyBadge: "Girls only",
   reserveCta: "Reserveer",
-  viewTableCta: "Bekijk tafel",
-  perPersonFrom: "Vanaf €{price} per persoon",
+  viewTableCta: "Plan je tafel",
+  joinIndividuallyCta: "Individueel aanschuiven",
+  perPersonFrom: "€{price} per persoon",
 };

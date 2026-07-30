@@ -5,7 +5,12 @@ export type ExperienceStatusKey =
   | "closed"
   | "new";
 
-export type AgendaTabKey = "all" | "girlsOnly" | "mixed";
+export type AgendaTabKey =
+  | "all"
+  | "tastings"
+  | "wineWalk"
+  | "foodWalk"
+  | "chefsSpecial";
 
 import type { ImageSettings } from "@/lib/image-settings";
 
@@ -131,12 +136,15 @@ export interface ExperiencePageLabels {
     groupSeatsLabel: string;
     seatsJoinOthers: string;
     seatsOwnTable: string;
+    seatingTogetherHint: string;
     soloTitle: string;
     duoTitle: string;
     groupTitle: string;
+    tableTitle: string;
     soloCta: string;
     duoCta: string;
     groupCta: string;
+    tableCta: string;
   };
   bookingSeatingLabel: string;
   bookingSeatingOwn: string;
@@ -288,7 +296,14 @@ export interface Dictionary {
     nav: {
       girlsOnly: string;
       calendar: string;
-      waitlist: string;
+      account: string;
+      clubmember: string;
+      experiences: string;
+      blog: string;
+      myAccount: string;
+      logIn: string;
+      signUp: string;
+      navAria: string;
     };
     languageSwitch: string;
     openMenu: string;
@@ -318,7 +333,34 @@ export interface Dictionary {
     hero: {
       title: string;
       subtitle: string;
-      supportLine: string;
+      supportLine?: string;
+      eyebrow?: string;
+      cta?: string;
+      ctaHref?: string;
+      trustPills?: string[];
+      secondaryLabel?: string;
+      secondaryHref?: string;
+    };
+    /** Cross-sell to Sunday Table / meet path */
+    crossFeed?: {
+      eyebrow: string;
+      title: string;
+      body: string;
+      benefits: string[];
+      cta: string;
+    };
+    /** Banner when arriving from post-Sunday Table culinary CTA */
+    sundayTableGroup?: {
+      title: string;
+      body: string;
+    };
+    browse: {
+      cityLabel: string;
+      cityAll: string;
+      dateLabel: string;
+      dateAll: string;
+      results: string;
+      clear: string;
     };
     tabsAriaLabel: string;
     tabs: AgendaTab[];
@@ -332,7 +374,7 @@ export interface Dictionary {
       title: string;
       text: string;
       showAllCities: string;
-      waitlistCta: string;
+      communityCta: string;
     };
     status: Record<ExperienceStatusKey, string>;
     femaleOnlyBadge: string;
@@ -403,7 +445,6 @@ export interface Dictionary {
       forVenues: string;
       faq: string;
       blog: string;
-      waitlist: string;
       instagram: string;
       contact: string;
       terms: string;

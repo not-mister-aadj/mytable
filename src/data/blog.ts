@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/config";
 import { blogGuidePosts } from "./blog-guides";
 import type { BlogCategoryId, BlogBlock, BlogPost } from "./blog-types";
+import { blogImages } from "./images";
 
 export type { BlogCategoryId, BlogBlock, BlogPost } from "./blog-types";
 
@@ -42,7 +43,7 @@ export const blogPosts: BlogPost[] = [
     category: "cities",
     publishedAt: "2026-07-21",
     readMinutes: 9,
-    image: "/blog/wijnproeverij-in-rotterdam.png",
+    image: blogImages.wineBar,
     relatedPaths: [
       {
         path: "/girls-only/rotterdam",
@@ -401,7 +402,7 @@ export const blogPosts: BlogPost[] = [
     category: "girls-only",
     publishedAt: "2026-07-10",
     readMinutes: 7,
-    image: "/blog/solo-naar-een-girls-only-wijnproeverij.png",
+    image: blogImages.winePour,
     featured: false,
     title: {
       nl: "Solo naar een girls-only wijnproeverij: zo werkt het echt",
@@ -475,7 +476,7 @@ export const blogPosts: BlogPost[] = [
     category: "how-it-works",
     publishedAt: "2026-07-08",
     readMinutes: 6,
-    image: "/blog/wat-is-een-wijnspijs-proeverij.png",
+    image: blogImages.dinnerTable,
     title: {
       nl: "Wat is een wijnspijs-proeverij? De MyTable-uitleg",
       en: "What is a wine-and-food tasting? The MyTable explanation",
@@ -548,7 +549,7 @@ export const blogPosts: BlogPost[] = [
     category: "tips",
     publishedAt: "2026-07-05",
     readMinutes: 5,
-    image: "/blog/met-vriendinnen-een-eigen-tafel.png",
+    image: blogImages.friendsTable,
     title: {
       nl: "Met vriendinnen een eigen tafel boeken: zo doe je dat",
       en: "Booking your own table with friends: how to do it",
@@ -619,7 +620,7 @@ export const blogPosts: BlogPost[] = [
     category: "cities",
     publishedAt: "2026-07-01",
     readMinutes: 6,
-    image: "/blog/girls-only-in-welke-stad.png",
+    image: blogImages.friendsOutdoor,
     title: {
       nl: "Girls-only in welke stad? Zo kies je jouw MyTable-middag",
       en: "Girls-only in which city? How to pick your MyTable afternoon",
@@ -682,7 +683,7 @@ export const blogPosts: BlogPost[] = [
     category: "how-it-works",
     publishedAt: "2026-06-28",
     readMinutes: 4,
-    image: "/blog/priority-list-uitgelegd.png",
+    image: blogImages.wineFlight,
     title: {
       nl: "De priority list uitgelegd: als eerste erbij",
       en: "The priority list explained: first in line",

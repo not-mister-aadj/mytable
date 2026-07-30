@@ -146,7 +146,7 @@ export function LivePreviewPanel({
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border-subtle bg-beige px-4 py-3 sm:px-6">
               <div>
                 <p className="font-serif text-lg text-burgundy">
-                  Detailpagina — preview
+                  Detailpagina - preview
                 </p>
                 <p className="text-xs text-wine/55">
                   Esc of Sluiten om terug te gaan

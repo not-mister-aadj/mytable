@@ -1,3 +1,5 @@
+"use client";
+
 import type { Testimonial, TestimonialAvatar } from "@/data/testimonials";
 
 const avatarStyles: Record<TestimonialAvatar, string> = {
@@ -46,12 +48,15 @@ function MarqueeRow({
   direction: "left" | "right";
   cardClassName?: string;
 }) {
-  const track = [...items, ...items];
+  // Repeat until the track is wide enough for a seamless -50% loop on mobile.
+  const repeats = Math.max(2, Math.ceil(6 / Math.max(items.length, 1)));
+  const half = Array.from({ length: repeats }, () => items).flat();
+  const track = [...half, ...half];
 
   return (
     <div className="relative overflow-hidden">
       <div
-        className={`flex w-max gap-4 py-1 ${
+        className={`flex w-max gap-4 py-1 will-change-transform ${
           direction === "left"
             ? "animate-marquee-left"
             : "animate-marquee-right"
@@ -86,18 +91,22 @@ export function TestimonialMarquee({
   singleRow = false,
 }: TestimonialMarqueeProps) {
   return (
-    <div className="relative mt-12 sm:mt-14">
+    <div className="group/marquee relative mt-8 sm:mt-12 lg:mt-14">
       <div
-        className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r ${fadeFromClassName} to-transparent sm:w-24`}
+        className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r ${fadeFromClassName} to-transparent sm:w-24`}
         aria-hidden
       />
       <div
-        className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l ${fadeFromClassName} to-transparent sm:w-24`}
+        className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l ${fadeFromClassName} to-transparent sm:w-24`}
         aria-hidden
       />
       <div className="space-y-4 sm:space-y-5">
-        <MarqueeRow items={top} direction="left" cardClassName={cardClassName} />
-        {!singleRow ? (
+        <MarqueeRow
+          items={top}
+          direction="left"
+          cardClassName={cardClassName}
+        />
+        {!singleRow && bottom.length > 0 ? (
           <MarqueeRow
             items={bottom}
             direction="right"

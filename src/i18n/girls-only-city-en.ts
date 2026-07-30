@@ -22,155 +22,143 @@ function buildCityPageEn(
 
   return {
     meta: {
-      title: `Girls-only wine tasting in ${enName}`,
-      description: `Girls-only wine tasting in ${enName} on Sunday afternoon. Book solo or with friends. Four wines, bites, one table. No date? Waitlist.`,
+      title: `Sunday Table in ${enName} · MyTable`,
+      description: `Sunday Table in ${enName}. Every first Sunday. New people. Then culinary experiences.`,
     },
     breadcrumbHome: "Home",
-    breadcrumbGirlsOnly: "Girls-only",
+    breadcrumbGirlsOnly: "Sunday Table",
     hero: {
       regionLabel: city.regionEn,
-      headline: `Girls-only wine tasting in ${enName}`,
-      subheadline: `Girls-only wine & bites in ${enName} without the hassle: you book, MyTable handles wine, bites, and a table of great women. Solo welcome. Friends get their own table.`,
-      trustBullets: [
-        `Solo welcome in ${enName}`,
-        "Not dating",
-        "25-45 · beginners OK",
-      ],
-      ctaBook: `See ${enName} tables`,
-      ctaPriority: "Join the waitlist",
-      imageAlt: `Women enjoying wine and bites at a girls-only afternoon in ${enName}`,
+      headline: `Sunday Table in ${enName}`,
+      subheadline:
+        "Every first Sunday. New people. Then culinary experiences.",
+      trustBullets: ["Solo welcome", "Matching", "Then culinary plans"],
+      ctaBook: "Claim your seat",
+      ctaPriority: "Go to Sunday Table",
+      imageAlt: `Sunday Table in ${enName}`,
+      seatsLeft: "{count} seats left · {city} · {date}",
     },
     events: {
       eyebrow: "Agenda",
-      title: `Upcoming girls-only tables in ${enName}`,
-      subtitle: `Reserve your seat for the next girls-only Sunday in ${enName}.`,
-      emptyTitle: `No girls-only table in ${enName} planned yet`,
-      emptyBody: `New ${enName} Sundays open once the venue is set. Join the waitlist. You’ll hear first.`,
-      emptyCta: "Go to the waitlist",
-      viewAll: "See all Sundays",
+      title: `Tables in ${enName}`,
+      subtitle: `Next Sunday Table in ${enName}.`,
+      emptyTitle: `Every first Sunday in ${enName}`,
+      emptyBody: "Claim your seat. We match you at the table.",
+      emptyCta: "Go to Sunday Table",
+      viewAll: "All Sundays",
     },
     priority: {
-      eyebrow: "Waitlist",
-      title: `Be first in line in ${enName}`,
-      subtitle: `Leave your email. When a girls-only table opens in ${enName}, you’ll hear first, before the public agenda.`,
+      eyebrow: "Sunday Table",
+      title: `${enName}`,
+      subtitle: "Every first Sunday. New people. Then culinary experiences.",
       nameLabel: "First name",
       namePlaceholder: "Your first name",
       emailLabel: "Email",
       emailPlaceholder: "you@email.com",
-      cta: "Join the list",
-      success: `You’re on the list. We’ll email you when ${enName} opens.`,
-      error: "Sign-up failed. Please try again later.",
-      privacyNote: "No spam. Only when a table opens in your city.",
+      cta: "Go to Sunday Table",
+      success: "You’re on the list.",
+      error: "Sign-up failed. Try again later.",
+      privacyNote: "Sunday Table updates only.",
     },
     included: {
-      eyebrow: "What’s included",
-      title: `Girls-only wine & bites in ${enName}`,
-      subtitle: `Everything set for a Sunday afternoon in ${enName}: wine, bites, and the right table mix.`,
+      eyebrow: "The offer",
+      title: `Sunday Table in ${enName}`,
+      subtitle: "Every first Sunday. New people. Culinary plans.",
       items: [
         {
-          title: "Four wines",
-          description:
-            "A guided tasting with context. Beginners and wine fans sit side by side.",
+          title: "Every first Sunday",
+          description: "Fixed rhythm. Every month.",
         },
         {
-          title: "Paired bites",
-          description:
-            "Small plates that match the wines. Not a formal dinner, still delicious.",
+          title: "New people",
+          description: "Matched at the table. Solo welcome.",
         },
         {
-          title: "Solo or with friends",
-          description: `Solo? You’ll sit with other women in ${enName}. With friends? Reserve your own table.`,
+          title: "A drink",
+          description: "Consumptions on location.",
         },
         {
-          title: "One partner venue",
-          description:
-            "One restaurant, no city walk. Address and time arrive after booking.",
+          title: "Then culinary experiences",
+          description: "Wine Walks, tastings, dinners.",
         },
       ],
     },
     local: {
-      eyebrow: `About ${enName}`,
-      title: `Looking for girls-only wine & bites in ${enName}`,
+      eyebrow: enName,
+      title: `Sunday Table in ${enName}`,
       body: city.localEn.body,
       points: [...city.localEn.points],
     },
     howItWorks: {
-      eyebrow: "How it works",
-      title: `Book a girls-only table in ${enName}`,
+      eyebrow: "The offer",
+      title: `${enName}`,
       steps: [
         {
-          title: "Pick your Sunday",
-          description: `Browse open tables in ${enName}, or join the waitlist if no date is open yet.`,
+          title: "Clubmember",
+          description: "Access to Sunday Table.",
         },
         {
-          title: "Book solo or as a group",
-          description:
-            "Solo seats sit with other solos and duos. Friends get their own table.",
+          title: "First Sunday",
+          description: "New people. Matching.",
         },
         {
-          title: "Show up and enjoy",
-          description:
-            "We handle wine, bites, and atmosphere. You enjoy an easy afternoon.",
+          title: "Then",
+          description: "Culinary experiences together.",
         },
       ],
     },
     faq: {
-      title: `FAQ about girls-only in ${enName}`,
+      title: `FAQ · ${enName}`,
       items: [
         {
-          question: `What is a girls-only wine tasting in ${enName}?`,
-          answer: `A Sunday afternoon with four wines, paired bites, and a table of women. MyTable handles the venue and seating in ${enName}. You book solo or with friends.`,
-        },
-        {
-          question: `Can I book a girls-only table in ${enName} solo?`,
+          question: `What is Sunday Table in ${enName}?`,
           answer:
-            "Yes. Solo is the default. You’ll sit with other women who also came alone or as a duo, not with existing friend groups.",
+            "Every first Sunday. New people. Then culinary experiences.",
         },
         {
-          question: `Where in ${enName} does the tasting take place?`,
-          answer: `At one partner restaurant in ${enName}. The city is on the table card. After booking we email the address, time, and practical details.`,
+          question: "Solo?",
+          answer: "Yes. Solo is the default.",
         },
         {
-          question: `What does a girls-only table in ${enName} cost?`,
+          question: `Where in ${enName}?`,
+          answer: "Partner venue. Address after matching.",
+        },
+        {
+          question: "Cost?",
           answer:
-            "The per-person price is on the table card and in checkout. It covers four wines, bites, and the guided afternoon. No hidden extras.",
+            "Via Clubmember. Drinks and bites on location. Culinary tickets separate, 10% off.",
         },
         {
-          question: `What if no ${enName} date is open?`,
-          answer: `Join the waitlist. When we open a new girls-only Sunday in ${enName}, you get the first email, before the public agenda.`,
+          question: "When?",
+          answer: "Every first Sunday of the month.",
         },
         {
-          question: `Is girls-only in ${enName} a dating event?`,
-          answer:
-            "No. It’s wine, bites, and an easy afternoon. No speed dating and no forced networking.",
+          question: "Dating?",
+          answer: "No.",
         },
       ],
     },
     otherCities: {
-      title: "Girls-only in other cities",
-      subtitle: "Also live elsewhere in the Netherlands. Pick your city.",
-      nationalCta: "View all cities",
+      title: "Other cities",
+      subtitle: "Pick your city.",
+      nationalCta: "All cities",
     },
     finalCta: {
-      title: `Ready for girls-only in ${enName}?`,
-      subtitle: `Book an open table, or join the waitlist for the next ${enName} Sunday.`,
-      ctaBook: `See ${enName} tables`,
-      ctaPriority: "Join the waitlist",
+      title: `Sunday Table in ${enName}`,
+      subtitle: "Every first Sunday. New people. Culinary plans.",
+      ctaBook: "Claim your seat",
+      ctaPriority: "Go to Sunday Table",
     },
     status: sharedStatus,
     femaleOnlyBadge: "Girls only",
     reserveCta: "Reserve",
     viewTableCta: "View table",
     perPersonFrom: "from",
-    socialPromise:
-      "Four wines, paired bites, one table. You book, we handle the rest.",
+    socialPromise: "Every first Sunday. New people. Culinary plans.",
   };
 }
 
-export const girlsOnlyCityPagesEn: Record<
-  GirlsOnlyCitySlug,
-  GirlsOnlyCityPageLabels
-> = Object.fromEntries(
+export const girlsOnlyCityPagesEn = Object.fromEntries(
   GIRLS_ONLY_CITY_SLUGS.map((slug) => [
     slug,
     buildCityPageEn(GIRLS_ONLY_CITIES[slug]),

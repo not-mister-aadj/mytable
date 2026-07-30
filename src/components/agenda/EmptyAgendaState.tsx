@@ -7,7 +7,8 @@ import type { Dictionary } from "@/i18n/types";
 interface EmptyAgendaStateProps {
   empty: Dictionary["agenda"]["empty"];
   onShowAll: () => void;
-  waitlistHref: string;
+  clearLabel?: string;
+  communityHref: string;
   /** True when the agenda has other tables outside the current filter */
   hasOtherTables: boolean;
 }
@@ -15,7 +16,8 @@ interface EmptyAgendaStateProps {
 export function EmptyAgendaState({
   empty,
   onShowAll,
-  waitlistHref,
+  clearLabel,
+  communityHref,
   hasOtherTables,
 }: EmptyAgendaStateProps) {
   return (
@@ -33,13 +35,13 @@ export function EmptyAgendaState({
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Button
-          href={waitlistHref}
+          href={communityHref}
           className="bg-burgundy px-6 py-3 text-sm font-medium text-cream hover:bg-wine"
         >
           <span aria-hidden className="mr-2 opacity-90">
             ›
           </span>
-          {empty.waitlistCta}
+          {empty.communityCta}
         </Button>
         {hasOtherTables ? (
           <button
@@ -47,7 +49,7 @@ export function EmptyAgendaState({
             onClick={onShowAll}
             className="rounded-full border border-burgundy/25 bg-cream px-6 py-3 text-sm font-medium text-burgundy transition-all duration-300 hover:border-burgundy/40 hover:shadow-md"
           >
-            {empty.showAllCities}
+            {clearLabel ?? empty.showAllCities}
           </button>
         ) : null}
       </div>

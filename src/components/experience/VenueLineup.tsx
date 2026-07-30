@@ -22,10 +22,13 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="max-w-2xl font-serif text-2xl font-medium tracking-tight sm:text-4xl lg:text-5xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+            Line-up
+          </p>
+          <h2 className="mt-3 max-w-2xl font-serif text-2xl font-medium tracking-tight sm:text-4xl lg:text-5xl">
             {title}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-cream/75 sm:mt-4 sm:text-lg">
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-cream/75 sm:mt-5 sm:text-lg">
             {subtitle}
           </p>
         </motion.div>
@@ -45,7 +48,7 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.45, delay: index * 0.08 }}
-              className="group w-[min(85vw,320px)] shrink-0 overflow-hidden rounded-3xl border border-cream/10 bg-cream/5 backdrop-blur-sm"
+              className="group w-[min(82vw,300px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-cream/10 bg-cream/5 sm:w-[min(85vw,320px)] sm:rounded-3xl"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <PositionedImage
@@ -72,7 +75,7 @@ export function VenueLineup({ title, subtitle, venues }: VenueLineupProps) {
                 >
                   {venue.area}
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-cream/70">
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-cream/70 sm:line-clamp-none">
                   {venue.description}
                 </p>
               </div>

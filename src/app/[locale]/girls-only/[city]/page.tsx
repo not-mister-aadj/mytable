@@ -13,7 +13,6 @@ import {
   agendaPath,
   girlsOnlyCityPath,
   isValidLocale,
-  waitlistPath,
   type Locale,
 } from "@/i18n/config";
 import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
@@ -22,6 +21,11 @@ import {
   getGirlsOnlyCityLabels,
   getUpcomingGirlsOnlyCityEvents,
 } from "@/lib/girls-only-city";
+import { getSundayTableSeatStats } from "@/lib/sunday-table-capacity";
+import {
+  amsterdamDateIso,
+  getUpcomingSundayWineTables,
+} from "@/lib/sunday-wine-table";
 import {
   breadcrumbJsonLd,
   faqPageJsonLd,
@@ -78,8 +82,35 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
   const hasBookable = cityHasBookableGirlsOnlyEvent(events);
   const pageUrl = absoluteUrl(girlsOnlyCityPath(locale, city.slug));
   const agendaHref = agendaPath(locale);
-  const waitlistHref = waitlistPath(locale);
   const region = girlsOnlyCityDisplayRegion(city, locale);
+
+  const upcomingSunday = getUpcomingSundayWineTables(1)[0] ?? null;
+  const tableDate = upcomingSunday ? amsterdamDateIso(upcomingSunday) : null;
+  let sundayScarcity: { seatsLeft: number; dateLabel: string } | null = null;
+  if (tableDate && upcomingSunday) {
+    const [mixed, girls] = await Promise.all([
+      getSundayTableSeatStats({
+        city: city.cityName,
+        tableDate,
+        tableType: "mixed",
+      }),
+      getSundayTableSeatStats({
+        city: city.cityName,
+        tableDate,
+        tableType: "girls_only",
+      }),
+    ]);
+    const seatsLeft = Math.max(mixed.seatsLeft, girls.seatsLeft);
+    const dateLabel = upcomingSunday.toLocaleDateString(
+      locale === "en" ? "en-GB" : "nl-NL",
+      {
+        day: "numeric",
+        month: "short",
+        timeZone: "Europe/Amsterdam",
+      },
+    );
+    sundayScarcity = { seatsLeft, dateLabel };
+  }
 
   return (
     <>
@@ -119,10 +150,10 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
           events={events}
           hasBookable={hasBookable}
           agendaHref={agendaHref}
-          waitlistHref={waitlistHref}
+          sundayScarcity={sundayScarcity}
         />
       </main>
-      <Footer dict={dict.footer} locale={locale} />
+      <Footer dict={dict.footer} locale={locale} showSeoLinks />
     </>
   );
 }

@@ -17,6 +17,7 @@ import { hashEmail } from "@/lib/posthog/properties";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { ensureAuthUserForEmail } from "@/lib/auth/ensure-auth-user-for-email";
 
 export type FulfillCheckoutOptions = {
   /** Skip blocking on Resend — confirmation page renders first, API poll sends email. */
@@ -25,6 +26,17 @@ export type FulfillCheckoutOptions = {
   deferSideEffects?: boolean;
 };
 
+async function ensureAuthUserForBooking(booking: Booking): Promise<void> {
+  try {
+    await ensureAuthUserForEmail({
+      email: booking.email,
+      name: booking.customerName,
+    });
+  } catch (err) {
+    console.error("[stripe fulfill] ensure auth user failed", err);
+  }
+}
+
 async function runPostPaymentSideEffects(
   session: Stripe.Checkout.Session,
   updated: { booking: Booking; ev: Event },
@@ -32,6 +44,8 @@ async function runPostPaymentSideEffects(
 ): Promise<void> {
   const run = async () => {
     const db = getDb();
+
+    await ensureAuthUserForBooking(updated.booking);
 
     try {
       await onPaymentCompleted({
@@ -94,6 +108,27 @@ async function runPostPaymentSideEffects(
       amount_cents: updated.booking.amountCents,
       locale: updated.booking.locale,
     });
+
+    if (updated.booking.fromSundayTable) {
+      void captureServerEvent(
+        updated.booking.email,
+        PostHogEvents.culinaryBookedWithin30dOfSunday,
+        paymentProps,
+      );
+    }
+
+    try {
+      const { recordAffiliateCommissionForBooking } = await import(
+        "@/lib/affiliate"
+      );
+      await recordAffiliateCommissionForBooking({
+        bookingId: updated.booking.id,
+        affiliateCode: updated.booking.affiliateCode,
+        seats: updated.booking.seats,
+      });
+    } catch (err) {
+      console.error("[stripe fulfill] affiliate commission failed", err);
+    }
   };
 
   if (options?.deferSideEffects) {
@@ -171,6 +206,7 @@ export async function fulfillPaidCheckoutSession(
 
   if (existing.paymentStatus === "paid") {
     if (existing.confirmationEmailSentAt) {
+      await ensureAuthUserForBooking(existing);
       return "already_paid";
     }
 
@@ -184,6 +220,7 @@ export async function fulfillPaidCheckoutSession(
       await deliverConfirmationEmail(existing, ev, "catch-up", options);
     }
 
+    await ensureAuthUserForBooking(existing);
     return "already_paid";
   }
 

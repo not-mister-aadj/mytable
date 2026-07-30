@@ -5,181 +5,179 @@ import type {
 
 export const wineWalkFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Start at the first venue",
+    title: "Tickets in advance",
     description:
-      "We begin at the first stop with a short introduction so everyone can settle in.",
+      "You book on this page. After payment you receive confirmation by email. Free exchange up to 48 hours before start.",
   },
   {
-    title: "Taste along the way",
+    title: "Start at the first restaurant",
     description:
-      "At each stop something is ready to try: wine, bites, or a small pairing.",
+      "Arrive on time at the first stop on your route. Show your ticket and enjoy the first wine and food pairing.",
   },
   {
-    title: "Walk at a relaxed pace",
+    title: "On to the next stop",
     description:
-      "Between venues you walk through the city together. No rush, no tight schedule.",
+      "When you're ready, walk with your own party to the next restaurant. No guide, a clear route at your own pace.",
   },
   {
-    title: "Meet new people",
+    title: "Taste at every venue",
     description:
-      "As you change spots and conversations along the way, meeting people feels natural and easy.",
+      "Each stop has a pairing ready. You discover several restaurants in one afternoon, without planning it yourself.",
   },
 ];
 
 export const chefsSpecialFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Take your seat",
+    title: "Reserve your tickets",
     description:
-      "You arrive at the restaurant and are welcomed at the MyTable table.",
+      "Book ahead for yourself or your party. Everything is paid before you arrive.",
   },
   {
-    title: "Taste family style",
+    title: "Arrive at the restaurant",
     description:
-      "Multiple starters, mains and dessert arrive in the middle. You share everything with the table.",
+      "You're welcomed to your reserved seats. The chef has put the evening together for you.",
   },
   {
-    title: "The best of the kitchen",
+    title: "Family style at the table",
     description:
-      "The chef shapes the evening so you taste more of the restaurant than with a single plate of your own.",
+      "Multiple starters, mains and desserts arrive in the middle. You share and taste the best of the house.",
   },
   {
-    title: "Stay a while",
+    title: "At your own pace",
     description:
-      "Afterwards you can often linger for another drink or keep chatting.",
+      "No tight schedule. Enjoy the evening; afterwards you can often stay for another drink.",
   },
 ];
 
 export const sharedDinnerFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Welcome at the table",
+    title: "Book your seats",
     description:
-      "You begin with a drink and a short intro so everyone settles in quickly.",
+      "Reserve tickets for your own party. Payment is upfront.",
+  },
+  {
+    title: "Welcome at the restaurant",
+    description:
+      "You're received and briefly walk through the evening's menu.",
   },
   {
     title: "Shared menu",
     description:
-      "The restaurant serves a thoughtful menu while conversation flows on its own.",
-  },
-  {
-    title: "Open table",
-    description:
-      "Everyone sits at one long table. No speeches, no forced small talk.",
+      "The restaurant serves a thoughtful menu. Dishes are shared so you taste more.",
   },
   {
     title: "Gentle finish",
     description:
-      "After dessert you can linger and chat or head home on time.",
+      "After dessert you can linger or head on when you're ready.",
   },
 ];
 
 export const tastingFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Welcome & intro",
+    title: "Book ahead",
     description:
-      "You're greeted with a first glass. The host briefly explains what the chef has planned for the table.",
+      "Buy tickets for yourself or your group. After payment, everything is in your confirmation.",
   },
   {
-    title: "Chef's special at the table",
+    title: "Welcome with a first glass",
     description:
-      "The restaurant serves specials for the whole group, wine and bites that match, at your own pace.",
+      "You're welcomed at the restaurant. The host or wine bar briefly explains what's coming to the table.",
   },
   {
-    title: "Table conversation",
+    title: "Four wines with bites",
     description:
-      "The group is intimate enough to connect and varied enough to feel lively.",
+      "You taste four wines with matching bites, in one place, at your own pace.",
   },
   {
-    title: "Close without rushing",
+    title: "Finish without rushing",
     description:
-      "Plan for the whole afternoon. Many groups keep the vibe going afterward, more wine, drinks, or dinner out.",
+      "Plan for the afternoon. Extra orders are often possible at the table; staff will explain what's available.",
   },
 ];
 
-export const sundayFlowEn: ExperienceFlowStep[] = [
-  {
-    title: "Sunday start",
-    description:
-      "Coffee, brunch, and a warm welcome before the table really fills up.",
-  },
-  {
-    title: "Slow pace",
-    description:
-      "No rush: the afternoon is meant for unwinding and catching up.",
-  },
-  {
-    title: "New faces",
-    description:
-      "At the table you meet people who also want a relaxed Sunday.",
-  },
-  {
-    title: "Soft landing",
-    description:
-      "Often the table stays a little longer for one last coffee or glass.",
-  },
-];
+export const sundayFlowEn: ExperienceFlowStep[] = tastingFlowEn;
 
 export const mysteryFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Secret venue welcome",
+    title: "Book your evening",
     description:
-      "After booking you receive the details. You know where to arrive, not always where you'll end up.",
+      "After booking you receive the practical details. You know where to be.",
   },
   {
     title: "Surprise menu",
     description:
-      "The restaurant serves an evening that fits the mood of the mystery table.",
+      "The restaurant serves an evening that fits the venue's character.",
   },
   {
-    title: "Shared table",
+    title: "Your party, one table",
     description:
-      "You join people who also want something beyond a standard night out.",
+      "You sit with the people you booked for. We arrange the restaurant and the menu.",
   },
   {
-    title: "Reveal afterwards",
+    title: "Details afterwards",
     description:
-      "After the evening we often share where you were so you can return on your own.",
+      "After the evening you can find the venue again via your confirmation or our follow-up.",
   },
 ];
 
 export const tastingQuotesEn: ExperienceGuestQuote[] = [
   {
     quote:
-      "I thought it might feel awkward, but within ten minutes it felt normal. Four wines, great bites, no hassle.",
+      "Four wines, great bites, no fuss. We didn't have to think about a thing.",
     name: "Anna",
     age: 31,
   },
   {
     quote:
-      "Okay wait… way more fun than I expected. Well over two hours of tasting and chatting, at our own pace. Why didn't I do this sooner?",
+      "Over two hours of tasting at our pace. The pairings were spot on for a Sunday afternoon.",
     name: "Petra",
     age: 45,
   },
   {
     quote:
-      "We came for the wine and stayed for the conversation. Just cozy, without anyone testing your wine knowledge.",
+      "We came for the wine and stayed for the atmosphere. No exam, just good taste.",
     name: "Kim & Sam",
-    detail: "Couple",
+    detail: "Duo",
   },
 ];
 
-export const wineWalkQuotesEn: ExperienceGuestQuote[] = tastingQuotesEn;
+export const wineWalkQuotesEn: ExperienceGuestQuote[] = [
+  {
+    quote:
+      "Several restaurants in one afternoon without planning it ourselves. A strong pairing at every stop.",
+    name: "Mark",
+    age: 34,
+  },
+  {
+    quote:
+      "Relaxed pace, clear route. Perfect with friends: walk, taste, move on.",
+    name: "Sanne",
+    age: 29,
+  },
+  {
+    quote:
+      "We discovered three places we would never have booked ourselves. Everything arranged upfront.",
+    name: "Tom & Eva",
+    detail: "Duo",
+  },
+];
 
 export const sharedDinnerQuotesEn: ExperienceGuestQuote[] = [
   {
     quote:
-      "Like dining with friends you haven't met yet. Exactly the right atmosphere.",
+      "Family style was exactly right: more of the kitchen without decision fatigue.",
     name: "Lisa",
     age: 29,
   },
   {
     quote:
-      "I was nervous to come alone, but within ten minutes it felt completely normal.",
+      "The menu worked from starter to dessert. Clear on drinks and dietary needs.",
     name: "David",
     age: 36,
   },
   {
     quote:
-      "The chef's specials were surprisingly good and conversation kept going until late.",
+      "Felt like a private evening in the restaurant, without the organising stress.",
     name: "Noor",
     age: 33,
   },
@@ -190,7 +188,7 @@ export const mysteryQuotesEn: ExperienceGuestQuote[] = sharedDinnerQuotesEn;
 
 export const rotterdamRouteStopsEn = [
   "Witte de With",
-  "Western Harbour",
-  "Old Harbour",
+  "Westelijk Handelsterrein",
+  "Oude Haven",
   "Meent",
 ];

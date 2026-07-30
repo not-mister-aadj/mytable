@@ -11,6 +11,9 @@ import type {
   BookingOutcomeSummary,
 } from "@/lib/booking-outcome-data";
 import { formatGuestCount, formatMoney } from "@/lib/booking-display";
+import { NextTableConversion } from "@/components/NextTableConversion";
+import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
+import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
 
 type Variant = "success" | "failed" | "pending";
 
@@ -219,6 +222,19 @@ export function BookingOutcomeContent({
           </section>
         ) : null}
       </div>
+
+      {variant === "success" ? (
+        <NextTableConversion
+          labels={
+            locale === "en"
+              ? girlsOnlyPageEn.nextTable
+              : girlsOnlyPageNl.nextTable
+          }
+          locale={locale}
+          sharePath={agendaHref}
+          source="booking_confirmation"
+        />
+      ) : null}
     </main>
   );
 }

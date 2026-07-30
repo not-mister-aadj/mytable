@@ -14,7 +14,7 @@ import {
   onBookingCreated,
   onBookingMoved,
 } from "@/lib/customers/hooks";
-import { parseEventExtras, resolveFemaleOnly } from "@/lib/event-extras";
+import { parseEventExtras, GIRLS_ONLY_ATMOSPHERE_TAG } from "@/lib/event-extras";
 import {
   formatEventSaveError,
   validateEventForm,
@@ -102,6 +102,12 @@ function toEventValues(form: EventFormState) {
     ? form.experienceType
     : DEFAULT_EXPERIENCE_TYPE;
   const typeDef = getExperienceTypeDefinition(experienceType);
+  const extras = {
+    ...form.extras,
+    atmosphereTags: (form.extras.atmosphereTags ?? []).filter(
+      (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+    ),
+  };
 
   return {
     city: form.city,
@@ -109,12 +115,9 @@ function toEventValues(form: EventFormState) {
     endsAt: form.endsAt ? parseEventDateTimeLocal(form.endsAt) : null,
     priceCents: Math.round(priceEuros * 100),
     capacity: Number.isFinite(capacity) ? capacity : 14,
-    femaleOnly: resolveFemaleOnly(
-      form.femaleOnly,
-      form.extras.atmosphereTags,
-    ),
+    femaleOnly: false,
     imageUrl:
-      form.extras.heroImage?.url ||
+      extras.heroImage?.url ||
       (isUsableImageUrl(form.imageUrl) ? form.imageUrl : DEFAULT_EVENT_IMAGE),
     nameNl: form.nameNl,
     nameEn: form.nameEn,
@@ -125,7 +128,7 @@ function toEventValues(form: EventFormState) {
     experienceType,
     mood: typeDef?.mood ?? "tastings",
     venueId: null,
-    extras: form.extras as Record<string, unknown>,
+    extras: extras as Record<string, unknown>,
     updatedAt: new Date(),
   };
 }
@@ -335,6 +338,14 @@ export async function duplicateEventAction(id: string) {
     }),
   );
 
+  const sourceExtras = parseEventExtras(source.extras);
+  const cleanedExtras = {
+    ...sourceExtras,
+    atmosphereTags: (sourceExtras.atmosphereTags ?? []).filter(
+      (t) => t !== GIRLS_ONLY_ATMOSPHERE_TAG,
+    ),
+  };
+
   const [row] = await db
     .insert(events)
     .values({
@@ -346,7 +357,7 @@ export async function duplicateEventAction(id: string) {
       currency: source.currency,
       capacity: source.capacity,
       spotsSold: 0,
-      femaleOnly: source.femaleOnly,
+      femaleOnly: false,
       experienceType: source.experienceType ?? "wine-tasting",
       mood: source.mood,
       imageUrl: source.imageUrl,
@@ -356,7 +367,7 @@ export async function duplicateEventAction(id: string) {
       taglineEn: source.taglineEn,
       categoryNl: source.categoryNl,
       categoryEn: source.categoryEn,
-      extras: source.extras ?? {},
+      extras: cleanedExtras as Record<string, unknown>,
       workflowStatus: "draft",
       publishedAt: null,
     })

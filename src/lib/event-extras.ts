@@ -17,8 +17,23 @@ import {
 export const GIRLS_ONLY_ATMOSPHERE_TAG = "Girls only";
 export const PREMIUM_ATMOSPHERE_TAG = "Premium";
 
+/** Strip girls-only wording from culinary/agenda copy (Sunday Table keeps that language). */
+export function stripGirlsOnlyCulinaryCopy(
+  text: string | null | undefined,
+): string {
+  if (!text) return "";
+  return text
+    .replace(/\bgirls[\s-]*only\b/gi, " ")
+    .replace(/\balleen voor vrouwen\b/gi, " ")
+    .replace(/\bwomen[\s-]*only\b/gi, " ")
+    .replace(/\s*[·•|]\s*[·•|]\s*/g, " · ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^\s*[·•|,]\s*/g, "")
+    .replace(/\s*[·•|,]\s*$/g, "")
+    .trim();
+}
+
 export const ATMOSPHERE_TAG_OPTIONS = [
-  GIRLS_ONLY_ATMOSPHERE_TAG,
   PREMIUM_ATMOSPHERE_TAG,
 ] as const;
 

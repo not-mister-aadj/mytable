@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { SundayTableSignupProfile } from "@/db/schema";
 import type {
   SundayTableKey,
   SundayTableMemberRow,
-} from "@/lib/sunday-table-signups-data";
+  SundayTableSignupProfile,
+} from "@/lib/sunday-table-shared";
 
 function formatTableDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);

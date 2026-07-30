@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin-auth";
 import { upsertSundayTableLocation } from "@/lib/sunday-table-locations";
-import type { SundayTableType } from "@/lib/sunday-table-signups-data";
-import { encodeSundayTableSlug } from "@/lib/sunday-table-signups-data";
+import {
+  encodeSundayTableSlug,
+  type SundayTableType,
+} from "@/lib/sunday-table-shared";
 
 export async function saveSundayTableLocationAction(formData: FormData) {
   await requireAdmin();

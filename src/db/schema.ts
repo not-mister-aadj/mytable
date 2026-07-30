@@ -10,6 +10,9 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { SundayTableSignupProfile } from "@/lib/sunday-table-shared";
+
+export type { SundayTableSignupProfile } from "@/lib/sunday-table-shared";
 
 export const workflowStatusEnum = pgEnum("workflow_status", [
   "draft",
@@ -257,18 +260,6 @@ export const siteSettings = pgTable("site_settings", {
     .notNull()
     .defaultNow(),
 });
-
-export type SundayTableSignupProfile = {
-  gender?: string | null;
-  personality?: string | null;
-  birthDate?: string | null;
-  joinIntent?: string | null;
-  company?: string | null;
-  cities?: string[];
-  cityFlexible?: boolean;
-  preferredTableType?: string | null;
-  interests?: string[];
-};
 
 export type ClubPlanId = "1m" | "3m" | "6m";
 export type ClubMembershipStatus =

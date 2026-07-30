@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   encodeSundayTableSlug,
   type SundayTableAdminRow,
-} from "@/lib/sunday-table-signups-data";
+} from "@/lib/sunday-table-shared";
 
 function formatTableDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);

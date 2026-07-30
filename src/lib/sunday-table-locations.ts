@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { sundayTableLocations } from "@/db/schema";
-import type { SundayTableKey, SundayTableType } from "@/lib/sunday-table-signups-data";
+import type { SundayTableKey, SundayTableType } from "@/lib/sunday-table-shared";
 
 export type SundayTableLocation = {
   id: string;

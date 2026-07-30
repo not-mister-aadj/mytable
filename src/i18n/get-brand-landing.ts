@@ -17,7 +17,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
         meet: {
           eyebrow: "Sunday Table",
           title: "New people",
-          body: "Every first Sunday of the month. New people. Company for what comes next.",
+          body: "Every first Sunday of the month. Meet new people. Company for your future culinary experiences.",
           cta: "Start the quiz",
         },
         culinary: {
@@ -44,7 +44,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
       meet: {
         eyebrow: "Sunday Table",
         title: "Nieuwe mensen",
-        body: "Elke eerste zondag van de maand. Nieuwe mensen. Gezelschap voor wat daarna komt.",
+        body: "Elke eerste zondag van de maand. Nieuwe mensen leren kennen. Gezelschap voor je toekomstige culinaire ervaringen.",
         cta: "Naar Sunday Table",
       },
       culinary: {

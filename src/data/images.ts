@@ -45,7 +45,7 @@ export const blogImages = {
   restaurant: "/blog/amsterdam-restaurant.jpg",
   socialIdeas: images.longTable,
   clayWorkshop:
-    "https://images.unsplash.com/photo-1493106819501-66d381c466f1?w=1200&q=80",
+    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1200&q=80",
   spaCalm:
     "https://images.unsplash.com/photo-1560624052-449f5ddf0c31?w=1200&q=80",
   outdoorWalk:

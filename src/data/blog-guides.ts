@@ -11,7 +11,7 @@ export const blogGuidePosts: BlogPost[] = [
     category: "tips",
     publishedAt: "2026-07-21",
     readMinutes: 11,
-    image: blogImages.clayWorkshop,
+    image: blogImages.dinnerTable,
     featured: true,
     relatedPaths: [
       {

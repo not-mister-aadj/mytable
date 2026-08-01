@@ -91,16 +91,24 @@ export function getNextSundayWineTable(from: Date = new Date()): Date {
   return firstSundayOfMonth(nextYear, nextMonth);
 }
 
-/** Next N first-Sunday Wine Tables (monthly cadence). */
+/**
+ * Next N first-Sunday Wine Tables still open for RSVP.
+ * Skips months whose Friday 16:00 deadline has passed, so the following
+ * month becomes bookable as soon as the current signup window closes.
+ */
 export function getUpcomingSundayWineTables(
   count = 3,
   from: Date = new Date(),
 ): Date[] {
   const out: Date[] = [];
   let cursor = from;
-  for (let i = 0; i < count; i++) {
+  let guard = 0;
+  while (out.length < count && guard < 24) {
+    guard += 1;
     const next = getNextSundayWineTable(cursor);
-    out.push(next);
+    if (isSundayTableRsvpOpen(next, from)) {
+      out.push(next);
+    }
     cursor = new Date(next.getTime() + 1000);
   }
   return out;

@@ -33,11 +33,11 @@ export const memberClubEn: MemberClubLabels = {
     cta: "Claim your seat",
     mixed: {
       title: "Sunday Table",
-      body: "Mixed table. New people. Solo welcome.",
+      body: "Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",
     },
     girlsOnly: {
       title: "Sunday Table · Girls only",
-      body: "Women only at the table. Solo welcome.",
+      body: "Women only at the table. Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",
     },
   },
   paywall: {
@@ -61,7 +61,7 @@ export const memberClubEn: MemberClubLabels = {
       },
     ],
     consumptionsNote:
-      "At Sunday Table you pay for drinks and bites on location. Culinary experiences from the agenda are always all-in: food and drinks included.",
+      "At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
     plansTitle: "Choose your plan",
     popular: "Best deal",
     save: "Save {percent}",
@@ -174,7 +174,7 @@ export const memberClubEn: MemberClubLabels = {
         body: "Then book something with your new group. Members get 10% off.",
       },
     ],
-    note: "At Sunday Table you pay for drinks and bites on location. Culinary experiences from the agenda are always all-in: food and drinks included.",
+    note: "At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
   },
   roadmap: {
     eyebrow: "Later",
@@ -193,12 +193,12 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "What is Sunday Table?",
         answer:
-          "Every first Sunday. New people. Then culinary experiences.",
+          "Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",
       },
       {
         question: "What’s in Clubmember?",
         answer:
-          "Sunday Tables and 10% off culinary. At Sunday Table you pay for drinks and bites on location. Culinary experiences from the agenda are always all-in: food and drinks included.",
+          "Sunday Tables and 10% off culinary. At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
       },
       {
         question: "What does Clubmember cost?",
@@ -208,7 +208,7 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "Do I pay separately for drinks and bites?",
         answer:
-          "Yes. At Sunday Table you pay for drinks and bites on location. Culinary experiences from the agenda are always all-in: food and drinks included.",
+          "Yes. At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
       },
       {
         question: "Is Sunday Table dating?",

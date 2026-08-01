@@ -99,6 +99,7 @@ function JoinResumeRedirect({
             interests: prefs.interests,
           }),
         );
+        router.refresh();
       } catch {
         if (!cancelled) setFailed(true);
       }
@@ -146,40 +147,42 @@ function MemberOnboardingInner({
     !profileReady && joinPending && hasJoinSession(fromSession);
 
   const mergedPrefs: MemberOnboardingPrefs = (() => {
-    if (joinFromFunnel && fromSession) {
-      const name =
-        fromSession.name.trim() ||
+    const base: MemberOnboardingPrefs = {
+      ...EMPTY_ONBOARDING_PREFS,
+      ...metaPrefs,
+      name:
         metaPrefs.name.trim() ||
         (typeof userMetadata?.full_name === "string"
           ? userMetadata.full_name
           : typeof userMetadata?.name === "string"
             ? userMetadata.name
-            : "");
-      return {
-        ...EMPTY_ONBOARDING_PREFS,
-        ...fromSession,
-        name,
-        birthDate: fromSession.birthDate || metaPrefs.birthDate,
-        gender: fromSession.gender ?? metaPrefs.gender,
-      };
-    }
-    if (
-      fromSession?.joinIntent ||
-      fromSession?.name ||
-      fromSession?.birthDate ||
-      fromSession?.gender
-    ) {
-      return fromSession;
-    }
-    if (
-      metaPrefs.joinIntent ||
-      metaPrefs.name ||
-      metaPrefs.birthDate ||
-      metaPrefs.gender
-    ) {
-      return metaPrefs;
-    }
-    return { ...EMPTY_ONBOARDING_PREFS, ...metaPrefs };
+            : ""),
+    };
+
+    if (!fromSession) return base;
+
+    // Session fills gaps / join-funnel answers; never wipe profile fields
+    // already saved in auth metadata.
+    return {
+      ...base,
+      ...fromSession,
+      name: fromSession.name.trim() || base.name,
+      birthDate: fromSession.birthDate || base.birthDate,
+      gender: fromSession.gender ?? base.gender,
+      joinIntent: fromSession.joinIntent ?? base.joinIntent,
+      company: fromSession.company ?? base.company,
+      tableType: fromSession.tableType ?? base.tableType,
+      personality: fromSession.personality ?? base.personality,
+      cities:
+        fromSession.cities.length > 0 ? fromSession.cities : base.cities,
+      interests:
+        fromSession.interests.length > 0
+          ? fromSession.interests
+          : base.interests,
+      cityFlexible: fromSession.cityFlexible || base.cityFlexible,
+      communityInterest:
+        fromSession.communityInterest || base.communityInterest,
+    };
   })();
 
   const resumeStep: FlowStep | undefined = (() => {

@@ -58,7 +58,16 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       setUser((prev) => {
         const prevId = prev?.id ?? null;
         const nextId = nextUser?.id ?? null;
-        if (prevId === nextId) return prev;
+        if (prevId !== nextId) return nextUser;
+        // Same user: still refresh when metadata changed (e.g. onboarding).
+        if (
+          prev &&
+          nextUser &&
+          JSON.stringify(prev.user_metadata) ===
+            JSON.stringify(nextUser.user_metadata)
+        ) {
+          return prev;
+        }
         return nextUser;
       });
       setLoading(false);

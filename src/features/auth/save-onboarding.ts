@@ -35,7 +35,9 @@ export async function saveMemberOnboardingPrefs(
   });
   if (error) {
     console.error("[onboarding] updateUser failed:", error.message);
+    throw new Error(error.message);
   }
+  clearOnboardingSession();
 }
 
 export async function clearMemberOnboardingCompleted(): Promise<void> {

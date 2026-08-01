@@ -95,16 +95,31 @@ export function canChooseGirlsOnly(
 }
 
 /** Name, birth date and gender required to join Sunday Tables (girls-only is women-only). */
-export function isSundayTableOnboardingReady(
-  completed: boolean,
+export function hasSundayTableProfile(
   prefs: Pick<MemberOnboardingPrefs, "name" | "birthDate" | "gender">,
 ): boolean {
   return (
-    completed &&
     Boolean(prefs.name.trim()) &&
     Boolean(prefs.birthDate) &&
     prefs.gender !== null
   );
+}
+
+/**
+ * Ready to use account / claim a Sunday Table seat.
+ * Requires profile fields. `completed` should be true after finish; we also
+ * recover profiles that have prefs + joinIntent but lost the completed flag.
+ */
+export function isSundayTableOnboardingReady(
+  completed: boolean,
+  prefs: Pick<
+    MemberOnboardingPrefs,
+    "name" | "birthDate" | "gender" | "joinIntent"
+  >,
+): boolean {
+  if (!hasSundayTableProfile(prefs)) return false;
+  if (completed) return true;
+  return prefs.joinIntent !== null;
 }
 
 export type OnboardingTableTypeId = WaitlistTableTypeId;
@@ -273,7 +288,6 @@ export function readOnboardingFromMetadata(
   completed: boolean;
   prefs: MemberOnboardingPrefs;
 } {
-  const completed = meta?.onboarding_completed === true;
   const raw = meta?.onboarding;
   const nameFromTop =
     typeof meta?.full_name === "string"
@@ -282,9 +296,13 @@ export function readOnboardingFromMetadata(
         ? meta.name
         : "";
 
+  const flagCompleted =
+    meta?.onboarding_completed === true ||
+    meta?.onboarding_completed === "true";
+
   if (!raw || typeof raw !== "object") {
     return {
-      completed,
+      completed: flagCompleted,
       prefs: { ...EMPTY_ONBOARDING_PREFS, name: nameFromTop },
     };
   }
@@ -328,6 +346,10 @@ export function readOnboardingFromMetadata(
   const personality = isOnboardingPersonalityId(o.personality)
     ? o.personality
     : null;
+
+  const completed =
+    flagCompleted ||
+    (typeof o.completedAt === "string" && o.completedAt.length > 0);
 
   return {
     completed,

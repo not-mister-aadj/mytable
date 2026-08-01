@@ -33,11 +33,11 @@ export const memberClubNl: MemberClubLabels = {
     cta: "Claim je plek",
     mixed: {
       title: "Sunday Table",
-      body: "Gemengde tafel. Nieuwe mensen. Solo welkom.",
+      body: "Sunday Table is om nieuwe mensen te ontmoeten. Met hen boek je later culinaire ervaringen uit de agenda. Drankjes en hapjes betaal je op locatie. Die zijn niet inbegrepen.",
     },
     girlsOnly: {
       title: "Sunday Table · Girls only",
-      body: "Alleen vrouwen aan tafel. Solo welkom.",
+      body: "Alleen vrouwen aan tafel. Sunday Table is om nieuwe mensen te ontmoeten. Met hen boek je later culinaire ervaringen uit de agenda. Drankjes en hapjes betaal je op locatie. Die zijn niet inbegrepen.",
     },
   },
   paywall: {
@@ -61,7 +61,7 @@ export const memberClubNl: MemberClubLabels = {
       },
     ],
     consumptionsNote:
-      "Bij Sunday Table betaal je drankjes en hapjes op locatie. Culinaire ervaringen uit de agenda zijn altijd all-in: eten en drinken inbegrepen.",
+      "Bij Sunday Table betaal je drankjes en hapjes op locatie. Die zijn niet inbegrepen. Culinaire ervaringen uit de agenda zijn all-in: eten en drinken inbegrepen.",
     plansTitle: "Kies je plan",
     popular: "Beste deal",
     save: "Bespaar {percent}",
@@ -174,7 +174,7 @@ export const memberClubNl: MemberClubLabels = {
         body: "Boek daarna iets met je nieuwe groep. Leden krijgen 10% korting.",
       },
     ],
-    note: "Bij Sunday Table betaal je drankjes en hapjes op locatie. Culinaire ervaringen uit de agenda zijn altijd all-in: eten en drinken inbegrepen.",
+    note: "Bij Sunday Table betaal je drankjes en hapjes op locatie. Die zijn niet inbegrepen. Culinaire ervaringen uit de agenda zijn all-in: eten en drinken inbegrepen.",
   },
   roadmap: {
     eyebrow: "Later",
@@ -193,12 +193,12 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Wat is Sunday Table?",
         answer:
-          "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+          "Sunday Table is om nieuwe mensen te ontmoeten. Met hen boek je later culinaire ervaringen uit de agenda. Drankjes en hapjes betaal je op locatie. Die zijn niet inbegrepen.",
       },
       {
         question: "Wat zit er in Clubmember?",
         answer:
-          "Sunday Tables en 10% op culinaire ervaringen. Bij Sunday Table betaal je drankjes en hapjes op locatie. Culinaire ervaringen uit de agenda zijn altijd all-in: eten en drinken inbegrepen.",
+          "Sunday Tables en 10% op culinaire ervaringen. Bij Sunday Table betaal je drankjes en hapjes op locatie. Die zijn niet inbegrepen. Culinaire ervaringen uit de agenda zijn all-in: eten en drinken inbegrepen.",
       },
       {
         question: "Wat kost Clubmember?",
@@ -208,7 +208,7 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Betaal ik apart voor drank en hapjes?",
         answer:
-          "Ja. Bij Sunday Table betaal je drankjes en hapjes op locatie. Culinaire ervaringen uit de agenda zijn altijd all-in: eten en drinken inbegrepen.",
+          "Ja. Bij Sunday Table betaal je drankjes en hapjes op locatie. Die zijn niet inbegrepen. Culinaire ervaringen uit de agenda zijn all-in: eten en drinken inbegrepen.",
       },
       {
         question: "Is Sunday Table dating?",

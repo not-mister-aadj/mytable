@@ -315,26 +315,58 @@ export function MemberOnboarding({
   const birthUnderage =
     birthIsoDraft !== null && !isAtLeastMinAge(birthIsoDraft, MIN_ONBOARDING_AGE);
 
-  function goAfterPrefs() {
-    setPrefs((p) => {
-      const next = {
-        ...p,
-        communityInterest:
-          p.joinIntent === "meet_new" || p.joinIntent === "both"
-            ? true
-            : p.communityInterest,
-      };
-      if (isJoin) {
-        writeOnboardingToSession(next);
-        markJoinPending();
-      }
-      return next;
-    });
+  async function goAfterPrefs(overrides?: Partial<MemberOnboardingPrefs>) {
+    const merged = { ...prefs, ...overrides };
+    const next: MemberOnboardingPrefs = {
+      ...merged,
+      communityInterest:
+        merged.joinIntent === "meet_new" || merged.joinIntent === "both"
+          ? true
+          : merged.communityInterest,
+    };
+    setPrefs(next);
+
     if (isJoin) {
+      writeOnboardingToSession(next);
+      markJoinPending();
       router.replace(accountPath(locale));
       return;
     }
-    setStep("done");
+
+    setSaving(true);
+    try {
+      await saveMemberOnboardingPrefs(next);
+      clearJoinPending();
+      await refreshAuthSession();
+      setStep("done");
+    } catch {
+      // Keep the done step reachable so the user can retry via CTA.
+      setStep("done");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function finishAndGo(destination: "meet" | "culinary") {
+    setSaving(true);
+    try {
+      await saveMemberOnboardingPrefs(prefs);
+      clearJoinPending();
+      await refreshAuthSession();
+      await syncMemberCustomerClient(locale, { recordOnboarding: true });
+      router.refresh();
+      if (destination === "meet") {
+        router.push(clubmemberPath(locale));
+      } else {
+        const q =
+          prefs.interests.length > 0
+            ? `?interest=${prefs.interests.join(",")}`
+            : "";
+        router.push(`${agendaPath(locale)}${q}`);
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
   function startStories() {
@@ -377,14 +409,14 @@ export function MemberOnboarding({
     }
     if (from === "tableType") {
       if (prefs.joinIntent === "with_group") {
-        goAfterPrefs();
+        void goAfterPrefs();
         return;
       }
       setStep("personality");
       return;
     }
     if (from === "personality") {
-      goAfterPrefs();
+      void goAfterPrefs();
       return;
     }
     const idx = FLOW_ORDER.indexOf(from);
@@ -394,10 +426,11 @@ export function MemberOnboarding({
 
   function selectGender(gender: OnboardingGenderId) {
     const girlsOnly = canChooseGirlsOnly(gender);
+    const tableType = girlsOnly ? prefs.tableType : ("mixed" as const);
     setPrefs((p) => ({
       ...p,
       gender,
-      tableType: girlsOnly ? p.tableType : "mixed",
+      tableType,
     }));
     setTimeout(() => {
       if (girlsOnly) {
@@ -405,7 +438,7 @@ export function MemberOnboarding({
         return;
       }
       if (prefs.joinIntent === "with_group") {
-        goAfterPrefs();
+        void goAfterPrefs({ gender, tableType });
         return;
       }
       setStep("personality");
@@ -414,7 +447,7 @@ export function MemberOnboarding({
 
   function selectPersonality(personality: OnboardingPersonalityId) {
     setPrefs((p) => ({ ...p, personality }));
-    setTimeout(() => goAfterPrefs(), 180);
+    setTimeout(() => void goAfterPrefs({ personality }), 180);
   }
 
   function goBack() {
@@ -545,27 +578,6 @@ export function MemberOnboarding({
       if (prev.interests.length >= 3) return prev;
       return { ...prev, interests: [...prev.interests, id] };
     });
-  }
-
-  async function finishAndGo(destination: "meet" | "culinary") {
-    setSaving(true);
-    try {
-      await saveMemberOnboardingPrefs(prefs);
-      clearJoinPending();
-      await refreshAuthSession();
-      await syncMemberCustomerClient(locale, { recordOnboarding: true });
-      if (destination === "meet") {
-        router.push(clubmemberPath(locale));
-      } else {
-        const q =
-          prefs.interests.length > 0
-            ? `?interest=${prefs.interests.join(",")}`
-            : "";
-        router.push(`${agendaPath(locale)}${q}`);
-      }
-    } finally {
-      setSaving(false);
-    }
   }
 
   async function handleSignOut() {
@@ -1111,13 +1123,14 @@ export function MemberOnboarding({
                       hint={hint}
                       selected={prefs.tableType === id}
                       onClick={() => {
+                        const nextType = id as OnboardingTableTypeId;
                         setPrefs((p) => ({
                           ...p,
-                          tableType: id as OnboardingTableTypeId,
+                          tableType: nextType,
                         }));
                         setTimeout(() => {
                           if (prefs.joinIntent === "with_group") {
-                            goAfterPrefs();
+                            void goAfterPrefs({ tableType: nextType });
                             return;
                           }
                           setStep("personality");

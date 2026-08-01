@@ -139,6 +139,8 @@ export function isOnboardingPersonalityId(
   );
 }
 
+export type OnboardingLanguageId = "nl" | "en";
+
 export type MemberOnboardingPrefs = {
   name: string;
   /** ISO date YYYY-MM-DD */
@@ -153,6 +155,8 @@ export type MemberOnboardingPrefs = {
   tableType: OnboardingTableTypeId | null;
   /** Meet path: social energy for table matching */
   personality: OnboardingPersonalityId | null;
+  /** Languages the member is comfortable communicating in at the table */
+  languages: OnboardingLanguageId[];
   interests: WaitlistInterestId[];
   communityInterest: boolean;
 };
@@ -167,6 +171,7 @@ export const EMPTY_ONBOARDING_PREFS: MemberOnboardingPrefs = {
   gender: null,
   tableType: null,
   personality: null,
+  languages: ["nl"],
   interests: [],
   communityInterest: false,
 };
@@ -198,6 +203,28 @@ export function interestsToMoods(
     if (id === "chefs_special") moods.push("chefsSpecial");
   }
   return moods;
+}
+
+export function parseOnboardingLanguages(
+  raw: unknown,
+): OnboardingLanguageId[] {
+  if (!Array.isArray(raw)) return ["nl"];
+  const langs = raw.filter(
+    (value): value is OnboardingLanguageId =>
+      value === "nl" || value === "en",
+  );
+  return langs.length > 0 ? [...new Set(langs)] : ["nl"];
+}
+
+export function toggleOnboardingLanguage(
+  current: OnboardingLanguageId[],
+  id: OnboardingLanguageId,
+): OnboardingLanguageId[] {
+  if (current.includes(id)) {
+    if (current.length <= 1) return current;
+    return current.filter((lang) => lang !== id);
+  }
+  return [...current, id];
 }
 
 export function ageFromBirthDate(iso: string | null | undefined): number | null {
@@ -346,6 +373,7 @@ export function readOnboardingFromMetadata(
   const personality = isOnboardingPersonalityId(o.personality)
     ? o.personality
     : null;
+  const languages = parseOnboardingLanguages(o.languages);
 
   const completed =
     flagCompleted ||
@@ -366,6 +394,7 @@ export function readOnboardingFromMetadata(
           ? "mixed"
           : tableType,
       personality,
+      languages,
       interests,
       communityInterest: o.communityInterest === true,
     },
@@ -451,6 +480,7 @@ export function readOnboardingFromSession(): MemberOnboardingPrefs | null {
       personality: isOnboardingPersonalityId(parsed.personality)
         ? parsed.personality
         : null,
+      languages: parseOnboardingLanguages(parsed.languages),
     };
   } catch {
     return null;

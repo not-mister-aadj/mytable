@@ -189,6 +189,7 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
         labels={labels}
         locale={locale as Locale}
         preferredCities={prefs.cities}
+        preferredLanguages={prefs.languages}
         gender={prefs.gender}
         preferredTableType={prefs.tableType}
         onboardingReady={onboardingReady}

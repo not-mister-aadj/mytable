@@ -11,9 +11,13 @@ import type { MemberClubLabels } from "@/i18n/member-club.types";
 import {
   canChooseGirlsOnly,
   ONBOARDING_CITIES,
+  parseOnboardingLanguages,
+  toggleOnboardingLanguage,
   type OnboardingGenderId,
+  type OnboardingLanguageId,
   type OnboardingTableTypeId,
 } from "@/lib/member-onboarding";
+import { saveMemberLanguages } from "@/features/auth/save-onboarding";
 import {
   amsterdamDateIso,
   formatSundayTableCardDate,
@@ -87,6 +91,7 @@ interface MemberClubViewProps {
   labels: MemberClubLabels;
   locale: Locale;
   preferredCities: string[];
+  preferredLanguages?: OnboardingLanguageId[];
   gender: OnboardingGenderId | null;
   preferredTableType: OnboardingTableTypeId | null;
   /** Name + birth date + gender collected via onboarding */
@@ -139,6 +144,7 @@ export function MemberClubView({
   labels,
   locale,
   preferredCities,
+  preferredLanguages = ["nl"],
   gender,
   preferredTableType,
   onboardingReady,
@@ -162,6 +168,10 @@ export function MemberClubView({
   const [selectedTables, setSelectedTables] = useState<TableFilterId[]>(() =>
     initialTableFilters(preferredTableType),
   );
+  const [selectedLanguages, setSelectedLanguages] = useState<
+    OnboardingLanguageId[]
+  >(() => parseOnboardingLanguages(preferredLanguages));
+  const [languageBusy, setLanguageBusy] = useState(false);
   const [activeEvent, setActiveEvent] = useState<ClubEvent | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -233,6 +243,26 @@ export function MemberClubView({
       }
       return [...prev, table];
     });
+  }
+
+  async function toggleLanguage(id: OnboardingLanguageId) {
+    if (languageBusy) return;
+    const next = toggleOnboardingLanguage(selectedLanguages, id);
+    if (
+      next.length === selectedLanguages.length &&
+      next.every((lang) => selectedLanguages.includes(lang))
+    ) {
+      return;
+    }
+    setSelectedLanguages(next);
+    setLanguageBusy(true);
+    try {
+      await saveMemberLanguages(next);
+    } catch {
+      setSelectedLanguages(selectedLanguages);
+    } finally {
+      setLanguageBusy(false);
+    }
   }
 
   function requireOnboardingForTable(tableType: TableFilterId): boolean {
@@ -390,6 +420,24 @@ export function MemberClubView({
                 </div>
               </div>
             ) : null}
+
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-wine/40">
+                {labels.languageFilter.label}
+              </p>
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                <FilterChip
+                  label={labels.languageFilter.nl}
+                  selected={selectedLanguages.includes("nl")}
+                  onClick={() => void toggleLanguage("nl")}
+                />
+                <FilterChip
+                  label={labels.languageFilter.en}
+                  selected={selectedLanguages.includes("en")}
+                  onClick={() => void toggleLanguage("en")}
+                />
+              </div>
+            </div>
           </div>
 
           {events.length === 0 ? (

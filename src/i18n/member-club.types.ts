@@ -15,6 +15,11 @@ export interface MemberClubLabels {
     girlsOnly: string;
     mixed: string;
   };
+  languageFilter: {
+    label: string;
+    nl: string;
+    en: string;
+  };
   happening: {
     title: string;
     subtitle: string;

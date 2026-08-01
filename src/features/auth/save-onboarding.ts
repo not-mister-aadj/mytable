@@ -4,6 +4,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { MemberOnboardingPrefs } from "@/lib/member-onboarding";
 import {
   clearOnboardingSession,
+  parseOnboardingLanguages,
+  readOnboardingFromMetadata,
   writeOnboardingToSession,
 } from "@/lib/member-onboarding";
 
@@ -27,6 +29,7 @@ export async function saveMemberOnboardingPrefs(
         gender: prefs.gender,
         tableType: prefs.tableType,
         personality: prefs.personality,
+        languages: prefs.languages,
         interests: prefs.interests,
         communityInterest: prefs.communityInterest,
         completedAt: new Date().toISOString(),
@@ -56,6 +59,7 @@ export async function clearMemberOnboardingCompleted(): Promise<void> {
         gender: null,
         tableType: null,
         personality: null,
+        languages: ["nl"],
         interests: [],
         communityInterest: false,
       },
@@ -64,6 +68,22 @@ export async function clearMemberOnboardingCompleted(): Promise<void> {
   if (error) {
     console.error("[onboarding] clear completed failed:", error.message);
   }
+}
+
+export async function saveMemberLanguages(
+  languages: Array<"nl" | "en">,
+): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { prefs } = readOnboardingFromMetadata(
+    user?.user_metadata as Record<string, unknown> | undefined,
+  );
+  await saveMemberOnboardingPrefs({
+    ...prefs,
+    languages: parseOnboardingLanguages(languages),
+  });
 }
 
 export async function saveMemberLocalePreference(

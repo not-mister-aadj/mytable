@@ -18,6 +18,11 @@ export const memberClubNl: MemberClubLabels = {
     girlsOnly: "Girls only",
     mixed: "Gemengd",
   },
+  languageFilter: {
+    label: "Ik voel me comfortabel om te communiceren in",
+    nl: "Nederlands",
+    en: "English",
+  },
   happening: {
     title: "Komende Sunday Tables",
     subtitle: "Hier maak je culinaire vrienden.",

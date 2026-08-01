@@ -168,8 +168,8 @@ export async function POST(request: Request) {
       email: user.email,
     });
 
-    // Existing members keep their plan (incl. legacy 3m). New checkouts
-    // may only buy plans that are still for sale (1m / 6m).
+    // Existing members keep their plan. New checkouts may only buy
+    // plans that are for sale (1m / 5m / 12m).
     const resolvedPlanId = active
       ? isClubPlanId(active.planId)
         ? active.planId

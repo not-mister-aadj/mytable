@@ -10,6 +10,7 @@ export type MembershipSummary = {
   planId: string | null;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
+  pendingPlanId: string | null;
   canManageBilling: boolean;
 };
 
@@ -25,13 +26,9 @@ function formatPeriodDate(iso: string | null, locale: Locale) {
 function planDisplay(
   planId: string | null,
   plans: MemberClubLabels["paywall"]["plans"],
-  locale: Locale,
 ) {
   if (!planId) return "-";
-  const fromPaywall = plans.find((p) => p.id === planId)?.label;
-  if (fromPaywall) return fromPaywall;
-  if (planId === "3m") return locale === "en" ? "3 months" : "3 maanden";
-  return planId;
+  return plans.find((p) => p.id === planId)?.label ?? planId;
 }
 
 /** Compact membership strip (billing only — RSVP lives on Sunday Table cards). */
@@ -53,13 +50,11 @@ export function MemberClubMembershipPanel({
   const [flash, setFlash] = useState<string | null>(null);
 
   const periodLabel = formatPeriodDate(membership.currentPeriodEnd, locale);
-  const canSwitchPlan =
-    membership.planId === "1m" || membership.planId === "6m";
-  const switchTarget = membership.planId === "1m" ? "6m" : "1m";
-  const switchLabel =
-    switchTarget === "6m"
-      ? labels.membership.upgradeTo6m
-      : labels.membership.switchToTrial;
+  const canUpgrade =
+    membership.active &&
+    membership.planId !== "12m" &&
+    membership.pendingPlanId !== "12m" &&
+    !membership.cancelAtPeriodEnd;
 
   async function openBillingPortal() {
     setBillingBusy(true);
@@ -68,7 +63,7 @@ export function MemberClubMembershipPanel({
       const res = await fetch("/api/clubmember/billing-portal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale, intent: "update_plan" }),
+        body: JSON.stringify({ locale, intent: "manage" }),
       });
       const data = (await res.json().catch(() => null)) as {
         url?: string;
@@ -86,8 +81,8 @@ export function MemberClubMembershipPanel({
     }
   }
 
-  async function changePlan() {
-    if (!canSwitchPlan || planBusy) return;
+  async function scheduleUpgrade() {
+    if (!canUpgrade || planBusy) return;
     setPlanBusy(true);
     setError(null);
     setFlash(null);
@@ -95,17 +90,23 @@ export function MemberClubMembershipPanel({
       const res = await fetch("/api/clubmember/change-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: switchTarget, locale }),
+        body: JSON.stringify({ planId: "12m", locale }),
       });
       const data = (await res.json().catch(() => null)) as {
         ok?: boolean;
         error?: string;
+        currentPeriodEnd?: string | null;
       } | null;
       if (!res.ok || !data?.ok) {
         setError(data?.error ?? labels.paywall.errorGeneric);
         return;
       }
-      setFlash(labels.membership.changePlanSuccess);
+      const when =
+        formatPeriodDate(
+          data.currentPeriodEnd ?? membership.currentPeriodEnd,
+          locale,
+        ) ?? "";
+      setFlash(labels.membership.upgradeScheduled.replace("{date}", when));
       router.refresh();
     } catch {
       setError(labels.paywall.errorGeneric);
@@ -142,7 +143,7 @@ export function MemberClubMembershipPanel({
           <span className="font-medium text-wine">
             {labels.membership.planLabel.replace(
               "{plan}",
-              planDisplay(membership.planId, labels.paywall.plans, locale),
+              planDisplay(membership.planId, labels.paywall.plans),
             )}
           </span>
           {periodLabel ? (
@@ -152,18 +153,25 @@ export function MemberClubMembershipPanel({
                     "{date}",
                     periodLabel,
                   )
-                : labels.membership.renews.replace("{date}", periodLabel)}
+                : membership.pendingPlanId === "12m"
+                  ? labels.membership.upgradePending.replace(
+                      "{date}",
+                      periodLabel,
+                    )
+                  : labels.membership.renews.replace("{date}", periodLabel)}
             </span>
           ) : null}
           <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1">
-            {canSwitchPlan ? (
+            {canUpgrade ? (
               <button
                 type="button"
-                onClick={() => void changePlan()}
+                onClick={() => void scheduleUpgrade()}
                 disabled={planBusy}
                 className="text-xs font-semibold uppercase tracking-[0.12em] text-burgundy underline-offset-2 hover:underline disabled:opacity-60"
               >
-                {planBusy ? labels.membership.changePlanBusy : switchLabel}
+                {planBusy
+                  ? labels.membership.changePlanBusy
+                  : labels.membership.upgradeTo12m}
               </button>
             ) : null}
             {membership.canManageBilling ? (

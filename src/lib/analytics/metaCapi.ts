@@ -306,7 +306,7 @@ export async function sendMetaCapiClubPurchaseForSession(
     ? purchase.planId
     : isClubPlanId(membership.planId)
       ? membership.planId
-      : "6m";
+      : "12m";
 
   return sendMetaCapiClubPurchase({
     membershipId: purchase.membershipId,

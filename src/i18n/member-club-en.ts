@@ -68,7 +68,7 @@ export const memberClubEn: MemberClubLabels = {
     save: "Save {percent}",
     perMonth: "{price}/month",
     legal:
-      "By continuing you agree to auto-renewal until you cancel. You can upgrade, downgrade, or cancel anytime.",
+      "By continuing you agree to auto-renewal until you cancel. You can later upgrade to 12 months (from the end of your current period) or cancel.",
     continue: "Pay and join",
     summary: "{price} every {period}",
     successTitle: "You're in",
@@ -85,12 +85,20 @@ export const memberClubEn: MemberClubLabels = {
         hint: "Then you can stop or upgrade.",
       },
       {
-        id: "6m",
-        label: "6 months",
-        price: "€60",
-        compareAt: "€126",
+        id: "5m",
+        label: "5 months",
+        price: "€50",
+        compareAt: "€105",
         perMonth: "€10",
         savePercent: "52%",
+      },
+      {
+        id: "12m",
+        label: "12 months",
+        price: "€100",
+        compareAt: "€252",
+        perMonth: "€8.33",
+        savePercent: "60%",
       },
     ],
   },
@@ -103,8 +111,9 @@ export const memberClubEn: MemberClubLabels = {
     cancelScheduled: "Ends on {date}",
     manageBilling: "Manage billing",
     changePlan: "Change plan",
-    upgradeTo6m: "Upgrade to 6 months",
-    switchToTrial: "Switch to 1 month trial",
+    upgradeTo12m: "Upgrade to 12 months",
+    upgradeScheduled: "Upgrade scheduled. It starts on {date}.",
+    upgradePending: "Upgrades to 12 months on {date}",
     changePlanBusy: "Updating…",
     changePlanSuccess: "Your plan was updated.",
     checkoutSuccess: "Payment received. Welcome to Clubmember.",
@@ -203,7 +212,7 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "What does Clubmember cost?",
         answer:
-          "1 month trial €21. Or 6 months €60 (€10/month). You can upgrade or downgrade later.",
+          "1 month trial €21. Or 5 months €50 (€10/month). Or 12 months €100 (€8.33/month). You can later upgrade to 12 months from the end of your period.",
       },
       {
         question: "Do I pay separately for drinks and bites?",
@@ -225,7 +234,7 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "Can I cancel?",
         answer:
-          "Yes. Change or stop your plan on the club page, or via Manage billing. You can cancel a Sunday Table RSVP separately.",
+          "Yes. Stop via Manage billing. You can cancel a Sunday Table RSVP separately.",
       },
     ],
   },

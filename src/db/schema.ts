@@ -261,7 +261,7 @@ export const siteSettings = pgTable("site_settings", {
     .defaultNow(),
 });
 
-export type ClubPlanId = "1m" | "3m" | "6m";
+export type ClubPlanId = "1m" | "5m" | "12m";
 export type ClubMembershipStatus =
   | "pending"
   | "active"

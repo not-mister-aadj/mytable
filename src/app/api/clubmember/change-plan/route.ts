@@ -5,7 +5,6 @@ import {
   changeClubMembershipPlan,
   getActiveMembershipForUser,
 } from "@/lib/club/memberships";
-import { isClubPlanIdForSale } from "@/lib/club/plans";
 import { getMemberUser } from "@/lib/member-auth";
 import { isStripeConfigured } from "@/lib/stripe";
 
@@ -29,8 +28,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  if (!isClubPlanIdForSale(body.planId)) {
-    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  // Upgrades only — never downgrade mid-cycle or via this endpoint.
+  if (body.planId !== "12m") {
+    return NextResponse.json(
+      { error: "Only upgrades to 12 months are allowed" },
+      { status: 400 },
+    );
   }
 
   const locale: Locale =
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
   try {
     const result = await changeClubMembershipPlan({
       membershipId: membership.id,
-      planId: body.planId,
+      planId: "12m",
       locale,
     });
     if ("error" in result) {
@@ -56,6 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       planId: result.membership.planId,
+      pendingPlanId: result.pendingPlanId,
       currentPeriodEnd: result.membership.currentPeriodEnd?.toISOString() ?? null,
     });
   } catch (err) {

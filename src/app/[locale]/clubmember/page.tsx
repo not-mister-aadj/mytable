@@ -115,9 +115,12 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
           email: user.email,
         })
       : null;
+  let pendingPlanId: string | null = null;
 
   if (membershipRow && isDbConfigured() && isStripeConfigured()) {
-    membershipRow = await refreshMembershipFromStripe(membershipRow);
+    const refreshed = await refreshMembershipFromStripe(membershipRow);
+    membershipRow = refreshed.membership;
+    pendingPlanId = refreshed.pendingPlanId;
   }
 
   const isMember = Boolean(
@@ -196,6 +199,7 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
           currentPeriodEnd:
             membershipRow?.currentPeriodEnd?.toISOString() ?? null,
           cancelAtPeriodEnd: membershipRow?.cancelAtPeriodEnd ?? false,
+          pendingPlanId,
           canManageBilling: Boolean(membershipRow?.stripeCustomerId),
         }}
         signups={signups}

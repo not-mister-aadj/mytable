@@ -68,7 +68,7 @@ export const memberClubNl: MemberClubLabels = {
     save: "Bespaar {percent}",
     perMonth: "{price}/maand",
     legal:
-      "Door verder te gaan ga je akkoord met automatische verlenging tot je opzegt. Je kunt je plan later upgraden, downgraden of stopzetten.",
+      "Door verder te gaan ga je akkoord met automatische verlenging tot je opzegt. Je kunt later upgraden naar 12 maanden (vanaf het einde van je huidige periode) of stopzetten.",
     continue: "Betalen en lid worden",
     summary: "{price} per {period}",
     successTitle: "Je zit erbij",
@@ -85,12 +85,20 @@ export const memberClubNl: MemberClubLabels = {
         hint: "Daarna kun je stoppen of upgraden.",
       },
       {
-        id: "6m",
-        label: "6 maanden",
-        price: "€60",
-        compareAt: "€126",
+        id: "5m",
+        label: "5 maanden",
+        price: "€50",
+        compareAt: "€105",
         perMonth: "€10",
         savePercent: "52%",
+      },
+      {
+        id: "12m",
+        label: "12 maanden",
+        price: "€100",
+        compareAt: "€252",
+        perMonth: "€8,33",
+        savePercent: "60%",
       },
     ],
   },
@@ -103,8 +111,9 @@ export const memberClubNl: MemberClubLabels = {
     cancelScheduled: "Loopt af op {date}",
     manageBilling: "Betaling beheren",
     changePlan: "Plan wijzigen",
-    upgradeTo6m: "Upgrade naar 6 maanden",
-    switchToTrial: "Naar 1 maand trial",
+    upgradeTo12m: "Upgrade naar 12 maanden",
+    upgradeScheduled: "Upgrade ingepland. Die gaat in op {date}.",
+    upgradePending: "Upgrade naar 12 maanden vanaf {date}",
     changePlanBusy: "Bezig…",
     changePlanSuccess: "Je plan is bijgewerkt.",
     checkoutSuccess: "Betaling gelukt. Welkom bij Clubmember.",
@@ -203,7 +212,7 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Wat kost Clubmember?",
         answer:
-          "1 maand trial €21. Of 6 maanden €60 (€10/maand). Je kunt later upgraden of downgraden.",
+          "1 maand trial €21. Of 5 maanden €50 (€10/maand). Of 12 maanden €100 (€8,33/maand). Je kunt later upgraden naar 12 maanden vanaf het einde van je periode.",
       },
       {
         question: "Betaal ik apart voor drank en hapjes?",
@@ -225,7 +234,7 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Kan ik stopzetten?",
         answer:
-          "Ja. Wijzig of stop je plan op de clubpagina, of via Betaling beheren. Een Sunday Table-RSVP kun je apart afzeggen.",
+          "Ja. Stop via Betaling beheren. Een Sunday Table-RSVP kun je apart afzeggen.",
       },
     ],
   },

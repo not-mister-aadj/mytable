@@ -36,14 +36,14 @@ export function MemberClubPaywall({
   onClose,
   onJoinedWithoutCheckout,
 }: MemberClubPaywallProps) {
-  const [planId, setPlanId] = useState<PlanId>("6m");
+  const [planId, setPlanId] = useState<PlanId>("12m");
   const [phase, setPhase] = useState<"plans" | "success">("plans");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selected =
     labels.plans.find((p) => p.id === planId) ??
-    labels.plans.find((p) => p.id === "6m") ??
+    labels.plans.find((p) => p.id === "12m") ??
     labels.plans[0]!;
 
   const periodLabel =
@@ -267,7 +267,7 @@ export function MemberClubPaywall({
               <div className="mt-3 space-y-2.5">
                 {labels.plans.map((plan) => {
                   const selectedPlan = plan.id === planId;
-                  const isPopular = plan.id === "6m";
+                  const isPopular = plan.id === "12m";
                   return (
                     <button
                       key={plan.id}

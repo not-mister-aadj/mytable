@@ -44,7 +44,7 @@ export async function getClubConfirmationPurchase(
 
   const planId = isClubPlanId(session.metadata.plan_id)
     ? session.metadata.plan_id
-    : "6m";
+    : "12m";
   const plan = CLUB_PLAN_PRICING[planId];
   const amountTotal =
     typeof session.amount_total === "number" ? session.amount_total : null;

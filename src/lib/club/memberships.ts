@@ -9,7 +9,7 @@ import {
   type SundayTableSignupProfile,
 } from "@/db/schema";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
-import { isClubPlanId, isClubPlanIdForSale } from "@/lib/club/plans";
+import { CLUB_PLAN_PRICING, isClubPlanId } from "@/lib/club/plans";
 import {
   isSundayTableRsvpOpen,
   parseAmsterdamDateIso,
@@ -571,7 +571,7 @@ export async function fulfillClubCheckoutSession(
     const { CLUB_PLAN_PRICING, isClubPlanId } = await import(
       "@/lib/club/plan-pricing"
     );
-    const planId = isClubPlanId(updated.planId) ? updated.planId : "6m";
+    const planId = isClubPlanId(updated.planId) ? updated.planId : "12m";
     const plan = CLUB_PLAN_PRICING[planId];
     const amountTotal =
       typeof session.amount_total === "number" ? session.amount_total : null;
@@ -732,15 +732,41 @@ export async function syncClubMembershipFromSubscription(
     .where(eq(clubMemberships.stripeSubscriptionId, sub.id));
 }
 
+export type MembershipStripeRefresh = {
+  membership: ClubMembership;
+  pendingPlanId: ClubPlanId | null;
+};
+
+function pendingPlanFromSubscription(
+  sub: Stripe.Subscription,
+): ClubPlanId | null {
+  const pending = sub.metadata?.pending_plan_id?.trim();
+  if (!pending || !isClubPlanId(pending)) return null;
+  if (pending === sub.metadata?.plan_id) return null;
+  return pending;
+}
+
+function currentPriceIdFromSubscription(
+  sub: Stripe.Subscription,
+): string | null {
+  const price = sub.items.data[0]?.price;
+  if (!price) return null;
+  return typeof price === "string" ? price : price.id;
+}
+
 /** Pull latest cancel/renewal state from Stripe (portal changes + missed webhooks). */
 export async function refreshMembershipFromStripe(
   membership: ClubMembership,
-): Promise<ClubMembership> {
-  if (!membership.stripeSubscriptionId) return membership;
+): Promise<MembershipStripeRefresh> {
+  if (!membership.stripeSubscriptionId) {
+    return { membership, pendingPlanId: null };
+  }
 
   try {
     const { getStripe, isStripeConfigured } = await import("@/lib/stripe");
-    if (!isStripeConfigured()) return membership;
+    if (!isStripeConfigured()) {
+      return { membership, pendingPlanId: null };
+    }
     const stripe = getStripe();
     const sub = await stripe.subscriptions.retrieve(
       membership.stripeSubscriptionId,
@@ -753,21 +779,30 @@ export async function refreshMembershipFromStripe(
       .from(clubMemberships)
       .where(eq(clubMemberships.id, membership.id))
       .limit(1);
-    return fresh ?? membership;
+    return {
+      membership: fresh ?? membership,
+      pendingPlanId: pendingPlanFromSubscription(sub),
+    };
   } catch (err) {
     console.error("[club] refreshMembershipFromStripe", err);
-    return membership;
+    return { membership, pendingPlanId: null };
   }
 }
 
-/** Switch an active membership between for-sale plans (1m ↔ 6m) with Stripe proration. */
+/**
+ * Schedule an upgrade to 12m at the end of the current billing period.
+ * Downgrades are not allowed.
+ */
 export async function changeClubMembershipPlan(input: {
   membershipId: string;
   planId: ClubPlanId;
   locale?: "nl" | "en";
-}): Promise<{ ok: true; membership: ClubMembership } | { error: string }> {
-  if (!isClubPlanIdForSale(input.planId)) {
-    return { error: "Invalid plan" };
+}): Promise<
+  | { ok: true; membership: ClubMembership; pendingPlanId: ClubPlanId | null }
+  | { error: string }
+> {
+  if (input.planId !== "12m") {
+    return { error: "Only upgrades to 12 months are allowed" };
   }
 
   const db = getDb();
@@ -780,8 +815,20 @@ export async function changeClubMembershipPlan(input: {
   if (!membership?.stripeSubscriptionId) {
     return { error: "No active subscription" };
   }
-  if (membership.planId === input.planId) {
-    return { ok: true, membership };
+  if (membership.planId === "12m") {
+    return { ok: true, membership, pendingPlanId: null };
+  }
+  if (membership.cancelAtPeriodEnd) {
+    return { error: "Cancel renewal before upgrading" };
+  }
+  if (!isClubPlanId(membership.planId)) {
+    return { error: "Invalid current plan" };
+  }
+  if (
+    CLUB_PLAN_PRICING[membership.planId as ClubPlanId].intervalCount >=
+    CLUB_PLAN_PRICING["12m"].intervalCount
+  ) {
+    return { error: "Already on longest plan" };
   }
 
   const { getStripe, isStripeConfigured } = await import("@/lib/stripe");
@@ -792,36 +839,94 @@ export async function changeClubMembershipPlan(input: {
   const sub = await stripe.subscriptions.retrieve(
     membership.stripeSubscriptionId,
   );
-  const item = sub.items.data[0];
-  if (!item?.id) return { error: "Subscription item missing" };
 
-  const priceId = await getOrCreateClubPriceId(
-    input.planId,
+  if (cancelAtPeriodEndFromSubscription(sub)) {
+    return { error: "Cancel renewal before upgrading" };
+  }
+
+  const existingPending = pendingPlanFromSubscription(sub);
+  if (existingPending === "12m") {
+    return { ok: true, membership, pendingPlanId: "12m" };
+  }
+
+  const currentPriceId = currentPriceIdFromSubscription(sub);
+  const periodEndUnix = readSubscriptionUnix(sub, "current_period_end");
+  if (!currentPriceId || !periodEndUnix) {
+    return { error: "Subscription period missing" };
+  }
+
+  const nextPriceId = await getOrCreateClubPriceId(
+    "12m",
     input.locale ?? "nl",
   );
 
-  const updated = await stripe.subscriptions.update(sub.id, {
-    items: [{ id: item.id, price: priceId }],
-    proration_behavior: "create_prorations",
-    metadata: {
-      ...sub.metadata,
-      mytable_kind: "club_membership",
-      membership_id: membership.id,
-      plan_id: input.planId,
-      mytable_plan_id: input.planId,
-    },
+  const baseMeta: Record<string, string> = {
+    ...sub.metadata,
+    mytable_kind: "club_membership",
+    membership_id: membership.id,
+  };
+
+  let schedule: Stripe.SubscriptionSchedule;
+  if (sub.schedule) {
+    const scheduleId =
+      typeof sub.schedule === "string" ? sub.schedule : sub.schedule.id;
+    schedule = await stripe.subscriptionSchedules.retrieve(scheduleId);
+    if (schedule.status !== "active" && schedule.status !== "not_started") {
+      schedule = await stripe.subscriptionSchedules.create({
+        from_subscription: sub.id,
+      });
+    }
+  } else {
+    schedule = await stripe.subscriptionSchedules.create({
+      from_subscription: sub.id,
+    });
+  }
+
+  const currentPhase = schedule.phases[0];
+  if (!currentPhase) return { error: "Subscription schedule missing phase" };
+
+  await stripe.subscriptionSchedules.update(schedule.id, {
+    end_behavior: "release",
+    phases: [
+      {
+        start_date: currentPhase.start_date,
+        end_date: periodEndUnix,
+        items: [{ price: currentPriceId, quantity: 1 }],
+        metadata: {
+          ...baseMeta,
+          plan_id: membership.planId,
+          mytable_plan_id: membership.planId,
+          pending_plan_id: "12m",
+        },
+      },
+      {
+        start_date: periodEndUnix,
+        items: [{ price: nextPriceId, quantity: 1 }],
+        metadata: {
+          ...baseMeta,
+          plan_id: "12m",
+          mytable_plan_id: "12m",
+          pending_plan_id: "",
+        },
+      },
+    ],
   });
 
-  await syncClubMembershipFromSubscription(updated);
+  try {
+    await stripe.subscriptions.update(sub.id, {
+      metadata: {
+        ...baseMeta,
+        plan_id: membership.planId,
+        mytable_plan_id: membership.planId,
+        pending_plan_id: "12m",
+      },
+    });
+  } catch (err) {
+    // Subscription may already be schedule-managed; phase metadata still carries pending_plan_id.
+    console.warn("[club] pending metadata via subscription.update", err);
+  }
 
-  const [fresh] = await db
-    .select()
-    .from(clubMemberships)
-    .where(eq(clubMemberships.id, membership.id))
-    .limit(1);
-
-  if (!fresh) return { error: "Membership sync failed" };
-  return { ok: true, membership: fresh };
+  return { ok: true, membership, pendingPlanId: "12m" };
 }
 
 export async function abandonPendingCheckoutSession(

@@ -35,8 +35,8 @@ function tableTypeLabel(type: string) {
 
 function planLabel(planId: string) {
   if (planId === "1m") return "1 maand";
-  if (planId === "3m") return "3 maanden";
-  if (planId === "6m") return "6 maanden";
+  if (planId === "5m") return "5 maanden";
+  if (planId === "12m") return "12 maanden";
   return planId;
 }
 

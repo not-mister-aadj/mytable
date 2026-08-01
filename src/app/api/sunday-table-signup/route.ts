@@ -12,7 +12,7 @@ import {
   parseAmsterdamDateIso,
 } from "@/lib/sunday-wine-table";
 
-const PLAN_IDS = new Set(["1m", "6m"]);
+const PLAN_IDS = new Set(["1m", "5m", "12m"]);
 const TABLE_TYPES = new Set(["girls_only", "mixed"]);
 
 const rateLimit = new Map<string, { count: number; reset: number }>();

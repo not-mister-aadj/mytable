@@ -434,7 +434,7 @@ export function MemberClubView({
                           city: event.city,
                           tableDate: amsterdamDateIso(event.date),
                           tableType: event.tableType,
-                          planId: membership.planId ?? "6m",
+                          planId: membership.planId ?? "12m",
                           locale,
                         }),
                       });
@@ -893,7 +893,7 @@ export function MemberClubView({
                           city: activeEvent.city,
                           tableDate: amsterdamDateIso(activeEvent.date),
                           tableType: activeEvent.tableType,
-                          planId: membership.planId ?? "6m",
+                          planId: membership.planId ?? "12m",
                           locale,
                         }),
                       })

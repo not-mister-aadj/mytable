@@ -58,7 +58,7 @@ export interface MemberClubLabels {
     successCta: string;
     errorGeneric: string;
     plans: Array<{
-      id: "1m" | "6m";
+      id: "1m" | "5m" | "12m";
       label: string;
       price: string;
       compareAt?: string;
@@ -77,8 +77,9 @@ export interface MemberClubLabels {
     cancelScheduled: string;
     manageBilling: string;
     changePlan: string;
-    upgradeTo6m: string;
-    switchToTrial: string;
+    upgradeTo12m: string;
+    upgradeScheduled: string;
+    upgradePending: string;
     changePlanBusy: string;
     changePlanSuccess: string;
     checkoutSuccess: string;

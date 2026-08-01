@@ -12,8 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin",
           "/admin/",
-          "/dashboard",
-          "/dashboard/",
           "/api/",
           "/boeking/bevestigd",
           "/boeking/geannuleerd",

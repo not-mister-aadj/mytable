@@ -1,7 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { defaultLocale, type Locale } from "./i18n/config";
-import { isAdminHost, isLocalDevHost } from "@/lib/admin-url";
+import {
+  getAdminUrl,
+  isAdminHost,
+  isLocalDevHost,
+  usesAdminSubdomainFromEnv,
+} from "@/lib/admin-url";
 import {
   updateSupabaseSession,
   updateSupabaseSessionWithUser,
@@ -86,21 +91,20 @@ export async function middleware(request: NextRequest) {
     return handleAdminSubdomain(request);
   }
 
-  // Path-based admin on the marketing host: /dashboard → /admin
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
-    const stripped = pathname.slice("/dashboard".length) || "/";
-    const rewritePath = stripped === "/" ? "/admin" : `/admin${stripped}`;
-    return updateSupabaseSession(request, { rewritePath });
-  }
-
-  // Canonicalize /admin → /dashboard on www (never send members to a separate dashboard host)
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    if (!isLocalDevHost(hostname)) {
-      const stripped = pathname.slice("/admin".length) || "/";
-      const target = request.nextUrl.clone();
-      target.pathname = stripped === "/" ? "/dashboard" : `/dashboard${stripped}`;
-      return NextResponse.redirect(target, 308);
-    }
+  // Admin lives only on dashboard.mytable.club — never on www
+  if (
+    usesAdminSubdomainFromEnv() &&
+    (pathname.startsWith("/admin") ||
+      pathname === "/dashboard" ||
+      pathname.startsWith("/dashboard/")) &&
+    !isLocalDevHost(hostname)
+  ) {
+    const subPath = pathname.startsWith("/admin")
+      ? pathname.slice("/admin".length) || "/"
+      : pathname === "/dashboard" || pathname === "/dashboard/"
+        ? "/"
+        : pathname.slice("/dashboard".length) || "/";
+    return NextResponse.redirect(new URL(subPath, getAdminUrl()));
   }
 
   if (pathname === "/login") {
@@ -123,6 +127,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/admin") ||
     pathname.startsWith("/auth/")

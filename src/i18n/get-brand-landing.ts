@@ -6,7 +6,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
     return {
       brand: "MyTable",
       tagline: "Great taste. Great company.",
-      line: "Great food is better with the right company. Already have a group? Browse the agenda. Solo, or still looking for people to go with? Take a seat at Sunday Table on the first Sunday of every month. Then book your next culinary experiences together.",
+      line: "Great food is better with the right company. Already someone to go with? Browse the agenda. Solo, or still looking for people to go with? Take a seat at Sunday Table on the first Sunday of every month. Then book your next culinary experiences together.",
       cta: "Sunday Table",
       ctaSignedIn: "Continue",
       agendaCta: "Browse the agenda",
@@ -32,7 +32,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
   return {
     brand: "MyTable",
     tagline: "Goede smaak. Goed gezelschap.",
-    line: "Goede smaak wordt leuker met de juiste mensen. Al een groep? Open de agenda. Solo of nog niemand? Claim je plek op Sunday Table. Elke eerste zondag van de maand. Daarna boek je samen met je nieuwe groep culinaire ervaringen.",
+    line: "Goede smaak wordt leuker met de juiste mensen. Al iemand om mee te gaan? Open de agenda. Solo of nog niemand? Claim je plek op Sunday Table. Elke eerste zondag van de maand. Daarna boek je samen met je nieuwe groep culinaire ervaringen.",
     cta: "Sunday Table",
     ctaSignedIn: "Verder",
     agendaCta: "Open de agenda",

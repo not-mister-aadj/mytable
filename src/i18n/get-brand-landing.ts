@@ -7,8 +7,8 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
       brand: "MyTable",
       tagline: "Great taste. Great company.",
       line: "Great food is better with the right company. Already someone to go with? Browse the agenda. Solo, or still looking for people to go with? Take a seat at Sunday Table on the first Sunday of every month. Then book your next culinary experiences together.",
-      cta: "Sunday Table",
-      ctaSignedIn: "Continue",
+      cta: "Go to Sunday Table",
+      ctaSignedIn: "Go to Sunday Table",
       agendaCta: "Browse the agenda",
       howItWorks: {
         title: "Two paths",
@@ -17,7 +17,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
           eyebrow: "Sunday Table",
           title: "New people",
           body: "Every first Sunday of the month. Meet new people. Company for your future culinary experiences.",
-          cta: "Start the quiz",
+          cta: "Go to Sunday Table",
         },
         culinary: {
           eyebrow: "Agenda",
@@ -33,8 +33,8 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
     brand: "MyTable",
     tagline: "Goede smaak. Goed gezelschap.",
     line: "Goede smaak wordt leuker met de juiste mensen. Al iemand om mee te gaan? Open de agenda. Solo of nog niemand? Claim je plek op Sunday Table. Elke eerste zondag van de maand. Daarna boek je samen met je nieuwe groep culinaire ervaringen.",
-    cta: "Sunday Table",
-    ctaSignedIn: "Verder",
+    cta: "Naar Sunday Table",
+    ctaSignedIn: "Naar Sunday Table",
     agendaCta: "Open de agenda",
     howItWorks: {
       title: "Twee paden",

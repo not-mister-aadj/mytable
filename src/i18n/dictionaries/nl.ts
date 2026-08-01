@@ -65,7 +65,7 @@ export const nl: Dictionary = {
       eyebrow: "De agenda",
       title: "Zoek en boek je culinaire tafel",
       subtitle:
-        "Wine Walks, proeverijen en diners, all-in, met je eigen gezelschap.",
+        "Wine Walks, proeverijen en diners. Kies datum, stad en aantal tickets. We voegen regelmatig nieuwe ervaringen toe. Tip voor een restaurant, stad of ervaring? Mail ons gerust op info@mytable.club.",
       cta: "Bekijk de agenda",
     },
     crossFeed: {

@@ -65,7 +65,7 @@ export const en: Dictionary = {
       eyebrow: "The agenda",
       title: "Find and book your culinary table",
       subtitle:
-        "Wine Walks, tastings and dinners, all-in, with your own party.",
+        "Wine Walks, tastings and dinners. Pick a date, city and number of tickets. We add new experiences regularly. Tip for a restaurant, city or experience? Email us at info@mytable.club.",
       cta: "Browse the agenda",
     },
     crossFeed: {

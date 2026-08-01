@@ -64,7 +64,7 @@ export const memberClubEn: MemberClubLabels = {
     consumptionsNote:
       "At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
     plansTitle: "Choose your plan",
-    popular: "Best deal",
+    popular: "Most chosen",
     save: "Save {percent}",
     perMonth: "{price}/month",
     legal:
@@ -82,7 +82,7 @@ export const memberClubEn: MemberClubLabels = {
         label: "1 month trial",
         price: "€21",
         perMonth: "€21",
-        hint: "Then you can stop or upgrade.",
+        hint: "You can always cancel or upgrade.",
       },
       {
         id: "5m",

@@ -64,7 +64,7 @@ export const memberClubNl: MemberClubLabels = {
     consumptionsNote:
       "Bij Sunday Table betaal je drankjes en hapjes op locatie. Die zijn niet inbegrepen. Culinaire ervaringen uit de agenda zijn all-in: eten en drinken inbegrepen.",
     plansTitle: "Kies je plan",
-    popular: "Beste deal",
+    popular: "Meest gekozen",
     save: "Bespaar {percent}",
     perMonth: "{price}/maand",
     legal:
@@ -82,7 +82,7 @@ export const memberClubNl: MemberClubLabels = {
         label: "1 maand trial",
         price: "€21",
         perMonth: "€21",
-        hint: "Daarna kun je stoppen of upgraden.",
+        hint: "Je kunt dit altijd stopzetten of upgraden.",
       },
       {
         id: "5m",

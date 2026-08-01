@@ -695,7 +695,7 @@ export function MemberOnboarding({
         <div
           className={`flex min-h-0 flex-1 flex-col ${
             isStoryStep
-              ? "justify-start pt-3"
+              ? "justify-center overflow-y-auto py-3"
               : "justify-center overflow-y-auto py-6 sm:py-8"
           }`}
         >
@@ -902,13 +902,13 @@ export function MemberOnboarding({
                 key={`story-${pathKey}-${storyIndex}`}
                 className="flex min-h-0 flex-1 flex-col"
               >
-                <div className="relative mx-auto min-h-0 w-full max-w-sm flex-1 overflow-hidden rounded-[1.5rem] shadow-[0_16px_40px_rgba(43,13,18,0.1)]">
+                <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-[1.5rem] shadow-[0_16px_40px_rgba(43,13,18,0.1)]">
                   <Image
                     src={storyCards[storyIndex]!.image}
                     alt={storyCards[storyIndex]!.imageAlt}
                     fill
                     sizes="(max-width: 640px) 90vw, 384px"
-                    className="object-cover object-top"
+                    className="object-cover object-center"
                     priority
                   />
                 </div>

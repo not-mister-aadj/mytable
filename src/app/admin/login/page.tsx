@@ -17,8 +17,8 @@ function LoginForm() {
   const errorText =
     error === "unauthorized"
       ? attemptedEmail
-        ? `Geen toegang met ${attemptedEmail}. Voeg dit adres toe aan ADMIN_EMAILS in .env.local en herstart npm run dev.`
-        : "Geen toegang met dit account."
+        ? `Geen toegang met ${attemptedEmail}. Admin is alleen voor @mytable.club-adressen.`
+        : "Geen toegang met dit account. Admin is alleen voor @mytable.club."
       : error === "auth"
         ? "Inloggen mislukt. Probeer het opnieuw."
         : null;

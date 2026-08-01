@@ -2,6 +2,7 @@
 
 import type { Provider } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getBrowserMemberAuthCallbackUrl } from "@/lib/member-url";
 
 const APPLE_WEB_OAUTH_CLIENT_ID =
   process.env.NEXT_PUBLIC_APPLE_OAUTH_CLIENT_ID?.trim() || "";
@@ -12,7 +13,7 @@ async function signInWithOAuthProvider(
   options?: { scopes?: string; queryParams?: Record<string, string> },
 ): Promise<void> {
   const supabase = createSupabaseBrowserClient();
-  const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+  const redirectTo = `${getBrowserMemberAuthCallbackUrl()}?next=${encodeURIComponent(nextPath)}`;
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {

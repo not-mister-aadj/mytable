@@ -34,13 +34,22 @@ export function sanitizeMemberNextPath(
   next: string | null | undefined,
   locale: Locale,
 ): string {
-  const fallback = locale === "en" ? "/en" : "/";
+  const fallback = locale === "en" ? "/en/account" : "/account";
   if (!next) return fallback;
   if (next.startsWith("http://") || next.startsWith("https://")) {
     try {
       const url = new URL(next);
       const siteHost = new URL(getSiteUrl()).hostname;
-      if (!isLocalDevHost(url.hostname) && url.hostname !== siteHost) {
+      const wwwHost = siteHost.startsWith("www.")
+        ? siteHost
+        : `www.${siteHost}`;
+      const apexHost = siteHost.replace(/^www\./, "");
+      if (
+        !isLocalDevHost(url.hostname) &&
+        url.hostname !== siteHost &&
+        url.hostname !== wwwHost &&
+        url.hostname !== apexHost
+      ) {
         return fallback;
       }
       return sanitizeMemberNextPath(url.pathname + url.search, locale);
@@ -49,7 +58,13 @@ export function sanitizeMemberNextPath(
     }
   }
   if (!next.startsWith("/") || next.startsWith("//")) return fallback;
-  if (next.startsWith("/admin") || next.startsWith("/api")) return fallback;
+  if (
+    next.startsWith("/admin") ||
+    next.startsWith("/dashboard") ||
+    next.startsWith("/api")
+  ) {
+    return fallback;
+  }
   return next;
 }
 

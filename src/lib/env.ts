@@ -33,6 +33,8 @@ export function shouldUseCatalogOnDbError(): boolean {
 
 export { getSiteUrl } from "@/lib/admin-url";
 
+const MYTABLE_STAFF_DOMAIN = "@mytable.club";
+
 export function getAdminEmails(): string[] {
   const raw = process.env.ADMIN_EMAILS ?? "";
   return raw
@@ -41,10 +43,21 @@ export function getAdminEmails(): string[] {
     .filter(Boolean);
 }
 
+/** Staff/admin accounts must use the MyTable domain. */
+export function isMyTableStaffEmail(email: string): boolean {
+  return email.trim().toLowerCase().endsWith(MYTABLE_STAFF_DOMAIN);
+}
+
+/**
+ * Admin dashboard access: must be @mytable.club.
+ * If ADMIN_EMAILS is set, the address must also be on that allowlist.
+ */
 export function isAdminEmail(email: string): boolean {
+  const normalized = email.trim().toLowerCase();
+  if (!isMyTableStaffEmail(normalized)) return false;
   const list = getAdminEmails();
-  if (list.length === 0) return false;
-  return list.includes(email.trim().toLowerCase());
+  if (list.length === 0) return true;
+  return list.includes(normalized);
 }
 
 export function getMaxSeatsPerOrder(): number {

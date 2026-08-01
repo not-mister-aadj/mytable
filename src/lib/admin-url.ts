@@ -29,7 +29,13 @@ function isDevEnvironment(): boolean {
 
 export function usesAdminSubdomainFromEnv(): boolean {
   const url = process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/$/, "") ?? "";
-  return Boolean(url && !url.endsWith("/admin"));
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === getAdminHost() || host.startsWith("dashboard.");
+  } catch {
+    return Boolean(url && !url.endsWith("/admin") && !url.endsWith("/dashboard"));
+  }
 }
 
 /** Resolve hostname from browser, request host header, or undefined (server fallback). */
@@ -100,12 +106,26 @@ export function adminUrlForHost(path: string, host: string, proto = "http"): str
   return new URL(adminPath(path, hostname), getOriginFromHost(host, proto)).toString();
 }
 
+/** Path-based admin on www.mytable.club (/dashboard), not the dashboard subdomain. */
+export function usesDashboardPathOnHost(hostname: string): boolean {
+  const host = resolveHostname(hostname) ?? hostname;
+  if (isLocalDevHost(host)) return false;
+  if (isAdminHost(host)) return false;
+  return true;
+}
+
 /**
  * Admin UI path for current host.
- * localhost → /admin/events · dashboard.mytable.club → /events
+ * localhost → /admin/events
+ * www.mytable.club → /dashboard/events
+ * dashboard.mytable.club → /events
  */
 export function adminPath(path: string, hostname?: string): string {
-  const useSubdomain = usesAdminSubdomain(hostname);
+  const host = resolveHostname(hostname);
+  const useSubdomain = usesAdminSubdomain(host);
+  const useDashboardPath = host
+    ? usesDashboardPathOnHost(host)
+    : !isDevEnvironment() && !usesAdminSubdomainFromEnv();
   const raw = path.startsWith("/") ? path : `/${path}`;
   const qIndex = raw.indexOf("?");
   const pathname = qIndex >= 0 ? raw.slice(0, qIndex) : raw;
@@ -117,10 +137,24 @@ export function adminPath(path: string, hostname?: string): string {
       result = "/";
     } else if (pathname.startsWith("/admin/")) {
       result = pathname.slice("/admin".length) || "/";
-    } else if (pathname === "/admin") {
+    } else if (pathname === "/dashboard" || pathname === "/dashboard/") {
       result = "/";
+    } else if (pathname.startsWith("/dashboard/")) {
+      result = pathname.slice("/dashboard".length) || "/";
     } else {
       result = pathname;
+    }
+  } else if (useDashboardPath) {
+    if (pathname.startsWith("/dashboard")) {
+      result = pathname;
+    } else if (pathname === "/admin" || pathname === "/admin/") {
+      result = "/dashboard";
+    } else if (pathname.startsWith("/admin/")) {
+      result = `/dashboard${pathname.slice("/admin".length)}`;
+    } else if (pathname === "/") {
+      result = "/dashboard";
+    } else {
+      result = `/dashboard${pathname}`;
     }
   } else if (pathname.startsWith("/admin")) {
     result = pathname;
@@ -158,6 +192,7 @@ export function adminPostLoginUrl(host: string, proto: string, next?: string | n
 /**
  * OAuth callback URL — must match Supabase Redirect URLs exactly (no query string).
  * Post-login destination is derived from the request host in /api/auth/callback.
+ * On www this is same-origin /api/auth/callback (admin entry via /dashboard).
  */
 export function getAuthCallbackUrl(origin?: string): string {
   if (origin) {
@@ -172,8 +207,13 @@ export function getAuthCallbackUrl(origin?: string): string {
     return `${getLocalDevOrigin()}/api/auth/callback`;
   }
 
-  const adminBase = getAdminUrl().replace(/\/$/, "");
-  return `${adminBase}/api/auth/callback`;
+  // Prefer marketing site callback so staff log in via www.mytable.club/dashboard
+  try {
+    return `${getSiteUrl().replace(/\/$/, "")}/api/auth/callback`;
+  } catch {
+    const adminBase = getAdminUrl().replace(/\/$/, "");
+    return `${adminBase}/api/auth/callback`;
+  }
 }
 
 /** OAuth redirectTo for the current browser tab — exact Supabase allow-list match. */
@@ -195,6 +235,13 @@ export function adminUrl(path: string): string {
 /** Allowed OAuth callback bases — document for Supabase setup. */
 export function getRequiredAuthRedirectUrls(): string[] {
   const urls = [`${getLocalDevOrigin()}/api/auth/callback`];
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (site) {
+    urls.push(`${site}/api/auth/callback`);
+    if (!site.includes("://www.")) {
+      urls.push(`${site.replace("://", "://www.")}/api/auth/callback`);
+    }
+  }
   const adminConfigured = process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/$/, "");
   if (adminConfigured) {
     urls.push(`${adminConfigured}/api/auth/callback`);

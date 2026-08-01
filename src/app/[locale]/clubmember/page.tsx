@@ -28,7 +28,6 @@ import {
 } from "@/lib/member-onboarding";
 import {
   getOrCreateReferralCode,
-  whatsappInviteUrl,
 } from "@/lib/referral";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import {
@@ -165,7 +164,7 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
     };
   }
 
-  let invite: { shareUrl: string; whatsappUrl: string } | null = null;
+  let invite: { shareUrl: string } | null = null;
   if (isMember && membershipRow && isDbConfigured()) {
     const referral = await getOrCreateReferralCode({
       email: user.email,
@@ -176,7 +175,6 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
     if (referral) {
       invite = {
         shareUrl: referral.shareUrl,
-        whatsappUrl: whatsappInviteUrl(referral.shareUrl, locale as Locale),
       };
     }
   }

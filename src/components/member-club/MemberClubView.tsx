@@ -101,7 +101,6 @@ interface MemberClubViewProps {
   claimSeat?: boolean;
   invite?: {
     shareUrl: string;
-    whatsappUrl: string;
   } | null;
 }
 
@@ -630,18 +629,7 @@ export function MemberClubView({
               {labels.invite.title}
             </h2>
             <p className="mt-1.5 text-sm text-wine/55">{labels.invite.body}</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <a
-                href={invite.whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() =>
-                  trackInviteShareClicked({ channel: "whatsapp", locale })
-                }
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-xs font-semibold uppercase tracking-[0.12em] text-cream"
-              >
-                {labels.invite.whatsapp}
-              </a>
+            <div className="mt-5">
               <button
                 type="button"
                 onClick={async () => {
@@ -654,7 +642,7 @@ export function MemberClubView({
                     // ignore
                   }
                 }}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-wine/15 px-5 text-xs font-semibold uppercase tracking-[0.12em] text-wine"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-xs font-semibold uppercase tracking-[0.12em] text-cream transition hover:bg-wine"
               >
                 {inviteCopied ? labels.invite.copied : labels.invite.copyLink}
               </button>

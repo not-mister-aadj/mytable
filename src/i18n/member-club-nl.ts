@@ -151,9 +151,8 @@ export const memberClubNl: MemberClubLabels = {
   },
   invite: {
     eyebrow: "Uitnodigen",
-    title: "Neem iemand mee",
-    body: "Deel je link. Elke eerste zondag. Nieuwe mensen.",
-    whatsapp: "WhatsApp",
+    title: "Nodig iemand uit voor MyTable",
+    body: "Deel je link. Zo ontdekken zij Sunday Table en culinaire ervaringen via jou.",
     copyLink: "Kopieer link",
     copied: "Gekopieerd",
   },

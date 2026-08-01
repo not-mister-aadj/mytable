@@ -122,7 +122,6 @@ export interface MemberClubLabels {
     eyebrow: string;
     title: string;
     body: string;
-    whatsapp: string;
     copyLink: string;
     copied: string;
   };

@@ -151,9 +151,8 @@ export const memberClubEn: MemberClubLabels = {
   },
   invite: {
     eyebrow: "Invite",
-    title: "Bring someone",
-    body: "Share your link. Every first Sunday. New people.",
-    whatsapp: "WhatsApp",
+    title: "Invite someone to MyTable",
+    body: "Share your link. They discover Sunday Table and culinary experiences through you.",
     copyLink: "Copy link",
     copied: "Copied",
   },

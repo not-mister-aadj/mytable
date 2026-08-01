@@ -663,7 +663,6 @@ export function MemberOnboarding({
   }, [prefs, labels]);
 
   const showChrome = step !== "welcomeBack" && step !== "signup";
-  const isStoryStep = step === "story";
   const homeHref = localePath(locale);
 
   return (
@@ -704,13 +703,7 @@ export function MemberOnboarding({
           </div>
         )}
 
-        <div
-          className={`flex min-h-0 flex-1 flex-col ${
-            isStoryStep
-              ? "justify-center overflow-y-auto py-3"
-              : "justify-center overflow-y-auto py-6 sm:py-8"
-          }`}
-        >
+        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-6 sm:py-8">
           <AnimatePresence mode="wait">
             {step === "brand" ? (
               <StepShell key="brand">
@@ -910,10 +903,7 @@ export function MemberOnboarding({
             ) : null}
 
             {step === "story" && storyCards[storyIndex] ? (
-              <StepShell
-                key={`story-${pathKey}-${storyIndex}`}
-                className="flex min-h-0 flex-1 flex-col"
-              >
+              <StepShell key={`story-${pathKey}-${storyIndex}`}>
                 <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-[1.5rem] shadow-[0_16px_40px_rgba(43,13,18,0.1)]">
                   <Image
                     src={storyCards[storyIndex]!.image}
@@ -924,7 +914,7 @@ export function MemberOnboarding({
                     priority
                   />
                 </div>
-                <div className="mt-3 shrink-0 sm:mt-4">
+                <div className="mt-5 shrink-0 sm:mt-6">
                   <div className="flex justify-center gap-1.5">
                     {storyCards.map((_, i) => (
                       <span
@@ -937,19 +927,19 @@ export function MemberOnboarding({
                       />
                     ))}
                   </div>
-                  <h1 className="mt-3 text-center font-serif text-[1.65rem] font-medium leading-snug tracking-tight text-wine sm:mt-4 sm:text-3xl">
+                  <h1 className="mt-4 text-center font-serif text-[1.65rem] font-medium leading-snug tracking-tight text-wine sm:mt-5 sm:text-3xl">
                     {storyCards[storyIndex]!.title}
                   </h1>
-                  <p className="mt-1.5 text-center text-sm leading-snug text-wine/65 sm:mt-2 sm:text-base sm:leading-relaxed">
+                  <p className="mt-2 text-center text-sm leading-snug text-wine/65 sm:text-base sm:leading-relaxed">
                     {storyCards[storyIndex]!.subtitle}
                   </p>
                   <PrimaryButton
-                    className="mt-4 sm:mt-6"
+                    className="mt-6 sm:mt-7"
                     onClick={advanceStory}
                   >
                     {storyCards[storyIndex]!.cta}
                   </PrimaryButton>
-                  <TextLink className="mt-2" onClick={goBack}>
+                  <TextLink className="mt-3" onClick={goBack}>
                     {labels.back}
                   </TextLink>
                 </div>

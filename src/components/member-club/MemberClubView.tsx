@@ -879,6 +879,9 @@ export function MemberClubView({
                   >
                     {rsvpDeadlineLabel(window, labels.rsvp)}
                   </p>
+                  <p className="mt-2 text-xs leading-snug text-wine/40">
+                    {labels.explain.locationNote}
+                  </p>
 
                   <button
                     type="button"

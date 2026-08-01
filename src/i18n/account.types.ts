@@ -21,7 +21,6 @@ export type AccountAuthLabels = {
   };
   oauth: {
     google: string;
-    apple: string;
   };
   legalBeforeTerms: string;
   legalTerms: string;
@@ -32,7 +31,6 @@ export type AccountAuthLabels = {
     otpRateLimit: string;
     otpVerify: string;
     google: string;
-    apple: string;
     authFailed: string;
     config: string;
   };

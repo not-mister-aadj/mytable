@@ -29,7 +29,6 @@ export const accountPageEn: AccountPageLabels = {
     },
     oauth: {
       google: "Continue with Google",
-      apple: "Continue with Apple",
     },
     legalBeforeTerms: "By continuing you agree to our",
     legalTerms: "terms",
@@ -41,7 +40,6 @@ export const accountPageEn: AccountPageLabels = {
         "Please wait: you can request another code in {seconds} seconds.",
       otpVerify: "Invalid code. Try again.",
       google: "Google sign-in failed. Try again.",
-      apple: "Apple sign-in failed. Try again.",
       authFailed: "Sign-in failed. Try again.",
       config: "Account sign-in is temporarily unavailable.",
     },

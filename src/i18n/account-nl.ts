@@ -29,7 +29,6 @@ export const accountPageNl: AccountPageLabels = {
     },
     oauth: {
       google: "Doorgaan met Google",
-      apple: "Doorgaan met Apple",
     },
     legalBeforeTerms: "Door verder te gaan ga je akkoord met onze",
     legalTerms: "voorwaarden",
@@ -41,7 +40,6 @@ export const accountPageNl: AccountPageLabels = {
         "Even geduld: je kunt over {seconds} seconden opnieuw een code aanvragen.",
       otpVerify: "Ongeldige code. Probeer opnieuw.",
       google: "Google-inloggen mislukt. Probeer opnieuw.",
-      apple: "Apple-inloggen mislukt. Probeer opnieuw.",
       authFailed: "Inloggen mislukt. Probeer opnieuw.",
       config: "Account-login is tijdelijk niet beschikbaar.",
     },

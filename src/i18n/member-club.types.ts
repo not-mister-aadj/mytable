@@ -28,6 +28,7 @@ export interface MemberClubLabels {
   explain: {
     closeAria: string;
     cta: string;
+    locationNote: string;
     mixed: {
       title: string;
       body: string;

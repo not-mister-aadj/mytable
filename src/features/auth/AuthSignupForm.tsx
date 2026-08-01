@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { signInWithApple, signInWithGoogle } from "@/features/auth/oauth";
+import { signInWithGoogle } from "@/features/auth/oauth";
 import { privacyPath, termsPath, type Locale } from "@/i18n/config";
 import type { AccountAuthLabels } from "@/i18n/account.types";
 
@@ -28,17 +28,6 @@ function GoogleLogo() {
       <path
         d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
         fill="#EA4335"
-      />
-    </svg>
-  );
-}
-
-function AppleLogo() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
       />
     </svg>
   );
@@ -169,18 +158,6 @@ export function AuthSignupForm({
     }
   };
 
-  const handleApple = async () => {
-    setError(null);
-    setSubmitting(true);
-    try {
-      await signInWithApple(nextPath);
-    } catch {
-      if (!aliveRef.current) return;
-      setError(labels.errors.apple);
-      setSubmitting(false);
-    }
-  };
-
   const handleOtpChange = (index: number, value: string) => {
     const digit = value.replace(/\D/g, "").slice(-1);
     const next = [...otpDigits];
@@ -219,13 +196,10 @@ export function AuthSignupForm({
     }
   };
 
-  const oauthBtn =
-    "flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-wine/12 bg-white px-4 py-3 text-sm font-medium text-wine transition hover:bg-beige disabled:cursor-not-allowed disabled:opacity-50";
-
   return (
     <div className={className}>
       {(title || subtitle) && (
-        <div className="mb-6 text-center">
+        <div className="mb-7 text-center">
           {title ? (
             <h1 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
               {title}
@@ -241,30 +215,19 @@ export function AuthSignupForm({
 
       {!otpSent ? (
         <>
-          <div className="space-y-2.5">
-            <button
-              type="button"
-              className={oauthBtn}
-              disabled={disabled}
-              onClick={() => void handleGoogle()}
-            >
-              <GoogleLogo />
-              {labels.oauth.google}
-            </button>
-            <button
-              type="button"
-              className={`${oauthBtn} !border-wine !bg-wine !text-cream hover:!bg-burgundy`}
-              disabled={disabled}
-              onClick={() => void handleApple()}
-            >
-              <AppleLogo />
-              {labels.oauth.apple}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-wine/10 bg-white px-5 py-3.5 text-sm font-medium text-wine shadow-[0_1px_2px_rgba(43,13,18,0.04)] transition hover:border-wine/20 hover:bg-beige/60 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={disabled}
+            onClick={() => void handleGoogle()}
+          >
+            <GoogleLogo />
+            {labels.oauth.google}
+          </button>
 
-          <div className="my-5 flex items-center gap-3">
+          <div className="my-6 flex items-center gap-3">
             <hr className="flex-1 border-wine/10" />
-            <span className="text-xs uppercase tracking-[0.14em] text-wine/40">
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-wine/35">
               {labels.orEmail}
             </span>
             <hr className="flex-1 border-wine/10" />
@@ -275,48 +238,51 @@ export function AuthSignupForm({
               e.preventDefault();
               void sendOtp();
             }}
+            className="space-y-3"
           >
-            <label
-              htmlFor="signup-email"
-              className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.16em] text-burgundy"
-            >
-              {labels.email.label}
-            </label>
-            <input
-              id="signup-email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder={labels.email.placeholder}
-              className="w-full rounded-2xl border border-wine/12 bg-white px-4 py-3 text-sm text-wine outline-none transition placeholder:text-wine/35 focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15 disabled:opacity-50"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={disabled}
-            />
+            <div>
+              <label
+                htmlFor="signup-email"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/50"
+              >
+                {labels.email.label}
+              </label>
+              <input
+                id="signup-email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder={labels.email.placeholder}
+                className="w-full rounded-2xl border border-wine/10 bg-white px-4 py-3.5 text-sm text-wine outline-none transition placeholder:text-wine/30 focus:border-burgundy/35 focus:ring-2 focus:ring-burgundy/10 disabled:opacity-50"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={disabled}
+              />
+            </div>
             {error ? (
-              <p className="mt-2 text-xs text-red-700">{error}</p>
+              <p className="text-xs leading-snug text-red-700">{error}</p>
             ) : null}
             <button
               type="submit"
-              className="mt-3 flex w-full items-center justify-center rounded-full bg-wine py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition hover:bg-burgundy disabled:opacity-50"
+              className="flex w-full items-center justify-center rounded-full bg-wine py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-burgundy disabled:opacity-50"
               disabled={disabled}
             >
               {submitting ? labels.email.sending : labels.email.cta}
             </button>
           </form>
 
-          <p className="mt-4 text-center text-[11px] leading-relaxed text-wine/45">
+          <p className="mt-5 text-center text-[11px] leading-relaxed text-wine/40">
             {labels.legalBeforeTerms}{" "}
             <Link
               href={termsPath(locale)}
-              className="text-burgundy underline-offset-2 hover:underline"
+              className="text-wine/55 underline-offset-2 hover:text-burgundy hover:underline"
             >
               {labels.legalTerms}
             </Link>{" "}
             {labels.legalAnd}{" "}
             <Link
               href={privacyPath(locale)}
-              className="text-burgundy underline-offset-2 hover:underline"
+              className="text-wine/55 underline-offset-2 hover:text-burgundy hover:underline"
             >
               {labels.legalPrivacy}
             </Link>
@@ -324,15 +290,15 @@ export function AuthSignupForm({
           </p>
         </>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="text-center">
-            <div className="mx-auto mb-3 flex h-7 w-7 items-center justify-center rounded-full bg-burgundy text-xs text-cream">
+            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-wine text-sm text-cream">
               ✓
             </div>
-            <h3 className="font-serif text-xl font-medium text-wine">
+            <h3 className="font-serif text-2xl font-medium tracking-tight text-wine">
               {labels.otp.sentTitle}
             </h3>
-            <p className="mt-1 text-sm text-wine/60">
+            <p className="mt-2 text-sm leading-relaxed text-wine/55">
               {labels.otp.hint.replace("{email}", email)}
             </p>
           </div>
@@ -355,7 +321,7 @@ export function AuthSignupForm({
                 maxLength={1}
                 value={digit}
                 disabled={disabled}
-                className="h-11 w-9 rounded-xl border border-wine/12 bg-white text-center font-serif text-base text-wine outline-none focus:border-burgundy focus:ring-2 focus:ring-burgundy/20 disabled:opacity-50 sm:h-12 sm:w-10 sm:text-lg"
+                className="h-12 w-9 rounded-xl border border-wine/10 bg-white text-center font-serif text-lg text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15 disabled:opacity-50 sm:h-12 sm:w-10"
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleOtpKeyDown(index, e)}
               />
@@ -364,10 +330,10 @@ export function AuthSignupForm({
           {error ? (
             <p className="text-center text-xs text-red-700">{error}</p>
           ) : null}
-          <div className="text-center text-sm text-wine/55">
+          <div className="text-center text-sm text-wine/50">
             <p>{labels.otp.noCode}</p>
             {resendCountdown > 0 ? (
-              <p className="mt-1">
+              <p className="mt-1.5 text-wine/40">
                 {labels.otp.resendCountdown.replace(
                   "{seconds}",
                   String(resendCountdown),
@@ -376,7 +342,7 @@ export function AuthSignupForm({
             ) : (
               <button
                 type="button"
-                className="mt-1 font-medium text-burgundy underline-offset-2 hover:underline"
+                className="mt-1.5 font-medium text-burgundy underline-offset-2 hover:underline"
                 disabled={disabled}
                 onClick={() => void sendOtp()}
               >
@@ -385,7 +351,7 @@ export function AuthSignupForm({
             )}
             <button
               type="button"
-              className="mt-3 block w-full text-wine/45 underline-offset-2 hover:underline"
+              className="mt-4 block w-full text-sm text-wine/40 underline-offset-2 transition hover:text-wine/60 hover:underline"
               onClick={() => {
                 setOtpSent(false);
                 setOtpDigits(Array(OTP_LENGTH).fill(""));

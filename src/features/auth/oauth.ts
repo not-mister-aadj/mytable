@@ -4,9 +4,6 @@ import type { Provider } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getBrowserMemberAuthCallbackUrl } from "@/lib/member-url";
 
-const APPLE_WEB_OAUTH_CLIENT_ID =
-  process.env.NEXT_PUBLIC_APPLE_OAUTH_CLIENT_ID?.trim() || "";
-
 async function signInWithOAuthProvider(
   provider: Provider,
   nextPath: string,
@@ -28,14 +25,5 @@ async function signInWithOAuthProvider(
 export async function signInWithGoogle(nextPath: string): Promise<void> {
   await signInWithOAuthProvider("google", nextPath, {
     queryParams: { prompt: "select_account" },
-  });
-}
-
-export async function signInWithApple(nextPath: string): Promise<void> {
-  await signInWithOAuthProvider("apple", nextPath, {
-    scopes: "name email",
-    queryParams: APPLE_WEB_OAUTH_CLIENT_ID
-      ? { client_id: APPLE_WEB_OAUTH_CLIENT_ID }
-      : undefined,
   });
 }

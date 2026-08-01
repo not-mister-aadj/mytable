@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { AuthSignupForm } from "@/features/auth/AuthSignupForm";
+import { Logo } from "@/components/Logo";
 import { type Locale } from "@/i18n/config";
 import type { AccountAuthLabels } from "@/i18n/account.types";
 import { postLoginPath } from "@/lib/member-onboarding";
@@ -63,11 +64,14 @@ export function LoginModal({
   if (!mounted || !open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[130] flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <button
+    <div className="fixed inset-0 z-[130] flex items-end justify-center p-0 sm:items-center sm:p-5">
+      <motion.button
         type="button"
         aria-label={labels.close}
-        className="absolute inset-0 bg-wine/50 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[#1a0a0e]/55 backdrop-blur-[3px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.25 }}
         onClick={onClose}
       />
 
@@ -75,42 +79,56 @@ export function LoginModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="login-modal-title"
-        className="relative w-full max-w-[420px] overflow-hidden rounded-t-[1.5rem] border border-wine/10 bg-cream pb-[env(safe-area-inset-bottom,0px)] sm:rounded-[1.5rem]"
-        initial={isMobile ? { opacity: 0, y: "100%" } : { opacity: 0, scale: 0.96 }}
-        animate={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1 }}
+        className="relative w-full max-w-[400px] overflow-hidden rounded-t-[1.75rem] border border-wine/8 bg-gradient-to-b from-[#faf6f1] via-cream to-cream shadow-[0_24px_64px_rgba(43,13,18,0.22)] pb-[env(safe-area-inset-bottom,0px)] sm:rounded-[1.75rem]"
+        initial={isMobile ? { opacity: 0, y: "100%" } : { opacity: 0, y: 16, scale: 0.98 }}
+        animate={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, scale: 1 }}
         transition={
           isMobile
-            ? { type: "spring", damping: 30, stiffness: 300 }
-            : { duration: 0.2, ease: "easeOut" }
+            ? { type: "spring", damping: 32, stiffness: 320 }
+            : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
         }
       >
-        <div className="relative h-[132px] overflow-hidden bg-gradient-to-br from-beige via-cream to-[#f0e6dc]">
-          <div
-            aria-hidden
-            className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/50"
-          />
+        {isMobile ? (
+          <div className="flex justify-center pt-3" aria-hidden>
+            <span className="h-1 w-10 rounded-full bg-wine/15" />
+          </div>
+        ) : null}
+
+        <div className="relative px-6 pb-2 pt-5 sm:pt-7">
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-wine/8 text-wine/60 transition hover:bg-wine/12"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-wine/40 transition hover:bg-wine/6 hover:text-wine/70 sm:right-5 sm:top-5"
             aria-label={labels.close}
           >
-            ×
+            <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden>
+              <path
+                d="M5 5l10 10M15 5L5 15"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
-          <div className="absolute bottom-5 left-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
+
+          <div className="pr-8">
+            <Logo variant="header" />
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
               {labels.eyebrow}
             </p>
             <h2
               id="login-modal-title"
-              className="mt-1.5 font-serif text-2xl font-medium leading-snug text-wine"
+              className="mt-2 font-serif text-[1.85rem] font-medium leading-[1.15] tracking-tight text-wine"
             >
               {labels.title}
             </h2>
+            <p className="mt-2 max-w-[20rem] text-sm leading-relaxed text-wine/55">
+              {labels.subtitle}
+            </p>
           </div>
         </div>
 
-        <div className="px-5 py-5">
+        <div className="px-6 pb-6 pt-5 sm:pb-7">
           <AuthSignupForm
             key={formKey}
             locale={locale}

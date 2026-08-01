@@ -31,6 +31,7 @@ export const memberClubNl: MemberClubLabels = {
   explain: {
     closeAria: "Sluiten",
     cta: "Claim je plek",
+    locationNote: "De exacte locatie ontvang je 24 uur van tevoren.",
     mixed: {
       title: "Sunday Table",
       body: "Sunday Table is om nieuwe mensen te ontmoeten. Met hen boek je later culinaire ervaringen uit de agenda. Drankjes en hapjes betaal je op locatie. Die zijn niet inbegrepen.",

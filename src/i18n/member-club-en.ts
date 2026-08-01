@@ -31,6 +31,7 @@ export const memberClubEn: MemberClubLabels = {
   explain: {
     closeAria: "Close",
     cta: "Claim your seat",
+    locationNote: "You’ll get the exact location 24 hours beforehand.",
     mixed: {
       title: "Sunday Table",
       body: "Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",

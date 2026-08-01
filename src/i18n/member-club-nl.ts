@@ -68,7 +68,7 @@ export const memberClubNl: MemberClubLabels = {
     save: "Bespaar {percent}",
     perMonth: "{price}/maand",
     legal:
-      "Door verder te gaan ga je akkoord met automatische verlenging tot je opzegt. Je kunt later upgraden naar 12 maanden (vanaf het einde van je huidige periode) of stopzetten.",
+      "Door verder te gaan ga je akkoord met automatische verlenging tot je opzegt. Je kunt je plan altijd upgraden of stopzetten.",
     continue: "Betalen en lid worden",
     summary: "{price} per {period}",
     successTitle: "Je zit erbij",

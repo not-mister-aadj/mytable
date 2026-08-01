@@ -68,7 +68,7 @@ export const memberClubEn: MemberClubLabels = {
     save: "Save {percent}",
     perMonth: "{price}/month",
     legal:
-      "By continuing you agree to auto-renewal until you cancel. You can later upgrade to 12 months (from the end of your current period) or cancel.",
+      "By continuing you agree to auto-renewal until you cancel. You can always upgrade or cancel your plan.",
     continue: "Pay and join",
     summary: "{price} every {period}",
     successTitle: "You're in",

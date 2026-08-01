@@ -11,7 +11,7 @@ import {
   createPendingClubCheckout,
   getActiveMembershipForUser,
 } from "@/lib/club/memberships";
-import { getOrCreateClubPriceId, isClubPlanIdForSale } from "@/lib/club/plans";
+import { getOrCreateClubPriceId, isClubPlanId, isClubPlanIdForSale } from "@/lib/club/plans";
 import { getSiteUrl } from "@/lib/admin-url";
 import { getMemberUser } from "@/lib/member-auth";
 import {
@@ -133,9 +133,6 @@ export async function POST(request: Request) {
   if (!TABLE_TYPES.has(tableType)) {
     return NextResponse.json({ error: "Invalid table type" }, { status: 400 });
   }
-  if (!isClubPlanIdForSale(planId)) {
-    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-  }
 
   const tableSunday = parseAmsterdamDateIso(tableDate);
   if (!tableSunday || !isSundayTableRsvpOpen(tableSunday)) {
@@ -171,12 +168,26 @@ export async function POST(request: Request) {
       email: user.email,
     });
 
+    // Existing members keep their plan (incl. legacy 3m). New checkouts
+    // may only buy plans that are still for sale (1m / 6m).
+    const resolvedPlanId = active
+      ? isClubPlanId(active.planId)
+        ? active.planId
+        : null
+      : isClubPlanIdForSale(planId)
+        ? planId
+        : null;
+
+    if (!resolvedPlanId) {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
+
     const { membershipId, signupId, newlyConfirmed } =
       await createPendingClubCheckout({
       email: user.email,
       name,
       userId: user.id,
-      planId,
+      planId: resolvedPlanId,
       locale,
       city,
       tableDate,
@@ -215,7 +226,7 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
-    const priceId = await getOrCreateClubPriceId(planId, locale);
+    const priceId = await getOrCreateClubPriceId(resolvedPlanId, locale);
     const siteUrl = resolveCheckoutReturnOrigin(request);
     const referralCoupon = process.env.STRIPE_REFERRAL_FRIEND_COUPON_ID?.trim();
     const friendReferral =
@@ -239,7 +250,7 @@ export async function POST(request: Request) {
           mytable_kind: "club_membership",
           membership_id: membershipId,
           signup_id: signupId,
-          plan_id: planId,
+          plan_id: resolvedPlanId,
           user_id: user.id,
           city,
           table_date: tableDate,
@@ -251,7 +262,7 @@ export async function POST(request: Request) {
         mytable_kind: "club_membership",
         membership_id: membershipId,
         signup_id: signupId,
-        plan_id: planId,
+        plan_id: resolvedPlanId,
         user_id: user.id,
         city,
         table_date: tableDate,
@@ -276,7 +287,7 @@ export async function POST(request: Request) {
 
     void sendMetaCapiClubInitiateCheckout({
       membershipId,
-      planId,
+      planId: resolvedPlanId,
       email: user.email,
       name,
       city,

@@ -21,7 +21,11 @@ import {
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import { hasOpenReferralAttribution } from "@/lib/referral";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import {
+  getStripe,
+  getSubscriptionCheckoutPaymentMethodTypes,
+  isStripeConfigured,
+} from "@/lib/stripe";
 import {
   isSundayTableRsvpOpen,
   parseAmsterdamDateIso,
@@ -229,12 +233,12 @@ export async function POST(request: Request) {
       Boolean(referralCoupon) &&
       (await hasOpenReferralAttribution(user.email));
 
-    // Do not pass payment_method_types: forcing `ideal` with mode=subscription
-    // fails unless SEPA Debit is enabled. Dynamic PMs from the Dashboard apply.
+    // iDEAL for first invoice + SEPA for renewals (Dashboard must enable SEPA / iDEAL recurring).
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer_email: user.email,
       locale: locale === "nl" ? "nl" : "en",
+      payment_method_types: getSubscriptionCheckoutPaymentMethodTypes("EUR"),
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${siteUrl}${clubmemberConfirmedPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}${clubmemberCancelledPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,

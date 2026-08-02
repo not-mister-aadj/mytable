@@ -296,6 +296,7 @@ export function ExperiencePageContent({
             <motion.div {...fade}>
               <ExperienceFaq
                 title={page.faqTitle}
+                locale={locale}
                 items={
                   experience.customFaq?.length
                     ? experience.customFaq

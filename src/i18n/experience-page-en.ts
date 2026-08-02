@@ -101,11 +101,6 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingSeatingOwnHint: "Your table, your group. Wine and bites included.",
   bookingSeatingJoin: "Just me",
   bookingSeatingJoinHint: "Book one or more tickets for yourself.",
-  bookingTableLanguageLabel: "Preferred language at the table",
-  bookingTableLanguageHint:
-    "Helpful for the staff. Dutch and English are both fine.",
-  bookingTableLanguageBoth: "Dutch, English, or a mix of both",
-  bookingTableLanguagePreferDutch: "Mostly Dutch, please",
   bookingStepNext: "Continue",
   bookingStepBack: "Back",
   bookingFemaleOnlyNote: "This experience is for women only.",
@@ -250,7 +245,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I cancel or exchange?",
           answer:
-            "Cancellations are not available. You can exchange to another date for free up to 48 hours before start. Everything is paid in full when you book. Email us if you want to exchange.",
+            "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
         },
       ],
     },
@@ -312,7 +307,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I book alone?",
           answer:
-            "Yes. You book tickets for yourself. You follow the route with your own party; we do not match you with other guests.",
+            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You follow the route with your own party; we do not match you with other guests. Want to meet new culinary friends instead? That happens at",
+          link: { label: "Sunday Table", to: "clubmember" },
         },
         {
           question: "Do I have to walk a lot?",
@@ -338,6 +334,11 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "What if it rains?",
           answer:
             "The experience usually goes ahead. Bring a jacket or umbrella if unsure. The pace stays relaxed.",
+        },
+        {
+          question: "Can I cancel or move my booking?",
+          answer:
+            "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
         },
       ],
     },
@@ -410,7 +411,8 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I book alone?",
           answer:
-            "Yes. You book tickets for yourself. You sit with the people you bring, not with strangers.",
+            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You sit with the people you bring, not with strangers. Want to meet new culinary friends instead? That happens at",
+          link: { label: "Sunday Table", to: "clubmember" },
         },
         {
           question: "When are the Chef's Tables?",
@@ -421,6 +423,11 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Is this fine dining?",
           answer:
             "Not necessarily. Chef's Table mainly means you taste the best of the kitchen family style.",
+        },
+        {
+          question: "Can I cancel or move my booking?",
+          answer:
+            "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
         },
       ],
     },

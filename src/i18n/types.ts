@@ -24,6 +24,11 @@ export interface ExperienceExpectItem {
 export interface ExperienceFaqItem {
   question: string;
   answer: string;
+  /** Optional link after the answer text (e.g. Sunday Table). */
+  link?: {
+    label: string;
+    to: "clubmember";
+  };
 }
 
 export interface ExperienceVenue {
@@ -151,10 +156,6 @@ export interface ExperiencePageLabels {
   bookingSeatingOwnHint: string;
   bookingSeatingJoin: string;
   bookingSeatingJoinHint: string;
-  bookingTableLanguageLabel: string;
-  bookingTableLanguageHint: string;
-  bookingTableLanguageBoth: string;
-  bookingTableLanguagePreferDutch: string;
   bookingStepNext: string;
   bookingStepBack: string;
   bookingFemaleOnlyNote: string;

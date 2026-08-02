@@ -1,14 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { clubmemberPath, type Locale } from "@/i18n/config";
 import type { ExperienceFaqItem } from "@/i18n/types";
 
 interface ExperienceFaqProps {
   title: string;
   items: ExperienceFaqItem[];
+  locale: Locale;
 }
 
-export function ExperienceFaq({ title, items }: ExperienceFaqProps) {
+function faqLinkHref(
+  to: NonNullable<ExperienceFaqItem["link"]>["to"],
+  locale: Locale,
+): string {
+  switch (to) {
+    case "clubmember":
+      return clubmemberPath(locale);
+    default:
+      return clubmemberPath(locale);
+  }
+}
+
+export function ExperienceFaq({ title, items, locale }: ExperienceFaqProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
@@ -27,7 +42,9 @@ export function ExperienceFaq({ title, items }: ExperienceFaqProps) {
                 onClick={() => setOpenIndex(isOpen ? null : index)}
                 aria-expanded={isOpen}
               >
-                <span className="text-sm font-medium text-wine sm:text-base">{item.question}</span>
+                <span className="text-sm font-medium text-wine sm:text-base">
+                  {item.question}
+                </span>
                 <span
                   className="shrink-0 font-serif text-xl text-burgundy transition-transform duration-300"
                   aria-hidden
@@ -38,6 +55,18 @@ export function ExperienceFaq({ title, items }: ExperienceFaqProps) {
               {isOpen ? (
                 <p className="border-t border-border-subtle/60 px-4 pb-4 pt-0 text-sm leading-relaxed text-wine/70 sm:px-6 sm:pb-5 sm:text-base">
                   {item.answer}
+                  {item.link ? (
+                    <>
+                      {" "}
+                      <Link
+                        href={faqLinkHref(item.link.to, locale)}
+                        className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-2 transition hover:decoration-burgundy"
+                      >
+                        {item.link.label}
+                      </Link>
+                      .
+                    </>
+                  ) : null}
                 </p>
               ) : null}
             </li>

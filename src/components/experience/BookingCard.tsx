@@ -25,7 +25,6 @@ import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/me
 import { getStoredUtm } from "@/lib/analytics/utm";
 import {
   DEFAULT_TABLE_LANGUAGE_PREFERENCE,
-  type TableLanguagePreference,
 } from "@/lib/booking-table-language";
 import {
   clampTicketSeats,
@@ -60,12 +59,6 @@ interface BookingCardProps {
   referralCode?: string | null;
 }
 
-function choiceLegendClass(compact: boolean): string {
-  return `mb-2.5 block font-semibold text-wine ${
-    compact ? "text-xs" : "text-sm"
-  }`;
-}
-
 function choiceInputClass(compact: boolean, isFemaleOnly: boolean): string {
   return `mt-1.5 w-full rounded-xl border bg-white px-3.5 shadow-sm transition-colors placeholder:text-wine/35 focus:outline-none focus:ring-2 ${
     compact ? "py-2 text-sm" : "py-2.5"
@@ -74,54 +67,6 @@ function choiceInputClass(compact: boolean, isFemaleOnly: boolean): string {
       ? "border-rose/25 focus:border-rose focus:ring-rose/15"
       : "border-border-subtle focus:border-burgundy/40 focus:ring-burgundy/10"
   }`;
-}
-
-function BookingChoiceOption({
-  selected,
-  compact,
-  isFemaleOnly,
-  children,
-  ...inputProps
-}: {
-  selected: boolean;
-  compact: boolean;
-  isFemaleOnly: boolean;
-  children: React.ReactNode;
-} & React.ComponentPropsWithoutRef<"input">) {
-  return (
-    <label
-      className={`group flex cursor-pointer items-start gap-3 rounded-2xl border px-4 transition-all ${
-        compact ? "py-2.5 text-xs" : "py-3.5 text-sm"
-      } ${
-        selected
-          ? isFemaleOnly
-            ? "border-rose bg-white shadow-[0_2px_14px_rgba(157,77,111,0.14)] ring-1 ring-rose/35"
-            : "border-burgundy/45 bg-white shadow-sm ring-1 ring-burgundy/20"
-          : isFemaleOnly
-            ? "border-rose/20 bg-white/75 hover:border-rose/35 hover:bg-white"
-            : "border-border-subtle bg-white/85 hover:border-burgundy/25 hover:bg-white"
-      }`}
-    >
-      <input type="radio" className="sr-only" {...inputProps} />
-      <span
-        className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-          selected
-            ? isFemaleOnly
-              ? "border-rose bg-rose"
-              : "border-burgundy bg-burgundy"
-            : isFemaleOnly
-              ? "border-rose/30 bg-white group-hover:border-rose/45"
-              : "border-wine/20 bg-white group-hover:border-burgundy/35"
-        }`}
-        aria-hidden
-      >
-        {selected ? (
-          <span className="h-1.5 w-1.5 rounded-full bg-white" />
-        ) : null}
-      </span>
-      <span className="min-w-0 flex-1">{children}</span>
-    </label>
-  );
 }
 
 function tierSeatsLabel(
@@ -172,8 +117,6 @@ export function BookingCard({
   const [ticketCount, setTicketCount] = useState(() =>
     clampTicketSeats(MIN_BOOKING_SEATS, spotsLeft),
   );
-  const [tableLanguagePreference, setTableLanguagePreference] =
-    useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [dietaryNotes, setDietaryNotes] = useState("");
   const [joinPriorityList, setJoinPriorityList] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -273,7 +216,7 @@ export function BookingCard({
           seats,
           pricingTier: tier,
           seatingPreference,
-          tableLanguagePreference,
+          tableLanguagePreference: DEFAULT_TABLE_LANGUAGE_PREFERENCE,
           joinPriorityList,
           locale,
           dietaryNotes,
@@ -629,51 +572,6 @@ export function BookingCard({
                   €{selectedTierPrice.totalEuros}
                 </span>
               </div>
-              <fieldset className={compact ? "space-y-2" : "space-y-2.5"}>
-                <legend className={choiceLegendClass(compact)}>
-                  {labels.bookingTableLanguageLabel}
-                </legend>
-                <p
-                  className={`-mt-1 mb-1 leading-snug text-wine/55 ${compact ? "text-[11px]" : "text-xs"}`}
-                >
-                  {labels.bookingTableLanguageHint}
-                </p>
-                <div className={compact ? "grid gap-2" : "grid gap-2 sm:grid-cols-2"}>
-                  {(
-                    [
-                      {
-                        value: "both_fine" as const,
-                        title: labels.bookingTableLanguageBoth,
-                      },
-                      {
-                        value: "prefer_dutch" as const,
-                        title: labels.bookingTableLanguagePreferDutch,
-                      },
-                    ] as const
-                  ).map((option) => {
-                    const selected = tableLanguagePreference === option.value;
-                    return (
-                      <BookingChoiceOption
-                        key={option.value}
-                        selected={selected}
-                        compact={true}
-                        isFemaleOnly={isFemaleOnly}
-                        name="tableLanguagePreference"
-                        value={option.value}
-                        checked={selected}
-                        onChange={() =>
-                          setTableLanguagePreference(option.value)
-                        }
-                        required
-                      >
-                        <span className="font-medium text-wine">
-                          {option.title}
-                        </span>
-                      </BookingChoiceOption>
-                    );
-                  })}
-                </div>
-              </fieldset>
               <label className={labelClass}>
                 {labels.bookingDietary}
                 <textarea

@@ -101,11 +101,6 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingSeatingOwnHint: "Jullie tafel, jullie groep. Wijn en hapjes inbegrepen.",
   bookingSeatingJoin: "Individueel",
   bookingSeatingJoinHint: "Boek één of meer tickets voor jezelf.",
-  bookingTableLanguageLabel: "Voorkeurstaal aan tafel",
-  bookingTableLanguageHint:
-    "Handig voor de bediening. Nederlands en Engels zijn beide mogelijk.",
-  bookingTableLanguageBoth: "Nederlands, Engels, of een mix",
-  bookingTableLanguagePreferDutch: "Liever vooral Nederlands",
   bookingStepNext: "Volgende",
   bookingStepBack: "Terug",
   bookingFemaleOnlyNote: "Deze ervaring is alleen voor vrouwen.",
@@ -249,7 +244,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik annuleren of ruilen?",
           answer:
-            "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere datum tot 48 uur voor de start. Alles betaal je vooraf. Mail ons als je wilt ruilen.",
+            "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
         },
       ],
     },
@@ -311,7 +306,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik alleen boeken?",
           answer:
-            "Ja. Je boekt tickets voor jezelf. Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten.",
+            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij",
+          link: { label: "Sunday Table", to: "clubmember" },
         },
         {
           question: "Moet ik veel wandelen?",
@@ -337,6 +333,11 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Wat als het regent?",
           answer:
             "De ervaring gaat meestal door. Neem bij twijfel een jas of paraplu mee. Het tempo blijft ontspannen.",
+        },
+        {
+          question: "Kan ik annuleren of verplaatsen?",
+          answer:
+            "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
         },
       ],
     },
@@ -409,7 +410,8 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik alleen boeken?",
           answer:
-            "Ja. Je boekt tickets voor jezelf. Je zit met wie je meeneemt, niet met onbekenden.",
+            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je zit met wie je meeneemt, niet met onbekenden. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij",
+          link: { label: "Sunday Table", to: "clubmember" },
         },
         {
           question: "Wanneer zijn de Chef's Tables?",
@@ -420,6 +422,11 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Is dit fine dining?",
           answer:
             "Niet per se. Chef's Table betekent vooral dat je family style het beste van de keuken proeft.",
+        },
+        {
+          question: "Kan ik annuleren of verplaatsen?",
+          answer:
+            "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
         },
       ],
     },

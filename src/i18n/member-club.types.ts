@@ -134,6 +134,12 @@ export interface MemberClubLabels {
     /** Placeholders: {fromCity}, {fromTable}, {toCity}, {toTable} */
     confirmReplaceSeatBody: string;
     confirmReplaceSeatCta: string;
+    confirmReserveTitle: string;
+    confirmReserveBody: string;
+    confirmReserveCta: string;
+    confirmCancelGoingTitle: string;
+    confirmCancelGoingBody: string;
+    confirmCancelGoingCta: string;
   };
   invite: {
     eyebrow: string;

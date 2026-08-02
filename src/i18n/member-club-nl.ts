@@ -175,6 +175,14 @@ export const memberClubNl: MemberClubLabels = {
     confirmReplaceSeatBody:
       "Je hebt al een plek op {fromTable} in {fromCity}. Als je doorgaat, vervalt die RSVP en reserveer je {toTable} in {toCity}.",
     confirmReplaceSeatCta: "Ja, wissel van tafel",
+    confirmReserveTitle: "Plek reserveren?",
+    confirmReserveBody:
+      "Je reserveert je Sunday Table-plek. Je kunt later nog een +1 toevoegen of je afmelden.",
+    confirmReserveCta: "Ja, reserveer",
+    confirmCancelGoingTitle: "Afmelden voor deze tafel?",
+    confirmCancelGoingBody:
+      "Je plek komt vrij voor iemand anders. Je abonnement blijft actief.",
+    confirmCancelGoingCta: "Ja, ik kan niet",
   },
   invite: {
     eyebrow: "Uitnodigen",

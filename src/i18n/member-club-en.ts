@@ -175,6 +175,14 @@ export const memberClubEn: MemberClubLabels = {
     confirmReplaceSeatBody:
       "You already have a seat at {fromTable} in {fromCity}. If you continue, that RSVP is released and you reserve {toTable} in {toCity}.",
     confirmReplaceSeatCta: "Yes, switch tables",
+    confirmReserveTitle: "Reserve your seat?",
+    confirmReserveBody:
+      "You reserve your Sunday Table seat. You can still add a +1 or cancel later.",
+    confirmReserveCta: "Yes, reserve",
+    confirmCancelGoingTitle: "Cancel this table?",
+    confirmCancelGoingBody:
+      "Your seat opens up for someone else. Your membership stays active.",
+    confirmCancelGoingCta: "Yes, I can't make it",
   },
   invite: {
     eyebrow: "Invite",

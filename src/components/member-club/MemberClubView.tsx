@@ -111,6 +111,8 @@ function tableTypeLabel(
 
 type ConfirmState =
   | { kind: "plusOne"; signupId: string; nextValue: boolean }
+  | { kind: "cancelGoing"; signupId: string }
+  | { kind: "reserve"; event: ClubEvent }
   | { kind: "replaceSeat"; event: ClubEvent; conflicting: MemberSundaySignup };
 
 interface MemberClubViewProps {
@@ -412,7 +414,7 @@ export function MemberClubView({
       setConfirm({ kind: "replaceSeat", event, conflicting });
       return;
     }
-    void runReserveSeat(event);
+    setConfirm({ kind: "reserve", event });
   }
 
   async function handleConfirmAction() {
@@ -421,6 +423,10 @@ export function MemberClubView({
     setConfirm(null);
     if (action.kind === "plusOne") {
       await patchRsvp(action.signupId, { plusOne: action.nextValue });
+      return;
+    }
+    if (action.kind === "cancelGoing") {
+      await patchRsvp(action.signupId, { cancel: true });
       return;
     }
     await runReserveSeat(action.event);
@@ -440,6 +446,20 @@ export function MemberClubView({
         confirmLabel: adding
           ? labels.rsvp.confirmPlusOneAddCta
           : labels.rsvp.confirmPlusOneRemoveCta,
+      };
+    }
+    if (confirm.kind === "cancelGoing") {
+      return {
+        title: labels.rsvp.confirmCancelGoingTitle,
+        body: labels.rsvp.confirmCancelGoingBody,
+        confirmLabel: labels.rsvp.confirmCancelGoingCta,
+      };
+    }
+    if (confirm.kind === "reserve") {
+      return {
+        title: labels.rsvp.confirmReserveTitle,
+        body: labels.rsvp.confirmReserveBody,
+        confirmLabel: labels.rsvp.confirmReserveCta,
       };
     }
     const fromTable = tableTypeLabel(confirm.conflicting.tableType, labels.rsvp);
@@ -704,7 +724,10 @@ export function MemberClubView({
                                 type="button"
                                 disabled={rsvpBusy}
                                 onClick={() =>
-                                  void patchRsvp(signup.id, { cancel: true })
+                                  setConfirm({
+                                    kind: "cancelGoing",
+                                    signupId: signup.id,
+                                  })
                                 }
                                 className="min-h-11 flex-1 rounded-full border border-wine/15 px-3 text-xs font-semibold uppercase tracking-[0.1em] text-wine/65 transition hover:border-wine/30 hover:text-wine disabled:opacity-60"
                               >

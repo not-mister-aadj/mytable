@@ -1070,13 +1070,17 @@ export async function updateSundayTableRsvp(input: {
       .limit(1);
     if (updated) {
       try {
-        const { voidSundayTablePlusOneEmail } = await import(
+        const { sendSundayTablePlusOneEmail } = await import(
           "@/lib/email/sendSundayTableBookingEmails"
         );
-        voidSundayTablePlusOneEmail(
+        // Await so Vercel does not freeze the function before Resend finishes.
+        const sent = await sendSundayTablePlusOneEmail(
           updated,
           input.plusOne ? "added" : "removed",
         );
+        if (!sent.ok) {
+          console.error("[club] Sunday Table +1 email failed", sent.error);
+        }
       } catch (err) {
         console.error("[club] Sunday Table +1 email", err);
       }

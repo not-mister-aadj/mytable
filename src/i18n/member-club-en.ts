@@ -25,7 +25,7 @@ export const memberClubEn: MemberClubLabels = {
   },
   happening: {
     title: "Upcoming Sunday Tables",
-    subtitle: "This is where you make culinary friends.",
+    subtitle: "This is where you make culinary friends every first Sunday of the month.",
     eventTitle: "Sunday Table",
     status: "Early access",
     empty: "No tables for this filter. Try another city.",
@@ -75,7 +75,7 @@ export const memberClubEn: MemberClubLabels = {
     legal:
       "By continuing you agree to auto-renewal until you cancel. You can always upgrade or cancel your plan.",
     continue: "Pay and join",
-    summary: "{price} every {period}",
+    summary: "{price}/month",
     successTitle: "You're in",
     successBody:
       "Your Clubmember subscription is active and your Sunday Table seat is confirmed. You can still add a +1 or cancel that table below.",

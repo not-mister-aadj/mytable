@@ -25,7 +25,7 @@ export const memberClubNl: MemberClubLabels = {
   },
   happening: {
     title: "Komende Sunday Tables",
-    subtitle: "Hier maak je culinaire vrienden.",
+    subtitle: "Hier maak je culinaire vrienden elke eerste zondag van de maand.",
     eventTitle: "Sunday Table",
     status: "Early access",
     empty: "Geen tafels voor deze filter. Kies een andere stad.",
@@ -75,7 +75,7 @@ export const memberClubNl: MemberClubLabels = {
     legal:
       "Door verder te gaan ga je akkoord met automatische verlenging tot je opzegt. Je kunt je plan altijd upgraden of stopzetten.",
     continue: "Betalen en lid worden",
-    summary: "{price} per {period}",
+    summary: "{price}/maand",
     successTitle: "Je zit erbij",
     successBody:
       "Je Clubmember-abonnement is actief en je Sunday Table-plek staat vast. Hieronder kun je nog een +1 toevoegen of afmelden voor die tafel.",

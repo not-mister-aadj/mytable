@@ -11,7 +11,11 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { useSignIn } from "@/features/auth/SignInProvider";
 import { FastLink } from "./ui/FastLink";
-import { memberNavItems, publicNavItems } from "./MemberBottomNav";
+import {
+  isMemberMobileHeaderHiddenPath,
+  memberNavItems,
+  publicNavItems,
+} from "./MemberBottomNav";
 
 interface HeaderProps {
   dict: Dictionary["header"];
@@ -38,6 +42,8 @@ export function Header({ dict, locale }: HeaderProps) {
     ? memberNavItems(locale, dict.nav)
     : publicNavItems(locale, dict.nav);
   const showPublicMobileMenu = !loading && !isSignedIn;
+  const hideOnMobile =
+    !loading && isSignedIn && isMemberMobileHeaderHiddenPath(path);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -69,6 +75,8 @@ export function Header({ dict, locale }: HeaderProps) {
   return (
     <header
       className={`site-header fixed inset-x-0 top-0 z-[60] border-b backdrop-blur-md transition-all duration-300 ${
+        hideOnMobile ? "max-md:hidden" : ""
+      } ${
         scrolled
           ? "site-header--scrolled shadow-[0_8px_30px_rgba(90,15,27,0.06)]"
           : "site-header--top"

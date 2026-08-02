@@ -46,16 +46,7 @@ export function MemberClubPaywall({
     labels.plans.find((p) => p.id === "5m") ??
     labels.plans[0]!;
 
-  const periodLabel =
-    selected.id === "1m"
-      ? locale === "en"
-        ? "month trial"
-        : "maand trial"
-      : selected.label;
-
-  const summary = labels.summary
-    .replace("{price}", selected.price)
-    .replace("{period}", periodLabel.toLowerCase());
+  const summary = labels.summary.replace("{price}", selected.perMonth);
 
   const eventLine = labels.eventLine
     .replace("{city}", city)

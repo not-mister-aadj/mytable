@@ -21,7 +21,7 @@ function stripLocale(pathname: string): string {
   return pathname || "/";
 }
 
-function isClubmemberPath(path: string): boolean {
+export function isClubmemberPath(path: string): boolean {
   return (
     path === "/clubmember" ||
     path.startsWith("/clubmember/") ||
@@ -30,8 +30,13 @@ function isClubmemberPath(path: string): boolean {
   );
 }
 
-function isExperiencesPath(path: string): boolean {
+export function isExperiencesPath(path: string): boolean {
   return path === "/agenda" || path.startsWith("/agenda/");
+}
+
+/** Signed-in mobile uses bottom nav — hide the fixed header on these surfaces. */
+export function isMemberMobileHeaderHiddenPath(path: string): boolean {
+  return isExperiencesPath(path) || isClubmemberPath(path);
 }
 
 function isBlogPath(path: string): boolean {

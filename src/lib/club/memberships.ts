@@ -981,10 +981,15 @@ export async function updateSundayTableRsvp(input: {
 
     if (row.status === "confirmed") {
       try {
-        const { voidSundayTableCancelEmail } = await import(
+        const { after } = await import("next/server");
+        const { sendSundayTableCancelEmail } = await import(
           "@/lib/email/sendSundayTableBookingEmails"
         );
-        voidSundayTableCancelEmail(row);
+        after(() => {
+          void sendSundayTableCancelEmail(row).catch((err) => {
+            console.error("[club] Sunday Table cancel email", err);
+          });
+        });
       } catch (err) {
         console.error("[club] Sunday Table cancel email", err);
       }
@@ -1070,17 +1075,19 @@ export async function updateSundayTableRsvp(input: {
       .limit(1);
     if (updated) {
       try {
+        const { after } = await import("next/server");
         const { sendSundayTablePlusOneEmail } = await import(
           "@/lib/email/sendSundayTableBookingEmails"
         );
-        // Await so Vercel does not freeze the function before Resend finishes.
-        const sent = await sendSundayTablePlusOneEmail(
-          updated,
-          input.plusOne ? "added" : "removed",
-        );
-        if (!sent.ok) {
-          console.error("[club] Sunday Table +1 email failed", sent.error);
-        }
+        const action = input.plusOne ? "added" : "removed";
+        // Send after the response so the UI is not blocked on Resend.
+        after(() => {
+          void sendSundayTablePlusOneEmail(updated, action).then((sent) => {
+            if (!sent.ok) {
+              console.error("[club] Sunday Table +1 email failed", sent.error);
+            }
+          });
+        });
       } catch (err) {
         console.error("[club] Sunday Table +1 email", err);
       }

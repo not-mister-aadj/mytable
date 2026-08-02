@@ -189,6 +189,11 @@ export function MemberClubView({
   const [rsvpBusy, setRsvpBusy] = useState(false);
   const [rsvpError, setRsvpError] = useState<string | null>(null);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [localSignups, setLocalSignups] = useState(signups);
+
+  useEffect(() => {
+    setLocalSignups(signups);
+  }, [signups]);
 
   const [selectedCities, setSelectedCities] = useState<CityId[]>(() =>
     initialSelectedCities(preferredCities),
@@ -310,6 +315,39 @@ export function MemberClubView({
     signupId: string,
     body: { plusOne?: boolean; cancel?: boolean; reactivate?: boolean },
   ) {
+    const previous = localSignups;
+    // Optimistic UI: flip state immediately, sync with server in the background.
+    setLocalSignups((prev) =>
+      prev.map((s) => {
+        if (s.id !== signupId) {
+          if (body.reactivate && s.status === "confirmed") {
+            // Same-date conflict may be released server-side; leave for refresh.
+            return s;
+          }
+          return s;
+        }
+        if (typeof body.plusOne === "boolean") {
+          return { ...s, plusOne: body.plusOne };
+        }
+        if (body.cancel) {
+          return {
+            ...s,
+            status: "cancelled",
+            plusOne: false,
+            cancelledAt: new Date().toISOString(),
+          };
+        }
+        if (body.reactivate) {
+          return {
+            ...s,
+            status: "confirmed",
+            cancelledAt: null,
+          };
+        }
+        return s;
+      }),
+    );
+
     setRsvpBusy(true);
     setRsvpError(null);
     try {
@@ -319,6 +357,7 @@ export function MemberClubView({
         body: JSON.stringify({ signupId, ...body }),
       });
       if (!res.ok) {
+        setLocalSignups(previous);
         const data = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
@@ -333,8 +372,10 @@ export function MemberClubView({
         );
         return;
       }
-      router.refresh();
+      // Soft refresh; UI already updated.
+      void router.refresh();
     } catch {
+      setLocalSignups(previous);
       setRsvpError(labels.paywall.errorGeneric);
     } finally {
       setRsvpBusy(false);
@@ -342,7 +383,7 @@ export function MemberClubView({
   }
 
   async function runReserveSeat(event: ClubEvent) {
-    const signup = signupForEvent(signups, event);
+    const signup = signupForEvent(localSignups, event);
     const cancelled = signup?.status === "cancelled";
     const pending = signup?.status === "pending_payment";
     if (signup && (cancelled || pending)) {
@@ -385,7 +426,7 @@ export function MemberClubView({
         table_type: event.tableType,
         locale,
       });
-      router.refresh();
+      void router.refresh();
     } catch {
       setRsvpError(labels.paywall.errorGeneric);
     } finally {
@@ -396,7 +437,7 @@ export function MemberClubView({
   function requestReserveSeat(event: ClubEvent) {
     const rsvpWindow = getSundayTableRsvpWindow(event.date);
     const rsvpOpen = rsvpWindow !== "closed";
-    const signup = signupForEvent(signups, event);
+    const signup = signupForEvent(localSignups, event);
     const confirmed = signup?.status === "confirmed";
     const statsKey = seatStatsKey(
       event.city,
@@ -409,7 +450,7 @@ export function MemberClubView({
     if (rsvpBusy || !rsvpOpen || soldOut) return;
     if (!requireOnboardingForTable(event.tableType)) return;
 
-    const conflicting = conflictingConfirmedSignup(signups, event);
+    const conflicting = conflictingConfirmedSignup(localSignups, event);
     if (conflicting) {
       setConfirm({ kind: "replaceSeat", event, conflicting });
       return;
@@ -609,7 +650,7 @@ export function MemberClubView({
             <div className="-mx-5 mt-8 min-w-0 overflow-x-auto overscroll-x-contain px-5 pb-2 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6">
               <div className="flex w-max snap-x snap-mandatory gap-4 lg:gap-5">
                 {events.map((event, index) => {
-                  const signup = signupForEvent(signups, event);
+                  const signup = signupForEvent(localSignups, event);
                   const confirmed = signup?.status === "confirmed";
                   const pending = signup?.status === "pending_payment";
                   const rsvpWindow = getSundayTableRsvpWindow(event.date);

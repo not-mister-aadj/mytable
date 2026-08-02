@@ -180,152 +180,157 @@ export function MemberClubPaywall({
           </div>
         ) : (
           <>
-            <div className="relative h-40 shrink-0 sm:h-44">
-              <Image
-                src={HERO}
-                alt=""
-                fill
-                sizes="448px"
-                className="object-cover"
-                priority
-              />
-              <div
-                aria-hidden
-                className={`absolute inset-0 bg-gradient-to-b ${
-                  girlsOnly
-                    ? "from-transparent via-[#f7e4ea]/40 to-[#f7e4ea]"
-                    : "from-transparent via-cream/40 to-cream"
-                }`}
-              />
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 sm:px-7">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
-                {labels.eyebrow}
-              </p>
-              <h2
-                id="club-paywall-title"
-                className="mt-2 font-serif text-[1.65rem] font-medium leading-snug tracking-tight text-wine sm:text-3xl"
-              >
-                {labels.headline}
-              </h2>
-              <p className="mt-2 text-xs text-wine/45">{eventLine}</p>
-
-              <h3 className="mt-7 text-sm font-semibold text-wine">
-                {labels.perksTitle}
-              </h3>
-              <ul
-                className={`mt-3 space-y-0 overflow-hidden rounded-2xl border ${
-                  girlsOnly
-                    ? "border-[#e8c9d2] bg-white/55"
-                    : "border-wine/8 bg-white/80"
-                }`}
-              >
-                {labels.perks.map((perk, i) => (
-                  <li
-                    key={perk.title}
-                    className={`flex gap-3 px-4 py-3.5 ${
-                      i > 0
-                        ? girlsOnly
-                          ? "border-t border-[#e8c9d2]/80"
-                          : "border-t border-wine/6"
-                        : ""
-                    }`}
-                  >
-                    <span
-                      aria-hidden
-                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-wine"
-                    />
-                    <span>
-                      <span className="block text-sm font-semibold text-wine">
-                        {perk.title}
-                      </span>
-                      <span className="mt-0.5 block text-sm leading-snug text-wine/55">
-                        {perk.body}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <p className="mt-3 text-xs leading-relaxed text-wine/50">
-                {labels.consumptionsNote}
-              </p>
-
-              <h3 className="mt-7 text-sm font-semibold text-wine">
-                {labels.plansTitle}
-              </h3>
-              <div className="mt-3 space-y-2.5">
-                {labels.plans.map((plan) => {
-                  const selectedPlan = plan.id === planId;
-                  const isPopular = plan.id === "5m";
-                  return (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      onClick={() => setPlanId(plan.id)}
-                      aria-pressed={selectedPlan}
-                      className={`relative w-full rounded-2xl border bg-white px-4 py-3.5 text-left transition ${
-                        selectedPlan
-                          ? "border-wine shadow-[0_10px_28px_rgba(43,13,18,0.1)]"
-                          : "border-wine/10 hover:border-wine/25"
-                      }`}
-                    >
-                      {isPopular ? (
-                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-wine px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-cream">
-                          {labels.popular}
-                        </span>
-                      ) : null}
-                      <span className="flex items-center gap-3">
-                        <span
-                          aria-hidden
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                            selectedPlan
-                              ? "border-wine bg-wine"
-                              : "border-wine/25 bg-transparent"
-                          }`}
-                        >
-                          {selectedPlan ? (
-                            <span className="h-1.5 w-1.5 rounded-full bg-cream" />
-                          ) : null}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                            <span className="text-sm font-semibold text-wine">
-                              {plan.label}
-                            </span>
-                            {plan.compareAt ? (
-                              <span className="text-xs text-wine/35 line-through">
-                                {plan.compareAt}
-                              </span>
-                            ) : null}
-                            <span className="text-sm font-semibold text-wine">
-                              {plan.price}
-                            </span>
-                          </span>
-                          <span className="mt-0.5 block text-xs text-wine/45">
-                            {plan.hint
-                              ? plan.hint
-                              : labels.perMonth.replace(
-                                  "{price}",
-                                  plan.perMonth,
-                                )}
-                          </span>
-                        </span>
-                        {plan.savePercent ? (
-                          <span className="shrink-0 rounded-full bg-[#e8f3e4] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#2f5c2a]">
-                            {labels.save.replace("{percent}", plan.savePercent)}
-                          </span>
-                        ) : null}
-                      </span>
-                    </button>
-                  );
-                })}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="relative h-40 sm:h-44">
+                <Image
+                  src={HERO}
+                  alt=""
+                  fill
+                  sizes="448px"
+                  className="object-cover"
+                  priority
+                />
+                <div
+                  aria-hidden
+                  className={`absolute inset-0 bg-gradient-to-b ${
+                    girlsOnly
+                      ? "from-transparent via-[#f7e4ea]/40 to-[#f7e4ea]"
+                      : "from-transparent via-cream/40 to-cream"
+                  }`}
+                />
               </div>
 
-              <p className="mt-5 pb-2 text-[11px] leading-relaxed text-wine/40">
-                {labels.legal}
-              </p>
+              <div className="px-5 pb-4 sm:px-7">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
+                  {labels.eyebrow}
+                </p>
+                <h2
+                  id="club-paywall-title"
+                  className="mt-2 font-serif text-[1.65rem] font-medium leading-snug tracking-tight text-wine sm:text-3xl"
+                >
+                  {labels.headline}
+                </h2>
+                <p className="mt-2 text-xs text-wine/45">{eventLine}</p>
+
+                <h3 className="mt-7 text-sm font-semibold text-wine">
+                  {labels.perksTitle}
+                </h3>
+                <ul
+                  className={`mt-3 space-y-0 overflow-hidden rounded-2xl border ${
+                    girlsOnly
+                      ? "border-[#e8c9d2] bg-white/55"
+                      : "border-wine/8 bg-white/80"
+                  }`}
+                >
+                  {labels.perks.map((perk, i) => (
+                    <li
+                      key={perk.title}
+                      className={`flex gap-3 px-4 py-3.5 ${
+                        i > 0
+                          ? girlsOnly
+                            ? "border-t border-[#e8c9d2]/80"
+                            : "border-t border-wine/6"
+                          : ""
+                      }`}
+                    >
+                      <span
+                        aria-hidden
+                        className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-wine"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-wine">
+                          {perk.title}
+                        </span>
+                        <span className="mt-0.5 block text-sm leading-snug text-wine/55">
+                          {perk.body}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <p className="mt-3 text-xs leading-relaxed text-wine/50">
+                  {labels.consumptionsNote}
+                </p>
+
+                <h3 className="mt-7 text-sm font-semibold text-wine">
+                  {labels.plansTitle}
+                </h3>
+                <div className="mt-3 space-y-2.5">
+                  {labels.plans.map((plan) => {
+                    const selectedPlan = plan.id === planId;
+                    const isPopular = plan.id === "5m";
+                    return (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        onClick={() => setPlanId(plan.id)}
+                        aria-pressed={selectedPlan}
+                        className={`relative w-full rounded-2xl border bg-white px-4 py-3.5 text-left transition ${
+                          selectedPlan
+                            ? "border-wine shadow-[0_10px_28px_rgba(43,13,18,0.1)]"
+                            : "border-wine/10 hover:border-wine/25"
+                        }`}
+                      >
+                        {isPopular ? (
+                          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-wine px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-cream">
+                            {labels.popular}
+                          </span>
+                        ) : null}
+                        <span className="flex items-center gap-3">
+                          <span
+                            aria-hidden
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                              selectedPlan
+                                ? "border-wine bg-wine"
+                                : "border-wine/25 bg-transparent"
+                            }`}
+                          >
+                            {selectedPlan ? (
+                              <span className="h-1.5 w-1.5 rounded-full bg-cream" />
+                            ) : null}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                              <span className="text-sm font-semibold text-wine">
+                                {plan.label}
+                              </span>
+                              {plan.compareAt ? (
+                                <span className="text-xs text-wine/35 line-through">
+                                  {plan.compareAt}
+                                </span>
+                              ) : null}
+                              <span className="text-sm font-semibold text-wine">
+                                {plan.price}
+                              </span>
+                            </span>
+                            <span className="mt-0.5 block text-xs text-wine/45">
+                              {plan.hint
+                                ? plan.hint
+                                : labels.perMonth.replace(
+                                    "{price}",
+                                    plan.perMonth,
+                                  )}
+                            </span>
+                          </span>
+                          {plan.savePercent ? (
+                            <span className="shrink-0 rounded-full bg-[#e8f3e4] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#2f5c2a]">
+                              {labels.save.replace(
+                                "{percent}",
+                                plan.savePercent,
+                              )}
+                            </span>
+                          ) : null}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="mt-5 pb-2 text-[11px] leading-relaxed text-wine/40">
+                  {labels.legal}
+                </p>
+              </div>
             </div>
 
             <div

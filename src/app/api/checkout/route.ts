@@ -32,6 +32,7 @@ import {
   PRIORITY_LIST_OPT_IN_EVENT,
 } from "@/lib/priority-list-enrollment";
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
+import { captureCriticalError } from "@/lib/sentry/critical";
 import type { Locale } from "@/i18n/config";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -285,72 +286,87 @@ export async function POST(request: Request) {
   const productName =
     locale === "nl" ? event.nameNl : event.nameEn;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: email,
-    locale: locale === "nl" ? "nl" : "en",
-    payment_method_types: getCheckoutPaymentMethodTypes(event.currency),
-    line_items: [
-      {
-        quantity: seats,
-        price_data: {
-          currency: event.currency.toLowerCase(),
-          unit_amount: perSeatCents,
-          product_data: {
-            name: productName,
-            description: `${event.city} · MyTable`,
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_email: email,
+      locale: locale === "nl" ? "nl" : "en",
+      payment_method_types: getCheckoutPaymentMethodTypes(event.currency),
+      line_items: [
+        {
+          quantity: seats,
+          price_data: {
+            currency: event.currency.toLowerCase(),
+            unit_amount: perSeatCents,
+            product_data: {
+              name: productName,
+              description: `${event.city} · MyTable`,
+            },
           },
         },
+      ],
+      metadata: {
+        booking_id: booking.id,
+        event_id: event.id,
+        pricing_tier: requestedTier,
+        club_member_discount: clubMemberDiscount ? "1" : "0",
+        affiliate_code: booking.affiliateCode ?? "",
+        from_sunday_table: booking.fromSundayTable ? "1" : "0",
       },
-    ],
-    metadata: {
-      booking_id: booking.id,
-      event_id: event.id,
-      pricing_tier: requestedTier,
-      club_member_discount: clubMemberDiscount ? "1" : "0",
-      affiliate_code: booking.affiliateCode ?? "",
-      from_sunday_table: booking.fromSundayTable ? "1" : "0",
-    },
-    success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,
-  });
-
-  await db
-    .update(bookings)
-    .set({ stripeCheckoutSessionId: session.id })
-    .where(eq(bookings.id, booking.id));
-
-  const [bookingWithSession] = await db
-    .select()
-    .from(bookings)
-    .where(eq(bookings.id, booking.id))
-    .limit(1);
-
-  if (bookingWithSession) {
-    await onCheckoutStarted({
-      booking: bookingWithSession,
-      event,
-      stripeSessionId: session.id,
+      success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,
     });
-  }
 
-  void captureServerEvent(email, PostHogEvents.checkoutStarted, {
-    event_id: event.id,
-    event_slug: event.slug,
-    event_type: event.experienceType,
-    event_name: productName,
-    city: event.city,
-    seats,
-    total_price: amountCents / 100,
-    price_per_seat: perSeatCents / 100,
-    pricing_tier: requestedTier,
-    stripe_session_id: session.id,
-    language: locale,
-  });
+    await db
+      .update(bookings)
+      .set({ stripeCheckoutSessionId: session.id })
+      .where(eq(bookings.id, booking.id));
 
-  if (!session.url) {
+    const [bookingWithSession] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, booking.id))
+      .limit(1);
+
+    if (bookingWithSession) {
+      await onCheckoutStarted({
+        booking: bookingWithSession,
+        event,
+        stripeSessionId: session.id,
+      });
+    }
+
+    void captureServerEvent(email, PostHogEvents.checkoutStarted, {
+      event_id: event.id,
+      event_slug: event.slug,
+      event_type: event.experienceType,
+      event_name: productName,
+      city: event.city,
+      seats,
+      total_price: amountCents / 100,
+      price_per_seat: perSeatCents / 100,
+      pricing_tier: requestedTier,
+      stripe_session_id: session.id,
+      language: locale,
+    });
+
+    if (!session.url) {
+      captureCriticalError(new Error("Stripe checkout session missing url"), {
+        flow: "payment",
+        step: "agenda_checkout",
+        tags: { event_id: event.id, booking_id: booking.id },
+      });
+      return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });
+    }
+
+    return NextResponse.json({ url: session.url, bookingId: booking.id });
+  } catch (error) {
+    console.error("[checkout] stripe session create failed", error);
+    captureCriticalError(error, {
+      flow: "payment",
+      step: "agenda_checkout",
+      tags: { event_id: event.id, booking_id: booking.id },
+    });
     return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });
   }
-
-  return NextResponse.json({ url: session.url, bookingId: booking.id });
 }

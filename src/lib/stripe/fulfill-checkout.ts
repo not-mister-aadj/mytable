@@ -18,6 +18,7 @@ import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { ensureAuthUserForEmail } from "@/lib/auth/ensure-auth-user-for-email";
+import { captureCriticalError } from "@/lib/sentry/critical";
 
 export type FulfillCheckoutOptions = {
   /** Skip blocking on Resend — confirmation page renders first, API poll sends email. */
@@ -34,6 +35,11 @@ async function ensureAuthUserForBooking(booking: Booking): Promise<void> {
     });
   } catch (err) {
     console.error("[stripe fulfill] ensure auth user failed", err);
+    captureCriticalError(err, {
+      flow: "auth",
+      step: "ensure_auth_user_after_payment",
+      tags: { booking_id: booking.id },
+    });
   }
 }
 
@@ -316,6 +322,11 @@ export async function tryFulfillCheckoutSession(
     session = await stripe.checkout.sessions.retrieve(sessionId);
   } catch (err) {
     console.error("[stripe fulfill] session retrieve failed", err);
+    captureCriticalError(err, {
+      flow: "payment",
+      step: "fulfill_session_retrieve",
+      tags: { session_id: sessionId },
+    });
     return null;
   }
 
@@ -335,6 +346,11 @@ export async function tryFulfillCheckoutSessionSafe(
     return await tryFulfillCheckoutSession(sessionId, options);
   } catch (err) {
     console.error("[stripe fulfill] unexpected failure", err);
+    captureCriticalError(err, {
+      flow: "payment",
+      step: "fulfill_unexpected",
+      tags: { session_id: sessionId },
+    });
     return null;
   }
 }

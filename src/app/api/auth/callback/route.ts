@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin-url";
 import { isAdminEmail } from "@/lib/env";
 import { clearStaleSupabaseAuthCookies } from "@/lib/supabase/cookies";
+import { captureCriticalError } from "@/lib/sentry/critical";
 
 function marketingHome(): string {
   try {
@@ -70,10 +71,18 @@ export async function GET(request: Request) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user?.email) {
+    captureCriticalError(
+      error ?? new Error("Admin OAuth exchange returned no user email"),
+      {
+        flow: "auth",
+        step: "admin_oauth_callback",
+      },
+    );
     return NextResponse.redirect(adminUrlForHost("/login?error=auth", host, proto));
   }
 
   if (!isAdminEmail(data.user.email)) {
+    // Expected for non-staff accounts — do not alert.
     await supabase.auth.signOut();
     let unauthorizedResponse = NextResponse.redirect(
       adminUrlForHost("/login?error=unauthorized", host, proto),

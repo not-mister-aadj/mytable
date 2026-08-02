@@ -309,6 +309,11 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[clubmember-checkout]", error);
+    const { captureCriticalError } = await import("@/lib/sentry/critical");
+    captureCriticalError(error, {
+      flow: "payment",
+      step: "clubmember_checkout",
+    });
     return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
   }
 }

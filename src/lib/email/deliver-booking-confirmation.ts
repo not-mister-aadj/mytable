@@ -3,6 +3,10 @@ import type { Booking, Event } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { sendBookingConfirmationForPaidBooking } from "@/lib/email/sendBookingConfirmationEmail";
 import type { EmailSendResult } from "@/lib/email/resend";
+import {
+  captureCriticalError,
+  captureCriticalMessage,
+} from "@/lib/sentry/critical";
 
 async function logConfirmationEmailEvent(
   bookingId: string,
@@ -37,11 +41,21 @@ export async function deliverBookingConfirmationEmail(
     await logConfirmationEmailEvent(booking.id, context, result);
     if (!result.ok) {
       console.error(`[email] ${context} confirmation failed`, result.error);
+      captureCriticalMessage(`Booking confirmation email failed: ${result.error}`, {
+        flow: "payment",
+        step: "confirmation_email",
+        tags: { booking_id: booking.id, context },
+      });
     }
     return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`[email] ${context} confirmation failed`, err);
+    captureCriticalError(err, {
+      flow: "payment",
+      step: "confirmation_email",
+      tags: { booking_id: booking.id, context },
+    });
     const result = { ok: false as const, error: message };
     await logConfirmationEmailEvent(booking.id, context, result);
     return result;

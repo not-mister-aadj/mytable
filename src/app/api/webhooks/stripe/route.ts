@@ -12,6 +12,10 @@ import { PostHogEvents } from "@/lib/posthog/events";
 import { getStripe } from "@/lib/stripe";
 import { fulfillPaidCheckoutSession } from "@/lib/stripe/fulfill-checkout";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
+import {
+  captureCriticalError,
+  captureCriticalMessage,
+} from "@/lib/sentry/critical";
 
 export async function POST(request: Request) {
   if (!isDbConfigured()) {
@@ -23,6 +27,10 @@ export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!signature || !secret) {
+    captureCriticalMessage("Stripe webhook missing signature or secret", {
+      flow: "payment",
+      step: "stripe_webhook_config",
+    });
     return NextResponse.json({ error: "Webhook niet geconfigureerd" }, { status: 400 });
   }
 
@@ -32,6 +40,7 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, secret);
   } catch (err) {
+    // Often probe traffic — log only; do not page on every bad signature.
     console.error("[stripe webhook] signature", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
@@ -53,15 +62,48 @@ export async function POST(request: Request) {
           await fulfillClubCheckoutSession(session);
         } catch (err) {
           console.error("[stripe webhook] club fulfill", err);
+          captureCriticalError(err, {
+            flow: "payment",
+            step: "club_fulfill",
+            tags: {
+              stripe_event: event.type,
+              session_id: session.id,
+            },
+          });
         }
       }
     } else if (isCheckoutPaymentSettled(session)) {
-      const result = await fulfillPaidCheckoutSession(session);
-      if (result === "not_paid") {
-        console.info(
-          "[stripe webhook] checkout complete but payment not settled yet",
-          session.id,
-        );
+      try {
+        const result = await fulfillPaidCheckoutSession(session);
+        if (result === "not_paid") {
+          console.info(
+            "[stripe webhook] checkout complete but payment not settled yet",
+            session.id,
+          );
+        } else if (
+          result === "missing_metadata" ||
+          result === "booking_not_found"
+        ) {
+          captureCriticalMessage(`Stripe fulfill failed: ${result}`, {
+            flow: "payment",
+            step: "booking_fulfill",
+            tags: {
+              stripe_event: event.type,
+              session_id: session.id,
+              result,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[stripe webhook] booking fulfill", err);
+        captureCriticalError(err, {
+          flow: "payment",
+          step: "booking_fulfill",
+          tags: {
+            stripe_event: event.type,
+            session_id: session.id,
+          },
+        });
       }
     }
   }
@@ -75,6 +117,14 @@ export async function POST(request: Request) {
       await syncClubMembershipFromSubscription(sub);
     } catch (err) {
       console.error("[stripe webhook] subscription sync", err);
+      captureCriticalError(err, {
+        flow: "payment",
+        step: "subscription_sync",
+        tags: {
+          stripe_event: event.type,
+          subscription_id: sub.id,
+        },
+      });
     }
   }
 

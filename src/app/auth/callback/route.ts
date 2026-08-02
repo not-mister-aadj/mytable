@@ -3,6 +3,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { syncMemberCustomer } from "@/lib/member-auth";
 import { sanitizeMemberNextPath } from "@/lib/member-url";
 import { getSiteUrl, isAdminHost, resolveHostname } from "@/lib/admin-url";
+import {
+  captureCriticalError,
+  captureCriticalMessage,
+} from "@/lib/sentry/critical";
 import type { Locale } from "@/i18n/config";
 
 function resolveLocale(next: string): Locale {
@@ -41,6 +45,10 @@ export async function GET(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
+    captureCriticalMessage("Member auth callback missing Supabase env", {
+      flow: "auth",
+      step: "member_oauth_callback",
+    });
     return NextResponse.redirect(`${siteOrigin}${next}?signin=1&auth=error`);
   }
 
@@ -59,6 +67,10 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.user) {
+    captureCriticalError(error ?? new Error("Member OAuth exchange returned no user"), {
+      flow: "auth",
+      step: "member_oauth_callback",
+    });
     return NextResponse.redirect(`${siteOrigin}${next}?signin=1&auth=error`);
   }
 
@@ -66,6 +78,10 @@ export async function GET(request: NextRequest) {
     await syncMemberCustomer(data.user, locale);
   } catch (err) {
     console.error("[auth/callback] customer sync failed", err);
+    captureCriticalError(err, {
+      flow: "auth",
+      step: "member_customer_sync",
+    });
   }
 
   return response;

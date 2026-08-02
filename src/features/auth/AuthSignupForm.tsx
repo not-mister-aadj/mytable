@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { signInWithGoogle } from "@/features/auth/oauth";
 import { privacyPath, termsPath, type Locale } from "@/i18n/config";
 import type { AccountAuthLabels } from "@/i18n/account.types";
+import { captureCriticalError } from "@/lib/sentry/critical";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 const OTP_LENGTH = 8;
@@ -109,6 +110,10 @@ export function AuthSignupForm({
         );
         return;
       }
+      captureCriticalError(err, {
+        flow: "auth",
+        step: "otp_send",
+      });
       setError(
         process.env.NODE_ENV === "development" && message
           ? `${labels.errors.otpSend} (${message})`
@@ -151,8 +156,12 @@ export function AuthSignupForm({
     setSubmitting(true);
     try {
       await signInWithGoogle(nextPath);
-    } catch {
+    } catch (err) {
       if (!aliveRef.current) return;
+      captureCriticalError(err, {
+        flow: "auth",
+        step: "google_signin",
+      });
       setError(labels.errors.google);
       setSubmitting(false);
     }

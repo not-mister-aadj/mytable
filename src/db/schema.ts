@@ -287,6 +287,10 @@ export const clubMemberships = pgTable(
     stripeCheckoutSessionId: text("stripe_checkout_session_id"),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    /** Period end we already emailed a 7-day renewal reminder for. */
+    renewalReminderPeriodEnd: timestamp("renewal_reminder_period_end", {
+      withTimezone: true,
+    }),
     locale: text("locale").notNull().default("nl"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -334,6 +338,9 @@ export const sundayTableSignups = pgTable(
     locationEmailSentAt: timestamp("location_email_sent_at", {
       withTimezone: true,
     }),
+    reviewEmailSentAt: timestamp("review_email_sent_at", {
+      withTimezone: true,
+    }),
     stripeCheckoutSessionId: text("stripe_checkout_session_id"),
     profile: jsonb("profile").$type<SundayTableSignupProfile>(),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
@@ -345,6 +352,32 @@ export const sundayTableSignups = pgTable(
     emailCityDateTypeUnique: uniqueIndex(
       "sunday_table_signups_email_city_date_type_unique",
     ).on(table.email, table.city, table.tableDate, table.tableType),
+  }),
+);
+
+export const sundayTableReviews = pgTable(
+  "sunday_table_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    signupId: uuid("signup_id")
+      .notNull()
+      .references(() => sundayTableSignups.id, { onDelete: "cascade" }),
+    rating: integer("rating").notNull(),
+    body: text("body"),
+    photoUrl: text("photo_url"),
+    marketingConsent: boolean("marketing_consent").notNull().default(false),
+    locale: text("locale").notNull().default("nl"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    signupUnique: uniqueIndex("sunday_table_reviews_signup_unique").on(
+      table.signupId,
+    ),
   }),
 );
 
@@ -451,6 +484,7 @@ export type Booking = typeof bookings.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type ClubMembership = typeof clubMemberships.$inferSelect;
 export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
+export type SundayTableReview = typeof sundayTableReviews.$inferSelect;
 export type ReferralCode = typeof referralCodes.$inferSelect;
 export type ReferralAttribution = typeof referralAttributions.$inferSelect;
 export type AffiliateCode = typeof affiliateCodes.$inferSelect;

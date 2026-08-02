@@ -3,9 +3,10 @@ import { and, eq, isNull } from "drizzle-orm";
 import { SundayTableInviteEmail } from "@/emails/SundayTableInviteEmail";
 import { SundayTableCulinaryEmail } from "@/emails/SundayTableCulinaryEmail";
 import { SundayTableLocationEmail } from "@/emails/SundayTableLocationEmail";
+import { SundayTableReviewEmail } from "@/emails/SundayTableReviewEmail";
 import { getDb, isDbConfigured } from "@/db/index";
 import { sundayTableSignups } from "@/db/schema";
-import { agendaPath, type Locale } from "@/i18n/config";
+import { agendaPath, sundayTableReviewPath, type Locale } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/lib/referral";
 import { sundayTableCalendarDownloadUrl } from "@/lib/sunday-table-calendar";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
+import { signSundayTableReviewToken } from "@/lib/sunday-table-review-token";
 import {
   amsterdamDateIso,
   formatSundayTableDate,
@@ -72,9 +74,9 @@ async function sendSimpleEmail(input: {
   return !error;
 }
 
-/** Day-after invite emails for confirmed Sunday Tables yesterday. */
-export async function sendSundayTableInviteEmails(): Promise<number> {
-  if (!isDbConfigured()) return 0;
+/** Day 1 after Sunday Table: ask for a review. */
+export async function sendSundayTableReviewEmails(): Promise<number> {
+  if (!isDbConfigured() || !isEmailConfigured()) return 0;
   await markPastConfirmedAsAttended();
 
   const db = getDb();
@@ -86,6 +88,62 @@ export async function sendSundayTableInviteEmails(): Promise<number> {
       and(
         eq(sundayTableSignups.status, "confirmed"),
         eq(sundayTableSignups.tableDate, yesterday),
+        isNull(sundayTableSignups.reviewEmailSentAt),
+      ),
+    );
+
+  let sent = 0;
+  const site = getSiteUrl().replace(/\/$/, "");
+
+  for (const row of rows) {
+    const locale = (row.locale === "en" ? "en" : "nl") as Locale;
+    try {
+      const token = await signSundayTableReviewToken({
+        signupId: row.id,
+        email: row.email,
+      });
+      const reviewUrl = `${site}${sundayTableReviewPath(locale, token)}`;
+      const ok = await sendSimpleEmail({
+        to: row.email,
+        subject:
+          locale === "en"
+            ? `How was Sunday Table in ${row.city}?`
+            : `Hoe was Sunday Table in ${row.city}?`,
+        element: SundayTableReviewEmail({
+          locale,
+          firstName: row.name?.split(" ")[0],
+          city: row.city,
+          reviewUrl,
+        }),
+      });
+      if (ok) {
+        await db
+          .update(sundayTableSignups)
+          .set({ reviewEmailSentAt: new Date() })
+          .where(eq(sundayTableSignups.id, row.id));
+        sent += 1;
+      }
+    } catch {
+      // Skip row if token/secret missing; next cron can retry.
+    }
+  }
+  return sent;
+}
+
+/** Day 2 after Sunday Table: invite emails for confirmed RSVPs. */
+export async function sendSundayTableInviteEmails(): Promise<number> {
+  if (!isDbConfigured()) return 0;
+  await markPastConfirmedAsAttended();
+
+  const db = getDb();
+  const twoDaysAgo = daysAgoIso(2);
+  const rows = await db
+    .select()
+    .from(sundayTableSignups)
+    .where(
+      and(
+        eq(sundayTableSignups.status, "confirmed"),
+        eq(sundayTableSignups.tableDate, twoDaysAgo),
         isNull(sundayTableSignups.inviteEmailSentAt),
       ),
     );
@@ -262,6 +320,7 @@ export async function sendSundayTableLocationEmails(): Promise<number> {
 }
 
 export async function runSundayTableLifecycleJobs(): Promise<{
+  reviews: number;
   invites: number;
   culinary: number;
   locations: number;
@@ -269,7 +328,8 @@ export async function runSundayTableLifecycleJobs(): Promise<{
 }> {
   const attended = await markPastConfirmedAsAttended();
   const locations = await sendSundayTableLocationEmails();
+  const reviews = await sendSundayTableReviewEmails();
   const invites = await sendSundayTableInviteEmails();
   const culinary = await sendSundayTableCulinaryEmails();
-  return { invites, culinary, locations, attended };
+  return { reviews, invites, culinary, locations, attended };
 }

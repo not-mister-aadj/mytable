@@ -1,9 +1,11 @@
 import type { BookingConfirmationEmailProps } from "@/emails/BookingConfirmationEmail";
 import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
+import type { MembershipRenewalReminderEmailProps } from "@/emails/MembershipRenewalReminderEmail";
 import type { SundayTableCancelEmailProps } from "@/emails/SundayTableCancelEmail";
 import type { SundayTableConfirmationEmailProps } from "@/emails/SundayTableConfirmationEmail";
 import type { SundayTableLocationEmailProps } from "@/emails/SundayTableLocationEmail";
 import type { SundayTablePlusOneEmailProps } from "@/emails/SundayTablePlusOneEmail";
+import type { SundayTableReviewEmailProps } from "@/emails/SundayTableReviewEmail";
 
 export const sampleBookingConfirmationProps: BookingConfirmationEmailProps = {
   customerName: "Sophie",
@@ -91,3 +93,25 @@ export const sampleSundayTableLocationProps: SundayTableLocationEmailProps = {
   calendarUrl:
     "https://mytable.club/api/clubmember/calendar?city=Rotterdam&date=2026-08-02&type=girls_only&locale=nl",
 };
+
+export const sampleSundayTableReviewProps: SundayTableReviewEmailProps = {
+  locale: "nl",
+  firstName: "Sophie",
+  city: "Rotterdam",
+  reviewUrl: "https://www.mytable.club/review/sample-token",
+};
+
+export const sampleMembershipRenewalReminderProps: MembershipRenewalReminderEmailProps =
+  {
+    locale: "nl",
+    firstName: "Sophie",
+    variant: "trial_upsell",
+    planLabel: "MyTable Club · 1 maand",
+    amountLabel: "€ 21,00",
+    renewalDateLabel: "zondag 6 september 2026",
+    manageUrl: "https://www.mytable.club/clubmember",
+    plan5mTotalLabel: "€ 50,00",
+    plan12mTotalLabel: "€ 100,00",
+    plan5mPerMonthLabel: "€ 10,00",
+    plan12mPerMonthLabel: "€ 8,33",
+  };

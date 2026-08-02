@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/sunday-table-lifecycle",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/membership-renewal-reminders",
+      "schedule": "15 9 * * *"
     }
   ]
 }

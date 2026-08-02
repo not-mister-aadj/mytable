@@ -48,6 +48,21 @@ export function sundayTablePlusOneRemovedSubject(
   return `Sunday Table +1 verwijderd: ${city.trim()} · ${date.trim()}`;
 }
 
+export function membershipRenewalReminderSubject(
+  renewalDate: string,
+  locale: "nl" | "en" = "nl",
+  variant: "trial_upsell" | "renewal" = "renewal",
+): string {
+  if (variant === "trial_upsell") {
+    return locale === "en"
+      ? "Your trial is ending. Switch to a cheaper plan."
+      : "Je trial loopt bijna af. Kies een plan dat minder kost.";
+  }
+  return locale === "en"
+    ? `Your Clubmember plan renews on ${renewalDate.trim()}`
+    : `Je Clubmember verlengt op ${renewalDate.trim()}`;
+}
+
 /** Extra signal for clients that group on custom entity refs. */
 export function bookingEmailHeaders(bookingCode: string): Record<string, string> {
   return { "X-Entity-Ref-ID": bookingCode.trim() };

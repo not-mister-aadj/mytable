@@ -129,3 +129,9 @@ export function loginPath(locale: Locale): string {
 export function accountPath(locale: Locale): string {
   return locale === "en" ? "/en/account" : "/account";
 }
+
+/** Token-gated Sunday Table review form (no login required). */
+export function sundayTableReviewPath(locale: Locale, token: string): string {
+  const encoded = encodeURIComponent(token);
+  return locale === "en" ? `/en/review/${encoded}` : `/review/${encoded}`;
+}

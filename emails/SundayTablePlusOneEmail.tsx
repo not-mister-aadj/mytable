@@ -79,8 +79,8 @@ export function SundayTablePlusOneEmail({
         body={
           added
             ? nl
-              ? "Je neemt een +1 mee naar Sunday Table. Die tweede plek telt mee aan tafel. Geen extra kosten."
-              : "You are bringing a +1 to Sunday Table. That second seat counts at the table. No extra cost."
+              ? "Je neemt iemand mee. Die tweede plek telt mee aan tafel, zonder extra kosten. Kan diegene toch niet? Meld de +1 dan op tijd af, zodat iemand anders die stoel kan claimen."
+              : "You are bringing someone. That second seat counts at the table, at no extra cost. If they cannot make it after all, please remove the +1 in time so someone else can take that seat."
             : nl
               ? "Je +1 is verwijderd. Je Sunday Table-RSVP blijft staan voor jou alleen."
               : "Your +1 was removed. Your Sunday Table RSVP stays for you alone."
@@ -108,8 +108,8 @@ export function SundayTablePlusOneEmail({
       >
         {added
           ? nl
-            ? "Wil je de +1 weer weghalen? Dat kan tot de RSVP-sluiting in je Clubmember-hub."
-            : "Want to remove the +1 again? You can do that until RSVP closes in your Clubmember hub."
+            ? "Afmelden kan tot de RSVP-sluiting in je Clubmember-hub."
+            : "You can remove the +1 until RSVP closes in your Clubmember hub."
           : nl
             ? "Wil je later toch iemand meenemen? Voeg opnieuw een +1 toe in je Clubmember-hub."
             : "Want to bring someone later? Add a +1 again in your Clubmember hub."}

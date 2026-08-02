@@ -40,6 +40,12 @@ function isMemberGatedPath(pathname: string): boolean {
   return false;
 }
 
+/** True for asset-like paths (foo.png), not JWT segments that contain dots. */
+function looksLikeStaticAssetPath(pathname: string): boolean {
+  if (pathname.endsWith("/feed.xml")) return false;
+  return /\.[a-zA-Z0-9]{1,8}$/.test(pathname);
+}
+
 function signInHomeRedirect(request: NextRequest): NextResponse {
   const target = request.nextUrl.clone();
   const isEn =
@@ -60,7 +66,7 @@ function handleAdminSubdomain(request: NextRequest) {
     pathname.startsWith("/icon") ||
     pathname.startsWith("/apple-icon") ||
     pathname.startsWith("/apple-touch-icon") ||
-    (pathname.includes(".") && !pathname.startsWith("/api"))
+    looksLikeStaticAssetPath(pathname)
   ) {
     return NextResponse.next();
   }
@@ -203,7 +209,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/apple-icon") ||
     pathname.startsWith("/apple-touch-icon") ||
     pathname.startsWith("/favicon") ||
-    (pathname.includes(".") && !pathname.endsWith("/feed.xml"))
+    looksLikeStaticAssetPath(pathname)
   ) {
     return NextResponse.next();
   }

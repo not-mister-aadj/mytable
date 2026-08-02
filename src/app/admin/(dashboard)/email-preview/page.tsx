@@ -60,6 +60,22 @@ export default async function EmailPreviewIndexPage() {
             Sunday Table locatie (24u)
           </Link>
         </li>
+        <li>
+          <Link
+            href={adminPath("/email-preview/sunday-table-review")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Sunday Table review (dag 1)
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={adminPath("/email-preview/membership-renewal")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Clubmember trial upsell (7 dagen)
+          </Link>
+        </li>
       </ul>
     </div>
   );

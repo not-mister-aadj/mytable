@@ -34,6 +34,20 @@ export function sundayTableLocationSubject(
   return `Locatie Sunday Table: ${city.trim()} · ${date.trim()}`;
 }
 
+export function sundayTablePlusOneAddedSubject(
+  city: string,
+  date: string,
+): string {
+  return `Sunday Table +1 toegevoegd: ${city.trim()} · ${date.trim()}`;
+}
+
+export function sundayTablePlusOneRemovedSubject(
+  city: string,
+  date: string,
+): string {
+  return `Sunday Table +1 verwijderd: ${city.trim()} · ${date.trim()}`;
+}
+
 /** Extra signal for clients that group on custom entity refs. */
 export function bookingEmailHeaders(bookingCode: string): Record<string, string> {
   return { "X-Entity-Ref-ID": bookingCode.trim() };

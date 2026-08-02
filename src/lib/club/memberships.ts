@@ -1055,10 +1055,33 @@ export async function updateSundayTableRsvp(input: {
     if (row.status !== "confirmed") {
       return { error: "Only confirmed RSVPs can bring a +1" };
     }
+    if (row.plusOne === input.plusOne) {
+      return { ok: true };
+    }
     await db
       .update(sundayTableSignups)
       .set({ plusOne: input.plusOne })
       .where(eq(sundayTableSignups.id, input.signupId));
+
+    const [updated] = await db
+      .select()
+      .from(sundayTableSignups)
+      .where(eq(sundayTableSignups.id, input.signupId))
+      .limit(1);
+    if (updated) {
+      try {
+        const { voidSundayTablePlusOneEmail } = await import(
+          "@/lib/email/sendSundayTableBookingEmails"
+        );
+        voidSundayTablePlusOneEmail(
+          updated,
+          input.plusOne ? "added" : "removed",
+        );
+      } catch (err) {
+        console.error("[club] Sunday Table +1 email", err);
+      }
+    }
+
     return { ok: true };
   }
 

@@ -1,10 +1,9 @@
-import type { ReactElement } from "react";
-import { eq } from "drizzle-orm";
 import type { SundayTableSignup } from "@/db/schema";
 import { sundayTableSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { SundayTableCancelEmail } from "@/emails/SundayTableCancelEmail";
 import { SundayTableConfirmationEmail } from "@/emails/SundayTableConfirmationEmail";
+import { SundayTablePlusOneEmail } from "@/emails/SundayTablePlusOneEmail";
 import { clubmemberPath, type Locale } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
@@ -19,6 +18,8 @@ import {
 import {
   sundayTableCancelSubject,
   sundayTableConfirmationSubject,
+  sundayTablePlusOneAddedSubject,
+  sundayTablePlusOneRemovedSubject,
 } from "@/lib/email/subjects";
 import {
   buildSundayTableIcs,
@@ -29,6 +30,8 @@ import {
   formatSundayTableTime,
   parseAmsterdamDateIso,
 } from "@/lib/sunday-wine-table";
+import type { ReactElement } from "react";
+import { eq } from "drizzle-orm";
 
 function signupLocale(row: Pick<SundayTableSignup, "locale">): Locale {
   return row.locale === "en" ? "en" : "nl";
@@ -151,6 +154,23 @@ export function buildSundayTableCancelProps(
   };
 }
 
+export function buildSundayTablePlusOneProps(
+  row: SundayTableSignup,
+  action: "added" | "removed",
+): Parameters<typeof SundayTablePlusOneEmail>[0] {
+  const { locale, dateLabel, timeLabel } = signupDateParts(row);
+  return {
+    locale,
+    firstName: firstNameFrom(row),
+    city: row.city,
+    date: dateLabel,
+    time: timeLabel,
+    tableType: signupTableType(row),
+    action,
+    clubmemberUrl: `${getSiteUrl()}${clubmemberPath(locale)}`,
+  };
+}
+
 export async function sendSundayTableConfirmationEmail(
   row: SundayTableSignup,
   options?: { force?: boolean },
@@ -207,6 +227,23 @@ export async function sendSundayTableCancelEmail(
   });
 }
 
+export async function sendSundayTablePlusOneEmail(
+  row: SundayTableSignup,
+  action: "added" | "removed",
+): Promise<EmailSendResult> {
+  const props = buildSundayTablePlusOneProps(row, action);
+  const subject =
+    action === "added"
+      ? sundayTablePlusOneAddedSubject(props.city, props.date)
+      : sundayTablePlusOneRemovedSubject(props.city, props.date);
+
+  return sendRendered({
+    to: row.email,
+    subject,
+    element: SundayTablePlusOneEmail(props),
+  });
+}
+
 /** Fire-and-forget helper for RSVP side effects. */
 export function voidSundayTableConfirmationEmail(
   row: SundayTableSignup,
@@ -219,5 +256,14 @@ export function voidSundayTableConfirmationEmail(
 export function voidSundayTableCancelEmail(row: SundayTableSignup): void {
   void sendSundayTableCancelEmail(row).catch((err) => {
     console.error("[email] Sunday Table cancel", err);
+  });
+}
+
+export function voidSundayTablePlusOneEmail(
+  row: SundayTableSignup,
+  action: "added" | "removed",
+): void {
+  void sendSundayTablePlusOneEmail(row, action).catch((err) => {
+    console.error("[email] Sunday Table +1", err);
   });
 }

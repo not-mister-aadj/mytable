@@ -46,6 +46,14 @@ export default async function EmailPreviewIndexPage() {
         </li>
         <li>
           <Link
+            href={adminPath("/email-preview/sunday-table-plus-one")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Sunday Table +1 toevoegen / verwijderen
+          </Link>
+        </li>
+        <li>
+          <Link
             href={adminPath("/email-preview/sunday-table-location")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >

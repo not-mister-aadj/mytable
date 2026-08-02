@@ -15,6 +15,7 @@ export { sendBookingMovedEmail } from "@/lib/email/sendBookingMovedEmail";
 export {
   sendSundayTableConfirmationEmail,
   sendSundayTableCancelEmail,
+  sendSundayTablePlusOneEmail,
 } from "@/lib/email/sendSundayTableBookingEmails";
 export {
   buildBookingConfirmationEmailProps,

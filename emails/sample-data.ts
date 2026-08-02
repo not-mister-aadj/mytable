@@ -3,6 +3,7 @@ import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
 import type { SundayTableCancelEmailProps } from "@/emails/SundayTableCancelEmail";
 import type { SundayTableConfirmationEmailProps } from "@/emails/SundayTableConfirmationEmail";
 import type { SundayTableLocationEmailProps } from "@/emails/SundayTableLocationEmail";
+import type { SundayTablePlusOneEmailProps } from "@/emails/SundayTablePlusOneEmail";
 
 export const sampleBookingConfirmationProps: BookingConfirmationEmailProps = {
   customerName: "Sophie",
@@ -10,7 +11,7 @@ export const sampleBookingConfirmationProps: BookingConfirmationEmailProps = {
   eventName: "Wijnspijs proeverij",
   city: "Rotterdam",
   date: "Vrijdag 28 juni",
-  time: "19:00–22:00",
+  time: "19:00-22:00",
   seats: 2,
   totalPaid: "€ 98,00",
   bookingCode: "MT-A1B2C3D4",
@@ -26,11 +27,11 @@ export const sampleBookingMovedProps: BookingMovedEmailProps = {
   oldEventName: "Wijnspijs proeverij",
   oldCity: "Rotterdam",
   oldDate: "Vrijdag 28 juni",
-  oldTime: "19:00–22:00",
+  oldTime: "19:00-22:00",
   newEventName: "Wijnspijs proeverij",
   newCity: "Amsterdam",
   newDate: "Zaterdag 5 juli",
-  newTime: "18:30–21:30",
+  newTime: "18:30-21:30",
   seats: 2,
   bookingCode: "MT-A1B2C3D4",
   eventUrl: "https://mytable.club/agenda/wijnspijs-proeferij-Amsterdam-05-07-26",
@@ -59,6 +60,23 @@ export const sampleSundayTableCancelProps: SundayTableCancelEmailProps = {
   tableType: "girls_only",
   clubmemberUrl: "https://mytable.club/clubmember",
 };
+
+export const sampleSundayTablePlusOneAddedProps: SundayTablePlusOneEmailProps = {
+  locale: "nl",
+  firstName: "Sophie",
+  city: "Rotterdam",
+  date: "zondag 6 september 2026",
+  time: "14:00",
+  tableType: "mixed",
+  action: "added",
+  clubmemberUrl: "https://mytable.club/clubmember",
+};
+
+export const sampleSundayTablePlusOneRemovedProps: SundayTablePlusOneEmailProps =
+  {
+    ...sampleSundayTablePlusOneAddedProps,
+    action: "removed",
+  };
 
 export const sampleSundayTableLocationProps: SundayTableLocationEmailProps = {
   locale: "nl",

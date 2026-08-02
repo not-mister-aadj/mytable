@@ -118,7 +118,6 @@ export const experiencePageEn: ExperiencePageLabels = {
     "Pay in full when you book",
     "Free date exchange up to 48 hours before",
     "Dietary needs welcome",
-    "Book for yourself or your group",
   ],
   trustLines: [
     "Selected restaurants and hosts",

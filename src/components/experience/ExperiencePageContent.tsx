@@ -33,6 +33,7 @@ import { ScrollProgress } from "./ScrollProgress";
 import { VenueLineup } from "./VenueLineup";
 import { trackEventDetailViewed, trackPremiumExperienceViewed } from "@/lib/posthog/analytics";
 import { trackMetaViewContent } from "@/lib/analytics/metaTracking";
+import type { ExperienceIncludedItem } from "@/i18n/types";
 
 const fade = {
   initial: { opacity: 0, y: 16 },
@@ -40,6 +41,27 @@ const fade = {
   viewport: { once: true, margin: "-60px" as const },
   transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
 };
+
+function restaurantIncludedLabel(count: number, locale: Locale): string {
+  if (locale === "nl") return count === 1 ? "restaurant" : "restaurants";
+  return count === 1 ? "restaurant" : "restaurants";
+}
+
+function withVenueRestaurantCount(
+  items: ExperienceIncludedItem[],
+  venueCount: number,
+  locale: Locale,
+): ExperienceIncludedItem[] {
+  if (venueCount <= 0) return items;
+  return items.map((item) => {
+    const key = item.label.trim().toLowerCase();
+    if (key !== "restaurant" && key !== "restaurants") return item;
+    return {
+      value: String(venueCount),
+      label: restaurantIncludedLabel(venueCount, locale),
+    };
+  });
+}
 
 interface ExperiencePageContentProps {
   experience: EnrichedExperience;
@@ -93,6 +115,36 @@ export function ExperiencePageContent({
   const scheduleNote = `${mood.dayOfWeek} · ${mood.partOfDay}`;
   // Culinary experiences are never girls-only (Clubmember Sunday Tables only).
   const isFemaleOnly = false;
+  const includedItems = withVenueRestaurantCount(
+    page.includedItems,
+    venues.length,
+    locale,
+  );
+  const isWineWalk =
+    experience.mood === "wineWalk" ||
+    experience.experienceType === "wine-walk";
+  const includedSubtitle = (() => {
+    if (!isWineWalk && venues.length <= 1) return page.includedSubtitle;
+    const count = venues.length > 0 ? venues.length : 4;
+    if (locale === "nl") {
+      const n =
+        count === 1
+          ? "Eén restaurant"
+          : count === 2
+            ? "Twee restaurants"
+            : count === 3
+              ? "Drie restaurants"
+              : count === 4
+                ? "Vier restaurants"
+                : `${count} restaurants`;
+      return `${n}, wijn en spijs onderweg. Jij boekt vooraf; wij regelen de route.`;
+    }
+    const n =
+      count === 1
+        ? "One restaurant"
+        : `${count} restaurants`;
+    return `${n}, wine and food along the way. You book ahead; we arrange the route.`;
+  })();
 
   useEffect(() => {
     if (previewMode) return;
@@ -223,8 +275,8 @@ export function ExperiencePageContent({
               <ExperienceIncluded
                 eyebrow={page.includedEyebrow}
                 title={page.includedTitle}
-                subtitle={page.includedSubtitle}
-                items={page.includedItems}
+                subtitle={includedSubtitle}
+                items={includedItems}
                 isFemaleOnly={isFemaleOnly}
               />
             </motion.div>

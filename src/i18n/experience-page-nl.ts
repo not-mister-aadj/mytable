@@ -118,7 +118,6 @@ export const experiencePageNl: ExperiencePageLabels = {
     "Alles vooraf betaald",
     "Gratis ruilen tot 48 uur van tevoren",
     "Dieetwensen mogelijk",
-    "Boek voor jezelf of je groep",
   ],
   trustLines: [
     "Geselecteerde restaurants en hosts",

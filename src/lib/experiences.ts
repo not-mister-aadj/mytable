@@ -141,26 +141,26 @@ export async function getRelatedExperiences(
 ): Promise<EnrichedExperience[]> {
   if (isDbEventsEnabled() && isDbConfigured()) {
     try {
-      const related = await getRelatedPublishedExperiences(
-        locale,
-        current,
-        limit,
-      );
-      if (related.length > 0) return related;
+      // Empty is fine — do not fall back to the static catalog (stale past dates).
+      return await getRelatedPublishedExperiences(locale, current, limit);
     } catch (err) {
       console.error("[experiences] related fetch failed", err);
       if (!shouldUseCatalogOnDbError()) throw err;
     }
   }
-  if (!shouldUseStaticCatalogFallback() && !shouldUseCatalogOnDbError()) return [];
+  if (!shouldUseStaticCatalogFallback() && !shouldUseCatalogOnDbError()) {
+    return [];
+  }
   const all = fetchFromCatalog(locale);
   return all
     .filter((item) => item.slug !== current.slug)
     .filter(
       (item) =>
-        item.mood === current.mood ||
-        item.city === current.city ||
-        item.category === current.category,
+        item.status !== "closed" &&
+        item.status !== "soldOut" &&
+        (item.mood === current.mood ||
+          item.city === current.city ||
+          item.category === current.category),
     )
     .slice(0, limit);
 }

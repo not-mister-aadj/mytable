@@ -178,7 +178,7 @@ export const girlsOnlyExperienceLabelsEn = {
     seatsJoinOthers: "a place at a shared table",
     seatsOwnTable: "you'll sit together",
     seatingTogetherHint:
-      "Book the number of tickets for yourself or your party. You sit with the people you bring.",
+      "Minimum 2 tickets. You sit with the people you bring.",
     soloTitle: "Just me",
     duoTitle: "The two of us",
     groupTitle: "Bring a group",

@@ -86,7 +86,7 @@ export const experiencePageNl: ExperiencePageLabels = {
     seatsJoinOthers: "ticket",
     seatsOwnTable: "jullie zitten samen",
     seatingTogetherHint:
-      "Boek het aantal tickets voor jezelf of je gezelschap. Je zit met wie je meeneemt.",
+      "Minimaal 2 tickets. Je zit met wie je meeneemt.",
     soloTitle: "Alleen ik",
     duoTitle: "Met z'n tweeën",
     groupTitle: "Met een groep",

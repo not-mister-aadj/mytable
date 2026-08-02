@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     new URL(origin).hostname;
   const siteOrigin = marketingOrigin(origin, hostname);
   const code = searchParams.get("code");
-  const nextRaw = searchParams.get("next") ?? "/account";
+  const nextRaw = searchParams.get("next") ?? "/clubmember";
   const locale = resolveLocale(nextRaw);
   const next = sanitizeMemberNextPath(nextRaw, locale);
 

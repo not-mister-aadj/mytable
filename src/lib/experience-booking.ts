@@ -1,6 +1,9 @@
 import type { ExperienceItem } from "@/i18n/types";
 import { showViewCount } from "@/lib/env";
-import { getLowestTierPerPersonEuros } from "@/lib/booking-tiers";
+import {
+  getLowestTierPerPersonEuros,
+  MIN_BOOKING_SEATS,
+} from "@/lib/booking-tiers";
 
 export function getSpotsLeft(experience: ExperienceItem): number | null {
   if (
@@ -37,8 +40,11 @@ export function formatPerPerson(price: number, label: string): string {
   return label.replace("{price}", String(price));
 }
 
-export function formatFromPerPerson(_basePrice: number, label: string): string {
-  const fromPrice = getLowestTierPerPersonEuros();
+export function formatFromPerPerson(basePrice: number, label: string): string {
+  const fromPrice =
+    Number.isFinite(basePrice) && basePrice > 0
+      ? Math.round(basePrice)
+      : getLowestTierPerPersonEuros();
   return label.replace("{price}", String(fromPrice));
 }
 
@@ -65,7 +71,7 @@ export function formatViewsLabel(template: string, count: number): string {
 export function canReserve(experience: ExperienceItem): boolean {
   if (experience.status === "closed") return false;
   const left = getSpotsLeft(experience);
-  if (left !== null) return left > 0;
+  if (left !== null) return left >= MIN_BOOKING_SEATS;
   return experience.status !== "soldOut";
 }
 

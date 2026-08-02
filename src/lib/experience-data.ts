@@ -21,6 +21,7 @@ import {
 import {
   publishedAgendaEventsWhere,
   publishedEventDetailWhere,
+  publishedLandingEventsWhere,
 } from "@/lib/published-events-filter";
 
 export async function loadTypeContentMap(
@@ -136,7 +137,7 @@ export async function getRelatedPublishedExperiences(
     .from(events)
     .where(
       and(
-        publishedAgendaEventsWhere(),
+        publishedLandingEventsWhere(),
         ne(events.slug, current.slug),
         or(
           eq(events.mood, current.mood),
@@ -150,7 +151,12 @@ export async function getRelatedPublishedExperiences(
 
   const enriched = await enrichPublishedRows(rows, locale);
   return enriched
-    .filter((item) => item.slug !== current.slug)
+    .filter(
+      (item) =>
+        item.slug !== current.slug &&
+        item.status !== "closed" &&
+        item.status !== "soldOut",
+    )
     .slice(0, limit);
 }
 

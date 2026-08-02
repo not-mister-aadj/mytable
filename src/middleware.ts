@@ -135,7 +135,7 @@ export async function middleware(request: NextRequest) {
     return updateSupabaseSession(request);
   }
 
-  // Signed-in members skip the marketing landing → account
+  // Signed-in members skip the marketing landing → clubmember
   if (pathname === "/" || pathname === "/en") {
     const isEn = pathname === "/en";
     const rewritePath = isEn ? "/en" : `/${defaultLocale}`;
@@ -144,7 +144,7 @@ export async function middleware(request: NextRequest) {
     });
     if (user) {
       const target = request.nextUrl.clone();
-      target.pathname = isEn ? "/en/account" : "/account";
+      target.pathname = isEn ? "/en/clubmember" : "/clubmember";
       target.search = "";
       const redirect = NextResponse.redirect(target);
       for (const cookie of response.cookies.getAll()) {

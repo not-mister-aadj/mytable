@@ -5,9 +5,9 @@ import type {
 
 export const wineWalkFlowEn: ExperienceFlowStep[] = [
   {
-    title: "Tickets in advance",
+    title: "Book your tickets online",
     description:
-      "You book on this page. After payment you receive confirmation by email. Free exchange up to 48 hours before start.",
+      "Pay in advance on this page. You get confirmation by email right away. Show that at the first stop.",
   },
   {
     title: "Start at the first restaurant",

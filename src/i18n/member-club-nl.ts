@@ -154,10 +154,10 @@ export const memberClubNl: MemberClubLabels = {
     viewTable: "Bekijk tafel",
     girlsOnly: "Girls only",
     mixed: "Mixed",
-    signupOpen: "Aanmelden vóór vrijdag 16:00",
-    signupUrgent: "Aanmelden vóór vrijdag 16:00",
+    signupOpen: "Aanmelden vóór {deadline}",
+    signupUrgent: "Aanmelden vóór {deadline}",
     signupClosed: "Inschrijving gesloten",
-    signupClosedError: "Inschrijving is gesloten (vrijdag 16:00).",
+    signupClosedError: "Inschrijving is gesloten (deadline was vrijdag 16:00 vóór de tafel).",
     onboardingRequired:
       "Rond eerst je profiel af (naam, leeftijd en geslacht) om een tafel te reserveren.",
     girlsOnlyRestricted: "Girls only-tafels zijn alleen voor vrouwen.",

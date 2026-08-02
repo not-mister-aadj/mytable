@@ -22,6 +22,7 @@ import {
   amsterdamDateIso,
   formatSundayTableCardDate,
   formatSundayTableCardDateTime,
+  formatSundayTableRsvpDeadline,
   formatSundayTableTime,
   getSundayTableRsvpWindow,
   getUpcomingSundayWineTables,
@@ -156,10 +157,14 @@ function initialTableFilters(
 function rsvpDeadlineLabel(
   window: SundayTableRsvpWindow,
   labels: MemberClubLabels["rsvp"],
+  tableSunday: Date,
+  locale: Locale,
 ): string {
   if (window === "closed") return labels.signupClosed;
-  if (window === "urgent") return labels.signupUrgent;
-  return labels.signupOpen;
+  const deadline = formatSundayTableRsvpDeadline(tableSunday, locale);
+  const template =
+    window === "urgent" ? labels.signupUrgent : labels.signupOpen;
+  return template.replace("{deadline}", deadline);
 }
 
 function rsvpDeadlineTextClass(window: SundayTableRsvpWindow): string {
@@ -730,7 +735,12 @@ export function MemberClubView({
                           <p
                             className={`mt-3 text-xs leading-snug ${rsvpDeadlineTextClass(rsvpWindow)}`}
                           >
-                            {rsvpDeadlineLabel(rsvpWindow, labels.rsvp)}
+                            {rsvpDeadlineLabel(
+                              rsvpWindow,
+                              labels.rsvp,
+                              event.date,
+                              locale,
+                            )}
                           </p>
                         ) : (
                           <p className="mt-3 text-xs font-medium text-[#2f5c2a]">
@@ -1074,7 +1084,12 @@ export function MemberClubView({
                   <p
                     className={`mt-3 text-xs leading-snug ${rsvpDeadlineTextClass(window)}`}
                   >
-                    {rsvpDeadlineLabel(window, labels.rsvp)}
+                    {rsvpDeadlineLabel(
+                      window,
+                      labels.rsvp,
+                      activeEvent.date,
+                      locale,
+                    )}
                   </p>
                   <p className="mt-2 text-xs leading-snug text-wine/40">
                     {labels.explain.locationNote}

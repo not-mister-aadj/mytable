@@ -16,6 +16,7 @@ import { isTableLanguagePreference } from "@/lib/booking-table-language";
 import {
   computeTierPrice,
   isBookingTier,
+  MIN_BOOKING_SEATS,
   resolveSeatsForTier,
   seatingForTier,
   tierForSeats,
@@ -151,7 +152,10 @@ export async function POST(request: Request) {
   }
 
   const spotsLeft = event.capacity - event.spotsSold;
-  const requestedSeats = Math.max(1, Number(body.seats) || 1);
+  const requestedSeats = Math.max(
+    MIN_BOOKING_SEATS,
+    Number(body.seats) || MIN_BOOKING_SEATS,
+  );
   const seats = resolveSeatsForTier(requestedTier, requestedSeats, spotsLeft);
 
   if (seats === null) {
@@ -159,8 +163,8 @@ export async function POST(request: Request) {
       {
         error:
           locale === "en"
-            ? "Invalid number of seats for this option."
-            : "Ongeldig aantal plekken voor deze optie.",
+            ? `Invalid number of seats (minimum ${MIN_BOOKING_SEATS}).`
+            : `Ongeldig aantal plekken (minimaal ${MIN_BOOKING_SEATS}).`,
       },
       { status: 400 },
     );
@@ -180,6 +184,7 @@ export async function POST(request: Request) {
   }
   const tierPrice = computeTierPrice(requestedTier, seats, {
     clubMemberDiscount,
+    perPersonCents: event.priceCents,
   });
 
   if (spotsLeft < seats) {

@@ -205,6 +205,22 @@ export function formatSundayTableCardDateTime(
   return `${capitalized} · ${formatSundayTableTime(locale)}`;
 }
 
+/** RSVP cutoff for a table Sunday: "vrijdag 4 september · 16:00". */
+export function formatSundayTableRsvpDeadline(
+  tableSunday: Date,
+  locale: "nl" | "en",
+): string {
+  const deadline = sundayTableRsvpDeadline(tableSunday);
+  const datePart = new Intl.DateTimeFormat(locale === "nl" ? "nl-NL" : "en-GB", {
+    timeZone: AMSTERDAM,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(deadline);
+  const time = locale === "nl" ? "16:00" : "4:00 PM";
+  return `${datePart} · ${time}`;
+}
+
 /** Civil date YYYY-MM-DD in Europe/Amsterdam. */
 export function amsterdamDateIso(date: Date): string {
   const { year, month, day } = amsterdamParts(date);

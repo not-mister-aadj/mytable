@@ -5,9 +5,9 @@ import type {
 
 export const wineWalkFlowNl: ExperienceFlowStep[] = [
   {
-    title: "Tickets in de voorverkoop",
+    title: "Boek je tickets online",
     description:
-      "Je boekt vooraf via deze pagina. Na betaling ontvang je je bevestiging per mail. Ruilen kan tot 48 uur voor de start.",
+      "Betaal vooraf op deze pagina. Je krijgt meteen een bevestiging per mail. Die toon je bij de eerste stop.",
   },
   {
     title: "Start bij het eerste restaurant",

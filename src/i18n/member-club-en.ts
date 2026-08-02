@@ -154,10 +154,10 @@ export const memberClubEn: MemberClubLabels = {
     viewTable: "View table",
     girlsOnly: "Girls only",
     mixed: "Mixed",
-    signupOpen: "Sign up before Friday 4pm",
-    signupUrgent: "Sign up before Friday 4pm",
+    signupOpen: "Sign up before {deadline}",
+    signupUrgent: "Sign up before {deadline}",
     signupClosed: "Signup closed",
-    signupClosedError: "Signup is closed (Friday 4pm).",
+    signupClosedError: "Signup is closed (deadline was Friday 4pm before the table).",
     onboardingRequired:
       "Finish your profile first (name, age and gender) to reserve a table.",
     girlsOnlyRestricted: "Girls-only tables are for women only.",

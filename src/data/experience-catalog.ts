@@ -42,7 +42,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Zondag 16 juni · 18:00–21:00",
     price: 45,
-    status: "almostFull",
+    status: "closed",
     image: images.wineGlasses,
     tagline: {
       nl: "Schuif aan bij een tafel in één restaurant, solo, met vrienden of op date.",
@@ -59,7 +59,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Zondag 22 juni · 18:00–21:00",
     price: 52,
-    status: "new",
+    status: "closed",
     image: images.wineBar,
   },
   {
@@ -72,7 +72,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Donderdag 20 juni · 19:00–22:00",
     price: 45,
-    status: "almostFull",
+    status: "closed",
     image: images.restaurantInterior,
   },
   {
@@ -85,7 +85,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Vrijdag 28 juni · 19:00–22:00",
     price: 47,
-    status: "available",
+    status: "closed",
     image: images.wineGlasses,
   },
   {
@@ -98,7 +98,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Zondag 30 juni · 14:00–17:00",
     price: 48,
-    status: "almostFull",
+    status: "closed",
     image: images.restaurantDining,
   },
   {
@@ -111,7 +111,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Vrijdag 5 juli · 19:00–22:00",
     price: 46,
-    status: "available",
+    status: "closed",
     image: images.wineBar,
   },
   {
@@ -124,7 +124,7 @@ const catalog: CatalogEntry[] = [
     categories: { nl: "PROEVERIJ", en: "TASTING" },
     dateTime: "Zondag 7 juli · 18:00–21:00",
     price: 50,
-    status: "new",
+    status: "closed",
     image: images.cheers,
   },
 ];

@@ -30,7 +30,7 @@ import {
 import {
   clampTicketSeats,
   computeTierPrice,
-  FLAT_PER_PERSON_CENTS,
+  MIN_BOOKING_SEATS,
   maxTicketSeats,
   seatingForTier,
   tierForSeats,
@@ -160,12 +160,17 @@ export function BookingCard({
 
   const tierLabels = labels.bookingTiers;
   const ticketOptionsMax = maxTicketSeats(spotsLeft);
+  const ticketOptionsMin = MIN_BOOKING_SEATS;
+  const ticketOptionCount = Math.max(
+    0,
+    ticketOptionsMax - ticketOptionsMin + 1,
+  );
 
   const [formStep, setFormStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [ticketCount, setTicketCount] = useState(() =>
-    clampTicketSeats(1, spotsLeft),
+    clampTicketSeats(MIN_BOOKING_SEATS, spotsLeft),
   );
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
@@ -192,10 +197,12 @@ export function BookingCard({
 
   const seats = clampTicketSeats(ticketCount, spotsLeft);
   const tier = tierForSeats(seats);
+  const listPerPersonCents = Math.round(experience.price * 100);
   const selectedTierPrice = computeTierPrice(tier, seats, {
     clubMemberDiscount,
+    perPersonCents: listPerPersonCents,
   });
-  const listPerPersonEuros = Math.round(FLAT_PER_PERSON_CENTS / 100);
+  const listPerPersonEuros = Math.round(listPerPersonCents / 100);
   const seatingPreference = seatingForTier(tier);
   const priceLine = clubMemberDiscount
     ? `€${selectedTierPrice.totalEuros} · €${selectedTierPrice.perPersonEuros} p.p.`
@@ -209,7 +216,7 @@ export function BookingCard({
   useEffect(() => {
     setFormStep(1);
     setError(null);
-    setTicketCount(clampTicketSeats(1, spotsLeft));
+    setTicketCount(clampTicketSeats(MIN_BOOKING_SEATS, spotsLeft));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experience.id, eventDbId]);
 
@@ -544,7 +551,10 @@ export function BookingCard({
                       const nextPrice = computeTierPrice(
                         tierForSeats(next),
                         next,
-                        { clubMemberDiscount },
+                        {
+                          clubMemberDiscount,
+                          perPersonCents: listPerPersonCents,
+                        },
                       );
                       trackSeatsSelected(
                         experience,
@@ -559,8 +569,8 @@ export function BookingCard({
                     }}
                     className={inputClass}
                   >
-                    {Array.from({ length: ticketOptionsMax }, (_, i) => {
-                      const n = i + 1;
+                    {Array.from({ length: ticketOptionCount }, (_, i) => {
+                      const n = ticketOptionsMin + i;
                       return (
                         <option key={n} value={n}>
                           {tierSeatsLabel(n, tierLabels)}

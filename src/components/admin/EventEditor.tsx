@@ -595,8 +595,8 @@ export function EventEditor({
                     required
                   />
                   <p className="-mt-2 text-xs text-wine/50 sm:col-span-2">
-                    Checkout gebruikt één vast tarief: €49 p.p. voor solo, duo en
-                    groep. Dit veld is voor weergave in het dashboard.
+                    Dit bedrag is de ticketprijs p.p. bij checkout (minimaal 2
+                    tickets). Clubmembers krijgen 10% korting.
                   </p>
                   <Field
                     label="Capaciteit"

@@ -5,11 +5,11 @@ export const BOOKING_TIER_ORDER: BookingTier[] = ["solo", "duo", "group"];
 /** Minimum seats for the friends-table (group) tier. */
 export const GROUP_MIN_SEATS = 3;
 
+/** Minimum tickets per booking. */
+export const MIN_BOOKING_SEATS = 2;
+
 /** Max tickets per booking (UI + server). */
 export const MAX_BOOKING_SEATS = 6;
-
-/** Minimum tickets per booking. */
-export const MIN_BOOKING_SEATS = 1;
 
 /** Flat per-person price in cents — same for every ticket quantity. */
 export const FLAT_PER_PERSON_CENTS = 4900;
@@ -88,7 +88,7 @@ export function clampTicketSeats(
   spotsLeft: number | null,
 ): number {
   const max = maxTicketSeats(spotsLeft);
-  if (max < MIN_BOOKING_SEATS) return MIN_BOOKING_SEATS;
+  if (max < MIN_BOOKING_SEATS) return max;
   const raw = Math.floor(seats);
   const n = Number.isFinite(raw) && raw > 0 ? raw : MIN_BOOKING_SEATS;
   return Math.min(max, Math.max(MIN_BOOKING_SEATS, n));
@@ -125,7 +125,7 @@ export function resolveSeatsForTier(
 
 /**
  * Experiences no longer match strangers into shared tables.
- * Guests bring their own party (1–6 tickets).
+ * Guests bring their own party (2–6 tickets).
  */
 export function seatingForTier(_tier: BookingTier): "own_table" | "join_others" {
   return "own_table";
@@ -145,15 +145,25 @@ export type BookingTierPrice = {
 export function computeTierPrice(
   tier: BookingTier,
   seatCount?: number,
-  options?: { clubMemberDiscount?: boolean },
+  options?: {
+    clubMemberDiscount?: boolean;
+    /** Per-person list price in cents (from events.price_cents). */
+    perPersonCents?: number;
+  },
 ): BookingTierPrice {
   const cfg = TIER_CONFIG[tier];
   const seats =
     seatCount != null
       ? clampTicketSeats(seatCount, null)
       : cfg.seats;
+  const listCents =
+    typeof options?.perPersonCents === "number" &&
+    Number.isFinite(options.perPersonCents) &&
+    options.perPersonCents > 0
+      ? Math.round(options.perPersonCents)
+      : FLAT_PER_PERSON_CENTS;
   const perPersonCents = applyClubmemberDiscount(
-    TIER_PER_PERSON_CENTS[tier],
+    listCents,
     Boolean(options?.clubMemberDiscount),
   );
   const totalCents = perPersonCents * seats;

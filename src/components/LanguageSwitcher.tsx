@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { switchLocalePath, type Locale } from "@/i18n/config";
+import { useAuthSession } from "@/features/auth/AuthSessionContext";
+import { saveMemberLocalePreference } from "@/features/auth/save-onboarding";
+import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
 import { trackLanguageChanged } from "@/lib/posthog/analytics";
 
 interface LanguageSwitcherProps {
@@ -27,6 +30,7 @@ export function LanguageSwitcher({
   const pathname = usePathname();
   const nextLocale: Locale = locale === "nl" ? "en" : "nl";
   const [hash, setHash] = useState("");
+  const { isSignedIn } = useAuthSession();
 
   useEffect(() => {
     setHash(window.location.hash);
@@ -44,6 +48,11 @@ export function LanguageSwitcher({
       localStorage.setItem("mytable_locale_pref", nextLocale);
     } catch {
       /* ignore */
+    }
+    if (isSignedIn) {
+      void saveMemberLocalePreference(nextLocale).then(() =>
+        syncMemberCustomerClient(nextLocale, { forceLanguage: true }),
+      );
     }
   }
 

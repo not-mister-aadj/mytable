@@ -2,49 +2,77 @@
 export function bookingConfirmationSubject(
   bookingCode: string,
   eventName: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Confirmed: ${eventName.trim()} (${bookingCode.trim()})`;
+  }
   return `Bevestigd: ${eventName.trim()} (${bookingCode.trim()})`;
 }
 
 export function bookingMovedSubject(
   bookingCode: string,
   eventName: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Moved: ${eventName.trim()} (${bookingCode.trim()})`;
+  }
   return `Verplaatst: ${eventName.trim()} (${bookingCode.trim()})`;
 }
 
 export function sundayTableConfirmationSubject(
   city: string,
   date: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Sunday Table confirmed: ${city.trim()} · ${date.trim()}`;
+  }
   return `Sunday Table bevestigd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTableCancelSubject(
   city: string,
   date: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Sunday Table cancelled: ${city.trim()} · ${date.trim()}`;
+  }
   return `Sunday Table geannuleerd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTableLocationSubject(
   city: string,
   date: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Sunday Table location: ${city.trim()} · ${date.trim()}`;
+  }
   return `Locatie Sunday Table: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTablePlusOneAddedSubject(
   city: string,
   date: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Sunday Table +1 added: ${city.trim()} · ${date.trim()}`;
+  }
   return `Sunday Table +1 toegevoegd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTablePlusOneRemovedSubject(
   city: string,
   date: string,
+  locale: "nl" | "en" = "nl",
 ): string {
+  if (locale === "en") {
+    return `Sunday Table +1 removed: ${city.trim()} · ${date.trim()}`;
+  }
   return `Sunday Table +1 verwijderd: ${city.trim()} · ${date.trim()}`;
 }
 

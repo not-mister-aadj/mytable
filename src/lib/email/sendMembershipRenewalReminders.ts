@@ -14,6 +14,7 @@ import {
   getTransactionalEmailBcc,
   isEmailConfigured,
 } from "@/lib/email/resend";
+import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { membershipRenewalReminderSubject } from "@/lib/email/subjects";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 
@@ -118,7 +119,11 @@ export async function sendMembershipRenewalReminders(): Promise<number> {
     }
     if (!isClubPlanId(row.planId)) continue;
 
-    const locale = (row.locale === "en" ? "en" : "nl") as Locale;
+    const locale = await resolveEmailLocale({
+      email: row.email,
+      userId: row.userId,
+      fallbackLocale: row.locale,
+    });
     const { label, amount } = planCopy(row.planId, locale);
     const renewalDateLabel = formatRenewalDate(periodEnd, locale);
     const manageUrl = `${site}${clubmemberPath(locale)}`;

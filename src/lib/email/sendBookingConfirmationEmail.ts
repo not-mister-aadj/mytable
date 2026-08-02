@@ -73,7 +73,11 @@ export async function sendBookingConfirmationEmail(
     replyTo: getEmailReplyTo(),
     to: props.customerEmail,
     bcc: bcc.length > 0 ? bcc : undefined,
-    subject: bookingConfirmationSubject(props.bookingCode, props.eventName),
+    subject: bookingConfirmationSubject(
+      props.bookingCode,
+      props.eventName,
+      props.locale === "en" ? "en" : "nl",
+    ),
     headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
@@ -111,7 +115,7 @@ export async function sendBookingConfirmationForPaidBooking(
     venue = row ?? null;
   }
 
-  const props = buildBookingConfirmationEmailProps(booking, event, venue);
+  const props = await buildBookingConfirmationEmailProps(booking, event, venue);
   const result = await sendBookingConfirmationEmail(props);
 
   if (result.ok && result.id !== "already-sent" && !options?.force) {

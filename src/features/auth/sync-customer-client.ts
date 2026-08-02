@@ -1,7 +1,7 @@
 /** Fire-and-forget CRM sync after client-side OTP login or onboarding. */
 export async function syncMemberCustomerClient(
   locale: string,
-  options?: { recordOnboarding?: boolean },
+  options?: { recordOnboarding?: boolean; forceLanguage?: boolean },
 ): Promise<void> {
   try {
     await fetch("/api/auth/member/sync", {
@@ -10,6 +10,7 @@ export async function syncMemberCustomerClient(
       body: JSON.stringify({
         locale,
         recordOnboarding: options?.recordOnboarding === true,
+        forceLanguage: options?.forceLanguage === true,
       }),
     });
   } catch {

@@ -24,6 +24,11 @@ export type UpsertCustomerInput = {
   email: string;
   customerName?: string | null;
   language?: string | null;
+  /**
+   * When true, overwrite customers.language.
+   * Default keeps an existing preference (account language wins over checkout UI).
+   */
+  setLanguage?: boolean;
   preferredCity?: string | null;
   phone?: string | null;
 };

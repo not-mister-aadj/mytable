@@ -22,6 +22,10 @@ export async function upsertCustomerFromEmail(
     .where(eq(customers.emailNormalized, emailNormalized))
     .limit(1);
 
+  const nextLanguage = input.setLanguage
+    ? (input.language ?? existing?.language ?? null)
+    : (existing?.language ?? input.language ?? null);
+
   if (existing) {
     await db
       .update(customers)
@@ -29,7 +33,7 @@ export async function upsertCustomerFromEmail(
         email,
         firstName: firstName ?? existing.firstName,
         lastName: lastName ?? existing.lastName,
-        language: input.language ?? existing.language,
+        language: nextLanguage,
         preferredCity: input.preferredCity ?? existing.preferredCity,
         phone: input.phone ?? existing.phone,
         lastSeenAt: now,
@@ -51,7 +55,7 @@ export async function upsertCustomerFromEmail(
       emailNormalized,
       firstName,
       lastName,
-      language: input.language ?? null,
+      language: nextLanguage,
       preferredCity: input.preferredCity ?? null,
       phone: input.phone ?? null,
       firstSeenAt: now,

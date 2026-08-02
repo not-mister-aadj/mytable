@@ -57,7 +57,11 @@ export async function sendBookingMovedEmail(
     from: getEmailFrom(),
     replyTo: getEmailReplyTo(),
     to: props.customerEmail,
-    subject: bookingMovedSubject(props.bookingCode, props.newEventName),
+    subject: bookingMovedSubject(
+      props.bookingCode,
+      props.newEventName,
+      props.locale === "en" ? "en" : "nl",
+    ),
     headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,

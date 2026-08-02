@@ -6,6 +6,7 @@ import { EmailDivider } from "./EmailDivider";
 import { CityRow, InfoGrid4, LocationRow } from "./InfoGrid4";
 
 export type BookingConfirmationCardProps = {
+  locale?: "nl" | "en";
   eventName: string;
   city: string;
   date: string;
@@ -19,6 +20,7 @@ export type BookingConfirmationCardProps = {
 };
 
 export function BookingConfirmationCard({
+  locale = "nl",
   eventName,
   city,
   date,
@@ -30,13 +32,16 @@ export function BookingConfirmationCard({
   startLocation,
   dietaryNotes,
 }: BookingConfirmationCardProps) {
+  const en = locale === "en";
   const trimmedDietary = dietaryNotes?.trim();
   const hasLocation = Boolean(venueName || startLocation);
   const hasDetails = hasLocation || trimmedDietary;
 
   return (
     <EmailCard>
-      <Text style={emailType.sectionLabel}>Jouw tafel</Text>
+      <Text style={emailType.sectionLabel}>
+        {en ? "Your table" : "Jouw tafel"}
+      </Text>
       <Text
         style={{
           fontFamily: emailFonts.serif,
@@ -54,10 +59,10 @@ export function BookingConfirmationCard({
 
       <InfoGrid4
         items={[
-          { icon: "calendar", label: "Datum", value: date },
-          { icon: "clock", label: "Tijd", value: time },
-          { icon: "people", label: "Plekken", value: seatsLabel },
-          { icon: "card", label: "Betaald", value: totalPaid },
+          { icon: "calendar", label: en ? "Date" : "Datum", value: date },
+          { icon: "clock", label: en ? "Time" : "Tijd", value: time },
+          { icon: "people", label: en ? "Seats" : "Plekken", value: seatsLabel },
+          { icon: "card", label: en ? "Paid" : "Betaald", value: totalPaid },
         ]}
       />
 
@@ -66,20 +71,35 @@ export function BookingConfirmationCard({
           <EmailDivider spacing="18px" />
           <Section>
             {venueName ? (
-              <LocationRow icon="utensils" label="Locatie" value={venueName} isLast={!startLocation && !trimmedDietary} />
+              <LocationRow
+                icon="utensils"
+                label={en ? "Location" : "Locatie"}
+                value={venueName}
+                isLast={!startLocation && !trimmedDietary}
+              />
             ) : null}
             {startLocation ? (
-              <LocationRow icon="flag" label="Startpunt" value={startLocation} isLast={!trimmedDietary} />
+              <LocationRow
+                icon="flag"
+                label={en ? "Meeting point" : "Startpunt"}
+                value={startLocation}
+                isLast={!trimmedDietary}
+              />
             ) : null}
             {trimmedDietary ? (
-              <LocationRow icon="leaf" label="Dieetwensen" value={trimmedDietary} isLast />
+              <LocationRow
+                icon="leaf"
+                label={en ? "Dietary notes" : "Dieetwensen"}
+                value={trimmedDietary}
+                isLast
+              />
             ) : null}
           </Section>
         </>
       ) : null}
 
       <EmailDivider spacing="18px" />
-      <BookingCode code={bookingCode} />
+      <BookingCode code={bookingCode} locale={locale} />
     </EmailCard>
   );
 }

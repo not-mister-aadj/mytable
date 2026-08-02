@@ -127,7 +127,7 @@ export function MemberAccountSettings({
     });
     try {
       await saveMemberLocalePreference(next);
-      await syncMemberCustomerClient(next);
+      await syncMemberCustomerClient(next, { forceLanguage: true });
       router.replace(accountPath(next));
       router.refresh();
     } catch {

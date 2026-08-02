@@ -15,6 +15,7 @@ import {
   isEmailConfigured,
   type EmailSendResult,
 } from "@/lib/email/resend";
+import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import {
   sundayTableCancelSubject,
   sundayTableConfirmationSubject,
@@ -33,8 +34,14 @@ import {
 import type { ReactElement } from "react";
 import { eq } from "drizzle-orm";
 
-function signupLocale(row: Pick<SundayTableSignup, "locale">): Locale {
-  return row.locale === "en" ? "en" : "nl";
+async function signupEmailLocale(
+  row: Pick<SundayTableSignup, "email" | "userId" | "locale">,
+): Promise<Locale> {
+  return resolveEmailLocale({
+    email: row.email,
+    userId: row.userId,
+    fallbackLocale: row.locale,
+  });
 }
 
 function signupTableType(
@@ -49,8 +56,10 @@ function signupDateIso(row: Pick<SundayTableSignup, "tableDate">): string {
     : String(row.tableDate).slice(0, 10);
 }
 
-function signupDateParts(row: Pick<SundayTableSignup, "tableDate" | "locale">) {
-  const locale = signupLocale(row);
+function signupDateParts(
+  row: Pick<SundayTableSignup, "tableDate">,
+  locale: Locale,
+) {
   const iso = signupDateIso(row);
   const date = parseAmsterdamDateIso(iso);
   return {
@@ -117,8 +126,9 @@ async function sendRendered(input: {
 
 export function buildSundayTableConfirmationProps(
   row: SundayTableSignup,
+  locale: Locale,
 ): Parameters<typeof SundayTableConfirmationEmail>[0] {
-  const { locale, dateIso, dateLabel, timeLabel } = signupDateParts(row);
+  const { dateIso, dateLabel, timeLabel } = signupDateParts(row, locale);
   const tableType = signupTableType(row);
   return {
     locale,
@@ -141,8 +151,9 @@ export function buildSundayTableConfirmationProps(
 
 export function buildSundayTableCancelProps(
   row: SundayTableSignup,
+  locale: Locale,
 ): Parameters<typeof SundayTableCancelEmail>[0] {
-  const { locale, dateLabel, timeLabel } = signupDateParts(row);
+  const { dateLabel, timeLabel } = signupDateParts(row, locale);
   return {
     locale,
     firstName: firstNameFrom(row),
@@ -157,8 +168,9 @@ export function buildSundayTableCancelProps(
 export function buildSundayTablePlusOneProps(
   row: SundayTableSignup,
   action: "added" | "removed",
+  locale: Locale,
 ): Parameters<typeof SundayTablePlusOneEmail>[0] {
-  const { locale, dateLabel, timeLabel } = signupDateParts(row);
+  const { dateLabel, timeLabel } = signupDateParts(row, locale);
   return {
     locale,
     firstName: firstNameFrom(row),
@@ -179,19 +191,20 @@ export async function sendSundayTableConfirmationEmail(
     return { ok: true, id: "already-sent" };
   }
 
-  const props = buildSundayTableConfirmationProps(row);
+  const locale = await signupEmailLocale(row);
+  const props = buildSundayTableConfirmationProps(row, locale);
   const dateIso = signupDateIso(row);
   const ics = buildSundayTableIcs({
     city: row.city,
     tableDate: dateIso,
     tableType: signupTableType(row),
-    locale: signupLocale(row),
+    locale,
     signupId: row.id,
   });
 
   const result = await sendRendered({
     to: row.email,
-    subject: sundayTableConfirmationSubject(props.city, props.date),
+    subject: sundayTableConfirmationSubject(props.city, props.date, locale),
     element: SundayTableConfirmationEmail(props),
     ics: ics
       ? {
@@ -219,10 +232,11 @@ export async function sendSundayTableConfirmationEmail(
 export async function sendSundayTableCancelEmail(
   row: SundayTableSignup,
 ): Promise<EmailSendResult> {
-  const props = buildSundayTableCancelProps(row);
+  const locale = await signupEmailLocale(row);
+  const props = buildSundayTableCancelProps(row, locale);
   return sendRendered({
     to: row.email,
-    subject: sundayTableCancelSubject(props.city, props.date),
+    subject: sundayTableCancelSubject(props.city, props.date, locale),
     element: SundayTableCancelEmail(props),
   });
 }
@@ -231,11 +245,12 @@ export async function sendSundayTablePlusOneEmail(
   row: SundayTableSignup,
   action: "added" | "removed",
 ): Promise<EmailSendResult> {
-  const props = buildSundayTablePlusOneProps(row, action);
+  const locale = await signupEmailLocale(row);
+  const props = buildSundayTablePlusOneProps(row, action, locale);
   const subject =
     action === "added"
-      ? sundayTablePlusOneAddedSubject(props.city, props.date)
-      : sundayTablePlusOneRemovedSubject(props.city, props.date);
+      ? sundayTablePlusOneAddedSubject(props.city, props.date, locale)
+      : sundayTablePlusOneRemovedSubject(props.city, props.date, locale);
 
   return sendRendered({
     to: row.email,

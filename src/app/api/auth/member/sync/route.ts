@@ -10,13 +10,18 @@ export async function POST(request: Request) {
 
   let locale: Locale = "nl";
   let recordOnboarding = false;
+  let forceLanguage = false;
   try {
     const body = (await request.json()) as {
       locale?: string;
       recordOnboarding?: boolean;
+      forceLanguage?: boolean;
     };
-    if (body.locale === "en") locale = "en";
+    if (body.locale === "en" || body.locale === "nl") {
+      locale = body.locale;
+    }
     recordOnboarding = body.recordOnboarding === true;
+    forceLanguage = body.forceLanguage === true;
   } catch {
     // ignore
   }
@@ -26,6 +31,7 @@ export async function POST(request: Request) {
     const fresh = await getMemberUser();
     const { customerId } = await syncMemberCustomer(fresh ?? user, locale, {
       recordOnboarding,
+      forceLanguage,
     });
     return NextResponse.json({ ok: true, customerId });
   } catch (error) {

@@ -684,7 +684,7 @@ export async function transferBookingToEventAction(
     revalidateEventPaths(slugs.targetSlug);
 
     try {
-      const movedProps = buildBookingMovedEmailProps(
+      const movedProps = await buildBookingMovedEmailProps(
         slugs.newBooking,
         slugs.sourceEvent,
         slugs.targetEvent,

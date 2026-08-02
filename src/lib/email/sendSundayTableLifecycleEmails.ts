@@ -16,6 +16,7 @@ import {
   getTransactionalEmailBcc,
   isEmailConfigured,
 } from "@/lib/email/resend";
+import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { sundayTableLocationSubject } from "@/lib/email/subjects";
 import {
   getOrCreateReferralCode,
@@ -31,6 +32,18 @@ import {
   formatSundayTableTime,
   parseAmsterdamDateIso,
 } from "@/lib/sunday-wine-table";
+
+async function emailLocaleForSignup(row: {
+  email: string;
+  userId: string | null;
+  locale: string;
+}): Promise<Locale> {
+  return resolveEmailLocale({
+    email: row.email,
+    userId: row.userId,
+    fallbackLocale: row.locale,
+  });
+}
 
 function yesterdayIso(): string {
   const d = new Date();
@@ -96,7 +109,7 @@ export async function sendSundayTableReviewEmails(): Promise<number> {
   const site = getSiteUrl().replace(/\/$/, "");
 
   for (const row of rows) {
-    const locale = (row.locale === "en" ? "en" : "nl") as Locale;
+    const locale = await emailLocaleForSignup(row);
     try {
       const token = await signSundayTableReviewToken({
         signupId: row.id,
@@ -151,7 +164,7 @@ export async function sendSundayTableInviteEmails(): Promise<number> {
   let sent = 0;
 
   for (const row of rows) {
-    const locale = (row.locale === "en" ? "en" : "nl") as Locale;
+    const locale = await emailLocaleForSignup(row);
     const referral = await getOrCreateReferralCode({
       email: row.email,
       userId: row.userId,
@@ -207,7 +220,7 @@ export async function sendSundayTableCulinaryEmails(): Promise<number> {
   const site = getSiteUrl().replace(/\/$/, "");
 
   for (const row of rows) {
-    const locale = (row.locale === "en" ? "en" : "nl") as Locale;
+    const locale = await emailLocaleForSignup(row);
     const agendaUrl = `${site}${agendaPath(locale)}?city=${encodeURIComponent(row.city)}&from=sunday-table`;
 
     const ok = await sendSimpleEmail({
@@ -277,7 +290,7 @@ export async function sendSundayTableLocationEmails(): Promise<number> {
     }
     if (!location) continue;
 
-    const locale = (row.locale === "en" ? "en" : "nl") as Locale;
+    const locale = await emailLocaleForSignup(row);
     const dateObj = parseAmsterdamDateIso(tomorrow);
     const dateLabel = dateObj
       ? formatSundayTableDate(dateObj, locale)
@@ -286,7 +299,7 @@ export async function sendSundayTableLocationEmails(): Promise<number> {
 
     const ok = await sendSimpleEmail({
       to: row.email,
-      subject: sundayTableLocationSubject(row.city, dateLabel),
+      subject: sundayTableLocationSubject(row.city, dateLabel, locale),
       element: SundayTableLocationEmail({
         locale,
         firstName: row.name?.split(" ")[0],

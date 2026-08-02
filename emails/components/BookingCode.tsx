@@ -2,10 +2,19 @@ import { Text } from "@react-email/components";
 import { emailBrand, emailFonts, emailRadii, emailType } from "../brand";
 import { EmailSection } from "./EmailSection";
 
-export function BookingCode({ code }: { code: string }) {
+export function BookingCode({
+  code,
+  locale = "nl",
+}: {
+  code: string;
+  locale?: "nl" | "en";
+}) {
+  const en = locale === "en";
   return (
     <EmailSection centered>
-      <Text style={{ ...emailType.label, margin: "0 0 8px" }}>Boekingscode</Text>
+      <Text style={{ ...emailType.label, margin: "0 0 8px" }}>
+        {en ? "Booking code" : "Boekingscode"}
+      </Text>
       <Text
         style={{
           display: "inline-block",
@@ -22,8 +31,17 @@ export function BookingCode({ code }: { code: string }) {
       >
         {code}
       </Text>
-      <Text style={{ fontSize: "11px", lineHeight: "16px", color: emailBrand.mutedText, margin: 0 }}>
-        Gebruik deze code als je contact met ons opneemt over je boeking.
+      <Text
+        style={{
+          fontSize: "11px",
+          lineHeight: "16px",
+          color: emailBrand.mutedText,
+          margin: 0,
+        }}
+      >
+        {en
+          ? "Use this code if you contact us about your booking."
+          : "Gebruik deze code als je contact met ons opneemt over je boeking."}
       </Text>
     </EmailSection>
   );

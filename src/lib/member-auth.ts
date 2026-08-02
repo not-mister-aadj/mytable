@@ -23,7 +23,7 @@ export async function getMemberUser(): Promise<User | null> {
 export async function syncMemberCustomer(
   user: User,
   locale?: Locale,
-  options?: { recordOnboarding?: boolean },
+  options?: { recordOnboarding?: boolean; forceLanguage?: boolean },
 ): Promise<{ customerId: string | null }> {
   if (!user.email || !isDbConfigured()) {
     return { customerId: null };
@@ -46,12 +46,33 @@ export async function syncMemberCustomer(
   const preferredCity =
     !prefs.cityFlexible && prefs.cities.length > 0 ? prefs.cities[0]! : null;
 
+  const accountLanguage =
+    meta.preferred_language === "en" || meta.preferred_language === "nl"
+      ? (meta.preferred_language as Locale)
+      : null;
+  const forcedLanguage =
+    options?.forceLanguage && (locale === "en" || locale === "nl")
+      ? locale
+      : null;
+  const languageToWrite = accountLanguage ?? forcedLanguage ?? locale ?? null;
+
   const { id } = await upsertCustomerFromEmail({
     email: user.email,
     customerName: nameFromMeta || undefined,
-    language: locale ?? null,
+    language: languageToWrite,
+    setLanguage: Boolean(accountLanguage || forcedLanguage),
     preferredCity,
   });
+
+  if (accountLanguage || forcedLanguage) {
+    const { fanOutMemberEmailLocale } = await import(
+      "@/lib/email/apply-member-email-locale"
+    );
+    await fanOutMemberEmailLocale(
+      user.email,
+      (accountLanguage ?? forcedLanguage)!,
+    );
+  }
 
   if (options?.recordOnboarding && completed && prefs.joinIntent) {
     await logCustomerActivity({

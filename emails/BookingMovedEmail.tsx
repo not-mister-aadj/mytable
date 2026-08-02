@@ -3,9 +3,10 @@ import { BookingSummaryCard } from "./components/BookingSummaryCard";
 import { CTASection } from "./components/CTASection";
 import { EmailHero } from "./components/EmailHero";
 import { EmailLayout } from "./components/EmailLayout";
-import { emailBrand, emailType } from "./brand";
+import { emailType } from "./brand";
 
 export type BookingMovedEmailProps = {
+  locale?: "nl" | "en";
   customerName?: string;
   customerEmail: string;
   oldEventName: string;
@@ -22,6 +23,7 @@ export type BookingMovedEmailProps = {
 };
 
 export function BookingMovedEmail({
+  locale = "nl",
   customerName,
   oldEventName,
   oldCity,
@@ -35,37 +37,61 @@ export function BookingMovedEmail({
   bookingCode,
   eventUrl,
 }: BookingMovedEmailProps) {
-  const greeting = customerName ? `Hoi ${customerName},` : "Hoi,";
-  const seatsLabel = seats === 1 ? "1 plek" : `${seats} plekken`;
+  const en = locale === "en";
+  const greeting = customerName
+    ? en
+      ? `Hi ${customerName},`
+      : `Hoi ${customerName},`
+    : en
+      ? "Hi,"
+      : "Hoi,";
+  const seatsLabel = en
+    ? seats === 1
+      ? "1 seat"
+      : `${seats} seats`
+    : seats === 1
+      ? "1 plek"
+      : `${seats} plekken`;
 
   return (
-    <EmailLayout preview="Je nieuwe tafelgegevens staan hieronder." showTagline={false}>
+    <EmailLayout
+      preview={
+        en
+          ? "Your new table details are below."
+          : "Je nieuwe tafelgegevens staan hieronder."
+      }
+      showTagline={false}
+    >
       <EmailHero
         greeting={greeting}
-        headline="Je boeking is verplaatst"
-        body="We hebben je boeking aangepast. Hieronder vind je je nieuwe tafelgegevens."
+        headline={en ? "Your booking was moved" : "Je boeking is verplaatst"}
+        body={
+          en
+            ? "We updated your booking. Your new table details are below."
+            : "We hebben je boeking aangepast. Hieronder vind je je nieuwe tafelgegevens."
+        }
       />
 
       <BookingSummaryCard
-        title="Vorige tafel"
+        title={en ? "Previous table" : "Vorige tafel"}
         muted
         eventName={oldEventName}
         city={oldCity}
         rows={[
-          { label: "Datum", value: oldDate },
-          { label: "Tijd", value: oldTime },
+          { label: en ? "Date" : "Datum", value: oldDate },
+          { label: en ? "Time" : "Tijd", value: oldTime },
         ]}
       />
 
       <BookingSummaryCard
-        title="Nieuwe tafel"
+        title={en ? "New table" : "Nieuwe tafel"}
         eventName={newEventName}
         city={newCity}
         rows={[
-          { label: "Datum", value: newDate },
-          { label: "Tijd", value: newTime },
-          { label: "Plekken", value: seatsLabel },
-          { label: "Boekingscode", value: bookingCode },
+          { label: en ? "Date" : "Datum", value: newDate },
+          { label: en ? "Time" : "Tijd", value: newTime },
+          { label: en ? "Seats" : "Plekken", value: seatsLabel },
+          { label: en ? "Booking code" : "Boekingscode", value: bookingCode },
         ]}
       />
 
@@ -76,14 +102,19 @@ export function BookingMovedEmail({
           textAlign: "center",
         }}
       >
-        Je hoeft verder niets te doen. Je plek is automatisch meegenomen naar de
-        nieuwe tafel.
+        {en
+          ? "You do not need to do anything else. Your seat moved with you to the new table."
+          : "Je hoeft verder niets te doen. Je plek is automatisch meegenomen naar de nieuwe tafel."}
       </Text>
 
       <CTASection
-        helperText="Bekijk je nieuwe tafelgegevens."
+        helperText={
+          en
+            ? "See your new table details."
+            : "Bekijk je nieuwe tafelgegevens."
+        }
         href={eventUrl}
-        label="Bekijk je nieuwe tafel"
+        label={en ? "View your new table" : "Bekijk je nieuwe tafel"}
       />
     </EmailLayout>
   );

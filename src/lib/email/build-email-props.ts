@@ -5,10 +5,7 @@ import { getSiteUrl } from "@/lib/admin-url";
 import { formatMoney, reservationCode } from "@/lib/booking-display";
 import { experiencePath, type Locale } from "@/i18n/config";
 import { formatEmailDate, formatEmailTime } from "@/lib/email/format-email-dates";
-
-function resolveLocale(booking: Booking): Locale {
-  return booking.locale === "en" ? "en" : "nl";
-}
+import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 
 function eventDisplayName(event: Event, locale: Locale): string {
   return locale === "en" ? event.nameEn : event.nameNl;
@@ -19,16 +16,24 @@ function buildEventUrl(event: Event, locale: Locale): string {
   return `${base}${experiencePath(locale, event.slug)}`;
 }
 
-export function buildBookingConfirmationEmailProps(
+async function bookingEmailLocale(booking: Booking): Promise<Locale> {
+  return resolveEmailLocale({
+    email: booking.email,
+    fallbackLocale: booking.locale,
+  });
+}
+
+export async function buildBookingConfirmationEmailProps(
   booking: Booking,
   event: Event,
   venue?: Venue | null,
-): BookingConfirmationEmailProps {
-  const locale = resolveLocale(booking);
+): Promise<BookingConfirmationEmailProps> {
+  const locale = await bookingEmailLocale(booking);
   const startsAt = new Date(event.startsAt);
   const endsAt = event.endsAt ? new Date(event.endsAt) : null;
 
   return {
+    locale,
     customerName: booking.customerName ?? undefined,
     customerEmail: booking.email,
     eventName: eventDisplayName(event, locale),
@@ -45,18 +50,19 @@ export function buildBookingConfirmationEmailProps(
   };
 }
 
-export function buildBookingMovedEmailProps(
+export async function buildBookingMovedEmailProps(
   booking: Booking,
   oldEvent: Event,
   newEvent: Event,
-): BookingMovedEmailProps {
-  const locale = resolveLocale(booking);
+): Promise<BookingMovedEmailProps> {
+  const locale = await bookingEmailLocale(booking);
   const oldStarts = new Date(oldEvent.startsAt);
   const oldEnds = oldEvent.endsAt ? new Date(oldEvent.endsAt) : null;
   const newStarts = new Date(newEvent.startsAt);
   const newEnds = newEvent.endsAt ? new Date(newEvent.endsAt) : null;
 
   return {
+    locale,
     customerName: booking.customerName ?? undefined,
     customerEmail: booking.email,
     oldEventName: eventDisplayName(oldEvent, locale),

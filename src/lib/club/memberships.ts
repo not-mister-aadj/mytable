@@ -145,6 +145,7 @@ function memberSignupOwnerFilter(
 /**
  * One physical seat per Sunday: only one confirmed RSVP per calendar date.
  * Confirming `keepSignupId` cancels other confirmed/pending RSVPs that day.
+ * No cancel email here — this is an automatic seat swap, not a member opt-out.
  */
 export async function releaseOtherSignupsOnSameDate(input: {
   keepSignupId: string;
@@ -157,7 +158,7 @@ export async function releaseOtherSignupsOnSameDate(input: {
   const tableDate = input.tableDate.slice(0, 10);
 
   const toCancel = await db
-    .select()
+    .select({ id: sundayTableSignups.id })
     .from(sundayTableSignups)
     .where(
       and(
@@ -183,19 +184,6 @@ export async function releaseOtherSignupsOnSameDate(input: {
         toCancel.map((row) => row.id),
       ),
     );
-
-  try {
-    const { voidSundayTableCancelEmail } = await import(
-      "@/lib/email/sendSundayTableBookingEmails"
-    );
-    for (const row of toCancel) {
-      if (row.status === "confirmed") {
-        voidSundayTableCancelEmail(row);
-      }
-    }
-  } catch (err) {
-    console.error("[club] Sunday Table cancel emails", err);
-  }
 }
 
 /**
@@ -325,7 +313,8 @@ export async function createPendingClubCheckout(input: {
     }
   }
 
-  const existingSignup = await db
+  // One seat per Sunday: reuse any open RSVP for this date (ignore city/type mismatch).
+  const openSignups = await db
     .select({
       id: sundayTableSignups.id,
       status: sundayTableSignups.status,
@@ -334,18 +323,20 @@ export async function createPendingClubCheckout(input: {
     .where(
       and(
         sql`lower(${sundayTableSignups.email}) = ${email}`,
-        eq(sundayTableSignups.city, input.city),
         eq(sundayTableSignups.tableDate, input.tableDate),
-        eq(sundayTableSignups.tableType, input.tableType),
+        inArray(sundayTableSignups.status, ["confirmed", "pending_payment"]),
       ),
     )
-    .limit(1);
+    .orderBy(desc(sundayTableSignups.createdAt));
 
-  if (existingSignup[0]) {
-    const wasConfirmed = existingSignup[0].status === "confirmed";
+  const existingSignup =
+    openSignups.find((s) => s.status === "confirmed") ?? openSignups[0] ?? null;
+
+  if (existingSignup) {
+    const wasConfirmed = existingSignup.status === "confirmed";
     const status = existingActive
       ? "confirmed"
-      : existingSignup[0].status === "confirmed"
+      : existingSignup.status === "confirmed"
         ? "confirmed"
         : "pending_payment";
     const newlyConfirmed = status === "confirmed" && !wasConfirmed;
@@ -354,6 +345,8 @@ export async function createPendingClubCheckout(input: {
       .update(sundayTableSignups)
       .set({
         name,
+        city: input.city,
+        tableType: input.tableType,
         planId: input.planId,
         locale: input.locale,
         userId: input.userId ?? null,
@@ -362,15 +355,15 @@ export async function createPendingClubCheckout(input: {
         profile: input.profile ?? null,
         status,
         cancelledAt: status === "confirmed" ? null : undefined,
-        ...(existingSignup[0].status !== "confirmed" && status === "confirmed"
+        ...(existingSignup.status !== "confirmed" && status === "confirmed"
           ? { plusOne: false }
           : {}),
       })
-      .where(eq(sundayTableSignups.id, existingSignup[0].id));
+      .where(eq(sundayTableSignups.id, existingSignup.id));
 
     if (status === "confirmed") {
       await releaseOtherSignupsOnSameDate({
-        keepSignupId: existingSignup[0].id,
+        keepSignupId: existingSignup.id,
         email,
         userId: input.userId,
         tableDate: input.tableDate,
@@ -379,7 +372,7 @@ export async function createPendingClubCheckout(input: {
 
     return {
       membershipId,
-      signupId: existingSignup[0].id,
+      signupId: existingSignup.id,
       newlyConfirmed,
     };
   }

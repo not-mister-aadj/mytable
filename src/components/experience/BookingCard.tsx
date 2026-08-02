@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
-import { privacyPath, termsPath, type Locale } from "@/i18n/config";
+import { privacyPath, termsPath, clubmemberPath, type Locale } from "@/i18n/config";
 import {
   canReserve,
   formatSpotsBadge,
@@ -153,8 +153,6 @@ export function BookingCard({
         "{price}",
         String(selectedTierPrice.perPersonEuros),
       )}`;
-  const clubDiscountHint =
-    locale === "en" ? "Clubmember −10%" : "Clubmember −10%";
 
   useEffect(() => {
     setFormStep(1);
@@ -292,12 +290,28 @@ export function BookingCard({
             compact ? "mt-1" : "mt-1.5"
           } ${isFemaleOnly ? "text-rose-deep/80" : "text-burgundy/80"}`}
         >
-          {clubDiscountHint}
+          {labels.bookingClubDiscountApplied}
           <span className="ml-1.5 text-wine/40 line-through">
             €{listPerPersonEuros} p.p.
           </span>
         </p>
-      ) : null}
+      ) : (
+        <p
+          className={`text-xs leading-snug text-wine/60 ${
+            compact ? "mt-1" : "mt-1.5"
+          }`}
+        >
+          {labels.bookingClubDiscountPromo}{" "}
+          <Link
+            href={clubmemberPath(locale)}
+            className={`font-medium underline decoration-current/30 underline-offset-2 transition hover:decoration-current ${
+              isFemaleOnly ? "text-rose-deep" : "text-burgundy"
+            }`}
+          >
+            {labels.bookingClubDiscountPromoLink}
+          </Link>
+        </p>
+      )}
 
       {isClosed || isSoldOut ? (
         <span

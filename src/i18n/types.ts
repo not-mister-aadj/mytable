@@ -160,6 +160,11 @@ export interface ExperiencePageLabels {
   bookingStepBack: string;
   bookingFemaleOnlyNote: string;
   bookingPriorityList: string;
+  /** Shown when Clubmember discount is already applied. */
+  bookingClubDiscountApplied: string;
+  /** Promo under price for non-members. */
+  bookingClubDiscountPromo: string;
+  bookingClubDiscountPromoLink: string;
   bookingMediaConsent: string;
   bookingMediaConsentReadMore: string;
   bookingMediaConsentTerms: string;

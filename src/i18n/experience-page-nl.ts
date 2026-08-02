@@ -22,7 +22,7 @@ export const experiencePageNl: ExperiencePageLabels = {
   ],
   pillSoloTogether: "Boek je tickets",
   perPerson: "€{price} per persoon",
-  perPersonFrom: "Vanaf €{price} per persoon",
+  perPersonFrom: "€{price} per persoon",
   includedEyebrow: "Wat zit erin",
   includedTitle: "Alles geregeld voor één middag uit",
   includedSubtitle:
@@ -106,6 +106,9 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingFemaleOnlyNote: "Deze ervaring is alleen voor vrouwen.",
   bookingPriorityList:
     "Zet me op de wachtlijst. Ik hoor als eerste over nieuwe data en krijg een mooie korting.",
+  bookingClubDiscountApplied: "Clubmember −10%",
+  bookingClubDiscountPromo: "Clubmembers krijgen 10% korting.",
+  bookingClubDiscountPromoLink: "Bekijk Clubmember",
   bookingMediaConsent:
     "Tijdens het event kunnen foto's en video's gemaakt worden voor MyTable (website, socials en e-mail).",
   bookingMediaConsentReadMore: "Meer in onze",
@@ -245,6 +248,12 @@ export const experiencePageNl: ExperiencePageLabels = {
           answer:
             "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
         },
+        {
+          question: "Krijg ik korting als Clubmember?",
+          answer:
+            "Ja. Actieve Clubmembers krijgen 10% korting op culinaire tickets (proeverijen, wandelingen en Chef's Table). Lees meer op de",
+          link: { label: "Clubmember-pagina", to: "clubmember" },
+        },
       ],
     },
     wineWalk: {
@@ -338,6 +347,12 @@ export const experiencePageNl: ExperiencePageLabels = {
           answer:
             "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
         },
+        {
+          question: "Krijg ik korting als Clubmember?",
+          answer:
+            "Ja. Actieve Clubmembers krijgen 10% korting op culinaire tickets. Lees meer op de",
+          link: { label: "Clubmember-pagina", to: "clubmember" },
+        },
       ],
     },
     chefsSpecial: {
@@ -426,6 +441,12 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Kan ik annuleren of verplaatsen?",
           answer:
             "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
+        },
+        {
+          question: "Krijg ik korting als Clubmember?",
+          answer:
+            "Ja. Actieve Clubmembers krijgen 10% korting op culinaire tickets. Lees meer op de",
+          link: { label: "Clubmember-pagina", to: "clubmember" },
         },
       ],
     },

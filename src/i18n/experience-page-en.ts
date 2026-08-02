@@ -106,6 +106,9 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingFemaleOnlyNote: "This experience is for women only.",
   bookingPriorityList:
     "Add me to the waitlist. I'll hear about new dates first and get a nice discount.",
+  bookingClubDiscountApplied: "Clubmember −10%",
+  bookingClubDiscountPromo: "Clubmembers get 10% off.",
+  bookingClubDiscountPromoLink: "See Clubmember",
   bookingMediaConsent:
     "Photos and videos may be taken during the event for MyTable (website, socials and email).",
   bookingMediaConsentReadMore: "More in our",
@@ -246,6 +249,12 @@ export const experiencePageEn: ExperiencePageLabels = {
           answer:
             "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
         },
+        {
+          question: "Do Clubmembers get a discount?",
+          answer:
+            "Yes. Active Clubmembers get 10% off culinary tickets (tastings, walks and Chef's Table). Read more on the",
+          link: { label: "Clubmember page", to: "clubmember" },
+        },
       ],
     },
     wineWalk: {
@@ -339,6 +348,12 @@ export const experiencePageEn: ExperiencePageLabels = {
           answer:
             "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
         },
+        {
+          question: "Do Clubmembers get a discount?",
+          answer:
+            "Yes. Active Clubmembers get 10% off culinary tickets. Read more on the",
+          link: { label: "Clubmember page", to: "clubmember" },
+        },
       ],
     },
     chefsSpecial: {
@@ -427,6 +442,12 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Can I cancel or move my booking?",
           answer:
             "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
+        },
+        {
+          question: "Do Clubmembers get a discount?",
+          answer:
+            "Yes. Active Clubmembers get 10% off culinary tickets. Read more on the",
+          link: { label: "Clubmember page", to: "clubmember" },
         },
       ],
     },

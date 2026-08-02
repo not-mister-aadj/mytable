@@ -157,14 +157,15 @@ export function sundayTableCalendarDownloadUrl(
   return `${getSiteUrl()}/api/clubmember/calendar?${params.toString()}`;
 }
 
-/** Google Calendar template link (opens add-event UI). */
+/** Google Calendar template link (opens add-event UI with fields prefilled). */
 export function sundayTableGoogleCalendarUrl(
   input: SundayTableCalendarInput,
 ): string {
   const bounds = sundayTableEventBounds(input.tableDate);
   if (!bounds) return sundayTableCalendarDownloadUrl(input);
   const { title, description, location } = buildSundayTableCalendarCopy(input);
-  const dates = `${toIcsUtc(bounds.start).replace(/Z$/, "")}/${toIcsUtc(bounds.end).replace(/Z$/, "")}`;
+  // Google expects UTC: YYYYMMDDTHHmmssZ/YYYYMMDDTHHmmssZ
+  const dates = `${toIcsUtc(bounds.start)}/${toIcsUtc(bounds.end)}`;
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: title,
@@ -173,4 +174,23 @@ export function sundayTableGoogleCalendarUrl(
     location,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+/** Outlook.com compose link (prefilled event). */
+export function sundayTableOutlookCalendarUrl(
+  input: SundayTableCalendarInput,
+): string {
+  const bounds = sundayTableEventBounds(input.tableDate);
+  if (!bounds) return sundayTableCalendarDownloadUrl(input);
+  const { title, description, location } = buildSundayTableCalendarCopy(input);
+  const params = new URLSearchParams({
+    path: "/calendar/action/compose",
+    rru: "addevent",
+    subject: title,
+    body: description,
+    location,
+    startdt: bounds.start.toISOString(),
+    enddt: bounds.end.toISOString(),
+  });
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
 }

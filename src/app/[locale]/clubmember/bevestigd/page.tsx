@@ -23,7 +23,7 @@ import {
   getMemberSundaySignups,
 } from "@/lib/club/memberships";
 import { getMemberUser } from "@/lib/member-auth";
-import { sundayTableCalendarDownloadUrl } from "@/lib/sunday-table-calendar";
+import { sundayTableGoogleCalendarUrl } from "@/lib/sunday-table-calendar";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { notFound, redirect } from "next/navigation";
 import type { ClubConfirmationPurchaseData } from "@/lib/analytics/clubConfirmationPurchase";
@@ -104,7 +104,7 @@ export default async function ClubmemberConfirmedPage({
     });
     const nextConfirmed = signups.find((s) => s.status === "confirmed");
     if (nextConfirmed) {
-      calendarUrl = sundayTableCalendarDownloadUrl({
+      calendarUrl = sundayTableGoogleCalendarUrl({
         city: nextConfirmed.city,
         tableDate: nextConfirmed.tableDate,
         tableType: nextConfirmed.tableType,
@@ -138,6 +138,8 @@ export default async function ClubmemberConfirmedPage({
             {calendarUrl ? (
               <a
                 href={calendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex min-h-12 items-center justify-center rounded-full bg-wine px-6 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition hover:bg-[#3a1218]"
               >
                 {labels.checkoutOutcome.calendarCta}

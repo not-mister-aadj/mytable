@@ -33,6 +33,7 @@ import {
 } from "@/lib/posthog/analytics";
 import { seatStatsKey } from "@/lib/sunday-table-seat-key";
 import { MemberClubPaywall } from "./MemberClubPaywall";
+import { MemberClubConfirmDialog } from "./MemberClubConfirmDialog";
 import {
   MemberClubMembershipPanel,
   type MembershipSummary,
@@ -86,6 +87,31 @@ function signupForEvent(
       s.tableType === event.tableType,
   );
 }
+
+/** Other confirmed RSVP on the same Sunday (would be released on reserve). */
+function conflictingConfirmedSignup(
+  signups: MemberSundaySignup[],
+  event: { city: string; date: Date; tableType: string },
+): MemberSundaySignup | undefined {
+  const dateIso = amsterdamDateIso(event.date);
+  return signups.find(
+    (s) =>
+      s.status === "confirmed" &&
+      s.tableDate === dateIso &&
+      !(s.city === event.city && s.tableType === event.tableType),
+  );
+}
+
+function tableTypeLabel(
+  tableType: string,
+  labels: MemberClubLabels["rsvp"],
+): string {
+  return tableType === "girls_only" ? labels.girlsOnly : labels.mixed;
+}
+
+type ConfirmState =
+  | { kind: "plusOne"; signupId: string; nextValue: boolean }
+  | { kind: "replaceSeat"; event: ClubEvent; conflicting: MemberSundaySignup };
 
 interface MemberClubViewProps {
   labels: MemberClubLabels;
@@ -175,6 +201,7 @@ export function MemberClubView({
   const [activeEvent, setActiveEvent] = useState<ClubEvent | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
   useEffect(() => {
     if (!claimSeat) return;
@@ -312,6 +339,122 @@ export function MemberClubView({
     }
   }
 
+  async function runReserveSeat(event: ClubEvent) {
+    const signup = signupForEvent(signups, event);
+    const cancelled = signup?.status === "cancelled";
+    const pending = signup?.status === "pending_payment";
+    if (signup && (cancelled || pending)) {
+      await patchRsvp(signup.id, { reactivate: true });
+      return;
+    }
+    setRsvpBusy(true);
+    setRsvpError(null);
+    try {
+      const res = await fetch("/api/clubmember/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: event.city,
+          tableDate: amsterdamDateIso(event.date),
+          tableType: event.tableType,
+          planId: membership.planId ?? "12m",
+          locale,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (data?.error === "Onboarding required") {
+          router.push(accountPath(locale));
+          return;
+        }
+        setRsvpError(
+          data?.error === "Signup closed"
+            ? labels.rsvp.signupClosedError
+            : data?.error === "Girls only"
+              ? labels.rsvp.girlsOnlyRestricted
+              : (data?.error ?? labels.paywall.errorGeneric),
+        );
+        return;
+      }
+      trackSundayRsvp({
+        city: event.city,
+        table_type: event.tableType,
+        locale,
+      });
+      router.refresh();
+    } catch {
+      setRsvpError(labels.paywall.errorGeneric);
+    } finally {
+      setRsvpBusy(false);
+    }
+  }
+
+  function requestReserveSeat(event: ClubEvent) {
+    const rsvpWindow = getSundayTableRsvpWindow(event.date);
+    const rsvpOpen = rsvpWindow !== "closed";
+    const signup = signupForEvent(signups, event);
+    const confirmed = signup?.status === "confirmed";
+    const statsKey = seatStatsKey(
+      event.city,
+      amsterdamDateIso(event.date),
+      event.tableType,
+    );
+    const seatsLeft = seatStats[statsKey]?.seatsLeft;
+    const soldOut =
+      typeof seatsLeft === "number" && seatsLeft <= 0 && !confirmed;
+    if (rsvpBusy || !rsvpOpen || soldOut) return;
+    if (!requireOnboardingForTable(event.tableType)) return;
+
+    const conflicting = conflictingConfirmedSignup(signups, event);
+    if (conflicting) {
+      setConfirm({ kind: "replaceSeat", event, conflicting });
+      return;
+    }
+    void runReserveSeat(event);
+  }
+
+  async function handleConfirmAction() {
+    if (!confirm || rsvpBusy) return;
+    const action = confirm;
+    setConfirm(null);
+    if (action.kind === "plusOne") {
+      await patchRsvp(action.signupId, { plusOne: action.nextValue });
+      return;
+    }
+    await runReserveSeat(action.event);
+  }
+
+  const confirmCopy = (() => {
+    if (!confirm) return null;
+    if (confirm.kind === "plusOne") {
+      const adding = confirm.nextValue;
+      return {
+        title: adding
+          ? labels.rsvp.confirmPlusOneAddTitle
+          : labels.rsvp.confirmPlusOneRemoveTitle,
+        body: adding
+          ? labels.rsvp.confirmPlusOneAddBody
+          : labels.rsvp.confirmPlusOneRemoveBody,
+        confirmLabel: adding
+          ? labels.rsvp.confirmPlusOneAddCta
+          : labels.rsvp.confirmPlusOneRemoveCta,
+      };
+    }
+    const fromTable = tableTypeLabel(confirm.conflicting.tableType, labels.rsvp);
+    const toTable = tableTypeLabel(confirm.event.tableType, labels.rsvp);
+    return {
+      title: labels.rsvp.confirmReplaceSeatTitle,
+      body: labels.rsvp.confirmReplaceSeatBody
+        .replace("{fromCity}", confirm.conflicting.city)
+        .replace("{fromTable}", fromTable)
+        .replace("{toCity}", confirm.event.city)
+        .replace("{toTable}", toTable),
+      confirmLabel: labels.rsvp.confirmReplaceSeatCta,
+    };
+  })();
+
   const explainCopy =
     activeEvent?.tableType === "girls_only"
       ? labels.explain.girlsOnly
@@ -448,7 +591,6 @@ export function MemberClubView({
                 {events.map((event, index) => {
                   const signup = signupForEvent(signups, event);
                   const confirmed = signup?.status === "confirmed";
-                  const cancelled = signup?.status === "cancelled";
                   const pending = signup?.status === "pending_payment";
                   const rsvpWindow = getSundayTableRsvpWindow(event.date);
                   const rsvpOpen = rsvpWindow !== "closed";
@@ -466,54 +608,7 @@ export function MemberClubView({
                     typeof seatsLeft === "number" && seatsLeft <= 0 && !confirmed;
 
                   async function reserveSeat() {
-                    if (rsvpBusy || !rsvpOpen || soldOut) return;
-                    if (!requireOnboardingForTable(event.tableType)) return;
-                    if (signup && (cancelled || pending)) {
-                      void patchRsvp(signup.id, { reactivate: true });
-                      return;
-                    }
-                    setRsvpBusy(true);
-                    setRsvpError(null);
-                    try {
-                      const res = await fetch("/api/clubmember/checkout", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          city: event.city,
-                          tableDate: amsterdamDateIso(event.date),
-                          tableType: event.tableType,
-                          planId: membership.planId ?? "12m",
-                          locale,
-                        }),
-                      });
-                      if (!res.ok) {
-                        const data = (await res.json().catch(() => null)) as {
-                          error?: string;
-                        } | null;
-                        if (data?.error === "Onboarding required") {
-                          router.push(accountPath(locale));
-                          return;
-                        }
-                        setRsvpError(
-                          data?.error === "Signup closed"
-                            ? labels.rsvp.signupClosedError
-                            : data?.error === "Girls only"
-                              ? labels.rsvp.girlsOnlyRestricted
-                              : (data?.error ?? labels.paywall.errorGeneric),
-                        );
-                        return;
-                      }
-                      trackSundayRsvp({
-                        city: event.city,
-                        table_type: event.tableType,
-                        locale,
-                      });
-                      router.refresh();
-                    } catch {
-                      setRsvpError(labels.paywall.errorGeneric);
-                    } finally {
-                      setRsvpBusy(false);
-                    }
+                    requestReserveSeat(event);
                   }
 
                   return (
@@ -591,8 +686,10 @@ export function MemberClubView({
                                 title={labels.rsvp.plusOneHint}
                                 aria-pressed={signup.plusOne}
                                 onClick={() =>
-                                  void patchRsvp(signup.id, {
-                                    plusOne: !signup.plusOne,
+                                  setConfirm({
+                                    kind: "plusOne",
+                                    signupId: signup.id,
+                                    nextValue: !signup.plusOne,
                                   })
                                 }
                                 className={`min-h-11 flex-1 rounded-full px-3 text-xs font-semibold uppercase tracking-[0.1em] transition disabled:opacity-60 ${
@@ -932,44 +1029,8 @@ export function MemberClubView({
                         setPaywallOpen(true);
                         return;
                       }
-                      if (!activeEvent || rsvpBusy) return;
-                      setRsvpBusy(true);
-                      void fetch("/api/clubmember/checkout", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          city: activeEvent.city,
-                          tableDate: amsterdamDateIso(activeEvent.date),
-                          tableType: activeEvent.tableType,
-                          planId: membership.planId ?? "12m",
-                          locale,
-                        }),
-                      })
-                        .then(async (res) => {
-                          if (!res.ok) {
-                            const data = (await res
-                              .json()
-                              .catch(() => null)) as {
-                              error?: string;
-                            } | null;
-                            if (data?.error === "Onboarding required") {
-                              setActiveEvent(null);
-                              router.push(accountPath(locale));
-                              return;
-                            }
-                            setRsvpError(
-                              data?.error === "Signup closed"
-                                ? labels.rsvp.signupClosedError
-                                : data?.error === "Girls only"
-                                  ? labels.rsvp.girlsOnlyRestricted
-                                  : (data?.error ?? labels.paywall.errorGeneric),
-                            );
-                            return;
-                          }
-                          setActiveEvent(null);
-                          router.refresh();
-                        })
-                        .finally(() => setRsvpBusy(false));
+                      setActiveEvent(null);
+                      requestReserveSeat(activeEvent);
                     }}
                     className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-6 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition hover:bg-wine disabled:opacity-60"
                   >
@@ -1001,6 +1062,23 @@ export function MemberClubView({
           }}
           onJoinedWithoutCheckout={() => {
             router.refresh();
+          }}
+        />
+      ) : null}
+
+      {confirmCopy ? (
+        <MemberClubConfirmDialog
+          open
+          title={confirmCopy.title}
+          body={confirmCopy.body}
+          confirmLabel={confirmCopy.confirmLabel}
+          cancelLabel={labels.rsvp.confirmDismiss}
+          busy={rsvpBusy}
+          onCancel={() => {
+            if (!rsvpBusy) setConfirm(null);
+          }}
+          onConfirm={() => {
+            void handleConfirmAction();
           }}
         />
       ) : null}

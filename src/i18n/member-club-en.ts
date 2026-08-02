@@ -162,6 +162,19 @@ export const memberClubEn: MemberClubLabels = {
       "Finish your profile first (name, age and gender) to reserve a table.",
     girlsOnlyRestricted: "Girls-only tables are for women only.",
     soldOut: "Sold out",
+    confirmDismiss: "Cancel",
+    confirmPlusOneAddTitle: "Bring a +1?",
+    confirmPlusOneAddBody:
+      "You reserve a second seat at the table. No extra cost. We will email you a confirmation.",
+    confirmPlusOneAddCta: "Yes, add +1",
+    confirmPlusOneRemoveTitle: "Remove +1?",
+    confirmPlusOneRemoveBody:
+      "Your second seat is released. Your own RSVP stays.",
+    confirmPlusOneRemoveCta: "Yes, remove +1",
+    confirmReplaceSeatTitle: "Switch tables?",
+    confirmReplaceSeatBody:
+      "You already have a seat at {fromTable} in {fromCity}. If you continue, that RSVP is released and you reserve {toTable} in {toCity}.",
+    confirmReplaceSeatCta: "Yes, switch tables",
   },
   invite: {
     eyebrow: "Invite",

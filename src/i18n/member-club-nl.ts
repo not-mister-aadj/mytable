@@ -162,6 +162,19 @@ export const memberClubNl: MemberClubLabels = {
       "Rond eerst je profiel af (naam, leeftijd en geslacht) om een tafel te reserveren.",
     girlsOnlyRestricted: "Girls only-tafels zijn alleen voor vrouwen.",
     soldOut: "Vol",
+    confirmDismiss: "Annuleren",
+    confirmPlusOneAddTitle: "Plus 1 meenemen?",
+    confirmPlusOneAddBody:
+      "Je reserveert een tweede plek aan tafel. Geen extra kosten. We mailen je een bevestiging.",
+    confirmPlusOneAddCta: "Ja, +1 toevoegen",
+    confirmPlusOneRemoveTitle: "+1 verwijderen?",
+    confirmPlusOneRemoveBody:
+      "Je tweede plek komt vrij. Jouw eigen RSVP blijft staan.",
+    confirmPlusOneRemoveCta: "Ja, +1 verwijderen",
+    confirmReplaceSeatTitle: "Andere tafel kiezen?",
+    confirmReplaceSeatBody:
+      "Je hebt al een plek op {fromTable} in {fromCity}. Als je doorgaat, vervalt die RSVP en reserveer je {toTable} in {toCity}.",
+    confirmReplaceSeatCta: "Ja, wissel van tafel",
   },
   invite: {
     eyebrow: "Uitnodigen",

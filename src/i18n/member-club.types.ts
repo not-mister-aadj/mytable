@@ -123,6 +123,17 @@ export interface MemberClubLabels {
     onboardingRequired: string;
     girlsOnlyRestricted: string;
     soldOut: string;
+    confirmDismiss: string;
+    confirmPlusOneAddTitle: string;
+    confirmPlusOneAddBody: string;
+    confirmPlusOneAddCta: string;
+    confirmPlusOneRemoveTitle: string;
+    confirmPlusOneRemoveBody: string;
+    confirmPlusOneRemoveCta: string;
+    confirmReplaceSeatTitle: string;
+    /** Placeholders: {fromCity}, {fromTable}, {toCity}, {toTable} */
+    confirmReplaceSeatBody: string;
+    confirmReplaceSeatCta: string;
   };
   invite: {
     eyebrow: string;

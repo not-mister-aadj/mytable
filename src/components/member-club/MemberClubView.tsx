@@ -652,7 +652,7 @@ export function MemberClubView({
           {events.length === 0 ? (
             <p className="mt-8 text-sm text-wine/55">{labels.happening.empty}</p>
           ) : (
-            <div className="-mx-5 mt-8 min-w-0 overflow-x-auto overscroll-x-contain px-5 pb-2 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6">
+            <div className="-mx-5 mt-8 min-w-0 overflow-x-auto overscroll-x-contain px-5 pb-2 [touch-action:pan-x_pan-y] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6">
               <div className="flex w-max snap-x snap-mandatory gap-4 lg:gap-5">
                 {events.map((event, index) => {
                   const signup = signupForEvent(localSignups, event);

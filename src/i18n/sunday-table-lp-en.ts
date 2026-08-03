@@ -12,15 +12,15 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   brand: "MyTable",
   headline: "Your social life in the city starts here",
   headlineCity: "Sunday Table in {city}",
-  line: "Every first Sunday. Coming solo is normal. Girls only or mixed: you choose.",
+  line: "Every first Sunday of the month at a wine bar or restaurant. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table.",
   lineCity:
-    "Every first Sunday in {city}. Coming solo is normal. Girls only or mixed: you choose.",
+    "Every first Sunday of the month in {city}, at a wine bar or restaurant. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table.",
   cta: "Claim your seat",
   secondaryCta: "How it works",
   how: {
     eyebrow: "Clubmember",
     title: "First the table. Then the city.",
-    body: "Sunday Table is where you meet new people. With them you later book Wine Walks, tastings and dinners.",
+    body: "Sunday Table is where you meet new people. With your new culinary friends you later book wine walks, tastings and dinners.",
     steps: [
       {
         title: "Pick your city",
@@ -28,7 +28,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       },
       {
         title: "Pick your table",
-        body: "Girls only or mixed. Solo is the default. No dating agenda.",
+        body: "Girls only or mixed. Solo is the default, bringing a plus-one is fine. No dating agenda.",
       },
       {
         title: "Make plans after",
@@ -45,7 +45,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       "Women only at the table. Ideal if you’d rather land in a girls’ group.",
     mixedTitle: "Mixed",
     mixedBody:
-      "Everyone welcome. Still no dating setup, just new faces.",
+      "Everyone welcome. New faces, purely platonic.",
   },
   proof: {
     eyebrow: "From the table",
@@ -55,7 +55,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   pricing: {
     eyebrow: "Membership",
     title: "Start small. Or do what most people do.",
-    body: "The trial month is one-time and does not renew. Longer plans do, until you cancel.",
+    body: "The trial month is one-time and does not renew. Longer plans do, until you cancel. You get 10% off MyTable culinary experiences.",
     trialLabel: "1 month trial",
     trialPrice: "€21",
     trialHint: "One-time. Does not renew.",

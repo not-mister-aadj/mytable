@@ -12,15 +12,15 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   brand: "MyTable",
   headline: "Je sociale leven in de stad begint hier",
   headlineCity: "Sunday Table in {city}",
-  line: "Elke eerste zondag. Solo komen is normaal. Girls only of gemengd: jij kiest.",
+  line: "Elke eerste zondag van de maand in een wijnbar of restaurant. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel.",
   lineCity:
-    "Elke eerste zondag in {city}. Solo komen is normaal. Girls only of gemengd: jij kiest.",
+    "Elke eerste zondag van de maand in {city}, in een wijnbar of restaurant. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel.",
   cta: "Claim je plek",
   secondaryCta: "Hoe het werkt",
   how: {
     eyebrow: "Clubmember",
     title: "Eerst de tafel. Dan de stad.",
-    body: "Sunday Table is waar je nieuwe mensen ontmoet. Met hen boek je later Wine Walks, proeverijen en diners.",
+    body: "Sunday Table is waar je nieuwe mensen ontmoet. Met je nieuwe culinaire vrienden boek je later wine walks, proeverijen en diners.",
     steps: [
       {
         title: "Kies je stad",
@@ -28,7 +28,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       },
       {
         title: "Kies je tafel",
-        body: "Girls only of gemengd. Solo is standaard. Geen datingagenda.",
+        body: "Girls only of gemengd. Solo is standaard, een plus-één meenemen mag. Geen datingagenda.",
       },
       {
         title: "Maak plannen daarna",
@@ -45,7 +45,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       "Alleen vrouwen aan tafel. Fijn als je liever in een meidengroep landt.",
     mixedTitle: "Gemengd",
     mixedBody:
-      "Iedereen welkom. Nog steeds geen datingsetup, wel nieuwe gezichten.",
+      "Iedereen welkom. Nieuwe gezichten, puur vriendschappelijk.",
   },
   proof: {
     eyebrow: "Aan tafel",
@@ -55,7 +55,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   pricing: {
     eyebrow: "Lidmaatschap",
     title: "Begin klein. Of doe zoals de meeste.",
-    body: "De trialmaand is eenmalig en verlengt niet. Langere plannen wel, tot je opzegt.",
+    body: "De trialmaand is eenmalig en verlengt niet. Langere plannen wel, tot je opzegt. Op culinaire ervaringen van MyTable krijg je 10% korting.",
     trialLabel: "1 maand trial",
     trialPrice: "€21",
     trialHint: "Eenmalig. Verlengt niet.",

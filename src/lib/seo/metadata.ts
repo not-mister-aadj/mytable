@@ -8,6 +8,8 @@ import {
   girlsOnlyCityPath,
   localePath,
   privacyPath,
+  sundayTableLpCityPath,
+  sundayTableLpPath,
   termsPath,
   type Locale,
 } from "@/i18n/config";
@@ -18,6 +20,8 @@ export type SeoPathKind =
   | "agenda"
   | "girlsOnly"
   | "girlsOnlyCity"
+  | "sundayTableLp"
+  | "sundayTableLpCity"
   | "experience"
   | "blog"
   | "blogPost"
@@ -35,6 +39,11 @@ function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
     case "girlsOnlyCity":
       if (!slug) throw new Error("girlsOnlyCity SEO path requires city slug");
       return girlsOnlyCityPath(locale, slug);
+    case "sundayTableLp":
+      return sundayTableLpPath(locale);
+    case "sundayTableLpCity":
+      if (!slug) throw new Error("sundayTableLpCity SEO path requires city slug");
+      return sundayTableLpCityPath(locale, slug);
     case "experience":
       if (!slug) throw new Error("experience SEO path requires slug");
       return experiencePath(locale, slug);

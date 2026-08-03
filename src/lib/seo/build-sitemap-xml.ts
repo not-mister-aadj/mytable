@@ -7,6 +7,8 @@ import {
   girlsOnlyCityPath,
   localePath,
   privacyPath,
+  sundayTableLpCityPath,
+  sundayTableLpPath,
   termsPath,
 } from "@/i18n/config";
 import {
@@ -14,6 +16,7 @@ import {
   getBlogPostsSorted,
 } from "@/data/blog";
 import { listGirlsOnlyCities } from "@/data/girls-only-cities";
+import { SUNDAY_TABLE_LP_CITIES } from "@/data/sunday-table-lp-cities";
 import { getAgendaExperiences } from "@/lib/experiences";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
 
@@ -114,6 +117,24 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
         priority: 0.92,
         lastmod: now,
         images: [absoluteUrl(city.heroImage)],
+      }),
+    ),
+    ...pair({
+      nlPath: sundayTableLpPath("nl"),
+      enPath: sundayTableLpPath("en"),
+      changefreq: "weekly",
+      priority: 0.95,
+      lastmod: now,
+      images: [absoluteUrl("/girls-only/table-group.jpg")],
+    }),
+    ...SUNDAY_TABLE_LP_CITIES.flatMap((city) =>
+      pair({
+        nlPath: sundayTableLpCityPath("nl", city.slug),
+        enPath: sundayTableLpCityPath("en", city.slug),
+        changefreq: "weekly",
+        priority: 0.93,
+        lastmod: now,
+        images: [absoluteUrl("/girls-only/table-group.jpg")],
       }),
     ),
     ...pair({

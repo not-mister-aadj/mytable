@@ -230,7 +230,9 @@ export function isOnboardingCityId(value: unknown): value is OnboardingCityId {
   );
 }
 
-export function isActiveOnboardingCity(value: unknown): boolean {
+export function isActiveOnboardingCity(
+  value: unknown,
+): value is OnboardingCityId {
   return isOnboardingCityId(value) && ONBOARDING_CITY_STATUS[value] === "active";
 }
 
@@ -243,6 +245,29 @@ export function isComingSoonOnboardingCity(value: unknown): boolean {
 /** Drop paused / coming-soon cities from saved prefs for booking UI. */
 export function sanitizeOnboardingCities(cities: string[]): string[] {
   return cities.filter(isActiveOnboardingCity);
+}
+
+const PREFERRED_CITY_KEY = "mytable_preferred_city";
+
+/** Persist city chosen on the Sunday Table marketing LP. */
+export function rememberPreferredCity(city: string): void {
+  if (typeof window === "undefined") return;
+  if (!isActiveOnboardingCity(city)) return;
+  try {
+    sessionStorage.setItem(PREFERRED_CITY_KEY, city);
+  } catch {
+    // ignore
+  }
+}
+
+export function readPreferredCity(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = sessionStorage.getItem(PREFERRED_CITY_KEY);
+    return isActiveOnboardingCity(value) ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Map onboarding taste IDs to agenda experience moods for sorting. */

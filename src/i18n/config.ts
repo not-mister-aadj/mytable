@@ -97,6 +97,15 @@ export function joinPath(locale: Locale): string {
   return locale === "en" ? "/en/join" : "/join";
 }
 
+/** Public Sunday Table / Clubmember marketing landing. */
+export function sundayTableLpPath(locale: Locale): string {
+  return locale === "en" ? "/en/sunday-table" : "/sunday-table";
+}
+
+export function sundayTableLpCityPath(locale: Locale, citySlug: string): string {
+  return `${sundayTableLpPath(locale)}/${citySlug}`;
+}
+
 export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
   return locale === "en"
     ? `/en/girls-only/${citySlug}`

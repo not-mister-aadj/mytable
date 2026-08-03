@@ -11,8 +11,11 @@ import { MemberOnboarding } from "@/components/account/MemberOnboarding";
 import {
   EMPTY_ONBOARDING_PREFS,
   readOnboardingFromSession,
+  readPreferredCity,
+  rememberPreferredCity,
   type MemberOnboardingPrefs,
 } from "@/lib/member-onboarding";
+import { parseSundayTableLpCityParam } from "@/data/sunday-table-lp-cities";
 
 type FlowStep =
   | "brand"
@@ -76,11 +79,19 @@ function JoinFunnelInner({
 
   const [initialPrefs] = useState<MemberOnboardingPrefs>(() => {
     const stored = readOnboardingFromSession() ?? { ...EMPTY_ONBOARDING_PREFS };
+    const cityFromQuery = parseSundayTableLpCityParam(searchParams.get("city"));
+    if (cityFromQuery) {
+      rememberPreferredCity(cityFromQuery);
+    }
+    const preferredCity = cityFromQuery ?? readPreferredCity();
+    const citiesFromLp = preferredCity ? [preferredCity] : [];
+
     const step = authenticated
       ? parseStep(searchParams.get("step"))
       : "signup";
 
     // Choice steps always start empty — never restore a pre-selected option.
+    // City from the Sunday Table LP is kept so the city step can stay prefilled.
     if (
       !step ||
       step === "brand" ||
@@ -94,7 +105,7 @@ function JoinFunnelInner({
         tableType: null,
         personality: null,
         interests: [],
-        cities: [],
+        cities: citiesFromLp,
         cityFlexible: false,
         company: null,
       };
@@ -112,10 +123,25 @@ function JoinFunnelInner({
       return { ...stored, interests: [] };
     }
     if (step === "city") {
-      return { ...stored, cities: [], cityFlexible: false };
+      return {
+        ...stored,
+        cities: citiesFromLp,
+        cityFlexible: false,
+      };
     }
-    return stored;
+    return {
+      ...stored,
+      cities:
+        stored.cities.length > 0 ? stored.cities : citiesFromLp,
+    };
   });
+
+  useEffect(() => {
+    const cityFromQuery = parseSundayTableLpCityParam(searchParams.get("city"));
+    if (cityFromQuery) {
+      rememberPreferredCity(cityFromQuery);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -153,11 +179,17 @@ function JoinFunnelInner({
   }, [authenticated]);
 
   useEffect(() => {
-    if (!searchParams.get("step") && !searchParams.get("ref")) return;
+    if (
+      !searchParams.get("step") &&
+      !searchParams.get("ref") &&
+      !searchParams.get("city")
+    ) {
+      return;
+    }
     const url = new URL(window.location.href);
     url.searchParams.delete("step");
-    // keep ref briefly for sessionStorage; strip after read
     url.searchParams.delete("ref");
+    url.searchParams.delete("city");
     router.replace(url.pathname);
   }, [router, searchParams]);
 

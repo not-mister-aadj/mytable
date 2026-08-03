@@ -37,6 +37,7 @@ import {
   parseBirthDateParts,
   postLoginPath,
   readOnboardingFromMetadata,
+  readPreferredCity,
   sanitizeOnboardingCities,
   wantsMeetPath,
   writeOnboardingToSession,
@@ -201,8 +202,9 @@ export function MemberOnboarding({
     choiceStepRef.current = step;
 
     if (step === "intent") {
-      setPrefs((p) =>
-        p.joinIntent === null
+      setPrefs((p) => {
+        const preferred = readPreferredCity();
+        return p.joinIntent === null
           ? p
           : {
               ...p,
@@ -211,11 +213,11 @@ export function MemberOnboarding({
               tableType: null,
               personality: null,
               interests: [],
-              cities: [],
+              cities: preferred ? [preferred] : [],
               cityFlexible: false,
               company: null,
-            },
-      );
+            };
+      });
       return;
     }
     if (step === "gender") {
@@ -245,11 +247,15 @@ export function MemberOnboarding({
       return;
     }
     if (step === "city") {
-      setPrefs((p) =>
-        p.cities.length === 0 && !p.cityFlexible
+      setPrefs((p) => {
+        const preferred = readPreferredCity();
+        if (preferred) {
+          return { ...p, cities: [preferred], cityFlexible: false };
+        }
+        return p.cities.length === 0 && !p.cityFlexible
           ? p
-          : { ...p, cities: [], cityFlexible: false },
-      );
+          : { ...p, cities: [], cityFlexible: false };
+      });
     }
   }, [step]);
 

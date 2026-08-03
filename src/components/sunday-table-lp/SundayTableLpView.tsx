@@ -31,6 +31,65 @@ function joinHref(locale: Locale, cityName?: string | null): string {
   return `${base}?city=${encodeURIComponent(cityName)}`;
 }
 
+function ProofPhotoStrip({
+  images,
+  reduceMotion,
+}: {
+  images: Array<{ src: string; alt: string }>;
+  reduceMotion: boolean | null;
+}) {
+  const mobileTrack = [...images, ...images];
+  const desktopImages = images.slice(0, 5);
+
+  return (
+    <div className="mt-10">
+      {/* Mobile: auto-scroll to the right */}
+      <div className="relative overflow-hidden md:hidden">
+        <div
+          className={`flex w-max gap-3 pl-5 ${
+            reduceMotion ? "" : "animate-photo-marquee-right"
+          }`}
+        >
+          {mobileTrack.map((image, index) => (
+            <div
+              key={`${image.src}-${index}`}
+              className="relative h-56 w-44 shrink-0 overflow-hidden"
+            >
+              <Image
+                src={image.src}
+                alt={index < images.length ? image.alt : ""}
+                fill
+                sizes="176px"
+                quality={90}
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: larger tiles within source resolution */}
+      <div className="mx-auto hidden max-w-6xl justify-center gap-4 px-8 md:flex lg:gap-5 lg:px-10">
+        {desktopImages.map((image) => (
+          <div
+            key={image.src}
+            className="relative h-64 w-48 shrink-0 overflow-hidden lg:h-[17.5rem] lg:w-[13.5rem]"
+          >
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              sizes="(max-width: 1024px) 240px, 360px"
+              quality={92}
+              className="object-cover"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SundayTableLpView({
   locale,
   labels,
@@ -265,28 +324,7 @@ export function SundayTableLpView({
           </motion.div>
         </div>
 
-        <div className="mt-10">
-          <div className="flex gap-3 overflow-x-auto px-5 pb-2 sm:gap-4 sm:px-8 lg:px-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {proofImages.map((image, index) => (
-              <motion.div
-                key={image.src}
-                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: index * 0.05, ease }}
-                className="relative h-52 w-40 shrink-0 overflow-hidden sm:h-64 sm:w-48 lg:h-72 lg:w-56"
-              >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  sizes="(max-width: 640px) 160px, (max-width: 1024px) 192px, 224px"
-                  className="object-cover"
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
 
         <div className="mt-12">
           <TestimonialMarquee

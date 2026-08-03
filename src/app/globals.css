@@ -151,6 +151,10 @@ html.samsung-force-light picture {
   animation: marquee-right 75s linear infinite;
 }
 
+.animate-photo-marquee-right {
+  animation: marquee-right 38s linear infinite;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .group\/marquee:hover .animate-marquee-left,
   .group\/marquee:hover .animate-marquee-right {
@@ -190,7 +194,8 @@ html.samsung-force-light picture {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-left,
-  .animate-marquee-right {
+  .animate-marquee-right,
+  .animate-photo-marquee-right {
     animation: none;
     transform: translateX(0);
   }

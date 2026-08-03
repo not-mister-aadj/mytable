@@ -29,6 +29,7 @@ export interface MemberClubLabels {
     filterCities: string;
     filterTables: string;
     seatsLeft: string;
+    comingSoon: string;
   };
   explain: {
     closeAria: string;

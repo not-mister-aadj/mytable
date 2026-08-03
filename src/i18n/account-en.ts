@@ -207,6 +207,7 @@ export const accountPageEn: AccountPageLabels = {
       subtitle: "Pick up to two cities. You can change this later.",
       flexible: "Not sure yet",
       maxHint: "Up to two cities",
+      comingSoon: "Coming soon",
     },
     gender: {
       title: "How do you identify?",

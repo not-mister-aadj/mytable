@@ -3,7 +3,7 @@ import { isDbConfigured } from "@/db/index";
 import type { SundayTableSignupProfile } from "@/db/schema";
 import { getMemberUser } from "@/lib/member-auth";
 import {
-  ONBOARDING_CITIES,
+  isActiveOnboardingCity,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import { createSundayTableSignup } from "@/lib/sunday-table-signups-data";
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       ? raw.locale
       : "nl";
 
-  if (!(ONBOARDING_CITIES as readonly string[]).includes(city)) {
+  if (!isActiveOnboardingCity(city)) {
     return NextResponse.json({ error: "Invalid city" }, { status: 400 });
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tableDate)) {

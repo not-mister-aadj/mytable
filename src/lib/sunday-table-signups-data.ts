@@ -6,7 +6,7 @@ import {
   type SundayTableSignupProfile,
 } from "@/db/schema";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
-import { ONBOARDING_CITIES } from "@/lib/member-onboarding";
+import { ACTIVE_ONBOARDING_CITIES } from "@/lib/member-onboarding";
 import {
   amsterdamDateIso,
   getSundayWineTablesForHorizon,
@@ -194,7 +194,7 @@ export async function getSundayTablesForAdmin(
   const out: SundayTableAdminRow[] = [];
 
   for (const dateIso of upcomingIso) {
-    for (const city of ONBOARDING_CITIES) {
+    for (const city of ACTIVE_ONBOARDING_CITIES) {
       for (const tableType of tableTypes) {
         const key = `${city}__${dateIso}__${tableType}`;
         const existing = countMap.get(key);

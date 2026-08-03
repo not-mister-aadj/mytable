@@ -22,8 +22,8 @@ import {
 } from "@/lib/club/memberships";
 import { getMemberUser } from "@/lib/member-auth";
 import {
+  ACTIVE_ONBOARDING_CITIES,
   isSundayTableOnboardingReady,
-  ONBOARDING_CITIES,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import {
@@ -153,7 +153,7 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
   const tableDate = upcoming[0] ? amsterdamDateIso(upcoming[0]) : null;
   const seatKeys =
     tableDate != null
-      ? ONBOARDING_CITIES.flatMap((city) => [
+      ? ACTIVE_ONBOARDING_CITIES.flatMap((city) => [
           { city, tableDate, tableType: "girls_only" as const },
           { city, tableDate, tableType: "mixed" as const },
         ])

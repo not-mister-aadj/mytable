@@ -146,6 +146,7 @@ export type AccountOnboardingLabels = {
     subtitle: string;
     flexible: string;
     maxHint: string;
+    comingSoon: string;
   };
   gender: {
     title: string;

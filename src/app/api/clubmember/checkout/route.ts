@@ -22,8 +22,8 @@ import { getSiteUrl } from "@/lib/admin-url";
 import { getMemberUser } from "@/lib/member-auth";
 import {
   canChooseGirlsOnly,
+  isActiveOnboardingCity,
   isSundayTableOnboardingReady,
-  ONBOARDING_CITIES,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import { hasOpenReferralAttribution } from "@/lib/referral";
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       : undefined,
   );
 
-  if (!(ONBOARDING_CITIES as readonly string[]).includes(city)) {
+  if (!isActiveOnboardingCity(city)) {
     return NextResponse.json({ error: "Invalid city" }, { status: 400 });
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tableDate)) {

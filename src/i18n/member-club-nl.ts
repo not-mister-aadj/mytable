@@ -32,6 +32,7 @@ export const memberClubNl: MemberClubLabels = {
     filterCities: "Steden",
     filterTables: "Tafel",
     seatsLeft: "{count} plekken over",
+    comingSoon: "Binnenkort",
   },
   explain: {
     closeAria: "Sluiten",

@@ -32,6 +32,7 @@ export const memberClubEn: MemberClubLabels = {
     filterCities: "Cities",
     filterTables: "Table",
     seatsLeft: "{count} seats left",
+    comingSoon: "Coming soon",
   },
   explain: {
     closeAria: "Close",

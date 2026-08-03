@@ -10,9 +10,13 @@ import { accountPath } from "@/i18n/config";
 import type { MemberClubLabels } from "@/i18n/member-club.types";
 import {
   canChooseGirlsOnly,
-  ONBOARDING_CITIES,
+  ACTIVE_ONBOARDING_CITIES,
+  VISIBLE_ONBOARDING_CITIES,
+  isActiveOnboardingCity,
+  isComingSoonOnboardingCity,
   parseOnboardingLanguages,
   toggleOnboardingLanguage,
+  type OnboardingCityId,
   type OnboardingGenderId,
   type OnboardingLanguageId,
   type OnboardingTableTypeId,
@@ -65,7 +69,7 @@ const BENEFIT_IMAGES = [
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-type CityId = (typeof ONBOARDING_CITIES)[number];
+type CityId = OnboardingCityId;
 type TableFilterId = "girls_only" | "mixed";
 
 type ClubEvent = {
@@ -140,10 +144,10 @@ interface MemberClubViewProps {
 
 function initialSelectedCities(preferredCities: string[]): CityId[] {
   const preferred = preferredCities.filter((c): c is CityId =>
-    (ONBOARDING_CITIES as readonly string[]).includes(c),
+    isActiveOnboardingCity(c),
   );
   if (preferred.length > 0) return preferred;
-  return [ONBOARDING_CITIES[0]];
+  return [ACTIVE_ONBOARDING_CITIES[0]!];
 }
 
 function initialTableFilters(
@@ -265,6 +269,7 @@ export function MemberClubView({
   }, [activeEvent]);
 
   function toggleCity(city: CityId) {
+    if (!isActiveOnboardingCity(city)) return;
     setSelectedCities((prev) => {
       if (prev.includes(city)) {
         if (prev.length === 1) return prev;
@@ -599,14 +604,30 @@ export function MemberClubView({
                 {labels.happening.filterCities}
               </p>
               <div className="mt-2.5 flex flex-wrap gap-2">
-                {ONBOARDING_CITIES.map((city) => (
-                  <FilterChip
-                    key={city}
-                    label={city}
-                    selected={selectedCities.includes(city)}
-                    onClick={() => toggleCity(city)}
-                  />
-                ))}
+                {VISIBLE_ONBOARDING_CITIES.map((city) => {
+                  const comingSoon = isComingSoonOnboardingCity(city);
+                  if (comingSoon) {
+                    return (
+                      <span
+                        key={city}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-wine/10 bg-wine/[0.03] px-3.5 py-1.5 text-sm text-wine/35"
+                      >
+                        {city}
+                        <span className="text-[10px] font-semibold uppercase tracking-wide">
+                          {labels.happening.comingSoon}
+                        </span>
+                      </span>
+                    );
+                  }
+                  return (
+                    <FilterChip
+                      key={city}
+                      label={city}
+                      selected={selectedCities.includes(city)}
+                      onClick={() => toggleCity(city)}
+                    />
+                  );
+                })}
               </div>
             </div>
 

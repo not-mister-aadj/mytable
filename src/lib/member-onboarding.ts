@@ -180,17 +180,70 @@ export const ONBOARDING_STORAGE_KEY = "mytable_onboarding_prefs";
 
 export const MIN_ONBOARDING_AGE = 18;
 
+/** All known Sunday Table cities (incl. paused). Keep for types + legacy prefs. */
 export const ONBOARDING_CITIES = [
-  "Amsterdam",
   "Rotterdam",
   "Den Haag",
   "Utrecht",
+  "Amsterdam",
   "Eindhoven",
+  "Groningen",
   "Maastricht",
   "Nijmegen",
   "Zwolle",
-  "Groningen",
 ] as const;
+
+export type OnboardingCityId = (typeof ONBOARDING_CITIES)[number];
+
+export type OnboardingCityStatus = "active" | "coming_soon" | "hidden";
+
+/** Launch focus: 3 live cities; AMS/EHV/GRQ teaser; rest hidden for now. */
+export const ONBOARDING_CITY_STATUS: Record<
+  OnboardingCityId,
+  OnboardingCityStatus
+> = {
+  Rotterdam: "active",
+  "Den Haag": "active",
+  Utrecht: "active",
+  Amsterdam: "coming_soon",
+  Eindhoven: "coming_soon",
+  Groningen: "coming_soon",
+  Maastricht: "hidden",
+  Nijmegen: "hidden",
+  Zwolle: "hidden",
+};
+
+/** Cities shown in onboarding / club filters (active + coming soon). */
+export const VISIBLE_ONBOARDING_CITIES = ONBOARDING_CITIES.filter(
+  (city) => ONBOARDING_CITY_STATUS[city] !== "hidden",
+);
+
+/** Cities where Sunday Tables can be booked right now. */
+export const ACTIVE_ONBOARDING_CITIES = ONBOARDING_CITIES.filter(
+  (city) => ONBOARDING_CITY_STATUS[city] === "active",
+);
+
+export function isOnboardingCityId(value: unknown): value is OnboardingCityId {
+  return (
+    typeof value === "string" &&
+    (ONBOARDING_CITIES as readonly string[]).includes(value)
+  );
+}
+
+export function isActiveOnboardingCity(value: unknown): boolean {
+  return isOnboardingCityId(value) && ONBOARDING_CITY_STATUS[value] === "active";
+}
+
+export function isComingSoonOnboardingCity(value: unknown): boolean {
+  return (
+    isOnboardingCityId(value) && ONBOARDING_CITY_STATUS[value] === "coming_soon"
+  );
+}
+
+/** Drop paused / coming-soon cities from saved prefs for booking UI. */
+export function sanitizeOnboardingCities(cities: string[]): string[] {
+  return cities.filter(isActiveOnboardingCity);
+}
 
 /** Map onboarding taste IDs to agenda experience moods for sorting. */
 export function interestsToMoods(

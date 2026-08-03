@@ -26,15 +26,18 @@ import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
 import {
   EMPTY_ONBOARDING_PREFS,
   MIN_ONBOARDING_AGE,
-  ONBOARDING_CITIES,
+  VISIBLE_ONBOARDING_CITIES,
   ageFromBirthDate,
   buildBirthDate,
   canChooseGirlsOnly,
+  isActiveOnboardingCity,
   isAtLeastMinAge,
+  isComingSoonOnboardingCity,
   onboardingBirthYears,
   parseBirthDateParts,
   postLoginPath,
   readOnboardingFromMetadata,
+  sanitizeOnboardingCities,
   wantsMeetPath,
   writeOnboardingToSession,
   clearJoinPending,
@@ -177,9 +180,10 @@ export function MemberOnboarding({
     initialStep ??
       (alreadyCompleted ? "welcomeBack" : isJoin ? "signup" : "brand"),
   );
-  const [prefs, setPrefs] = useState<MemberOnboardingPrefs>(
-    initialPrefs ?? { ...EMPTY_ONBOARDING_PREFS },
-  );
+  const [prefs, setPrefs] = useState<MemberOnboardingPrefs>(() => {
+    const base = initialPrefs ?? { ...EMPTY_ONBOARDING_PREFS };
+    return { ...base, cities: sanitizeOnboardingCities(base.cities) };
+  });
   const [signingOut, setSigningOut] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -555,6 +559,7 @@ export function MemberOnboarding({
   }
 
   function toggleCity(city: string) {
+    if (!isActiveOnboardingCity(city)) return;
     setPrefs((prev) => {
       if (prev.cityFlexible) {
         return { ...prev, cityFlexible: false, cities: [city] };
@@ -990,20 +995,29 @@ export function MemberOnboarding({
                   {labels.city.maxHint}
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
-                  {ONBOARDING_CITIES.map((city) => {
+                  {VISIBLE_ONBOARDING_CITIES.map((city) => {
+                    const comingSoon = isComingSoonOnboardingCity(city);
                     const selected = prefs.cities.includes(city);
                     return (
                       <button
                         key={city}
                         type="button"
+                        disabled={comingSoon}
                         onClick={() => toggleCity(city)}
                         className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
-                          selected
-                            ? "border-wine bg-wine text-cream"
-                            : "border-wine/15 bg-white text-wine hover:border-burgundy/40"
+                          comingSoon
+                            ? "cursor-not-allowed border-wine/10 bg-wine/[0.03] text-wine/35"
+                            : selected
+                              ? "border-wine bg-wine text-cream"
+                              : "border-wine/15 bg-white text-wine hover:border-burgundy/40"
                         }`}
                       >
                         {city}
+                        {comingSoon ? (
+                          <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide opacity-80">
+                            {labels.city.comingSoon}
+                          </span>
+                        ) : null}
                       </button>
                     );
                   })}

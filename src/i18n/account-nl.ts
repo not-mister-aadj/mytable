@@ -207,6 +207,7 @@ export const accountPageNl: AccountPageLabels = {
       subtitle: "Kies tot twee steden. Je kunt dit later altijd wijzigen.",
       flexible: "Nog niet zeker",
       maxHint: "Maximaal twee steden",
+      comingSoon: "Binnenkort",
     },
     gender: {
       title: "Hoe identificeer je je?",

@@ -18,9 +18,19 @@ export type SundayTableLpLabels = {
     body: string;
     steps: Array<{ title: string; body: string }>;
   };
+  tables: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    girlsOnlyTitle: string;
+    girlsOnlyBody: string;
+    mixedTitle: string;
+    mixedBody: string;
+  };
   proof: {
     eyebrow: string;
     title: string;
+    body: string;
   };
   pricing: {
     eyebrow: string;

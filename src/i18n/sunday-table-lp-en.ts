@@ -5,16 +5,16 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     title: "Sunday Table · MyTable Clubmember",
     titleCity: "Sunday Table in {city} · MyTable",
     description:
-      "Meet new people every first Sunday. Claim your Clubmember seat. Coming solo is the default.",
+      "Meet new people every first Sunday. Girls only or mixed. Claim your Clubmember seat.",
     descriptionCity:
-      "Sunday Table in {city}: meet new people every first Sunday. Claim your Clubmember seat.",
+      "Sunday Table in {city}: girls only or mixed, every first Sunday. Claim your Clubmember seat.",
   },
   brand: "MyTable",
   headline: "Your social life in the city starts here",
   headlineCity: "Sunday Table in {city}",
-  line: "Every first Sunday. Coming solo is normal. Then make plans with people you just met.",
+  line: "Every first Sunday. Coming solo is normal. Girls only or mixed: you choose.",
   lineCity:
-    "Every first Sunday in {city}. Coming solo is normal. Then make plans with people you just met.",
+    "Every first Sunday in {city}. Coming solo is normal. Girls only or mixed: you choose.",
   cta: "Claim your seat",
   secondaryCta: "How it works",
   how: {
@@ -27,8 +27,8 @@ export const sundayTableLpEn: SundayTableLpLabels = {
         body: "Rotterdam, The Hague or Utrecht. Ten seats per table.",
       },
       {
-        title: "Show up solo on Sunday",
-        body: "Every first Sunday of the month. No dating agenda. Real conversation.",
+        title: "Pick your table",
+        body: "Girls only or mixed. Solo is the default. No dating agenda.",
       },
       {
         title: "Make plans after",
@@ -36,9 +36,21 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       },
     ],
   },
+  tables: {
+    eyebrow: "Your table",
+    title: "Girls only or mixed",
+    body: "When you claim your seat you choose what fits. Both are Sunday Table: new people, real conversation.",
+    girlsOnlyTitle: "Girls only",
+    girlsOnlyBody:
+      "Women only at the table. Ideal if you’d rather land in a girls’ group.",
+    mixedTitle: "Mixed",
+    mixedBody:
+      "Everyone welcome. Still no dating setup, just new faces.",
+  },
   proof: {
     eyebrow: "From the table",
     title: "Arrived solo. Left with plans.",
+    body: "Real moments from Sunday Tables and the nights that follow.",
   },
   pricing: {
     eyebrow: "Membership",

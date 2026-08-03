@@ -16,6 +16,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
+import { getGirlsOnlyHeroSlideshowImages } from "@/data/girls-only-media";
 import {
   SUNDAY_TABLE_LP_CITIES,
   type SundayTableLpCitySlug,
@@ -49,6 +50,7 @@ export function SundayTableLpView({
   const { people } = getBrandLandingTestimonialRows(locale);
   const proofTop = people.slice(0, Math.ceil(people.length / 2));
   const proofBottom = people.slice(Math.ceil(people.length / 2));
+  const proofImages = getGirlsOnlyHeroSlideshowImages(locale).slice(0, 8);
   const headline = cityName
     ? fillCity(labels.headlineCity, cityName)
     : labels.headline;
@@ -187,24 +189,111 @@ export function SundayTableLpView({
         </div>
       </section>
 
-      {/* Proof */}
-      <section className="overflow-hidden border-b border-wine/8 bg-white py-16 sm:py-20">
+      {/* Girls only / mixed */}
+      <section className="relative overflow-hidden border-b border-wine/8 bg-white py-20 sm:py-24">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_100%_0%,rgba(197,154,91,0.08),transparent_40%)]" />
+        <div className="relative mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.55, ease }}
+            className="max-w-2xl"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+              {labels.tables.eyebrow}
+            </p>
+            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-[2.75rem]">
+              {labels.tables.title}
+            </h2>
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-wine/60 sm:text-lg">
+              {labels.tables.body}
+            </p>
+          </motion.div>
+
+          <div className="mt-14 grid gap-12 sm:grid-cols-2 sm:gap-16">
+            {(
+              [
+                {
+                  title: labels.tables.girlsOnlyTitle,
+                  body: labels.tables.girlsOnlyBody,
+                },
+                {
+                  title: labels.tables.mixedTitle,
+                  body: labels.tables.mixedBody,
+                },
+              ] as const
+            ).map((option, index) => (
+              <motion.div
+                key={option.title}
+                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: index * 0.08, ease }}
+              >
+                <h3 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
+                  {option.title}
+                </h3>
+                <p className="mt-3 max-w-sm text-sm leading-relaxed text-wine/60 sm:text-base">
+                  {option.body}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Proof: photos + quotes */}
+      <section className="overflow-hidden border-b border-wine/8 bg-cream py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-          <div className="max-w-xl">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.55, ease }}
+            className="max-w-xl"
+          >
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
               {labels.proof.eyebrow}
             </p>
             <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
               {labels.proof.title}
             </h2>
+            <p className="mt-4 text-base leading-relaxed text-wine/60">
+              {labels.proof.body}
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="mt-10">
+          <div className="flex gap-3 overflow-x-auto px-5 pb-2 sm:gap-4 sm:px-8 lg:px-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {proofImages.map((image, index) => (
+              <motion.div
+                key={image.src}
+                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: index * 0.05, ease }}
+                className="relative h-52 w-40 shrink-0 overflow-hidden sm:h-64 sm:w-48 lg:h-72 lg:w-56"
+              >
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(max-width: 640px) 160px, (max-width: 1024px) 192px, 224px"
+                  className="object-cover"
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
-        <div className="mt-10">
+
+        <div className="mt-12">
           <TestimonialMarquee
             top={proofTop}
             bottom={proofBottom}
-            fadeFromClassName="from-white"
-            cardClassName="border-wine/10 bg-cream/90"
+            fadeFromClassName="from-cream"
+            cardClassName="border-wine/10 bg-white/90"
             singleRow
           />
         </div>

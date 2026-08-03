@@ -5,16 +5,16 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     title: "Sunday Table · MyTable Clubmember",
     titleCity: "Sunday Table in {city} · MyTable",
     description:
-      "Elke eerste zondag nieuwe mensen ontmoeten. Claim je plek als Clubmember. Solo is standaard.",
+      "Elke eerste zondag nieuwe mensen ontmoeten. Girls only of gemengd. Claim je plek als Clubmember.",
     descriptionCity:
-      "Sunday Table in {city}: elke eerste zondag nieuwe mensen ontmoeten. Claim je Clubmember-plek.",
+      "Sunday Table in {city}: girls only of gemengd, elke eerste zondag. Claim je Clubmember-plek.",
   },
   brand: "MyTable",
   headline: "Je sociale leven in de stad begint hier",
   headlineCity: "Sunday Table in {city}",
-  line: "Elke eerste zondag. Solo komen is normaal. Daarna plannen maken met mensen die je net hebt ontmoet.",
+  line: "Elke eerste zondag. Solo komen is normaal. Girls only of gemengd: jij kiest.",
   lineCity:
-    "Elke eerste zondag in {city}. Solo komen is normaal. Daarna plannen maken met mensen die je net hebt ontmoet.",
+    "Elke eerste zondag in {city}. Solo komen is normaal. Girls only of gemengd: jij kiest.",
   cta: "Claim je plek",
   secondaryCta: "Hoe het werkt",
   how: {
@@ -27,8 +27,8 @@ export const sundayTableLpNl: SundayTableLpLabels = {
         body: "Rotterdam, Den Haag of Utrecht. Tien plekken per tafel.",
       },
       {
-        title: "Kom solo op zondag",
-        body: "Elke eerste zondag van de maand. Geen datingagenda. Wel echte gesprekken.",
+        title: "Kies je tafel",
+        body: "Girls only of gemengd. Solo is standaard. Geen datingagenda.",
       },
       {
         title: "Maak plannen daarna",
@@ -36,9 +36,21 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       },
     ],
   },
+  tables: {
+    eyebrow: "Jouw tafel",
+    title: "Girls only of gemengd",
+    body: "Bij het claimen van je plek kies je welke tafel bij je past. Beide zijn Sunday Table: nieuwe mensen, echte gesprekken.",
+    girlsOnlyTitle: "Girls only",
+    girlsOnlyBody:
+      "Alleen vrouwen aan tafel. Fijn als je liever in een meidengroep landt.",
+    mixedTitle: "Gemengd",
+    mixedBody:
+      "Iedereen welkom. Nog steeds geen datingsetup, wel nieuwe gezichten.",
+  },
   proof: {
     eyebrow: "Aan tafel",
     title: "Solo gekomen. Met plannen naar huis.",
+    body: "Echte momenten van Sunday Tables en avonden daarna.",
   },
   pricing: {
     eyebrow: "Lidmaatschap",

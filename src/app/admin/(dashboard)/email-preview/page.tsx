@@ -73,7 +73,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/membership-renewal")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Clubmember trial upsell (7 dagen)
+            Clubmember trial einde (7 dagen)
           </Link>
         </li>
       </ul>

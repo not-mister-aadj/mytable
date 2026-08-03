@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { and, eq, gt, isNotNull, lte } from "drizzle-orm";
+import { and, eq, gt, isNotNull, lte, or, ne } from "drizzle-orm";
 import { MembershipRenewalReminderEmail } from "@/emails/MembershipRenewalReminderEmail";
 import { getDb, isDbConfigured } from "@/db/index";
 import { clubMemberships, type ClubPlanId } from "@/db/schema";
@@ -16,7 +16,11 @@ import {
 } from "@/lib/email/resend";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { membershipRenewalReminderSubject } from "@/lib/email/subjects";
-import { amsterdamDateIso } from "@/lib/sunday-wine-table";
+import {
+  amsterdamDateIso,
+  formatSundayTableDate,
+  getNextSundayWineTable,
+} from "@/lib/sunday-wine-table";
 
 function daysFromNowIso(days: number): string {
   const d = new Date();
@@ -80,7 +84,9 @@ async function sendSimpleEmail(input: {
 }
 
 /**
- * Email active auto-renewing members whose period ends in 7 days (Amsterdam date).
+ * Email members whose access/period ends in 7 days (Amsterdam date).
+ * - 1m prepaid trial: ending soon / continue email (even if cancelAtPeriodEnd).
+ * - Longer auto-renew plans: renewal reminder (only if still set to renew).
  * Idempotent per billing period via renewalReminderPeriodEnd.
  */
 export async function sendMembershipRenewalReminders(): Promise<number> {
@@ -97,15 +103,23 @@ export async function sendMembershipRenewalReminders(): Promise<number> {
     .where(
       and(
         eq(clubMemberships.status, "active"),
-        eq(clubMemberships.cancelAtPeriodEnd, false),
         isNotNull(clubMemberships.currentPeriodEnd),
         gt(clubMemberships.currentPeriodEnd, now),
         lte(clubMemberships.currentPeriodEnd, windowEnd),
+        or(
+          eq(clubMemberships.planId, "1m"),
+          and(
+            ne(clubMemberships.planId, "1m"),
+            eq(clubMemberships.cancelAtPeriodEnd, false),
+          ),
+        ),
       ),
     );
 
   let sent = 0;
   const site = getSiteUrl().replace(/\/$/, "");
+  const nextTable = getNextSundayWineTable(now);
+  const nextTableSoonMs = 10 * 24 * 60 * 60 * 1000;
 
   for (const row of candidates) {
     const periodEnd = row.currentPeriodEnd;
@@ -127,9 +141,18 @@ export async function sendMembershipRenewalReminders(): Promise<number> {
     const { label, amount } = planCopy(row.planId, locale);
     const renewalDateLabel = formatRenewalDate(periodEnd, locale);
     const manageUrl = `${site}${clubmemberPath(locale)}`;
-    const variant = row.planId === "1m" ? "trial_upsell" : "renewal";
+    // Prepaid trial (no Stripe sub) gets the continue email; legacy renewing 1m gets renewal copy.
+    const variant =
+      row.planId === "1m" && !row.stripeSubscriptionId
+        ? "trial_upsell"
+        : "renewal";
+    const plan1m = planCopy("1m", locale);
     const plan5m = planCopy("5m", locale);
     const plan12m = planCopy("12m", locale);
+    const nextTableDateLabel = formatSundayTableDate(nextTable, locale);
+    const nextTableIsSoon =
+      nextTable.getTime() - now.getTime() <= nextTableSoonMs &&
+      nextTable.getTime() > now.getTime();
 
     const ok = await sendSimpleEmail({
       to: row.email,
@@ -146,6 +169,9 @@ export async function sendMembershipRenewalReminders(): Promise<number> {
         amountLabel: amount,
         renewalDateLabel,
         manageUrl,
+        nextTableDateLabel,
+        nextTableIsSoon,
+        plan1mTotalLabel: plan1m.amount,
         plan5mTotalLabel: plan5m.amount,
         plan12mTotalLabel: plan12m.amount,
         plan5mPerMonthLabel: formatPlanAmount(

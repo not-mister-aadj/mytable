@@ -9,7 +9,12 @@ import {
   type SundayTableSignupProfile,
 } from "@/db/schema";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
-import { CLUB_PLAN_PRICING, isClubPlanId } from "@/lib/club/plans";
+import {
+  CLUB_PLAN_PRICING,
+  clubPlanPeriodEndFrom,
+  isClubPlanId,
+  isOneTimeClubPlan,
+} from "@/lib/club/plans";
 import {
   isSundayTableRsvpOpen,
   parseAmsterdamDateIso,
@@ -26,6 +31,34 @@ export type MemberSundaySignup = {
   cancelledAt: string | null;
   createdAt: string;
 };
+
+/** True while status is live and the prepaid/subscription window has not ended. */
+export function isMembershipCurrentlyActive(
+  row: Pick<
+    ClubMembership,
+    "status" | "currentPeriodEnd" | "stripeSubscriptionId"
+  >,
+  now: Date = new Date(),
+): boolean {
+  if (row.status !== "active" && row.status !== "past_due") return false;
+  if (
+    row.currentPeriodEnd &&
+    row.currentPeriodEnd.getTime() <= now.getTime()
+  ) {
+    // Recurring past_due can still be in grace with Stripe; prepaid is done.
+    if (!row.stripeSubscriptionId) return false;
+    return row.status === "past_due";
+  }
+  return true;
+}
+
+/** Prepaid trial/pass with no Stripe subscription to renew. */
+export function isOneTimeMembership(
+  row: Pick<ClubMembership, "stripeSubscriptionId" | "planId">,
+): boolean {
+  if (row.stripeSubscriptionId) return false;
+  return isClubPlanId(row.planId) && isOneTimeClubPlan(row.planId);
+}
 
 function periodEndFromSubscription(
   sub: Stripe.Subscription,
@@ -67,6 +100,8 @@ export async function getActiveMembershipForUser(input: {
   const db = getDb();
   const email = input.email.trim().toLowerCase();
 
+  let row: ClubMembership | undefined;
+
   if (input.userId) {
     const byUser = await db
       .select()
@@ -79,22 +114,38 @@ export async function getActiveMembershipForUser(input: {
       )
       .orderBy(desc(clubMemberships.createdAt))
       .limit(1);
-    if (byUser[0]) return byUser[0];
+    row = byUser[0];
   }
 
-  const byEmail = await db
-    .select()
-    .from(clubMemberships)
-    .where(
-      and(
-        sql`lower(${clubMemberships.email}) = ${email}`,
-        sql`${clubMemberships.status} in ('active', 'past_due')`,
-      ),
-    )
-    .orderBy(desc(clubMemberships.createdAt))
-    .limit(1);
+  if (!row) {
+    const byEmail = await db
+      .select()
+      .from(clubMemberships)
+      .where(
+        and(
+          sql`lower(${clubMemberships.email}) = ${email}`,
+          sql`${clubMemberships.status} in ('active', 'past_due')`,
+        ),
+      )
+      .orderBy(desc(clubMemberships.createdAt))
+      .limit(1);
+    row = byEmail[0];
+  }
 
-  return byEmail[0] ?? null;
+  if (!row) return null;
+
+  if (!isMembershipCurrentlyActive(row)) {
+    // Prepaid pass ended — flip status so checkout can sell again.
+    if (!row.stripeSubscriptionId && row.status === "active") {
+      await db
+        .update(clubMemberships)
+        .set({ status: "canceled", updatedAt: new Date() })
+        .where(eq(clubMemberships.id, row.id));
+    }
+    return null;
+  }
+
+  return row;
 }
 
 export async function getMemberSundaySignups(input: {
@@ -270,7 +321,24 @@ export async function createPendingClubCheckout(input: {
 
   let membershipId = existingActive?.id;
 
-  if (!membershipId) {
+  if (
+    membershipId &&
+    existingActive &&
+    existingActive.planId !== input.planId
+  ) {
+    // Upgrading a prepaid trial: keep the row, point it at the new plan.
+    await db
+      .update(clubMemberships)
+      .set({
+        planId: input.planId,
+        name,
+        userId: input.userId ?? existingActive.userId,
+        customerId,
+        locale: input.locale,
+        updatedAt: new Date(),
+      })
+      .where(eq(clubMemberships.id, membershipId));
+  } else if (!membershipId) {
     const pending = await db
       .select({ id: clubMemberships.id })
       .from(clubMemberships)
@@ -437,8 +505,16 @@ export async function attachCheckoutSession(input: {
 export async function fulfillClubCheckoutSession(
   session: Stripe.Checkout.Session,
 ): Promise<"fulfilled" | "skipped" | "not_found"> {
-  if (session.mode !== "subscription") return "skipped";
   if (session.metadata?.mytable_kind !== "club_membership") return "skipped";
+  if (session.mode !== "subscription" && session.mode !== "payment") {
+    return "skipped";
+  }
+  if (
+    session.mode === "payment" &&
+    session.payment_status !== "paid"
+  ) {
+    return "skipped";
+  }
 
   const membershipId = session.metadata.membership_id;
   const signupId = session.metadata.signup_id;
@@ -460,7 +536,13 @@ export async function fulfillClubCheckoutSession(
     ? session.metadata.plan_id
     : null;
 
-  if (stripeSubscriptionId) {
+  if (session.mode === "payment") {
+    const resolvedPlan =
+      planId && isClubPlanId(planId) ? planId : ("1m" as ClubPlanId);
+    planId = resolvedPlan;
+    periodEnd = clubPlanPeriodEndFrom(resolvedPlan);
+    cancelAtPeriodEnd = true;
+  } else if (stripeSubscriptionId) {
     const { getStripe } = await import("@/lib/stripe");
     const stripe = getStripe();
     const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
@@ -475,7 +557,8 @@ export async function fulfillClubCheckoutSession(
     .set({
       status: "active",
       stripeCustomerId,
-      stripeSubscriptionId,
+      stripeSubscriptionId:
+        session.mode === "payment" ? null : stripeSubscriptionId,
       stripeCheckoutSessionId: session.id,
       currentPeriodEnd: periodEnd,
       cancelAtPeriodEnd,

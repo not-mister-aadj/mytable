@@ -20,7 +20,7 @@ export default async function MembershipRenewalEmailPreviewPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl text-burgundy">
-            E-mail preview · Trial upsell (7 dagen)
+            E-mail preview · Trial einde (7 dagen)
           </h1>
           <p className="mt-1 text-sm text-wine/60">Onderwerp: {subject}</p>
         </div>

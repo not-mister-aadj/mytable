@@ -5,14 +5,18 @@ import {
   CLUB_PLAN_PRICING,
   isClubPlanId,
   isClubPlanIdForSale,
+  isOneTimeClubPlan,
   CLUB_PLANS_FOR_SALE,
+  clubPlanPeriodEndFrom,
 } from "@/lib/club/plan-pricing";
 
 export {
   CLUB_PLAN_PRICING,
   isClubPlanId,
   isClubPlanIdForSale,
+  isOneTimeClubPlan,
   CLUB_PLANS_FOR_SALE,
+  clubPlanPeriodEndFrom,
 };
 
 /** Resolve Stripe Price for a club plan (create once via lookup_key). */
@@ -35,15 +39,20 @@ export async function getOrCreateClubPriceId(
     product: product.id,
     currency: "eur",
     unit_amount: plan.amountCents,
-    recurring: {
-      interval: "month",
-      interval_count: plan.intervalCount,
-    },
+    ...(plan.billing === "recurring"
+      ? {
+          recurring: {
+            interval: "month" as const,
+            interval_count: plan.intervalCount,
+          },
+        }
+      : {}),
     lookup_key: plan.lookupKey,
     transfer_lookup_key: true,
     nickname: locale === "en" ? plan.nameEn : plan.nameNl,
     metadata: {
       mytable_plan_id: planId,
+      mytable_billing: plan.billing,
     },
   });
 
@@ -62,7 +71,7 @@ async function findOrCreateClubProduct(
   return stripe.products.create({
     name: "MyTable Club",
     description:
-      "Sunday Tables + early access + 10% off culinary experiences. Auto-renews until cancelled.",
+      "Sunday Tables + early access + 10% off culinary experiences. Trial is one-time; longer plans renew until cancelled.",
     metadata: {
       mytable_product: "club_membership",
     },

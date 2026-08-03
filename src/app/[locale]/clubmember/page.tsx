@@ -201,7 +201,10 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
             membershipRow?.currentPeriodEnd?.toISOString() ?? null,
           cancelAtPeriodEnd: membershipRow?.cancelAtPeriodEnd ?? false,
           pendingPlanId,
-          canManageBilling: Boolean(membershipRow?.stripeCustomerId),
+          canManageBilling: Boolean(
+            membershipRow?.stripeCustomerId &&
+              membershipRow?.stripeSubscriptionId,
+          ),
         }}
         signups={signups}
         checkoutFlash={checkoutFlash}

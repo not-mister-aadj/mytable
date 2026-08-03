@@ -12,16 +12,12 @@ import { membershipRenewalReminderSubject } from "../src/lib/email/subjects";
 
 config({ path: ".env.local" });
 
-async function main() {
-  const to =
-    process.env.TEST_EMAIL_TO?.trim() ||
-    process.argv[2]?.trim() ||
-    "info@mytable.club";
-  if (!isEmailConfigured()) throw new Error("RESEND_API_KEY missing");
+async function sendOne(
+  to: string,
+  props: typeof sampleMembershipRenewalReminderProps,
+) {
   const resend = getResendClient();
   if (!resend) throw new Error("Resend unavailable");
-
-  const props = sampleMembershipRenewalReminderProps;
   const { html, text } = await renderEmailForDelivery(
     MembershipRenewalReminderEmail(props),
   );
@@ -38,7 +34,27 @@ async function main() {
     text,
   });
   if (error) throw new Error(error.message);
-  console.log("OK", data?.id, "→", to);
+  console.log("OK", props.locale, data?.id, "→", to);
+}
+
+async function main() {
+  const to =
+    process.env.TEST_EMAIL_TO?.trim() ||
+    process.argv[2]?.trim() ||
+    "info@mytable.club";
+  if (!isEmailConfigured()) throw new Error("RESEND_API_KEY missing");
+
+  const nl = sampleMembershipRenewalReminderProps;
+  const en = {
+    ...nl,
+    locale: "en" as const,
+    renewalDateLabel: "Sunday 6 September 2026",
+    nextTableDateLabel: "Sunday 6 September 2026",
+    planLabel: "MyTable Club · 1 month trial",
+  };
+
+  await sendOne(to, nl);
+  await sendOne(to, en);
 }
 
 main().catch((err) => {

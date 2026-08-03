@@ -83,8 +83,8 @@ export function membershipRenewalReminderSubject(
 ): string {
   if (variant === "trial_upsell") {
     return locale === "en"
-      ? "Your trial is ending. Switch to a cheaper plan."
-      : "Je trial loopt bijna af. Kies een plan dat minder kost.";
+      ? "Your next Sunday Table is coming up"
+      : "De volgende Sunday Table komt eraan";
   }
   return locale === "en"
     ? `Your Clubmember plan renews on ${renewalDate.trim()}`

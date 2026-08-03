@@ -73,12 +73,12 @@ export const memberClubEn: MemberClubLabels = {
     save: "Save {percent}",
     perMonth: "{price}/month",
     legal:
-      "By continuing you agree to auto-renewal until you cancel. You can always upgrade or cancel your plan.",
+      "The trial month is a one-time payment and does not renew. The 5- and 12-month plans auto-renew until you cancel.",
     continue: "Pay and join",
     summary: "{price}/month",
     successTitle: "You're in",
     successBody:
-      "Your Clubmember subscription is active and your Sunday Table seat is confirmed. You can still add a +1 or cancel that table below.",
+      "Your Clubmember access is active and your Sunday Table seat is confirmed. You can still add a +1 or cancel that table below.",
     successCta: "Back to Sunday Table",
     errorGeneric: "Something went wrong. Please try again.",
     plans: [
@@ -87,7 +87,7 @@ export const memberClubEn: MemberClubLabels = {
         label: "1 month trial",
         price: "€21",
         perMonth: "€21",
-        hint: "You can always cancel or upgrade.",
+        hint: "One-time. Does not renew.",
       },
       {
         id: "5m",
@@ -238,7 +238,7 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "What does Clubmember cost?",
         answer:
-          "1 month trial €21. Or 5 months €50 (€10/month). Or 12 months €100 (€8.33/month). You can later upgrade to 12 months from the end of your period.",
+          "1 month trial €21 (one-time, does not renew). Or 5 months €50 (€10/month). Or 12 months €100 (€8.33/month). Longer plans auto-renew until you cancel.",
       },
       {
         question: "Do I pay separately for drinks and bites?",
@@ -260,7 +260,7 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "Can I cancel?",
         answer:
-          "Yes. Stop via Manage billing. You can cancel a Sunday Table RSVP separately.",
+          "The trial month ends on its own. For 5- or 12-month plans, stop via Manage billing. You can cancel a Sunday Table RSVP separately.",
       },
     ],
   },

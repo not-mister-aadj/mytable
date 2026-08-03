@@ -10,8 +10,14 @@ import {
   attachCheckoutSession,
   createPendingClubCheckout,
   getActiveMembershipForUser,
+  isOneTimeMembership,
 } from "@/lib/club/memberships";
-import { getOrCreateClubPriceId, isClubPlanId, isClubPlanIdForSale } from "@/lib/club/plans";
+import {
+  getOrCreateClubPriceId,
+  isClubPlanId,
+  isClubPlanIdForSale,
+  isOneTimeClubPlan,
+} from "@/lib/club/plans";
 import { getSiteUrl } from "@/lib/admin-url";
 import { getMemberUser } from "@/lib/member-auth";
 import {
@@ -23,6 +29,7 @@ import {
 import { hasOpenReferralAttribution } from "@/lib/referral";
 import {
   getStripe,
+  getCheckoutPaymentMethodTypes,
   getSubscriptionCheckoutPaymentMethodTypes,
   isStripeConfigured,
 } from "@/lib/stripe";
@@ -168,15 +175,24 @@ export async function POST(request: Request) {
       email: user.email,
     });
 
-    // Existing members keep their plan. New checkouts may only buy
-    // plans that are for sale (1m / 5m / 12m).
-    const resolvedPlanId = active
-      ? isClubPlanId(active.planId)
-        ? active.planId
-        : null
-      : isClubPlanIdForSale(planId)
-        ? planId
-        : null;
+    const requestedPlanId = isClubPlanIdForSale(planId) ? planId : null;
+    // Prepaid trial members can upgrade to a recurring plan without waiting for expiry.
+    const upgradingOneTime =
+      Boolean(active) &&
+      active !== null &&
+      isOneTimeMembership(active) &&
+      requestedPlanId !== null &&
+      !isOneTimeClubPlan(requestedPlanId);
+
+    // Existing members keep their plan. New checkouts / one-time upgrades may
+    // buy plans that are for sale (1m / 5m / 12m).
+    const resolvedPlanId = upgradingOneTime
+      ? requestedPlanId
+      : active
+        ? isClubPlanId(active.planId)
+          ? active.planId
+          : null
+        : requestedPlanId;
 
     if (!resolvedPlanId) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -196,7 +212,7 @@ export async function POST(request: Request) {
     });
 
     // Already a paying member: confirm RSVP without another checkout
-    if (active) {
+    if (active && !upgradingOneTime) {
       if (newlyConfirmed) {
         const { getDb } = await import("@/db/index");
         const { sundayTableSignups } = await import("@/db/schema");
@@ -233,45 +249,63 @@ export async function POST(request: Request) {
       Boolean(referralCoupon) &&
       (await hasOpenReferralAttribution(user.email));
 
-    // iDEAL for first invoice + SEPA for renewals (Dashboard must enable SEPA / iDEAL recurring).
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer_email: user.email,
-      locale: locale === "nl" ? "nl" : "en",
-      payment_method_types: getSubscriptionCheckoutPaymentMethodTypes("EUR"),
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}${clubmemberConfirmedPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}${clubmemberCancelledPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
-      client_reference_id: membershipId,
-      ...(friendReferral && referralCoupon
-        ? { discounts: [{ coupon: referralCoupon }] }
-        : {}),
-      subscription_data: {
-        metadata: {
-          mytable_kind: "club_membership",
-          membership_id: membershipId,
-          signup_id: signupId,
-          plan_id: resolvedPlanId,
-          user_id: user.id,
-          city,
-          table_date: tableDate,
-          table_type: tableType,
-          referral_friend: friendReferral ? "1" : "0",
-        },
-      },
-      metadata: {
-        mytable_kind: "club_membership",
-        membership_id: membershipId,
-        signup_id: signupId,
-        plan_id: resolvedPlanId,
-        user_id: user.id,
-        city,
-        table_date: tableDate,
-        table_type: tableType,
-        locale,
-        referral_friend: friendReferral ? "1" : "0",
-      },
-    });
+    const oneTime = isOneTimeClubPlan(resolvedPlanId);
+    const sharedMetadata = {
+      mytable_kind: "club_membership",
+      membership_id: membershipId,
+      signup_id: signupId,
+      plan_id: resolvedPlanId,
+      user_id: user.id,
+      city,
+      table_date: tableDate,
+      table_type: tableType,
+      locale,
+      referral_friend: friendReferral ? "1" : "0",
+    };
+
+    const session = oneTime
+      ? await stripe.checkout.sessions.create({
+          mode: "payment",
+          customer_email: user.email,
+          locale: locale === "nl" ? "nl" : "en",
+          payment_method_types: getCheckoutPaymentMethodTypes("EUR"),
+          line_items: [{ price: priceId, quantity: 1 }],
+          success_url: `${siteUrl}${clubmemberConfirmedPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${siteUrl}${clubmemberCancelledPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
+          client_reference_id: membershipId,
+          ...(friendReferral && referralCoupon
+            ? { discounts: [{ coupon: referralCoupon }] }
+            : {}),
+          metadata: sharedMetadata,
+        })
+      : await stripe.checkout.sessions.create({
+          // iDEAL for first invoice + SEPA for renewals
+          mode: "subscription",
+          customer_email: user.email,
+          locale: locale === "nl" ? "nl" : "en",
+          payment_method_types: getSubscriptionCheckoutPaymentMethodTypes("EUR"),
+          line_items: [{ price: priceId, quantity: 1 }],
+          success_url: `${siteUrl}${clubmemberConfirmedPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${siteUrl}${clubmemberCancelledPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
+          client_reference_id: membershipId,
+          ...(friendReferral && referralCoupon
+            ? { discounts: [{ coupon: referralCoupon }] }
+            : {}),
+          subscription_data: {
+            metadata: {
+              mytable_kind: "club_membership",
+              membership_id: membershipId,
+              signup_id: signupId,
+              plan_id: resolvedPlanId,
+              user_id: user.id,
+              city,
+              table_date: tableDate,
+              table_type: tableType,
+              referral_friend: friendReferral ? "1" : "0",
+            },
+          },
+          metadata: sharedMetadata,
+        });
 
     if (!session.url) {
       return NextResponse.json(

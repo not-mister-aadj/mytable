@@ -73,12 +73,12 @@ export const memberClubNl: MemberClubLabels = {
     save: "Bespaar {percent}",
     perMonth: "{price}/maand",
     legal:
-      "Door verder te gaan ga je akkoord met automatische verlenging tot je opzegt. Je kunt je plan altijd upgraden of stopzetten.",
+      "De trialmaand is een eenmalige betaling en verlengt niet. De plannen van 5 en 12 maanden verlengen automatisch tot je opzegt.",
     continue: "Betalen en lid worden",
     summary: "{price}/maand",
     successTitle: "Je zit erbij",
     successBody:
-      "Je Clubmember-abonnement is actief en je Sunday Table-plek staat vast. Hieronder kun je nog een +1 toevoegen of afmelden voor die tafel.",
+      "Je Clubmember-toegang is actief en je Sunday Table-plek staat vast. Hieronder kun je nog een +1 toevoegen of afmelden voor die tafel.",
     successCta: "Terug naar Sunday Table",
     errorGeneric: "Er ging iets mis. Probeer het opnieuw.",
     plans: [
@@ -87,7 +87,7 @@ export const memberClubNl: MemberClubLabels = {
         label: "1 maand trial",
         price: "€21",
         perMonth: "€21",
-        hint: "Je kunt dit altijd stopzetten of upgraden.",
+        hint: "Eenmalig. Verlengt niet.",
       },
       {
         id: "5m",
@@ -238,7 +238,7 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Wat kost Clubmember?",
         answer:
-          "1 maand trial €21. Of 5 maanden €50 (€10/maand). Of 12 maanden €100 (€8,33/maand). Je kunt later upgraden naar 12 maanden vanaf het einde van je periode.",
+          "1 maand trial €21 (eenmalig, verlengt niet). Of 5 maanden €50 (€10/maand). Of 12 maanden €100 (€8,33/maand). De langere plannen verlengen automatisch tot je opzegt.",
       },
       {
         question: "Betaal ik apart voor drank en hapjes?",
@@ -260,7 +260,7 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Kan ik stopzetten?",
         answer:
-          "Ja. Stop via Betaling beheren. Een Sunday Table-RSVP kun je apart afzeggen.",
+          "De trialmaand stopt vanzelf. Bij 5 of 12 maanden stop je via Betaling beheren. Een Sunday Table-RSVP kun je apart afzeggen.",
       },
     ],
   },

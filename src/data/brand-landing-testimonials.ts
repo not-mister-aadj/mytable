@@ -5,7 +5,7 @@ import type { Testimonial } from "@/data/testimonials";
 const culinaryNl: Testimonial[] = [
   {
     name: "Yara",
-    detail: "Amsterdam · proeverij",
+    detail: "Rotterdam · proeverij",
     quote:
       "Chef's specials met wijn die verrassend goed op elkaar afgestemd waren. Geen keuzestress, wel gerechten waar je echt iets van proeft.",
     initials: "Y",
@@ -21,7 +21,7 @@ const culinaryNl: Testimonial[] = [
   },
   {
     name: "Anouk",
-    detail: "Amsterdam · proeverij",
+    detail: "Den Haag · proeverij",
     quote:
       "De bites bij de derde wijn waren echt een hoogtepunt, geen vulling. Pairings klopten van begin tot eind.",
     initials: "A",
@@ -37,7 +37,7 @@ const culinaryNl: Testimonial[] = [
   },
   {
     name: "Priya",
-    detail: "Amsterdam · groep",
+    detail: "Utrecht · groep",
     quote:
       "Vijf vriendinnen, één tafel, nul stress. De wijnen waren verrassend goed en we hoefden nergens over na te denken.",
     initials: "P",
@@ -53,7 +53,7 @@ const culinaryNl: Testimonial[] = [
   },
   {
     name: "Carmen",
-    detail: "Maastricht · zondag",
+    detail: "Rotterdam · zondag",
     quote:
       "Ik dacht dat het misschien awkward zou worden met allemaal wijnpraat, maar het was vooral lachen. Niet te serieus, wel echt goede wijn.",
     initials: "C",
@@ -61,7 +61,7 @@ const culinaryNl: Testimonial[] = [
   },
   {
     name: "Britt",
-    detail: "Maastricht · avond uit",
+    detail: "Utrecht · avond uit",
     quote:
       "Ik ken het restaurant niet, maar de sfeer en het tempo klopten meteen. Eén plek, één avond, geen gedoe.",
     initials: "B",
@@ -83,13 +83,13 @@ const peopleNl: Testimonial[] = [
     name: "Sophie",
     detail: "Rotterdam · solo",
     quote:
-      "Ik kwam solo en was echt nerveus. Maar iedereen kwam alleen of met één vriendin. Binnen tien minuten zat ik al te kletsen.",
+      "Alleen komen voelde eerst spannend. Maar iedereen kwam alleen of met één vriendin. Binnen tien minuten zat ik al te kletsen.",
     initials: "S",
     avatar: "burgundy",
   },
   {
     name: "Pieter",
-    detail: "Groningen · solo",
+    detail: "Den Haag · solo",
     quote:
       "Eerste keer alleen naar zo'n middag. Ik dacht dat het awkward zou worden. Aan het einde zaten we met z'n vieren nog na te praten bij de bar.",
     initials: "P",
@@ -105,7 +105,7 @@ const peopleNl: Testimonial[] = [
   },
   {
     name: "Fleur",
-    detail: "Leiden · nieuwe gezichten",
+    detail: "Den Haag · nieuwe gezichten",
     quote:
       "Ik was sceptisch over sociale proeverijen, maar dit voelde gewoon als uit eten met onbekenden die toch een beetje voelden als vrienden.",
     initials: "F",
@@ -129,7 +129,7 @@ const peopleNl: Testimonial[] = [
   },
   {
     name: "Mark",
-    detail: "Amsterdam · gemengd",
+    detail: "Rotterdam · gemengd",
     quote:
       "Ontspannen vanaf het eerste glas. Geen gedwongen introducties, wel mensen die ook gewoon zin hadden in een middag uit.",
     initials: "M",
@@ -140,7 +140,7 @@ const peopleNl: Testimonial[] = [
 const culinaryEn: Testimonial[] = [
   {
     name: "Yara",
-    detail: "Amsterdam · tasting",
+    detail: "Rotterdam · tasting",
     quote:
       "Chef's specials with wine that was surprisingly well paired. No decision fatigue, just dishes you actually taste.",
     initials: "Y",
@@ -156,7 +156,7 @@ const culinaryEn: Testimonial[] = [
   },
   {
     name: "Anouk",
-    detail: "Amsterdam · tasting",
+    detail: "The Hague · tasting",
     quote:
       "The bites with the third wine were a real highlight, not filler. Pairings worked from start to finish.",
     initials: "A",
@@ -172,7 +172,7 @@ const culinaryEn: Testimonial[] = [
   },
   {
     name: "Priya",
-    detail: "Amsterdam · group",
+    detail: "Utrecht · group",
     quote:
       "Five friends, one table, zero stress. The wines were surprisingly good and we didn't have to think about a thing.",
     initials: "P",
@@ -188,7 +188,7 @@ const culinaryEn: Testimonial[] = [
   },
   {
     name: "Carmen",
-    detail: "Maastricht · Sunday",
+    detail: "Rotterdam · Sunday",
     quote:
       "I thought it might get awkward with all the wine talk. Mostly laughing. Not too serious, genuinely good wine.",
     initials: "C",
@@ -196,7 +196,7 @@ const culinaryEn: Testimonial[] = [
   },
   {
     name: "Britt",
-    detail: "Maastricht · night out",
+    detail: "Utrecht · night out",
     quote:
       "I didn't know the restaurant, but the vibe and pace clicked immediately. One place, one evening, no fuss.",
     initials: "B",
@@ -217,13 +217,13 @@ const peopleEn: Testimonial[] = [
     name: "Sophie",
     detail: "Rotterdam · solo",
     quote:
-      "I came solo and was nervous. Everyone came alone or with one friend. Within ten minutes I was chatting away.",
+      "Showing up alone felt a bit scary at first. Everyone came alone or with one friend. Within ten minutes I was chatting away.",
     initials: "S",
     avatar: "burgundy",
   },
   {
     name: "Pieter",
-    detail: "Groningen · solo",
+    detail: "The Hague · solo",
     quote:
       "First time going alone to something like this. Thought it would be awkward. By the end four of us were still talking at the bar.",
     initials: "P",
@@ -239,7 +239,7 @@ const peopleEn: Testimonial[] = [
   },
   {
     name: "Fleur",
-    detail: "Leiden · new faces",
+    detail: "The Hague · new faces",
     quote:
       "I was sceptical about social tastings, but it just felt like dinner with strangers who somehow felt a bit like friends.",
     initials: "F",
@@ -263,7 +263,7 @@ const peopleEn: Testimonial[] = [
   },
   {
     name: "Mark",
-    detail: "Amsterdam · mixed",
+    detail: "Rotterdam · mixed",
     quote:
       "Relaxed from the first glass. No forced introductions, just people who also wanted a good afternoon out.",
     initials: "M",

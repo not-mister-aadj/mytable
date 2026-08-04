@@ -91,6 +91,10 @@ export function membershipRenewalReminderSubject(
     : `Je Clubmember verlengt op ${renewalDate.trim()}`;
 }
 
+export function womenWelcomeSubject(locale: "nl" | "en" = "nl"): string {
+  return locale === "en" ? "Welcome to MyTable" : "Welkom bij MyTable";
+}
+
 /** Extra signal for clients that group on custom entity refs. */
 export function bookingEmailHeaders(bookingCode: string): Record<string, string> {
   return { "X-Entity-Ref-ID": bookingCode.trim() };

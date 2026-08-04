@@ -23,6 +23,7 @@ import {
   saveMemberOnboardingPrefs,
 } from "@/features/auth/save-onboarding";
 import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
+import { requestWomenWelcomeEmail } from "@/features/auth/request-women-welcome-email";
 import {
   EMPTY_ONBOARDING_PREFS,
   MIN_ONBOARDING_AGE,
@@ -348,6 +349,9 @@ export function MemberOnboarding({
       await saveMemberOnboardingPrefs(next);
       clearJoinPending();
       await refreshAuthSession();
+      if (next.gender === "woman") {
+        requestWomenWelcomeEmail(locale);
+      }
       setStep("done");
     } catch {
       // Keep the done step reachable so the user can retry via CTA.
@@ -364,6 +368,9 @@ export function MemberOnboarding({
       clearJoinPending();
       await refreshAuthSession();
       await syncMemberCustomerClient(locale, { recordOnboarding: true });
+      if (prefs.gender === "woman") {
+        requestWomenWelcomeEmail(locale);
+      }
       router.refresh();
       if (destination === "meet") {
         router.push(clubmemberPath(locale));

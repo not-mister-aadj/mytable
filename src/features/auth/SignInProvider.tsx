@@ -14,7 +14,10 @@ import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { getAccountPageLabels } from "@/i18n/get-account-page";
 import { type Locale } from "@/i18n/config";
 import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
-import { postLoginPath } from "@/lib/member-onboarding";
+import {
+  readOnboardingFromMetadata,
+  resolvePostAuthPath,
+} from "@/lib/member-onboarding";
 
 interface SignInContextValue {
   startSignIn: () => void;
@@ -48,7 +51,20 @@ export function SignInProvider({
     if (user) {
       void syncMemberCustomerClient(locale);
     }
-    router.replace(postLoginPath(locale, null));
+    const { completed, prefs } = readOnboardingFromMetadata(
+      (user?.user_metadata ?? null) as Record<string, unknown> | null,
+    );
+    const intendedNext =
+      typeof window !== "undefined"
+        ? `${window.location.pathname}${window.location.search}`
+        : null;
+    router.replace(
+      resolvePostAuthPath(locale, {
+        completed,
+        prefs,
+        intendedNext,
+      }),
+    );
     router.refresh();
   }, [locale, refreshAuthSession, router]);
 

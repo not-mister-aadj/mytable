@@ -1,9 +1,13 @@
 import type { Locale } from "@/i18n/config";
-import { agendaPath, clubmemberPath } from "@/i18n/config";
+import { agendaPath, clubmemberPath, joinPath } from "@/i18n/config";
 import type {
   WaitlistInterestId,
   WaitlistTableTypeId,
 } from "@/i18n/waitlist-page.types";
+
+/** Girls-only community WhatsApp (welcome email + ads). */
+export const GIRLS_WHATSAPP_GROUP_URL =
+  "https://chat.whatsapp.com/CQ0u9hH4OEH43md3Ft9mtB";
 
 export type OnboardingCompanyId =
   | "solo"
@@ -80,6 +84,55 @@ export function postLoginPath(
     return `${base}?interest=${options.interests.join(",")}`;
   }
   return base;
+}
+
+/**
+ * Culinary checkout / booking confirmation paths.
+ * Account creation during these flows should not force onboarding.
+ */
+export function isCulinaryPurchasePath(path: string | null | undefined): boolean {
+  if (!path) return false;
+  const pathname = path.split("?")[0] ?? path;
+  return (
+    pathname === "/boeking" ||
+    pathname.startsWith("/boeking/") ||
+    pathname === "/en/booking" ||
+    pathname.startsWith("/en/booking/") ||
+    pathname === "/en/boeking" ||
+    pathname.startsWith("/en/boeking/")
+  );
+}
+
+/**
+ * After interactive signup/login: send incomplete profiles to /join,
+ * unless they are mid culinary purchase (booking confirmation paths).
+ */
+export function resolvePostAuthPath(
+  locale: Locale,
+  input: {
+    completed: boolean;
+    prefs: Pick<
+      MemberOnboardingPrefs,
+      "name" | "birthDate" | "gender" | "joinIntent" | "interests"
+    >;
+    intendedNext?: string | null;
+  },
+): string {
+  const ready = isSundayTableOnboardingReady(input.completed, input.prefs);
+  if (!ready) {
+    if (isCulinaryPurchasePath(input.intendedNext)) {
+      return input.intendedNext!.startsWith("/")
+        ? input.intendedNext!
+        : joinPath(locale);
+    }
+    return joinPath(locale);
+  }
+  if (input.intendedNext && isCulinaryPurchasePath(input.intendedNext)) {
+    return input.intendedNext;
+  }
+  return postLoginPath(locale, input.prefs.joinIntent, {
+    interests: input.prefs.interests,
+  });
 }
 
 export type OnboardingGenderId =

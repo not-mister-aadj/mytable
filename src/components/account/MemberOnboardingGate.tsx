@@ -8,6 +8,7 @@ import { MemberOnboarding } from "@/components/account/MemberOnboarding";
 import { saveMemberOnboardingPrefs } from "@/features/auth/save-onboarding";
 import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
+import { requestWomenWelcomeEmail } from "@/features/auth/request-women-welcome-email";
 import {
   EMPTY_ONBOARDING_PREFS,
   clearJoinPending,
@@ -92,6 +93,9 @@ function JoinResumeRedirect({
         await saveMemberOnboardingPrefs(prefs);
         await refreshAuthSession();
         await syncMemberCustomerClient(locale, { recordOnboarding: true });
+        if (prefs.gender === "woman") {
+          requestWomenWelcomeEmail(locale);
+        }
         clearJoinPending();
         if (cancelled) return;
         router.replace(

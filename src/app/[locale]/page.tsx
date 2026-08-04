@@ -6,8 +6,8 @@ import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getMemberUser } from "@/lib/member-auth";
 import {
-  postLoginPath,
   readOnboardingFromMetadata,
+  resolvePostAuthPath,
 } from "@/lib/member-onboarding";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
@@ -46,10 +46,15 @@ export default async function Home({ params }: Props) {
 
   const user = await getMemberUser();
   if (user) {
-    const { prefs } = readOnboardingFromMetadata(
+    const { completed, prefs } = readOnboardingFromMetadata(
       user.user_metadata as Record<string, unknown>,
     );
-    redirect(postLoginPath(locale, prefs.joinIntent));
+    redirect(
+      resolvePostAuthPath(locale, {
+        completed,
+        prefs,
+      }),
+    );
   }
 
   const dict = getDictionary(locale);

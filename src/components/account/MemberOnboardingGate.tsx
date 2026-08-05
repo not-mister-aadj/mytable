@@ -21,6 +21,7 @@ import {
 } from "@/lib/member-onboarding";
 
 type FlowStep =
+  | "language"
   | "brand"
   | "name"
   | "birthdate"
@@ -44,9 +45,9 @@ interface MemberOnboardingGateProps {
 }
 
 function parseStep(raw: string | null): FlowStep | null {
-  if (raw === "language") return "brand";
   if (raw === "commit" || raw === "vibe") return "signup";
   if (
+    raw === "language" ||
     raw === "brand" ||
     raw === "name" ||
     raw === "birthdate" ||
@@ -183,6 +184,10 @@ function MemberOnboardingInner({
         fromSession.interests.length > 0
           ? fromSession.interests
           : base.interests,
+      languages:
+        fromSession.languages.length > 0
+          ? fromSession.languages
+          : base.languages,
       cityFlexible: fromSession.cityFlexible || base.cityFlexible,
       communityInterest:
         fromSession.communityInterest || base.communityInterest,

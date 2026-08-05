@@ -18,6 +18,7 @@ import {
 import { parseSundayTableLpCityParam } from "@/data/sunday-table-lp-cities";
 
 type FlowStep =
+  | "language"
   | "brand"
   | "intent"
   | "story"
@@ -30,8 +31,9 @@ type FlowStep =
   | "tastes";
 
 function parseStep(raw: string | null): FlowStep | null {
-  if (raw === "commit" || raw === "vibe" || raw === "language") return "signup";
+  if (raw === "commit" || raw === "vibe") return "signup";
   if (
+    raw === "language" ||
     raw === "brand" ||
     raw === "intent" ||
     raw === "story" ||
@@ -63,16 +65,20 @@ function JoinFunnelInner({
   const searchParams = useSearchParams();
 
   const [initialStep] = useState<FlowStep>(() => {
-    // Login first: anonymous users always start at signup.
-    if (!authenticated) return "signup";
-
     const fromQuery = parseStep(searchParams.get("step"));
+
+    // Login first for anonymous users — unless they just picked a language.
+    if (!authenticated) {
+      if (fromQuery === "signup") return "signup";
+      return "language";
+    }
+
     if (
       !fromQuery ||
       fromQuery === "brand" ||
       fromQuery === "signup"
     ) {
-      return "intent";
+      return "language";
     }
     return fromQuery;
   });
@@ -94,6 +100,7 @@ function JoinFunnelInner({
     // City from the Sunday Table LP is kept so the city step can stay prefilled.
     if (
       !step ||
+      step === "language" ||
       step === "brand" ||
       step === "intent" ||
       step === "signup"

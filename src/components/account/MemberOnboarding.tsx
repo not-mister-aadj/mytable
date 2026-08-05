@@ -46,6 +46,7 @@ import {
   markJoinPending,
   type MemberOnboardingPrefs,
   type OnboardingGenderId,
+  type OnboardingLanguageId,
   type OnboardingPersonalityId,
   type OnboardingTableTypeId,
 } from "@/lib/member-onboarding";
@@ -53,6 +54,7 @@ import {
 const ease = [0.22, 1, 0.36, 1] as const;
 
 type FlowStep =
+  | "language"
   | "brand"
   | "name"
   | "birthdate"
@@ -69,6 +71,7 @@ type FlowStep =
   | "welcomeBack";
 
 const FLOW_ORDER: FlowStep[] = [
+  "language",
   "brand",
   "name",
   "birthdate",
@@ -177,10 +180,10 @@ export function MemberOnboarding({
 }: MemberOnboardingProps) {
   const isJoin = mode === "join";
   const router = useRouter();
-  const { signOut, refreshAuthSession } = useAuthSession();
+  const { signOut, refreshAuthSession, user } = useAuthSession();
   const [step, setStep] = useState<FlowStep>(
     initialStep ??
-      (alreadyCompleted ? "welcomeBack" : isJoin ? "signup" : "brand"),
+      (alreadyCompleted ? "welcomeBack" : "language"),
   );
   const [prefs, setPrefs] = useState<MemberOnboardingPrefs>(() => {
     const base = initialPrefs ?? { ...EMPTY_ONBOARDING_PREFS };
@@ -202,6 +205,10 @@ export function MemberOnboarding({
     if (choiceStepRef.current === step) return;
     choiceStepRef.current = step;
 
+    if (step === "language") {
+      setPrefs((p) => ({ ...p, languages: [] }));
+      return;
+    }
     if (step === "intent") {
       setPrefs((p) => {
         const preferred = readPreferredCity();
@@ -279,8 +286,8 @@ export function MemberOnboarding({
       return ["name", "birthdate", "done"] as FlowStep[];
     }
     const base: FlowStep[] = isJoin
-      ? ["intent"]
-      : ["brand", "name", "birthdate", "intent"];
+      ? ["language", "intent"]
+      : ["language", "brand", "name", "birthdate", "intent"];
     const storySlots = storyCards.map(() => "story" as FlowStep);
     const tail: FlowStep[] = isJoin ? [] : ["done"];
 
@@ -386,6 +393,31 @@ export function MemberOnboarding({
     }
   }
 
+  function stepAfterLanguage(): FlowStep {
+    if (isJoin) return user ? "intent" : "signup";
+    return "brand";
+  }
+
+  function selectLanguage(nextLocale: OnboardingLanguageId) {
+    const nextPrefs: MemberOnboardingPrefs = {
+      ...prefs,
+      languages: [nextLocale],
+    };
+    setPrefs(nextPrefs);
+    if (isJoin) {
+      writeOnboardingToSession(nextPrefs);
+    }
+
+    const nextStep = stepAfterLanguage();
+    if (nextLocale === locale) {
+      setTimeout(() => setStep(nextStep), 180);
+      return;
+    }
+
+    const path = isJoin ? joinPath(nextLocale) : accountPath(nextLocale);
+    router.replace(`${path}?step=${nextStep}`);
+  }
+
   function startStories() {
     setStoryIndex(0);
     setStep("story");
@@ -468,13 +500,19 @@ export function MemberOnboarding({
   }
 
   function goBack() {
+    if (step === "language") {
+      return;
+    }
     if (step === "brand") {
+      setStep("language");
       return;
     }
     if (step === "intent" && isJoin) {
+      setStep("language");
       return;
     }
     if (step === "signup") {
+      setStep("language");
       return;
     }
     if (step === "story") {
@@ -723,6 +761,31 @@ export function MemberOnboarding({
 
         <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-6 sm:py-8">
           <AnimatePresence mode="wait">
+            {step === "language" ? (
+              <StepShell key="language">
+                <h1 className="text-center font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+                  {labels.language.title}
+                </h1>
+                <p className="mt-2 text-center text-sm text-wine/55">
+                  {labels.language.subtitle}
+                </p>
+                <div className="mt-8 space-y-3">
+                  <ChoiceButton
+                    title={labels.language.dutch}
+                    onClick={() => selectLanguage("nl")}
+                    selected={prefs.languages.includes("nl")}
+                    index={0}
+                  />
+                  <ChoiceButton
+                    title={labels.language.english}
+                    onClick={() => selectLanguage("en")}
+                    selected={prefs.languages.includes("en")}
+                    index={1}
+                  />
+                </div>
+              </StepShell>
+            ) : null}
+
             {step === "brand" ? (
               <StepShell key="brand">
                 <p className="text-center font-serif text-3xl font-medium italic leading-snug tracking-tight text-wine sm:text-4xl">
@@ -734,6 +797,7 @@ export function MemberOnboarding({
                 <PrimaryButton onClick={() => goNext("brand")}>
                   {labels.continue}
                 </PrimaryButton>
+                <TextLink onClick={goBack}>{labels.back}</TextLink>
               </StepShell>
             ) : null}
 
@@ -914,9 +978,7 @@ export function MemberOnboarding({
                     index={2}
                   />
                 </div>
-                {isJoin ? null : (
-                  <TextLink onClick={goBack}>{labels.back}</TextLink>
-                )}
+                <TextLink onClick={goBack}>{labels.back}</TextLink>
               </StepShell>
             ) : null}
 
@@ -1231,6 +1293,7 @@ export function MemberOnboarding({
                   title={labels.signupEnd.title}
                   subtitle={labels.signupEnd.subtitle}
                 />
+                <TextLink onClick={goBack}>{labels.back}</TextLink>
               </StepShell>
             ) : null}
 

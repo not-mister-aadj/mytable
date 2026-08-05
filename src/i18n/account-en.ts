@@ -71,7 +71,7 @@ export const accountPageEn: AccountPageLabels = {
           cta: "Continue",
         },
         {
-          title: "Every first Sunday. Four to six guests.",
+          title: "Every first Sunday. Up to ten seats.",
           subtitle: "We match the table. You come solo or with someone.",
           image: "/girls-only/table-group.jpg",
           imageAlt: "A group at a MyTable",
@@ -79,16 +79,9 @@ export const accountPageEn: AccountPageLabels = {
         },
         {
           title: "Not dating. Just good taste and good company.",
-          subtitle: "We arrange the table, host and introductions.",
+          subtitle: "We literally couldn’t make it simpler.",
           image: "/girls-only/connecting.jpg",
           imageAlt: "People meeting at the table",
-          cta: "Continue",
-        },
-        {
-          title: "We handle everything. Just come as you are.",
-          subtitle: "We literally couldn’t make it simpler.",
-          image: "/girls-only/smiling-glasses.jpg",
-          imageAlt: "Cheers with wine at the table",
           cta: "Continue",
         },
       ],

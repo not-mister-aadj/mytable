@@ -71,7 +71,7 @@ export const accountPageNl: AccountPageLabels = {
           cta: "Verder",
         },
         {
-          title: "Elke eerste zondag. Vier tot zes gasten.",
+          title: "Elke eerste zondag. Maximaal tien plekken.",
           subtitle: "Wij matchen de tafel. Jij komt solo of met iemand.",
           image: "/girls-only/table-group.jpg",
           imageAlt: "Een groep aan tafel bij MyTable",
@@ -79,16 +79,9 @@ export const accountPageNl: AccountPageLabels = {
         },
         {
           title: "Geen dating. Wel goede smaak en goed gezelschap.",
-          subtitle: "Wij regelen tafel, host en introducties.",
+          subtitle: "Zo eenvoudig mogelijk gemaakt.",
           image: "/girls-only/connecting.jpg",
           imageAlt: "Mensen die elkaar ontmoeten aan tafel",
-          cta: "Verder",
-        },
-        {
-          title: "Alles is geregeld. Jij komt zoals je bent.",
-          subtitle: "Zo eenvoudig mogelijk gemaakt.",
-          image: "/girls-only/smiling-glasses.jpg",
-          imageAlt: "Proosten met wijn aan tafel",
           cta: "Verder",
         },
       ],

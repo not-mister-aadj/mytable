@@ -10,6 +10,7 @@ export interface MemberClubLabels {
     line: string;
     memberLine: string;
     cta: string;
+    secondaryCta: string;
   };
   tableFilter: {
     girlsOnly: string;
@@ -19,6 +20,7 @@ export interface MemberClubLabels {
     label: string;
     nl: string;
     en: string;
+    both: string;
   };
   happening: {
     title: string;
@@ -28,7 +30,8 @@ export interface MemberClubLabels {
     empty: string;
     filterCities: string;
     filterTables: string;
-    seatsLeft: string;
+    seatsGoingFast: string;
+    seatsLeftFew: string;
     comingSoon: string;
   };
   explain: {

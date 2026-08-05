@@ -12,10 +12,12 @@ import {
   canChooseGirlsOnly,
   ACTIVE_ONBOARDING_CITIES,
   VISIBLE_ONBOARDING_CITIES,
+  choiceToLanguages,
   isActiveOnboardingCity,
   isComingSoonOnboardingCity,
+  languagesToChoice,
   parseOnboardingLanguages,
-  toggleOnboardingLanguage,
+  type CommunicationLanguageChoice,
   type OnboardingCityId,
   type OnboardingGenderId,
   type OnboardingLanguageId,
@@ -213,6 +215,7 @@ export function MemberClubView({
   const [selectedLanguages, setSelectedLanguages] = useState<
     OnboardingLanguageId[]
   >(() => parseOnboardingLanguages(preferredLanguages));
+  const selectedLanguageChoice = languagesToChoice(selectedLanguages);
   const [languageBusy, setLanguageBusy] = useState(false);
   const [activeEvent, setActiveEvent] = useState<ClubEvent | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -289,15 +292,10 @@ export function MemberClubView({
     });
   }
 
-  async function toggleLanguage(id: OnboardingLanguageId) {
+  async function selectLanguageChoice(choice: CommunicationLanguageChoice) {
     if (languageBusy) return;
-    const next = toggleOnboardingLanguage(selectedLanguages, id);
-    if (
-      next.length === selectedLanguages.length &&
-      next.every((lang) => selectedLanguages.includes(lang))
-    ) {
-      return;
-    }
+    if (choice === selectedLanguageChoice) return;
+    const next = choiceToLanguages(choice);
     setSelectedLanguages(next);
     setLanguageBusy(true);
     try {
@@ -560,17 +558,23 @@ export function MemberClubView({
               {labels.hero.title}
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-cream/90 sm:text-lg">
-              {isMember ? labels.hero.memberLine : labels.hero.line}
+              {labels.hero.line}
             </p>
 
             {!isMember ? (
-              <div className="mt-7">
+              <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4">
                 <Button
                   href="#sunday-tables"
                   className="bg-gold px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-wine hover:bg-cream sm:text-sm"
                 >
                   {labels.hero.cta}
                 </Button>
+                <a
+                  href="#clubmember"
+                  className="inline-flex min-h-12 items-center text-xs font-semibold uppercase tracking-[0.16em] text-cream/70 transition hover:text-cream"
+                >
+                  {labels.hero.secondaryCta}
+                </a>
               </div>
             ) : null}
           </motion.div>
@@ -587,18 +591,11 @@ export function MemberClubView({
 
         {/* Tables */}
         <section id="happening" className="scroll-mt-24 pt-12 sm:pt-16">
-          <div id="sunday-tables" className="max-w-2xl">
-            <h2 className="font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {labels.happening.title}
-            </h2>
-            {labels.happening.subtitle ? (
-              <p className="mt-2 text-sm leading-relaxed text-wine/55 sm:text-base">
-                {labels.happening.subtitle}
-              </p>
-            ) : null}
+          <div id="sunday-tables" className="sr-only">
+            {labels.happening.title}
           </div>
 
-          <div className="mt-8 space-y-5 border-t border-wine/10 pt-6">
+          <div className="space-y-5">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-wine/40">
                 {labels.happening.filterCities}
@@ -658,13 +655,18 @@ export function MemberClubView({
               <div className="mt-2.5 flex flex-wrap gap-2">
                 <FilterChip
                   label={labels.languageFilter.nl}
-                  selected={selectedLanguages.includes("nl")}
-                  onClick={() => void toggleLanguage("nl")}
+                  selected={selectedLanguageChoice === "nl"}
+                  onClick={() => void selectLanguageChoice("nl")}
                 />
                 <FilterChip
                   label={labels.languageFilter.en}
-                  selected={selectedLanguages.includes("en")}
-                  onClick={() => void toggleLanguage("en")}
+                  selected={selectedLanguageChoice === "en"}
+                  onClick={() => void selectLanguageChoice("en")}
+                />
+                <FilterChip
+                  label={labels.languageFilter.both}
+                  selected={selectedLanguageChoice === "both"}
+                  onClick={() => void selectLanguageChoice("both")}
                 />
               </div>
             </div>
@@ -742,13 +744,19 @@ export function MemberClubView({
                           {dateTimeLabel}
                         </p>
                         {typeof seatsLeft === "number" ? (
-                          <p className="mt-1.5 text-xs font-medium text-burgundy/80">
+                          <p
+                            className={`mt-1.5 text-xs font-semibold tracking-wide ${
+                              soldOut ? "text-wine/55" : "text-[#c2410c]"
+                            }`}
+                          >
                             {soldOut
                               ? labels.rsvp.soldOut
-                              : labels.happening.seatsLeft.replace(
-                                  "{count}",
-                                  String(seatsLeft),
-                                )}
+                              : seatsLeft <= 5
+                                ? labels.happening.seatsLeftFew.replace(
+                                    "{count}",
+                                    String(seatsLeft),
+                                  )
+                                : labels.happening.seatsGoingFast}
                           </p>
                         ) : null}
 
@@ -892,7 +900,7 @@ export function MemberClubView({
 
         {/* Benefits — non-members: sfeer + uitleg in één, compact */}
         {!isMember ? (
-          <section className="mt-14 sm:mt-16">
+          <section id="clubmember" className="mt-14 scroll-mt-24 sm:mt-16">
             <div className="max-w-xl">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {labels.benefits.eyebrow}

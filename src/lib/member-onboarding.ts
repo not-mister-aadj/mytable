@@ -347,15 +347,25 @@ export function parseOnboardingLanguages(
   return langs.length > 0 ? [...new Set(langs)] : ["nl"];
 }
 
-export function toggleOnboardingLanguage(
-  current: OnboardingLanguageId[],
-  id: OnboardingLanguageId,
+/** Single UI choice for table communication preference. */
+export type CommunicationLanguageChoice = "nl" | "en" | "both";
+
+export function languagesToChoice(
+  langs: OnboardingLanguageId[],
+): CommunicationLanguageChoice {
+  const hasNl = langs.includes("nl");
+  const hasEn = langs.includes("en");
+  if (hasNl && hasEn) return "both";
+  if (hasEn) return "en";
+  return "nl";
+}
+
+export function choiceToLanguages(
+  choice: CommunicationLanguageChoice,
 ): OnboardingLanguageId[] {
-  if (current.includes(id)) {
-    if (current.length <= 1) return current;
-    return current.filter((lang) => lang !== id);
-  }
-  return [...current, id];
+  if (choice === "both") return ["nl", "en"];
+  if (choice === "en") return ["en"];
+  return ["nl"];
 }
 
 export function ageFromBirthDate(iso: string | null | undefined): number | null {

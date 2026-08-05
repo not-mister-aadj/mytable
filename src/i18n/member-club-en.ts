@@ -9,10 +9,12 @@ export const memberClubEn: MemberClubLabels = {
   pageTitle: "Sunday Table",
   hero: {
     brand: "Clubmember",
-    title: "Sunday Table",
-    line: "Every first Sunday. New people. Then culinary experiences.",
-    memberLine: "Pick your city. Claim your seat.",
+    title: "Upcoming Sunday Tables",
+    line: "This is where you make culinary friends every first Sunday of the month.",
+    memberLine:
+      "This is where you make culinary friends every first Sunday of the month.",
     cta: "Claim your seat",
+    secondaryCta: "What is Clubmember",
   },
   tableFilter: {
     girlsOnly: "Girls only",
@@ -22,16 +24,18 @@ export const memberClubEn: MemberClubLabels = {
     label: "I feel comfortable communicating in",
     nl: "Dutch",
     en: "English",
+    both: "Both",
   },
   happening: {
     title: "Upcoming Sunday Tables",
-    subtitle: "This is where you make culinary friends every first Sunday of the month.",
+    subtitle: "",
     eventTitle: "Sunday Table",
     status: "Early access",
     empty: "No tables for this filter. Try another city.",
     filterCities: "Cities",
     filterTables: "Table",
-    seatsLeft: "{count} seats left",
+    seatsGoingFast: "6–10 seats going fast",
+    seatsLeftFew: "Only {count} seats left",
     comingSoon: "Coming soon",
   },
   explain: {

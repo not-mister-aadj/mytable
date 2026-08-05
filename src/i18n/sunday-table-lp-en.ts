@@ -51,6 +51,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     eyebrow: "From the table",
     title: "Arrived solo. Left with plans.",
     body: "Real moments from Sunday Tables and the nights that follow.",
+    cta: "Claim your seat",
   },
   pricing: {
     eyebrow: "Membership",

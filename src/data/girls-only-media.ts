@@ -18,17 +18,10 @@ const howItWorksImage = {
 
 const galleryImages = [
   {
-    src: "/girls-only/crowd-evening.jpg",
+    src: "/girls-only/table-wine-laughing.jpg",
     alt: {
-      nl: "Groep vrouwen ontmoet elkaar in een gezellige setting",
-      en: "Group of women meeting in a warm social setting",
-    },
-  },
-  {
-    src: "/girls-only/paint-sip-unicorn.jpg",
-    alt: {
-      nl: "Twee vrouwen genieten van wijn tijdens een paint and sip avond",
-      en: "Two women enjoying wine during a paint and sip evening",
+      nl: "Vrouwen lachen aan tafel met wijn tijdens een zondagmiddag",
+      en: "Women laughing at the table with wine on a Sunday afternoon",
     },
   },
   {
@@ -39,24 +32,17 @@ const galleryImages = [
     },
   },
   {
-    src: "/girls-only/table-group.jpg",
-    alt: {
-      nl: "Groep vrouwen aan tafel met wijn en cocktails",
-      en: "Group of women at a table with wine and cocktails",
-    },
-  },
-  {
-    src: "/girls-only/wine-moment.jpg",
-    alt: {
-      nl: "Vrouw geniet van een glas wijn in gezelschap",
-      en: "Woman enjoying a glass of wine with company",
-    },
-  },
-  {
     src: "/girls-only/connecting.jpg",
     alt: {
       nl: "Vrouwen in gesprek tijdens een gezellige avond",
       en: "Women in conversation during a social evening",
+    },
+  },
+  {
+    src: "/girls-only/table-group.jpg",
+    alt: {
+      nl: "Groep vrouwen aan tafel met wijn en cocktails",
+      en: "Group of women at a table with wine and cocktails",
     },
   },
   {
@@ -74,10 +60,17 @@ const galleryImages = [
     },
   },
   {
-    src: "/girls-only/phone-moment.jpg",
+    src: "/girls-only/wine-moment.jpg",
     alt: {
-      nl: "Vrouwen delen een moment en kijken samen op een telefoon",
-      en: "Women sharing a moment looking at a phone together",
+      nl: "Vrouw geniet van een glas wijn in gezelschap",
+      en: "Woman enjoying a glass of wine with company",
+    },
+  },
+  {
+    src: "/girls-only/crowd-evening.jpg",
+    alt: {
+      nl: "Groep vrouwen ontmoet elkaar in een gezellige setting",
+      en: "Group of women meeting in a warm social setting",
     },
   },
   {
@@ -85,6 +78,20 @@ const galleryImages = [
     alt: {
       nl: "Groep vrouwen in gesprek in een bar",
       en: "Group of women chatting in a bar",
+    },
+  },
+  {
+    src: "/girls-only/phone-moment.jpg",
+    alt: {
+      nl: "Vrouwen delen een moment en kijken samen op een telefoon",
+      en: "Women sharing a moment looking at a phone together",
+    },
+  },
+  {
+    src: "/girls-only/paint-sip-unicorn.jpg",
+    alt: {
+      nl: "Twee vrouwen genieten van wijn tijdens een paint and sip avond",
+      en: "Two women enjoying wine during a paint and sip evening",
     },
   },
 ] as const satisfies readonly GirlsOnlySocialImage[];

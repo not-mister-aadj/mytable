@@ -51,6 +51,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     eyebrow: "Aan tafel",
     title: "Solo gekomen. Met plannen naar huis.",
     body: "Echte momenten van Sunday Tables en avonden daarna.",
+    cta: "Claim je plek",
   },
   pricing: {
     eyebrow: "Lidmaatschap",

@@ -38,53 +38,32 @@ function ProofPhotoStrip({
   images: Array<{ src: string; alt: string }>;
   reduceMotion: boolean | null;
 }) {
-  const mobileTrack = [...images, ...images];
-  const desktopImages = images.slice(0, 5);
+  const track = [...images, ...images];
 
   return (
     <div className="mt-10">
-      {/* Mobile: auto-scroll to the right */}
-      <div className="relative overflow-hidden md:hidden">
+      <div className="relative overflow-hidden">
         <div
-          className={`flex w-max gap-3 pl-5 ${
+          className={`flex w-max gap-3 pl-5 sm:gap-4 sm:pl-8 lg:gap-5 lg:pl-10 ${
             reduceMotion ? "" : "animate-photo-marquee-right"
           }`}
         >
-          {mobileTrack.map((image, index) => (
+          {track.map((image, index) => (
             <div
               key={`${image.src}-${index}`}
-              className="relative h-56 w-44 shrink-0 overflow-hidden"
+              className="relative h-56 w-44 shrink-0 overflow-hidden sm:h-64 sm:w-48 lg:h-[17.5rem] lg:w-[13.5rem]"
             >
               <Image
                 src={image.src}
                 alt={index < images.length ? image.alt : ""}
                 fill
-                sizes="176px"
+                sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 360px"
                 quality={90}
                 className="object-cover"
               />
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Desktop: larger tiles within source resolution */}
-      <div className="mx-auto hidden max-w-6xl justify-center gap-4 px-8 md:flex lg:gap-5 lg:px-10">
-        {desktopImages.map((image) => (
-          <div
-            key={image.src}
-            className="relative h-64 w-48 shrink-0 overflow-hidden lg:h-[17.5rem] lg:w-[13.5rem]"
-          >
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes="(max-width: 1024px) 240px, 360px"
-              quality={92}
-              className="object-cover"
-            />
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -109,7 +88,7 @@ export function SundayTableLpView({
   const { people } = getBrandLandingTestimonialRows(locale);
   const proofTop = people.slice(0, Math.ceil(people.length / 2));
   const proofBottom = people.slice(Math.ceil(people.length / 2));
-  const proofImages = getGirlsOnlyHeroSlideshowImages(locale).slice(0, 8);
+  const proofImages = getGirlsOnlyHeroSlideshowImages(locale);
   const headline = cityName
     ? fillCity(labels.headlineCity, cityName)
     : labels.headline;
@@ -248,6 +227,51 @@ export function SundayTableLpView({
         </div>
       </section>
 
+      {/* Proof: photos + quotes */}
+      <section className="overflow-hidden border-b border-wine/8 bg-cream py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.55, ease }}
+            className="max-w-xl"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+              {labels.proof.eyebrow}
+            </p>
+            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+              {labels.proof.title}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-wine/60">
+              {labels.proof.body}
+            </p>
+          </motion.div>
+        </div>
+
+        <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
+
+        <div className="mt-12">
+          <TestimonialMarquee
+            top={proofTop}
+            bottom={proofBottom}
+            fadeFromClassName="from-cream"
+            cardClassName="border-wine/10 bg-white/90"
+            singleRow
+          />
+        </div>
+
+        <div className="mt-12 flex justify-center px-5 sm:mt-14">
+          <Link
+            href={ctaHref}
+            onClick={onClaimClick}
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.18)] transition hover:bg-wine"
+          >
+            {labels.proof.cta}
+          </Link>
+        </div>
+      </section>
+
       {/* Girls only / mixed */}
       <section className="relative overflow-hidden border-b border-wine/8 bg-white py-20 sm:py-24">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_100%_0%,rgba(197,154,91,0.08),transparent_40%)]" />
@@ -299,41 +323,6 @@ export function SundayTableLpView({
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Proof: photos + quotes */}
-      <section className="overflow-hidden border-b border-wine/8 bg-cream py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease }}
-            className="max-w-xl"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              {labels.proof.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {labels.proof.title}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-wine/60">
-              {labels.proof.body}
-            </p>
-          </motion.div>
-        </div>
-
-        <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
-
-        <div className="mt-12">
-          <TestimonialMarquee
-            top={proofTop}
-            bottom={proofBottom}
-            fadeFromClassName="from-cream"
-            cardClassName="border-wine/10 bg-white/90"
-            singleRow
-          />
         </div>
       </section>
 

@@ -31,6 +31,7 @@ export type SundayTableLpLabels = {
     eyebrow: string;
     title: string;
     body: string;
+    cta: string;
   };
   pricing: {
     eyebrow: string;

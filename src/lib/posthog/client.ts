@@ -1,5 +1,8 @@
 "use client";
 
+// Bundle the recorder so replay does not depend on a lazy CDN fetch
+// (which fails when /flags remote config is disabled or assets are blocked).
+import "posthog-js/dist/posthog-recorder";
 import posthog from "posthog-js";
 import { getPostHogIngestHost, isPostHogConfigured } from "@/lib/posthog/config";
 import type { PostHogEventName } from "@/lib/posthog/events";
@@ -38,8 +41,14 @@ export function initPostHogClient(): void {
       },
       recordCrossOriginIframes: false,
     },
-    // Skip /flags remote config noise; recording still works locally configured.
+    // Skip /flags (project key returns 401 on that endpoint for us).
+    // Because remote replay config then never arrives, force-start below.
     advanced_disable_feature_flags: true,
+    loaded: (ph) => {
+      if (!ph.sessionRecordingStarted()) {
+        ph.startSessionRecording(true);
+      }
+    },
   });
 
   initialized = true;

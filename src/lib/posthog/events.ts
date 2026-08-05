@@ -22,6 +22,9 @@ export const PostHogEvents = {
   waitlistSignup: "waitlist_signup",
   whatsappJoinClicked: "whatsapp_join_clicked",
   sundayTableCtaClicked: "sunday_table_cta_clicked",
+  scrollDepthReached: "scroll_depth_reached",
+  onboardingStepViewed: "onboarding_step_viewed",
+  onboardingStepCompleted: "onboarding_step_completed",
   premiumExperienceViewed: "premium_experience_viewed",
   groupInvitationStarted: "group_invitation_started",
   groupInvitationShared: "group_invitation_shared",
@@ -49,6 +52,7 @@ export type PageType =
   | "legal"
   | "join"
   | "clubmember"
+  | "sunday_table"
   | "girls_only"
   | "blog"
   | "account"

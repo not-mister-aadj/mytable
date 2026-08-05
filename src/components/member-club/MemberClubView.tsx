@@ -37,6 +37,7 @@ import {
 import {
   trackInviteShareClicked,
   trackSundayRsvp,
+  trackSundayTableCtaClicked,
 } from "@/lib/posthog/analytics";
 import { seatStatsKey } from "@/lib/sunday-table-seat-key";
 import { MemberClubPaywall } from "./MemberClubPaywall";
@@ -565,12 +566,26 @@ export function MemberClubView({
               <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4">
                 <Button
                   href="#sunday-tables"
+                  onClick={() =>
+                    trackSundayTableCtaClicked({
+                      cta: "hero_primary",
+                      source: "clubmember_hero",
+                      locale,
+                    })
+                  }
                   className="bg-gold px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-wine hover:bg-cream sm:text-sm"
                 >
                   {labels.hero.cta}
                 </Button>
                 <a
                   href="#clubmember"
+                  onClick={() =>
+                    trackSundayTableCtaClicked({
+                      cta: "hero_secondary",
+                      source: "clubmember_hero",
+                      locale,
+                    })
+                  }
                   className="inline-flex min-h-12 items-center text-xs font-semibold uppercase tracking-[0.16em] text-cream/70 transition hover:text-cream"
                 >
                   {labels.hero.secondaryCta}

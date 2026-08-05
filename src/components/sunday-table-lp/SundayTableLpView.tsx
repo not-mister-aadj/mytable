@@ -22,6 +22,7 @@ import {
   type SundayTableLpCitySlug,
 } from "@/data/sunday-table-lp-cities";
 import { rememberPreferredCity } from "@/lib/member-onboarding";
+import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -98,8 +99,9 @@ export function SundayTableLpView({
     : labels.final.title;
   const ctaHref = joinHref(locale, cityName);
 
-  function onClaimClick() {
+  function onClaimClick(cta: string, source: string) {
     if (cityName) rememberPreferredCity(cityName);
+    trackSundayTableCtaClicked({ cta, source, locale });
   }
 
   return (
@@ -162,13 +164,20 @@ export function SundayTableLpView({
           >
             <Link
               href={ctaHref}
-              onClick={onClaimClick}
+              onClick={() => onClaimClick("hero_primary", "sunday_table_hero")}
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-cream px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine shadow-[0_14px_36px_rgba(0,0,0,0.28)] transition hover:bg-white"
             >
               {labels.cta}
             </Link>
             <a
               href="#how"
+              onClick={() =>
+                trackSundayTableCtaClicked({
+                  cta: "hero_secondary",
+                  source: "sunday_table_hero",
+                  locale,
+                })
+              }
               className="inline-flex min-h-12 items-center text-xs font-semibold uppercase tracking-[0.16em] text-cream/70 transition hover:text-cream"
             >
               {labels.secondaryCta}
@@ -264,7 +273,7 @@ export function SundayTableLpView({
         <div className="mt-12 flex justify-center px-5 sm:mt-14">
           <Link
             href={ctaHref}
-            onClick={onClaimClick}
+            onClick={() => onClaimClick("proof_cta", "sunday_table_proof")}
             className="inline-flex min-h-12 items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.18)] transition hover:bg-wine"
           >
             {labels.proof.cta}
@@ -396,7 +405,7 @@ export function SundayTableLpView({
           <div className="mt-10">
             <Link
               href={ctaHref}
-              onClick={onClaimClick}
+              onClick={() => onClaimClick("pricing_cta", "sunday_table_pricing")}
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-cream px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine transition hover:bg-white"
             >
               {labels.cta}
@@ -424,6 +433,13 @@ export function SundayTableLpView({
                 <Link
                   key={city.slug}
                   href={sundayTableLpCityPath(locale, city.slug)}
+                  onClick={() =>
+                    trackSundayTableCtaClicked({
+                      cta: "city_chip",
+                      source: "sunday_table_cities",
+                      locale,
+                    })
+                  }
                   className="rounded-full border border-wine/15 bg-white px-5 py-3 text-sm font-medium text-wine transition hover:border-wine/40 hover:bg-wine hover:text-cream"
                 >
                   {city.name}
@@ -487,7 +503,7 @@ export function SundayTableLpView({
           <div className="mt-10">
             <Link
               href={ctaHref}
-              onClick={onClaimClick}
+              onClick={() => onClaimClick("final_cta", "sunday_table_final")}
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-wine"
             >
               {labels.final.cta}

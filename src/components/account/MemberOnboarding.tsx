@@ -50,6 +50,10 @@ import {
   type OnboardingPersonalityId,
   type OnboardingTableTypeId,
 } from "@/lib/member-onboarding";
+import {
+  trackOnboardingStepCompleted,
+  trackOnboardingStepViewed,
+} from "@/lib/posthog/analytics";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -199,6 +203,15 @@ export function MemberOnboarding({
   const [birthYear, setBirthYear] = useState(birthParts.year);
   const [storyIndex, setStoryIndex] = useState(0);
   const choiceStepRef = useRef<FlowStep | null>(null);
+
+  useEffect(() => {
+    const stepKey = step === "story" ? `story_${storyIndex}` : step;
+    trackOnboardingStepViewed({
+      step: stepKey,
+      mode,
+      locale,
+    });
+  }, [step, storyIndex, mode, locale]);
 
   /** Never show a pre-selected choice — clear when entering a choice step. */
   useEffect(() => {
@@ -398,6 +411,20 @@ export function MemberOnboarding({
     return "brand";
   }
 
+  function completeStep(
+    from: FlowStep,
+    next: FlowStep,
+    choice?: string,
+  ): void {
+    trackOnboardingStepCompleted({
+      step: from === "story" ? `story_${storyIndex}` : from,
+      next_step: next,
+      mode,
+      locale,
+      choice,
+    });
+  }
+
   function selectLanguage(nextLocale: OnboardingLanguageId) {
     const nextPrefs: MemberOnboardingPrefs = {
       ...prefs,
@@ -409,6 +436,7 @@ export function MemberOnboarding({
     }
 
     const nextStep = stepAfterLanguage();
+    completeStep("language", nextStep, nextLocale);
     if (nextLocale === locale) {
       setTimeout(() => setStep(nextStep), 180);
       return;
@@ -425,14 +453,17 @@ export function MemberOnboarding({
 
   function afterStories() {
     if (prefs.joinIntent === "with_group") {
+      completeStep("story", "tastes");
       setStep("tastes");
       return;
     }
+    completeStep("story", "goal");
     setStep("goal");
   }
 
   function advanceStory() {
     if (storyIndex < storyCards.length - 1) {
+      completeStep("story", "story", String(storyIndex + 1));
       setStoryIndex((i) => i + 1);
       return;
     }
@@ -441,36 +472,46 @@ export function MemberOnboarding({
 
   function goNext(from: FlowStep) {
     if (from === "brand" && isJoin) {
+      completeStep(from, "intent");
       setStep("intent");
       return;
     }
     if (from === "goal") {
       if (prefs.joinIntent === "both") {
+        completeStep(from, "tastes");
         setStep("tastes");
         return;
       }
+      completeStep(from, "city");
       setStep("city");
       return;
     }
     if (from === "city") {
+      completeStep(from, "gender");
       setStep("gender");
       return;
     }
     if (from === "tableType") {
       if (prefs.joinIntent === "with_group") {
+        completeStep(from, "done");
         void goAfterPrefs();
         return;
       }
+      completeStep(from, "personality");
       setStep("personality");
       return;
     }
     if (from === "personality") {
+      completeStep(from, "done");
       void goAfterPrefs();
       return;
     }
     const idx = FLOW_ORDER.indexOf(from);
     const next = FLOW_ORDER[idx + 1];
-    if (next) setStep(next);
+    if (next) {
+      completeStep(from, next);
+      setStep(next);
+    }
   }
 
   function selectGender(gender: OnboardingGenderId) {
@@ -483,20 +524,26 @@ export function MemberOnboarding({
     }));
     setTimeout(() => {
       if (girlsOnly) {
+        completeStep("gender", "tableType", gender);
         setStep("tableType");
         return;
       }
       if (prefs.joinIntent === "with_group") {
+        completeStep("gender", "done", gender);
         void goAfterPrefs({ gender, tableType });
         return;
       }
+      completeStep("gender", "personality", gender);
       setStep("personality");
     }, 180);
   }
 
   function selectPersonality(personality: OnboardingPersonalityId) {
     setPrefs((p) => ({ ...p, personality }));
-    setTimeout(() => void goAfterPrefs({ personality }), 180);
+    setTimeout(() => {
+      completeStep("personality", "done", personality);
+      void goAfterPrefs({ personality });
+    }, 180);
   }
 
   function goBack() {
@@ -955,6 +1002,7 @@ export function MemberOnboarding({
                     selected={prefs.joinIntent === "meet_new"}
                     onClick={() => {
                       setPrefs((p) => ({ ...p, joinIntent: "meet_new" }));
+                      completeStep("intent", "story", "meet_new");
                       setTimeout(() => startStories(), 180);
                     }}
                     index={0}
@@ -968,6 +1016,7 @@ export function MemberOnboarding({
                         ...p,
                         joinIntent: "with_group",
                       }));
+                      completeStep("intent", "story", "with_group");
                       setTimeout(() => startStories(), 180);
                     }}
                     index={1}
@@ -978,6 +1027,7 @@ export function MemberOnboarding({
                     selected={prefs.joinIntent === "both"}
                     onClick={() => {
                       setPrefs((p) => ({ ...p, joinIntent: "both" }));
+                      completeStep("intent", "story", "both");
                       setTimeout(() => startStories(), 180);
                     }}
                     index={2}

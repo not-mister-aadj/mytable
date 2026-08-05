@@ -392,6 +392,7 @@ export const privacyNl: LegalDocumentContent = {
             "Supabase (database en opslag): slaat boekingsgegevens en media op;",
             "Vercel (hosting): host onze website;",
             "Resend (e-mail): verstuurt boekingsbevestigingen namens ons;",
+            "PostHog (productanalytics, EU): pageviews, conversie-events, heatmaps en sessie-opnames om de website te verbeteren; formulierinvoer wordt gemaskeerd;",
             "Apple MapKit (kaarten): toont kaarten op evenementpagina's, indien ingeschakeld.",
           ],
         },
@@ -406,7 +407,11 @@ export const privacyNl: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Onze website gebruikt momenteel geen marketing- of analytische cookies. Wij plaatsen alleen cookies die strikt nodig zijn voor het functioneren van de website en onze diensten.",
+          text: "Wij gebruiken strikt noodzakelijke cookies voor het functioneren van de website (bijvoorbeeld sessie en taalvoorkeur).",
+        },
+        {
+          type: "p",
+          text: "Voor productanalytics gebruiken wij PostHog (EU-cloud). Dat kan een cookie of vergelijkbare opslag (localStorage) plaatsen om gebruik te meten: welke pagina's je bekijkt, hoe ver je scrollt, waar je klikt, en — met sessie-opname — hoe je door de site navigeert. Formuliervelden (zoals e-mail en wachtwoord) worden gemaskeerd in opnames. Wij gebruiken deze gegevens niet voor advertentieprofilering.",
         },
         {
           type: "p",
@@ -414,7 +419,7 @@ export const privacyNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Als wij in de toekomst analytische of marketingcookies gaan gebruiken, vragen wij daar vooraf je toestemming voor via een cookiebanner en werken wij deze verklaring bij.",
+          text: "Als wij marketingcookies of tracking voor advertenties toevoegen, vragen wij daarvoor apart toestemming via een cookiebanner.",
         },
       ],
     },

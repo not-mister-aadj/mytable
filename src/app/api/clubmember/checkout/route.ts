@@ -335,6 +335,17 @@ export async function POST(request: Request) {
       ),
     });
 
+    void captureServerEvent(user.email, PostHogEvents.checkoutStarted, {
+      product: "clubmember",
+      plan_id: resolvedPlanId,
+      city,
+      table_type: tableType,
+      membership_id: membershipId,
+      signup_id: signupId,
+      stripe_session_id: session.id,
+      language: locale,
+    });
+
     return NextResponse.json({
       ok: true,
       url: session.url,

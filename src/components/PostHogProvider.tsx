@@ -7,6 +7,7 @@ import { trackPageViewed } from "@/lib/posthog/analytics";
 import { initPostHogClient, capturePageView } from "@/lib/posthog/client";
 import { isPostHogConfigured } from "@/lib/posthog/config";
 import { inferPageType } from "@/lib/posthog/properties";
+import { PostHogScrollDepthTracker } from "@/lib/posthog/ScrollDepthTracker";
 
 function PostHogPageViewTracker() {
   const pathname = usePathname();
@@ -69,6 +70,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <PostHogPageViewTracker />
       </Suspense>
+      <PostHogScrollDepthTracker />
       {children}
     </>
   );

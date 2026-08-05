@@ -7,6 +7,7 @@ import type { MemberClubLabels } from "@/i18n/member-club.types";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { trackMetaClubInitiateCheckout } from "@/lib/analytics/metaTracking";
 import { isClubPlanId } from "@/lib/club/plan-pricing";
+import { trackCheckoutStarted } from "@/lib/posthog/analytics";
 
 type PlanId = MemberClubLabels["paywall"]["plans"][number]["id"];
 
@@ -108,6 +109,13 @@ export function MemberClubPaywall({
             locale,
           });
         }
+        trackCheckoutStarted({
+          product: "clubmember",
+          plan_id: planId,
+          city,
+          table_type: tableType,
+          language: locale,
+        });
         window.location.href = data.url;
         return;
       }

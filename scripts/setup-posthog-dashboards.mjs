@@ -205,6 +205,55 @@ const DASHBOARDS = [
         { label: "Agenda", event: "agenda_viewed" },
         { label: "Event detail", event: "event_detail_viewed" },
       ]),
+      funnelInsight("Sunday Table → Clubmember", [
+        {
+          label: "Sunday Table LP",
+          event: "page_viewed",
+          properties: [{ key: "page_type", value: "sunday_table" }],
+        },
+        { label: "CTA clicked", event: "sunday_table_cta_clicked" },
+        {
+          label: "Join",
+          event: "page_viewed",
+          properties: [{ key: "page_type", value: "join" }],
+        },
+        { label: "Onboarding step", event: "onboarding_step_viewed" },
+        {
+          label: "Clubmember",
+          event: "page_viewed",
+          properties: [{ key: "page_type", value: "clubmember" }],
+        },
+        { label: "Checkout started", event: "checkout_started" },
+        { label: "Clubmember paid", event: "clubmember_paid" },
+      ]),
+      funnelInsight("Onboarding drop-off", [
+        {
+          label: "Language",
+          event: "onboarding_step_viewed",
+          properties: [{ key: "step", value: "language" }],
+        },
+        {
+          label: "Intent",
+          event: "onboarding_step_viewed",
+          properties: [{ key: "step", value: "intent" }],
+        },
+        {
+          label: "City",
+          event: "onboarding_step_viewed",
+          properties: [{ key: "step", value: "city" }],
+        },
+        {
+          label: "Done",
+          event: "onboarding_step_viewed",
+          properties: [{ key: "step", value: "done" }],
+        },
+      ]),
+      trendInsight("Scroll depth 75%+", "scroll_depth_reached", {
+        breakdown: "page_type",
+      }),
+      trendInsight("CTA clicks by source", "sunday_table_cta_clicked", {
+        breakdown: "source",
+      }),
     ],
   },
   {

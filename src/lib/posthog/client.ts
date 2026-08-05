@@ -19,9 +19,27 @@ export function initPostHogClient(): void {
     capture_pageview: false,
     capture_pageleave: true,
     persistence: "localStorage+cookie",
-    // We only use event capture — skip /flags and remote config (avoids 401/404 noise).
+    // Autocapture powers click heatmaps; skip noisy form field captures.
+    autocapture: {
+      capture_copied_text: false,
+      dom_event_allowlist: ["click"],
+      element_allowlist: ["a", "button", "input", "select", "textarea", "label"],
+    },
+    capture_heatmaps: true,
+    enable_heatmaps: true,
+    // Session replay: watch scroll, rage clicks, drop-off on LPs.
+    disable_session_recording: false,
+    session_recording: {
+      maskAllInputs: true,
+      maskInputOptions: {
+        password: true,
+        email: true,
+        tel: true,
+      },
+      recordCrossOriginIframes: false,
+    },
+    // Skip /flags remote config noise; recording still works locally configured.
     advanced_disable_feature_flags: true,
-    disable_session_recording: true,
   });
 
   initialized = true;

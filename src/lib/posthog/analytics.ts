@@ -182,6 +182,33 @@ export function trackSundayTableCtaClicked(props: {
   capture(PostHogEvents.sundayTableCtaClicked, props);
 }
 
+export function trackScrollDepthReached(props: {
+  depth_percent: number;
+  page_path: string;
+  page_type: string;
+  language: string;
+}): void {
+  capture(PostHogEvents.scrollDepthReached, props);
+}
+
+export function trackOnboardingStepViewed(props: {
+  step: string;
+  mode?: string;
+  locale?: string;
+}): void {
+  capture(PostHogEvents.onboardingStepViewed, props);
+}
+
+export function trackOnboardingStepCompleted(props: {
+  step: string;
+  next_step?: string;
+  mode?: string;
+  locale?: string;
+  choice?: string;
+}): void {
+  capture(PostHogEvents.onboardingStepCompleted, props);
+}
+
 export function trackPremiumExperienceViewed(props: AnalyticsProperties): void {
   capture(PostHogEvents.premiumExperienceViewed, props);
 }

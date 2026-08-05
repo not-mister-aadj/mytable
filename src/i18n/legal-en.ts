@@ -392,6 +392,7 @@ export const privacyEn: LegalDocumentContent = {
             "Supabase (database and storage): stores booking data and media;",
             "Vercel (hosting): hosts our website;",
             "Resend (email): sends booking confirmations on our behalf;",
+            "PostHog (product analytics, EU): pageviews, conversion events, heatmaps and session recordings to improve the website; form inputs are masked;",
             "Apple MapKit (maps): shows maps on event pages where enabled.",
           ],
         },
@@ -406,7 +407,11 @@ export const privacyEn: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Our website currently does not use marketing or analytics cookies. We only use cookies that are strictly necessary for the website and our services to function.",
+          text: "We use strictly necessary cookies for the website to function (for example session and language preference).",
+        },
+        {
+          type: "p",
+          text: "For product analytics we use PostHog (EU cloud). This may place a cookie or similar storage (localStorage) to measure usage: which pages you view, how far you scroll, where you click, and — with session recording — how you navigate the site. Form fields (such as email and password) are masked in recordings. We do not use this data for advertising profiling.",
         },
         {
           type: "p",
@@ -414,7 +419,7 @@ export const privacyEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "If we introduce analytics or marketing cookies in the future, we will ask for your consent via a cookie banner and update this policy.",
+          text: "If we add marketing cookies or advertising tracking, we will ask for separate consent via a cookie banner.",
         },
       ],
     },

@@ -8,6 +8,7 @@ export type AnalyticsPageType =
   | "legal"
   | "join"
   | "clubmember"
+  | "sunday_table"
   | "girls_only"
   | "blog"
   | "account"
@@ -36,6 +37,9 @@ export function inferPageType(pathname: string): AnalyticsPageType {
     return "clubmember";
   }
   if (path === "/join" || path.startsWith("/join/")) return "join";
+  if (path === "/sunday-table" || path.startsWith("/sunday-table/")) {
+    return "sunday_table";
+  }
   if (path === "/girls-only" || path.startsWith("/girls-only/")) {
     return "girls_only";
   }
@@ -73,6 +77,7 @@ export function isLandingPageType(pageType: AnalyticsPageType): boolean {
     pageType === "agenda" ||
     pageType === "join" ||
     pageType === "girls_only" ||
+    pageType === "sunday_table" ||
     pageType === "clubmember" ||
     pageType === "waitlist"
   );

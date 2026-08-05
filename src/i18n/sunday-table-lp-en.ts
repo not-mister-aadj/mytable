@@ -19,7 +19,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   secondaryCta: "How it works",
   how: {
     eyebrow: "Clubmember",
-    title: "First the table. Then the city.",
+    title: "First new people. Then new plans.",
     body: "Sunday Table is where you meet new people. With your new culinary friends you later book wine walks, tastings and dinners.",
     steps: [
       {

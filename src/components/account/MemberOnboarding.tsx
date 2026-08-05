@@ -719,12 +719,17 @@ export function MemberOnboarding({
   }, [prefs, labels]);
 
   const showChrome = step !== "welcomeBack" && step !== "signup";
+  /** Progress only after the route (intent) is chosen — no "1 of 2" on language/intent. */
+  const showProgress =
+    showChrome &&
+    (resumeProfileOnly ||
+      (prefs.joinIntent !== null && step !== "intent"));
   const homeHref = localePath(locale);
 
   return (
     <div className="flex h-[100svh] max-h-[100svh] flex-col overflow-hidden bg-gradient-to-b from-beige via-cream to-cream">
       <div className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-8">
-        {showChrome ? (
+        {showProgress ? (
           <div className="shrink-0">
             <div className="flex items-center justify-between gap-3 pt-1">
               <Link

@@ -14,6 +14,7 @@ import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import { fillCity } from "@/i18n/get-sunday-table-lp";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { getGirlsOnlyHeroSlideshowImages } from "@/data/girls-only-media";
@@ -108,80 +109,79 @@ export function SundayTableLpView({
     <>
       <Header dict={headerDict} locale={locale} />
 
-      {/* Hero: one composition, brand-first, full-bleed media */}
-      <section className="relative min-h-[100svh] overflow-hidden bg-wine">
-        <motion.div
-          className="absolute inset-0"
-          initial={reduceMotion ? false : { scale: 1.06 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.4, ease }}
-        >
-          <Image
-            src="/girls-only/table-group.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[center_30%]"
-          />
-        </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-b from-wine/55 via-wine/72 to-wine/92" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(197,154,91,0.2),transparent_50%)]" />
+      {/* Hero: same composition as main language page — copy left, carousel right */}
+      <section className="relative min-h-[100svh] overflow-hidden bg-white">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(245,232,224,0.55),transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,rgba(246,241,234,0.7),transparent_45%)]" />
 
-        <div className="relative mx-auto flex min-h-[100svh] max-w-5xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 sm:pb-20 lg:px-10 lg:pb-24">
-          <motion.p
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease }}
-            className="font-serif text-5xl font-medium tracking-tight text-cream sm:text-6xl lg:text-[4.25rem]"
-          >
-            {labels.brand}
-          </motion.p>
+        <div className="relative mx-auto grid min-h-[100svh] max-w-7xl items-center gap-10 px-5 pb-16 pt-28 sm:px-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:px-10 lg:pb-20 lg:pt-24">
+          <div className="relative z-10 max-w-xl lg:max-w-none">
+            <motion.p
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease }}
+              className="font-serif text-[1.85rem] font-medium leading-[1.15] tracking-tight text-wine text-balance sm:text-4xl lg:text-[2.55rem]"
+            >
+              {labels.brand}
+            </motion.p>
 
-          <motion.h1
-            initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.08, ease }}
-            className="mt-5 max-w-3xl font-serif text-[2rem] font-medium leading-[1.08] tracking-tight text-cream text-balance sm:text-4xl lg:text-[2.85rem]"
-          >
-            {headline}
-          </motion.h1>
+            <motion.h1
+              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.06, ease }}
+              className="mt-5 max-w-xl font-serif text-[1.65rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-balance sm:text-3xl lg:text-[2.15rem]"
+            >
+              {headline}
+            </motion.h1>
 
-          <motion.p
-            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.16, ease }}
-            className="mt-4 max-w-xl text-base leading-relaxed text-cream/75 sm:text-lg"
-          >
-            {line}
-          </motion.p>
+            <motion.p
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.12, ease }}
+              className="mt-5 max-w-lg text-base leading-relaxed text-wine/55 sm:text-[1.05rem]"
+            >
+              {line}
+            </motion.p>
+
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.24, ease }}
+              className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3"
+            >
+              <Link
+                href={ctaHref}
+                onClick={() => onClaimClick("hero_primary", "sunday_table_hero")}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-wine hover:shadow-[0_16px_34px_rgba(43,13,18,0.26)]"
+              >
+                {labels.cta}
+              </Link>
+              <a
+                href="#how"
+                onClick={() =>
+                  trackSundayTableCtaClicked({
+                    cta: "hero_secondary",
+                    source: "sunday_table_hero",
+                    locale,
+                  })
+                }
+                className="inline-flex min-h-12 items-center text-xs font-semibold uppercase tracking-[0.16em] text-wine/55 transition hover:text-wine"
+              >
+                {labels.secondaryCta}
+              </a>
+            </motion.div>
+          </div>
 
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.24, ease }}
-            className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4"
+            initial={reduceMotion ? false : { opacity: 0, x: 28, scale: 0.97 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.75, delay: 0.1, ease }}
+            className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none"
           >
-            <Link
-              href={ctaHref}
-              onClick={() => onClaimClick("hero_primary", "sunday_table_hero")}
-              className="inline-flex min-h-12 items-center justify-center rounded-full bg-cream px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine shadow-[0_14px_36px_rgba(0,0,0,0.28)] transition hover:bg-white"
-            >
-              {labels.cta}
-            </Link>
-            <a
-              href="#how"
-              onClick={() =>
-                trackSundayTableCtaClicked({
-                  cta: "hero_secondary",
-                  source: "sunday_table_hero",
-                  locale,
-                })
-              }
-              className="inline-flex min-h-12 items-center text-xs font-semibold uppercase tracking-[0.16em] text-cream/70 transition hover:text-cream"
-            >
-              {labels.secondaryCta}
-            </a>
+            <div className="relative aspect-[5/6] overflow-hidden rounded-[2.5rem] shadow-[0_28px_70px_rgba(43,13,18,0.14)] sm:aspect-[4/5] sm:rounded-[3rem] lg:min-h-[34rem] lg:aspect-auto">
+              <GirlsOnlyHeroMedia locale={locale} variant="background" />
+              <div className="absolute inset-0 bg-gradient-to-t from-wine/25 via-transparent to-transparent" />
+            </div>
           </motion.div>
         </div>
       </section>

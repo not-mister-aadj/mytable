@@ -913,7 +913,7 @@ export function MemberClubView({
           </section>
         ) : null}
 
-        {/* Benefits — non-members: sfeer + uitleg in één, compact */}
+        {/* Benefits: value for non-members */}
         {!isMember ? (
           <section id="clubmember" className="mt-14 scroll-mt-24 sm:mt-16">
             <div className="max-w-xl">

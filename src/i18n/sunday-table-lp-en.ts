@@ -16,7 +16,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   lineCity:
     "Every first Sunday of the month in {city}, at a wine bar or restaurant. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table.",
   cta: "Claim your seat",
-  secondaryCta: "How it works",
+  secondaryCta: "What you get",
   how: {
     eyebrow: "Clubmember",
     title: "For new flavors and new faces",
@@ -53,10 +53,33 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     body: "Real moments from Sunday Tables and the nights that follow.",
     cta: "Claim your seat",
   },
+  included: {
+    eyebrow: "Included",
+    title: "What you get",
+    items: [
+      {
+        title: "New people",
+        body: "Every first Sunday at a table with faces you don’t know yet.",
+      },
+      {
+        title: "First drink",
+        body: "Your first drink is on us.",
+      },
+      {
+        title: "MyTable specials",
+        body: "Bar recommendations. Sometimes with a discount.",
+      },
+      {
+        title: "10% off culinary experiences",
+        body: "Wine walks, tastings and dinners from the agenda.",
+      },
+    ],
+    note: "Further drinks and bites you pay for on location. Culinary experiences from the agenda are all-in.",
+  },
   pricing: {
-    eyebrow: "Membership",
+    eyebrow: "Pricing",
     title: "Start small. Or do what most people do.",
-    body: "The trial month is one-time and does not renew. Longer plans do, until you cancel. You get 10% off MyTable culinary experiences.",
+    body: "The trial month is one-time and does not renew. Longer plans do, until you cancel.",
     trialLabel: "1 month trial",
     trialPrice: "€21",
     trialHint: "One-time. Does not renew.",

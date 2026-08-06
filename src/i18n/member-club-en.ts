@@ -44,11 +44,11 @@ export const memberClubEn: MemberClubLabels = {
     locationNote: "You’ll get the exact location 24 hours beforehand.",
     mixed: {
       title: "Sunday Table",
-      body: "Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",
+      body: "Sunday Table is for meeting new people. Your first drink is on us. At some locations we have MyTable recommendations and discounts.",
     },
     girlsOnly: {
       title: "Sunday Table · Girls only",
-      body: "Women only at the table. Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",
+      body: "Women only at the table. Sunday Table is for meeting new people. Your first drink is on us. At some locations we have MyTable recommendations and discounts.",
     },
   },
   paywall: {
@@ -59,12 +59,12 @@ export const memberClubEn: MemberClubLabels = {
     perksTitle: "Clubmember",
     perks: [
       {
-        title: "Sunday Table",
-        body: "Every first Sunday of the month.",
+        title: "New people",
+        body: "Every first Sunday at a table with faces you don’t know yet.",
       },
       {
-        title: "New people",
-        body: "We match you at the table. Solo welcome, or bring a +1.",
+        title: "First drink & specials",
+        body: "Your first drink is on us. Bar recommendations, sometimes with a discount.",
       },
       {
         title: "Culinary friends",
@@ -72,7 +72,7 @@ export const memberClubEn: MemberClubLabels = {
       },
     ],
     consumptionsNote:
-      "At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
+      "Your first drink is on us. Further drinks and bites you pay for on location. Culinary experiences from the agenda are all-in.",
     plansTitle: "Choose your plan",
     popular: "Most chosen",
     save: "Save {percent}",
@@ -198,23 +198,23 @@ export const memberClubEn: MemberClubLabels = {
   },
   benefits: {
     eyebrow: "The offer",
-    title: "Clubmember",
+    title: "What you get",
     subtitle: "Clear. No fine print.",
     items: [
       {
-        title: "Sunday Table",
-        body: "Every first Sunday of the month.",
+        title: "New people",
+        body: "Every first Sunday at a table with faces you don’t know yet.",
       },
       {
-        title: "New people",
-        body: "We match you at the table. Solo welcome, or bring a +1.",
+        title: "First drink & specials",
+        body: "Your first drink is on us. Bar recommendations, sometimes with a discount.",
       },
       {
         title: "Culinary friends",
         body: "Then book something with your new group. Members get 10% off.",
       },
     ],
-    note: "At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
+    note: "Your first drink is on us. Further drinks and bites you pay for on location. Culinary experiences from the agenda are all-in.",
   },
   roadmap: {
     eyebrow: "Later",
@@ -233,12 +233,12 @@ export const memberClubEn: MemberClubLabels = {
       {
         question: "What is Sunday Table?",
         answer:
-          "Sunday Table is for meeting new people. Later you book culinary experiences from the agenda together. Drinks and bites you pay for on location. They are not included.",
+          "Sunday Table is for meeting new people. Your first drink is on us. Later you book culinary experiences from the agenda together.",
       },
       {
         question: "What’s in Clubmember?",
         answer:
-          "Sunday Tables and 10% off culinary. At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
+          "Sunday Tables, your first drink on us, MyTable specials at the bar, and 10% off culinary experiences. Culinary experiences from the agenda are all-in.",
       },
       {
         question: "What does Clubmember cost?",
@@ -246,9 +246,9 @@ export const memberClubEn: MemberClubLabels = {
           "1 month trial €21 (one-time, does not renew). Or 5 months €50 (€10/month). Or 12 months €100 (€8.33/month). Longer plans auto-renew until you cancel.",
       },
       {
-        question: "Do I pay separately for drinks and bites?",
+        question: "What’s included at the bar?",
         answer:
-          "Yes. At Sunday Table you pay for drinks and bites on location. They are not included. Culinary experiences from the agenda are all-in: food and drinks included.",
+          "Your first drink is on us. The bar has MyTable specials, sometimes with a discount. Further drinks and bites you pay for on location.",
       },
       {
         question: "Is Sunday Table dating?",

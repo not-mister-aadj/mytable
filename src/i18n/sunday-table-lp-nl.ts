@@ -16,7 +16,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   lineCity:
     "Elke eerste zondag van de maand in {city}, in een wijnbar of restaurant. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel.",
   cta: "Claim je plek",
-  secondaryCta: "Hoe het werkt",
+  secondaryCta: "Wat je krijgt",
   how: {
     eyebrow: "Clubmember",
     title: "Voor nieuwe smaken én nieuwe gezichten",
@@ -53,10 +53,33 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     body: "Echte momenten van Sunday Tables en avonden daarna.",
     cta: "Claim je plek",
   },
+  included: {
+    eyebrow: "Inbegrepen",
+    title: "Wat je krijgt",
+    items: [
+      {
+        title: "Nieuwe mensen",
+        body: "Elke eerste zondag aan tafel met gezichten die je nog niet kent.",
+      },
+      {
+        title: "Eerste drankje",
+        body: "Je eerste drankje krijg je van ons.",
+      },
+      {
+        title: "MyTable specials",
+        body: "Aanraders aan de bar. Soms met korting.",
+      },
+      {
+        title: "10% op culinaire ervaringen",
+        body: "Wine walks, proeverijen en diners uit de agenda.",
+      },
+    ],
+    note: "Verdere drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
+  },
   pricing: {
-    eyebrow: "Lidmaatschap",
+    eyebrow: "Prijzen",
     title: "Begin klein. Of doe zoals de meeste.",
-    body: "De trialmaand is eenmalig en verlengt niet. Langere plannen wel, tot je opzegt. Op culinaire ervaringen van MyTable krijg je 10% korting.",
+    body: "De trialmaand is eenmalig en verlengt niet. Langere plannen wel, tot je opzegt.",
     trialLabel: "1 maand trial",
     trialPrice: "€21",
     trialHint: "Eenmalig. Verlengt niet.",

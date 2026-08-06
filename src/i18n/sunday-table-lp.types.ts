@@ -33,6 +33,12 @@ export type SundayTableLpLabels = {
     body: string;
     cta: string;
   };
+  included: {
+    eyebrow: string;
+    title: string;
+    items: Array<{ title: string; body: string }>;
+    note: string;
+  };
   pricing: {
     eyebrow: string;
     title: string;

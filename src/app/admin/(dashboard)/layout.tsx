@@ -12,6 +12,7 @@ const NAV_ITEM_PATHS = [
   { label: "Types", path: "/experience-types" },
   { label: "Boekingen", path: "/bookings" },
   { label: "Klanten", path: "/customers" },
+  { label: "Members", path: "/members" },
   { label: "Sunday Tables", path: "/sunday-tables" },
   { label: "Affiliates", path: "/affiliates" },
   { label: "Priority List", path: "/priority-list" },

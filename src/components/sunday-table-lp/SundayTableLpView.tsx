@@ -55,10 +55,10 @@ function PrimaryCta({
       <Link
         href={href}
         onClick={onClick}
-        className={`inline-flex min-h-[3.25rem] w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center transition sm:min-w-[15.5rem] sm:w-auto ${
+        className={`cta-lift inline-flex min-h-[3.25rem] w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center sm:min-w-[15.5rem] sm:w-auto ${
           isCream
-            ? "bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white hover:shadow-[0_18px_40px_rgba(0,0,0,0.28)]"
-            : "bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine hover:shadow-[0_18px_40px_rgba(43,13,18,0.32)]"
+            ? "cta-lift-cream bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white"
+            : "cta-lift-burgundy bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine"
         }`}
       >
         <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
@@ -252,7 +252,7 @@ export function SundayTableLpView({
                     locale,
                   })
                 }
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-wine/20 bg-white/60 px-7 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm transition hover:border-wine/40 hover:bg-white hover:text-wine sm:w-auto"
+                className="cta-lift cta-lift-outline inline-flex min-h-12 w-full items-center justify-center rounded-full border border-wine/20 bg-white/60 px-7 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm hover:border-wine/40 hover:bg-white hover:text-wine sm:w-auto"
               >
                 {labels.secondaryCta}
               </a>

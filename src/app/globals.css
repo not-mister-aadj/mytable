@@ -192,6 +192,41 @@ html.samsung-force-light picture {
   animation: toast-out 0.32s ease-in forwards;
 }
 
+/* Premium CTA lift — simple hover for fine pointers only */
+.cta-lift {
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    filter 0.35s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cta-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .cta-lift:active {
+    transform: translateY(0);
+    transition-duration: 0.12s;
+  }
+
+  .cta-lift-burgundy:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 18px 40px rgba(43, 13, 18, 0.34);
+  }
+
+  .cta-lift-cream:hover {
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  }
+
+  .cta-lift-outline:hover {
+    transform: translateY(-1px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-left,
   .animate-marquee-right,
@@ -203,6 +238,18 @@ html.samsung-force-light picture {
   .animate-toast-in,
   .animate-toast-out {
     animation: none;
+  }
+
+  .cta-lift,
+  .cta-lift:hover,
+  .cta-lift:active {
+    transform: none;
+    filter: none;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 }
 

@@ -5,18 +5,38 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     title: "Sunday Table · MyTable Clubmember",
     titleCity: "Sunday Table in {city} · MyTable",
     description:
-      "Meet new people every first Sunday. Girls only or mixed. Claim your Clubmember seat.",
+      "New people every first Sunday. Girls only or mixed. Claim your Clubmember seat.",
     descriptionCity:
-      "Sunday Table in {city}: girls only or mixed, every first Sunday. Claim your Clubmember seat.",
+      "New people every first Sunday in {city}. Girls only or mixed. Claim your Clubmember seat.",
   },
   brand: "MyTable",
-  headline: "Your social life in the city starts here",
-  headlineCity: "Sunday Table in {city}",
-  line: "Every first Sunday of the month at a wine bar or restaurant. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table.",
+  socialProof: "Live in 2 cities. More coming soon.",
+  headline: "New people every first Sunday",
+  headlineCity: "New people every first Sunday in {city}",
+  line: "No dating. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table. And make new culinary friends.",
   lineCity:
-    "Every first Sunday of the month in {city}, at a wine bar or restaurant. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table.",
+    "No dating. Coming solo is normal, bringing a plus-one is fine. In {city}: girls only or a mixed table. And make new culinary friends.",
+  heroBenefits: [
+    {
+      bold: "Matched table",
+      text: ", maximum ten seats",
+    },
+    {
+      bold: "Solo is the default",
+      text: ", bring a +1 if you want",
+    },
+    {
+      bold: "Girls only or mixed",
+      text: ", purely platonic",
+    },
+    {
+      bold: "Special MyTable menus",
+      text: " with discounts and picks",
+    },
+  ],
   cta: "Claim your seat",
   ctaHint: "From €8.33/month",
+  ctaRisk: "Or try the trial for a month. It stops automatically.",
   secondaryCta: "What you get",
   how: {
     eyebrow: "Clubmember",

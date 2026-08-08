@@ -6,13 +6,19 @@ export type SundayTableLpLabels = {
     descriptionCity: string;
   };
   brand: string;
+  /** Early social proof, above the headline */
+  socialProof: string;
   headline: string;
   headlineCity: string;
   line: string;
   lineCity: string;
+  /** Compact hero benefits: bold keyphrase + rest of line */
+  heroBenefits: Array<{ bold: string; text: string }>;
   cta: string;
   /** Price anchor under primary CTAs, e.g. "Vanaf €10/maand" */
   ctaHint: string;
+  /** Risk reversal under the primary CTA */
+  ctaRisk: string;
   secondaryCta: string;
   how: {
     eyebrow: string;

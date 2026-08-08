@@ -205,19 +205,19 @@ export function SundayTableLpView({
         <div className="relative mx-auto grid min-h-0 max-w-7xl items-center gap-8 px-5 pb-10 pt-24 sm:gap-10 sm:px-8 sm:pb-16 sm:pt-28 lg:min-h-[100svh] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:px-10 lg:pb-20 lg:pt-24">
           <div className="relative z-10 max-w-xl lg:max-w-none">
             <motion.p
-              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease }}
-              className="font-serif text-[1.85rem] font-medium leading-[1.15] tracking-tight text-wine text-balance sm:text-4xl lg:text-[2.55rem]"
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.45, ease }}
+              className="text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/45"
             >
-              {labels.brand}
+              {labels.socialProof}
             </motion.p>
 
             <motion.h1
               initial={reduceMotion ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.06, ease }}
-              className="mt-4 max-w-xl font-serif text-[1.55rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-balance sm:mt-5 sm:text-3xl lg:text-[2.15rem]"
+              className="mt-3 max-w-xl font-serif text-[1.55rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-balance sm:mt-4 sm:text-3xl lg:text-[2.15rem]"
             >
               {headline}
             </motion.h1>
@@ -231,11 +231,34 @@ export function SundayTableLpView({
               {line}
             </motion.p>
 
+            <motion.ul
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.16, ease }}
+              className="mt-5 space-y-2 sm:mt-6"
+            >
+              {labels.heroBenefits.map((item) => (
+                <li
+                  key={item.bold}
+                  className="flex gap-2.5 text-sm leading-snug text-wine/65 sm:text-[0.95rem]"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-2 h-1 w-1 shrink-0 rounded-full bg-wine/35"
+                  />
+                  <span>
+                    <span className="font-semibold text-wine">{item.bold}</span>
+                    {item.text}
+                  </span>
+                </li>
+              ))}
+            </motion.ul>
+
             <motion.div
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.24, ease }}
-              className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3"
+              className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3"
             >
               <PrimaryCta
                 href={ctaHref}
@@ -257,6 +280,15 @@ export function SundayTableLpView({
                 {labels.secondaryCta}
               </a>
             </motion.div>
+
+            <motion.p
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.45, delay: 0.3, ease }}
+              className="mt-3 max-w-md text-xs leading-relaxed text-wine/45 sm:text-sm"
+            >
+              {labels.ctaRisk}
+            </motion.p>
           </div>
 
           <motion.div

@@ -5,18 +5,38 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     title: "Sunday Table · MyTable Clubmember",
     titleCity: "Sunday Table in {city} · MyTable",
     description:
-      "Elke eerste zondag nieuwe mensen ontmoeten. Girls only of gemengd. Claim je plek als Clubmember.",
+      "Nieuwe mensen elke eerste zondag. Girls only of gemengd. Claim je plek als Clubmember.",
     descriptionCity:
-      "Sunday Table in {city}: girls only of gemengd, elke eerste zondag. Claim je Clubmember-plek.",
+      "Nieuwe mensen elke eerste zondag in {city}. Girls only of gemengd. Claim je Clubmember-plek.",
   },
   brand: "MyTable",
-  headline: "Je sociale leven in de stad begint hier",
-  headlineCity: "Sunday Table in {city}",
-  line: "Elke eerste zondag van de maand in een wijnbar of restaurant. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel.",
+  socialProof: "Live in 2 steden. Meer volgen gauw.",
+  headline: "Nieuwe mensen elke eerste zondag",
+  headlineCity: "Nieuwe mensen elke eerste zondag in {city}",
+  line: "Geen dating. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel. En maak nieuwe culinaire vrienden.",
   lineCity:
-    "Elke eerste zondag van de maand in {city}, in een wijnbar of restaurant. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel.",
+    "Geen dating. Solo komen is normaal, een plus-één meenemen mag. In {city}: girls only of een gemengde tafel. En maak nieuwe culinaire vrienden.",
+  heroBenefits: [
+    {
+      bold: "Gematchte tafel",
+      text: ", maximaal tien plekken",
+    },
+    {
+      bold: "Solo is standaard",
+      text: ", +1 meenemen mag",
+    },
+    {
+      bold: "Girls only of gemengd",
+      text: ", puur vriendschappelijk",
+    },
+    {
+      bold: "Speciale MyTable-menu’s",
+      text: " met korting en aanraders",
+    },
+  ],
   cta: "Claim je plek",
   ctaHint: "Vanaf €8,33/maand",
+  ctaRisk: "Of probeer de trial voor een maand. Stopt automatisch.",
   secondaryCta: "Wat je krijgt",
   how: {
     eyebrow: "Clubmember",

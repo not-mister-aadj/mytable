@@ -6,7 +6,6 @@ import type { Locale } from "@/i18n/config";
 import {
   accountPath,
   agendaPath,
-  blogPath,
   clubmemberPath,
 } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
@@ -39,10 +38,6 @@ export function isMemberMobileHeaderHiddenPath(path: string): boolean {
   return isExperiencesPath(path) || isClubmemberPath(path);
 }
 
-function isBlogPath(path: string): boolean {
-  return path === "/blog" || path.startsWith("/blog/");
-}
-
 function isAccountPath(path: string): boolean {
   return path === "/account" || path.startsWith("/account/");
 }
@@ -67,14 +62,8 @@ export function memberNavItems(locale: Locale, nav: NavLabels) {
   ] as const;
 }
 
-export function publicNavItems(locale: Locale, nav: NavLabels) {
-  return [
-    {
-      href: blogPath(locale),
-      label: nav.blog,
-      match: isBlogPath,
-    },
-  ] as const;
+export function publicNavItems(_locale: Locale, _nav: NavLabels) {
+  return [] as const;
 }
 
 export function MemberBottomNav({

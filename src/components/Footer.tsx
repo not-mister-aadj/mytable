@@ -30,11 +30,7 @@ export function Footer({
 
   return (
     <footer className="border-t border-border-subtle bg-gradient-to-b from-beige to-cream">
-      <div
-        className={`mx-auto px-5 py-12 sm:px-8 sm:py-14 ${
-          showSeoLinks ? "max-w-5xl" : "max-w-3xl"
-        }`}
-      >
+      <div className="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-14">
         <div className="text-center">
           <Link
             href={home}
@@ -68,47 +64,30 @@ export function Footer({
           </p>
         </div>
 
-        {showSeoLinks ? (
+        {showSeoLinks && cities.length > 0 ? (
           <nav
-            aria-label={dict.columns.explore}
-            className="mt-12 grid gap-10 border-t border-border-subtle pt-10 text-left sm:grid-cols-2"
+            aria-label={dict.columns.popularCities}
+            className="mt-8 border-t border-border-subtle pt-6 text-center"
           >
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-wine/40">
-                {dict.columns.info}
-              </p>
-              <ul className="mt-3 space-y-2">
-                <li>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-wine/40">
+              {dict.columns.popularCities}
+            </p>
+            <ul className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-x-4 gap-y-1.5">
+              {cities.map((city) => (
+                <li key={city.slug}>
                   <Link
-                    href={blogPath(locale)}
+                    href={girlsOnlyCityPath(locale, city.slug)}
                     className="text-sm text-wine/70 transition-colors hover:text-burgundy"
                   >
-                    {dict.links.blog}
+                    {city.cityName}
                   </Link>
                 </li>
-              </ul>
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-wine/40">
-                {dict.columns.popularCities}
-              </p>
-              <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-                {cities.map((city) => (
-                  <li key={city.slug}>
-                    <Link
-                      href={girlsOnlyCityPath(locale, city.slug)}
-                      className="text-sm text-wine/70 transition-colors hover:text-burgundy"
-                    >
-                      {city.cityName}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              ))}
+            </ul>
           </nav>
         ) : null}
 
-        <div className="mt-10 border-t border-border-subtle pt-6 text-center text-xs text-wine/45">
+        <div className="mt-8 border-t border-border-subtle pt-5 text-center text-xs text-wine/45">
           <p>
             © {year} MyTable. {dict.copyright}
             <span className="mx-2 text-wine/25">·</span>

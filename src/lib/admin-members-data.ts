@@ -76,6 +76,45 @@ const MEMBERSHIP_RANK: Record<string, number> = {
   canceled: 1,
 };
 
+/** Stripe Checkout sessions expire after 24h; pending past that is abandoned. */
+export const PENDING_CLUB_MEMBERSHIP_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Pending is only a short-lived checkout state, not a subscription.
+ * CRM never treats it as "met abonnement"; after the Stripe session TTL
+ * it is abandoned (none). Canceled rows that never paid also count as none.
+ */
+export function resolveAdminSubscriptionStatus(
+  raw: string | null | undefined,
+  _createdAt?: Date | null,
+  paidEvidence?: {
+    stripeSubscriptionId?: string | null;
+    currentPeriodEnd?: Date | null;
+  },
+): AdminMemberSubscriptionStatus {
+  if (raw === "active" || raw === "past_due") {
+    return raw;
+  }
+  if (raw === "pending") {
+    // Not a subscription — hide as none. Fresh checkouts stay pending in DB
+    // until paid or abandoned after PENDING_CLUB_MEMBERSHIP_TTL_MS.
+    return "none";
+  }
+  if (raw === "canceled") {
+    const hadSubscription = Boolean(
+      paidEvidence?.stripeSubscriptionId || paidEvidence?.currentPeriodEnd,
+    );
+    return hadSubscription ? "canceled" : "none";
+  }
+  return "none";
+}
+
+function hasCountedSubscription(
+  status: AdminMemberSubscriptionStatus,
+): boolean {
+  return status === "active" || status === "past_due";
+}
+
 function ageFromBirthDate(iso: string | null): number | null {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const birth = new Date(`${iso}T00:00:00Z`);
@@ -179,6 +218,7 @@ type MembershipRow = {
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
   createdAt: Date;
+  stripeSubscriptionId?: string | null;
 };
 
 function pickBestMembership(
@@ -187,8 +227,10 @@ function pickBestMembership(
   if (rows.length === 0) return null;
   const unique = [...new Map(rows.map((row) => [row.id, row])).values()];
   return unique.sort((a, b) => {
+    const aStatus = resolveAdminSubscriptionStatus(a.status, a.createdAt, a);
+    const bStatus = resolveAdminSubscriptionStatus(b.status, b.createdAt, b);
     const rankDiff =
-      (MEMBERSHIP_RANK[b.status] ?? 0) - (MEMBERSHIP_RANK[a.status] ?? 0);
+      (MEMBERSHIP_RANK[bStatus] ?? 0) - (MEMBERSHIP_RANK[aStatus] ?? 0);
     if (rankDiff !== 0) return rankDiff;
     return b.createdAt.getTime() - a.createdAt.getTime();
   })[0]!;
@@ -229,14 +271,17 @@ function mapMemberRow(
 
   const planId =
     membership && isClubPlanId(membership.planId) ? membership.planId : null;
-  const rawStatus = membership?.status ?? null;
-  const subscriptionStatus: AdminMemberSubscriptionStatus =
-    rawStatus === "active" ||
-    rawStatus === "pending" ||
-    rawStatus === "past_due" ||
-    rawStatus === "canceled"
-      ? rawStatus
-      : "none";
+  const subscriptionStatus = resolveAdminSubscriptionStatus(
+    membership?.status ?? null,
+    membership?.createdAt ?? null,
+    membership
+      ? {
+          stripeSubscriptionId: membership.stripeSubscriptionId,
+          currentPeriodEnd: membership.currentPeriodEnd,
+        }
+      : undefined,
+  );
+  const visiblePlanId = subscriptionStatus === "none" ? null : planId;
 
   return {
     id: user.id,
@@ -264,10 +309,10 @@ function mapMemberRow(
     subscriptionStatus,
     subscriptionStatusLabel: subscriptionStatusLabel(
       subscriptionStatus,
-      planId,
+      visiblePlanId,
     ),
-    planId,
-    planLabel: planLabel(planId),
+    planId: visiblePlanId,
+    planLabel: planLabel(visiblePlanId),
     currentPeriodEnd: membership?.currentPeriodEnd?.toISOString() ?? null,
     cancelAtPeriodEnd: membership?.cancelAtPeriodEnd ?? false,
     interests: prefs.interests,
@@ -293,6 +338,15 @@ export async function getAdminMembersPageData(): Promise<AdminMembersPageData> {
     };
   }
 
+  const { expireStalePendingClubMemberships } = await import(
+    "@/lib/club/memberships"
+  );
+  try {
+    await expireStalePendingClubMemberships(PENDING_CLUB_MEMBERSHIP_TTL_MS);
+  } catch (err) {
+    console.error("[admin-members] expire stale pending", err);
+  }
+
   const [users, membershipRows] = await Promise.all([
     listAllAuthUsers(),
     getDb()
@@ -304,6 +358,7 @@ export async function getAdminMembersPageData(): Promise<AdminMembersPageData> {
         status: clubMemberships.status,
         currentPeriodEnd: clubMemberships.currentPeriodEnd,
         cancelAtPeriodEnd: clubMemberships.cancelAtPeriodEnd,
+        stripeSubscriptionId: clubMemberships.stripeSubscriptionId,
         createdAt: clubMemberships.createdAt,
       })
       .from(clubMemberships)
@@ -323,6 +378,7 @@ export async function getAdminMembersPageData(): Promise<AdminMembersPageData> {
       currentPeriodEnd: row.currentPeriodEnd,
       cancelAtPeriodEnd: row.cancelAtPeriodEnd,
       createdAt: row.createdAt,
+      stripeSubscriptionId: row.stripeSubscriptionId,
     };
     if (typed.userId) {
       const list = byUserId.get(typed.userId) ?? [];
@@ -351,8 +407,8 @@ export async function getAdminMembersPageData(): Promise<AdminMembersPageData> {
         new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime(),
     );
 
-  const withSubscription = members.filter(
-    (m) => m.subscriptionStatus !== "none",
+  const withSubscription = members.filter((m) =>
+    hasCountedSubscription(m.subscriptionStatus),
   ).length;
   const activeSubscriptions = members.filter(
     (m) => m.subscriptionStatus === "active",
@@ -404,16 +460,13 @@ export type AdminMemberDetail = {
 
 function normalizeSubscriptionStatus(
   raw: string | null | undefined,
+  createdAt?: Date | null,
+  paidEvidence?: {
+    stripeSubscriptionId?: string | null;
+    currentPeriodEnd?: Date | null;
+  },
 ): AdminMemberSubscriptionStatus {
-  if (
-    raw === "active" ||
-    raw === "pending" ||
-    raw === "past_due" ||
-    raw === "canceled"
-  ) {
-    return raw;
-  }
-  return "none";
+  return resolveAdminSubscriptionStatus(raw, createdAt, paidEvidence);
 }
 
 export async function getAdminMemberDetail(
@@ -495,6 +548,7 @@ export async function getAdminMemberDetail(
     currentPeriodEnd: row.currentPeriodEnd,
     cancelAtPeriodEnd: row.cancelAtPeriodEnd,
     createdAt: row.createdAt,
+    stripeSubscriptionId: row.stripeSubscriptionId,
   }));
 
   const member = mapMemberRow(user, pickBestMembership(typedMemberships));
@@ -502,13 +556,17 @@ export async function getAdminMemberDetail(
   const memberships: AdminMemberMembershipHistoryRow[] = membershipRows.map(
     (row) => {
       const planId = isClubPlanId(row.planId) ? row.planId : null;
-      const status = normalizeSubscriptionStatus(row.status);
+      const status = normalizeSubscriptionStatus(row.status, row.createdAt, {
+        stripeSubscriptionId: row.stripeSubscriptionId,
+        currentPeriodEnd: row.currentPeriodEnd,
+      });
+      const visiblePlanId = status === "none" ? null : planId;
       return {
         id: row.id,
-        planId,
-        planLabel: planLabel(planId),
+        planId: visiblePlanId,
+        planLabel: planLabel(visiblePlanId),
         status,
-        statusLabel: subscriptionStatusLabel(status, planId),
+        statusLabel: subscriptionStatusLabel(status, visiblePlanId),
         currentPeriodEnd: row.currentPeriodEnd?.toISOString() ?? null,
         cancelAtPeriodEnd: row.cancelAtPeriodEnd,
         stripeSubscriptionId: row.stripeSubscriptionId,

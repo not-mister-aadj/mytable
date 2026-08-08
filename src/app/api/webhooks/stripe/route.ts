@@ -173,6 +173,16 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as import("stripe").Stripe.Checkout.Session;
+    if (session.metadata?.mytable_kind === "club_membership") {
+      try {
+        const { abandonPendingCheckoutSession } = await import(
+          "@/lib/club/memberships"
+        );
+        await abandonPendingCheckoutSession(session.id);
+      } catch (err) {
+        console.error("[stripe webhook] club session expired", err);
+      }
+    }
     const bookingId = session.metadata?.booking_id;
     const eventId = session.metadata?.event_id;
     if (bookingId) {

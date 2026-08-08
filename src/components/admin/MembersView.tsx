@@ -12,7 +12,6 @@ type FilterKey =
   | "all"
   | "none"
   | "active"
-  | "pending"
   | "past_due"
   | "canceled"
   | "onboarding_done"
@@ -31,8 +30,6 @@ function subscriptionPillClass(status: AdminMemberSubscriptionStatus): string {
   switch (status) {
     case "active":
       return "bg-emerald-100 text-emerald-900 ring-emerald-600/15";
-    case "pending":
-      return "bg-amber-100 text-amber-900 ring-amber-600/15";
     case "past_due":
       return "bg-red-100 text-red-900 ring-red-600/15";
     case "canceled":
@@ -67,7 +64,6 @@ function matchesFilter(row: AdminMemberListRow, filter: FilterKey): boolean {
     case "none":
       return row.subscriptionStatus === "none";
     case "active":
-    case "pending":
     case "past_due":
     case "canceled":
       return row.subscriptionStatus === filter;
@@ -162,7 +158,6 @@ export function MembersView({ data }: { data: AdminMembersPageData }) {
             <option value="all">Alle statussen</option>
             <option value="none">Geen abonnement</option>
             <option value="active">Active</option>
-            <option value="pending">Pending</option>
             <option value="past_due">Past due</option>
             <option value="canceled">Geannuleerd</option>
             <option value="onboarding_done">Onboarding klaar</option>

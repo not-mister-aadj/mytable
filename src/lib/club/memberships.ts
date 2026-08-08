@@ -1022,6 +1022,42 @@ export async function abandonPendingCheckoutSession(
         eq(sundayTableSignups.status, "pending_payment"),
       ),
     );
+
+  // Abandoned checkout is not a subscription — clear pending membership rows.
+  await db
+    .update(clubMemberships)
+    .set({
+      status: "canceled",
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(clubMemberships.stripeCheckoutSessionId, sessionId),
+        eq(clubMemberships.status, "pending"),
+      ),
+    );
+}
+
+/** Mark abandoned pending club checkouts as canceled after the Stripe session TTL. */
+export async function expireStalePendingClubMemberships(
+  olderThanMs: number = 24 * 60 * 60 * 1000,
+): Promise<number> {
+  const db = getDb();
+  const cutoff = new Date(Date.now() - olderThanMs);
+  const expired = await db
+    .update(clubMemberships)
+    .set({
+      status: "canceled",
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(clubMemberships.status, "pending"),
+        sql`${clubMemberships.createdAt} < ${cutoff}`,
+      ),
+    )
+    .returning({ id: clubMemberships.id });
+  return expired.length;
 }
 
 export async function updateSundayTableRsvp(input: {

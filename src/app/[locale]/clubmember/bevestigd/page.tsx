@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { MetaClubConfirmationPurchase } from "@/components/member-club/MetaClubConfirmationPurchase";
 import { isDbConfigured } from "@/db/index";
 import {
+  accountPath,
   clubmemberPath,
   isValidLocale,
   loginPath,
@@ -23,6 +24,10 @@ import {
   getMemberSundaySignups,
 } from "@/lib/club/memberships";
 import { getMemberUser } from "@/lib/member-auth";
+import {
+  needsPostPurchaseEnrichment,
+  readOnboardingFromMetadata,
+} from "@/lib/member-onboarding";
 import { sundayTableGoogleCalendarUrl } from "@/lib/sunday-table-calendar";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { notFound, redirect } from "next/navigation";
@@ -112,6 +117,13 @@ export default async function ClubmemberConfirmedPage({
         signupId: nextConfirmed.id,
       });
     }
+  }
+
+  const { prefs } = readOnboardingFromMetadata(
+    user.user_metadata as Record<string, unknown>,
+  );
+  if (confirmed && needsPostPurchaseEnrichment(prefs)) {
+    redirect(`${accountPath(locale)}?enrich=1`);
   }
 
   const title = confirmed

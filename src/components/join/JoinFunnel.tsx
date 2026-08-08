@@ -21,27 +21,24 @@ type FlowStep =
   | "language"
   | "brand"
   | "intent"
-  | "story"
-  | "goal"
   | "city"
   | "gender"
   | "tableType"
-  | "personality"
   | "signup"
   | "tastes";
 
 function parseStep(raw: string | null): FlowStep | null {
   if (raw === "commit" || raw === "vibe") return "signup";
+  // Legacy deep-links from the longer funnel
+  if (raw === "story" || raw === "goal") return "intent";
+  if (raw === "personality") return "gender";
   if (
     raw === "language" ||
     raw === "brand" ||
     raw === "intent" ||
-    raw === "story" ||
-    raw === "goal" ||
     raw === "city" ||
     raw === "gender" ||
     raw === "tableType" ||
-    raw === "personality" ||
     raw === "signup" ||
     raw === "tastes"
   ) {
@@ -122,9 +119,6 @@ function JoinFunnelInner({
     }
     if (step === "tableType") {
       return { ...stored, tableType: null };
-    }
-    if (step === "personality") {
-      return { ...stored, personality: null };
     }
     if (step === "tastes") {
       return { ...stored, interests: [] };

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -40,14 +39,13 @@ import {
   readOnboardingFromMetadata,
   readPreferredCity,
   sanitizeOnboardingCities,
-  wantsMeetPath,
   writeOnboardingToSession,
   clearJoinPending,
   markJoinPending,
   type MemberOnboardingPrefs,
   type OnboardingGenderId,
+  type OnboardingIntentId,
   type OnboardingLanguageId,
-  type OnboardingPersonalityId,
   type OnboardingTableTypeId,
 } from "@/lib/member-onboarding";
 import {
@@ -63,12 +61,9 @@ type FlowStep =
   | "name"
   | "birthdate"
   | "intent"
-  | "story"
-  | "goal"
   | "city"
   | "gender"
   | "tableType"
-  | "personality"
   | "signup"
   | "tastes"
   | "done"
@@ -80,13 +75,10 @@ const FLOW_ORDER: FlowStep[] = [
   "name",
   "birthdate",
   "intent",
-  "story",
-  "goal",
   "tastes",
   "city",
   "gender",
   "tableType",
-  "personality",
   "signup",
   "done",
 ];
@@ -201,17 +193,15 @@ export function MemberOnboarding({
   const [birthDay, setBirthDay] = useState(birthParts.day);
   const [birthMonth, setBirthMonth] = useState(birthParts.month);
   const [birthYear, setBirthYear] = useState(birthParts.year);
-  const [storyIndex, setStoryIndex] = useState(0);
   const choiceStepRef = useRef<FlowStep | null>(null);
 
   useEffect(() => {
-    const stepKey = step === "story" ? `story_${storyIndex}` : step;
     trackOnboardingStepViewed({
-      step: stepKey,
+      step,
       mode,
       locale,
     });
-  }, [step, storyIndex, mode, locale]);
+  }, [step, mode, locale]);
 
   /** Never show a pre-selected choice — clear when entering a choice step. */
   useEffect(() => {
@@ -243,7 +233,7 @@ export function MemberOnboarding({
     }
     if (step === "gender") {
       setPrefs((p) =>
-        p.gender === null && p.tableType === null && p.personality === null
+        p.gender === null && p.tableType === null
           ? p
           : { ...p, gender: null, tableType: null, personality: null },
       );
@@ -252,12 +242,6 @@ export function MemberOnboarding({
     if (step === "tableType") {
       setPrefs((p) =>
         p.tableType === null ? p : { ...p, tableType: null },
-      );
-      return;
-    }
-    if (step === "personality") {
-      setPrefs((p) =>
-        p.personality === null ? p : { ...p, personality: null },
       );
       return;
     }
@@ -285,15 +269,6 @@ export function MemberOnboarding({
     writeOnboardingToSession(prefs);
   }, [isJoin, prefs]);
 
-  const pathKey =
-    prefs.joinIntent === "with_group"
-      ? "culinary"
-      : prefs.joinIntent === "both"
-        ? "both"
-        : "meet";
-
-  const storyCards = labels.stories[pathKey];
-
   const progressSteps = useMemo(() => {
     if (resumeProfileOnly) {
       return ["name", "birthdate", "done"] as FlowStep[];
@@ -301,7 +276,6 @@ export function MemberOnboarding({
     const base: FlowStep[] = isJoin
       ? ["language", "intent"]
       : ["language", "brand", "name", "birthdate", "intent"];
-    const storySlots = storyCards.map(() => "story" as FlowStep);
     const tail: FlowStep[] = isJoin ? [] : ["done"];
 
     if (prefs.joinIntent === "with_group") {
@@ -309,31 +283,26 @@ export function MemberOnboarding({
       if (canChooseGirlsOnly(prefs.gender)) {
         culinarySteps.push("tableType");
       }
-      return [...base, ...storySlots, ...culinarySteps, ...tail];
+      return [...base, ...culinarySteps, ...tail];
     }
     if (prefs.joinIntent === "both") {
-      const meetSteps: FlowStep[] = ["goal", "tastes", "city", "gender"];
+      const meetSteps: FlowStep[] = ["tastes", "city", "gender"];
       if (canChooseGirlsOnly(prefs.gender)) {
         meetSteps.push("tableType");
       }
-      meetSteps.push("personality");
-      return [...base, ...storySlots, ...meetSteps, ...tail];
+      return [...base, ...meetSteps, ...tail];
     }
     if (prefs.joinIntent === "meet_new") {
-      const meetSteps: FlowStep[] = ["goal", "city", "gender"];
+      const meetSteps: FlowStep[] = ["city", "gender"];
       if (canChooseGirlsOnly(prefs.gender)) {
         meetSteps.push("tableType");
       }
-      meetSteps.push("personality");
-      return [...base, ...storySlots, ...meetSteps, ...tail];
+      return [...base, ...meetSteps, ...tail];
     }
     return [...base, ...tail];
-  }, [prefs.joinIntent, prefs.gender, isJoin, resumeProfileOnly, storyCards]);
+  }, [prefs.joinIntent, prefs.gender, isJoin, resumeProfileOnly]);
 
-  const stepNumber =
-    step === "story"
-      ? Math.max(1, progressSteps.indexOf("story") + storyIndex + 1)
-      : Math.max(1, progressSteps.lastIndexOf(step) + 1);
+  const stepNumber = Math.max(1, progressSteps.lastIndexOf(step) + 1);
   const totalSteps = progressSteps.length;
   const stepLabel = labels.stepLabel
     .replace("{current}", String(Math.min(stepNumber, totalSteps)))
@@ -417,7 +386,7 @@ export function MemberOnboarding({
     choice?: string,
   ): void {
     trackOnboardingStepCompleted({
-      step: from === "story" ? `story_${storyIndex}` : from,
+      step: from,
       next_step: next,
       mode,
       locale,
@@ -446,28 +415,15 @@ export function MemberOnboarding({
     router.replace(`${path}?step=${nextStep}`);
   }
 
-  function startStories() {
-    setStoryIndex(0);
-    setStep("story");
+  function stepAfterIntent(intent: OnboardingIntentId): FlowStep {
+    if (intent === "with_group" || intent === "both") return "tastes";
+    return "city";
   }
 
-  function afterStories() {
-    if (prefs.joinIntent === "with_group") {
-      completeStep("story", "tastes");
-      setStep("tastes");
-      return;
-    }
-    completeStep("story", "goal");
-    setStep("goal");
-  }
-
-  function advanceStory() {
-    if (storyIndex < storyCards.length - 1) {
-      completeStep("story", "story", String(storyIndex + 1));
-      setStoryIndex((i) => i + 1);
-      return;
-    }
-    afterStories();
+  function continueAfterIntent(intent: OnboardingIntentId) {
+    const next = stepAfterIntent(intent);
+    completeStep("intent", next, intent);
+    setStep(next);
   }
 
   function goNext(from: FlowStep) {
@@ -476,32 +432,12 @@ export function MemberOnboarding({
       setStep("intent");
       return;
     }
-    if (from === "goal") {
-      if (prefs.joinIntent === "both") {
-        completeStep(from, "tastes");
-        setStep("tastes");
-        return;
-      }
-      completeStep(from, "city");
-      setStep("city");
-      return;
-    }
     if (from === "city") {
       completeStep(from, "gender");
       setStep("gender");
       return;
     }
     if (from === "tableType") {
-      if (prefs.joinIntent === "with_group") {
-        completeStep(from, "done");
-        void goAfterPrefs();
-        return;
-      }
-      completeStep(from, "personality");
-      setStep("personality");
-      return;
-    }
-    if (from === "personality") {
       completeStep(from, "done");
       void goAfterPrefs();
       return;
@@ -528,21 +464,8 @@ export function MemberOnboarding({
         setStep("tableType");
         return;
       }
-      if (prefs.joinIntent === "with_group") {
-        completeStep("gender", "done", gender);
-        void goAfterPrefs({ gender, tableType });
-        return;
-      }
-      completeStep("gender", "personality", gender);
-      setStep("personality");
-    }, 180);
-  }
-
-  function selectPersonality(personality: OnboardingPersonalityId) {
-    setPrefs((p) => ({ ...p, personality }));
-    setTimeout(() => {
-      completeStep("personality", "done", personality);
-      void goAfterPrefs({ personality });
+      completeStep("gender", "done", gender);
+      void goAfterPrefs({ gender, tableType });
     }, 180);
   }
 
@@ -562,33 +485,15 @@ export function MemberOnboarding({
       setStep("language");
       return;
     }
-    if (step === "story") {
-      if (storyIndex > 0) {
-        setStoryIndex((i) => i - 1);
-        return;
-      }
-      setStep("intent");
-      return;
-    }
-    if (step === "goal") {
-      setStoryIndex(Math.max(0, storyCards.length - 1));
-      setStep("story");
-      return;
-    }
     if (step === "tastes") {
-      if (prefs.joinIntent === "with_group") {
-        setStoryIndex(Math.max(0, storyCards.length - 1));
-        setStep("story");
-      } else {
-        setStep("goal");
-      }
+      setStep("intent");
       return;
     }
     if (step === "city") {
       setStep(
         prefs.joinIntent === "with_group" || prefs.joinIntent === "both"
           ? "tastes"
-          : "goal",
+          : "intent",
       );
       return;
     }
@@ -600,17 +505,13 @@ export function MemberOnboarding({
       setStep("gender");
       return;
     }
-    if (step === "personality") {
-      setStep(canChooseGirlsOnly(prefs.gender) ? "tableType" : "gender");
-      return;
-    }
     if (step === "done") {
       setStep(
         resumeProfileOnly
           ? "birthdate"
-          : wantsMeetPath(prefs.joinIntent)
-            ? "personality"
-            : "city",
+          : canChooseGirlsOnly(prefs.gender)
+            ? "tableType"
+            : "gender",
       );
       return;
     }
@@ -1002,8 +903,7 @@ export function MemberOnboarding({
                     selected={prefs.joinIntent === "meet_new"}
                     onClick={() => {
                       setPrefs((p) => ({ ...p, joinIntent: "meet_new" }));
-                      completeStep("intent", "story", "meet_new");
-                      setTimeout(() => startStories(), 180);
+                      setTimeout(() => continueAfterIntent("meet_new"), 180);
                     }}
                     index={0}
                   />
@@ -1016,8 +916,7 @@ export function MemberOnboarding({
                         ...p,
                         joinIntent: "with_group",
                       }));
-                      completeStep("intent", "story", "with_group");
-                      setTimeout(() => startStories(), 180);
+                      setTimeout(() => continueAfterIntent("with_group"), 180);
                     }}
                     index={1}
                   />
@@ -1027,88 +926,11 @@ export function MemberOnboarding({
                     selected={prefs.joinIntent === "both"}
                     onClick={() => {
                       setPrefs((p) => ({ ...p, joinIntent: "both" }));
-                      completeStep("intent", "story", "both");
-                      setTimeout(() => startStories(), 180);
+                      setTimeout(() => continueAfterIntent("both"), 180);
                     }}
                     index={2}
                   />
                 </div>
-                <TextLink onClick={goBack}>{labels.back}</TextLink>
-              </StepShell>
-            ) : null}
-
-            {step === "story" && storyCards[storyIndex] ? (
-              <StepShell key={`story-${pathKey}-${storyIndex}`}>
-                <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-[1.5rem] shadow-[0_16px_40px_rgba(43,13,18,0.1)]">
-                  <Image
-                    src={storyCards[storyIndex]!.image}
-                    alt={storyCards[storyIndex]!.imageAlt}
-                    fill
-                    sizes="(max-width: 640px) 90vw, 384px"
-                    className="object-cover object-center"
-                    priority
-                  />
-                </div>
-                <div className="mt-5 shrink-0 sm:mt-6">
-                  <div className="flex justify-center gap-1.5">
-                    {storyCards.map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all ${
-                          i === storyIndex
-                            ? "w-6 bg-wine"
-                            : "w-1.5 bg-wine/20"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <h1 className="mt-4 text-center font-serif text-[1.65rem] font-medium leading-snug tracking-tight text-wine sm:mt-5 sm:text-3xl">
-                    {storyCards[storyIndex]!.title}
-                  </h1>
-                  <p className="mt-2 text-center text-sm leading-snug text-wine/65 sm:text-base sm:leading-relaxed">
-                    {storyCards[storyIndex]!.subtitle}
-                  </p>
-                  <PrimaryButton
-                    className="mt-6 sm:mt-7"
-                    onClick={advanceStory}
-                  >
-                    {storyCards[storyIndex]!.cta}
-                  </PrimaryButton>
-                  <TextLink className="mt-3" onClick={goBack}>
-                    {labels.back}
-                  </TextLink>
-                </div>
-              </StepShell>
-            ) : null}
-
-            {step === "goal" ? (
-              <StepShell key="goal">
-                <h1 className="text-center font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-                  {labels.goal.title}
-                </h1>
-                <ul className="mt-8 space-y-4">
-                  {labels.goal.lines.map((line, index) => (
-                    <motion.li
-                      key={line}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.35,
-                        delay: 0.06 * index,
-                        ease,
-                      }}
-                      className="text-center font-serif text-xl font-medium leading-snug text-wine sm:text-2xl"
-                    >
-                      {line}
-                    </motion.li>
-                  ))}
-                </ul>
-                <p className="mt-8 text-center text-sm font-medium tracking-wide text-wine/45">
-                  {labels.goal.notDating}
-                </p>
-                <PrimaryButton onClick={() => goNext("goal")}>
-                  {labels.goal.cta}
-                </PrimaryButton>
                 <TextLink onClick={goBack}>{labels.back}</TextLink>
               </StepShell>
             ) : null}
@@ -1263,55 +1085,10 @@ export function MemberOnboarding({
                           tableType: nextType,
                         }));
                         setTimeout(() => {
-                          if (prefs.joinIntent === "with_group") {
-                            void goAfterPrefs({ tableType: nextType });
-                            return;
-                          }
-                          setStep("personality");
+                          completeStep("tableType", "done", nextType);
+                          void goAfterPrefs({ tableType: nextType });
                         }, 180);
                       }}
-                      index={index}
-                    />
-                  ))}
-                </div>
-                <TextLink onClick={goBack}>{labels.back}</TextLink>
-              </StepShell>
-            ) : null}
-
-            {step === "personality" ? (
-              <StepShell key="personality">
-                <h1 className="text-center font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-                  {labels.personality.title}
-                </h1>
-                <p className="mt-3 text-center text-base leading-relaxed text-wine/65">
-                  {labels.personality.subtitle}
-                </p>
-                <div className="mt-8 grid gap-3">
-                  {(
-                    [
-                      [
-                        "introverted",
-                        labels.personality.introverted,
-                        labels.personality.introvertedHint,
-                      ],
-                      [
-                        "ambivert",
-                        labels.personality.ambivert,
-                        labels.personality.ambivertHint,
-                      ],
-                      [
-                        "extroverted",
-                        labels.personality.extroverted,
-                        labels.personality.extrovertedHint,
-                      ],
-                    ] as const
-                  ).map(([id, title, hint], index) => (
-                    <ChoiceButton
-                      key={id}
-                      title={title}
-                      hint={hint}
-                      selected={prefs.personality === id}
-                      onClick={() => selectPersonality(id)}
                       index={index}
                     />
                   ))}

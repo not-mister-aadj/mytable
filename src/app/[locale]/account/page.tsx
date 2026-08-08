@@ -3,18 +3,21 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { MemberAccountSettings } from "@/components/account/MemberAccountSettings";
 import { MemberOnboardingGate } from "@/components/account/MemberOnboardingGate";
+import { PostPurchaseEnrichment } from "@/components/account/PostPurchaseEnrichment";
 import { getAccountPageLabels } from "@/i18n/get-account-page";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { isValidLocale, localePath, type Locale } from "@/i18n/config";
 import { getMemberUser, syncMemberCustomer } from "@/lib/member-auth";
 import {
   isSundayTableOnboardingReady,
+  needsPostPurchaseEnrichment,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ enrich?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -33,7 +36,7 @@ export function generateStaticParams() {
   return [{ locale: "nl" }, { locale: "en" }];
 }
 
-export default async function AccountPage({ params }: Props) {
+export default async function AccountPage({ params, searchParams }: Props) {
   const { locale: localeParam } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
@@ -54,6 +57,8 @@ export default async function AccountPage({ params }: Props) {
   const meta = user.user_metadata as Record<string, unknown> | null;
   const { completed, prefs } = readOnboardingFromMetadata(meta);
   const needsOnboarding = !isSundayTableOnboardingReady(completed, prefs);
+  const query = await searchParams;
+  const enrichRequested = query.enrich === "1";
 
   if (needsOnboarding) {
     return (
@@ -63,6 +68,18 @@ export default async function AccountPage({ params }: Props) {
           locale={locale}
           email={user.email ?? ""}
           userMetadata={meta}
+        />
+      </main>
+    );
+  }
+
+  if (enrichRequested && needsPostPurchaseEnrichment(prefs)) {
+    return (
+      <main className="min-h-[100svh] bg-cream">
+        <PostPurchaseEnrichment
+          labels={labels.onboarding}
+          locale={locale}
+          initialPrefs={prefs}
         />
       </main>
     );

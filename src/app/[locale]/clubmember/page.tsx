@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { MemberClubView } from "@/components/member-club/MemberClubView";
 import { isDbConfigured } from "@/db/index";
 import {
+  accountPath,
   clubmemberPath,
   isValidLocale,
   loginPath,
@@ -24,6 +25,7 @@ import { getMemberUser } from "@/lib/member-auth";
 import {
   ACTIVE_ONBOARDING_CITIES,
   isSundayTableOnboardingReady,
+  needsPostPurchaseEnrichment,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import {
@@ -128,6 +130,10 @@ export default async function ClubmemberPage({ params, searchParams }: Props) {
       (membershipRow.status === "active" ||
         membershipRow.status === "past_due"),
   );
+
+  if (isMember && needsPostPurchaseEnrichment(prefs)) {
+    redirect(`${accountPath(locale as Locale)}?enrich=1`);
+  }
 
   if (isMember && membershipRow && isDbConfigured()) {
     await confirmPendingSignupsForMember({

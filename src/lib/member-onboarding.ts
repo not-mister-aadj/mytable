@@ -67,6 +67,16 @@ export function wantsCulinaryPath(
 }
 
 /**
+ * After club ticket purchase: finish stories / goal / personality
+ * that were skipped in the short join funnel.
+ */
+export function needsPostPurchaseEnrichment(
+  prefs: Pick<MemberOnboardingPrefs, "joinIntent" | "personality">,
+): boolean {
+  return wantsMeetPath(prefs.joinIntent) && prefs.personality === null;
+}
+
+/**
  * Where to land after login/signup.
  * Culinary (or no quiz intent, e.g. normal login) → agenda.
  * Meet / both → clubmember.

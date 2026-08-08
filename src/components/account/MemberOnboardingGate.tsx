@@ -26,12 +26,9 @@ type FlowStep =
   | "name"
   | "birthdate"
   | "intent"
-  | "story"
-  | "goal"
   | "city"
   | "gender"
   | "tableType"
-  | "personality"
   | "signup"
   | "tastes"
   | "done"
@@ -46,18 +43,18 @@ interface MemberOnboardingGateProps {
 
 function parseStep(raw: string | null): FlowStep | null {
   if (raw === "commit" || raw === "vibe") return "signup";
+  // Legacy deep-links from the longer funnel
+  if (raw === "story" || raw === "goal") return "intent";
+  if (raw === "personality") return "gender";
   if (
     raw === "language" ||
     raw === "brand" ||
     raw === "name" ||
     raw === "birthdate" ||
     raw === "intent" ||
-    raw === "story" ||
-    raw === "goal" ||
     raw === "city" ||
     raw === "gender" ||
     raw === "tableType" ||
-    raw === "personality" ||
     raw === "signup" ||
     raw === "tastes" ||
     raw === "done" ||

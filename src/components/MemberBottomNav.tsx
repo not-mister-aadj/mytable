@@ -70,11 +70,6 @@ export function memberNavItems(locale: Locale, nav: NavLabels) {
 export function publicNavItems(locale: Locale, nav: NavLabels) {
   return [
     {
-      href: agendaPath(locale),
-      label: nav.experiences,
-      match: isExperiencesPath,
-    },
-    {
       href: blogPath(locale),
       label: nav.blog,
       match: isBlogPath,

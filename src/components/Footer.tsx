@@ -113,6 +113,13 @@ export function Footer({
             © {year} MyTable. {dict.copyright}
             <span className="mx-2 text-wine/25">·</span>
             <Link
+              href={blogPath(locale)}
+              className="transition-colors hover:text-wine/70"
+            >
+              {dict.links.blog}
+            </Link>
+            <span className="mx-2 text-wine/25">·</span>
+            <Link
               href={privacyPath(locale)}
               className="transition-colors hover:text-wine/70"
             >

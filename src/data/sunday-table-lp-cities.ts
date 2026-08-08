@@ -4,7 +4,7 @@ import {
   isActiveOnboardingCity,
 } from "@/lib/member-onboarding";
 
-export type SundayTableLpCitySlug = "rotterdam" | "den-haag" | "utrecht";
+export type SundayTableLpCitySlug = "rotterdam" | "den-haag";
 
 export const SUNDAY_TABLE_LP_CITIES: ReadonlyArray<{
   slug: SundayTableLpCitySlug;
@@ -12,7 +12,6 @@ export const SUNDAY_TABLE_LP_CITIES: ReadonlyArray<{
 }> = [
   { slug: "rotterdam", name: "Rotterdam" },
   { slug: "den-haag", name: "Den Haag" },
-  { slug: "utrecht", name: "Utrecht" },
 ];
 
 export function sundayTableLpCityFromSlug(

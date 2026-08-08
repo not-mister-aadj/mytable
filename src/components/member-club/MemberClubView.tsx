@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -138,7 +138,7 @@ interface MemberClubViewProps {
   isMember: boolean;
   /** city__date__type -> seats left */
   seatStats?: Record<string, { seatsLeft: number; capacity: number }>;
-  /** After checkout: scroll to tables and claim */
+  /** After meet-onboarding / checkout: scroll to tables and open claim sheet */
   claimSeat?: boolean;
   invite?: {
     shareUrl: string;
@@ -222,6 +222,7 @@ export function MemberClubView({
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const claimAutoOpenedRef = useRef(false);
 
   useEffect(() => {
     if (!claimSeat) return;
@@ -257,6 +258,36 @@ export function MemberClubView({
     }
     return out;
   }, [selectedCities, selectedTables, upcomingDates, showTableFilter]);
+
+  // After meet-onboarding: open first matching Sunday Table like an event click
+  useEffect(() => {
+    if (!claimSeat || isMember || claimAutoOpenedRef.current) return;
+    if (events.length === 0) return;
+    claimAutoOpenedRef.current = true;
+
+    const preferredType =
+      preferredTableType === "girls_only" || preferredTableType === "mixed"
+        ? preferredTableType
+        : null;
+    const preferredCity = selectedCities[0] ?? null;
+
+    const match =
+      events.find(
+        (e) =>
+          (!preferredCity || e.city === preferredCity) &&
+          (!preferredType || e.tableType === preferredType),
+      ) ??
+      events.find((e) => !preferredCity || e.city === preferredCity) ??
+      events[0]!;
+
+    setActiveEvent(match);
+  }, [
+    claimSeat,
+    isMember,
+    events,
+    preferredTableType,
+    selectedCities,
+  ]);
 
   useEffect(() => {
     if (!activeEvent) return;
@@ -310,7 +341,7 @@ export function MemberClubView({
 
   function requireOnboardingForTable(tableType: TableFilterId): boolean {
     if (!onboardingReady) {
-      router.push(accountPath(locale));
+      router.push(`${accountPath(locale)}?enrich=1`);
       return false;
     }
     if (tableType === "girls_only" && !canChooseGirlsOnly(gender)) {
@@ -418,7 +449,7 @@ export function MemberClubView({
           error?: string;
         } | null;
         if (data?.error === "Onboarding required") {
-          router.push(accountPath(locale));
+          router.push(`${accountPath(locale)}?enrich=1`);
           return;
         }
         setRsvpError(

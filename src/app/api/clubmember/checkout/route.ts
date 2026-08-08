@@ -12,18 +12,14 @@ import {
   getActiveMembershipForUser,
   isOneTimeMembership,
 } from "@/lib/club/memberships";
-import {
-  getOrCreateClubPriceId,
-  isClubPlanId,
-  isClubPlanIdForSale,
-  isOneTimeClubPlan,
-} from "@/lib/club/plans";
+import { getOrCreateClubPriceId, isClubPlanId, isClubPlanIdForSale, isOneTimeClubPlan } from "@/lib/club/plans";
+import { resolveActivePromotionCodeId } from "@/lib/club/promotion-codes";
 import { getSiteUrl } from "@/lib/admin-url";
 import { getMemberUser } from "@/lib/member-auth";
 import {
   canChooseGirlsOnly,
+  canStartClubCheckout,
   isActiveOnboardingCity,
-  isSundayTableOnboardingReady,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
 import { hasOpenReferralAttribution } from "@/lib/referral";
@@ -125,6 +121,8 @@ export async function POST(request: Request) {
   const planId = raw.planId;
   const locale: Locale =
     raw.locale === "en" || raw.locale === "nl" ? raw.locale : "nl";
+  const promoCodeRaw =
+    typeof raw.promoCode === "string" ? raw.promoCode.trim() : "";
   const metaContext = parseMetaTrackingContext(
     raw.meta && typeof raw.meta === "object"
       ? (raw.meta as Record<string, unknown>)
@@ -146,11 +144,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Signup closed" }, { status: 403 });
   }
 
-  const { completed, prefs } = readOnboardingFromMetadata(
+  const { prefs } = readOnboardingFromMetadata(
     user.user_metadata as Record<string, unknown>,
   );
 
-  if (!isSundayTableOnboardingReady(completed, prefs)) {
+  if (!canStartClubCheckout(prefs)) {
     return NextResponse.json(
       { error: "Onboarding required" },
       { status: 403 },
@@ -249,6 +247,40 @@ export async function POST(request: Request) {
       Boolean(referralCoupon) &&
       (await hasOpenReferralAttribution(user.email));
 
+    // Promo codes only apply to the one-time trial (1m).
+    let trialPromotionCodeId: string | null = null;
+    if (promoCodeRaw) {
+      if (resolvedPlanId !== "1m") {
+        return NextResponse.json(
+          {
+            error: "Discount codes only apply to the 1 month trial",
+            errorCode: "promo_trial_only",
+          },
+          { status: 400 },
+        );
+      }
+      trialPromotionCodeId = await resolveActivePromotionCodeId(
+        stripe,
+        promoCodeRaw,
+      );
+      if (!trialPromotionCodeId) {
+        return NextResponse.json(
+          {
+            error: "Invalid or expired discount code",
+            errorCode: "promo_invalid",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Stripe Checkout allows at most one discount. Trial promo wins over referral.
+    const discountParams = trialPromotionCodeId
+      ? { discounts: [{ promotion_code: trialPromotionCodeId }] }
+      : friendReferral && referralCoupon
+        ? { discounts: [{ coupon: referralCoupon }] }
+        : {};
+
     const oneTime = isOneTimeClubPlan(resolvedPlanId);
     const sharedMetadata = {
       mytable_kind: "club_membership",
@@ -260,7 +292,8 @@ export async function POST(request: Request) {
       table_date: tableDate,
       table_type: tableType,
       locale,
-      referral_friend: friendReferral ? "1" : "0",
+      referral_friend: friendReferral && !trialPromotionCodeId ? "1" : "0",
+      promo_code: trialPromotionCodeId ? promoCodeRaw.toUpperCase() : "",
     };
 
     const session = oneTime
@@ -273,9 +306,7 @@ export async function POST(request: Request) {
           success_url: `${siteUrl}${clubmemberConfirmedPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${siteUrl}${clubmemberCancelledPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
           client_reference_id: membershipId,
-          ...(friendReferral && referralCoupon
-            ? { discounts: [{ coupon: referralCoupon }] }
-            : {}),
+          ...discountParams,
           metadata: sharedMetadata,
         })
       : await stripe.checkout.sessions.create({
@@ -288,9 +319,7 @@ export async function POST(request: Request) {
           success_url: `${siteUrl}${clubmemberConfirmedPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${siteUrl}${clubmemberCancelledPath(locale)}?session_id={CHECKOUT_SESSION_ID}`,
           client_reference_id: membershipId,
-          ...(friendReferral && referralCoupon
-            ? { discounts: [{ coupon: referralCoupon }] }
-            : {}),
+          ...discountParams,
           subscription_data: {
             metadata: {
               mytable_kind: "club_membership",
@@ -301,7 +330,7 @@ export async function POST(request: Request) {
               city,
               table_date: tableDate,
               table_type: tableType,
-              referral_friend: friendReferral ? "1" : "0",
+              referral_friend: friendReferral && !trialPromotionCodeId ? "1" : "0",
             },
           },
           metadata: sharedMetadata,

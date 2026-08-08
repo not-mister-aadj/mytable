@@ -67,19 +67,34 @@ export function wantsCulinaryPath(
 }
 
 /**
- * After club ticket purchase: finish stories / goal / personality
- * that were skipped in the short join funnel.
+ * After club ticket purchase: finish profile + deferred quiz steps.
+ * Name / birth date / personality were skipped in the short join funnel.
  */
 export function needsPostPurchaseEnrichment(
-  prefs: Pick<MemberOnboardingPrefs, "joinIntent" | "personality">,
+  prefs: Pick<
+    MemberOnboardingPrefs,
+    "joinIntent" | "personality" | "name" | "birthDate" | "gender"
+  >,
 ): boolean {
-  return wantsMeetPath(prefs.joinIntent) && prefs.personality === null;
+  if (!wantsMeetPath(prefs.joinIntent)) return false;
+  if (!prefs.name.trim() || !prefs.birthDate) return true;
+  if (prefs.personality === null) return true;
+  return false;
+}
+
+/**
+ * Enough quiz answers to open Clubmember checkout (before name/birth).
+ */
+export function canStartClubCheckout(
+  prefs: Pick<MemberOnboardingPrefs, "joinIntent" | "gender">,
+): boolean {
+  return wantsMeetPath(prefs.joinIntent) && prefs.gender !== null;
 }
 
 /**
  * Where to land after login/signup.
  * Culinary (or no quiz intent, e.g. normal login) → agenda.
- * Meet / both → clubmember.
+ * Meet / both → clubmember in claim mode (Sunday Table + what you get).
  */
 export function postLoginPath(
   locale: Locale,
@@ -87,7 +102,7 @@ export function postLoginPath(
   options?: { interests?: string[] },
 ): string {
   if (joinIntent === "meet_new" || joinIntent === "both") {
-    return clubmemberPath(locale);
+    return `${clubmemberPath(locale)}?claim=1#happening`;
   }
   const base = agendaPath(locale);
   if (options?.interests && options.interests.length > 0) {
@@ -260,14 +275,14 @@ export type OnboardingCityId = (typeof ONBOARDING_CITIES)[number];
 
 export type OnboardingCityStatus = "active" | "coming_soon" | "hidden";
 
-/** Launch focus: 3 live cities; AMS/EHV/GRQ teaser; rest hidden for now. */
+/** Launch focus: 2 live cities; Utrecht + AMS/EHV/GRQ teaser; rest hidden. */
 export const ONBOARDING_CITY_STATUS: Record<
   OnboardingCityId,
   OnboardingCityStatus
 > = {
   Rotterdam: "active",
   "Den Haag": "active",
-  Utrecht: "active",
+  Utrecht: "coming_soon",
   Amsterdam: "coming_soon",
   Eindhoven: "coming_soon",
   Groningen: "coming_soon",
@@ -307,7 +322,13 @@ export function isComingSoonOnboardingCity(value: unknown): boolean {
 
 /** Drop paused / coming-soon cities from saved prefs for booking UI. */
 export function sanitizeOnboardingCities(cities: string[]): string[] {
-  return cities.filter(isActiveOnboardingCity);
+  return cities.filter((city) => {
+    const trimmed = city.trim();
+    if (!trimmed) return false;
+    // Keep live cities and free-text city requests; drop paused / coming-soon IDs.
+    if (isActiveOnboardingCity(trimmed)) return true;
+    return !isOnboardingCityId(trimmed);
+  });
 }
 
 const PREFERRED_CITY_KEY = "mytable_preferred_city";

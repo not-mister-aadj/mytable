@@ -198,7 +198,9 @@ export const accountPageEn: AccountPageLabels = {
     city: {
       title: "Where do you want a table?",
       subtitle: "Pick up to two cities. You can change this later.",
-      flexible: "Not sure yet",
+      otherCity: "Add another city",
+      otherCityPlaceholder: "Type a city",
+      otherCityAdd: "Add",
       maxHint: "Up to two cities",
       comingSoon: "Coming soon",
     },

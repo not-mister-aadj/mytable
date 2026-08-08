@@ -33,6 +33,7 @@ import {
   isActiveOnboardingCity,
   isAtLeastMinAge,
   isComingSoonOnboardingCity,
+  isOnboardingCityId,
   onboardingBirthYears,
   parseBirthDateParts,
   postLoginPath,
@@ -179,11 +180,19 @@ export function MemberOnboarding({
   const { signOut, refreshAuthSession, user } = useAuthSession();
   const [step, setStep] = useState<FlowStep>(
     initialStep ??
-      (alreadyCompleted ? "welcomeBack" : "language"),
+      (alreadyCompleted ? "welcomeBack" : isJoin ? "signup" : "brand"),
   );
   const [prefs, setPrefs] = useState<MemberOnboardingPrefs>(() => {
     const base = initialPrefs ?? { ...EMPTY_ONBOARDING_PREFS };
-    return { ...base, cities: sanitizeOnboardingCities(base.cities) };
+    const withCities = {
+      ...base,
+      cities: sanitizeOnboardingCities(base.cities),
+    };
+    // Site locale is already known from the URL — seed language from it.
+    if (withCities.languages.length === 0) {
+      return { ...withCities, languages: [locale] };
+    }
+    return withCities;
   });
   const [signingOut, setSigningOut] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -193,6 +202,8 @@ export function MemberOnboarding({
   const [birthDay, setBirthDay] = useState(birthParts.day);
   const [birthMonth, setBirthMonth] = useState(birthParts.month);
   const [birthYear, setBirthYear] = useState(birthParts.year);
+  const [showOtherCity, setShowOtherCity] = useState(false);
+  const [otherCityDraft, setOtherCityDraft] = useState("");
   const choiceStepRef = useRef<FlowStep | null>(null);
 
   useEffect(() => {
@@ -203,13 +214,27 @@ export function MemberOnboarding({
     });
   }, [step, mode, locale]);
 
+  // Site locale is already known from the URL — never re-ask language.
+  useEffect(() => {
+    if (step !== "language") return;
+    setPrefs((p) => ({
+      ...p,
+      languages: p.languages.length > 0 ? p.languages : [locale],
+    }));
+    if (isJoin) {
+      setStep(user ? "intent" : "signup");
+      return;
+    }
+    setStep("brand");
+  }, [isJoin, step, user, locale]);
+
   /** Never show a pre-selected choice — clear when entering a choice step. */
   useEffect(() => {
     if (choiceStepRef.current === step) return;
     choiceStepRef.current = step;
 
     if (step === "language") {
-      setPrefs((p) => ({ ...p, languages: [] }));
+      // Site locale already known — never clear/re-ask.
       return;
     }
     if (step === "intent") {
@@ -274,8 +299,8 @@ export function MemberOnboarding({
       return ["name", "birthdate", "done"] as FlowStep[];
     }
     const base: FlowStep[] = isJoin
-      ? ["language", "intent"]
-      : ["language", "brand", "name", "birthdate", "intent"];
+      ? ["intent"]
+      : ["brand", "name", "birthdate", "intent"];
     const tail: FlowStep[] = isJoin ? [] : ["done"];
 
     if (prefs.joinIntent === "with_group") {
@@ -474,15 +499,14 @@ export function MemberOnboarding({
       return;
     }
     if (step === "brand") {
-      setStep("language");
       return;
     }
     if (step === "intent" && isJoin) {
-      setStep("language");
+      // Site locale already known — no language step to return to.
+      if (!user) setStep("signup");
       return;
     }
     if (step === "signup") {
-      setStep("language");
       return;
     }
     if (step === "tastes") {
@@ -558,17 +582,42 @@ export function MemberOnboarding({
   }
 
   function toggleCity(city: string) {
-    if (!isActiveOnboardingCity(city)) return;
     setPrefs((prev) => {
-      if (prev.cityFlexible) {
-        return { ...prev, cityFlexible: false, cities: [city] };
-      }
       if (prev.cities.includes(city)) {
-        return { ...prev, cities: prev.cities.filter((c) => c !== city) };
+        return {
+          ...prev,
+          cityFlexible: false,
+          cities: prev.cities.filter((c) => c !== city),
+        };
+      }
+      if (!isActiveOnboardingCity(city) && isOnboardingCityId(city)) {
+        return prev;
       }
       if (prev.cities.length >= 2) return prev;
-      return { ...prev, cities: [...prev.cities, city] };
+      return {
+        ...prev,
+        cityFlexible: false,
+        cities: [...prev.cities, city],
+      };
     });
+  }
+
+  function addOtherCity() {
+    const trimmed = otherCityDraft.trim();
+    if (!trimmed) return;
+    setPrefs((prev) => {
+      if (prev.cities.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      if (prev.cities.length >= 2) return prev;
+      return {
+        ...prev,
+        cityFlexible: false,
+        cities: [...prev.cities, trimmed],
+      };
+    });
+    setOtherCityDraft("");
+    setShowOtherCity(false);
   }
 
   function toggleInterest(id: WaitlistInterestId) {
@@ -712,7 +761,7 @@ export function MemberOnboarding({
           </div>
         )}
 
-        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-6 sm:py-8">
+        <div className="scrollbar-none flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-6 sm:py-8">
           <AnimatePresence mode="wait">
             {step === "language" ? (
               <StepShell key="language">
@@ -973,26 +1022,56 @@ export function MemberOnboarding({
                       </button>
                     );
                   })}
+                  {prefs.cities
+                    .filter((city) => !isOnboardingCityId(city))
+                    .map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => toggleCity(city)}
+                        className="rounded-full border border-wine bg-wine px-4 py-2.5 text-sm font-medium text-cream"
+                      >
+                        {city}
+                      </button>
+                    ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPrefs((p) => ({
-                      ...p,
-                      cityFlexible: !p.cityFlexible,
-                      cities: !p.cityFlexible ? [] : p.cities,
-                    }))
-                  }
-                  className={`mt-4 w-full rounded-2xl border px-4 py-3.5 text-sm font-medium transition ${
-                    prefs.cityFlexible
-                      ? "border-wine bg-wine/5 text-wine"
-                      : "border-wine/12 bg-white text-wine/70 hover:border-wine/25"
-                  }`}
-                >
-                  {labels.city.flexible}
-                </button>
+                {showOtherCity ? (
+                  <div className="mt-4 flex gap-2">
+                    <input
+                      type="text"
+                      value={otherCityDraft}
+                      onChange={(e) => setOtherCityDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addOtherCity();
+                        }
+                      }}
+                      placeholder={labels.city.otherCityPlaceholder}
+                      autoFocus
+                      className="min-w-0 flex-1 rounded-2xl border border-wine/15 bg-white px-4 py-3.5 text-sm text-wine outline-none placeholder:text-wine/35 focus:border-wine/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={addOtherCity}
+                      disabled={!otherCityDraft.trim() || prefs.cities.length >= 2}
+                      className="shrink-0 rounded-2xl bg-wine px-4 py-3.5 text-sm font-medium text-cream transition hover:bg-[#3a1218] disabled:opacity-40"
+                    >
+                      {labels.city.otherCityAdd}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={prefs.cities.length >= 2}
+                    onClick={() => setShowOtherCity(true)}
+                    className="mt-4 w-full rounded-2xl border border-wine/12 bg-white px-4 py-3.5 text-sm font-medium text-wine/70 transition hover:border-wine/25 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {labels.city.otherCity}
+                  </button>
+                )}
                 <PrimaryButton
-                  disabled={!prefs.cityFlexible && prefs.cities.length === 0}
+                  disabled={prefs.cities.length === 0}
                   onClick={() => goNext("city")}
                 >
                   {labels.continue}

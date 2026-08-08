@@ -64,18 +64,26 @@ function JoinFunnelInner({
   const [initialStep] = useState<FlowStep>(() => {
     const fromQuery = parseStep(searchParams.get("step"));
 
-    // Login first for anonymous users — unless they just picked a language.
+    // Site language is already known from the URL (/ vs /en) — never ask again.
     if (!authenticated) {
       if (fromQuery === "signup") return "signup";
-      return "language";
+      if (
+        fromQuery &&
+        fromQuery !== "language" &&
+        fromQuery !== "brand"
+      ) {
+        return fromQuery;
+      }
+      return "signup";
     }
 
     if (
       !fromQuery ||
       fromQuery === "brand" ||
+      fromQuery === "language" ||
       fromQuery === "signup"
     ) {
-      return "language";
+      return "intent";
     }
     return fromQuery;
   });
@@ -88,6 +96,7 @@ function JoinFunnelInner({
     }
     const preferredCity = cityFromQuery ?? readPreferredCity();
     const citiesFromLp = preferredCity ? [preferredCity] : [];
+    const localeLanguages = [locale] as MemberOnboardingPrefs["languages"];
 
     const step = authenticated
       ? parseStep(searchParams.get("step"))
@@ -104,6 +113,7 @@ function JoinFunnelInner({
     ) {
       return {
         ...stored,
+        languages: localeLanguages,
         joinIntent: null,
         gender: null,
         tableType: null,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,14 +14,20 @@ import {
   trackOnboardingStepCompleted,
   trackOnboardingStepViewed,
 } from "@/lib/posthog/analytics";
-import type {
-  MemberOnboardingPrefs,
-  OnboardingPersonalityId,
+import {
+  MIN_ONBOARDING_AGE,
+  ageFromBirthDate,
+  buildBirthDate,
+  isAtLeastMinAge,
+  onboardingBirthYears,
+  parseBirthDateParts,
+  type MemberOnboardingPrefs,
+  type OnboardingPersonalityId,
 } from "@/lib/member-onboarding";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-type EnrichStep = "story" | "goal" | "personality";
+type EnrichStep = "name" | "birthdate" | "personality";
 
 function ChoiceButton({
   title,
@@ -79,41 +84,48 @@ export function PostPurchaseEnrichment({
   const router = useRouter();
   const { refreshAuthSession } = useAuthSession();
   const [prefs, setPrefs] = useState(initialPrefs);
-  const [step, setStep] = useState<EnrichStep>("story");
-  const [storyIndex, setStoryIndex] = useState(0);
+  const [step, setStep] = useState<EnrichStep>(() =>
+    !initialPrefs.name.trim() || !initialPrefs.birthDate
+      ? "name"
+      : "personality",
+  );
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [birthError, setBirthError] = useState<string | null>(null);
+  const birthParts = parseBirthDateParts(initialPrefs.birthDate);
+  const [birthDay, setBirthDay] = useState(birthParts.day);
+  const [birthMonth, setBirthMonth] = useState(birthParts.month);
+  const [birthYear, setBirthYear] = useState(birthParts.year);
 
-  const pathKey =
-    prefs.joinIntent === "both"
-      ? "both"
-      : prefs.joinIntent === "with_group"
-        ? "culinary"
-        : "meet";
-  const storyCards = labels.stories[pathKey];
+  const needsProfileSteps =
+    !initialPrefs.name.trim() || !initialPrefs.birthDate;
 
   const progressSteps = useMemo(() => {
-    const stories = storyCards.map(() => "story" as const);
-    return [...stories, "goal" as const, "personality" as const];
-  }, [storyCards]);
+    const profileSteps: EnrichStep[] = needsProfileSteps
+      ? ["name", "birthdate"]
+      : [];
+    return [...profileSteps, "personality" as const];
+  }, [needsProfileSteps]);
 
-  const stepNumber =
-    step === "story"
-      ? storyIndex + 1
-      : step === "goal"
-        ? storyCards.length + 1
-        : progressSteps.length;
+  const stepNumber = Math.max(1, progressSteps.lastIndexOf(step) + 1);
   const totalSteps = progressSteps.length;
   const stepLabel = labels.stepLabel
     .replace("{current}", String(Math.min(stepNumber, totalSteps)))
     .replace("{total}", String(totalSteps));
 
+  const birthIsoDraft = buildBirthDate(birthDay, birthMonth, birthYear);
+  const birthUnderage =
+    birthIsoDraft !== null &&
+    !isAtLeastMinAge(birthIsoDraft, MIN_ONBOARDING_AGE);
+  const computedAge = ageFromBirthDate(birthIsoDraft ?? prefs.birthDate);
+
   useEffect(() => {
     trackOnboardingStepViewed({
-      step: step === "story" ? `story_${storyIndex}` : step,
+      step,
       mode: "post_purchase",
       locale,
     });
-  }, [step, storyIndex, locale]);
+  }, [step, locale]);
 
   function completeStep(from: string, next: string, choice?: string) {
     trackOnboardingStepCompleted({
@@ -125,18 +137,32 @@ export function PostPurchaseEnrichment({
     });
   }
 
-  function afterStories() {
-    completeStep(`story_${storyIndex}`, "goal");
-    setStep("goal");
-  }
-
-  function advanceStory() {
-    if (storyIndex < storyCards.length - 1) {
-      completeStep(`story_${storyIndex}`, `story_${storyIndex + 1}`);
-      setStoryIndex((i) => i + 1);
+  function submitName() {
+    const trimmed = prefs.name.trim();
+    if (!trimmed) {
+      setNameError(labels.name.required);
       return;
     }
-    afterStories();
+    setNameError(null);
+    setPrefs((p) => ({ ...p, name: trimmed }));
+    completeStep("name", "birthdate");
+    setStep("birthdate");
+  }
+
+  function submitBirthdate() {
+    const iso = buildBirthDate(birthDay, birthMonth, birthYear);
+    if (!iso) {
+      setBirthError(labels.birthdate.invalid);
+      return;
+    }
+    if (!isAtLeastMinAge(iso, MIN_ONBOARDING_AGE)) {
+      setBirthError(labels.birthdate.underage);
+      return;
+    }
+    setBirthError(null);
+    setPrefs((p) => ({ ...p, birthDate: iso }));
+    completeStep("birthdate", "personality");
+    setStep("personality");
   }
 
   async function finishWithPersonality(personality: OnboardingPersonalityId) {
@@ -156,21 +182,15 @@ export function PostPurchaseEnrichment({
 
   function goBack() {
     if (step === "personality") {
-      setStep("goal");
+      if (needsProfileSteps) setStep("birthdate");
       return;
     }
-    if (step === "goal") {
-      setStoryIndex(Math.max(0, storyCards.length - 1));
-      setStep("story");
-      return;
-    }
-    if (storyIndex > 0) {
-      setStoryIndex((i) => i - 1);
+    if (step === "birthdate") {
+      setStep("name");
     }
   }
 
   const homeHref = localePath(locale);
-  const card = storyCards[storyIndex];
 
   return (
     <div className="flex h-[100svh] max-h-[100svh] flex-col overflow-hidden bg-gradient-to-b from-beige via-cream to-cream">
@@ -198,67 +218,11 @@ export function PostPurchaseEnrichment({
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-6 sm:py-8">
+        <div className="scrollbar-none flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-6 sm:py-8">
           <AnimatePresence mode="wait">
-            {step === "story" && card ? (
+            {step === "name" ? (
               <motion.div
-                key={`story-${pathKey}-${storyIndex}`}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.35, ease }}
-                className="w-full"
-              >
-                <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-[1.5rem] shadow-[0_16px_40px_rgba(43,13,18,0.1)]">
-                  <Image
-                    src={card.image}
-                    alt={card.imageAlt}
-                    fill
-                    sizes="(max-width: 640px) 90vw, 384px"
-                    className="object-cover object-center"
-                    priority
-                  />
-                </div>
-                <div className="mt-5 shrink-0 sm:mt-6">
-                  <div className="flex justify-center gap-1.5">
-                    {storyCards.map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all ${
-                          i === storyIndex ? "w-6 bg-wine" : "w-1.5 bg-wine/20"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <h1 className="mt-4 text-center font-serif text-[1.65rem] font-medium leading-snug tracking-tight text-wine sm:mt-5 sm:text-3xl">
-                    {card.title}
-                  </h1>
-                  <p className="mt-2 text-center text-sm leading-snug text-wine/65 sm:text-base sm:leading-relaxed">
-                    {card.subtitle}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={advanceStory}
-                    className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-wine px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-[#3a1218] sm:mt-7"
-                  >
-                    {card.cta}
-                  </button>
-                  {storyIndex > 0 ? (
-                    <button
-                      type="button"
-                      onClick={goBack}
-                      className="mt-3 block w-full text-center text-sm text-wine/45 transition hover:text-wine/70"
-                    >
-                      {labels.back}
-                    </button>
-                  ) : null}
-                </div>
-              </motion.div>
-            ) : null}
-
-            {step === "goal" ? (
-              <motion.div
-                key="goal"
+                key="name"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
@@ -266,37 +230,139 @@ export function PostPurchaseEnrichment({
                 className="w-full"
               >
                 <h1 className="text-center font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-                  {labels.goal.title}
+                  {labels.name.title}
                 </h1>
-                <ul className="mt-8 space-y-4">
-                  {labels.goal.lines.map((line, index) => (
-                    <motion.li
-                      key={line}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.35,
-                        delay: 0.06 * index,
-                        ease,
-                      }}
-                      className="text-center font-serif text-xl font-medium leading-snug text-wine sm:text-2xl"
-                    >
-                      {line}
-                    </motion.li>
-                  ))}
-                </ul>
-                <p className="mt-8 text-center text-sm font-medium tracking-wide text-wine/45">
-                  {labels.goal.notDating}
+                <p className="mt-2 text-center text-sm text-wine/55 sm:text-base">
+                  {labels.name.subtitle}
                 </p>
+                <label className="mt-8 block">
+                  <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45">
+                    {labels.name.label}
+                  </span>
+                  <input
+                    type="text"
+                    value={prefs.name}
+                    onChange={(e) => {
+                      setNameError(null);
+                      setPrefs((p) => ({ ...p, name: e.target.value }));
+                    }}
+                    placeholder={labels.name.placeholder}
+                    autoComplete="given-name"
+                    className="w-full rounded-2xl border border-wine/15 bg-white px-4 py-3.5 text-base text-wine outline-none placeholder:text-wine/35 focus:border-wine/40"
+                  />
+                </label>
+                {nameError ? (
+                  <p className="mt-2 text-center text-sm text-burgundy">
+                    {nameError}
+                  </p>
+                ) : null}
                 <button
                   type="button"
-                  onClick={() => {
-                    completeStep("goal", "personality");
-                    setStep("personality");
-                  }}
+                  onClick={submitName}
                   className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-wine px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-[#3a1218]"
                 >
-                  {labels.goal.cta}
+                  {labels.continue}
+                </button>
+              </motion.div>
+            ) : null}
+
+            {step === "birthdate" ? (
+              <motion.div
+                key="birthdate"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.35, ease }}
+                className="w-full"
+              >
+                <h1 className="text-center font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+                  {labels.birthdate.title}
+                </h1>
+                <p className="mt-2 text-center text-sm text-wine/55">
+                  {labels.birthdate.subtitle}
+                </p>
+                <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
+                  <label className="block">
+                    <span className="mb-1.5 block text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45">
+                      {labels.birthdate.day}
+                    </span>
+                    <select
+                      value={birthDay || ""}
+                      onChange={(e) => {
+                        setBirthError(null);
+                        setBirthDay(Number(e.target.value) || 0);
+                      }}
+                      className="w-full appearance-none rounded-2xl border border-wine/15 bg-white px-2 py-3.5 text-center text-sm text-wine outline-none focus:border-wine/40 sm:px-3"
+                    >
+                      <option value="">·</option>
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45">
+                      {labels.birthdate.month}
+                    </span>
+                    <select
+                      value={birthMonth || ""}
+                      onChange={(e) => {
+                        setBirthError(null);
+                        setBirthMonth(Number(e.target.value) || 0);
+                      }}
+                      className="w-full appearance-none rounded-2xl border border-wine/15 bg-white px-1 py-3.5 text-center text-sm text-wine outline-none focus:border-wine/40 sm:px-2"
+                    >
+                      <option value="">·</option>
+                      {labels.birthdate.months.map((month, i) => (
+                        <option key={month} value={i + 1}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45">
+                      {labels.birthdate.year}
+                    </span>
+                    <select
+                      value={birthYear || ""}
+                      onChange={(e) => {
+                        setBirthError(null);
+                        setBirthYear(Number(e.target.value) || 0);
+                      }}
+                      className="w-full appearance-none rounded-2xl border border-wine/15 bg-white px-2 py-3.5 text-center text-sm text-wine outline-none focus:border-wine/40 sm:px-3"
+                    >
+                      <option value="">·</option>
+                      {onboardingBirthYears().map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {computedAge !== null && !birthUnderage ? (
+                  <p className="mt-3 text-center text-sm text-wine/50">
+                    {labels.birthdate.ageHint.replace(
+                      "{age}",
+                      String(computedAge),
+                    )}
+                  </p>
+                ) : null}
+                {birthError ? (
+                  <p className="mt-2 text-center text-sm text-burgundy">
+                    {birthError}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={!birthIsoDraft || birthUnderage}
+                  onClick={submitBirthdate}
+                  className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-wine px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-[#3a1218] disabled:opacity-40"
+                >
+                  {labels.continue}
                 </button>
                 <button
                   type="button"
@@ -356,14 +422,16 @@ export function PostPurchaseEnrichment({
                     />
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={saving}
-                  className="mt-3 block w-full text-center text-sm text-wine/45 transition hover:text-wine/70 disabled:opacity-40"
-                >
-                  {labels.back}
-                </button>
+                {needsProfileSteps ? (
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    disabled={saving}
+                    className="mt-3 block w-full text-center text-sm text-wine/45 transition hover:text-wine/70 disabled:opacity-40"
+                  >
+                    {labels.back}
+                  </button>
+                ) : null}
               </motion.div>
             ) : null}
           </AnimatePresence>

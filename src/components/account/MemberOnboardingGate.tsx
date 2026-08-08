@@ -161,7 +161,11 @@ function MemberOnboardingInner({
             : ""),
     };
 
-    if (!fromSession) return base;
+    if (!fromSession) {
+      return base.languages.length > 0
+        ? base
+        : { ...base, languages: [locale] };
+    }
 
     // Session fills gaps / join-funnel answers; never wipe profile fields
     // already saved in auth metadata.
@@ -184,7 +188,9 @@ function MemberOnboardingInner({
       languages:
         fromSession.languages.length > 0
           ? fromSession.languages
-          : base.languages,
+          : base.languages.length > 0
+            ? base.languages
+            : [locale],
       cityFlexible: fromSession.cityFlexible || base.cityFlexible,
       communityInterest:
         fromSession.communityInterest || base.communityInterest,
@@ -195,20 +201,13 @@ function MemberOnboardingInner({
     const fromQuery = parseStep(searchParams.get("step"));
     if (fromQuery) return fromQuery;
     if (profileReady) return "welcomeBack";
-    if (joinFromFunnel) {
-      if (!mergedPrefs.name.trim()) return "name";
-      if (!mergedPrefs.birthDate) return "birthdate";
-      // Gender should already be in join session; if missing, full funnel.
-      if (!mergedPrefs.gender) return "gender";
-      return undefined;
-    }
     return undefined;
   })();
 
+  // Join funnel done (intent + gender): skip name/birth — those come after payment.
   const canAutoFinish =
     joinFromFunnel &&
-    Boolean(mergedPrefs.name.trim()) &&
-    Boolean(mergedPrefs.birthDate) &&
+    Boolean(mergedPrefs.joinIntent) &&
     Boolean(mergedPrefs.gender) &&
     !searchParams.get("step");
 
@@ -237,11 +236,6 @@ function MemberOnboardingInner({
       alreadyCompleted={profileReady && !searchParams.get("step")}
       initialPrefs={mergedPrefs}
       mode="account"
-      resumeProfileOnly={
-        joinFromFunnel &&
-        Boolean(mergedPrefs.gender) &&
-        (!mergedPrefs.name.trim() || !mergedPrefs.birthDate)
-      }
     />
   );
 }

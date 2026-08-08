@@ -198,7 +198,9 @@ export const accountPageNl: AccountPageLabels = {
     city: {
       title: "Waar wil je aan tafel?",
       subtitle: "Kies tot twee steden. Je kunt dit later altijd wijzigen.",
-      flexible: "Nog niet zeker",
+      otherCity: "Andere stad toevoegen",
+      otherCityPlaceholder: "Typ een stad",
+      otherCityAdd: "Toevoegen",
       maxHint: "Maximaal twee steden",
       comingSoon: "Binnenkort",
     },

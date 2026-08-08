@@ -144,7 +144,9 @@ export type AccountOnboardingLabels = {
   city: {
     title: string;
     subtitle: string;
-    flexible: string;
+    otherCity: string;
+    otherCityPlaceholder: string;
+    otherCityAdd: string;
     maxHint: string;
     comingSoon: string;
   };

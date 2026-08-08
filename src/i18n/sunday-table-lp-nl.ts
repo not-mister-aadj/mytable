@@ -25,7 +25,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     steps: [
       {
         title: "Kies je stad",
-        body: "Rotterdam, Den Haag of Utrecht. Tien plekken per tafel.",
+        body: "Rotterdam of Den Haag. Tien plekken per tafel.",
       },
       {
         title: "Kies je tafel",
@@ -98,9 +98,9 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   cities: {
     eyebrow: "Steden",
     title: "Nu open",
-    body: "We vullen eerst deze drie. Meer steden volgen.",
+    body: "We vullen eerst deze twee. Meer steden volgen.",
     comingSoon: "Binnenkort",
-    comingSoonCities: "Amsterdam · Eindhoven · Groningen",
+    comingSoonCities: "Utrecht · Amsterdam · Eindhoven · Groningen",
   },
   final: {
     title: "Klaar voor je eerste Sunday Table?",

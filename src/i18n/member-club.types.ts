@@ -62,6 +62,17 @@ export interface MemberClubLabels {
     legal: string;
     continue: string;
     summary: string;
+    promoCodeLabel: string;
+    promoCodePlaceholder: string;
+    promoCodeHint: string;
+    promoCodeApply: string;
+    promoCodeApplying: string;
+    promoCodeApplied: string;
+    promoCodeRemove: string;
+    promoCodeInvalid: string;
+    promoCodeTrialOnly: string;
+    /** Placeholders: {code}, {percent}, {final} */
+    promoCodeAppliedLine: string;
     successTitle: string;
     successBody: string;
     successCta: string;

@@ -11,6 +11,13 @@ import { trackCheckoutStarted } from "@/lib/posthog/analytics";
 
 type PlanId = MemberClubLabels["paywall"]["plans"][number]["id"];
 
+type AppliedPromo = {
+  code: string;
+  savePercent: string;
+  originalLabel: string;
+  finalLabel: string;
+};
+
 interface MemberClubPaywallProps {
   labels: MemberClubLabels["paywall"];
   locale: Locale;
@@ -38,6 +45,10 @@ export function MemberClubPaywall({
   onJoinedWithoutCheckout,
 }: MemberClubPaywallProps) {
   const [planId, setPlanId] = useState<PlanId>("5m");
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
   const [phase, setPhase] = useState<"plans" | "success">("plans");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +58,11 @@ export function MemberClubPaywall({
     labels.plans.find((p) => p.id === "5m") ??
     labels.plans[0]!;
 
-  const summary = labels.summary.replace("{price}", selected.perMonth);
+  const summaryPrice =
+    planId === "1m" && appliedPromo
+      ? appliedPromo.finalLabel
+      : selected.perMonth;
+  const summary = labels.summary.replace("{price}", summaryPrice);
 
   const eventLine = labels.eventLine
     .replace("{city}", city)
@@ -69,6 +84,59 @@ export function MemberClubPaywall({
     };
   }, [onClose]);
 
+  async function handleApplyPromo() {
+    if (promoBusy || planId !== "1m") return;
+    const code = promoCode.trim();
+    if (!code) {
+      setPromoError(labels.promoCodeInvalid);
+      return;
+    }
+    setPromoBusy(true);
+    setPromoError(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/clubmember/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode: code, locale }),
+      });
+      const data = (await res.json().catch(() => null)) as {
+        errorCode?: string;
+        code?: string;
+        savePercent?: string;
+        originalLabel?: string;
+        finalLabel?: string;
+      } | null;
+      if (!res.ok || !data?.code || !data.savePercent || !data.finalLabel) {
+        setAppliedPromo(null);
+        setPromoError(
+          data?.errorCode === "promo_invalid"
+            ? labels.promoCodeInvalid
+            : labels.errorGeneric,
+        );
+        return;
+      }
+      setAppliedPromo({
+        code: data.code,
+        savePercent: data.savePercent,
+        originalLabel: data.originalLabel ?? selected.price,
+        finalLabel: data.finalLabel,
+      });
+      setPromoCode(data.code);
+    } catch {
+      setAppliedPromo(null);
+      setPromoError(labels.errorGeneric);
+    } finally {
+      setPromoBusy(false);
+    }
+  }
+
+  function clearPromo() {
+    setAppliedPromo(null);
+    setPromoCode("");
+    setPromoError(null);
+  }
+
   async function handleContinue() {
     if (submitting) return;
     setSubmitting(true);
@@ -83,6 +151,8 @@ export function MemberClubPaywall({
           tableType,
           planId,
           locale,
+          promoCode:
+            planId === "1m" && appliedPromo ? appliedPromo.code : undefined,
           meta: {
             ...getMetaBrowserCookies(),
             eventSourceUrl: getMetaEventSourceUrl(),
@@ -91,12 +161,19 @@ export function MemberClubPaywall({
       });
       const data = (await res.json().catch(() => null)) as {
         error?: string;
+        errorCode?: string;
         url?: string;
         alreadyMember?: boolean;
         membershipId?: string;
       } | null;
       if (!res.ok) {
-        setError(data?.error ?? labels.errorGeneric);
+        const mapped =
+          data?.errorCode === "promo_trial_only"
+            ? labels.promoCodeTrialOnly
+            : data?.errorCode === "promo_invalid"
+              ? labels.promoCodeInvalid
+              : null;
+        setError(mapped ?? data?.error ?? labels.errorGeneric);
         setSubmitting(false);
         return;
       }
@@ -268,11 +345,20 @@ export function MemberClubPaywall({
                   {labels.plans.map((plan) => {
                     const selectedPlan = plan.id === planId;
                     const isPopular = plan.id === "5m";
+                    const showPromoPrice =
+                      plan.id === "1m" && selectedPlan && appliedPromo;
                     return (
                       <button
                         key={plan.id}
                         type="button"
-                        onClick={() => setPlanId(plan.id)}
+                        onClick={() => {
+                          setPlanId(plan.id);
+                          setError(null);
+                          if (plan.id !== "1m") {
+                            setAppliedPromo(null);
+                            setPromoError(null);
+                          }
+                        }}
                         aria-pressed={selectedPlan}
                         className={`relative w-full rounded-2xl border bg-white px-4 py-3.5 text-left transition ${
                           selectedPlan
@@ -303,14 +389,27 @@ export function MemberClubPaywall({
                               <span className="text-sm font-semibold text-wine">
                                 {plan.label}
                               </span>
-                              {plan.compareAt ? (
-                                <span className="text-xs text-wine/35 line-through">
-                                  {plan.compareAt}
-                                </span>
-                              ) : null}
-                              <span className="text-sm font-semibold text-wine">
-                                {plan.price}
-                              </span>
+                              {showPromoPrice ? (
+                                <>
+                                  <span className="text-xs text-wine/35 line-through">
+                                    {plan.price}
+                                  </span>
+                                  <span className="text-sm font-semibold text-wine">
+                                    {appliedPromo.finalLabel}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  {plan.compareAt ? (
+                                    <span className="text-xs text-wine/35 line-through">
+                                      {plan.compareAt}
+                                    </span>
+                                  ) : null}
+                                  <span className="text-sm font-semibold text-wine">
+                                    {plan.price}
+                                  </span>
+                                </>
+                              )}
                             </span>
                             <span className="mt-0.5 block text-xs text-wine/45">
                               {plan.hint
@@ -321,11 +420,13 @@ export function MemberClubPaywall({
                                   )}
                             </span>
                           </span>
-                          {plan.savePercent ? (
+                          {plan.savePercent || showPromoPrice ? (
                             <span className="shrink-0 rounded-full bg-[#e8f3e4] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#2f5c2a]">
                               {labels.save.replace(
                                 "{percent}",
-                                plan.savePercent,
+                                showPromoPrice
+                                  ? appliedPromo.savePercent
+                                  : plan.savePercent!,
                               )}
                             </span>
                           ) : null}
@@ -334,6 +435,74 @@ export function MemberClubPaywall({
                     );
                   })}
                 </div>
+
+                {planId === "1m" ? (
+                  <div className="mt-4">
+                    <label
+                      htmlFor="club-promo-code"
+                      className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45"
+                    >
+                      {labels.promoCodeLabel}
+                    </label>
+                    <div className="mt-1.5 flex gap-2">
+                      <input
+                        id="club-promo-code"
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoError(null);
+                          setAppliedPromo(null);
+                          setPromoCode(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void handleApplyPromo();
+                          }
+                        }}
+                        placeholder={labels.promoCodePlaceholder}
+                        autoComplete="off"
+                        spellCheck={false}
+                        disabled={Boolean(appliedPromo) || promoBusy}
+                        className="min-w-0 flex-1 rounded-2xl border border-wine/12 bg-white px-4 py-3 text-sm text-wine outline-none placeholder:text-wine/35 focus:border-wine/35 disabled:opacity-70"
+                      />
+                      {appliedPromo ? (
+                        <button
+                          type="button"
+                          onClick={clearPromo}
+                          className="shrink-0 rounded-2xl border border-wine/15 bg-white px-3.5 text-xs font-semibold uppercase tracking-[0.1em] text-wine/70 transition hover:border-wine/30 hover:text-wine"
+                        >
+                          {labels.promoCodeRemove}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void handleApplyPromo()}
+                          disabled={promoBusy || !promoCode.trim()}
+                          className="shrink-0 rounded-2xl bg-wine px-3.5 text-xs font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-[#3a1218] disabled:opacity-40"
+                        >
+                          {promoBusy
+                            ? labels.promoCodeApplying
+                            : labels.promoCodeApply}
+                        </button>
+                      )}
+                    </div>
+                    {appliedPromo ? (
+                      <p className="mt-2 text-sm font-medium text-[#2f5c2a]">
+                        {labels.promoCodeAppliedLine
+                          .replace("{code}", appliedPromo.code)
+                          .replace("{percent}", appliedPromo.savePercent)
+                          .replace("{final}", appliedPromo.finalLabel)}
+                      </p>
+                    ) : promoError ? (
+                      <p className="mt-2 text-xs text-red-800">{promoError}</p>
+                    ) : (
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-wine/40">
+                        {labels.promoCodeHint}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
 
                 <p className="mt-5 pb-2 text-[11px] leading-relaxed text-wine/40">
                   {labels.legal}
@@ -349,7 +518,16 @@ export function MemberClubPaywall({
               } backdrop-blur-sm`}
             >
               <p className="text-center text-sm font-semibold text-wine">
-                {summary}
+                {planId === "1m" && appliedPromo ? (
+                  <>
+                    <span className="mr-2 text-wine/35 line-through">
+                      {appliedPromo.originalLabel}
+                    </span>
+                    {summary}
+                  </>
+                ) : (
+                  summary
+                )}
               </p>
               {error ? (
                 <p className="mt-2 text-center text-xs text-red-800">{error}</p>

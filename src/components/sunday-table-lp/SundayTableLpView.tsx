@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import {
   joinPath,
@@ -15,7 +15,8 @@ import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import { fillCity } from "@/i18n/get-sunday-table-lp";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
+import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
+import { SundayTableWhatsappSale } from "@/components/sunday-table-lp/SundayTableWhatsappSale";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { getGirlsOnlyHeroSlideshowImages } from "@/data/girls-only-media";
@@ -51,11 +52,11 @@ function PrimaryCta({
 }) {
   const isCream = variant === "cream";
   return (
-    <div className={`w-full sm:w-auto ${className}`}>
+    <div className={`w-full min-w-0 sm:w-auto ${className}`}>
       <Link
         href={href}
         onClick={onClick}
-        className={`cta-lift inline-flex min-h-[3.25rem] w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center sm:min-w-[15.5rem] sm:w-auto ${
+        className={`cta-lift inline-flex min-h-[3.25rem] w-full max-w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center sm:min-w-[15.5rem] sm:w-auto ${
           isCream
             ? "cta-lift-cream bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white"
             : "cta-lift-burgundy bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine"
@@ -144,46 +145,7 @@ export function SundayTableLpView({
     ? fillCity(labels.final.titleCity, cityName)
     : labels.final.title;
   const ctaHref = joinHref(locale, cityName);
-  const heroRef = useRef<HTMLElement>(null);
-  const pricingBlockRef = useRef<HTMLElement>(null);
-  const finalCtaRef = useRef<HTMLDivElement>(null);
-  const [heroPast, setHeroPast] = useState(false);
-  const [primaryCtaInView, setPrimaryCtaInView] = useState(false);
-
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setHeroPast(!entry.isIntersecting),
-      { root: null, rootMargin: "-72px 0px 0px 0px", threshold: 0 },
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const targets = [pricingBlockRef.current, finalCtaRef.current].filter(
-      (el): el is HTMLElement => Boolean(el),
-    );
-    if (targets.length === 0) return;
-
-    const visible = new Set<Element>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) visible.add(entry.target);
-          else visible.delete(entry.target);
-        }
-        setPrimaryCtaInView(visible.size > 0);
-      },
-      { root: null, rootMargin: "0px 0px -72px 0px", threshold: 0.12 },
-    );
-
-    for (const target of targets) observer.observe(target);
-    return () => observer.disconnect();
-  }, []);
-
-  const showMobileSticky = heroPast && !primaryCtaInView;
+  const [saleOpen, setSaleOpen] = useState(false);
 
   function onClaimClick(cta: string, source: string) {
     if (cityName) rememberPreferredCity(cityName);
@@ -192,23 +154,29 @@ export function SundayTableLpView({
 
   return (
     <>
-      <Header dict={headerDict} locale={locale} />
+      <SundayTableWhatsappSale
+        labels={labels.sale}
+        locale={locale}
+        open={saleOpen}
+        onOpenChange={setSaleOpen}
+      />
+      <Header dict={headerDict} locale={locale} className="top-[2.6rem]" />
 
+      <div className="overflow-x-clip">
       {/* Hero: same composition as main language page — copy left, carousel right */}
       <section
-        ref={heroRef}
-        className="relative overflow-hidden bg-white lg:min-h-[100svh]"
+        className="relative overflow-x-clip bg-white lg:min-h-[100svh]"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(245,232,224,0.55),transparent_50%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,rgba(246,241,234,0.7),transparent_45%)]" />
 
-        <div className="relative mx-auto grid min-h-0 max-w-7xl items-center gap-8 px-5 pb-10 pt-24 sm:gap-10 sm:px-8 sm:pb-16 sm:pt-28 lg:min-h-[100svh] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:px-10 lg:pb-20 lg:pt-24">
-          <div className="relative z-10 max-w-xl lg:max-w-none">
+        <div className="relative mx-auto grid min-h-0 w-full max-w-7xl items-center gap-6 px-5 pb-10 pt-[7.25rem] sm:gap-10 sm:px-8 sm:pb-16 sm:pt-36 lg:min-h-[100svh] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:px-10 lg:pb-20 lg:pt-40">
+          <div className="relative z-10 order-2 w-full min-w-0 max-w-xl lg:order-1 lg:max-w-none">
             <motion.p
               initial={reduceMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.45, ease }}
-              className="text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/45"
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45"
             >
               {labels.socialProof}
             </motion.p>
@@ -217,7 +185,7 @@ export function SundayTableLpView({
               initial={reduceMotion ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.06, ease }}
-              className="mt-3 max-w-xl font-serif text-[1.55rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-balance sm:mt-4 sm:text-3xl lg:text-[2.15rem]"
+              className="mt-3 w-full max-w-full font-serif text-[1.35rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-pretty sm:mt-4 sm:text-3xl lg:text-[2.15rem]"
             >
               {headline}
             </motion.h1>
@@ -226,7 +194,7 @@ export function SundayTableLpView({
               initial={reduceMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.12, ease }}
-              className="mt-4 max-w-lg text-[0.95rem] leading-relaxed text-wine/55 sm:mt-5 sm:text-[1.05rem]"
+              className="mt-4 w-full max-w-lg text-[0.95rem] leading-relaxed text-wine/55 text-pretty sm:mt-5 sm:text-[1.05rem]"
             >
               {line}
             </motion.p>
@@ -235,7 +203,7 @@ export function SundayTableLpView({
               initial={reduceMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.16, ease }}
-              className="mt-5 space-y-2 sm:mt-6"
+              className="mt-5 w-full space-y-2 sm:mt-6"
             >
               {labels.heroBenefits.map((item) => (
                 <li
@@ -246,7 +214,7 @@ export function SundayTableLpView({
                     aria-hidden
                     className="mt-2 h-1 w-1 shrink-0 rounded-full bg-wine/35"
                   />
-                  <span>
+                  <span className="min-w-0">
                     <span className="font-semibold text-wine">{item.bold}</span>
                     {item.text}
                   </span>
@@ -258,14 +226,18 @@ export function SundayTableLpView({
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.24, ease }}
-              className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3"
+              className="mt-8 hidden flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3 lg:flex"
             >
-              <PrimaryCta
-                href={ctaHref}
-                label={labels.cta}
-                hint={labels.ctaHint}
-                onClick={() => onClaimClick("hero_primary", "sunday_table_hero")}
-              />
+              <div className="hidden lg:block">
+                <PrimaryCta
+                  href={ctaHref}
+                  label={labels.cta}
+                  hint={labels.ctaHint}
+                  onClick={() =>
+                    onClaimClick("hero_primary", "sunday_table_hero")
+                  }
+                />
+              </div>
               <a
                 href="#included"
                 onClick={() =>
@@ -275,7 +247,7 @@ export function SundayTableLpView({
                     locale,
                   })
                 }
-                className="cta-lift cta-lift-outline inline-flex min-h-12 w-full items-center justify-center rounded-full border border-wine/20 bg-white/60 px-7 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm hover:border-wine/40 hover:bg-white hover:text-wine sm:w-auto"
+                className="cta-lift cta-lift-outline hidden min-h-12 items-center justify-center rounded-full border border-wine/20 bg-white/60 px-7 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm hover:border-wine/40 hover:bg-white hover:text-wine lg:inline-flex"
               >
                 {labels.secondaryCta}
               </a>
@@ -285,22 +257,19 @@ export function SundayTableLpView({
               initial={reduceMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.45, delay: 0.3, ease }}
-              className="mt-3 max-w-md text-xs leading-relaxed text-wine/45 sm:text-sm"
+              className="mt-3 hidden max-w-md text-xs leading-relaxed text-wine/45 sm:text-sm lg:block"
             >
               {labels.ctaRisk}
             </motion.p>
           </div>
 
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, x: 28, scale: 0.97 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ duration: 0.75, delay: 0.1, ease }}
-            className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none"
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.05, ease }}
+            className="relative order-1 mx-auto w-full min-w-0 max-w-full lg:order-2 lg:mx-0 lg:max-w-none lg:self-center"
           >
-            <div className="relative mx-auto aspect-[4/5] max-h-[18rem] w-full max-w-sm overflow-hidden rounded-[2rem] shadow-[0_28px_70px_rgba(43,13,18,0.14)] sm:max-h-[28rem] sm:max-w-lg sm:rounded-[2.5rem] lg:mx-0 lg:max-h-none lg:min-h-[34rem] lg:max-w-none lg:aspect-auto lg:rounded-[3rem]">
-              <GirlsOnlyHeroMedia locale={locale} variant="background" />
-              <div className="absolute inset-0 bg-gradient-to-t from-wine/25 via-transparent to-transparent" />
-            </div>
+            <SundayTableHeroGallery locale={locale} />
           </motion.div>
         </div>
       </section>
@@ -355,7 +324,7 @@ export function SundayTableLpView({
             {labels.included.note}
           </p>
 
-          <div className="mt-5 sm:mt-6">
+          <div className="mt-5 hidden sm:mt-6 lg:block">
             <PrimaryCta
               href={ctaHref}
               label={labels.cta}
@@ -401,7 +370,7 @@ export function SundayTableLpView({
             singleRow
           />
         </div>
-        <div className="mt-8 flex justify-center px-5 sm:mt-10 sm:px-8">
+        <div className="mt-8 hidden justify-center px-5 sm:mt-10 sm:px-8 lg:flex">
           <PrimaryCta
             href={ctaHref}
             label={labels.proof.cta}
@@ -414,7 +383,6 @@ export function SundayTableLpView({
       {/* Pricing — close to value + proof on mobile */}
       <section
         id="pricing"
-        ref={pricingBlockRef}
         className="relative scroll-mt-24 overflow-hidden bg-wine py-14 text-cream sm:py-20 lg:py-24"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(197,154,91,0.18),transparent_40%)]" />
@@ -490,7 +458,7 @@ export function SundayTableLpView({
             ))}
           </div>
 
-          <div className="mt-8 sm:mt-10">
+          <div className="mt-8 hidden sm:mt-10 lg:block">
             <PrimaryCta
               href={ctaHref}
               label={labels.cta}
@@ -559,7 +527,7 @@ export function SundayTableLpView({
             ))}
           </div>
 
-          <div className="mt-8 sm:mt-10">
+          <div className="mt-8 hidden sm:mt-10 lg:block">
             <PrimaryCta
               href={ctaHref}
               label={labels.cta}
@@ -656,7 +624,7 @@ export function SundayTableLpView({
           <p className="mx-auto mt-3 max-w-md text-base text-wine/55 sm:mt-4">
             {labels.final.body}
           </p>
-          <div ref={finalCtaRef} className="mt-8 flex justify-center sm:mt-10">
+          <div className="mt-8 hidden justify-center sm:mt-10 lg:flex">
             <PrimaryCta
               href={ctaHref}
               label={labels.final.cta}
@@ -667,37 +635,34 @@ export function SundayTableLpView({
         </div>
       </section>
 
-      <AnimatePresence>
-        {showMobileSticky ? (
-          <motion.div
-            key="sunday-table-sticky"
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: 16 }}
-            transition={{ duration: 0.22, ease }}
-            className="fixed inset-x-0 bottom-0 z-[48] border-t border-wine/10 bg-cream/97 shadow-[0_-12px_36px_rgba(43,13,18,0.14)] backdrop-blur-md lg:hidden"
-            style={{
-              paddingBottom: "max(0.65rem, env(safe-area-inset-bottom))",
-            }}
-            role="region"
-            aria-label={labels.cta}
-          >
-            <div className="mx-auto max-w-7xl px-4 py-2.5">
-              <PrimaryCta
-                href={ctaHref}
-                label={labels.cta}
-                hint={labels.ctaHint}
-                onClick={() =>
-                  onClaimClick("mobile_sticky", "sunday_table_mobile_sticky")
-                }
-                className="w-full"
-              />
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <div className="pb-28 lg:pb-0">
+        <Footer dict={footerDict} locale={locale} showSeoLinks={false} />
+      </div>
+      </div>
 
-      <Footer dict={footerDict} locale={locale} showSeoLinks={false} />
+      <div
+        className="fixed inset-x-0 bottom-0 z-[48] border-t border-wine/10 bg-cream/97 shadow-[0_-12px_36px_rgba(43,13,18,0.14)] backdrop-blur-md lg:hidden"
+        style={{
+          paddingBottom: "max(0.65rem, env(safe-area-inset-bottom))",
+        }}
+        role="region"
+        aria-label={labels.cta}
+      >
+        <div className="mx-auto max-w-7xl px-4 py-2.5">
+          <PrimaryCta
+            href={ctaHref}
+            label={labels.cta}
+            hint={labels.ctaHint}
+            onClick={() =>
+              onClaimClick("mobile_sticky", "sunday_table_mobile_sticky")
+            }
+            className="w-full"
+          />
+          <p className="mt-1.5 text-center text-[11px] leading-snug text-wine/45">
+            {labels.ctaRisk}
+          </p>
+        </div>
+      </div>
     </>
   );
 }

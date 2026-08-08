@@ -32,10 +32,11 @@ function isInAppBrowserNoise(event: Sentry.ErrorEvent): boolean {
 
 Sentry.init({
   dsn,
+  enabled: Boolean(dsn) && process.env.NODE_ENV !== "development",
 
   // Omit dataCollection to keep SDK defaults (sendDefaultPii: false).
-  // 100% in dev, 10% in production
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
+  // 10% in production (dev is disabled above)
+  tracesSampleRate: 0.1,
 
   // Session Replay: 10% of sessions, 100% of sessions with errors
   replaysSessionSampleRate: 0.1,

@@ -20,6 +20,20 @@ export type SundayTableLpLabels = {
   /** Risk reversal under the primary CTA */
   ctaRisk: string;
   secondaryCta: string;
+  /** Top announcement bar + WhatsApp sale modal */
+  sale: {
+    bar: string;
+    barMobile: string;
+    eyebrow: string;
+    title: string;
+    body: string;
+    girlsOnly: string;
+    girlsOnlyHint: string;
+    mixed: string;
+    mixedHint: string;
+    close: string;
+    dialogAria: string;
+  };
   how: {
     eyebrow: string;
     title: string;

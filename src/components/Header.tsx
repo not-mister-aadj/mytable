@@ -20,6 +20,8 @@ import {
 interface HeaderProps {
   dict: Dictionary["header"];
   locale: Locale;
+  /** Extra classes on the fixed header (e.g. top offset under a sale bar). */
+  className?: string;
 }
 
 function stripLocale(pathname: string): string {
@@ -29,7 +31,7 @@ function stripLocale(pathname: string): string {
   return pathname || "/";
 }
 
-export function Header({ dict, locale }: HeaderProps) {
+export function Header({ dict, locale, className = "" }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
@@ -80,7 +82,7 @@ export function Header({ dict, locale }: HeaderProps) {
         scrolled
           ? "site-header--scrolled shadow-[0_8px_30px_rgba(90,15,27,0.06)]"
           : "site-header--top"
-      }`}
+      } ${className}`}
     >
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-8 sm:py-3.5 md:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:px-10">
         <div className="justify-self-start">

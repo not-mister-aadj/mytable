@@ -9,6 +9,10 @@ import type {
 export const GIRLS_WHATSAPP_GROUP_URL =
   "https://chat.whatsapp.com/CQ0u9hH4OEH43md3Ft9mtB";
 
+/** Mixed Sunday Table community WhatsApp. */
+export const MIXED_WHATSAPP_GROUP_URL =
+  "https://chat.whatsapp.com/DExhu9aJ6BAAS0itSD0mgL";
+
 export type OnboardingCompanyId =
   | "solo"
   | "with_someone"

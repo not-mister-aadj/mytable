@@ -16,6 +16,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   lineCity:
     "Elke eerste zondag van de maand in {city}, in een wijnbar of restaurant. Solo komen is normaal, een plus-één meenemen mag. Kies girls only of een gemengde tafel.",
   cta: "Claim je plek",
+  ctaHint: "Vanaf €8,33/maand",
   secondaryCta: "Wat je krijgt",
   how: {
     eyebrow: "Clubmember",
@@ -62,19 +63,23 @@ export const sundayTableLpNl: SundayTableLpLabels = {
         body: "Elke eerste zondag aan tafel met gezichten die je nog niet kent.",
       },
       {
-        title: "Eerste drankje",
-        body: "Je eerste drankje krijg je van ons.",
+        title: "Gematchte tafel",
+        body: "Wij stellen de tafel samen. Maximaal tien plekken.",
       },
       {
-        title: "MyTable specials",
-        body: "Aanraders aan de bar. Soms met korting.",
+        title: "+1 meenemen",
+        body: "Neem iemand mee aan jouw tafel. Geen extra kosten.",
+      },
+      {
+        title: "MyTable aanraders",
+        body: "Ontdek de beste wijnbars en restaurants in de stad. Vaak met korting die we voor members regelen.",
       },
       {
         title: "10% op culinaire ervaringen",
         body: "Wine walks, proeverijen en diners uit de agenda.",
       },
     ],
-    note: "Verdere drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
+    note: "Drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
   },
   pricing: {
     eyebrow: "Prijzen",

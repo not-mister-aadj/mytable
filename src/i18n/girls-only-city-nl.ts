@@ -73,12 +73,12 @@ function buildCityPageNl(
           description: "Matching aan tafel. Solo welkom.",
         },
         {
-          title: "Een drankje",
-          description: "Consumpties op locatie.",
+          title: "+1 meenemen",
+          description: "Geen extra kosten, zolang er plek is.",
         },
         {
-          title: "Daarna culinaire ervaringen",
-          description: "Wine Walks, proeverijen, diners.",
+          title: "MyTable aanraders",
+          description: "Beste wijnbars en restaurants, vaak met korting.",
         },
       ],
     },

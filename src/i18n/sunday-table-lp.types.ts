@@ -11,6 +11,8 @@ export type SundayTableLpLabels = {
   line: string;
   lineCity: string;
   cta: string;
+  /** Price anchor under primary CTAs, e.g. "Vanaf €10/maand" */
+  ctaHint: string;
   secondaryCta: string;
   how: {
     eyebrow: string;

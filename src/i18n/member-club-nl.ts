@@ -43,11 +43,11 @@ export const memberClubNl: MemberClubLabels = {
     locationNote: "De exacte locatie ontvang je 24 uur van tevoren.",
     mixed: {
       title: "Sunday Table",
-      body: "Sunday Table is om nieuwe mensen te ontmoeten. Je eerste drankje krijg je van ons. Op sommige locaties hebben we MyTable-aanraders en kortingen.",
+      body: "Sunday Table is om nieuwe mensen te ontmoeten. Wij matchen de tafel en je mag een +1 meenemen. Locatie krijg je 24 uur van tevoren.",
     },
     girlsOnly: {
       title: "Sunday Table · Girls only",
-      body: "Alleen vrouwen aan tafel. Sunday Table is om nieuwe mensen te ontmoeten. Je eerste drankje krijg je van ons. Op sommige locaties hebben we MyTable-aanraders en kortingen.",
+      body: "Alleen vrouwen aan tafel. Sunday Table is om nieuwe mensen te ontmoeten. Wij matchen de tafel en je mag een +1 meenemen. Locatie krijg je 24 uur van tevoren.",
     },
   },
   paywall: {
@@ -62,16 +62,20 @@ export const memberClubNl: MemberClubLabels = {
         body: "Elke eerste zondag aan tafel met gezichten die je nog niet kent.",
       },
       {
-        title: "Eerste drankje & specials",
-        body: "Je eerste drankje krijg je van ons. Aanraders aan de bar, soms met korting.",
+        title: "Gematchte tafel",
+        body: "Wij stellen de tafel samen. Maximaal tien plekken.",
       },
       {
-        title: "Culinaire vrienden",
-        body: "Boek daarna iets met je nieuwe groep. Leden krijgen 10% korting.",
+        title: "+1 meenemen",
+        body: "Neem iemand mee aan jouw tafel. Geen extra kosten.",
+      },
+      {
+        title: "Aanraders + 10%",
+        body: "Ontdek de beste wijnbars en restaurants in de stad, vaak met korting. Plus 10% op de agenda.",
       },
     ],
     consumptionsNote:
-      "Je eerste drankje krijg je van ons. Verdere drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
+      "Drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
     plansTitle: "Kies je plan",
     popular: "Meest gekozen",
     save: "Bespaar {percent}",
@@ -205,15 +209,19 @@ export const memberClubNl: MemberClubLabels = {
         body: "Elke eerste zondag aan tafel met gezichten die je nog niet kent.",
       },
       {
-        title: "Eerste drankje & specials",
-        body: "Je eerste drankje krijg je van ons. Aanraders aan de bar, soms met korting.",
+        title: "Gematchte tafel",
+        body: "Wij stellen de tafel samen. Maximaal tien plekken.",
       },
       {
-        title: "Culinaire vrienden",
-        body: "Boek daarna iets met je nieuwe groep. Leden krijgen 10% korting.",
+        title: "+1 meenemen",
+        body: "Neem iemand mee aan jouw tafel. Geen extra kosten.",
+      },
+      {
+        title: "Aanraders + 10%",
+        body: "Ontdek de beste wijnbars en restaurants in de stad, vaak met korting. Plus 10% op de agenda.",
       },
     ],
-    note: "Je eerste drankje krijg je van ons. Verdere drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
+    note: "Drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",
   },
   roadmap: {
     eyebrow: "Later",
@@ -232,12 +240,12 @@ export const memberClubNl: MemberClubLabels = {
       {
         question: "Wat is Sunday Table?",
         answer:
-          "Sunday Table is om nieuwe mensen te ontmoeten. Je eerste drankje krijg je van ons. Met je tafel boek je later culinaire ervaringen uit de agenda.",
+          "Sunday Table is om nieuwe mensen te ontmoeten. Wij matchen de tafel. Met je tafel boek je later culinaire ervaringen uit de agenda.",
       },
       {
         question: "Wat zit er in Clubmember?",
         answer:
-          "Sunday Tables, je eerste drankje van ons, MyTable specials aan de bar, en 10% op culinaire ervaringen. Culinaire ervaringen uit de agenda zijn all-in.",
+          "Toegang tot Sunday Tables (gematchte tafel, +1 meenemen), MyTable-aanraders voor de beste wijnbars en restaurants (vaak met korting), en 10% op culinaire ervaringen. Culinaire ervaringen uit de agenda zijn all-in.",
       },
       {
         question: "Wat kost Clubmember?",
@@ -245,9 +253,14 @@ export const memberClubNl: MemberClubLabels = {
           "1 maand trial €21 (eenmalig, verlengt niet). Of 5 maanden €50 (€10/maand). Of 12 maanden €100 (€8,33/maand). De langere plannen verlengen automatisch tot je opzegt.",
       },
       {
-        question: "Wat is inbegrepen aan de bar?",
+        question: "Wat betaal ik op locatie?",
         answer:
-          "Je eerste drankje krijg je van ons. De bar heeft MyTable specials, soms met korting. Verdere drankjes en hapjes betaal je op locatie.",
+          "Drankjes en hapjes betaal je zelf aan de bar. Via MyTable-aanraders ontdek je de beste plekken in de stad, vaak met korting. Culinaire ervaringen uit de agenda zijn all-in.",
+      },
+      {
+        question: "Kan ik iemand meenemen?",
+        answer:
+          "Ja. Als lid kun je een +1 toevoegen aan je Sunday Table. Dat telt als tweede plek, zonder extra kosten, zolang er plek is.",
       },
       {
         question: "Is Sunday Table dating?",

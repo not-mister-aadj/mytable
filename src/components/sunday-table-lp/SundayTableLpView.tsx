@@ -34,6 +34,50 @@ function joinHref(locale: Locale, cityName?: string | null): string {
   return `${base}?city=${encodeURIComponent(cityName)}`;
 }
 
+function PrimaryCta({
+  href,
+  label,
+  hint,
+  onClick,
+  variant = "burgundy",
+  className = "",
+}: {
+  href: string;
+  label: string;
+  hint?: string;
+  onClick?: () => void;
+  variant?: "burgundy" | "cream";
+  className?: string;
+}) {
+  const isCream = variant === "cream";
+  return (
+    <div className={`w-full sm:w-auto ${className}`}>
+      <Link
+        href={href}
+        onClick={onClick}
+        className={`inline-flex min-h-[3.25rem] w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center transition sm:min-w-[15.5rem] sm:w-auto ${
+          isCream
+            ? "bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white hover:shadow-[0_18px_40px_rgba(0,0,0,0.28)]"
+            : "bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine hover:shadow-[0_18px_40px_rgba(43,13,18,0.32)]"
+        }`}
+      >
+        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
+          {label}
+        </span>
+        {hint ? (
+          <span
+            className={`mt-0.5 text-[11px] font-medium normal-case tracking-normal ${
+              isCream ? "text-wine/55" : "text-cream/70"
+            }`}
+          >
+            {hint}
+          </span>
+        ) : null}
+      </Link>
+    </div>
+  );
+}
+
 function ProofPhotoStrip({
   images,
   reduceMotion,
@@ -191,15 +235,14 @@ export function SundayTableLpView({
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.24, ease }}
-              className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3"
+              className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3"
             >
-              <Link
+              <PrimaryCta
                 href={ctaHref}
+                label={labels.cta}
+                hint={labels.ctaHint}
                 onClick={() => onClaimClick("hero_primary", "sunday_table_hero")}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-wine hover:shadow-[0_16px_34px_rgba(43,13,18,0.26)] sm:w-auto"
-              >
-                {labels.cta}
-              </Link>
+              />
               <a
                 href="#included"
                 onClick={() =>
@@ -209,7 +252,7 @@ export function SundayTableLpView({
                     locale,
                   })
                 }
-                className="inline-flex min-h-11 items-center justify-center text-xs font-semibold uppercase tracking-[0.16em] text-wine/55 transition hover:text-wine sm:justify-start"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-wine/20 bg-white/60 px-7 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm transition hover:border-wine/40 hover:bg-white hover:text-wine sm:w-auto"
               >
                 {labels.secondaryCta}
               </a>
@@ -233,42 +276,42 @@ export function SundayTableLpView({
       {/* What you get — value first for conversion */}
       <section
         id="included"
-        className="relative scroll-mt-24 overflow-hidden border-b border-wine/8 bg-cream py-14 sm:py-20 lg:py-24"
+        className="relative scroll-mt-24 overflow-hidden border-b border-wine/8 bg-cream py-10 sm:py-14"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_100%,rgba(197,154,91,0.08),transparent_42%)]" />
         <div className="relative mx-auto max-w-3xl px-5 sm:px-8 lg:px-10">
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease }}
+            transition={{ duration: 0.45, ease }}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">
               {labels.included.eyebrow}
             </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-[2.75rem]">
+            <h2 className="mt-2 font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
               {labels.included.title}
             </h2>
           </motion.div>
 
-          <ul className="mt-8 divide-y divide-wine/10 border-y border-wine/10 sm:mt-12">
+          <ul className="mt-5 divide-y divide-wine/10 border-y border-wine/10 sm:mt-6">
             {labels.included.items.map((item, index) => (
               <motion.li
                 key={item.title}
-                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.45, delay: index * 0.05, ease }}
-                className="grid gap-1 py-5 sm:grid-cols-[5.5rem_1fr] sm:items-baseline sm:gap-8 sm:py-7"
+                transition={{ duration: 0.35, delay: index * 0.03, ease }}
+                className="flex gap-3 py-3 sm:gap-4 sm:py-3.5"
               >
-                <span className="font-serif text-sm tracking-[0.08em] text-wine/30">
+                <span className="mt-0.5 shrink-0 font-serif text-xs tracking-[0.06em] text-wine/25">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <div>
-                  <h3 className="font-serif text-xl font-medium tracking-tight text-wine sm:text-2xl">
+                <div className="min-w-0">
+                  <h3 className="font-serif text-base font-medium tracking-tight text-wine sm:text-lg">
                     {item.title}
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-wine/55 sm:mt-1.5 sm:text-base">
+                  <p className="mt-0.5 text-sm leading-snug text-wine/55">
                     {item.body}
                   </p>
                 </div>
@@ -276,18 +319,19 @@ export function SundayTableLpView({
             ))}
           </ul>
 
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-wine/45 sm:mt-8">
+          <p className="mt-4 max-w-xl text-xs leading-relaxed text-wine/40 sm:mt-5 sm:text-sm">
             {labels.included.note}
           </p>
 
-          <div className="mt-8 sm:mt-10">
-            <Link
+          <div className="mt-5 sm:mt-6">
+            <PrimaryCta
               href={ctaHref}
-              onClick={() => onClaimClick("included_cta", "sunday_table_included")}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-wine sm:w-auto"
-            >
-              {labels.cta}
-            </Link>
+              label={labels.cta}
+              hint={labels.ctaHint}
+              onClick={() =>
+                onClaimClick("included_cta", "sunday_table_included")
+              }
+            />
           </div>
         </div>
       </section>
@@ -323,6 +367,14 @@ export function SundayTableLpView({
             fadeFromClassName="from-white"
             cardClassName="border-wine/10 bg-cream/80"
             singleRow
+          />
+        </div>
+        <div className="mt-8 flex justify-center px-5 sm:mt-10 sm:px-8">
+          <PrimaryCta
+            href={ctaHref}
+            label={labels.proof.cta}
+            hint={labels.ctaHint}
+            onClick={() => onClaimClick("proof_cta", "sunday_table_proof")}
           />
         </div>
       </section>
@@ -407,13 +459,15 @@ export function SundayTableLpView({
           </div>
 
           <div className="mt-8 sm:mt-10">
-            <Link
+            <PrimaryCta
               href={ctaHref}
-              onClick={() => onClaimClick("pricing_cta", "sunday_table_pricing")}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-cream px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine transition hover:bg-white sm:w-auto"
-            >
-              {labels.cta}
-            </Link>
+              label={labels.cta}
+              hint={labels.ctaHint}
+              variant="cream"
+              onClick={() =>
+                onClaimClick("pricing_cta", "sunday_table_pricing")
+              }
+            />
           </div>
         </div>
       </section>
@@ -471,6 +525,15 @@ export function SundayTableLpView({
                 </p>
               </motion.div>
             ))}
+          </div>
+
+          <div className="mt-8 sm:mt-10">
+            <PrimaryCta
+              href={ctaHref}
+              label={labels.cta}
+              hint={labels.ctaHint}
+              onClick={() => onClaimClick("tables_cta", "sunday_table_tables")}
+            />
           </div>
         </div>
       </section>
@@ -561,14 +624,13 @@ export function SundayTableLpView({
           <p className="mx-auto mt-3 max-w-md text-base text-wine/55 sm:mt-4">
             {labels.final.body}
           </p>
-          <div ref={finalCtaRef} className="mt-8 sm:mt-10">
-            <Link
+          <div ref={finalCtaRef} className="mt-8 flex justify-center sm:mt-10">
+            <PrimaryCta
               href={ctaHref}
+              label={labels.final.cta}
+              hint={labels.ctaHint}
               onClick={() => onClaimClick("final_cta", "sunday_table_final")}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-wine sm:w-auto"
-            >
-              {labels.final.cta}
-            </Link>
+            />
           </div>
         </div>
       </section>
@@ -581,32 +643,23 @@ export function SundayTableLpView({
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: 16 }}
             transition={{ duration: 0.22, ease }}
-            className="fixed inset-x-0 bottom-0 z-[48] border-t border-wine/10 bg-cream/95 shadow-[0_-10px_32px_rgba(43,13,18,0.12)] backdrop-blur-md lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-[48] border-t border-wine/10 bg-cream/97 shadow-[0_-12px_36px_rgba(43,13,18,0.14)] backdrop-blur-md lg:hidden"
             style={{
-              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+              paddingBottom: "max(0.65rem, env(safe-area-inset-bottom))",
             }}
             role="region"
             aria-label={labels.cta}
           >
-            <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-serif text-base font-medium leading-tight text-wine">
-                  {labels.pricing.popularHint.split("·")[0]?.trim() ||
-                    labels.pricing.popularPrice}
-                </p>
-                <p className="truncate text-xs text-wine/55">
-                  {labels.pricing.popularLabel} · {labels.pricing.popularPrice}
-                </p>
-              </div>
-              <Link
+            <div className="mx-auto max-w-7xl px-4 py-2.5">
+              <PrimaryCta
                 href={ctaHref}
+                label={labels.cta}
+                hint={labels.ctaHint}
                 onClick={() =>
                   onClaimClick("mobile_sticky", "sunday_table_mobile_sticky")
                 }
-                className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-burgundy px-5 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition hover:bg-wine"
-              >
-                {labels.cta}
-              </Link>
+                className="w-full"
+              />
             </div>
           </motion.div>
         ) : null}

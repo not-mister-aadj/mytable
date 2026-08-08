@@ -16,6 +16,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   lineCity:
     "Every first Sunday of the month in {city}, at a wine bar or restaurant. Coming solo is normal, bringing a plus-one is fine. Choose girls only or a mixed table.",
   cta: "Claim your seat",
+  ctaHint: "From €8.33/month",
   secondaryCta: "What you get",
   how: {
     eyebrow: "Clubmember",
@@ -62,19 +63,23 @@ export const sundayTableLpEn: SundayTableLpLabels = {
         body: "Every first Sunday at a table with faces you don’t know yet.",
       },
       {
-        title: "First drink",
-        body: "Your first drink is on us.",
+        title: "Matched table",
+        body: "We put the table together. Maximum ten seats.",
       },
       {
-        title: "MyTable specials",
-        body: "Bar recommendations. Sometimes with a discount.",
+        title: "Bring a +1",
+        body: "Bring someone to your table. No extra cost.",
+      },
+      {
+        title: "MyTable picks",
+        body: "Discover the best wine bars and restaurants in the city. Often with a discount we arrange for members.",
       },
       {
         title: "10% off culinary experiences",
         body: "Wine walks, tastings and dinners from the agenda.",
       },
     ],
-    note: "Further drinks and bites you pay for on location. Culinary experiences from the agenda are all-in.",
+    note: "Drinks and bites you pay for on location. Culinary experiences from the agenda are all-in.",
   },
   pricing: {
     eyebrow: "Pricing",

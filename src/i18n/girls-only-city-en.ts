@@ -74,12 +74,12 @@ function buildCityPageEn(
           description: "Matched at the table. Solo welcome.",
         },
         {
-          title: "A drink",
-          description: "Consumptions on location.",
+          title: "Bring a +1",
+          description: "No extra cost, while seats last.",
         },
         {
-          title: "Then culinary experiences",
-          description: "Wine Walks, tastings, dinners.",
+          title: "MyTable picks",
+          description: "Best wine bars and restaurants, often with a discount.",
         },
       ],
     },

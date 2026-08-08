@@ -16,6 +16,7 @@ import {
 import {
   sendMetaCapiEvent,
   type MetaCapiUserData,
+  splitPersonName,
 } from "@/lib/analytics/metaCapiClient";
 import {
   metaInitiateCheckoutEventId,
@@ -56,13 +57,17 @@ export async function sendMetaCapiPurchase(input: {
   const { booking, event } = input;
   const locale = (booking.locale === "en" ? "en" : "nl") as Locale;
 
+  const nameParts = splitPersonName(booking.customerName);
   return sendMetaCapiEvent({
     eventName: "Purchase",
     eventId: metaPurchaseEventId(booking.id),
     eventSourceUrl: confirmationUrl(locale),
     userData: {
       email: booking.email,
-      firstName: booking.customerName?.split(/\s+/)[0] ?? null,
+      firstName: nameParts.firstName,
+      lastName: nameParts.lastName,
+      city: event.city,
+      country: "nl",
       ...input.userData,
     },
     customData: {
@@ -88,13 +93,17 @@ export async function sendMetaCapiInitiateCheckout(input: {
   const { booking, event } = input;
   const locale = (booking.locale === "en" ? "en" : "nl") as Locale;
 
+  const nameParts = splitPersonName(booking.customerName);
   return sendMetaCapiEvent({
     eventName: "InitiateCheckout",
     eventId: metaInitiateCheckoutEventId(booking.id),
     eventSourceUrl: eventSourceUrl(locale, event.slug),
     userData: {
       email: booking.email,
-      firstName: booking.customerName?.split(/\s+/)[0] ?? null,
+      firstName: nameParts.firstName,
+      lastName: nameParts.lastName,
+      city: event.city,
+      country: "nl",
       ...input.userData,
     },
     customData: {
@@ -125,6 +134,8 @@ export async function sendMetaCapiLead(input: {
     eventSourceUrl: input.eventSourceUrl,
     userData: {
       email: input.email,
+      city: input.city,
+      country: "nl",
       ...input.userData,
     },
     customData: {
@@ -172,6 +183,7 @@ export async function sendMetaCapiPurchaseForSession(
   if (alreadySent) return false;
 
   const storedMeta = await loadCheckoutMetaContext(bookingId);
+  const nameParts = splitPersonName(row.booking.customerName);
   const sent = await sendMetaCapiPurchase({
     booking: row.booking,
     event: row.event,
@@ -179,7 +191,12 @@ export async function sendMetaCapiPurchaseForSession(
       ...metaUserDataFromStoredContext(
         storedMeta,
         row.booking.email,
-        row.booking.customerName?.split(/\s+/)[0] ?? null,
+        nameParts.firstName,
+        {
+          lastName: nameParts.lastName,
+          city: row.event.city,
+          country: "nl",
+        },
       ),
       clientIpAddress:
         requestHeaders?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -217,13 +234,17 @@ export async function sendMetaCapiClubInitiateCheckout(input: {
   userData?: MetaCapiUserData;
 }): Promise<boolean> {
   const plan = CLUB_PLAN_PRICING[input.planId];
+  const nameParts = splitPersonName(input.name);
   return sendMetaCapiEvent({
     eventName: "InitiateCheckout",
     eventId: metaInitiateCheckoutEventId(input.membershipId),
     eventSourceUrl: `${getSiteUrl()}${clubmemberPath(input.locale)}`,
     userData: {
       email: input.email,
-      firstName: input.name?.split(/\s+/)[0] ?? null,
+      firstName: nameParts.firstName,
+      lastName: nameParts.lastName,
+      city: input.city,
+      country: "nl",
       ...input.userData,
     },
     customData: {
@@ -253,13 +274,17 @@ export async function sendMetaCapiClubPurchase(input: {
   userData?: MetaCapiUserData;
 }): Promise<boolean> {
   const plan = CLUB_PLAN_PRICING[input.planId];
+  const nameParts = splitPersonName(input.name);
   return sendMetaCapiEvent({
     eventName: "Purchase",
     eventId: metaPurchaseEventId(input.membershipId),
     eventSourceUrl: clubConfirmationUrl(input.locale),
     userData: {
       email: input.email,
-      firstName: input.name?.split(/\s+/)[0] ?? null,
+      firstName: nameParts.firstName,
+      lastName: nameParts.lastName,
+      city: input.city,
+      country: "nl",
       ...input.userData,
     },
     customData: {

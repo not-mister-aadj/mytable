@@ -13,10 +13,22 @@ export function metaUserDataFromRequest(
   context?: MetaTrackingContext,
   email?: string | null,
   firstName?: string | null,
+  extras?: {
+    lastName?: string | null;
+    phone?: string | null;
+    city?: string | null;
+    country?: string | null;
+    externalId?: string | null;
+  },
 ): MetaCapiUserData {
   return {
     email,
     firstName,
+    lastName: extras?.lastName ?? null,
+    phone: extras?.phone ?? null,
+    city: extras?.city ?? null,
+    country: extras?.country ?? null,
+    externalId: extras?.externalId ?? null,
     clientIpAddress: extractClientIp(request),
     clientUserAgent: extractClientUserAgent(request),
     fbp: context?.fbp ?? null,
@@ -55,10 +67,22 @@ export function metaUserDataFromStoredContext(
   stored: MetaTrackingContext | null,
   email: string,
   firstName?: string | null,
+  extras?: {
+    lastName?: string | null;
+    phone?: string | null;
+    city?: string | null;
+    country?: string | null;
+    externalId?: string | null;
+  },
 ): MetaCapiUserData {
   return {
     email,
     firstName,
+    lastName: extras?.lastName ?? null,
+    phone: extras?.phone ?? null,
+    city: extras?.city ?? null,
+    country: extras?.country ?? "nl",
+    externalId: extras?.externalId ?? null,
     fbp: stored?.fbp ?? null,
     fbc: stored?.fbc ?? null,
   };

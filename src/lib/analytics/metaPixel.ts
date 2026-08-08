@@ -6,6 +6,12 @@ import {
   isMetaPixelConfigured,
   isMetaPixelEnabled,
 } from "@/lib/analytics/metaConfig";
+import type { MetaAdvancedMatching } from "@/lib/analytics/metaAdvancedMatching";
+import {
+  ensureMetaFbcCookie,
+  getMetaBrowserCookies,
+  getMetaEventSourceUrl,
+} from "@/lib/analytics/metaCookies";
 import {
   metaInitiateCheckoutEventId,
   metaLeadEventId,
@@ -94,51 +100,122 @@ function logMetaEvent(event: string, params?: Record<string, unknown>): void {
   console.log(`[Meta Pixel] ${event} tracked`, params ?? {});
 }
 
-function track(event: string, params?: Record<string, unknown>): void {
+function newEventId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `mt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Mirror browser events via CAPI for better Event Match Quality (IP/UA/fbp/fbc). */
+function mirrorToCapi(
+  eventName: string,
+  eventId: string,
+  customData?: Record<string, unknown>,
+): void {
+  if (typeof window === "undefined" || !isMetaPixelEnabled()) return;
+  ensureMetaFbcCookie();
+  const cookies = getMetaBrowserCookies();
+  const body = {
+    eventName,
+    eventId,
+    eventSourceUrl: getMetaEventSourceUrl(),
+    fbp: cookies.fbp ?? null,
+    fbc: cookies.fbc ?? null,
+    customData: customData ?? {},
+  };
+  try {
+    const payload = JSON.stringify(body);
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: "application/json" });
+      navigator.sendBeacon("/api/meta/browser-event", blob);
+      return;
+    }
+    void fetch("/api/meta/browser-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    });
+  } catch {
+    // ignore beacon failures
+  }
+}
+
+function track(
+  event: string,
+  params?: Record<string, unknown>,
+  options?: { eventID?: string; mirror?: boolean },
+): void {
   initMetaPixel();
   if (!canTrack()) return;
   const payload = params ? withUtm(params) : withUtm({});
-  window.fbq!("track", event, payload);
-  logMetaEvent(event, payload);
+  const eventID = options?.eventID ?? newEventId();
+  window.fbq!("track", event, payload, { eventID });
+  logMetaEvent(event, { ...payload, event_id: eventID });
+  if (options?.mirror !== false) {
+    mirrorToCapi(event, eventID, payload);
+  }
 }
 
-export function initMetaPixel(): void {
+let lastAdvancedMatchingKey = "";
+
+export function initMetaPixel(advancedMatching?: MetaAdvancedMatching): void {
   if (typeof window === "undefined" || !isMetaPixelEnabled()) return;
-  if (typeof window.fbq === "function") return;
 
   const pixelId = getMetaPixelId();
   if (!pixelId) return;
 
-  const fbq: Fbq = function (...args: unknown[]) {
-    if (fbq.callMethod) {
-      fbq.callMethod(...args);
-    } else {
-      fbq.queue!.push(args);
-    }
-  };
-  fbq.queue = [];
-  fbq.loaded = true;
-  fbq.version = "2.0";
-  window.fbq = fbq;
-  window._fbq = fbq;
+  ensureMetaFbcCookie();
 
-  const script = document.createElement("script");
-  script.async = true;
-  script.src = "https://connect.facebook.net/en_US/fbevents.js";
-  const first = document.getElementsByTagName("script")[0];
-  first?.parentNode?.insertBefore(script, first);
+  const matching = advancedMatching ?? {};
+  const matchingKey = JSON.stringify(matching);
 
-  window.fbq("init", pixelId);
-  logMetaEvent("init", { pixel_id: pixelId });
+  if (typeof window.fbq !== "function") {
+    const fbq: Fbq = function (...args: unknown[]) {
+      if (fbq.callMethod) {
+        fbq.callMethod(...args);
+      } else {
+        fbq.queue!.push(args);
+      }
+    };
+    fbq.queue = [];
+    fbq.loaded = true;
+    fbq.version = "2.0";
+    window.fbq = fbq;
+    window._fbq = fbq;
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://connect.facebook.net/en_US/fbevents.js";
+    const first = document.getElementsByTagName("script")[0];
+    first?.parentNode?.insertBefore(script, first);
+
+    window.fbq("init", pixelId, matching);
+    lastAdvancedMatchingKey = matchingKey;
+    logMetaEvent("init", { pixel_id: pixelId, advanced_matching: matching });
+    return;
+  }
+
+  // Re-init when we gain richer Advanced Matching (e.g. after login).
+  if (matchingKey !== lastAdvancedMatchingKey && matchingKey !== "{}") {
+    window.fbq("init", pixelId, matching);
+    lastAdvancedMatchingKey = matchingKey;
+    logMetaEvent("init_update", {
+      pixel_id: pixelId,
+      advanced_matching: matching,
+    });
+  }
 }
-
 
 export function pageView(params?: Record<string, unknown>): void {
   initMetaPixel();
   if (!canTrack()) return;
   const payload = params ? withUtm(params) : withUtm({});
-  window.fbq!("track", "PageView", payload);
-  logMetaEvent("PageView", payload);
+  const eventID = newEventId();
+  window.fbq!("track", "PageView", payload, { eventID });
+  logMetaEvent("PageView", { ...payload, event_id: eventID });
+  mirrorToCapi("PageView", eventID, payload);
 }
 
 /** Acquisition / funnel landings — distinct from event detail (ViewContent). */
@@ -159,9 +236,13 @@ export function landingPageView(
   });
   initMetaPixel();
   if (!canTrack()) return;
-  window.fbq!("trackCustom", "LandingPageView", params);
-  window.fbq!("track", "PageView", params);
-  logMetaEvent("LandingPageView", params);
+  const landingId = newEventId();
+  const pageViewId = newEventId();
+  window.fbq!("trackCustom", "LandingPageView", params, { eventID: landingId });
+  window.fbq!("track", "PageView", params, { eventID: pageViewId });
+  logMetaEvent("LandingPageView", { ...params, event_id: landingId });
+  mirrorToCapi("LandingPageView", landingId, params);
+  mirrorToCapi("PageView", pageViewId, params);
 }
 
 export function viewContent(params: MetaViewContentParams): void {
@@ -187,16 +268,11 @@ export function initiateCheckout(params: MetaInitiateCheckoutParams): void {
   });
   const eventId = params.booking_id
     ? metaInitiateCheckoutEventId(params.booking_id)
-    : undefined;
+    : newEventId();
 
-  if (eventId) {
-    window.fbq!("track", "InitiateCheckout", payload, { eventID: eventId });
-    logMetaEvent("InitiateCheckout", { ...payload, event_id: eventId });
-    return;
-  }
-
-  window.fbq!("track", "InitiateCheckout", payload);
-  logMetaEvent("InitiateCheckout", payload);
+  window.fbq!("track", "InitiateCheckout", payload, { eventID: eventId });
+  logMetaEvent("InitiateCheckout", { ...payload, event_id: eventId });
+  // CAPI InitiateCheckout is sent server-side from checkout routes.
 }
 
 const PURCHASE_RETRY_MS = 150;
@@ -255,16 +331,10 @@ export function lead(params: MetaLeadParams): void {
   });
   const eventId = params.waitlist_id
     ? metaLeadEventId(params.waitlist_id)
-    : undefined;
+    : newEventId();
 
-  if (eventId) {
-    window.fbq!("track", "Lead", payload, { eventID: eventId });
-    logMetaEvent("Lead", { ...payload, event_id: eventId });
-    return;
-  }
-
-  window.fbq!("track", "Lead", payload);
-  logMetaEvent("Lead", payload);
+  window.fbq!("track", "Lead", payload, { eventID: eventId });
+  logMetaEvent("Lead", { ...payload, event_id: eventId });
 }
 
 export function hasPurchaseBeenTracked(bookingId: string): boolean {

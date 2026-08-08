@@ -33,13 +33,13 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <PostHogProvider>
-      <MetaPixelProvider>
-        <AuthProviders locale={locale as Locale} nav={dict.header.nav}>
+      <AuthProviders locale={locale as Locale} nav={dict.header.nav}>
+        <MetaPixelProvider>
           <SetHtmlLang locale={locale} />
           <PrefetchCriticalRoutes locale={locale} />
           {children}
-        </AuthProviders>
-      </MetaPixelProvider>
+        </MetaPixelProvider>
+      </AuthProviders>
     </PostHogProvider>
   );
 }

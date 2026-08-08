@@ -11,6 +11,11 @@ const GRAPH_API_VERSION = "v21.0";
 export type MetaCapiUserData = {
   email?: string | null;
   firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  country?: string | null;
+  externalId?: string | null;
   clientIpAddress?: string | null;
   clientUserAgent?: string | null;
   fbp?: string | null;
@@ -30,7 +35,9 @@ function logCapi(message: string, detail?: Record<string, unknown>): void {
   console.log(`[Meta CAPI] ${message}`, detail ?? {});
 }
 
-function buildUserData(input?: MetaCapiUserData): Record<string, string | string[]> {
+function buildUserData(
+  input?: MetaCapiUserData,
+): Record<string, string | string[]> {
   const userData: Record<string, string | string[]> = {};
 
   if (input?.email) {
@@ -38,6 +45,25 @@ function buildUserData(input?: MetaCapiUserData): Record<string, string | string
   }
   if (input?.firstName) {
     userData.fn = [hashNameForMeta(input.firstName)];
+  }
+  if (input?.lastName) {
+    userData.ln = [hashNameForMeta(input.lastName)];
+  }
+  if (input?.phone) {
+    // Digits only, include country code when present.
+    const digits = input.phone.replace(/\D+/g, "");
+    if (digits) userData.ph = [hashNameForMeta(digits)];
+  }
+  if (input?.city) {
+    userData.ct = [hashNameForMeta(input.city.trim().toLowerCase())];
+  }
+  if (input?.country) {
+    userData.country = [
+      hashNameForMeta(input.country.trim().toLowerCase()),
+    ];
+  }
+  if (input?.externalId) {
+    userData.external_id = [hashNameForMeta(input.externalId)];
   }
   if (input?.clientIpAddress && input.clientIpAddress !== "unknown") {
     userData.client_ip_address = input.clientIpAddress;
@@ -129,4 +155,18 @@ export function extractClientIp(request: Request): string | null {
 
 export function extractClientUserAgent(request: Request): string | null {
   return request.headers.get("user-agent");
+}
+
+export function splitPersonName(full: string | null | undefined): {
+  firstName: string | null;
+  lastName: string | null;
+} {
+  if (!full?.trim()) return { firstName: null, lastName: null };
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: null, lastName: null };
+  if (parts.length === 1) return { firstName: parts[0]!, lastName: null };
+  return {
+    firstName: parts[0]!,
+    lastName: parts.slice(1).join(" "),
+  };
 }

@@ -664,6 +664,12 @@ export async function fulfillClubCheckoutSession(
       value,
       currency: (session.currency ?? "eur").toUpperCase(),
       locale: updated.locale === "en" ? "en" : "nl",
+      userData: {
+        phone: session.customer_details?.phone?.trim() || null,
+        externalId: updated.userId,
+        fbp: session.metadata?.mt_fbp?.trim() || null,
+        fbc: session.metadata?.mt_fbc?.trim() || null,
+      },
     });
   } catch (err) {
     console.error("[club fulfill] meta capi purchase", err);

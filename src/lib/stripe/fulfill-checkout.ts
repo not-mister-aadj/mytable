@@ -6,6 +6,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { onPaymentCompleted } from "@/lib/customers/hooks";
 import { sendMetaCapiPurchase } from "@/lib/analytics/metaCapi";
+import { splitPersonName } from "@/lib/analytics/metaCapiClient";
 import { metaPurchaseEventId } from "@/lib/analytics/metaIds";
 import {
   loadCheckoutMetaContext,
@@ -63,13 +64,21 @@ async function runPostPaymentSideEffects(
     }
 
     const storedMeta = await loadCheckoutMetaContext(updated.booking.id);
+    const nameParts = splitPersonName(updated.booking.customerName);
+    const stripePhone = session.customer_details?.phone?.trim() || null;
     const capiSent = await sendMetaCapiPurchase({
       booking: updated.booking,
       event: updated.ev,
       userData: metaUserDataFromStoredContext(
         storedMeta,
         updated.booking.email,
-        updated.booking.customerName?.split(/\s+/)[0] ?? null,
+        nameParts.firstName,
+        {
+          lastName: nameParts.lastName,
+          phone: stripePhone,
+          city: updated.ev.city,
+          country: "nl",
+        },
       ),
     });
     if (capiSent) {

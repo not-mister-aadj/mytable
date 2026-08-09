@@ -3,6 +3,7 @@ import { readOnboardingFromMetadata } from "@/lib/member-onboarding";
 
 export type MetaAdvancedMatching = {
   em?: string;
+  ph?: string;
   fn?: string;
   ln?: string;
   external_id?: string;
@@ -53,6 +54,13 @@ export async function buildMetaAdvancedMatching(
   const { prefs } = readOnboardingFromMetadata(meta);
   const email = user.email?.trim().toLowerCase();
   if (email) matching.em = email;
+
+  const phoneRaw =
+    (typeof meta.phone === "string" && meta.phone) ||
+    (typeof meta.phone_number === "string" && meta.phone_number) ||
+    "";
+  const phoneDigits = phoneRaw.replace(/\D+/g, "");
+  if (phoneDigits.length >= 8) matching.ph = phoneDigits;
 
   const fullName =
     prefs.name.trim() ||

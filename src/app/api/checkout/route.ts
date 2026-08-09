@@ -7,8 +7,12 @@ import { onBookingCreated, onCheckoutStarted } from "@/lib/customers/hooks";
 import {
   sendMetaCapiInitiateCheckout,
 } from "@/lib/analytics/metaCapi";
+import { splitPersonName } from "@/lib/analytics/metaCapiClient";
 import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
-import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
+import {
+  metaUserDataFromRequest,
+  withRequestClientHints,
+} from "@/lib/analytics/metaCapiContext";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
@@ -262,22 +266,35 @@ export async function POST(request: Request) {
     });
   }
 
-  if (metaContext.fbp || metaContext.fbc || metaContext.eventSourceUrl) {
+  const checkoutMeta = withRequestClientHints(metaContext, request);
+  if (
+    checkoutMeta.fbp ||
+    checkoutMeta.fbc ||
+    checkoutMeta.eventSourceUrl ||
+    checkoutMeta.clientIpAddress ||
+    checkoutMeta.clientUserAgent
+  ) {
     await db.insert(bookingEvents).values({
       bookingId: booking.id,
       type: "checkout_meta_context",
-      payload: metaContext,
+      payload: checkoutMeta,
     });
   }
 
+  const nameParts = splitPersonName(booking.customerName);
   void sendMetaCapiInitiateCheckout({
     booking,
     event,
     userData: metaUserDataFromRequest(
       request,
-      metaContext,
+      checkoutMeta,
       booking.email,
-      booking.customerName?.split(/\s+/)[0] ?? null,
+      nameParts.firstName,
+      {
+        lastName: nameParts.lastName,
+        city: event.city,
+        country: "nl",
+      },
     ),
   });
 

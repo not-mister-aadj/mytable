@@ -34,8 +34,15 @@ import {
   parseAmsterdamDateIso,
 } from "@/lib/sunday-wine-table";
 import { sendMetaCapiClubInitiateCheckout } from "@/lib/analytics/metaCapi";
-import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
-import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
+import { splitPersonName } from "@/lib/analytics/metaCapiClient";
+import {
+  metaContextToStripeMetadata,
+  parseMetaTrackingContext,
+} from "@/lib/analytics/metaApiContext";
+import {
+  metaUserDataFromRequest,
+  withRequestClientHints,
+} from "@/lib/analytics/metaCapiContext";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { captureServerEvent } from "@/lib/posthog/server";
 
@@ -123,10 +130,13 @@ export async function POST(request: Request) {
     raw.locale === "en" || raw.locale === "nl" ? raw.locale : "nl";
   const promoCodeRaw =
     typeof raw.promoCode === "string" ? raw.promoCode.trim() : "";
-  const metaContext = parseMetaTrackingContext(
-    raw.meta && typeof raw.meta === "object"
-      ? (raw.meta as Record<string, unknown>)
-      : undefined,
+  const metaContext = withRequestClientHints(
+    parseMetaTrackingContext(
+      raw.meta && typeof raw.meta === "object"
+        ? (raw.meta as Record<string, unknown>)
+        : undefined,
+    ),
+    request,
   );
 
   if (!isActiveOnboardingCity(city)) {
@@ -294,6 +304,7 @@ export async function POST(request: Request) {
       locale,
       referral_friend: friendReferral && !trialPromotionCodeId ? "1" : "0",
       promo_code: trialPromotionCodeId ? promoCodeRaw.toUpperCase() : "",
+      ...metaContextToStripeMetadata(metaContext),
     };
 
     const session = oneTime
@@ -349,6 +360,7 @@ export async function POST(request: Request) {
       sessionId: session.id,
     });
 
+    const nameParts = splitPersonName(name);
     void sendMetaCapiClubInitiateCheckout({
       membershipId,
       planId: resolvedPlanId,
@@ -360,7 +372,13 @@ export async function POST(request: Request) {
         request,
         metaContext,
         user.email,
-        name?.split(/\s+/)[0] ?? null,
+        nameParts.firstName,
+        {
+          lastName: nameParts.lastName,
+          city,
+          country: "nl",
+          externalId: user.id,
+        },
       ),
     });
 

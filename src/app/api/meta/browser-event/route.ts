@@ -22,6 +22,7 @@ type Body = {
   eventSourceUrl?: string;
   fbp?: string | null;
   fbc?: string | null;
+  externalId?: string | null;
   customData?: Record<string, unknown>;
 };
 
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
   let email: string | null = null;
   let firstName: string | null = null;
   let lastName: string | null = null;
+  let phone: string | null = null;
   let city: string | null = null;
   let externalId: string | null = null;
   let country: string | null = null;
@@ -96,6 +98,12 @@ export async function POST(request: Request) {
       firstName = split.firstName;
       lastName = split.lastName;
       city = prefs.cities[0] ?? null;
+      const phoneRaw =
+        (typeof meta.phone === "string" && meta.phone) ||
+        (typeof meta.phone_number === "string" && meta.phone_number) ||
+        "";
+      const phoneDigits = phoneRaw.replace(/\D+/g, "");
+      if (phoneDigits.length >= 8) phone = phoneDigits;
       if (prefs.cities.length > 0 || prefs.joinIntent || email) {
         country = "nl";
       }
@@ -103,6 +111,11 @@ export async function POST(request: Request) {
   } catch {
     // Anonymous visitor — still send IP/UA/fbp/fbc.
   }
+
+  const anonExternalId =
+    typeof body.externalId === "string" && body.externalId.trim().length >= 8
+      ? body.externalId.trim().slice(0, 128)
+      : null;
 
   const ok = await sendMetaCapiEvent({
     eventName,
@@ -112,9 +125,10 @@ export async function POST(request: Request) {
       email,
       firstName,
       lastName,
+      phone,
       city,
       country,
-      externalId,
+      externalId: externalId ?? anonExternalId,
       clientIpAddress: extractClientIp(request),
       clientUserAgent: extractClientUserAgent(request),
       fbp: body.fbp ?? null,

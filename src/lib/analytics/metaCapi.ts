@@ -14,6 +14,7 @@ import {
   type Locale,
 } from "@/i18n/config";
 import {
+  mergeMetaCapiUserData,
   sendMetaCapiEvent,
   type MetaCapiUserData,
   splitPersonName,
@@ -24,9 +25,12 @@ import {
   metaPurchaseEventId,
 } from "@/lib/analytics/metaIds";
 import {
+  enrichmentToUserData,
   loadCheckoutMetaContext,
+  loadCustomerMetaEnrichment,
   metaUserDataFromStoredContext,
 } from "@/lib/analytics/metaCapiContext";
+import { metaContextFromStripeMetadata } from "@/lib/analytics/metaApiContext";
 import { getClubConfirmationPurchase } from "@/lib/analytics/clubConfirmationPurchase";
 import {
   CLUB_PLAN_PRICING,
@@ -58,18 +62,22 @@ export async function sendMetaCapiPurchase(input: {
   const locale = (booking.locale === "en" ? "en" : "nl") as Locale;
 
   const nameParts = splitPersonName(booking.customerName);
+  const enrichment = await loadCustomerMetaEnrichment(booking.email);
   return sendMetaCapiEvent({
     eventName: "Purchase",
     eventId: metaPurchaseEventId(booking.id),
     eventSourceUrl: confirmationUrl(locale),
-    userData: {
-      email: booking.email,
-      firstName: nameParts.firstName,
-      lastName: nameParts.lastName,
-      city: event.city,
-      country: "nl",
-      ...input.userData,
-    },
+    userData: mergeMetaCapiUserData(
+      {
+        email: booking.email,
+        firstName: nameParts.firstName,
+        lastName: nameParts.lastName,
+        city: event.city,
+        country: "nl",
+      },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
     customData: {
       value: booking.amountCents / 100,
       currency: booking.currency.toUpperCase(),
@@ -94,18 +102,22 @@ export async function sendMetaCapiInitiateCheckout(input: {
   const locale = (booking.locale === "en" ? "en" : "nl") as Locale;
 
   const nameParts = splitPersonName(booking.customerName);
+  const enrichment = await loadCustomerMetaEnrichment(booking.email);
   return sendMetaCapiEvent({
     eventName: "InitiateCheckout",
     eventId: metaInitiateCheckoutEventId(booking.id),
     eventSourceUrl: eventSourceUrl(locale, event.slug),
-    userData: {
-      email: booking.email,
-      firstName: nameParts.firstName,
-      lastName: nameParts.lastName,
-      city: event.city,
-      country: "nl",
-      ...input.userData,
-    },
+    userData: mergeMetaCapiUserData(
+      {
+        email: booking.email,
+        firstName: nameParts.firstName,
+        lastName: nameParts.lastName,
+        city: event.city,
+        country: "nl",
+      },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
     customData: {
       content_name: eventDisplayName(event, booking.locale),
       content_ids: [`event_${event.id}`],
@@ -128,16 +140,20 @@ export async function sendMetaCapiLead(input: {
   eventSourceUrl: string;
   userData?: MetaCapiUserData;
 }): Promise<boolean> {
+  const enrichment = await loadCustomerMetaEnrichment(input.email);
   return sendMetaCapiEvent({
     eventName: "Lead",
     eventId: metaLeadEventId(input.waitlistId),
     eventSourceUrl: input.eventSourceUrl,
-    userData: {
-      email: input.email,
-      city: input.city,
-      country: "nl",
-      ...input.userData,
-    },
+    userData: mergeMetaCapiUserData(
+      {
+        email: input.email,
+        city: input.city,
+        country: "nl",
+      },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
     customData: {
       source: input.source,
       city: input.city,
@@ -184,26 +200,28 @@ export async function sendMetaCapiPurchaseForSession(
 
   const storedMeta = await loadCheckoutMetaContext(bookingId);
   const nameParts = splitPersonName(row.booking.customerName);
+  const stripePhone = session.customer_details?.phone?.trim() || null;
   const sent = await sendMetaCapiPurchase({
     booking: row.booking,
     event: row.event,
-    userData: {
-      ...metaUserDataFromStoredContext(
+    userData: mergeMetaCapiUserData(
+      metaUserDataFromStoredContext(
         storedMeta,
         row.booking.email,
         nameParts.firstName,
         {
           lastName: nameParts.lastName,
+          phone: stripePhone,
           city: row.event.city,
           country: "nl",
+          clientIpAddress:
+            requestHeaders?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+            requestHeaders?.get("x-real-ip") ??
+            null,
+          clientUserAgent: requestHeaders?.get("user-agent") ?? null,
         },
       ),
-      clientIpAddress:
-        requestHeaders?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        requestHeaders?.get("x-real-ip") ??
-        null,
-      clientUserAgent: requestHeaders?.get("user-agent") ?? null,
-    },
+    ),
   });
 
   if (sent) {
@@ -235,18 +253,22 @@ export async function sendMetaCapiClubInitiateCheckout(input: {
 }): Promise<boolean> {
   const plan = CLUB_PLAN_PRICING[input.planId];
   const nameParts = splitPersonName(input.name);
+  const enrichment = await loadCustomerMetaEnrichment(input.email);
   return sendMetaCapiEvent({
     eventName: "InitiateCheckout",
     eventId: metaInitiateCheckoutEventId(input.membershipId),
     eventSourceUrl: `${getSiteUrl()}${clubmemberPath(input.locale)}`,
-    userData: {
-      email: input.email,
-      firstName: nameParts.firstName,
-      lastName: nameParts.lastName,
-      city: input.city,
-      country: "nl",
-      ...input.userData,
-    },
+    userData: mergeMetaCapiUserData(
+      {
+        email: input.email,
+        firstName: nameParts.firstName,
+        lastName: nameParts.lastName,
+        city: input.city,
+        country: "nl",
+      },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
     customData: {
       content_name:
         input.locale === "en" ? plan.nameEn : plan.nameNl,
@@ -275,18 +297,22 @@ export async function sendMetaCapiClubPurchase(input: {
 }): Promise<boolean> {
   const plan = CLUB_PLAN_PRICING[input.planId];
   const nameParts = splitPersonName(input.name);
+  const enrichment = await loadCustomerMetaEnrichment(input.email);
   return sendMetaCapiEvent({
     eventName: "Purchase",
     eventId: metaPurchaseEventId(input.membershipId),
     eventSourceUrl: clubConfirmationUrl(input.locale),
-    userData: {
-      email: input.email,
-      firstName: nameParts.firstName,
-      lastName: nameParts.lastName,
-      city: input.city,
-      country: "nl",
-      ...input.userData,
-    },
+    userData: mergeMetaCapiUserData(
+      {
+        email: input.email,
+        firstName: nameParts.firstName,
+        lastName: nameParts.lastName,
+        city: input.city,
+        country: "nl",
+      },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
     customData: {
       value: input.value,
       currency: input.currency.toUpperCase(),
@@ -333,6 +359,9 @@ export async function sendMetaCapiClubPurchaseForSession(
       ? membership.planId
       : "12m";
 
+  const clickIds = metaContextFromStripeMetadata(session.metadata ?? undefined);
+  const stripePhone = session.customer_details?.phone?.trim() || null;
+
   return sendMetaCapiClubPurchase({
     membershipId: purchase.membershipId,
     planId,
@@ -342,12 +371,15 @@ export async function sendMetaCapiClubPurchaseForSession(
     value: purchase.value,
     currency: purchase.currency,
     locale: membershipLocale,
-    userData: {
+    userData: mergeMetaCapiUserData({
+      phone: stripePhone,
+      fbp: clickIds.fbp ?? null,
+      fbc: clickIds.fbc ?? null,
       clientIpAddress:
         requestHeaders?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
         requestHeaders?.get("x-real-ip") ??
         null,
       clientUserAgent: requestHeaders?.get("user-agent") ?? null,
-    },
+    }),
   });
 }

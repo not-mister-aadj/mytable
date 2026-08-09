@@ -7,6 +7,7 @@ import {
   isMetaPixelEnabled,
 } from "@/lib/analytics/metaConfig";
 import type { MetaAdvancedMatching } from "@/lib/analytics/metaAdvancedMatching";
+import { getOrCreateMetaExternalId } from "@/lib/analytics/metaAdvancedMatching";
 import {
   ensureMetaFbcCookie,
   getMetaBrowserCookies,
@@ -122,6 +123,7 @@ function mirrorToCapi(
     eventSourceUrl: getMetaEventSourceUrl(),
     fbp: cookies.fbp ?? null,
     fbc: cookies.fbc ?? null,
+    externalId: getOrCreateMetaExternalId(),
     customData: customData ?? {},
   };
   try {

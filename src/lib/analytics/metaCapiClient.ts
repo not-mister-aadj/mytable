@@ -30,6 +30,23 @@ export type MetaCapiServerEvent = {
   customData?: Record<string, string | number | boolean | string[] | undefined>;
 };
 
+/** Later non-empty values win; null/blank never wipe earlier fields (EMQ-safe). */
+export function mergeMetaCapiUserData(
+  ...parts: Array<MetaCapiUserData | null | undefined>
+): MetaCapiUserData {
+  const out: MetaCapiUserData = {};
+  for (const part of parts) {
+    if (!part) continue;
+    for (const key of Object.keys(part) as (keyof MetaCapiUserData)[]) {
+      const value = part[key];
+      if (value == null) continue;
+      if (typeof value === "string" && value.trim() === "") continue;
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 function logCapi(message: string, detail?: Record<string, unknown>): void {
   if (process.env.NODE_ENV !== "development") return;
   console.log(`[Meta CAPI] ${message}`, detail ?? {});

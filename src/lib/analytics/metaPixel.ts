@@ -16,6 +16,7 @@ import {
 import {
   metaInitiateCheckoutEventId,
   metaLeadEventId,
+  metaCompleteRegistrationEventId,
   metaPurchaseEventId,
 } from "@/lib/analytics/metaIds";
 import { getStoredUtm, type UtmParams } from "@/lib/analytics/utm";
@@ -76,6 +77,10 @@ export type MetaLeadParams = {
 };
 
 const PURCHASE_STORAGE_PREFIX = "mytable_meta_purchase_";
+const REGISTRATION_STORAGE_PREFIX = "mytable_meta_registration_";
+
+/** Only treat accounts created in this window as new registrations. */
+const NEW_USER_WINDOW_MS = 15 * 60 * 1000;
 
 export { getMetaPixelId, isMetaPixelConfigured, isMetaPixelEnabled };
 
@@ -337,6 +342,62 @@ export function lead(params: MetaLeadParams): void {
 
   window.fbq!("track", "Lead", payload, { eventID: eventId });
   logMetaEvent("Lead", { ...payload, event_id: eventId });
+}
+
+/**
+ * Funnel signal before Purchase (not an ads optimization goal).
+ * Deduped per user via stable event_id + local storage.
+ */
+export function completeRegistration(input: {
+  userId: string;
+  method?: "email_otp" | "google" | "unknown";
+}): boolean {
+  initMetaPixel();
+  if (hasCompleteRegistrationBeenTracked(input.userId)) return true;
+  if (!canTrack()) return false;
+
+  const eventId = metaCompleteRegistrationEventId(input.userId);
+  const payload = withUtm({
+    content_name: "account_registration",
+    status: true,
+    method: input.method ?? "unknown",
+  });
+
+  window.fbq!("track", "CompleteRegistration", payload, { eventID: eventId });
+  logMetaEvent("CompleteRegistration", { ...payload, event_id: eventId });
+  mirrorToCapi("CompleteRegistration", eventId, payload);
+  markCompleteRegistrationTracked(input.userId);
+  return true;
+}
+
+export function isLikelyNewAuthUser(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false;
+  const createdMs = new Date(createdAt).getTime();
+  if (Number.isNaN(createdMs)) return false;
+  return Date.now() - createdMs < NEW_USER_WINDOW_MS;
+}
+
+export function hasCompleteRegistrationBeenTracked(userId: string): boolean {
+  if (typeof window === "undefined") return false;
+  const key = REGISTRATION_STORAGE_PREFIX + userId;
+  try {
+    return (
+      sessionStorage.getItem(key) === "1" || localStorage.getItem(key) === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function markCompleteRegistrationTracked(userId: string): void {
+  if (typeof window === "undefined") return;
+  const key = REGISTRATION_STORAGE_PREFIX + userId;
+  try {
+    sessionStorage.setItem(key, "1");
+    localStorage.setItem(key, "1");
+  } catch {
+    // ignore
+  }
 }
 
 export function hasPurchaseBeenTracked(bookingId: string): boolean {

@@ -14,6 +14,7 @@ const ALLOWED_EVENTS = new Set([
   "PageView",
   "LandingPageView",
   "ViewContent",
+  "CompleteRegistration",
 ]);
 
 type Body = {

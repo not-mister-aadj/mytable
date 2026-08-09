@@ -104,6 +104,53 @@ export async function GET(request: NextRequest) {
     intendedNext: next,
   });
 
+  // Funnel signal for Meta (Purchase optimization learns registration → buy).
+  try {
+    const createdMs = new Date(data.user.created_at).getTime();
+    const isNew =
+      !Number.isNaN(createdMs) && Date.now() - createdMs < 15 * 60 * 1000;
+    if (isNew) {
+      const {
+        extractClientIp,
+        extractClientUserAgent,
+        sendMetaCapiEvent,
+        splitPersonName,
+      } = await import("@/lib/analytics/metaCapiClient");
+      const { metaCompleteRegistrationEventId } = await import(
+        "@/lib/analytics/metaIds"
+      );
+      const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+      const fullName =
+        (typeof meta.full_name === "string" && meta.full_name) ||
+        (typeof meta.name === "string" && meta.name) ||
+        "";
+      const nameParts = splitPersonName(fullName);
+      void sendMetaCapiEvent({
+        eventName: "CompleteRegistration",
+        eventId: metaCompleteRegistrationEventId(data.user.id),
+        eventSourceUrl: `${siteOrigin}${destination}`,
+        userData: {
+          email: data.user.email,
+          firstName: nameParts.firstName,
+          lastName: nameParts.lastName,
+          externalId: data.user.id,
+          country: "nl",
+          clientIpAddress: extractClientIp(request),
+          clientUserAgent: extractClientUserAgent(request),
+          fbp: request.cookies.get("_fbp")?.value ?? null,
+          fbc: request.cookies.get("_fbc")?.value ?? null,
+        },
+        customData: {
+          content_name: "account_registration",
+          status: true,
+          method: "google",
+        },
+      });
+    }
+  } catch (err) {
+    console.error("[auth/callback] meta complete registration", err);
+  }
+
   const response = NextResponse.redirect(`${siteOrigin}${destination}`);
   pendingCookies.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, options);

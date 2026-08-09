@@ -10,6 +10,10 @@ export function metaLeadEventId(waitlistId: string): string {
   return `lead_${waitlistId}`;
 }
 
+export function metaCompleteRegistrationEventId(userId: string): string {
+  return `registration_${userId}`;
+}
+
 export function metaViewContentEventId(eventId: string): string {
   return `viewcontent_${eventId}`;
 }

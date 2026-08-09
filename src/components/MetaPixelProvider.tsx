@@ -10,7 +10,7 @@ import {
   isMetaPixelConfigured,
   isMetaPixelEnabled,
 } from "@/lib/analytics/metaPixel";
-import { trackMetaPageView } from "@/lib/analytics/metaTracking";
+import { trackMetaCompleteRegistration, trackMetaPageView } from "@/lib/analytics/metaTracking";
 import { persistUtmFromUrl } from "@/lib/analytics/utm";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 
@@ -47,6 +47,11 @@ function MetaPixelTracker() {
       });
     });
     return cleanup;
+  }, [user, loading]);
+
+  useEffect(() => {
+    if (!isMetaPixelEnabled() || loading || !user) return;
+    trackMetaCompleteRegistration(user);
   }, [user, loading]);
 
   useEffect(() => {

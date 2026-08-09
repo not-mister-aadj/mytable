@@ -3,13 +3,16 @@
 import type { ExperienceItem } from "@/i18n/types";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 import {
+  completeRegistration,
   initiateCheckout,
+  isLikelyNewAuthUser,
   landingPageView,
   lead,
   pageView,
   purchase,
   viewContent,
 } from "@/lib/analytics/metaPixel";
+import type { User } from "@supabase/supabase-js";
 import { inferPageType } from "@/lib/analytics/inferPageType";
 import type { ClubPlanId } from "@/db/schema";
 import { CLUB_PLAN_PRICING } from "@/lib/club/plan-pricing";
@@ -173,4 +176,20 @@ export function trackMetaLead(input: {
     city: input.city,
     waitlist_id: input.waitlistId,
   });
+}
+
+/** New account only — funnel signal that registration precedes Purchase. */
+export function trackMetaCompleteRegistration(user: User): void {
+  if (!isLikelyNewAuthUser(user.created_at)) return;
+  const provider =
+    typeof user.app_metadata?.provider === "string"
+      ? user.app_metadata.provider
+      : "";
+  const method =
+    provider === "google"
+      ? "google"
+      : provider === "email"
+        ? "email_otp"
+        : "unknown";
+  completeRegistration({ userId: user.id, method });
 }

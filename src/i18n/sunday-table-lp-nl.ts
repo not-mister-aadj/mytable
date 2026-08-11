@@ -13,9 +13,9 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   socialProof: "Live in Rotterdam & Den Haag. Meer volgen gauw.",
   headline: "Een sociaal leven zonder dat je het zelf hoeft te plannen",
   headlineCity: "Een sociaal leven zonder dat je het zelf hoeft te plannen, in {city}",
-  line: "Sunday Table geeft je elke maand een tafel met nieuwe mensen, keer op keer. Geen datingagenda. Alleen komen is normaal.",
+  line: "Sunday Table geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van de stad. Geen datingagenda. Alleen komen is normaal.",
   lineCity:
-    "Sunday Table geeft je elke maand een tafel met nieuwe mensen, keer op keer, in {city}. Geen datingagenda. Alleen komen is normaal.",
+    "Sunday Table geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van {city}. Geen datingagenda. Alleen komen is normaal.",
   heroBenefits: [
     {
       bold: "Gematchte tafel",

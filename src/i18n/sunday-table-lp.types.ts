@@ -19,6 +19,10 @@ export type SundayTableLpLabels = {
   ctaHint: string;
   /** Risk reversal under the primary CTA */
   ctaRisk: string;
+  /** One-line version of ctaRisk for the mobile sticky bar (limited vertical space) */
+  ctaRiskShort: string;
+  /** Short name for the guarantee, shown bold in the guarantee badge */
+  guaranteeName: string;
   secondaryCta: string;
   /** Top announcement bar + WhatsApp sale modal */
   sale: {
@@ -49,6 +53,13 @@ export type SundayTableLpLabels = {
     mixedTitle: string;
     mixedBody: string;
   };
+  /** How tables get matched — honesty about the real signals we use (energy type, table choice, city) */
+  matching: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    items: Array<{ title: string; body: string }>;
+  };
   proof: {
     eyebrow: string;
     title: string;
@@ -74,6 +85,8 @@ export type SundayTableLpLabels = {
     yearLabel: string;
     yearPrice: string;
     yearHint: string;
+    /** Why curation costs more than a self-service marketplace, shown near the price table */
+    justification: string;
   };
   cities: {
     eyebrow: string;
@@ -87,5 +100,13 @@ export type SundayTableLpLabels = {
     titleCity: string;
     body: string;
     cta: string;
+    /** Honest early-stage framing — no fabricated scale numbers */
+    earlyNote: string;
+  };
+  /** Objection-handling FAQ, shown right before the final CTA */
+  faq: {
+    eyebrow: string;
+    title: string;
+    items: Array<{ question: string; answer: string }>;
   };
 };

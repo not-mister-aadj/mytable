@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import { getGirlsOnlyHeroSlideshowImages } from "@/data/girls-only-media";
@@ -56,6 +56,8 @@ export function SundayTableHeroGallery({ locale }: { locale: Locale }) {
   const [index, setIndex] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
   const isEn = locale === "en";
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const thumbTrackRef = useRef<HTMLDivElement | null>(null);
 
   const pauseAutoplay = useCallback(() => {
     setPausedUntil(Date.now() + PAUSE_AFTER_INTERACT_MS);
@@ -80,6 +82,24 @@ export function SundayTableHeroGallery({ locale }: { locale: Locale }) {
 
     return () => window.clearInterval(timer);
   }, [pausedUntil, reduceMotion, slides.length]);
+
+  // Keep the active thumbnail visible inside the horizontally scrollable
+  // filmstrip — otherwise autoplay/nav-button changes can select a thumbnail
+  // that's scrolled out of view, with no indication anything changed there.
+  // Scrolls only the filmstrip's own scrollLeft — never use scrollIntoView
+  // here, it also drags the whole page's vertical scroll toward this element
+  // whenever it's off-screen, which fires every 4.5s during autoplay.
+  useEffect(() => {
+    const btn = thumbRefs.current[index];
+    const track = thumbTrackRef.current;
+    if (!btn || !track) return;
+    const target =
+      btn.offsetLeft - track.clientWidth / 2 + btn.offsetWidth / 2;
+    track.scrollTo({
+      left: Math.max(0, target),
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, [index, reduceMotion]);
 
   if (slides.length === 0) return null;
 
@@ -132,7 +152,8 @@ export function SundayTableHeroGallery({ locale }: { locale: Locale }) {
 
       {slides.length > 1 ? (
         <div
-          className="mt-2.5 -mx-0.5 max-w-full min-w-0 overflow-x-auto px-0.5 pb-1 scrollbar-none sm:mt-4"
+          ref={thumbTrackRef}
+          className="mt-2.5 -mx-0.5 -my-1.5 max-w-full min-w-0 overflow-x-auto px-0.5 py-1.5 scrollbar-none sm:mt-4 sm:-my-2 sm:py-2"
           role="tablist"
           aria-label={isEn ? "Photo previews" : "Foto-voorbeelden"}
         >
@@ -142,6 +163,9 @@ export function SundayTableHeroGallery({ locale }: { locale: Locale }) {
               return (
                 <button
                   key={slide.src}
+                  ref={(el) => {
+                    thumbRefs.current[slideIndex] = el;
+                  }}
                   type="button"
                   role="tab"
                   aria-selected={isActive}
@@ -151,7 +175,7 @@ export function SundayTableHeroGallery({ locale }: { locale: Locale }) {
                       : `Toon foto ${slideIndex + 1}`
                   }
                   onClick={() => goTo(slideIndex)}
-                  className={`relative aspect-square w-10 shrink-0 overflow-hidden rounded-md transition sm:w-14 sm:rounded-lg ${
+                  className={`relative aspect-square w-11 shrink-0 overflow-hidden rounded-md transition sm:w-14 sm:rounded-lg ${
                     isActive
                       ? "ring-2 ring-wine ring-offset-1 ring-offset-white sm:ring-offset-2"
                       : "opacity-55 hover:opacity-90"

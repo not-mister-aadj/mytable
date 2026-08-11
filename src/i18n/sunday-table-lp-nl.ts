@@ -10,12 +10,12 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       "Nieuwe mensen elke eerste zondag van de maand in {city}. Girls only of gemengd. Claim je Clubmember-plek.",
   },
   brand: "MyTable",
-  socialProof: "Live in 2 steden. Meer volgen gauw.",
-  headline: "Nieuwe mensen elke eerste zondag van de maand",
-  headlineCity: "Nieuwe mensen elke eerste zondag van de maand in {city}",
-  line: "Maak nieuwe culinaire vrienden. Geen dating. Solo komen is normaal.",
+  socialProof: "Live in Rotterdam & Den Haag. Meer volgen gauw.",
+  headline: "Een sociaal leven zonder dat je het zelf hoeft te plannen",
+  headlineCity: "Een sociaal leven zonder dat je het zelf hoeft te plannen, in {city}",
+  line: "Sunday Table geeft je elke maand een tafel met nieuwe mensen, keer op keer. Geen datingagenda. Alleen komen is normaal.",
   lineCity:
-    "Maak nieuwe culinaire vrienden. Geen dating. Solo komen is normaal. In {city}.",
+    "Sunday Table geeft je elke maand een tafel met nieuwe mensen, keer op keer, in {city}. Geen datingagenda. Alleen komen is normaal.",
   heroBenefits: [
     {
       bold: "Gematchte tafel",
@@ -31,8 +31,11 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     },
   ],
   cta: "Claim je plek",
-  ctaHint: "Vanaf €8,33/maand",
-  ctaRisk: "Of probeer de trial voor een maand. Stopt automatisch.",
+  ctaHint: "Vanaf €8,33/maand (12 mnd)",
+  ctaRisk:
+    "Kom naar je eerste Sunday Table. Achteraf toch niks voor jou? Laat het ons binnen 48 uur weten en je krijgt de trial volledig terug.",
+  ctaRiskShort: "Achteraf niks voor jou? Trial binnen 48u terug.",
+  guaranteeName: "De Eerste-Zondag Garantie",
   secondaryCta: "Wat je krijgt",
   sale: {
     bar: "TRY-OUT SALE: 80% korting als je de WhatsApp-groep joint",
@@ -50,7 +53,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   how: {
     eyebrow: "Clubmember",
     title: "Voor nieuwe smaken én nieuwe gezichten",
-    body: "Sunday Table is waar je nieuwe mensen ontmoet. Met je nieuwe culinaire vrienden boek je later wine walks, proeverijen en diners.",
+    body: "Sunday Table is waar je nieuwe mensen ontmoet en de leukste culinaire plekken van de stad ontdekt. Met je nieuwe tafelgenoten boek je daarna wine walks, proeverijen en diners.",
     steps: [
       {
         title: "Kies je stad",
@@ -77,6 +80,25 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     mixedBody:
       "Iedereen welkom. Nieuwe gezichten, puur vriendschappelijk.",
   },
+  matching: {
+    eyebrow: "Hoe we matchen",
+    title: "Geen algoritme-gedoe, wel een tafel die klopt",
+    body: "We stellen elke tafel met de hand samen op een paar simpele signalen, zodat het gewoon klikt.",
+    items: [
+      {
+        title: "Energie-type",
+        body: "Introvert, ambivert of extravert. Niemand hoeft te schreeuwen om gehoord te worden.",
+      },
+      {
+        title: "Tafelkeuze",
+        body: "Girls only of gemengd, precies zoals jij het wil.",
+      },
+      {
+        title: "Stad en groepsgrootte",
+        body: "Maximaal tien plekken, in jouw stad.",
+      },
+    ],
+  },
   proof: {
     eyebrow: "Aan tafel",
     title: "Solo gekomen. Met plannen naar huis.",
@@ -101,7 +123,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       },
       {
         title: "MyTable aanraders",
-        body: "Ontdek de beste wijnbars en restaurants in de stad. Vaak met korting die we voor members regelen.",
+        body: "De leukste cafés, restaurants en wijnbars van de stad, door ons uitgezocht. Met een kortingsmenu speciaal voor members.",
       },
       {
         title: "10% op culinaire ervaringen",
@@ -123,6 +145,8 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     yearLabel: "12 maanden",
     yearPrice: "€100",
     yearHint: "€8,33/maand",
+    justification:
+      "Je betaalt niet voor één tafel. Je betaalt voor een netwerk van mensen om steeds opnieuw mee af te spreken. Voor 10% korting op elke ervaring die volgt. En voor een zondag die altijd goed voelt, want je hoort bij de club.",
   },
   cities: {
     eyebrow: "Steden",
@@ -136,5 +160,33 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     titleCity: "Klaar voor Sunday Table in {city}?",
     body: "Tien plekken. Eerste zondag. Jij erbij.",
     cta: "Claim je plek",
+    earlyNote:
+      "We zijn nog klein en persoonlijk. Jouw tafel helpt bepalen hoe Sunday Table verder groeit.",
+  },
+  faq: {
+    eyebrow: "Vragen",
+    title: "Nog twijfels? Hier zijn de antwoorden",
+    items: [
+      {
+        question: "Wat als ik niemand tof vind aan tafel?",
+        answer:
+          "Kans is klein. Maar dan geldt de Eerste-Zondag Garantie. Laat het ons binnen 48 uur weten en je krijgt je trial volledig terug.",
+      },
+      {
+        question: "Moet ik solo komen?",
+        answer:
+          "Nee. Je mag een +1 meenemen, zonder extra kosten. Maar solo komen is hier de norm, niet de uitzondering.",
+      },
+      {
+        question: "Wat kost een avond me in totaal?",
+        answer:
+          "Je abonnement dekt de tafel en de matching. Drankjes en hapjes betaal je zelf op locatie, vaak met een kortingsmenu dat we voor members regelen. Culinaire ervaringen uit de agenda zijn wel all-in.",
+      },
+      {
+        question: "Kan ik op elk moment opzeggen?",
+        answer:
+          "Bij de 5- of 12-maanden plannen zeg je op wanneer je wil. Het loopt door tot je opzegt. De trialmaand is eenmalig en verlengt sowieso niet.",
+      },
+    ],
   },
 };

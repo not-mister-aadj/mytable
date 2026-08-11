@@ -10,12 +10,12 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       "New people every first Sunday of the month in {city}. Girls only or mixed. Claim your Clubmember seat.",
   },
   brand: "MyTable",
-  socialProof: "Live in 2 cities. More coming soon.",
-  headline: "New people every first Sunday of the month",
-  headlineCity: "New people every first Sunday of the month in {city}",
-  line: "Make new culinary friends. No dating. Coming solo is normal.",
+  socialProof: "Live in Rotterdam & The Hague. More coming soon.",
+  headline: "A social life you don't have to plan",
+  headlineCity: "A social life you don't have to plan, in {city}",
+  line: "Sunday Table gives you a table of new people every month, on repeat. No dating agenda. Coming solo is normal.",
   lineCity:
-    "Make new culinary friends. No dating. Coming solo is normal. In {city}.",
+    "Sunday Table gives you a table of new people every month, on repeat, in {city}. No dating agenda. Coming solo is normal.",
   heroBenefits: [
     {
       bold: "Matched table",
@@ -31,8 +31,11 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     },
   ],
   cta: "Claim your seat",
-  ctaHint: "From €8.33/month",
-  ctaRisk: "Or try the trial for a month. It stops automatically.",
+  ctaHint: "From €8.33/month (12 mo)",
+  ctaRisk:
+    "Come to your first Sunday Table. Turns out it's not for you? Tell us within 48 hours and we refund the trial in full.",
+  ctaRiskShort: "Turns out it's not for you? Full refund within 48h.",
+  guaranteeName: "The First-Sunday Guarantee",
   secondaryCta: "What you get",
   sale: {
     bar: "TRY-OUT SALE: 80% off when you join WhatsApp",
@@ -50,7 +53,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   how: {
     eyebrow: "Clubmember",
     title: "For new flavors and new faces",
-    body: "Sunday Table is where you meet new people. With your new culinary friends you later book wine walks, tastings and dinners.",
+    body: "Sunday Table is where you meet new people and discover the city's best culinary spots. With your new tablemates you then book wine walks, tastings and dinners.",
     steps: [
       {
         title: "Pick your city",
@@ -77,6 +80,25 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     mixedBody:
       "Everyone welcome. New faces, purely platonic.",
   },
+  matching: {
+    eyebrow: "How we match",
+    title: "No algorithm gimmicks, just a table that clicks",
+    body: "We put every table together by hand using a few simple signals, so it just works.",
+    items: [
+      {
+        title: "Energy type",
+        body: "Introverted, ambivert, or extroverted. No one has to shout to be heard.",
+      },
+      {
+        title: "Table choice",
+        body: "Girls only or mixed, exactly how you want it.",
+      },
+      {
+        title: "City & group size",
+        body: "Maximum ten seats, in your city.",
+      },
+    ],
+  },
   proof: {
     eyebrow: "From the table",
     title: "Arrived solo. Left with plans.",
@@ -101,7 +123,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       },
       {
         title: "MyTable picks",
-        body: "Discover the best wine bars and restaurants in the city. Often with a discount we arrange for members.",
+        body: "The best cafes, restaurants and wine bars in the city, hand-picked by us. With a discount menu made for members.",
       },
       {
         title: "10% off culinary experiences",
@@ -123,6 +145,8 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     yearLabel: "12 months",
     yearPrice: "€100",
     yearHint: "€8.33/month",
+    justification:
+      "You're not paying for one table. You're paying for a network of people to keep meeting up with. For 10% off every experience that follows. And for a Sunday that always feels good, because you belong to the club.",
   },
   cities: {
     eyebrow: "Cities",
@@ -136,5 +160,33 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     titleCity: "Ready for Sunday Table in {city}?",
     body: "Ten seats. First Sunday. You’re in.",
     cta: "Claim your seat",
+    earlyNote:
+      "We're still small and personal. Your table helps shape how Sunday Table grows from here.",
+  },
+  faq: {
+    eyebrow: "Questions",
+    title: "Still on the fence? Here are the answers",
+    items: [
+      {
+        question: "What if I don't click with anyone at the table?",
+        answer:
+          "Unlikely. But that's what the First-Sunday Guarantee is for. Tell us within 48 hours and we refund your trial in full.",
+      },
+      {
+        question: "Do I have to come alone?",
+        answer:
+          "No. You can bring a +1 at no extra cost. But coming solo is the norm here, not the exception.",
+      },
+      {
+        question: "What does an evening actually cost me?",
+        answer:
+          "Your membership covers the table and the matching. Drinks and bites you pay for yourself on location, often with a discount menu we arrange for members. Culinary experiences from the agenda are all-in though.",
+      },
+      {
+        question: "Can I cancel anytime?",
+        answer:
+          "On the 5- or 12-month plans, you cancel whenever you want. It runs until you do. The trial month is one-time and doesn't renew regardless.",
+      },
+    ],
   },
 };

@@ -144,11 +144,11 @@ html.samsung-force-light picture {
 }
 
 .animate-marquee-left {
-  animation: marquee-left 75s linear infinite;
+  animation: marquee-left 130s linear infinite;
 }
 
 .animate-marquee-right {
-  animation: marquee-right 75s linear infinite;
+  animation: marquee-right 130s linear infinite;
 }
 
 .animate-photo-marquee-right {
@@ -156,9 +156,12 @@ html.samsung-force-light picture {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* animation-play-state preserves the exact current position; changing
+     animation-duration instead would snap the track to a different point
+     in the loop the instant you hover (elapsed-time / new-duration). */
   .group\/marquee:hover .animate-marquee-left,
   .group\/marquee:hover .animate-marquee-right {
-    animation-duration: 220s;
+    animation-play-state: paused;
   }
 }
 

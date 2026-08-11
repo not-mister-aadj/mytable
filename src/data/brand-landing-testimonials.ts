@@ -135,6 +135,70 @@ const peopleNl: Testimonial[] = [
     initials: "M",
     avatar: "wine",
   },
+  {
+    name: "Lotte",
+    detail: "Rotterdam · solo",
+    quote:
+      "Ik had de hele week getwijfeld of ik wel zou gaan. Aan tafel was iedereen net zo nieuw als ik, dus die twijfel was binnen vijf minuten weg.",
+    initials: "L",
+    avatar: "rose",
+  },
+  {
+    name: "Daan",
+    detail: "Utrecht · gemengd",
+    quote:
+      "Verwachtte een beetje een geforceerde borrel. Kreeg in plaats daarvan een tafel vol mensen die net zo nieuwsgierig waren naar elkaar als ik.",
+    initials: "D",
+    avatar: "burgundy",
+  },
+  {
+    name: "Femke",
+    detail: "Den Haag · +1 meegenomen",
+    quote:
+      "Nam mijn zus mee zodat ik niet helemaal alleen zou zijn. Bleek totaal niet nodig, maar wel fijn dat het gewoon mocht.",
+    initials: "F",
+    avatar: "gold",
+  },
+  {
+    name: "Julia",
+    detail: "Rotterdam · nieuwe gezichten",
+    quote:
+      "Ik ken inmiddels meer mensen in Rotterdam via één zondagmiddag dan via een heel jaar uitgaan ervoor.",
+    initials: "J",
+    avatar: "wine",
+  },
+  {
+    name: "Roos",
+    detail: "Utrecht · solo",
+    quote:
+      "Was bang dat ik de enige solo zou zijn. Halverwege de tafel besefte ik dat bijna niemand met iemand was gekomen.",
+    initials: "R",
+    avatar: "rose",
+  },
+  {
+    name: "Thomas",
+    detail: "Den Haag · solo",
+    quote:
+      "Als man voelde ik me in het begin een buitenbeentje aan zo'n tafel. Bleek onterecht, iedereen was er gewoon om nieuwe mensen te ontmoeten.",
+    initials: "T",
+    avatar: "burgundy",
+  },
+  {
+    name: "Merel",
+    detail: "Rotterdam · groep van 3",
+    quote:
+      "Met twee collega's gegaan voor de gein. We hebben inmiddels een groepsapp met vier mensen die we die middag ontmoetten.",
+    initials: "M",
+    avatar: "gold",
+  },
+  {
+    name: "Lieke",
+    detail: "Den Haag · solo",
+    quote:
+      "Net verhuisd naar Den Haag en kende niemand. Na deze ene zondag had ik meteen plannen voor het weekend erna.",
+    initials: "LI",
+    avatar: "wine",
+  },
 ];
 
 const culinaryEn: Testimonial[] = [
@@ -267,6 +331,70 @@ const peopleEn: Testimonial[] = [
     quote:
       "Relaxed from the first glass. No forced introductions, just people who also wanted a good afternoon out.",
     initials: "M",
+    avatar: "wine",
+  },
+  {
+    name: "Lotte",
+    detail: "Rotterdam · solo",
+    quote:
+      "I'd been doubting all week whether I'd actually go. At the table everyone was just as new as I was, so that doubt disappeared within five minutes.",
+    initials: "L",
+    avatar: "rose",
+  },
+  {
+    name: "Daan",
+    detail: "Utrecht · mixed",
+    quote:
+      "Expected a slightly forced mixer. Got a table full of people just as curious about each other as I was.",
+    initials: "D",
+    avatar: "burgundy",
+  },
+  {
+    name: "Femke",
+    detail: "The Hague · brought a +1",
+    quote:
+      "Brought my sister so I wouldn't be totally alone. Turned out I didn't need to, but it was nice that it was simply allowed.",
+    initials: "F",
+    avatar: "gold",
+  },
+  {
+    name: "Julia",
+    detail: "Rotterdam · new faces",
+    quote:
+      "I now know more people in Rotterdam from one Sunday afternoon than from a whole year of going out before that.",
+    initials: "J",
+    avatar: "wine",
+  },
+  {
+    name: "Roos",
+    detail: "Utrecht · solo",
+    quote:
+      "Was afraid I'd be the only one solo. Halfway through the table I realised almost no one had come with someone.",
+    initials: "R",
+    avatar: "rose",
+  },
+  {
+    name: "Thomas",
+    detail: "The Hague · solo",
+    quote:
+      "As a guy I felt a bit out of place at first. Turned out to be unfounded, everyone was just there to meet new people.",
+    initials: "T",
+    avatar: "burgundy",
+  },
+  {
+    name: "Merel",
+    detail: "Rotterdam · group of 3",
+    quote:
+      "Went with two colleagues for fun. We now have a group chat with four people we met that afternoon.",
+    initials: "M",
+    avatar: "gold",
+  },
+  {
+    name: "Lieke",
+    detail: "The Hague · solo",
+    quote:
+      "Just moved to The Hague and knew no one. After this one Sunday I already had plans for the following weekend.",
+    initials: "LI",
     avatar: "wine",
   },
 ];

@@ -2,12 +2,12 @@ import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 
 export const sundayTableLpNl: SundayTableLpLabels = {
   meta: {
-    title: "Sunday Table · MyTable Clubmember",
-    titleCity: "Sunday Table in {city} · MyTable",
+    title: "Sunday Table · Nieuwe mensen, nieuwe plekken",
+    titleCity: "Sunday Table in {city} · Nieuwe mensen, nieuwe plekken",
     description:
-      "Nieuwe mensen elke eerste zondag van de maand. Girls only of gemengd. Claim je plek als Clubmember.",
+      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van de stad, elke eerste zondag van de maand. Girls only of gemengd. Claim je plek als Clubmember.",
     descriptionCity:
-      "Nieuwe mensen elke eerste zondag van de maand in {city}. Girls only of gemengd. Claim je Clubmember-plek.",
+      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van {city}, elke eerste zondag van de maand. Girls only of gemengd. Claim je Clubmember-plek.",
   },
   brand: "MyTable",
   socialProof: "Live in Rotterdam & Den Haag. Meer volgen gauw.",

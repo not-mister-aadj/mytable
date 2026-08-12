@@ -26,7 +26,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       text: ", bring a +1 if you want",
     },
     {
-      bold: "MyTable menus with discount",
+      bold: "Special MyTable menus",
       text: ", or order from the regular menu",
     },
   ],

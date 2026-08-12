@@ -26,7 +26,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       text: ", +1 meenemen mag",
     },
     {
-      bold: "MyTable-menu’s met korting",
+      bold: "Speciale MyTable-menu’s",
       text: ", of bestel van de kaart",
     },
   ],

@@ -5,11 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
-import {
-  joinPath,
-  sundayTableLpCityPath,
-  sundayTableLpPath,
-} from "@/i18n/config";
+import { sundayTableLpCityPath, sundayTableLpPath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import { fillCity } from "@/i18n/get-sunday-table-lp";
@@ -17,6 +13,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
 import { SundayTableWhatsappSale } from "@/components/sunday-table-lp/SundayTableWhatsappSale";
+import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import {
@@ -32,12 +29,6 @@ import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-function joinHref(locale: Locale, cityName?: string | null): string {
-  const base = joinPath(locale);
-  if (!cityName) return base;
-  return `${base}?city=${encodeURIComponent(cityName)}`;
-}
-
 function PrimaryCta({
   href,
   label,
@@ -46,7 +37,8 @@ function PrimaryCta({
   variant = "burgundy",
   className = "",
 }: {
-  href: string;
+  /** Omit to render a button (opens the waitlist modal) instead of a link. */
+  href?: string;
   label: string;
   hint?: string;
   onClick?: () => void;
@@ -54,30 +46,39 @@ function PrimaryCta({
   className?: string;
 }) {
   const isCream = variant === "cream";
+  const sharedClassName = `cta-lift inline-flex min-h-[3.25rem] w-full max-w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center sm:min-w-[15.5rem] sm:w-auto ${
+    isCream
+      ? "cta-lift-cream bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white"
+      : "cta-lift-burgundy bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine"
+  }`;
+  const content = (
+    <>
+      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
+        {label}
+      </span>
+      {hint ? (
+        <span
+          className={`mt-0.5 text-[11px] font-medium normal-case tracking-normal ${
+            isCream ? "text-wine/55" : "text-cream/70"
+          }`}
+        >
+          {hint}
+        </span>
+      ) : null}
+    </>
+  );
+
   return (
     <div className={`w-full min-w-0 sm:w-auto ${className}`}>
-      <Link
-        href={href}
-        onClick={onClick}
-        className={`cta-lift inline-flex min-h-[3.25rem] w-full max-w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center sm:min-w-[15.5rem] sm:w-auto ${
-          isCream
-            ? "cta-lift-cream bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white"
-            : "cta-lift-burgundy bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine"
-        }`}
-      >
-        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
-          {label}
-        </span>
-        {hint ? (
-          <span
-            className={`mt-0.5 text-[11px] font-medium normal-case tracking-normal ${
-              isCream ? "text-wine/55" : "text-cream/70"
-            }`}
-          >
-            {hint}
-          </span>
-        ) : null}
-      </Link>
+      {href ? (
+        <Link href={href} onClick={onClick} className={sharedClassName}>
+          {content}
+        </Link>
+      ) : (
+        <button type="button" onClick={onClick} className={sharedClassName}>
+          {content}
+        </button>
+      )}
     </div>
   );
 }
@@ -180,12 +181,13 @@ export function SundayTableLpView({
   const finalTitle = cityName
     ? fillCity(labels.final.titleCity, cityName)
     : labels.final.title;
-  const ctaHref = joinHref(locale, cityName);
   const [saleOpen, setSaleOpen] = useState(false);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
 
-  function onClaimClick(cta: string, source: string) {
+  function openWaitlist(cta: string, source: string) {
     if (cityName) rememberPreferredCity(cityName);
     trackSundayTableCtaClicked({ cta, source, locale });
+    setWaitlistOpen(true);
   }
 
   return (
@@ -195,6 +197,13 @@ export function SundayTableLpView({
         locale={locale}
         open={saleOpen}
         onOpenChange={setSaleOpen}
+      />
+      <SundayTableWaitlistModal
+        labels={labels.waitlist}
+        locale={locale}
+        open={waitlistOpen}
+        onOpenChange={setWaitlistOpen}
+        cityName={cityName}
       />
       <Header dict={headerDict} locale={locale} className="top-[2.6rem]" />
 
@@ -266,11 +275,10 @@ export function SundayTableLpView({
             >
               <div className="hidden lg:block">
                 <PrimaryCta
-                  href={ctaHref}
                   label={labels.cta}
                   hint={labels.ctaHint}
                   onClick={() =>
-                    onClaimClick("hero_primary", "sunday_table_hero")
+                    openWaitlist("hero_primary", "sunday_table_hero")
                   }
                 />
               </div>
@@ -287,15 +295,6 @@ export function SundayTableLpView({
               >
                 {labels.secondaryCta}
               </a>
-            </motion.div>
-
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.45, delay: 0.3, ease }}
-              className="mt-4 hidden max-w-md lg:block"
-            >
-              <GuaranteeBadge name={labels.guaranteeName} text={labels.ctaRisk} />
             </motion.div>
           </div>
 
@@ -409,11 +408,10 @@ export function SundayTableLpView({
 
               <div className="mt-5 hidden sm:mt-6 lg:block">
                 <PrimaryCta
-                  href={ctaHref}
                   label={labels.cta}
                   hint={labels.ctaHint}
                   onClick={() =>
-                    onClaimClick("included_cta", "sunday_table_included")
+                    openWaitlist("included_cta", "sunday_table_included")
                   }
                 />
               </div>
@@ -519,10 +517,9 @@ export function SundayTableLpView({
         </div>
         <div className="mt-8 hidden justify-center px-5 sm:mt-10 sm:px-8 lg:flex">
           <PrimaryCta
-            href={ctaHref}
             label={labels.proof.cta}
             hint={labels.ctaHint}
-            onClick={() => onClaimClick("proof_cta", "sunday_table_proof")}
+            onClick={() => openWaitlist("proof_cta", "sunday_table_proof")}
           />
         </div>
       </section>
@@ -611,12 +608,11 @@ export function SundayTableLpView({
 
           <div className="mt-6 hidden sm:mt-8 lg:block">
             <PrimaryCta
-              href={ctaHref}
               label={labels.cta}
               hint={labels.ctaHint}
               variant="cream"
               onClick={() =>
-                onClaimClick("pricing_cta", "sunday_table_pricing")
+                openWaitlist("pricing_cta", "sunday_table_pricing")
               }
             />
           </div>
@@ -688,10 +684,9 @@ export function SundayTableLpView({
 
           <div className="mt-8 hidden sm:mt-10 lg:block">
             <PrimaryCta
-              href={ctaHref}
               label={labels.cta}
               hint={labels.ctaHint}
-              onClick={() => onClaimClick("tables_cta", "sunday_table_tables")}
+              onClick={() => openWaitlist("tables_cta", "sunday_table_tables")}
             />
           </div>
         </div>
@@ -828,10 +823,9 @@ export function SundayTableLpView({
           </p>
           <div className="mt-8 hidden justify-center sm:mt-10 lg:flex">
             <PrimaryCta
-              href={ctaHref}
               label={labels.final.cta}
               hint={labels.ctaHint}
-              onClick={() => onClaimClick("final_cta", "sunday_table_final")}
+              onClick={() => openWaitlist("final_cta", "sunday_table_final")}
             />
           </div>
         </div>
@@ -852,20 +846,13 @@ export function SundayTableLpView({
       >
         <div className="mx-auto max-w-7xl px-4 py-2.5">
           <PrimaryCta
-            href={ctaHref}
             label={labels.cta}
             hint={labels.ctaHint}
             onClick={() =>
-              onClaimClick("mobile_sticky", "sunday_table_mobile_sticky")
+              openWaitlist("mobile_sticky", "sunday_table_mobile_sticky")
             }
             className="w-full"
           />
-          <p className="mt-1.5 flex items-center justify-center gap-1 text-center text-[11px] leading-snug text-[#2f5c2a]">
-            <span aria-hidden className="shrink-0">
-              ✓
-            </span>
-            {labels.ctaRiskShort}
-          </p>
         </div>
       </div>
     </>

@@ -238,6 +238,32 @@ export const waitlistSignups = pgTable(
   }),
 );
 
+export const sundayTableWaitlistInvites = pgTable(
+  "sunday_table_waitlist_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    waitlistSignupId: uuid("waitlist_signup_id")
+      .notNull()
+      .references(() => waitlistSignups.id, { onDelete: "cascade" }),
+    city: text("city").notNull(),
+    tableDate: date("table_date").notNull(),
+    tableType: text("table_type").notNull(),
+    email: text("email").notNull(),
+    locale: text("locale").notNull().default("nl"),
+    sentAt: timestamp("sent_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    cohortUnique: uniqueIndex("sunday_table_waitlist_invites_unique").on(
+      table.waitlistSignupId,
+      table.city,
+      table.tableDate,
+      table.tableType,
+    ),
+  }),
+);
+
 export const customerActivities = pgTable("customer_activities", {
   id: uuid("id").primaryKey().defaultRandom(),
   customerId: uuid("customer_id")
@@ -484,6 +510,8 @@ export type Booking = typeof bookings.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type ClubMembership = typeof clubMemberships.$inferSelect;
 export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
+export type SundayTableWaitlistInvite =
+  typeof sundayTableWaitlistInvites.$inferSelect;
 export type SundayTableReview = typeof sundayTableReviews.$inferSelect;
 export type ReferralCode = typeof referralCodes.$inferSelect;
 export type ReferralAttribution = typeof referralAttributions.$inferSelect;

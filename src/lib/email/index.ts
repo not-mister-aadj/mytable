@@ -21,3 +21,5 @@ export {
   buildBookingConfirmationEmailProps,
   buildBookingMovedEmailProps,
 } from "@/lib/email/build-email-props";
+export { sendSundayTableWaitlistWelcomeEmail } from "@/lib/email/sendSundayTableWaitlistEmails";
+export { sendSundayTableWaitlistInvites } from "@/lib/email/sendSundayTableWaitlistInviteEmails";

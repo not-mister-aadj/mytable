@@ -5,9 +5,9 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     title: "Sunday Table · New people, new places",
     titleCity: "Sunday Table in {city} · New people, new places",
     description:
-      "Meet new people and discover the city's best culinary spots, every first Sunday of the month. Girls only or mixed. Claim your Clubmember seat.",
+      "Meet new people and discover the city's best culinary spots, every first Sunday of the month. Girls only or mixed. Join the waitlist.",
     descriptionCity:
-      "Meet new people and discover {city}'s best culinary spots, every first Sunday of the month. Girls only or mixed. Claim your Clubmember seat.",
+      "Meet new people and discover {city}'s best culinary spots, every first Sunday of the month. Girls only or mixed. Join the waitlist.",
   },
   brand: "MyTable",
   socialProof: "Live in Rotterdam & The Hague. More coming soon.",
@@ -30,8 +30,8 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       text: ", or order from the regular menu",
     },
   ],
-  cta: "Claim your seat",
-  ctaHint: "From €8.33/month (12 mo)",
+  cta: "Join the waitlist",
+  ctaHint: "Free. No spam.",
   ctaRisk:
     "Come to your first Sunday Table. Turns out it's not for you? Tell us within 48 hours and we refund the trial in full.",
   ctaRiskShort: "Turns out it's not for you? Full refund within 48h.",
@@ -56,23 +56,23 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     body: "Sunday Table is where you meet new people and discover the city's best culinary spots. With your new tablemates you then book wine walks, tastings and dinners.",
     steps: [
       {
-        title: "Pick your city",
-        body: "Rotterdam or The Hague. Ten seats per table.",
+        title: "Join the waitlist",
+        body: "Tell us what you're looking for. Takes a minute, costs nothing.",
       },
       {
-        title: "Pick your table",
-        body: "Girls only or mixed. Solo is the default, bringing a plus-one is fine. No dating agenda.",
+        title: "We form a table",
+        body: "Once enough people who fit are on the list, we start planning.",
       },
       {
-        title: "Make plans after",
-        body: "Culinary experiences from the agenda, with 10% Clubmember off.",
+        title: "Claim your seat",
+        body: "You'll get an email once your table is ready. That's when you pay.",
       },
     ],
   },
   tables: {
     eyebrow: "Your table",
     title: "Girls only or mixed",
-    body: "When you claim your seat you choose what fits. Both are Sunday Table: new people, real conversation.",
+    body: "When you join the waitlist you choose what fits. Both are Sunday Table: new people, real conversation.",
     girlsOnlyTitle: "Girls only",
     girlsOnlyBody:
       "Women only at the table. Ideal if you’d rather land in a girls’ group.",
@@ -103,7 +103,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     eyebrow: "From the table",
     title: "Arrived solo. Left with plans.",
     body: "Real moments from Sunday Tables and the nights that follow.",
-    cta: "Claim your seat",
+    cta: "Join the waitlist",
   },
   included: {
     eyebrow: "Included",
@@ -135,7 +135,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   pricing: {
     eyebrow: "Pricing",
     title: "Start small. Or do what most people do.",
-    body: "The trial month is one-time and does not renew. Longer plans do, until you cancel.",
+    body: "This is what it costs once you're invited to a table. The trial month is one-time and does not renew. Longer plans do, until you cancel.",
     trialLabel: "1 month trial",
     trialPrice: "€21",
     trialHint: "One-time. Does not renew.",
@@ -146,7 +146,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     yearPrice: "€100",
     yearHint: "€8.33/month",
     justification:
-      "You're not paying for one table. You're paying for a network of people to keep meeting up with. For 10% off every experience that follows. And for a Sunday that always feels good, because you belong to the club.",
+      "You're not paying for one table. You're paying for an evening of good wine and good company. For 10% off every experience that follows. And for a circle that grows naturally, the more often you show up.",
   },
   cities: {
     eyebrow: "Cities",
@@ -158,8 +158,8 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   final: {
     title: "Ready for your first Sunday Table?",
     titleCity: "Ready for Sunday Table in {city}?",
-    body: "Ten seats. First Sunday. You’re in.",
-    cta: "Claim your seat",
+    body: "Ten seats per table. We'll email you once one forms in your city.",
+    cta: "Join the waitlist",
     earlyNote:
       "We're still small and personal. Your table helps shape how Sunday Table grows from here.",
   },
@@ -187,6 +187,69 @@ export const sundayTableLpEn: SundayTableLpLabels = {
         answer:
           "On the 5- or 12-month plans, you cancel whenever you want. It runs until you do. The trial month is one-time and doesn't renew regardless.",
       },
+      {
+        question: "How long until I hear back?",
+        answer:
+          "It varies by city and table type. We invite people by hand once there's enough interest for a table that clicks. You'll get an email when that happens.",
+      },
     ],
+  },
+  waitlist: {
+    eyebrow: "Waitlist",
+    title: "Join the waitlist",
+    body: "We'll let you know as soon as a table forms that fits you.",
+    nameLabel: "Name",
+    namePlaceholder: "First name",
+    emailLabel: "Email",
+    emailPlaceholder: "you@email.com",
+    cityLabel: "City",
+    cityOther: "Other city",
+    cityOtherPlaceholder: "Which city?",
+    submit: "Join the waitlist",
+    submitting: "Sending…",
+    privacyNote: "No spam. Unsubscribe anytime.",
+    error: "Something went wrong. Please try again.",
+    questionsTitle: "3 quick questions",
+    questionsBody: "Helps us find the right table for you. Totally optional.",
+    skip: "Skip",
+    back: "Back",
+    continueCta: "Continue",
+    progress: "Question {n} of {total}",
+    why: {
+      title: "Why Sunday Table?",
+      options: [
+        { id: "discover_wines", label: "Discover wine" },
+        { id: "discover_flavours", label: "New flavors" },
+        { id: "discover_places", label: "New places" },
+        { id: "no_organise", label: "Not organizing it myself" },
+        { id: "treat", label: "Treating myself" },
+        { id: "new_city", label: "New to the city" },
+      ],
+    },
+    company: {
+      title: "Who do you like to come with?",
+      options: [
+        { id: "meet_new", label: "Meet new people" },
+        { id: "bring_friends", label: "With friends" },
+        { id: "bring_partner", label: "With a partner" },
+        { id: "solo", label: "Solo" },
+      ],
+    },
+    tableType: {
+      title: "Which table?",
+      options: [
+        { id: "girls_only", label: "Girls only" },
+        { id: "mixed", label: "Mixed" },
+        { id: "no_preference", label: "No preference" },
+      ],
+    },
+    successTitle: "You're on the list",
+    successBody: "As soon as a table forms that fits you, you'll hear from us.",
+    successNext:
+      "In the meantime: join the WhatsApp group for discount codes and updates.",
+    whatsappGirlsLabel: "Girls only WhatsApp",
+    whatsappMixedLabel: "Mixed WhatsApp",
+    close: "Close",
+    dialogAria: "Join the waitlist",
   },
 };

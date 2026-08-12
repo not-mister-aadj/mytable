@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { createWaitlistSignup } from "@/lib/waitlist-data";
 import { onWaitlistJoined } from "@/lib/customers/hooks";
+import { sendSundayTableWaitlistWelcomeEmail } from "@/lib/email/sendSundayTableWaitlistEmails";
 import { sendMetaCapiLead } from "@/lib/analytics/metaCapi";
 import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
 import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
@@ -125,7 +126,8 @@ export async function POST(request: Request) {
     name?: string;
     locale?: string;
     source?: "waitlist" | "newsletter";
-    signupSource?: "waitlist" | "priority_list";
+    /** True for the second (preferences) POST of the two-step capture flow. */
+    enrich?: boolean;
     preferences?: unknown;
     meta?: {
       fbp?: string;
@@ -158,9 +160,9 @@ export async function POST(request: Request) {
   }
 
   const preferences = parsePreferences(body.preferences, cities);
+  const enrich = body.enrich === true;
   const signupIds: string[] = [];
-  const signupSource =
-    body.signupSource === "priority_list" ? "priority_list" : "waitlist";
+  const createdFlags: boolean[] = [];
 
   for (const city of cities) {
     const result = await createWaitlistSignup({
@@ -168,7 +170,7 @@ export async function POST(request: Request) {
       city,
       locale,
       name,
-      source: signupSource,
+      source: "waitlist",
       preferences,
     });
     if (!result.ok) {
@@ -181,32 +183,55 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    try {
-      await onWaitlistJoined({
-        email,
-        city,
-        locale,
-        waitlistId: result.id,
-        name: signupIds.length === 0 ? name : undefined,
-        preferences: signupIds.length === 0 ? preferences : undefined,
-      });
-    } catch (error) {
-      console.error("[waitlist] onWaitlistJoined failed:", error);
+    // The enrichment POST (step 2 of the capture flow) only updates
+    // preferences on an already-created row — skip the activity log and
+    // Meta Lead event so a second POST for the same person doesn't produce
+    // duplicate activity rows or corrupt ad-spend attribution.
+    if (!enrich) {
+      try {
+        await onWaitlistJoined({
+          email,
+          city,
+          locale,
+          waitlistId: result.id,
+          name: signupIds.length === 0 ? name : undefined,
+          preferences: signupIds.length === 0 ? preferences : undefined,
+        });
+      } catch (error) {
+        console.error("[waitlist] onWaitlistJoined failed:", error);
+      }
     }
 
     signupIds.push(result.id);
+    createdFlags.push(result.created);
   }
 
-  const metaContext = parseMetaTrackingContext(body.meta);
-  const primaryCity = cities[0]!;
-  void sendMetaCapiLead({
-    email,
-    city: primaryCity,
-    source: body.source === "newsletter" ? "newsletter" : "waitlist",
-    waitlistId: signupIds[0]!,
-    eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
-    userData: metaUserDataFromRequest(request, metaContext, email),
-  });
+  if (!enrich) {
+    const metaContext = parseMetaTrackingContext(body.meta);
+    const primaryCity = cities[0]!;
+    void sendMetaCapiLead({
+      email,
+      city: primaryCity,
+      source: body.source === "newsletter" ? "newsletter" : "waitlist",
+      waitlistId: signupIds[0]!,
+      eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
+      userData: metaUserDataFromRequest(request, metaContext, email),
+    });
+
+    if (createdFlags[0]) {
+      void sendSundayTableWaitlistWelcomeEmail({
+        to: email,
+        locale,
+        firstName: name,
+        city: cities[0]!,
+      }).catch((error: unknown) => {
+        console.error(
+          "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
+          error,
+        );
+      });
+    }
+  }
 
   return NextResponse.json({ ok: true, id: signupIds[0], ids: signupIds });
 }

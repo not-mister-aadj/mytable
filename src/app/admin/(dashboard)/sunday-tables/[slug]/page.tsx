@@ -2,12 +2,16 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { SundayTableDetailView } from "@/components/admin/SundayTableDetailView";
 import { isDbConfigured } from "@/db/index";
 import { adminPath, resolveHostname } from "@/lib/admin-url";
-import { saveSundayTableLocationAction } from "@/app/admin/(dashboard)/sunday-tables/actions";
+import {
+  saveSundayTableLocationAction,
+  inviteWaitlistForSundayTableAction,
+} from "@/app/admin/(dashboard)/sunday-tables/actions";
 import {
   decodeSundayTableSlug,
   getSundayTableMembers,
 } from "@/lib/sunday-table-signups-data";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
+import { getWaitlistInviteStats } from "@/lib/sunday-table-waitlist-invites";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -33,9 +37,10 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
     "localhost:3001";
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
 
-  const [members, location] = await Promise.all([
+  const [members, location, waitlistStats] = await Promise.all([
     getSundayTableMembers(table),
     getSundayTableLocation(table),
+    getWaitlistInviteStats(table),
   ]);
 
   return (
@@ -54,6 +59,8 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
           : null
       }
       saveLocationAction={saveSundayTableLocationAction}
+      waitlistStats={waitlistStats}
+      inviteWaitlistAction={inviteWaitlistForSundayTableAction}
     />
   );
 }

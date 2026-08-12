@@ -5,9 +5,9 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     title: "Sunday Table · Nieuwe mensen, nieuwe plekken",
     titleCity: "Sunday Table in {city} · Nieuwe mensen, nieuwe plekken",
     description:
-      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van de stad, elke eerste zondag van de maand. Girls only of gemengd. Claim je plek als Clubmember.",
+      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van de stad, elke eerste zondag van de maand. Girls only of gemengd. Zet je op de wachtlijst.",
     descriptionCity:
-      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van {city}, elke eerste zondag van de maand. Girls only of gemengd. Claim je Clubmember-plek.",
+      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van {city}, elke eerste zondag van de maand. Girls only of gemengd. Zet je op de wachtlijst.",
   },
   brand: "MyTable",
   socialProof: "Live in Rotterdam & Den Haag. Meer volgen gauw.",
@@ -30,8 +30,8 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       text: ", of bestel van de kaart",
     },
   ],
-  cta: "Claim je plek",
-  ctaHint: "Vanaf €8,33/maand (12 mnd)",
+  cta: "Zet me op de lijst",
+  ctaHint: "Gratis. Geen spam.",
   ctaRisk:
     "Kom naar je eerste Sunday Table. Achteraf toch niks voor jou? Laat het ons binnen 48 uur weten en je krijgt de trial volledig terug.",
   ctaRiskShort: "Achteraf niks voor jou? Trial binnen 48u terug.",
@@ -56,23 +56,23 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     body: "Sunday Table is waar je nieuwe mensen ontmoet en de leukste culinaire plekken van de stad ontdekt. Met je nieuwe tafelgenoten boek je daarna wine walks, proeverijen en diners.",
     steps: [
       {
-        title: "Kies je stad",
-        body: "Rotterdam of Den Haag. Tien plekken per tafel.",
+        title: "Zet je op de lijst",
+        body: "Vertel ons wat je zoekt. Duurt een minuut, kost niks.",
       },
       {
-        title: "Kies je tafel",
-        body: "Girls only of gemengd. Solo is standaard, een plus-één meenemen mag. Geen datingagenda.",
+        title: "Wij vormen een tafel",
+        body: "Zodra er genoeg mensen zijn die bij je passen, gaan we plannen.",
       },
       {
-        title: "Maak plannen daarna",
-        body: "Culinaire ervaringen uit de agenda, met 10% Clubmember-korting.",
+        title: "Claim je plek",
+        body: "Je krijgt een mail zodra jouw tafel klaarstaat. Dan pas betaal je.",
       },
     ],
   },
   tables: {
     eyebrow: "Jouw tafel",
     title: "Girls only of gemengd",
-    body: "Bij het claimen van je plek kies je welke tafel bij je past. Beide zijn Sunday Table: nieuwe mensen, echte gesprekken.",
+    body: "Bij het aanmelden voor de wachtlijst kies je welke tafel bij je past. Beide zijn Sunday Table: nieuwe mensen, echte gesprekken.",
     girlsOnlyTitle: "Girls only",
     girlsOnlyBody:
       "Alleen vrouwen aan tafel. Fijn als je liever in een meidengroep landt.",
@@ -103,7 +103,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     eyebrow: "Aan tafel",
     title: "Solo gekomen. Met plannen naar huis.",
     body: "Echte momenten van Sunday Tables en avonden daarna.",
-    cta: "Claim je plek",
+    cta: "Zet me op de lijst",
   },
   included: {
     eyebrow: "Inbegrepen",
@@ -135,7 +135,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   pricing: {
     eyebrow: "Prijzen",
     title: "Begin klein. Of doe zoals de meeste.",
-    body: "De trialmaand is eenmalig en verlengt niet. Langere plannen wel, tot je opzegt.",
+    body: "Dit is wat het kost zodra je wordt uitgenodigd voor een tafel. De trialmaand is eenmalig en verlengt niet. Langere plannen wel, tot je opzegt.",
     trialLabel: "1 maand trial",
     trialPrice: "€21",
     trialHint: "Eenmalig. Verlengt niet.",
@@ -146,7 +146,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     yearPrice: "€100",
     yearHint: "€8,33/maand",
     justification:
-      "Je betaalt niet voor één tafel. Je betaalt voor een netwerk van mensen om steeds opnieuw mee af te spreken. Voor 10% korting op elke ervaring die volgt. En voor een zondag die altijd goed voelt, want je hoort bij de club.",
+      "Je betaalt niet voor één tafel. Je betaalt voor een avond met goede wijn en gezellige mensen. Voor 10% korting op elke ervaring die volgt. En voor een kring die vanzelf groeit, hoe vaker je aanschuift.",
   },
   cities: {
     eyebrow: "Steden",
@@ -158,8 +158,8 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   final: {
     title: "Klaar voor je eerste Sunday Table?",
     titleCity: "Klaar voor Sunday Table in {city}?",
-    body: "Tien plekken. Eerste zondag. Jij erbij.",
-    cta: "Claim je plek",
+    body: "Tien plekken per tafel. We mailen je zodra er één vormt in jouw stad.",
+    cta: "Zet me op de lijst",
     earlyNote:
       "We zijn nog klein en persoonlijk. Jouw tafel helpt bepalen hoe Sunday Table verder groeit.",
   },
@@ -187,6 +187,69 @@ export const sundayTableLpNl: SundayTableLpLabels = {
         answer:
           "Bij de 5- of 12-maanden plannen zeg je op wanneer je wil. Het loopt door tot je opzegt. De trialmaand is eenmalig en verlengt sowieso niet.",
       },
+      {
+        question: "Hoe lang duurt het voor ik iets hoor?",
+        answer:
+          "Dat verschilt per stad en tafeltype. We nodigen mensen met de hand uit zodra er genoeg animo is voor een tafel die klopt. Je krijgt een mail zodra dat zover is.",
+      },
     ],
+  },
+  waitlist: {
+    eyebrow: "Wachtlijst",
+    title: "Zet je op de lijst",
+    body: "We laten je weten zodra er een tafel vormt die bij je past.",
+    nameLabel: "Naam",
+    namePlaceholder: "Voornaam",
+    emailLabel: "E-mail",
+    emailPlaceholder: "jij@email.nl",
+    cityLabel: "Stad",
+    cityOther: "Andere stad",
+    cityOtherPlaceholder: "Welke stad?",
+    submit: "Zet me op de lijst",
+    submitting: "Bezig…",
+    privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
+    error: "Er ging iets mis. Probeer het opnieuw.",
+    questionsTitle: "Nog 3 korte vragen",
+    questionsBody: "Helpt ons de juiste tafel voor je te vinden. Helemaal optioneel.",
+    skip: "Overslaan",
+    back: "Terug",
+    continueCta: "Verder",
+    progress: "Vraag {n} van {total}",
+    why: {
+      title: "Waarom Sunday Table?",
+      options: [
+        { id: "discover_wines", label: "Wijn ontdekken" },
+        { id: "discover_flavours", label: "Nieuwe smaken" },
+        { id: "discover_places", label: "Nieuwe plekken" },
+        { id: "no_organise", label: "Niks zelf hoeven regelen" },
+        { id: "treat", label: "Mezelf trakteren" },
+        { id: "new_city", label: "Nieuw in de stad" },
+      ],
+    },
+    company: {
+      title: "Met wie kom je het liefst?",
+      options: [
+        { id: "meet_new", label: "Nieuwe mensen ontmoeten" },
+        { id: "bring_friends", label: "Met vrienden" },
+        { id: "bring_partner", label: "Met partner" },
+        { id: "solo", label: "Solo" },
+      ],
+    },
+    tableType: {
+      title: "Welke tafel?",
+      options: [
+        { id: "girls_only", label: "Girls only" },
+        { id: "mixed", label: "Gemengd" },
+        { id: "no_preference", label: "Maakt niet uit" },
+      ],
+    },
+    successTitle: "Je staat op de lijst",
+    successBody: "Zodra er een tafel vormt die bij je past, hoor je van ons.",
+    successNext:
+      "In de tussentijd: join de WhatsApp-groep voor kortingscodes en updates.",
+    whatsappGirlsLabel: "Girls only WhatsApp",
+    whatsappMixedLabel: "Gemengde WhatsApp",
+    close: "Sluiten",
+    dialogAria: "Wachtlijst aanmelden",
   },
 };

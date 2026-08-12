@@ -167,6 +167,16 @@ export function trackEmailSignupCompleted(props: {
   });
 }
 
+/** Fired when someone answers (or explicitly skips) the waitlist preference questions. */
+export function trackSundayTableWaitlistEnriched(props: {
+  city: string;
+  locale: string;
+  answered_count: number;
+  skipped: boolean;
+}): void {
+  capture(PostHogEvents.sundayTableWaitlistEnriched, props);
+}
+
 export function trackWhatsappJoinClicked(props: {
   interest: string;
   locale: string;

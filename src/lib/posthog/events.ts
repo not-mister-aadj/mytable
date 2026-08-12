@@ -37,6 +37,7 @@ export const PostHogEvents = {
   customerUpdated: "customer_updated",
   customerProfileViewed: "customer_profile_viewed",
   customerNoteAdded: "customer_note_added",
+  sundayTableWaitlistEnriched: "sunday_table_waitlist_enriched",
 } as const;
 
 export type PostHogEventName =
@@ -74,4 +75,5 @@ export type AnalyticsSourceSection =
   | "girls_only_presale"
   | "girls_only_city_priority"
   | "member_club_sunday_table"
-  | "waitlist";
+  | "waitlist"
+  | "sunday_table_lp_waitlist";

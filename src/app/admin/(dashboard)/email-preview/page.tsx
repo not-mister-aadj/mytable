@@ -70,6 +70,22 @@ export default async function EmailPreviewIndexPage() {
         </li>
         <li>
           <Link
+            href={adminPath("/email-preview/sunday-table-waitlist-welcome")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Wachtlijst welkom
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={adminPath("/email-preview/sunday-table-waitlist-invite")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Wachtlijst uitnodiging
+          </Link>
+        </li>
+        <li>
+          <Link
             href={adminPath("/email-preview/membership-renewal")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >

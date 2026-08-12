@@ -1,3 +1,9 @@
+import type {
+  WaitlistWhyId,
+  WaitlistCompanyId,
+  WaitlistTableTypeId,
+} from "@/i18n/waitlist-page.types";
+
 export type SundayTableLpLabels = {
   meta: {
     title: string;
@@ -108,5 +114,48 @@ export type SundayTableLpLabels = {
     eyebrow: string;
     title: string;
     items: Array<{ question: string; answer: string }>;
+  };
+  /** Waitlist capture modal — replaces the old direct-to-checkout CTA */
+  waitlist: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    cityLabel: string;
+    cityOther: string;
+    cityOtherPlaceholder: string;
+    submit: string;
+    submitting: string;
+    privacyNote: string;
+    error: string;
+    questionsTitle: string;
+    questionsBody: string;
+    skip: string;
+    back: string;
+    continueCta: string;
+    /** e.g. "Vraag {n} van {total}" */
+    progress: string;
+    why: {
+      title: string;
+      options: Array<{ id: WaitlistWhyId; label: string }>;
+    };
+    company: {
+      title: string;
+      options: Array<{ id: WaitlistCompanyId; label: string }>;
+    };
+    tableType: {
+      title: string;
+      options: Array<{ id: WaitlistTableTypeId; label: string }>;
+    };
+    successTitle: string;
+    successBody: string;
+    successNext: string;
+    whatsappGirlsLabel: string;
+    whatsappMixedLabel: string;
+    close: string;
+    dialogAria: string;
   };
 };

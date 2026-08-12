@@ -6,6 +6,8 @@ import type { SundayTableConfirmationEmailProps } from "@/emails/SundayTableConf
 import type { SundayTableLocationEmailProps } from "@/emails/SundayTableLocationEmail";
 import type { SundayTablePlusOneEmailProps } from "@/emails/SundayTablePlusOneEmail";
 import type { SundayTableReviewEmailProps } from "@/emails/SundayTableReviewEmail";
+import type { SundayTableWaitlistWelcomeEmailProps } from "@/emails/SundayTableWaitlistWelcomeEmail";
+import type { SundayTableWaitlistInviteEmailProps } from "@/emails/SundayTableWaitlistInviteEmail";
 
 export const sampleBookingConfirmationProps: BookingConfirmationEmailProps = {
   customerName: "Sophie",
@@ -93,6 +95,26 @@ export const sampleSundayTableLocationProps: SundayTableLocationEmailProps = {
   calendarUrl:
     "https://mytable.club/api/clubmember/calendar?city=Rotterdam&date=2026-08-02&type=girls_only&locale=nl",
 };
+
+export const sampleSundayTableWaitlistWelcomeProps: SundayTableWaitlistWelcomeEmailProps =
+  {
+    locale: "nl",
+    firstName: "Sophie",
+    city: "Rotterdam",
+  };
+
+export const sampleSundayTableWaitlistInviteProps: SundayTableWaitlistInviteEmailProps =
+  {
+    locale: "nl",
+    firstName: "Sophie",
+    city: "Rotterdam",
+    dateLabel: "zondag 2 augustus 2026",
+    timeLabel: "14:00",
+    tableType: "girls_only",
+    seatsLeft: 4,
+    claimUrl: "https://mytable.club/join?city=Rotterdam",
+    priceHint: "Vanaf €8,33/maand (12 mnd)",
+  };
 
 export const sampleSundayTableReviewProps: SundayTableReviewEmailProps = {
   locale: "nl",

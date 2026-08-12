@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useActionState } from "react";
 import type {
   SundayTableKey,
   SundayTableMemberRow,
   SundayTableSignupProfile,
 } from "@/lib/sunday-table-shared";
+import type { InviteWaitlistActionState } from "@/app/admin/(dashboard)/sunday-tables/actions";
 
 function formatTableDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -83,6 +85,90 @@ function profileBits(profile: SundayTableSignupProfile | null) {
   return bits;
 }
 
+function InviteWaitlistCard({
+  table,
+  waitlistStats,
+  inviteWaitlistAction,
+}: {
+  table: SundayTableKey;
+  waitlistStats: { eligible: number; invited: number; total: number };
+  inviteWaitlistAction: (
+    prevState: InviteWaitlistActionState | null,
+    formData: FormData,
+  ) => Promise<InviteWaitlistActionState>;
+}) {
+  const [state, formAction, isPending] = useActionState(
+    inviteWaitlistAction,
+    null,
+  );
+
+  return (
+    <form
+      action={formAction}
+      onSubmit={(event) => {
+        const limitInput = event.currentTarget.elements.namedItem(
+          "limit",
+        ) as HTMLInputElement | null;
+        const limit = limitInput?.value || "25";
+        if (
+          !window.confirm(
+            `Weet je het zeker? Dit stuurt een echte uitnodigingsmail naar tot ${limit} mensen op de wachtlijst voor ${table.city}.`,
+          )
+        ) {
+          event.preventDefault();
+        }
+      }}
+      className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]"
+    >
+      <input type="hidden" name="city" value={table.city} />
+      <input type="hidden" name="tableDate" value={table.tableDate} />
+      <input type="hidden" name="tableType" value={table.tableType} />
+      <h2 className="font-serif text-xl text-burgundy">Wachtlijst uitnodigen</h2>
+      <p className="mt-1 text-sm text-wine/60">
+        Stuurt een uitnodiging (echte mail) naar mensen op de wachtlijst voor{" "}
+        {table.city} die nog niet zijn uitgenodigd voor deze tafel.
+      </p>
+      <div className="mt-4 flex flex-wrap items-end gap-4">
+        <div className="rounded-xl bg-white px-4 py-2.5 text-sm text-wine/75">
+          <span className="font-semibold text-burgundy">
+            {waitlistStats.eligible}
+          </span>{" "}
+          nog niet uitgenodigd ·{" "}
+          <span className="font-semibold text-burgundy">
+            {waitlistStats.invited}
+          </span>{" "}
+          al uitgenodigd
+        </div>
+        <label className="block text-sm text-wine/80">
+          Max. aantal
+          <input
+            name="limit"
+            type="number"
+            min={1}
+            defaultValue={25}
+            className="mt-1.5 block w-24 rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm text-wine"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={isPending || waitlistStats.eligible === 0}
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-xs font-semibold uppercase tracking-[0.12em] text-cream disabled:opacity-40"
+        >
+          {isPending ? "Versturen…" : "Nodig uit"}
+        </button>
+      </div>
+      {state?.error ? (
+        <p className="mt-3 text-sm text-red-700">{state.error}</p>
+      ) : state ? (
+        <p className="mt-3 text-sm text-wine/70">
+          {state.sent} verstuurd, {state.skipped} overgeslagen (vol),{" "}
+          {state.failed} mislukt.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
 export function SundayTableDetailView({
   table,
   members,
@@ -90,6 +176,8 @@ export function SundayTableDetailView({
   customerBasePath,
   location,
   saveLocationAction,
+  waitlistStats,
+  inviteWaitlistAction,
 }: {
   table: SundayTableKey;
   members: SundayTableMemberRow[];
@@ -101,6 +189,11 @@ export function SundayTableDetailView({
     notes: string | null;
   } | null;
   saveLocationAction: (formData: FormData) => Promise<void>;
+  waitlistStats: { eligible: number; invited: number; total: number };
+  inviteWaitlistAction: (
+    prevState: InviteWaitlistActionState | null,
+    formData: FormData,
+  ) => Promise<InviteWaitlistActionState>;
 }) {
   return (
     <div className="space-y-8">
@@ -170,6 +263,12 @@ export function SundayTableDetailView({
           Locatie opslaan
         </button>
       </form>
+
+      <InviteWaitlistCard
+        table={table}
+        waitlistStats={waitlistStats}
+        inviteWaitlistAction={inviteWaitlistAction}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">

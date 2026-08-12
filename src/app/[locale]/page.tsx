@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata({
     locale: locale as Locale,
     kind: "home",
-    title: `${labels.brand} · ${labels.tagline}`,
+    title: `${labels.brand} · ${labels.belief}`,
     description: labels.line,
     image: "/girls-only/hero-poster.jpg",
   });

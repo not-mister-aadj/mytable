@@ -2,34 +2,46 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { Locale } from "@/i18n/config";
-import { agendaPath, joinPath } from "@/i18n/config";
+import {
+  sundayTableLpPath,
+  wineTastingLpPath,
+  wineWalkLpPath,
+  chefsSpecialLpPath,
+} from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { Header } from "@/components/Header";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
-import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-const pathCtaClassName =
-  "relative mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_10px_24px_rgba(90,15,27,0.18)] transition hover:bg-wine hover:shadow-[0_14px_28px_rgba(43,13,18,0.22)]";
+const formatCtaClassName =
+  "relative mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_10px_24px_rgba(90,15,27,0.18)] transition hover:bg-wine hover:shadow-[0_14px_28px_rgba(43,13,18,0.22)]";
+
+export type BrandLandingFormatKey =
+  | "sunday_table"
+  | "wine_tasting"
+  | "wine_walk"
+  | "chefs_special";
 
 export type BrandLandingLabels = {
   brand: string;
-  tagline: string;
+  eyebrow: string;
+  belief: string;
   line: string;
-  cta: string;
-  ctaSignedIn: string;
-  agendaCta: string;
-  howItWorks: {
+  scrollCta: string;
+  formatsEyebrow: string;
+  formatsTitle: string;
+  formatsSubtitle: string;
+  formats: Array<{
+    key: BrandLandingFormatKey;
+    eyebrow: string;
     title: string;
-    subtitle: string;
-    meet: { eyebrow: string; title: string; body: string; cta: string };
-    culinary: { eyebrow: string; title: string; body: string; cta: string };
-  };
+    body: string;
+    cta: string;
+  }>;
   reviewsEyebrow: string;
 };
 
@@ -44,35 +56,42 @@ export function BrandLandingView({
   headerDict,
   labels,
 }: BrandLandingViewProps) {
-  const { isSignedIn, loading } = useAuthSession();
-  const router = useRouter();
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
 
-  function handleCta() {
-    if (isSignedIn) {
-      router.push(agendaPath(locale));
-      return;
-    }
-    router.push(joinPath(locale));
-  }
+  const hrefForFormat: Record<BrandLandingFormatKey, string> = {
+    sunday_table: sundayTableLpPath(locale),
+    wine_tasting: wineTastingLpPath(locale),
+    wine_walk: wineWalkLpPath(locale),
+    chefs_special: chefsSpecialLpPath(locale),
+  };
 
   return (
     <>
       <Header dict={headerDict} locale={locale} />
+
+      {/* Hero — the belief, not a product pitch */}
       <section className="relative min-h-[100svh] overflow-hidden bg-white">
-        {/* Soft warm wash, still bright */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(245,232,224,0.55),transparent_50%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,rgba(246,241,234,0.7),transparent_45%)]" />
 
         <div className="relative mx-auto grid min-h-[100svh] max-w-7xl items-center gap-10 px-5 pb-16 pt-28 sm:px-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:px-10 lg:pb-20 lg:pt-24">
           <div className="relative z-10 max-w-xl lg:max-w-none">
             <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.45, ease }}
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/45"
+            >
+              {labels.eyebrow}
+            </motion.p>
+
+            <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease }}
-              className="font-serif text-[1.85rem] font-medium leading-[1.15] tracking-tight text-wine text-balance sm:text-4xl lg:text-[2.55rem]"
+              transition={{ duration: 0.5, delay: 0.06, ease }}
+              className="mt-3 font-serif text-[1.85rem] font-medium leading-[1.15] tracking-tight text-wine text-balance sm:text-4xl lg:text-[2.55rem]"
             >
-              {labels.tagline}
+              {labels.belief}
             </motion.p>
 
             <motion.p
@@ -88,24 +107,16 @@ export function BrandLandingView({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.24, ease }}
-              className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3"
+              className="mt-9"
             >
-              <button
-                type="button"
-                onClick={handleCta}
-                disabled={loading}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_12px_28px_rgba(90,15,27,0.22)] transition hover:bg-wine hover:shadow-[0_16px_34px_rgba(43,13,18,0.26)] disabled:opacity-60"
-              >
-                {isSignedIn ? labels.ctaSignedIn : labels.cta}
-                <span aria-hidden className="text-sm leading-none opacity-90">
-                  ›
-                </span>
-              </button>
               <a
-                href={agendaPath(locale)}
-                className="inline-flex min-h-12 items-center text-xs font-semibold uppercase tracking-[0.16em] text-wine/55 transition hover:text-wine"
+                href="#formats"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-wine/20 bg-white/60 px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm transition hover:border-wine/40 hover:bg-white hover:text-wine"
               >
-                {labels.agendaCta}
+                {labels.scrollCta}
+                <span aria-hidden className="text-sm leading-none opacity-90">
+                  ↓
+                </span>
               </a>
             </motion.div>
           </div>
@@ -124,12 +135,12 @@ export function BrandLandingView({
         </div>
       </section>
 
+      {/* Formats — how the belief plays out, one card per format */}
       <section
-        id="how-it-works"
-        className="relative scroll-mt-24 overflow-hidden border-t border-wine/8 bg-white py-20 sm:py-24 lg:py-28"
+        id="formats"
+        className="relative scroll-mt-24 overflow-hidden border-t border-wine/8 bg-cream py-20 sm:py-24 lg:py-28"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(197,154,91,0.08),transparent_42%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_90%_80%,rgba(245,232,224,0.65),transparent_40%)]" />
 
         <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <motion.div
@@ -140,61 +151,37 @@ export function BrandLandingView({
             className="max-w-2xl"
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              MyTable
+              {labels.formatsEyebrow}
             </p>
-            <h2 className="mt-4 font-serif text-4xl font-medium leading-[1.1] tracking-tight text-wine sm:text-5xl lg:text-[3.25rem]">
-              {labels.howItWorks.title}
+            <h2 className="mt-4 font-serif text-4xl font-medium leading-[1.1] tracking-tight text-wine sm:text-5xl">
+              {labels.formatsTitle}
             </h2>
             <p className="mt-5 max-w-md text-lg leading-relaxed text-wine/50">
-              {labels.howItWorks.subtitle}
+              {labels.formatsSubtitle}
             </p>
           </motion.div>
 
-          <div className="mt-16 grid gap-0 sm:mt-20 lg:grid-cols-2">
-            {[
-              {
-                key: "meet",
-                item: labels.howItWorks.meet,
-                index: "01",
-                href: joinPath(locale),
-              },
-              {
-                key: "culinary",
-                item: labels.howItWorks.culinary,
-                index: "02",
-                href: agendaPath(locale),
-              },
-            ].map(({ key, item, index, href }, i) => (
+          <div className="mt-14 grid gap-6 sm:mt-16 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+            {labels.formats.map((format, index) => (
               <motion.div
-                key={key}
+                key={format.key}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.55, delay: 0.08 + i * 0.12, ease }}
-                className={`relative py-10 sm:py-12 lg:px-10 lg:py-4 ${
-                  i === 0
-                    ? "lg:border-r lg:border-wine/10 lg:pl-0"
-                    : "border-t border-wine/10 lg:border-t-0 lg:pr-0"
-                }`}
+                transition={{ duration: 0.5, delay: index * 0.06, ease }}
+                className="flex flex-col rounded-3xl border border-wine/10 bg-white p-6 shadow-[0_10px_32px_rgba(43,13,18,0.05)]"
               >
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -top-2 right-0 font-serif text-[6.5rem] leading-none text-wine/[0.04] sm:text-[8rem] lg:right-auto lg:-left-2"
-                >
-                  {index}
-                </span>
-                <p className="relative text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
-                  {item.eyebrow}
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold">
+                  {format.eyebrow}
                 </p>
-                <h3 className="relative mt-4 font-serif text-3xl font-medium tracking-tight text-wine sm:text-[2rem]">
-                  {item.title}
+                <h3 className="mt-2.5 font-serif text-xl font-medium tracking-tight text-wine">
+                  {format.title}
                 </h3>
-                <div className="relative mt-5 h-px w-12 bg-gold/50" />
-                <p className="relative mt-5 max-w-sm text-base leading-relaxed text-wine/55">
-                  {item.body}
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-wine/60">
+                  {format.body}
                 </p>
-                <Link href={href} className={pathCtaClassName}>
-                  {item.cta}
+                <Link href={hrefForFormat[format.key]} className={formatCtaClassName}>
+                  {format.cta}
                   <span aria-hidden className="text-sm leading-none opacity-90">
                     ›
                   </span>
@@ -207,7 +194,7 @@ export function BrandLandingView({
 
       <section
         id="reviews"
-        className="overflow-hidden border-t border-wine/8 bg-cream py-14 sm:py-16 lg:py-20"
+        className="overflow-hidden border-t border-wine/8 bg-white py-14 sm:py-16 lg:py-20"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <p className="text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
@@ -217,8 +204,8 @@ export function BrandLandingView({
         <TestimonialMarquee
           top={culinary}
           bottom={people}
-          fadeFromClassName="from-cream"
-          cardClassName="border-wine/10 bg-white/95"
+          fadeFromClassName="from-white"
+          cardClassName="border-wine/10 bg-cream/95"
         />
       </section>
     </>

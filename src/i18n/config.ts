@@ -106,6 +106,19 @@ export function sundayTableLpCityPath(locale: Locale, citySlug: string): string 
   return `${sundayTableLpPath(locale)}/${citySlug}`;
 }
 
+/** Public single-experience format landing pages. */
+export function wineTastingLpPath(locale: Locale): string {
+  return locale === "en" ? "/en/wine-tasting" : "/wine-tasting";
+}
+
+export function wineWalkLpPath(locale: Locale): string {
+  return locale === "en" ? "/en/wine-walk" : "/wine-walk";
+}
+
+export function chefsSpecialLpPath(locale: Locale): string {
+  return locale === "en" ? "/en/chefs-special" : "/chefs-special";
+}
+
 export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
   return locale === "en"
     ? `/en/girls-only/${citySlug}`

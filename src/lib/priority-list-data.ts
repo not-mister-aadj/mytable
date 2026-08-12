@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { customers, waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { recalculateCustomerStats } from "@/lib/customers/stats";
@@ -53,6 +53,9 @@ function asPreferences(
   };
 }
 
+/** All waitlist signups — "priority_list" was retired as a separate
+ * category (drizzle/0020), so this is every row regardless of how someone
+ * joined (LP modal, format pages, or the girls-only checkout opt-in). */
 export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]> {
   const db = getDb();
   const rows = await db
@@ -67,7 +70,6 @@ export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]>
     })
     .from(waitlistSignups)
     .leftJoin(customers, eq(waitlistSignups.customerId, customers.id))
-    .where(eq(waitlistSignups.source, "priority_list"))
     .orderBy(desc(waitlistSignups.createdAt));
 
   const grouped = new Map<string, PriorityListSignupRow>();
@@ -163,23 +165,13 @@ export async function removePriorityListSignupByEmail(email: string): Promise<nu
       customerId: waitlistSignups.customerId,
     })
     .from(waitlistSignups)
-    .where(
-      and(
-        sql`lower(${waitlistSignups.email}) = ${normalized}`,
-        eq(waitlistSignups.source, "priority_list"),
-      ),
-    );
+    .where(sql`lower(${waitlistSignups.email}) = ${normalized}`);
 
   if (rows.length === 0) return 0;
 
   await db
     .delete(waitlistSignups)
-    .where(
-      and(
-        sql`lower(${waitlistSignups.email}) = ${normalized}`,
-        eq(waitlistSignups.source, "priority_list"),
-      ),
-    );
+    .where(sql`lower(${waitlistSignups.email}) = ${normalized}`);
 
   const customerIds = [
     ...new Set(rows.map((row) => row.customerId).filter(Boolean)),

@@ -60,13 +60,19 @@ async function linkWaitlistCustomer(input: {
   });
 }
 
+/**
+ * One waitlist, one meaning (see drizzle/0020) — this used to write a
+ * separate "priority_list" source for opt-ins at checkout. Everything is
+ * "waitlist" now, so an existing row just needs its name/customer link
+ * ensured rather than being "upgraded" to a different category.
+ */
 export async function ensurePriorityListSignup(input: {
   email: string;
   city: string;
   locale: string;
   name?: string;
   signedUpAt?: Date;
-}): Promise<"created" | "upgraded" | "already_enrolled"> {
+}): Promise<"created" | "already_enrolled"> {
   const email = normalizeEmail(input.email);
   const city = input.city.trim();
   const name = input.name?.trim() || null;
@@ -84,44 +90,24 @@ export async function ensurePriorityListSignup(input: {
     .limit(1);
 
   if (existing) {
-    if (existing.source === "priority_list") {
-      if (name && !existing.name) {
-        await db
-          .update(waitlistSignups)
-          .set({ name })
-          .where(eq(waitlistSignups.id, existing.id));
-      }
-
-      if (!existing.customerId) {
-        await linkWaitlistCustomer({
-          email,
-          city,
-          locale,
-          waitlistId: existing.id,
-          name: name ?? undefined,
-        });
-      }
-
-      return "already_enrolled";
+    if (name && !existing.name) {
+      await db
+        .update(waitlistSignups)
+        .set({ name })
+        .where(eq(waitlistSignups.id, existing.id));
     }
 
-    await db
-      .update(waitlistSignups)
-      .set({
-        source: "priority_list",
-        ...(name && !existing.name ? { name } : {}),
-      })
-      .where(eq(waitlistSignups.id, existing.id));
+    if (!existing.customerId) {
+      await linkWaitlistCustomer({
+        email,
+        city,
+        locale,
+        waitlistId: existing.id,
+        name: name ?? undefined,
+      });
+    }
 
-    await linkWaitlistCustomer({
-      email,
-      city,
-      locale,
-      waitlistId: existing.id,
-      name: name ?? undefined,
-    });
-
-    return "upgraded";
+    return "already_enrolled";
   }
 
   const [inserted] = await db
@@ -131,7 +117,7 @@ export async function ensurePriorityListSignup(input: {
       city,
       locale,
       name,
-      source: "priority_list",
+      source: "waitlist",
       ...(input.signedUpAt ? { createdAt: input.signedUpAt } : {}),
     })
     .returning({ id: waitlistSignups.id });

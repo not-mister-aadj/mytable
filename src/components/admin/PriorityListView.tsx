@@ -44,7 +44,7 @@ function confirmRemove(row: PriorityListSignupRow): boolean {
     row.cities.length > 0 ? `\n\nSteden: ${row.cities.join(", ")}` : "";
 
   return confirm(
-    `Weet je zeker dat je ${label} van de Priority List wilt halen?${cities}\n\nDit kan niet ongedaan worden gemaakt.`,
+    `Weet je zeker dat je ${label} van de wachtlijst wilt halen?${cities}\n\nDit kan niet ongedaan worden gemaakt.`,
   );
 }
 
@@ -109,13 +109,14 @@ export function PriorityListView({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-wine/45">
-            Girls Only
+            MyTable
           </p>
           <h1 className="mt-2 font-serif text-3xl text-burgundy sm:text-4xl">
-            Priority List
+            Wachtlijst
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-            Aanmeldingen via de Priority List op de girls-only landingspagina.
+            Iedereen op de wachtlijst: via de Sunday Table-pagina, de formatpagina's,
+            of het opt-in vinkje bij een girls-only boeking.
           </p>
         </div>
         <a
@@ -172,7 +173,7 @@ export function PriorityListView({
         <div className="rounded-2xl border border-dashed border-border-subtle bg-beige/40 px-6 py-16 text-center">
           <p className="font-serif text-xl text-burgundy">Nog geen aanmeldingen</p>
           <p className="mt-2 text-sm text-wine/60">
-            Zodra iemand zich aanmeldt op de girls-only pagina, verschijnt het hier.
+            Zodra iemand zich op de wachtlijst zet, verschijnt het hier.
           </p>
         </div>
       ) : (

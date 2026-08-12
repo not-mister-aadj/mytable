@@ -15,7 +15,7 @@ const NAV_ITEM_PATHS = [
   { label: "Members", path: "/members" },
   { label: "Sunday Tables", path: "/sunday-tables" },
   { label: "Affiliates", path: "/affiliates" },
-  { label: "Priority List", path: "/priority-list" },
+  { label: "Wachtlijst", path: "/priority-list" },
   { label: "Analytics", path: "/analytics" },
   { label: "E-mails", path: "/email-preview" },
 ] as const;

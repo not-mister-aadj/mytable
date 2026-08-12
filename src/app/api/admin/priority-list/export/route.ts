@@ -20,7 +20,7 @@ export async function GET() {
   return new Response(csv, {
     headers: {
       "Content-Type": "application/vnd.ms-excel; charset=utf-8",
-      "Content-Disposition": `attachment; filename="mytable-priority-list-${date}.xls"`,
+      "Content-Disposition": `attachment; filename="mytable-wachtlijst-${date}.xls"`,
       "Cache-Control": "no-store",
     },
   });

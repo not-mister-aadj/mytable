@@ -596,7 +596,7 @@ export function EventEditor({
                   />
                   <p className="-mt-2 text-xs text-wine/50 sm:col-span-2">
                     Dit bedrag is de ticketprijs p.p. bij checkout (minimaal 2
-                    tickets). Clubmembers krijgen 10% korting.
+                    tickets).
                   </p>
                   <Field
                     label="Capaciteit"

@@ -9,6 +9,9 @@ export type AdminNavItem = {
   href: string;
   /** Match pathname exactly (use for dashboard root). */
   exact?: boolean;
+  /** Extra path prefixes that should also count as "active" — e.g. Sunday
+   * Table lives on its own route but is a tab inside the Tafels section. */
+  matchAlso?: string[];
 };
 
 function normalizePath(path: string): string {
@@ -16,7 +19,16 @@ function normalizePath(path: string): string {
   return base || "/";
 }
 
-function isNavActive(pathname: string, href: string, exact?: boolean): boolean {
+function matchesPrefix(path: string, target: string): boolean {
+  return path === target || path.startsWith(`${target}/`);
+}
+
+function isNavActive(
+  pathname: string,
+  href: string,
+  exact?: boolean,
+  matchAlso?: string[],
+): boolean {
   const path = normalizePath(pathname);
   const target = normalizePath(href);
 
@@ -24,7 +36,8 @@ function isNavActive(pathname: string, href: string, exact?: boolean): boolean {
     return path === target;
   }
 
-  return path === target || path.startsWith(`${target}/`);
+  if (matchesPrefix(path, target)) return true;
+  return (matchAlso ?? []).some((extra) => matchesPrefix(path, normalizePath(extra)));
 }
 
 interface AdminShellProps {
@@ -72,7 +85,12 @@ function SidebarNav({
   return (
     <nav className="flex flex-col gap-1" aria-label="Admin navigatie">
       {navItems.map((item) => {
-        const active = isNavActive(pathname, item.href, item.exact);
+        const active = isNavActive(
+          pathname,
+          item.href,
+          item.exact,
+          item.matchAlso,
+        );
         return (
           <Link
             key={item.href}

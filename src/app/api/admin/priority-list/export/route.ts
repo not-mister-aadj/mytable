@@ -1,8 +1,6 @@
 import { requireAdminApi } from "@/lib/admin-auth";
-import {
-  getPriorityListSignups,
-  priorityListRowsToExcelCsv,
-} from "@/lib/priority-list-data";
+import { getPriorityListSignups } from "@/lib/priority-list-data";
+import { priorityListRowsToExcelCsv } from "@/lib/priority-list-csv";
 import { isDbConfigured } from "@/db/index";
 
 export async function GET() {
@@ -20,7 +18,7 @@ export async function GET() {
   return new Response(csv, {
     headers: {
       "Content-Type": "application/vnd.ms-excel; charset=utf-8",
-      "Content-Disposition": `attachment; filename="mytable-priority-list-${date}.xls"`,
+      "Content-Disposition": `attachment; filename="mytable-wachtlijst-${date}.xls"`,
       "Cache-Control": "no-store",
     },
   });

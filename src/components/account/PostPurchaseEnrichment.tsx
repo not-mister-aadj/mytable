@@ -24,10 +24,11 @@ import {
   type MemberOnboardingPrefs,
   type OnboardingPersonalityId,
 } from "@/lib/member-onboarding";
+import type { WaitlistInterestId } from "@/i18n/waitlist-page.types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-type EnrichStep = "name" | "birthdate" | "personality";
+type EnrichStep = "name" | "birthdate" | "personality" | "tastes";
 
 function ChoiceButton({
   title,
@@ -104,7 +105,7 @@ export function PostPurchaseEnrichment({
     const profileSteps: EnrichStep[] = needsProfileSteps
       ? ["name", "birthdate"]
       : [];
-    return [...profileSteps, "personality" as const];
+    return [...profileSteps, "personality" as const, "tastes" as const];
   }, [needsProfileSteps]);
 
   const stepNumber = Math.max(1, progressSteps.lastIndexOf(step) + 1);
@@ -165,13 +166,27 @@ export function PostPurchaseEnrichment({
     setStep("personality");
   }
 
-  async function finishWithPersonality(personality: OnboardingPersonalityId) {
-    const next = { ...prefs, personality };
-    setPrefs(next);
+  function finishWithPersonality(personality: OnboardingPersonalityId) {
+    setPrefs((p) => ({ ...p, personality }));
+    completeStep("personality", "tastes", personality);
+    setStep("tastes");
+  }
+
+  function toggleInterest(id: WaitlistInterestId) {
+    setPrefs((prev) => {
+      if (prev.interests.includes(id)) {
+        return { ...prev, interests: prev.interests.filter((i) => i !== id) };
+      }
+      if (prev.interests.length >= 3) return prev;
+      return { ...prev, interests: [...prev.interests, id] };
+    });
+  }
+
+  async function finishWithTastes() {
     setSaving(true);
     try {
-      completeStep("personality", "clubmember", personality);
-      await saveMemberOnboardingPrefs(next);
+      completeStep("tastes", "clubmember");
+      await saveMemberOnboardingPrefs(prefs);
       await refreshAuthSession();
       router.replace(`${clubmemberPath(locale)}?claim=1#happening`);
       router.refresh();
@@ -181,6 +196,10 @@ export function PostPurchaseEnrichment({
   }
 
   function goBack() {
+    if (step === "tastes") {
+      setStep("personality");
+      return;
+    }
     if (step === "personality") {
       if (needsProfileSteps) setStep("birthdate");
       return;
@@ -432,6 +451,88 @@ export function PostPurchaseEnrichment({
                     {labels.back}
                   </button>
                 ) : null}
+              </motion.div>
+            ) : null}
+
+            {step === "tastes" ? (
+              <motion.div
+                key="tastes"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.35, ease }}
+                className="w-full"
+              >
+                <h1 className="text-center font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+                  {labels.tastes.title}
+                </h1>
+                {labels.tastes.subtitle ? (
+                  <p className="mt-2 text-center text-sm text-wine/55">
+                    {labels.tastes.subtitle}
+                  </p>
+                ) : null}
+                <p className="mt-2 text-center text-xs leading-relaxed text-wine/40">
+                  {labels.tastes.note}
+                </p>
+                <div className="mt-8 grid gap-3">
+                  {(
+                    [
+                      [
+                        "wine_walk",
+                        labels.tastes.wineWalk,
+                        labels.tastes.wineWalkHint,
+                      ],
+                      [
+                        "food_walk",
+                        labels.tastes.foodWalk,
+                        labels.tastes.foodWalkHint,
+                      ],
+                      [
+                        "wine_tasting",
+                        labels.tastes.tasting,
+                        labels.tastes.tastingHint,
+                      ],
+                      [
+                        "chefs_special",
+                        labels.tastes.dinner,
+                        labels.tastes.dinnerHint,
+                      ],
+                    ] as const
+                  ).map(([id, title, hint], index) => (
+                    <ChoiceButton
+                      key={id}
+                      title={title}
+                      hint={hint}
+                      selected={prefs.interests.includes(id)}
+                      onClick={() => toggleInterest(id)}
+                      index={index}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void finishWithTastes()}
+                  className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-wine px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-[#3a1218] disabled:opacity-40"
+                >
+                  {labels.continue}
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void finishWithTastes()}
+                  className="mt-3 block w-full text-center text-sm text-wine/45 transition hover:text-wine/70 disabled:opacity-40"
+                >
+                  {labels.skip}
+                </button>
+                <button
+                  type="button"
+                  onClick={goBack}
+                  disabled={saving}
+                  className="mt-3 block w-full text-center text-sm text-wine/45 transition hover:text-wine/70 disabled:opacity-40"
+                >
+                  {labels.back}
+                </button>
               </motion.div>
             ) : null}
           </AnimatePresence>

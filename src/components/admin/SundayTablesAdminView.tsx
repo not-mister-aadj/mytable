@@ -6,6 +6,7 @@ import {
   encodeSundayTableSlug,
   type SundayTableAdminRow,
 } from "@/lib/sunday-table-shared";
+import { FormatTabs } from "./FormatTabs";
 
 function formatTableDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -77,16 +78,17 @@ export function SundayTablesAdminView({
 
   return (
     <div className="space-y-8">
+      <FormatTabs active="sunday-table" />
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-wine/45">
-          Clubmember
+          Sunday Table
         </p>
         <h1 className="mt-2 font-serif text-3xl text-burgundy sm:text-4xl">
           Sunday Tables
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
           Overzicht van aankomende Sunday Tables per stad en type. Klik op een
-          rij om de clubmembers te zien die zich hebben aangemeld.
+          rij om de aanmeldingen voor die tafel te zien.
         </p>
       </div>
 

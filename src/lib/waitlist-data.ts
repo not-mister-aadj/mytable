@@ -3,13 +3,13 @@ import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 
-/** Used by priority-list signup (and legacy waitlist source if any). */
+/** One waitlist, one meaning — "priority_list" was retired, see drizzle/0020. */
 export async function createWaitlistSignup(input: {
   email: string;
   city: string;
   locale: string;
   name?: string;
-  source?: "waitlist" | "priority_list";
+  source?: "waitlist";
   preferences?: WaitlistPreferences | null;
 }): Promise<
   { ok: true; id: string; created: boolean } | { ok: false; error: string }
@@ -17,7 +17,7 @@ export async function createWaitlistSignup(input: {
   const email = input.email.trim().toLowerCase();
   const city = input.city.trim();
   const name = input.name?.trim() || null;
-  const source = input.source ?? "priority_list";
+  const source = input.source ?? "waitlist";
   const preferences = input.preferences ?? null;
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

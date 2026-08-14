@@ -304,14 +304,14 @@ export function MemberOnboarding({
     const tail: FlowStep[] = isJoin ? [] : ["done"];
 
     if (prefs.joinIntent === "with_group") {
-      const culinarySteps: FlowStep[] = ["tastes", "city", "gender"];
+      const culinarySteps: FlowStep[] = ["city", "gender"];
       if (canChooseGirlsOnly(prefs.gender)) {
         culinarySteps.push("tableType");
       }
       return [...base, ...culinarySteps, ...tail];
     }
     if (prefs.joinIntent === "both") {
-      const meetSteps: FlowStep[] = ["tastes", "city", "gender"];
+      const meetSteps: FlowStep[] = ["city", "gender"];
       if (canChooseGirlsOnly(prefs.gender)) {
         meetSteps.push("tableType");
       }
@@ -440,13 +440,14 @@ export function MemberOnboarding({
     router.replace(`${path}?step=${nextStep}`);
   }
 
-  function stepAfterIntent(intent: OnboardingIntentId): FlowStep {
-    if (intent === "with_group" || intent === "both") return "tastes";
+  function stepAfterIntent(): FlowStep {
+    // Tastes/interests move to post-purchase enrichment so the pre-purchase
+    // path stays as short as possible. See PostPurchaseEnrichment.tsx.
     return "city";
   }
 
   function continueAfterIntent(intent: OnboardingIntentId) {
-    const next = stepAfterIntent(intent);
+    const next = stepAfterIntent();
     completeStep("intent", next, intent);
     setStep(next);
   }
@@ -514,11 +515,7 @@ export function MemberOnboarding({
       return;
     }
     if (step === "city") {
-      setStep(
-        prefs.joinIntent === "with_group" || prefs.joinIntent === "both"
-          ? "tastes"
-          : "intent",
-      );
+      setStep("intent");
       return;
     }
     if (step === "gender") {

@@ -23,7 +23,6 @@ async function main() {
 
   const seen = new Set<string>();
   let created = 0;
-  let upgraded = 0;
   let alreadyEnrolled = 0;
   let skipped = 0;
 
@@ -48,7 +47,6 @@ async function main() {
       });
 
       if (result === "created") created += 1;
-      else if (result === "upgraded") upgraded += 1;
       else alreadyEnrolled += 1;
     } catch (error) {
       console.error(
@@ -59,7 +57,7 @@ async function main() {
   }
 
   console.log(
-    `OK: priority list backfill — ${created} created, ${upgraded} upgraded, ${alreadyEnrolled} already enrolled, ${skipped} non-girls-only bookings skipped`,
+    `OK: waitlist backfill — ${created} created, ${alreadyEnrolled} already enrolled, ${skipped} non-girls-only bookings skipped`,
   );
 }
 

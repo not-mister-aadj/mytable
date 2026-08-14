@@ -4,10 +4,32 @@ import postgres from "postgres";
 import { loadLocalEnv } from "./load-env";
 import { assertDevDatabaseTarget } from "./dev-db-guard";
 
+// Keep in sync with drizzle/ — every file here is written to be idempotent
+// (CREATE TABLE IF NOT EXISTS, ADD COLUMN IF NOT EXISTS, DROP CONSTRAINT IF
+// EXISTS before re-adding, etc.), so re-applying an already-applied file is
+// a no-op. That's what lets ensureDevSchema() below run unconditionally on
+// every `npm run dev` instead of only on a completely empty database.
 const MIGRATION_FILES = [
   "0000_initial.sql",
   "0001_event_extras.sql",
   "0002_confirmation_email_sent_at.sql",
+  "0003_booking_lifecycle.sql",
+  "0004_waitlist_signups.sql",
+  "0005_customers.sql",
+  "0006_waitlist_source.sql",
+  "0007_waitlist_name.sql",
+  "0008_consolidate_runtime_ddl.sql",
+  "0009_event_slug_redirects.sql",
+  "0012_site_settings.sql",
+  "0013_sunday_table_signups.sql",
+  "0014_club_memberships.sql",
+  "0015_growth_loops.sql",
+  "0016_sunday_table_location_emails.sql",
+  "0017_club_plan_ids_1m_5m_12m.sql",
+  "0018_membership_renewal_reminder.sql",
+  "0019_sunday_table_reviews.sql",
+  "0020_sunday_table_waitlist_invites.sql",
+  "0021_waitlist_preferences.sql",
 ];
 
 async function tableExists(sql: postgres.Sql, name: string): Promise<boolean> {
@@ -73,16 +95,18 @@ export async function ensureDevSchema(): Promise<void> {
   const db = postgres(url, { prepare: false, max: 1 });
 
   try {
-    if (!(await tableExists(db, "events"))) {
-      console.log("Dev database leeg — schema aanmaken…");
-      for (const file of MIGRATION_FILES) {
-        console.log(`  ${file}`);
-        await applySqlFile(db, file);
-      }
+    const isEmpty = !(await tableExists(db, "events"));
+    console.log(
+      isEmpty
+        ? "Dev database leeg — schema aanmaken…"
+        : "Dev schema controleren op ontbrekende migraties…",
+    );
+    for (const file of MIGRATION_FILES) {
+      await applySqlFile(db, file);
     }
 
     await applyExperienceTypesPatch(db);
-    console.log("OK: dev schema klaar");
+    console.log(`OK: dev schema klaar (${MIGRATION_FILES.length} migraties gecontroleerd)`);
   } finally {
     await db.end();
   }

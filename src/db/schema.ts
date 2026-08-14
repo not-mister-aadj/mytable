@@ -238,6 +238,32 @@ export const waitlistSignups = pgTable(
   }),
 );
 
+export const sundayTableWaitlistInvites = pgTable(
+  "sunday_table_waitlist_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    waitlistSignupId: uuid("waitlist_signup_id")
+      .notNull()
+      .references(() => waitlistSignups.id, { onDelete: "cascade" }),
+    city: text("city").notNull(),
+    tableDate: date("table_date").notNull(),
+    tableType: text("table_type").notNull(),
+    email: text("email").notNull(),
+    locale: text("locale").notNull().default("nl"),
+    sentAt: timestamp("sent_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    cohortUnique: uniqueIndex("sunday_table_waitlist_invites_unique").on(
+      table.waitlistSignupId,
+      table.city,
+      table.tableDate,
+      table.tableType,
+    ),
+  }),
+);
+
 export const customerActivities = pgTable("customer_activities", {
   id: uuid("id").primaryKey().defaultRandom(),
   customerId: uuid("customer_id")
@@ -407,37 +433,6 @@ export const sundayTableLocations = pgTable(
   }),
 );
 
-export const referralCodes = pgTable(
-  "referral_codes",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    code: text("code").notNull().unique(),
-    userId: uuid("user_id"),
-    email: text("email").notNull(),
-    membershipId: uuid("membership_id").references(() => clubMemberships.id),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-);
-
-export const referralAttributions = pgTable(
-  "referral_attributions",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    referralCodeId: uuid("referral_code_id")
-      .notNull()
-      .references(() => referralCodes.id),
-    refereeEmail: text("referee_email").notNull(),
-    refereeUserId: uuid("referee_user_id"),
-    status: text("status").notNull().default("signed_up"),
-    rewardedAt: timestamp("rewarded_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-);
-
 export const affiliateCodes = pgTable("affiliate_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: text("code").notNull().unique(),
@@ -484,8 +479,8 @@ export type Booking = typeof bookings.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type ClubMembership = typeof clubMemberships.$inferSelect;
 export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
+export type SundayTableWaitlistInvite =
+  typeof sundayTableWaitlistInvites.$inferSelect;
 export type SundayTableReview = typeof sundayTableReviews.$inferSelect;
-export type ReferralCode = typeof referralCodes.$inferSelect;
-export type ReferralAttribution = typeof referralAttributions.$inferSelect;
 export type AffiliateCode = typeof affiliateCodes.$inferSelect;
 export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;

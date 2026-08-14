@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { customers, waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { recalculateCustomerStats } from "@/lib/customers/stats";
@@ -32,12 +32,35 @@ function asPreferences(
   const cities = Array.isArray(value.cities)
     ? value.cities.filter((item): item is string => typeof item === "string")
     : [];
+  const gender = Array.isArray(value.gender)
+    ? value.gender.filter((item): item is string => typeof item === "string")
+    : [];
+  const ageRange = Array.isArray(value.ageRange)
+    ? value.ageRange.filter((item): item is string => typeof item === "string")
+    : [];
+  const vibe = Array.isArray(value.vibe)
+    ? value.vibe.filter((item): item is string => typeof item === "string")
+    : [];
+  const budget = Array.isArray(value.budget)
+    ? value.budget.filter((item): item is string => typeof item === "string")
+    : [];
+  const experience = Array.isArray(value.experience)
+    ? value.experience.filter((item): item is string => typeof item === "string")
+    : [];
+  const whyOther =
+    typeof value.whyOther === "string" ? value.whyOther : "";
   if (
     !interests.length &&
     !why.length &&
     !company.length &&
     !tableType.length &&
-    !cities.length
+    !cities.length &&
+    !gender.length &&
+    !ageRange.length &&
+    !vibe.length &&
+    !budget.length &&
+    !experience.length &&
+    !whyOther
   ) {
     return null;
   }
@@ -50,9 +73,18 @@ function asPreferences(
     tableType: tableType as WaitlistPreferences["tableType"],
     cities,
     regionFlexible: Boolean(value.regionFlexible),
+    gender: gender as WaitlistPreferences["gender"],
+    ageRange: ageRange as WaitlistPreferences["ageRange"],
+    vibe: vibe as WaitlistPreferences["vibe"],
+    budget: budget as WaitlistPreferences["budget"],
+    experience: experience as WaitlistPreferences["experience"],
+    whyOther,
   };
 }
 
+/** All waitlist signups — "priority_list" was retired as a separate
+ * category (drizzle/0020), so this is every row regardless of how someone
+ * joined (LP modal, format pages, or the girls-only checkout opt-in). */
 export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]> {
   const db = getDb();
   const rows = await db
@@ -67,7 +99,6 @@ export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]>
     })
     .from(waitlistSignups)
     .leftJoin(customers, eq(waitlistSignups.customerId, customers.id))
-    .where(eq(waitlistSignups.source, "priority_list"))
     .orderBy(desc(waitlistSignups.createdAt));
 
   const grouped = new Map<string, PriorityListSignupRow>();
@@ -109,49 +140,9 @@ export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]>
   );
 }
 
-export function priorityListRowsToExcelCsv(rows: PriorityListSignupRow[]): string {
-  const header = [
-    "Naam",
-    "E-mail",
-    "Steden",
-    "Taal",
-    "Interesses",
-    "Waarom",
-    "Hoe komen",
-    "Type tafel",
-    "Flexibel regio",
-    "Aangemeld op",
-  ];
-  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
-
-  const lines = [
-    header.map(escape).join(";"),
-    ...rows.map((row) =>
-      [
-        row.name ?? "",
-        row.email,
-        row.cities.join(", "),
-        row.locale.toUpperCase(),
-        row.preferences?.interests.join(", ") ?? "",
-        row.preferences?.why.join(", ") ?? "",
-        row.preferences?.company.join(", ") ?? "",
-        row.preferences?.tableType.join(", ") ?? "",
-        row.preferences?.regionFlexible ? "ja" : "nee",
-        new Intl.DateTimeFormat("nl-NL", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date(row.createdAt)),
-      ]
-        .map(escape)
-        .join(";"),
-    ),
-  ];
-
-  return `\uFEFF${lines.join("\r\n")}`;
-}
+// CSV export moved to src/lib/priority-list-csv.ts (client-safe \u2014 no
+// drizzle/db imports \u2014 so the browser can build the same export straight
+// from whatever's currently filtered on screen).
 
 export async function removePriorityListSignupByEmail(email: string): Promise<number> {
   const normalized = email.trim().toLowerCase();
@@ -163,23 +154,13 @@ export async function removePriorityListSignupByEmail(email: string): Promise<nu
       customerId: waitlistSignups.customerId,
     })
     .from(waitlistSignups)
-    .where(
-      and(
-        sql`lower(${waitlistSignups.email}) = ${normalized}`,
-        eq(waitlistSignups.source, "priority_list"),
-      ),
-    );
+    .where(sql`lower(${waitlistSignups.email}) = ${normalized}`);
 
   if (rows.length === 0) return 0;
 
   await db
     .delete(waitlistSignups)
-    .where(
-      and(
-        sql`lower(${waitlistSignups.email}) = ${normalized}`,
-        eq(waitlistSignups.source, "priority_list"),
-      ),
-    );
+    .where(sql`lower(${waitlistSignups.email}) = ${normalized}`);
 
   const customerIds = [
     ...new Set(rows.map((row) => row.customerId).filter(Boolean)),

@@ -618,18 +618,6 @@ export async function fulfillClubCheckoutSession(
   });
 
   try {
-    const { getOrCreateReferralCode } = await import("@/lib/referral");
-    await getOrCreateReferralCode({
-      email: updated.email,
-      userId: updated.userId,
-      membershipId: updated.id,
-      locale: updated.locale === "en" ? "en" : "nl",
-    });
-  } catch (err) {
-    console.error("[club fulfill] referral code", err);
-  }
-
-  try {
     const { captureServerEvent } = await import("@/lib/posthog/server");
     const { PostHogEvents } = await import("@/lib/posthog/events");
     void captureServerEvent(updated.email, PostHogEvents.clubmemberPaid, {

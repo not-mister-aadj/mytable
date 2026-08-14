@@ -1,4 +1,5 @@
 export type WaitlistInterestId =
+  | "sunday_table"
   | "wine_tasting"
   | "chefs_special"
   | "wine_walk"
@@ -12,7 +13,9 @@ export type WaitlistWhyId =
   | "discover_places"
   | "no_organise"
   | "treat"
-  | "new_city";
+  | "new_city"
+  | "just_fun"
+  | "other";
 
 /** Bring people vs meet new people */
 export type WaitlistCompanyId =
@@ -22,6 +25,18 @@ export type WaitlistCompanyId =
   | "solo";
 
 export type WaitlistTableTypeId = "girls_only" | "mixed" | "no_preference";
+
+export type WaitlistGenderId = "female" | "male" | "other" | "unspecified";
+
+export type WaitlistAgeRangeId = "18_24" | "25_34" | "35_44" | "45_plus";
+
+/** People-first vs experience-first — what makes the evening for them */
+export type WaitlistVibeId = "people" | "experience" | "both";
+
+export type WaitlistBudgetId = "budget" | "premium" | "flexible";
+
+/** Framed indirectly in copy as "discovering" vs "going deeper" */
+export type WaitlistExperienceId = "curious" | "experienced";
 
 /** How someone wants to join MyTable overall */
 export type WaitlistJoinIntentId =
@@ -48,4 +63,11 @@ export type WaitlistPreferences = {
   tableType: WaitlistTableTypeId[];
   cities: string[];
   regionFlexible: boolean;
+  gender: WaitlistGenderId[];
+  ageRange: WaitlistAgeRangeId[];
+  vibe: WaitlistVibeId[];
+  budget: WaitlistBudgetId[];
+  experience: WaitlistExperienceId[];
+  /** Free-text elaboration when why includes "other" */
+  whyOther: string;
 };

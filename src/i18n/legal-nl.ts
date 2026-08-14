@@ -411,7 +411,7 @@ export const privacyNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Voor productanalytics gebruiken wij PostHog (EU-cloud). Dat kan een cookie of vergelijkbare opslag (localStorage) plaatsen om gebruik te meten: welke pagina's je bekijkt, hoe ver je scrollt, waar je klikt, en — met sessie-opname — hoe je door de site navigeert. Formuliervelden (zoals e-mail en wachtwoord) worden gemaskeerd in opnames. Wij gebruiken deze gegevens niet voor advertentieprofilering.",
+          text: "Voor productanalytics gebruiken wij PostHog (EU-cloud). Dat kan een cookie of vergelijkbare opslag (localStorage) plaatsen om gebruik te meten: welke pagina's je bekijkt, hoe ver je scrollt, waar je klikt, en, met sessie-opname, hoe je door de site navigeert. Formuliervelden (zoals e-mail en wachtwoord) worden gemaskeerd in opnames. Wij gebruiken deze gegevens niet voor advertentieprofilering.",
         },
         {
           type: "p",

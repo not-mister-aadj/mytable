@@ -18,7 +18,7 @@ export async function removePriorityListSignupAction(
   try {
     const removed = await removePriorityListSignupByEmail(email);
     if (removed === 0) {
-      return { error: "Deze persoon staat niet (meer) op de Priority List." };
+      return { error: "Deze persoon staat niet (meer) op de wachtlijst." };
     }
 
     revalidatePath(adminPath("/priority-list"));

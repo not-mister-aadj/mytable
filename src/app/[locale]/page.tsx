@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata({
     locale: locale as Locale,
     kind: "home",
-    title: `${labels.brand} · ${labels.tagline}`,
+    title: `${labels.brand} · ${labels.belief}`,
     description: labels.line,
     image: "/girls-only/hero-poster.jpg",
   });
@@ -70,7 +70,9 @@ export default async function Home({ params }: Props) {
           labels={labels}
         />
       </main>
-      <Footer dict={dict.footer} locale={locale} showSeoLinks />
+      <div className="pb-28 lg:pb-0">
+        <Footer dict={dict.footer} locale={locale} showSeoLinks />
+      </div>
     </>
   );
 }

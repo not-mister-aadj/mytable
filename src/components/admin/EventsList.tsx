@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Event } from "@/db/schema";
 import { adminPath } from "@/lib/admin-url";
 import { EventRow } from "./EventRow";
+import { FormatTabs } from "./FormatTabs";
 
 type StatusFilter = "all" | "published" | "draft" | "soldOut";
 type TimeFilter = "all" | "upcoming" | "past";
@@ -47,6 +48,7 @@ export function EventsList({ events }: { events: Event[] }) {
 
   return (
     <div>
+      <FormatTabs active="experiences" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-serif text-3xl text-burgundy">Experiences</h1>
         <Link

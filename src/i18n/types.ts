@@ -310,6 +310,7 @@ export interface Dictionary {
       logIn: string;
       signUp: string;
       navAria: string;
+      waitlistCta: string;
     };
     languageSwitch: string;
     openMenu: string;

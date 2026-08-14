@@ -51,7 +51,6 @@ export function GirlsOnlyCityPrioritySignup({
           cities: [cityName],
           locale,
           source: "newsletter",
-          signupSource: "priority_list",
           meta: {
             ...getMetaBrowserCookies(),
             eventSourceUrl: getMetaEventSourceUrl(),

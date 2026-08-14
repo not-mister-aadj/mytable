@@ -95,6 +95,27 @@ export function womenWelcomeSubject(locale: "nl" | "en" = "nl"): string {
   return locale === "en" ? "Welcome to MyTable" : "Welkom bij MyTable";
 }
 
+export function sundayTableWaitlistWelcomeSubject(
+  city: string,
+  locale: "nl" | "en" = "nl",
+): string {
+  if (locale === "en") {
+    return `You're on the list for ${city.trim()}`;
+  }
+  return `Je staat op de lijst voor ${city.trim()}`;
+}
+
+export function sundayTableWaitlistInviteSubject(
+  city: string,
+  date: string,
+  locale: "nl" | "en" = "nl",
+): string {
+  if (locale === "en") {
+    return `A table is forming in ${city.trim()} · ${date.trim()}`;
+  }
+  return `Er vormt zich een tafel in ${city.trim()} · ${date.trim()}`;
+}
+
 /** Extra signal for clients that group on custom entity refs. */
 export function bookingEmailHeaders(bookingCode: string): Record<string, string> {
   return { "X-Entity-Ref-ID": bookingCode.trim() };

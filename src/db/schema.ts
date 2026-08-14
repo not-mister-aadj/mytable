@@ -433,37 +433,6 @@ export const sundayTableLocations = pgTable(
   }),
 );
 
-export const referralCodes = pgTable(
-  "referral_codes",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    code: text("code").notNull().unique(),
-    userId: uuid("user_id"),
-    email: text("email").notNull(),
-    membershipId: uuid("membership_id").references(() => clubMemberships.id),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-);
-
-export const referralAttributions = pgTable(
-  "referral_attributions",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    referralCodeId: uuid("referral_code_id")
-      .notNull()
-      .references(() => referralCodes.id),
-    refereeEmail: text("referee_email").notNull(),
-    refereeUserId: uuid("referee_user_id"),
-    status: text("status").notNull().default("signed_up"),
-    rewardedAt: timestamp("rewarded_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-);
-
 export const affiliateCodes = pgTable("affiliate_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: text("code").notNull().unique(),
@@ -513,7 +482,5 @@ export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
 export type SundayTableWaitlistInvite =
   typeof sundayTableWaitlistInvites.$inferSelect;
 export type SundayTableReview = typeof sundayTableReviews.$inferSelect;
-export type ReferralCode = typeof referralCodes.$inferSelect;
-export type ReferralAttribution = typeof referralAttributions.$inferSelect;
 export type AffiliateCode = typeof affiliateCodes.$inferSelect;
 export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;

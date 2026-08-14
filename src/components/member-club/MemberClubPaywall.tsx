@@ -504,7 +504,14 @@ export function MemberClubPaywall({
                   </div>
                 ) : null}
 
-                <p className="mt-5 pb-2 text-[11px] leading-relaxed text-wine/40">
+                <p className="mt-5 flex items-start gap-2 rounded-2xl bg-[#e8f3e4] px-4 py-3 text-xs font-medium leading-relaxed text-[#2f5c2a]">
+                  <span aria-hidden className="mt-0.5 shrink-0">
+                    ✓
+                  </span>
+                  {labels.guarantee}
+                </p>
+
+                <p className="mt-3 pb-2 text-[11px] leading-relaxed text-wine/40">
                   {labels.legal}
                 </p>
               </div>

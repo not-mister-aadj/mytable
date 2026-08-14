@@ -71,8 +71,12 @@ export const memberClubEn: MemberClubLabels = {
         body: "Bring someone to your table. No extra cost.",
       },
       {
-        title: "Picks + 10%",
-        body: "Discover the best wine bars and restaurants in the city, often with a discount. Plus 10% off the agenda.",
+        title: "MyTable picks",
+        body: "Discover the best wine bars and restaurants in the city. Often with a discount we arrange for members.",
+      },
+      {
+        title: "10% off culinary experiences",
+        body: "Wine walks, tastings and dinners from the agenda.",
       },
     ],
     consumptionsNote:
@@ -83,6 +87,8 @@ export const memberClubEn: MemberClubLabels = {
     perMonth: "{price}/month",
     legal:
       "The trial month is a one-time payment and does not renew. The 5- and 12-month plans auto-renew until you cancel.",
+    guarantee:
+      "Come to your first Sunday Table. Not for you? Tell us within 48 hours and we refund the trial in full.",
     continue: "Pay and join",
     summary: "{price}/month",
     promoCodeLabel: "Discount code",
@@ -228,8 +234,12 @@ export const memberClubEn: MemberClubLabels = {
         body: "Bring someone to your table. No extra cost.",
       },
       {
-        title: "Picks + 10%",
-        body: "Discover the best wine bars and restaurants in the city, often with a discount. Plus 10% off the agenda.",
+        title: "MyTable picks",
+        body: "Discover the best wine bars and restaurants in the city. Often with a discount we arrange for members.",
+      },
+      {
+        title: "10% off culinary experiences",
+        body: "Wine walks, tastings and dinners from the agenda.",
       },
     ],
     note: "Drinks and bites you pay for on location. Culinary experiences from the agenda are all-in.",

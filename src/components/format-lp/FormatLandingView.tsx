@@ -174,35 +174,10 @@ export function FormatLandingView({
                 {labels.line}
               </motion.p>
 
-              <motion.ul
-                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.16, ease }}
-                className="mt-5 w-full space-y-2 sm:mt-6"
-              >
-                {labels.heroBenefits.map((item) => (
-                  <li
-                    key={item.bold}
-                    className="flex gap-2.5 text-sm leading-snug text-wine/65 sm:text-[0.95rem]"
-                  >
-                    <span
-                      aria-hidden
-                      className="mt-2 h-1 w-1 shrink-0 rounded-full bg-wine/35"
-                    />
-                    <span className="min-w-0">
-                      <span className="font-semibold text-wine">
-                        {item.bold}
-                      </span>
-                      {item.text}
-                    </span>
-                  </li>
-                ))}
-              </motion.ul>
-
               <motion.div
                 initial={reduceMotion ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.24, ease }}
+                transition={{ duration: 0.5, delay: 0.16, ease }}
                 className="mt-8 hidden flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3 lg:flex"
               >
                 <div className="hidden lg:block">
@@ -236,6 +211,48 @@ export function FormatLandingView({
             >
               <SundayTableHeroGallery locale={locale} />
             </motion.div>
+          </div>
+        </section>
+
+        {/* Proof — real testimonials, right after the hero, before we explain anything */}
+        <section className="overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.55, ease }}
+              className="max-w-xl"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+                {labels.proof.eyebrow}
+              </p>
+              <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+                {labels.proof.title}
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-wine/60 sm:mt-4">
+                {labels.proof.body}
+              </p>
+            </motion.div>
+          </div>
+
+          <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
+
+          <div className="mt-10 sm:mt-12">
+            <TestimonialMarquee
+              top={culinary}
+              bottom={[]}
+              fadeFromClassName="from-white"
+              cardClassName="border-wine/10 bg-cream/80"
+              singleRow
+            />
+          </div>
+          <div className="mt-8 hidden justify-center px-5 sm:mt-10 sm:px-8 lg:flex">
+            <PrimaryCta
+              label={labels.proof.cta}
+              hint={labels.ctaHint}
+              onClick={() => openWaitlist("proof_cta", "format_proof")}
+            />
           </div>
         </section>
 
@@ -363,96 +380,6 @@ export function FormatLandingView({
                   className="object-cover"
                 />
               </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* Proof */}
-        <section className="overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.55, ease }}
-              className="max-w-xl"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-                {labels.proof.eyebrow}
-              </p>
-              <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-                {labels.proof.title}
-              </h2>
-              <p className="mt-3 text-base leading-relaxed text-wine/60 sm:mt-4">
-                {labels.proof.body}
-              </p>
-            </motion.div>
-          </div>
-
-          <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
-
-          <div className="mt-10 sm:mt-12">
-            <TestimonialMarquee
-              top={culinary}
-              bottom={[]}
-              fadeFromClassName="from-white"
-              cardClassName="border-wine/10 bg-cream/80"
-              singleRow
-            />
-          </div>
-          <div className="mt-8 hidden justify-center px-5 sm:mt-10 sm:px-8 lg:flex">
-            <PrimaryCta
-              label={labels.proof.cta}
-              hint={labels.ctaHint}
-              onClick={() => openWaitlist("proof_cta", "format_proof")}
-            />
-          </div>
-        </section>
-
-        {/* Pricing */}
-        <section
-          id="pricing"
-          className="relative scroll-mt-24 overflow-hidden bg-wine py-14 text-cream sm:py-20 lg:py-24"
-        >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(197,154,91,0.18),transparent_40%)]" />
-          <div className="relative mx-auto max-w-4xl px-5 sm:px-8 lg:px-10">
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.55, ease }}
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-                {labels.pricing.eyebrow}
-              </p>
-              <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-                {labels.pricing.title}
-              </h2>
-              <p className="mt-3 max-w-lg text-base leading-relaxed text-cream/65 sm:mt-4">
-                {labels.pricing.body}
-              </p>
-            </motion.div>
-
-            <div className="mt-8 border-y border-cream/15 py-6 sm:mt-12">
-              <p className="font-serif text-4xl font-medium tracking-tight text-cream sm:text-5xl">
-                {labels.pricing.price}
-              </p>
-              <p className="mt-1 text-sm text-cream/55">
-                {labels.pricing.priceHint}
-              </p>
-            </div>
-
-            <p className="mt-6 max-w-lg text-sm leading-relaxed text-cream/55 sm:mt-8">
-              {labels.pricing.justification}
-            </p>
-
-            <div className="mt-6 hidden sm:mt-8 lg:block">
-              <PrimaryCta
-                label={labels.cta}
-                hint={labels.ctaHint}
-                variant="cream"
-                onClick={() => openWaitlist("pricing_cta", "format_pricing")}
-              />
             </div>
           </div>
         </section>

@@ -8,14 +8,8 @@ import type { Locale } from "@/i18n/config";
 import { localePath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { useAuthSession } from "@/features/auth/AuthSessionContext";
-import { useSignIn } from "@/features/auth/SignInProvider";
 import { FastLink } from "./ui/FastLink";
-import {
-  isMemberMobileHeaderHiddenPath,
-  memberNavItems,
-  publicNavItems,
-} from "./MemberBottomNav";
+import { publicNavItems } from "./MemberBottomNav";
 
 interface HeaderProps {
   dict: Dictionary["header"];
@@ -31,21 +25,16 @@ function stripLocale(pathname: string): string {
   return pathname || "/";
 }
 
+/** Sign-in is paused site-wide (see AuthProviders.tsx) — there's no member
+ * destination left, so this always renders the public, signed-out nav. */
 export function Header({ dict, locale, className = "" }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
-  const { isSignedIn, loading } = useAuthSession();
-  const { startSignIn } = useSignIn();
   const home = localePath(locale);
   const pathname = usePathname() ?? "/";
   const path = stripLocale(pathname);
-  const navItems = isSignedIn
-    ? memberNavItems(locale, dict.nav)
-    : publicNavItems(locale, dict.nav);
-  const showPublicMobileMenu = !loading && !isSignedIn;
-  const hideOnMobile =
-    !loading && isSignedIn && isMemberMobileHeaderHiddenPath(path);
+  const navItems = publicNavItems(locale, dict.nav);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -71,14 +60,9 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
     };
   }, [menuOpen]);
 
-  const accountCtaClass =
-    "girls-only-header__cta inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-cream disabled:opacity-60";
-
   return (
     <header
       className={`site-header fixed inset-x-0 top-0 z-[60] border-b backdrop-blur-md transition-all duration-300 ${
-        hideOnMobile ? "max-md:hidden" : ""
-      } ${
         scrolled
           ? "site-header--scrolled shadow-[0_8px_30px_rgba(90,15,27,0.06)]"
           : "site-header--top"
@@ -86,94 +70,57 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
     >
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-8 sm:py-3.5 md:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:px-10">
         <div className="justify-self-start">
-          {isSignedIn ? (
-            <span className="relative inline-flex shrink-0" aria-label={dict.homeAria}>
-              <Logo variant="header" priority />
-            </span>
-          ) : (
-            <Link
-              href={home}
-              className="relative inline-flex shrink-0 transition-opacity hover:opacity-90"
-              aria-label={dict.homeAria}
-            >
-              <Logo variant="header" priority />
-            </Link>
-          )}
+          <Link
+            href={home}
+            className="relative inline-flex shrink-0 transition-opacity hover:opacity-90"
+            aria-label={dict.homeAria}
+          >
+            <Logo variant="header" priority />
+          </Link>
         </div>
 
-        {!loading ? (
-          <nav
-            className="hidden items-center justify-center gap-1 justify-self-center md:flex lg:gap-2"
-            aria-label={dict.nav.navAria}
-          >
-            {navItems.map(({ href, label, match }) => {
-              const active = match(path);
-              return (
-                <FastLink
-                  key={href}
-                  href={href}
-                  className={`inline-flex items-center rounded-full px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    active
-                      ? "bg-wine/8 text-wine"
-                      : "text-wine/55 hover:text-wine"
-                  }`}
-                >
-                  <span aria-current={active ? "page" : undefined}>{label}</span>
-                </FastLink>
-              );
-            })}
-          </nav>
-        ) : (
-          <div className="hidden justify-self-center md:block" aria-hidden />
-        )}
+        <nav
+          className="hidden items-center justify-center gap-1 justify-self-center md:flex lg:gap-2"
+          aria-label={dict.nav.navAria}
+        >
+          {navItems.map(({ href, label, match }) => {
+            const active = match(path);
+            return (
+              <FastLink
+                key={href}
+                href={href}
+                className={`cta-lift cta-lift-outline inline-flex items-center rounded-full px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                  active
+                    ? "bg-wine/8 text-wine"
+                    : "text-wine/55 hover:text-wine"
+                }`}
+              >
+                <span aria-current={active ? "page" : undefined}>{label}</span>
+              </FastLink>
+            );
+          })}
+        </nav>
 
         <div className="flex items-center justify-end gap-1.5 justify-self-end sm:gap-3">
-          {!isSignedIn ? (
-            <LanguageSwitcher
-              locale={locale}
-              label={dict.languageSwitch}
-              variant="girlsOnly"
-            />
-          ) : null}
-          {loading ? (
-            <div className="flex items-center gap-1 sm:gap-2" aria-hidden>
-              <span className="inline-flex h-9 w-16 rounded-full bg-wine/5" />
-              <span className="hidden h-9 w-24 rounded-full bg-wine/8 md:inline-flex" />
-            </div>
-          ) : isSignedIn ? null : (
-            <>
-              <div className="hidden items-center gap-1 sm:gap-2 md:flex">
-                <button
-                  type="button"
-                  onClick={startSignIn}
-                  className="inline-flex items-center px-2.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-wine/75 transition hover:text-wine sm:px-3"
-                >
-                  {dict.nav.logIn}
-                </button>
-                <button
-                  type="button"
-                  onClick={startSignIn}
-                  className={accountCtaClass}
-                >
-                  {dict.nav.signUp}
-                </button>
-              </div>
-              <button
-                type="button"
-                className="site-header__menu-btn inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border md:hidden"
-                aria-expanded={menuOpen}
-                aria-controls={menuId}
-                aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
-                onClick={() => setMenuOpen((open) => !open)}
-              >
-                <MenuIcon open={menuOpen} />
-              </button>
-            </>
-          )}
+          <LanguageSwitcher
+            locale={locale}
+            label={dict.languageSwitch}
+            variant="girlsOnly"
+          />
+          <button
+            type="button"
+            className="site-header__menu-btn inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border md:hidden"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <MenuIcon open={menuOpen} />
+          </button>
         </div>
       </div>
 
-      {menuOpen && showPublicMobileMenu ? (
+      {menuOpen ? (
         <div
           id={menuId}
           className="site-header__mobile-menu border-t border-wine/10 md:hidden"
@@ -189,7 +136,7 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
                   key={href}
                   href={href}
                   onClick={() => setMenuOpen(false)}
-                  className={`inline-flex items-center rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] transition ${
+                  className={`cta-lift cta-lift-outline inline-flex items-center rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] transition ${
                     active
                       ? "bg-wine/8 text-wine"
                       : "text-wine/70 hover:bg-wine/5 hover:text-wine"
@@ -199,28 +146,6 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
                 </FastLink>
               );
             })}
-            <div className="mt-3 flex flex-col gap-2 border-t border-wine/10 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  startSignIn();
-                }}
-                className="inline-flex min-h-11 items-center justify-center rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] text-wine/80 transition hover:bg-wine/5 hover:text-wine"
-              >
-                {dict.nav.logIn}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  startSignIn();
-                }}
-                className={`${accountCtaClass} min-h-11 justify-center`}
-              >
-                {dict.nav.signUp}
-              </button>
-            </div>
           </nav>
         </div>
       ) : null}

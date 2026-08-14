@@ -34,7 +34,35 @@ function asPreferences(
   const tableType = Array.isArray(value.tableType)
     ? value.tableType.filter((item): item is string => typeof item === "string")
     : [];
-  if (!interests.length && !why.length && !company.length && !tableType.length) {
+  const gender = Array.isArray(value.gender)
+    ? value.gender.filter((item): item is string => typeof item === "string")
+    : [];
+  const ageRange = Array.isArray(value.ageRange)
+    ? value.ageRange.filter((item): item is string => typeof item === "string")
+    : [];
+  const vibe = Array.isArray(value.vibe)
+    ? value.vibe.filter((item): item is string => typeof item === "string")
+    : [];
+  const budget = Array.isArray(value.budget)
+    ? value.budget.filter((item): item is string => typeof item === "string")
+    : [];
+  const experience = Array.isArray(value.experience)
+    ? value.experience.filter((item): item is string => typeof item === "string")
+    : [];
+  const whyOther =
+    typeof value.whyOther === "string" ? value.whyOther : "";
+  if (
+    !interests.length &&
+    !why.length &&
+    !company.length &&
+    !tableType.length &&
+    !gender.length &&
+    !ageRange.length &&
+    !vibe.length &&
+    !budget.length &&
+    !experience.length &&
+    !whyOther
+  ) {
     return null;
   }
   return {
@@ -46,6 +74,12 @@ function asPreferences(
     tableType: tableType as WaitlistPreferences["tableType"],
     cities: [],
     regionFlexible: false,
+    gender: gender as WaitlistPreferences["gender"],
+    ageRange: ageRange as WaitlistPreferences["ageRange"],
+    vibe: vibe as WaitlistPreferences["vibe"],
+    budget: budget as WaitlistPreferences["budget"],
+    experience: experience as WaitlistPreferences["experience"],
+    whyOther,
   };
 }
 

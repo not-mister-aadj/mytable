@@ -411,7 +411,7 @@ export const privacyEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "For product analytics we use PostHog (EU cloud). This may place a cookie or similar storage (localStorage) to measure usage: which pages you view, how far you scroll, where you click, and — with session recording — how you navigate the site. Form fields (such as email and password) are masked in recordings. We do not use this data for advertising profiling.",
+          text: "For product analytics we use PostHog (EU cloud). This may place a cookie or similar storage (localStorage) to measure usage: which pages you view, how far you scroll, where you click, and, with session recording, how you navigate the site. Form fields (such as email and password) are masked in recordings. We do not use this data for advertising profiling.",
         },
         {
           type: "p",

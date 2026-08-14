@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import type {
+  WaitlistAgeRangeId,
+  WaitlistBudgetId,
   WaitlistCompanyId,
+  WaitlistExperienceId,
+  WaitlistGenderId,
   WaitlistInterestId,
   WaitlistTableTypeId,
+  WaitlistVibeId,
   WaitlistWhyId,
 } from "@/i18n/waitlist-page.types";
 import {
@@ -23,15 +28,30 @@ import {
   trackEmailSignupCompleted,
   trackSundayTableWaitlistEnriched,
 } from "@/lib/posthog/analytics";
-import { SUNDAY_TABLE_LP_CITIES } from "@/data/sunday-table-lp-cities";
+import { VISIBLE_ONBOARDING_CITIES } from "@/lib/member-onboarding";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 type WaitlistLabels = SundayTableLpLabels["waitlist"];
 type Phase = "capture" | "questions" | "done";
-type QuestionKey = "why" | "company" | "tableType";
+/** "profile" (gender + age) and "match" (vibe + budget + experience) are
+ * grouped multi-question screens — a few quick taps, not a whole extra
+ * screen per data point. "tableType" only appears for gender === "female",
+ * see `useSteps` below. */
+type StepKey = "profile" | "why" | "company" | "tableType" | "match";
 
-const QUESTION_ORDER: QuestionKey[] = ["why", "company", "tableType"];
+/** The 4 live, bookable formats — food_walk/aperitivo are waitlist-only
+ * interest options elsewhere, not real products yet, so they're left out
+ * of this picker. */
+const FORMAT_OPTIONS: Array<{
+  id: WaitlistInterestId;
+  label: { nl: string; en: string };
+}> = [
+  { id: "sunday_table", label: { nl: "Sunday Table", en: "Sunday Table" } },
+  { id: "wine_tasting", label: { nl: "Wijnproeverij", en: "Wine Tasting" } },
+  { id: "wine_walk", label: { nl: "Wijnwalk", en: "Wine Walk" } },
+  { id: "chefs_special", label: { nl: "Chef's Table", en: "Chef's Table" } },
+];
 
 function ChipButton({
   label,
@@ -54,6 +74,44 @@ function ChipButton({
     >
       {label}
     </button>
+  );
+}
+
+/** Compact single-select row of pills, for grouping a few quick-tap
+ * questions onto one screen (gender+age, vibe+budget+experience). */
+function PillRow<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: Array<{ id: T; label: string }>;
+  value: T | null;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <div>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
+        {label}
+      </span>
+      <div className="mt-1.5 flex flex-wrap gap-2">
+        {options.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onChange(option.id)}
+            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+              value === option.id
+                ? "border-burgundy bg-burgundy text-cream"
+                : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -81,17 +139,38 @@ export function SundayTableWaitlistModal({
   const [phase, setPhase] = useState<Phase>("capture");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [city, setCity] = useState(cityName ?? "");
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [otherCity, setOtherCity] = useState("");
   const [showOtherCity, setShowOtherCity] = useState(false);
+  const [interests, setInterests] = useState<WaitlistInterestId[]>(
+    presetInterest ? [presetInterest] : [],
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [why, setWhy] = useState<WaitlistWhyId[]>([]);
+  const [whyOther, setWhyOther] = useState("");
   const [company, setCompany] = useState<WaitlistCompanyId[]>([]);
   const [tableType, setTableType] = useState<WaitlistTableTypeId | null>(null);
+  const [gender, setGender] = useState<WaitlistGenderId | null>(null);
+  const [ageRange, setAgeRange] = useState<WaitlistAgeRangeId | null>(null);
+  const [vibe, setVibe] = useState<WaitlistVibeId | null>(null);
+  const [budget, setBudget] = useState<WaitlistBudgetId | null>(null);
+  const [experience, setExperience] = useState<WaitlistExperienceId | null>(
+    null,
+  );
+
+  // "Which table?" only makes sense once we know they're choosing between
+  // girls-only and mixed — men and "prefer not to say" skip straight to
+  // the match-preferences step.
+  const steps = useMemo<StepKey[]>(() => {
+    const base: StepKey[] = ["profile", "why", "company"];
+    if (gender === "female") base.push("tableType");
+    base.push("match");
+    return base;
+  }, [gender]);
 
   useEffect(() => {
     if (!open) return;
@@ -113,22 +192,52 @@ export function SundayTableWaitlistModal({
     setPhase("capture");
     setName("");
     setEmail("");
-    setCity(cityName ?? "");
+    setSelectedCities([]);
     setOtherCity("");
     setShowOtherCity(false);
+    setInterests(presetInterest ? [presetInterest] : []);
     setError(null);
     setWaitlistId(null);
     setQuestionIndex(0);
     setWhy([]);
+    setWhyOther("");
     setCompany([]);
     setTableType(null);
-  }, [open, cityName]);
+    setGender(null);
+    setAgeRange(null);
+    setVibe(null);
+    setBudget(null);
+    setExperience(null);
+  }, [open, cityName, presetInterest]);
 
-  const effectiveCity = showOtherCity ? otherCity.trim() : city;
+  // Multi-select: any known cities they tapped, plus one free-text "other
+  // city" if they filled it in. cityName (a city-specific LP route) pins
+  // this to a single city and hides the picker entirely.
+  const effectiveCities = cityName
+    ? [cityName]
+    : Array.from(
+        new Set(
+          [...selectedCities, otherCity.trim()].filter(
+            (c): c is string => c.length > 0,
+          ),
+        ),
+      );
+
+  function toggleInterest(id: WaitlistInterestId) {
+    setInterests((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
+    );
+  }
+
+  function toggleCity(c: string) {
+    setSelectedCities((prev) =>
+      prev.includes(c) ? prev.filter((v) => v !== c) : [...prev, c],
+    );
+  }
 
   async function submitCapture() {
     setError(null);
-    if (!name.trim() || !email.trim() || !effectiveCity) {
+    if (!name.trim() || !email.trim() || effectiveCities.length === 0) {
       setError(labels.error);
       return;
     }
@@ -140,7 +249,7 @@ export function SundayTableWaitlistModal({
         body: JSON.stringify({
           email: email.trim(),
           name: name.trim(),
-          cities: [effectiveCity],
+          cities: effectiveCities,
           locale,
           source: "waitlist",
           meta: {
@@ -154,13 +263,15 @@ export function SundayTableWaitlistModal({
         return;
       }
       const payload = (await res.json()) as { id?: string };
-      rememberPreferredCity(effectiveCity);
-      trackEmailSignupCompleted({
-        email: email.trim(),
-        city: effectiveCity,
-        language: locale,
-        source_section: "sunday_table_lp_waitlist",
-      });
+      for (const c of effectiveCities) {
+        rememberPreferredCity(c);
+        trackEmailSignupCompleted({
+          email: email.trim(),
+          city: c,
+          language: locale,
+          source_section: "sunday_table_lp_waitlist",
+        });
+      }
       setWaitlistId(payload.id ?? null);
       setPhase("questions");
     } catch {
@@ -174,23 +285,34 @@ export function SundayTableWaitlistModal({
     const answeredCount =
       (why.length > 0 ? 1 : 0) +
       (company.length > 0 ? 1 : 0) +
-      (tableType ? 1 : 0);
+      (tableType ? 1 : 0) +
+      (gender ? 1 : 0) +
+      (ageRange ? 1 : 0) +
+      (vibe ? 1 : 0) +
+      (budget ? 1 : 0) +
+      (experience ? 1 : 0);
 
-    if (answeredCount > 0 || presetInterest) {
+    if (answeredCount > 0 || interests.length > 0) {
       try {
         await fetch("/api/waitlist", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: email.trim(),
-            cities: [effectiveCity],
+            cities: effectiveCities,
             locale,
             enrich: true,
             preferences: {
               why,
+              whyOther: why.includes("other") ? whyOther.trim() : "",
               company,
               tableType: tableType ? [tableType] : [],
-              interests: presetInterest ? [presetInterest] : [],
+              interests,
+              gender: gender ? [gender] : [],
+              ageRange: ageRange ? [ageRange] : [],
+              vibe: vibe ? [vibe] : [],
+              budget: budget ? [budget] : [],
+              experience: experience ? [experience] : [],
             },
           }),
         });
@@ -199,17 +321,19 @@ export function SundayTableWaitlistModal({
       }
     }
 
-    trackSundayTableWaitlistEnriched({
-      city: effectiveCity,
-      locale,
-      answered_count: answeredCount,
-      skipped,
-    });
+    for (const c of effectiveCities) {
+      trackSundayTableWaitlistEnriched({
+        city: c,
+        locale,
+        answered_count: answeredCount,
+        skipped,
+      });
+    }
     setPhase("done");
   }
 
   function advanceQuestion() {
-    if (questionIndex < QUESTION_ORDER.length - 1) {
+    if (questionIndex < steps.length - 1) {
       setQuestionIndex((i) => i + 1);
     } else {
       void submitEnrichment(false);
@@ -233,7 +357,11 @@ export function SundayTableWaitlistModal({
     window.setTimeout(() => advanceQuestion(), 180);
   }
 
-  const currentQuestion = QUESTION_ORDER[questionIndex]!;
+  // Defensive clamp: if someone goes back and changes gender, `steps` can
+  // shrink out from under a questionIndex that was set against the longer
+  // array — this keeps the render in bounds either way.
+  const currentStepIndex = Math.min(questionIndex, steps.length - 1);
+  const currentStep = steps[currentStepIndex]!;
 
   return (
     <AnimatePresence>
@@ -337,32 +465,51 @@ export function SundayTableWaitlistModal({
                       />
                     </label>
 
+                    <div>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
+                        {labels.formatLabel}
+                      </span>
+                      <div className="mt-1.5 flex flex-wrap gap-2">
+                        {FORMAT_OPTIONS.map((format) => (
+                          <button
+                            key={format.id}
+                            type="button"
+                            onClick={() => toggleInterest(format.id)}
+                            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                              interests.includes(format.id)
+                                ? "border-burgundy bg-burgundy text-cream"
+                                : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
+                            }`}
+                          >
+                            {format.label[locale === "en" ? "en" : "nl"]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {!cityName ? (
                       <div>
                         <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
                           {labels.cityLabel}
                         </span>
                         <div className="mt-1.5 flex flex-wrap gap-2">
-                          {SUNDAY_TABLE_LP_CITIES.map((c) => (
+                          {VISIBLE_ONBOARDING_CITIES.map((c) => (
                             <button
-                              key={c.slug}
+                              key={c}
                               type="button"
-                              onClick={() => {
-                                setCity(c.name);
-                                setShowOtherCity(false);
-                              }}
+                              onClick={() => toggleCity(c)}
                               className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                                !showOtherCity && city === c.name
+                                selectedCities.includes(c)
                                   ? "border-burgundy bg-burgundy text-cream"
                                   : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
                               }`}
                             >
-                              {c.name}
+                              {c}
                             </button>
                           ))}
                           <button
                             type="button"
-                            onClick={() => setShowOtherCity(true)}
+                            onClick={() => setShowOtherCity((v) => !v)}
                             className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                               showOtherCity
                                 ? "border-burgundy bg-burgundy text-cream"
@@ -418,12 +565,43 @@ export function SundayTableWaitlistModal({
                   </p>
                   <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-wine/35">
                     {labels.progress
-                      .replace("{n}", String(questionIndex + 1))
-                      .replace("{total}", String(QUESTION_ORDER.length))}
+                      .replace("{n}", String(currentStepIndex + 1))
+                      .replace("{total}", String(steps.length))}
                   </p>
 
                   <AnimatePresence mode="wait">
-                    {currentQuestion === "why" ? (
+                    {currentStep === "profile" ? (
+                      <motion.div
+                        key="profile"
+                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25 }}
+                        className="mt-3 space-y-4"
+                      >
+                        <PillRow
+                          label={labels.gender.title}
+                          options={labels.gender.options}
+                          value={gender}
+                          onChange={setGender}
+                        />
+                        <PillRow
+                          label={labels.ageRange.title}
+                          options={labels.ageRange.options}
+                          value={ageRange}
+                          onChange={setAgeRange}
+                        />
+                        <button
+                          type="button"
+                          onClick={advanceQuestion}
+                          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                        >
+                          {labels.continueCta}
+                        </button>
+                      </motion.div>
+                    ) : null}
+
+                    {currentStep === "why" ? (
                       <motion.div
                         key="why"
                         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -445,6 +623,15 @@ export function SundayTableWaitlistModal({
                             />
                           ))}
                         </div>
+                        {why.includes("other") ? (
+                          <input
+                            type="text"
+                            value={whyOther}
+                            onChange={(e) => setWhyOther(e.target.value)}
+                            placeholder={labels.why.otherPlaceholder}
+                            className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
+                          />
+                        ) : null}
                         <button
                           type="button"
                           onClick={advanceQuestion}
@@ -455,7 +642,7 @@ export function SundayTableWaitlistModal({
                       </motion.div>
                     ) : null}
 
-                    {currentQuestion === "company" ? (
+                    {currentStep === "company" ? (
                       <motion.div
                         key="company"
                         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -487,7 +674,7 @@ export function SundayTableWaitlistModal({
                       </motion.div>
                     ) : null}
 
-                    {currentQuestion === "tableType" ? (
+                    {currentStep === "tableType" ? (
                       <motion.div
                         key="tableType"
                         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -509,6 +696,43 @@ export function SundayTableWaitlistModal({
                             />
                           ))}
                         </div>
+                      </motion.div>
+                    ) : null}
+
+                    {currentStep === "match" ? (
+                      <motion.div
+                        key="match"
+                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25 }}
+                        className="mt-3 space-y-4"
+                      >
+                        <PillRow
+                          label={labels.vibe.title}
+                          options={labels.vibe.options}
+                          value={vibe}
+                          onChange={setVibe}
+                        />
+                        <PillRow
+                          label={labels.budget.title}
+                          options={labels.budget.options}
+                          value={budget}
+                          onChange={setBudget}
+                        />
+                        <PillRow
+                          label={labels.experience.title}
+                          options={labels.experience.options}
+                          value={experience}
+                          onChange={setExperience}
+                        />
+                        <button
+                          type="button"
+                          onClick={advanceQuestion}
+                          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                        >
+                          {labels.continueCta}
+                        </button>
                       </motion.div>
                     ) : null}
                   </AnimatePresence>

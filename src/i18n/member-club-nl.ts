@@ -70,8 +70,12 @@ export const memberClubNl: MemberClubLabels = {
         body: "Neem iemand mee aan jouw tafel. Geen extra kosten.",
       },
       {
-        title: "Aanraders + 10%",
-        body: "Ontdek de beste wijnbars en restaurants in de stad, vaak met korting. Plus 10% op de agenda.",
+        title: "MyTable aanraders",
+        body: "Ontdek de beste wijnbars en restaurants in de stad. Vaak met korting die wij voor leden regelen.",
+      },
+      {
+        title: "10% korting op culinaire ervaringen",
+        body: "Wine walks, proeverijen en diners uit de agenda.",
       },
     ],
     consumptionsNote:
@@ -80,6 +84,8 @@ export const memberClubNl: MemberClubLabels = {
     popular: "Meest gekozen",
     save: "Bespaar {percent}",
     perMonth: "{price}/maand",
+    guarantee:
+      "Kom naar je eerste Sunday Table. Niks voor jou? Laat het ons binnen 48 uur weten en je krijgt de trial volledig terug.",
     legal:
       "De trialmaand is een eenmalige betaling en verlengt niet. De plannen van 5 en 12 maanden verlengen automatisch tot je opzegt.",
     continue: "Betalen en lid worden",
@@ -227,8 +233,12 @@ export const memberClubNl: MemberClubLabels = {
         body: "Neem iemand mee aan jouw tafel. Geen extra kosten.",
       },
       {
-        title: "Aanraders + 10%",
-        body: "Ontdek de beste wijnbars en restaurants in de stad, vaak met korting. Plus 10% op de agenda.",
+        title: "MyTable aanraders",
+        body: "Ontdek de beste wijnbars en restaurants in de stad. Vaak met korting die wij voor leden regelen.",
+      },
+      {
+        title: "10% korting op culinaire ervaringen",
+        body: "Wine walks, proeverijen en diners uit de agenda.",
       },
     ],
     note: "Drankjes en hapjes betaal je op locatie. Culinaire ervaringen uit de agenda zijn all-in.",

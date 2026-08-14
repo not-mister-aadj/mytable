@@ -5,6 +5,7 @@ import { adminPath, resolveHostname } from "@/lib/admin-url";
 import {
   saveSundayTableLocationAction,
   inviteWaitlistForSundayTableAction,
+  SIGNUPS_PAUSED,
 } from "@/app/admin/(dashboard)/sunday-tables/actions";
 import {
   decodeSundayTableSlug,
@@ -61,6 +62,7 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
       saveLocationAction={saveSundayTableLocationAction}
       waitlistStats={waitlistStats}
       inviteWaitlistAction={inviteWaitlistForSundayTableAction}
+      signupsPaused={SIGNUPS_PAUSED}
     />
   );
 }

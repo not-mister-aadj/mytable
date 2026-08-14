@@ -25,6 +25,19 @@ const INTEREST_IDS = new Set([
   "aperitivo",
 ]);
 
+const GENDER_IDS = new Set(["female", "male", "other", "unspecified"]);
+const AGE_RANGE_IDS = new Set(["18_24", "25_34", "35_44", "45_plus"]);
+const VIBE_IDS = new Set(["people", "experience", "both"]);
+const BUDGET_IDS = new Set(["budget", "premium", "flexible"]);
+const EXPERIENCE_IDS = new Set(["curious", "experienced"]);
+
+function parseStringArray(value: unknown, allowed: Set<string>): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is string => typeof item === "string" && allowed.has(item),
+  );
+}
+
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
 function checkRateLimit(key: string, max = 8, windowMs = 60_000): boolean {
@@ -82,12 +95,25 @@ function parsePreferences(
     ? raw.tableType.filter((item): item is string => typeof item === "string")
     : [];
   const priceRanges = parsePriceRanges(raw.priceRanges);
+  const gender = parseStringArray(raw.gender, GENDER_IDS);
+  const ageRange = parseStringArray(raw.ageRange, AGE_RANGE_IDS);
+  const vibe = parseStringArray(raw.vibe, VIBE_IDS);
+  const budget = parseStringArray(raw.budget, BUDGET_IDS);
+  const experience = parseStringArray(raw.experience, EXPERIENCE_IDS);
+  const whyOther =
+    typeof raw.whyOther === "string" ? raw.whyOther.trim().slice(0, 200) : "";
 
   if (
     !interests.length &&
     !why.length &&
     !company.length &&
-    !tableType.length
+    !tableType.length &&
+    !gender.length &&
+    !ageRange.length &&
+    !vibe.length &&
+    !budget.length &&
+    !experience.length &&
+    !whyOther
   ) {
     return null;
   }
@@ -103,6 +129,12 @@ function parsePreferences(
     tableType: tableType as WaitlistPreferences["tableType"],
     cities,
     regionFlexible: Boolean(raw.regionFlexible),
+    gender: gender as WaitlistPreferences["gender"],
+    ageRange: ageRange as WaitlistPreferences["ageRange"],
+    vibe: vibe as WaitlistPreferences["vibe"],
+    budget: budget as WaitlistPreferences["budget"],
+    experience: experience as WaitlistPreferences["experience"],
+    whyOther,
   };
 }
 

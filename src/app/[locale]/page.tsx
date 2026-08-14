@@ -70,7 +70,9 @@ export default async function Home({ params }: Props) {
           labels={labels}
         />
       </main>
-      <Footer dict={dict.footer} locale={locale} showSeoLinks />
+      <div className="pb-28 lg:pb-0">
+        <Footer dict={dict.footer} locale={locale} showSeoLinks />
+      </div>
     </>
   );
 }

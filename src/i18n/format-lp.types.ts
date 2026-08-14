@@ -12,7 +12,6 @@ export type FormatLpLabels = {
   socialProof: string;
   headline: string;
   line: string;
-  heroBenefits: Array<{ bold: string; text: string }>;
   cta: string;
   ctaHint: string;
   secondaryCta: string;
@@ -33,14 +32,6 @@ export type FormatLpLabels = {
     title: string;
     body: string;
     cta: string;
-  };
-  pricing: {
-    eyebrow: string;
-    title: string;
-    body: string;
-    price: string;
-    priceHint: string;
-    justification: string;
   };
   faq: {
     eyebrow: string;

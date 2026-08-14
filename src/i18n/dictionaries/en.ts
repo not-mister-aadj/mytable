@@ -21,6 +21,7 @@ export const en: Dictionary = {
       logIn: "Log in",
       signUp: "Sign up",
       navAria: "Main navigation",
+      waitlistCta: "Join the waitlist",
     },
     languageSwitch: "NL",
     openMenu: "Open menu",

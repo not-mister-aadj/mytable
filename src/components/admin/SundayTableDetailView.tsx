@@ -169,6 +169,32 @@ function InviteWaitlistCard({
   );
 }
 
+function InvitePausedNotice({
+  waitlistStats,
+}: {
+  waitlistStats: { eligible: number; invited: number; total: number };
+}) {
+  return (
+    <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
+      <h2 className="font-serif text-xl text-burgundy">Wachtlijst uitnodigen</h2>
+      <p className="mt-1 text-sm text-wine/60">
+        Sign-ups zijn tijdelijk gepauzeerd (geen /join-pagina meer), dus
+        uitnodigingen versturen kan nu niet.
+      </p>
+      <p className="mt-4 rounded-xl bg-white px-4 py-2.5 text-sm text-wine/75">
+        <span className="font-semibold text-burgundy">
+          {waitlistStats.eligible}
+        </span>{" "}
+        nog niet uitgenodigd ·{" "}
+        <span className="font-semibold text-burgundy">
+          {waitlistStats.invited}
+        </span>{" "}
+        al uitgenodigd
+      </p>
+    </div>
+  );
+}
+
 export function SundayTableDetailView({
   table,
   members,
@@ -178,6 +204,7 @@ export function SundayTableDetailView({
   saveLocationAction,
   waitlistStats,
   inviteWaitlistAction,
+  signupsPaused,
 }: {
   table: SundayTableKey;
   members: SundayTableMemberRow[];
@@ -194,6 +221,7 @@ export function SundayTableDetailView({
     prevState: InviteWaitlistActionState | null,
     formData: FormData,
   ) => Promise<InviteWaitlistActionState>;
+  signupsPaused: boolean;
 }) {
   return (
     <div className="space-y-8">
@@ -264,11 +292,15 @@ export function SundayTableDetailView({
         </button>
       </form>
 
-      <InviteWaitlistCard
-        table={table}
-        waitlistStats={waitlistStats}
-        inviteWaitlistAction={inviteWaitlistAction}
-      />
+      {signupsPaused ? (
+        <InvitePausedNotice waitlistStats={waitlistStats} />
+      ) : (
+        <InviteWaitlistCard
+          table={table}
+          waitlistStats={waitlistStats}
+          inviteWaitlistAction={inviteWaitlistAction}
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
@@ -303,7 +335,8 @@ export function SundayTableDetailView({
         <div className="rounded-2xl border border-dashed border-border-subtle bg-beige/40 px-6 py-16 text-center">
           <p className="font-serif text-xl text-burgundy">Nog geen aanmeldingen</p>
           <p className="mt-2 text-sm text-wine/60">
-            Zodra een clubmember via de paywall doorgaat, verschijnt die hier.
+            Zodra iemand een uitnodiging voor deze tafel accepteert, verschijnt
+            die hier.
           </p>
         </div>
       ) : (

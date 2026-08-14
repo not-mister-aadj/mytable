@@ -4,32 +4,27 @@ export const wineWalkLpNl: FormatLpLabels = {
   meta: {
     title: "Wijnwalk · MyTable",
     description:
-      "De stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Met nieuwe mensen. Zet je op de wachtlijst.",
+      "De stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Zet je op de wachtlijst.",
   },
   brand: "MyTable",
   socialProof: "Wijnwalk · meerdere locaties, één avond",
-  headline: "Eén avond. Meerdere plekken. Nieuwe mensen.",
-  line: "Wijnwalk laat je de stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Samen met een groep nieuwe mensen, geen gedoe met plannen.",
-  heroBenefits: [
-    { bold: "Meerdere locaties", text: ", elk met wijn en spijs" },
-    { bold: "Eén groep, nieuwe mensen", text: ", geen datingagenda" },
-    { bold: "Girls only of gemengd", text: ", jij kiest" },
-  ],
+  headline: "Eén avond. Meerdere plekken. Geen gedoe met plannen.",
+  line: "Wijnwalk laat je de stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Wij stippelen de route al voor je uit.",
   cta: "Zet me op de lijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
   how: {
     eyebrow: "Zo werkt het",
     title: "Van wachtlijst tot eerste glas onderweg",
-    body: "Zet je op de lijst, en zodra er een wijnwalk vormt die bij je past, hoor je van ons.",
+    body: "Zet je op de lijst, en zodra we een wijnwalk hebben die bij je past, hoor je van ons.",
     steps: [
       {
         title: "Zet je op de lijst",
-        body: "Vertel ons wat je zoekt. Duurt een minuut, kost niks.",
+        body: "Vertel ons wat je leuk vindt, zodat we je alleen uitnodigen voor wat bij je past. Geen spam.",
       },
       {
-        title: "Wij vormen een groep",
-        body: "Zodra er genoeg mensen zijn, plannen we een route en datum.",
+        title: "Wij nodigen je uit",
+        body: "Zodra we een wijnwalk hebben die aansluit bij wat jij zoekt, hoor je van ons.",
       },
       {
         title: "Loop mee",
@@ -51,7 +46,7 @@ export const wineWalkLpNl: FormatLpLabels = {
       },
       {
         title: "Eén groep",
-        body: "Loop samen met nieuwe mensen, max tien plekken.",
+        body: "Een overzichtelijke groep, geen grote massatour.",
       },
       {
         title: "Girls only of gemengd",
@@ -63,33 +58,30 @@ export const wineWalkLpNl: FormatLpLabels = {
   proof: {
     eyebrow: "Onderweg",
     title: "De stad ontdekken, met gezelschap dat blijft",
-    body: "Echte momenten van eerdere wijnwalks.",
+    body: "Echte momenten van MyTable-avonden.",
     cta: "Zet me op de lijst",
-  },
-  pricing: {
-    eyebrow: "Prijs",
-    title: "Wat een wijnwalk kost",
-    body: "Je betaalt pas zodra je wordt uitgenodigd voor een echte wijnwalk.",
-    price: "€60",
-    priceHint: "per persoon, inclusief wijn en spijs op elke stop",
-    justification:
-      "Je betaalt niet voor losse drankjes op losse plekken. Je betaalt voor een route die al is uitgestippeld, met gezelschap dat er ook voor koos.",
   },
   faq: {
     eyebrow: "Vragen",
     title: "Nog twijfels?",
     items: [
       {
+        question: "Wat kan ik verwachten van een avond?",
+        answer:
+          "We lopen samen langs meerdere plekken die wij hebben uitgekozen. Op elke stop wijn en spijs, geen zoeken of plannen, wij hebben de route al uitgestippeld.",
+      },
+      {
         question: "Hoeveel locaties lopen we?",
         answer: "Dat verschilt per route. Elke stop krijg je wijn en spijs.",
       },
       {
-        question: "Kan ik met iemand mee?",
-        answer: "Ja, een +1 meenemen mag.",
-      },
-      {
         question: "Is het een lange wandeling?",
         answer: "Nee, de locaties liggen dicht bij elkaar. Comfortabele schoenen zijn genoeg.",
+      },
+      {
+        question: "Wat kost het?",
+        answer:
+          "Zodra je wordt uitgenodigd voor een wijnwalk, hoor je de prijs. Op de wachtlijst staan is gratis en verplicht je tot niets.",
       },
     ],
   },
@@ -101,26 +93,27 @@ export const wineWalkLpNl: FormatLpLabels = {
   waitlist: {
     eyebrow: "Wachtlijst",
     title: "Zet je op de lijst",
-    body: "We laten je weten zodra er een wijnwalk vormt die bij je past.",
+    body: "We laten je weten zodra er een wijnwalk vormt in jouw stad.",
     nameLabel: "Naam",
     namePlaceholder: "Voornaam",
     emailLabel: "E-mail",
     emailPlaceholder: "jij@email.nl",
-    cityLabel: "Stad",
+    cityLabel: "In de volgende steden",
     cityOther: "Andere stad",
     cityOtherPlaceholder: "Welke stad?",
+    formatLabel: "Geïnteresseerd in de volgende formats",
     submit: "Zet me op de lijst",
     submitting: "Bezig…",
     privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
     error: "Er ging iets mis. Probeer het opnieuw.",
-    questionsTitle: "Nog 3 korte vragen",
+    questionsTitle: "Nog een paar korte vragen",
     questionsBody: "Helpt ons de juiste wijnwalk voor je te vinden. Helemaal optioneel.",
     skip: "Overslaan",
     back: "Terug",
     continueCta: "Verder",
     progress: "Vraag {n} van {total}",
     why: {
-      title: "Waarom een wijnwalk?",
+      title: "Waarom sta je op de lijst?",
       options: [
         { id: "discover_wines", label: "Wijn ontdekken" },
         { id: "discover_flavours", label: "Nieuwe smaken" },
@@ -128,7 +121,10 @@ export const wineWalkLpNl: FormatLpLabels = {
         { id: "no_organise", label: "Niks zelf hoeven regelen" },
         { id: "treat", label: "Mezelf trakteren" },
         { id: "new_city", label: "Nieuw in de stad" },
+        { id: "just_fun", label: "Gewoon een leuke zondag, zonder speciale reden" },
+        { id: "other", label: "Iets anders" },
       ],
+      otherPlaceholder: "Vertel het ons...",
     },
     company: {
       title: "Met wie kom je het liefst?",
@@ -147,10 +143,57 @@ export const wineWalkLpNl: FormatLpLabels = {
         { id: "no_preference", label: "Maakt niet uit" },
       ],
     },
+    gender: {
+      title: "Gender",
+      options: [
+        { id: "female", label: "Vrouw" },
+        { id: "male", label: "Man" },
+        { id: "other", label: "Anders" },
+        { id: "unspecified", label: "Zeg ik liever niet" },
+      ],
+    },
+    ageRange: {
+      title: "Leeftijd",
+      options: [
+        { id: "18_24", label: "18-24" },
+        { id: "25_34", label: "25-34" },
+        { id: "35_44", label: "35-44" },
+        { id: "45_plus", label: "45+" },
+      ],
+    },
+    vibe: {
+      title: "Wat maakt een avond voor jou geslaagd?",
+      options: [
+        { id: "people", label: "De mensen aan tafel" },
+        { id: "experience", label: "Het eten en de wijn" },
+        { id: "both", label: "Allebei evenveel" },
+      ],
+    },
+    budget: {
+      title: "Waar let je het meest op bij de prijs?",
+      options: [
+        { id: "budget", label: "Ik hou het betaalbaar" },
+        { id: "premium", label: "Beste ervaring, budget is bijzaak" },
+        { id: "flexible", label: "Ergens tussenin" },
+      ],
+    },
+    experience: {
+      title: "Hoe zou je jezelf omschrijven?",
+      options: [
+        {
+          id: "curious",
+          label: "Ik probeer graag iets nieuws, hoef geen expert te zijn",
+        },
+        {
+          id: "experienced",
+          label: "Ik weet er al veel van, ik zoek de betere dingen",
+        },
+      ],
+    },
     successTitle: "Je staat op de lijst",
-    successBody: "Zodra er een wijnwalk vormt die bij je past, hoor je van ons.",
+    successBody: "Zodra er een wijnwalk vormt in jouw stad, hoor je van ons.",
     successNext:
-      "In de tussentijd: join de WhatsApp-groep voor kortingscodes en updates.",
+      "Liever updates via WhatsApp dan mail? Join de groep, daar doen we ook onze aankondigingen.",
     whatsappGirlsLabel: "Girls only WhatsApp",
     whatsappMixedLabel: "Gemengde WhatsApp",
     close: "Sluiten",

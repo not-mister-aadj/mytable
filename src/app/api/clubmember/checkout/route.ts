@@ -22,7 +22,6 @@ import {
   isActiveOnboardingCity,
   readOnboardingFromMetadata,
 } from "@/lib/member-onboarding";
-import { hasOpenReferralAttribution } from "@/lib/referral";
 import {
   getStripe,
   getCheckoutPaymentMethodTypes,
@@ -252,10 +251,9 @@ export async function POST(request: Request) {
     const stripe = getStripe();
     const priceId = await getOrCreateClubPriceId(resolvedPlanId, locale);
     const siteUrl = resolveCheckoutReturnOrigin(request);
+    // Referral system removed (unused, 0 rows ever) — no more friend discount.
     const referralCoupon = process.env.STRIPE_REFERRAL_FRIEND_COUPON_ID?.trim();
-    const friendReferral =
-      Boolean(referralCoupon) &&
-      (await hasOpenReferralAttribution(user.email));
+    const friendReferral = false;
 
     // Promo codes only apply to the one-time trial (1m).
     let trialPromotionCodeId: string | null = null;

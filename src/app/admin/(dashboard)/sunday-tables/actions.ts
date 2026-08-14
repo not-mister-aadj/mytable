@@ -54,11 +54,27 @@ export type InviteWaitlistActionState = {
   failed: number;
 };
 
+/** Sign-ups are paused site-wide — /join was deleted and /login is now a
+ * coming-soon page. Flip this back once sign-ups reopen; until then, invite
+ * emails would link people to a page that no longer exists. Exported so the
+ * admin UI can show a paused notice instead of a live-looking form. */
+export const SIGNUPS_PAUSED = true;
+
 export async function inviteWaitlistForSundayTableAction(
   _prev: InviteWaitlistActionState | null,
   formData: FormData,
 ): Promise<InviteWaitlistActionState> {
   await requireAdmin();
+
+  if (SIGNUPS_PAUSED) {
+    return {
+      error:
+        "Sign-ups zijn tijdelijk gepauzeerd — /join bestaat niet meer, dus uitnodigingen versturen kan nu niet.",
+      sent: 0,
+      skipped: 0,
+      failed: 0,
+    };
+  }
 
   const city = String(formData.get("city") ?? "").trim();
   const tableDate = String(formData.get("tableDate") ?? "").trim();

@@ -21,6 +21,7 @@ export const nl: Dictionary = {
       logIn: "Inloggen",
       signUp: "Aanmelden",
       navAria: "Hoofdnavigatie",
+      waitlistCta: "Zet me op de lijst",
     },
     languageSwitch: "EN",
     openMenu: "Menu openen",

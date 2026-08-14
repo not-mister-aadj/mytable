@@ -60,6 +60,7 @@ export interface MemberClubLabels {
     save: string;
     perMonth: string;
     legal: string;
+    guarantee: string;
     continue: string;
     summary: string;
     promoCodeLabel: string;

@@ -1,5 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
-import { SundayTableInviteEmail } from "@/emails/SundayTableInviteEmail";
+import { and, eq, isNull, lt } from "drizzle-orm";
 import { SundayTableCulinaryEmail } from "@/emails/SundayTableCulinaryEmail";
 import { SundayTableLocationEmail } from "@/emails/SundayTableLocationEmail";
 import { SundayTableReviewEmail } from "@/emails/SundayTableReviewEmail";
@@ -11,11 +10,7 @@ import { isEmailConfigured } from "@/lib/email/resend";
 import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { sundayTableLocationSubject } from "@/lib/email/subjects";
-import {
-  getOrCreateReferralCode,
-  markPastConfirmedAsAttended,
-  whatsappInviteUrl,
-} from "@/lib/referral";
+import { PostHogEvents } from "@/lib/posthog/events";
 import { sundayTableCalendarDownloadUrl } from "@/lib/sunday-table-calendar";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import { signSundayTableReviewToken } from "@/lib/sunday-table-review-token";
@@ -54,6 +49,38 @@ function daysAgoIso(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return amsterdamDateIso(d);
+}
+
+/** Mark confirmed past Sundays as attended (for lifecycle emails + analytics).
+ * Used to also trigger a referral reward — the referral system was removed
+ * (unused, 0 rows ever), so this now just marks attendance. */
+async function markPastConfirmedAsAttended(): Promise<number> {
+  if (!isDbConfigured()) return 0;
+  const db = getDb();
+  const today = new Date().toISOString().slice(0, 10);
+  const updated = await db
+    .update(sundayTableSignups)
+    .set({ attendedAt: new Date() })
+    .where(
+      and(
+        eq(sundayTableSignups.status, "confirmed"),
+        isNull(sundayTableSignups.attendedAt),
+        lt(sundayTableSignups.tableDate, today),
+      ),
+    )
+    .returning({ id: sundayTableSignups.id, email: sundayTableSignups.email });
+
+  for (const row of updated) {
+    try {
+      const { captureServerEvent } = await import("@/lib/posthog/server");
+      void captureServerEvent(row.email, PostHogEvents.sundayShowUp, {
+        signup_id: row.id,
+      });
+    } catch {
+      // analytics must not block
+    }
+  }
+  return updated.length;
 }
 
 /** Day 1 after Sunday Table: ask for a review. */
@@ -112,61 +139,13 @@ export async function sendSundayTableReviewEmails(): Promise<number> {
   return sent;
 }
 
-/** Day 2 after Sunday Table: invite emails for confirmed RSVPs. */
+/** Day 2 after Sunday Table: used to send a referral-link invite email.
+ * The referral system was removed (unused, 0 rows ever) — this email's
+ * whole point was sharing that link, so it's now a no-op rather than a
+ * hollowed-out email with nothing to share. Kept as a function (returning
+ * 0) so runSundayTableLifecycleJobs's shape doesn't need to change. */
 export async function sendSundayTableInviteEmails(): Promise<number> {
-  if (!isDbConfigured()) return 0;
-  await markPastConfirmedAsAttended();
-
-  const db = getDb();
-  const twoDaysAgo = daysAgoIso(2);
-  const rows = await db
-    .select()
-    .from(sundayTableSignups)
-    .where(
-      and(
-        eq(sundayTableSignups.status, "confirmed"),
-        eq(sundayTableSignups.tableDate, twoDaysAgo),
-        isNull(sundayTableSignups.inviteEmailSentAt),
-      ),
-    );
-
-  let sent = 0;
-
-  for (const row of rows) {
-    const locale = await emailLocaleForSignup(row);
-    const referral = await getOrCreateReferralCode({
-      email: row.email,
-      userId: row.userId,
-      membershipId: row.membershipId,
-      locale,
-    });
-    if (!referral) continue;
-    const wa = whatsappInviteUrl(referral.shareUrl, locale);
-
-    const ok = await sendSimpleEmail({
-      to: row.email,
-      subject:
-        locale === "en"
-          ? "Invite someone to the next Sunday Table"
-          : "Nodig iemand uit voor de volgende Sunday Table",
-      element: SundayTableInviteEmail({
-        locale,
-        firstName: row.name?.split(" ")[0],
-        city: row.city,
-        shareUrl: referral.shareUrl,
-        whatsappUrl: wa,
-      }),
-    });
-
-    if (ok) {
-      await db
-        .update(sundayTableSignups)
-        .set({ inviteEmailSentAt: new Date() })
-        .where(eq(sundayTableSignups.id, row.id));
-      sent += 1;
-    }
-  }
-  return sent;
+  return 0;
 }
 
 /** ~7 days after Sunday: culinary CTA. */

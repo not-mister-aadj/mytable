@@ -1,8 +1,6 @@
 import { requireAdminApi } from "@/lib/admin-auth";
-import {
-  getPriorityListSignups,
-  priorityListRowsToExcelCsv,
-} from "@/lib/priority-list-data";
+import { getPriorityListSignups } from "@/lib/priority-list-data";
+import { priorityListRowsToExcelCsv } from "@/lib/priority-list-csv";
 import { isDbConfigured } from "@/db/index";
 
 export async function GET() {

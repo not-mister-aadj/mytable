@@ -12,7 +12,6 @@ import { fillCity } from "@/i18n/get-sunday-table-lp";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
-import { SundayTableWhatsappSale } from "@/components/sunday-table-lp/SundayTableWhatsappSale";
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
@@ -83,40 +82,6 @@ function PrimaryCta({
   );
 }
 
-function GuaranteeBadge({
-  name,
-  text,
-  variant = "light",
-  className = "",
-}: {
-  name?: string;
-  text: string;
-  /** "dark" is for use on the wine-colored pricing section */
-  variant?: "light" | "dark";
-  className?: string;
-}) {
-  const isDark = variant === "dark";
-  return (
-    <p
-      className={`flex items-start gap-2 rounded-2xl px-4 py-3 text-xs leading-relaxed ${
-        isDark ? "bg-cream/10 text-cream/80" : "bg-[#e8f3e4] text-[#2f5c2a]"
-      } ${className}`}
-    >
-      <span aria-hidden className={`mt-0.5 shrink-0 ${isDark ? "text-gold" : ""}`}>
-        ✓
-      </span>
-      <span>
-        {name ? (
-          <span className={`font-semibold ${isDark ? "text-gold" : ""}`}>
-            {name}.{" "}
-          </span>
-        ) : null}
-        <span className="font-medium">{text}</span>
-      </span>
-    </p>
-  );
-}
-
 function ProofPhotoStrip({
   images,
   reduceMotion,
@@ -181,7 +146,6 @@ export function SundayTableLpView({
   const finalTitle = cityName
     ? fillCity(labels.final.titleCity, cityName)
     : labels.final.title;
-  const [saleOpen, setSaleOpen] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   function openWaitlist(cta: string, source: string) {
@@ -192,20 +156,15 @@ export function SundayTableLpView({
 
   return (
     <>
-      <SundayTableWhatsappSale
-        labels={labels.sale}
-        locale={locale}
-        open={saleOpen}
-        onOpenChange={setSaleOpen}
-      />
       <SundayTableWaitlistModal
         labels={labels.waitlist}
         locale={locale}
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
         cityName={cityName}
+        presetInterest="sunday_table"
       />
-      <Header dict={headerDict} locale={locale} className="top-[2.6rem]" />
+      <Header dict={headerDict} locale={locale} />
 
       <div className="overflow-x-clip">
       {/* Hero: same composition as main language page — copy left, carousel right */}
@@ -244,33 +203,10 @@ export function SundayTableLpView({
               {line}
             </motion.p>
 
-            <motion.ul
-              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.16, ease }}
-              className="mt-5 w-full space-y-2 sm:mt-6"
-            >
-              {labels.heroBenefits.map((item) => (
-                <li
-                  key={item.bold}
-                  className="flex gap-2.5 text-sm leading-snug text-wine/65 sm:text-[0.95rem]"
-                >
-                  <span
-                    aria-hidden
-                    className="mt-2 h-1 w-1 shrink-0 rounded-full bg-wine/35"
-                  />
-                  <span className="min-w-0">
-                    <span className="font-semibold text-wine">{item.bold}</span>
-                    {item.text}
-                  </span>
-                </li>
-              ))}
-            </motion.ul>
-
             <motion.div
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.24, ease }}
+              transition={{ duration: 0.5, delay: 0.16, ease }}
               className="mt-8 hidden flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-3 lg:flex"
             >
               <div className="hidden lg:block">
@@ -306,6 +242,48 @@ export function SundayTableLpView({
           >
             <SundayTableHeroGallery locale={locale} />
           </motion.div>
+        </div>
+      </section>
+
+      {/* Proof — real testimonials, right after the hero, before we explain anything */}
+      <section className="overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.55, ease }}
+            className="max-w-xl"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+              {labels.proof.eyebrow}
+            </p>
+            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+              {labels.proof.title}
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-wine/60 sm:mt-4">
+              {labels.proof.body}
+            </p>
+          </motion.div>
+        </div>
+
+        <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
+
+        <div className="mt-10 sm:mt-12">
+          <TestimonialMarquee
+            top={people}
+            bottom={[]}
+            fadeFromClassName="from-white"
+            cardClassName="border-wine/10 bg-cream/80"
+            singleRow
+          />
+        </div>
+        <div className="mt-8 hidden justify-center px-5 sm:mt-10 sm:px-8 lg:flex">
+          <PrimaryCta
+            label={labels.proof.cta}
+            hint={labels.ctaHint}
+            onClick={() => openWaitlist("proof_cta", "sunday_table_proof")}
+          />
         </div>
       </section>
 
@@ -433,261 +411,6 @@ export function SundayTableLpView({
                 className="object-cover"
               />
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* How we match — dramatizes the real matching signals we already collect */}
-      <section className="relative overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20">
-        <div className="mx-auto max-w-4xl px-5 text-center sm:px-8 lg:px-10">
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease }}
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              {labels.matching.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {labels.matching.title}
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-wine/60 sm:mt-4">
-              {labels.matching.body}
-            </p>
-          </motion.div>
-
-          <div className="mt-10 grid gap-6 text-left sm:mt-12 sm:grid-cols-3 sm:gap-8">
-            {labels.matching.items.map((item, index) => (
-              <motion.div
-                key={item.title}
-                initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.45, delay: index * 0.06, ease }}
-                className="rounded-2xl border border-wine/10 bg-cream/60 p-5"
-              >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold/15 font-serif text-xs text-wine/50">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-3 font-serif text-lg font-medium tracking-tight text-wine">
-                  {item.title}
-                </h3>
-                <p className="mt-1 text-sm leading-snug text-wine/55">
-                  {item.body}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Proof */}
-      <section className="overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease }}
-            className="max-w-xl"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              {labels.proof.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {labels.proof.title}
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-wine/60 sm:mt-4">
-              {labels.proof.body}
-            </p>
-          </motion.div>
-        </div>
-
-        <ProofPhotoStrip images={proofImages} reduceMotion={reduceMotion} />
-
-        <div className="mt-10 sm:mt-12">
-          <TestimonialMarquee
-            top={people}
-            bottom={[]}
-            fadeFromClassName="from-white"
-            cardClassName="border-wine/10 bg-cream/80"
-            singleRow
-          />
-        </div>
-        <div className="mt-8 hidden justify-center px-5 sm:mt-10 sm:px-8 lg:flex">
-          <PrimaryCta
-            label={labels.proof.cta}
-            hint={labels.ctaHint}
-            onClick={() => openWaitlist("proof_cta", "sunday_table_proof")}
-          />
-        </div>
-      </section>
-
-      {/* Pricing — close to value + proof on mobile */}
-      <section
-        id="pricing"
-        className="relative scroll-mt-24 overflow-hidden bg-wine py-14 text-cream sm:py-20 lg:py-24"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(197,154,91,0.18),transparent_40%)]" />
-        <div className="relative mx-auto max-w-4xl px-5 sm:px-8 lg:px-10">
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease }}
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              {labels.pricing.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-              {labels.pricing.title}
-            </h2>
-            <p className="mt-3 max-w-lg text-base leading-relaxed text-cream/65 sm:mt-4">
-              {labels.pricing.body}
-            </p>
-          </motion.div>
-
-          <div className="mt-8 divide-y divide-cream/15 border-y border-cream/15 sm:mt-12">
-            {(
-              [
-                {
-                  label: labels.pricing.trialLabel,
-                  price: labels.pricing.trialPrice,
-                  hint: labels.pricing.trialHint,
-                  emphasize: false,
-                },
-                {
-                  label: labels.pricing.popularLabel,
-                  price: labels.pricing.popularPrice,
-                  hint: labels.pricing.popularHint,
-                  emphasize: true,
-                },
-                {
-                  label: labels.pricing.yearLabel,
-                  price: labels.pricing.yearPrice,
-                  hint: labels.pricing.yearHint,
-                  emphasize: false,
-                },
-              ] as const
-            ).map((plan) => (
-              <div
-                key={plan.label}
-                className={`flex flex-wrap items-baseline justify-between gap-3 py-5 sm:py-6 ${
-                  plan.emphasize
-                    ? "-mx-5 border-l-2 border-gold bg-cream/[0.06] px-5 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10"
-                    : ""
-                }`}
-              >
-                <div>
-                  <p
-                    className={`font-serif text-xl font-medium tracking-tight sm:text-2xl ${
-                      plan.emphasize ? "text-cream" : "text-cream/90"
-                    }`}
-                  >
-                    {plan.label}
-                  </p>
-                  <p
-                    className={`mt-1 text-sm ${
-                      plan.emphasize ? "text-gold/90" : "text-cream/55"
-                    }`}
-                  >
-                    {plan.hint}
-                  </p>
-                </div>
-                <p className="font-serif text-3xl font-medium tracking-tight text-cream sm:text-4xl">
-                  {plan.price}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-6 max-w-lg text-sm leading-relaxed text-cream/55 sm:mt-8">
-            {labels.pricing.justification}
-          </p>
-
-          <div className="mt-6 hidden sm:mt-8 lg:block">
-            <PrimaryCta
-              label={labels.cta}
-              hint={labels.ctaHint}
-              variant="cream"
-              onClick={() =>
-                openWaitlist("pricing_cta", "sunday_table_pricing")
-              }
-            />
-          </div>
-
-          <div className="mt-6 hidden max-w-md sm:mt-8 lg:block">
-            <GuaranteeBadge
-              name={labels.guaranteeName}
-              text={labels.ctaRisk}
-              variant="dark"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Table choice — after price, before final commit */}
-      <section
-        id="tables"
-        className="relative scroll-mt-24 overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20 lg:py-24"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_100%_0%,rgba(197,154,91,0.08),transparent_40%)]" />
-        <div className="relative mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease }}
-            className="max-w-2xl"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              {labels.tables.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl lg:text-[2.75rem]">
-              {labels.tables.title}
-            </h2>
-            <p className="mt-3 max-w-lg text-base leading-relaxed text-wine/60 sm:mt-4 sm:text-lg">
-              {labels.tables.body}
-            </p>
-          </motion.div>
-
-          <div className="mt-10 grid gap-8 sm:mt-14 sm:grid-cols-2 sm:gap-16">
-            {(
-              [
-                {
-                  title: labels.tables.girlsOnlyTitle,
-                  body: labels.tables.girlsOnlyBody,
-                },
-                {
-                  title: labels.tables.mixedTitle,
-                  body: labels.tables.mixedBody,
-                },
-              ] as const
-            ).map((option, index) => (
-              <motion.div
-                key={option.title}
-                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: index * 0.08, ease }}
-              >
-                <h3 className="font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">
-                  {option.title}
-                </h3>
-                <p className="mt-2 max-w-sm text-sm leading-relaxed text-wine/60 sm:mt-3 sm:text-base">
-                  {option.body}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-8 hidden sm:mt-10 lg:block">
-            <PrimaryCta
-              label={labels.cta}
-              hint={labels.ctaHint}
-              onClick={() => openWaitlist("tables_cta", "sunday_table_tables")}
-            />
           </div>
         </div>
       </section>

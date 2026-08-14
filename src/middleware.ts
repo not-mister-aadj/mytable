@@ -7,10 +7,7 @@ import {
   isLocalDevHost,
   usesAdminSubdomainFromEnv,
 } from "@/lib/admin-url";
-import {
-  updateSupabaseSession,
-  updateSupabaseSessionWithUser,
-} from "@/lib/supabase/middleware";
+import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
 const BLOG_CATEGORY_IDS = new Set([
   "tips",
@@ -25,36 +22,10 @@ function resolveLocale(pathname: string): Locale | null {
   return null;
 }
 
-/** Path without /en or /nl prefix. */
-function stripLocaleVisible(pathname: string): string {
-  if (pathname === "/en" || pathname === "/nl") return "/";
-  if (pathname.startsWith("/en/")) return pathname.slice(3) || "/";
-  if (pathname.startsWith("/nl/")) return pathname.slice(3) || "/";
-  return pathname || "/";
-}
-
-function isMemberGatedPath(pathname: string): boolean {
-  const p = stripLocaleVisible(pathname);
-  if (p.startsWith("/account")) return true;
-  if (p === "/clubmember" || p.startsWith("/clubmember/")) return true;
-  return false;
-}
-
 /** True for asset-like paths (foo.png), not JWT segments that contain dots. */
 function looksLikeStaticAssetPath(pathname: string): boolean {
   if (pathname.endsWith("/feed.xml")) return false;
   return /\.[a-zA-Z0-9]{1,8}$/.test(pathname);
-}
-
-function signInHomeRedirect(request: NextRequest): NextResponse {
-  const target = request.nextUrl.clone();
-  const isEn =
-    request.nextUrl.pathname === "/en" ||
-    request.nextUrl.pathname.startsWith("/en/");
-  target.pathname = isEn ? "/en" : "/";
-  target.search = "";
-  target.searchParams.set("signin", "1");
-  return NextResponse.redirect(target);
 }
 
 function handleAdminSubdomain(request: NextRequest) {
@@ -113,24 +84,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(subPath, getAdminUrl()));
   }
 
-  if (pathname === "/login") {
-    const target = request.nextUrl.clone();
-    target.pathname = "/";
-    target.searchParams.set("signin", "1");
-    return NextResponse.redirect(target, 308);
-  }
-  if (pathname === "/inloggen") {
-    const target = request.nextUrl.clone();
-    target.pathname = "/";
-    target.searchParams.set("signin", "1");
-    return NextResponse.redirect(target, 308);
-  }
-  if (pathname === "/en/login" || pathname === "/en/inloggen") {
-    const target = request.nextUrl.clone();
-    target.pathname = "/en";
-    target.searchParams.set("signin", "1");
-    return NextResponse.redirect(target, 308);
-  }
+  // /login and /inloggen used to redirect into a sign-in modal on the
+  // homepage — sign-in is paused, so they now render their own coming-soon
+  // page (src/app/[locale]/login and /inloggen) instead of redirecting away.
 
   if (
     pathname.startsWith("/admin") ||
@@ -139,43 +95,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/auth/")
   ) {
     return updateSupabaseSession(request);
-  }
-
-  // Signed-in members skip the marketing landing → clubmember
-  if (pathname === "/" || pathname === "/en") {
-    const isEn = pathname === "/en";
-    const rewritePath = isEn ? "/en" : `/${defaultLocale}`;
-    const { response, user } = await updateSupabaseSessionWithUser(request, {
-      rewritePath,
-    });
-    if (user) {
-      const target = request.nextUrl.clone();
-      target.pathname = isEn ? "/en/clubmember" : "/clubmember";
-      target.search = "";
-      const redirect = NextResponse.redirect(target);
-      for (const cookie of response.cookies.getAll()) {
-        redirect.cookies.set(cookie);
-      }
-      return redirect;
-    }
-    return response;
-  }
-
-  if (isMemberGatedPath(pathname)) {
-    const isEn = pathname === "/en" || pathname.startsWith("/en/");
-    const bare = stripLocaleVisible(pathname);
-    const rewritePath = isEn
-      ? pathname
-      : `/${defaultLocale}${bare === "/" ? "" : bare}`;
-
-    const { response, user } = await updateSupabaseSessionWithUser(request, {
-      rewritePath,
-    });
-
-    if (!user) {
-      return signInHomeRedirect(request);
-    }
-    return response;
   }
 
   if (

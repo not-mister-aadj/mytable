@@ -8,6 +8,7 @@ import {
   type SundayTableType,
 } from "@/lib/sunday-table-shared";
 import { sendSundayTableWaitlistInvites } from "@/lib/email/sendSundayTableWaitlistInviteEmails";
+import { SIGNUPS_PAUSED } from "@/app/admin/(dashboard)/sunday-tables/signups-paused";
 
 export async function saveSundayTableLocationAction(formData: FormData) {
   await requireAdmin();
@@ -53,12 +54,6 @@ export type InviteWaitlistActionState = {
   skipped: number;
   failed: number;
 };
-
-/** Sign-ups are paused site-wide — /join was deleted and /login is now a
- * coming-soon page. Flip this back once sign-ups reopen; until then, invite
- * emails would link people to a page that no longer exists. Exported so the
- * admin UI can show a paused notice instead of a live-looking form. */
-export const SIGNUPS_PAUSED = true;
 
 export async function inviteWaitlistForSundayTableAction(
   _prev: InviteWaitlistActionState | null,

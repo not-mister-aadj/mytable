@@ -5,8 +5,8 @@ import { adminPath, resolveHostname } from "@/lib/admin-url";
 import {
   saveSundayTableLocationAction,
   inviteWaitlistForSundayTableAction,
-  SIGNUPS_PAUSED,
 } from "@/app/admin/(dashboard)/sunday-tables/actions";
+import { SIGNUPS_PAUSED } from "@/app/admin/(dashboard)/sunday-tables/signups-paused";
 import {
   decodeSundayTableSlug,
   getSundayTableMembers,

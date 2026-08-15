@@ -131,6 +131,14 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     back: "Terug",
     continueCta: "Verder",
     progress: "Vraag {n} van {total}",
+    language: {
+      title: "In welke taal wil je je events?",
+      options: [
+        { id: "english", label: "Engelstalige events" },
+        { id: "dutch", label: "Nederlandstalige events" },
+        { id: "both", label: "Beide zijn prima" },
+      ],
+    },
     why: {
       title: "Waarom sta je op de lijst?",
       options: [

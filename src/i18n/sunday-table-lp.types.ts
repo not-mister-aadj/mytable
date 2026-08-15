@@ -7,6 +7,7 @@ import type {
   WaitlistVibeId,
   WaitlistBudgetId,
   WaitlistExperienceId,
+  WaitlistLanguageId,
 } from "@/i18n/waitlist-page.types";
 
 export type SundayTableLpLabels = {
@@ -90,6 +91,12 @@ export type SundayTableLpLabels = {
     continueCta: string;
     /** e.g. "Vraag {n} van {total}" */
     progress: string;
+    /** First (or near-first) question — also picks which language the rest
+     * of the questionnaire renders in. */
+    language: {
+      title: string;
+      options: Array<{ id: WaitlistLanguageId; label: string }>;
+    };
     why: {
       title: string;
       options: Array<{ id: WaitlistWhyId; label: string }>;

@@ -47,6 +47,9 @@ function asPreferences(
   const experience = Array.isArray(value.experience)
     ? value.experience.filter((item): item is string => typeof item === "string")
     : [];
+  const language = Array.isArray(value.language)
+    ? value.language.filter((item): item is string => typeof item === "string")
+    : [];
   const whyOther =
     typeof value.whyOther === "string" ? value.whyOther : "";
   if (
@@ -60,6 +63,7 @@ function asPreferences(
     !vibe.length &&
     !budget.length &&
     !experience.length &&
+    !language.length &&
     !whyOther
   ) {
     return null;
@@ -78,6 +82,7 @@ function asPreferences(
     vibe: vibe as WaitlistPreferences["vibe"],
     budget: budget as WaitlistPreferences["budget"],
     experience: experience as WaitlistPreferences["experience"],
+    language: language as WaitlistPreferences["language"],
     whyOther,
   };
 }

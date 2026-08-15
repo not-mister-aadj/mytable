@@ -11,6 +11,7 @@ import type {
   WaitlistExperienceId,
   WaitlistGenderId,
   WaitlistInterestId,
+  WaitlistLanguageId,
   WaitlistTableTypeId,
   WaitlistVibeId,
   WaitlistWhyId,
@@ -37,8 +38,9 @@ type Phase = "capture" | "questions" | "done";
 /** "profile" (gender + age) and "match" (vibe + budget + experience) are
  * grouped multi-question screens — a few quick taps, not a whole extra
  * screen per data point. "tableType" only appears for gender === "female",
- * see `useSteps` below. */
-type StepKey = "profile" | "why" | "company" | "tableType" | "match";
+ * see `useSteps` below. "language" always comes first — it also decides
+ * which language the rest of the questionnaire renders in. */
+type StepKey = "language" | "profile" | "why" | "company" | "tableType" | "match";
 
 /** The 4 live, bookable formats — food_walk/aperitivo are waitlist-only
  * interest options elsewhere, not real products yet, so they're left out
@@ -117,6 +119,7 @@ function PillRow<T extends string>({
 
 export function SundayTableWaitlistModal({
   labels,
+  altLabels,
   locale,
   open,
   onOpenChange,
@@ -124,6 +127,9 @@ export function SundayTableWaitlistModal({
   presetInterest,
 }: {
   labels: WaitlistLabels;
+  /** Same waitlist copy block, in the other locale — the language question
+   * (first in the flow) can switch the rest of the questionnaire to it. */
+  altLabels: WaitlistLabels;
   locale: Locale;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -161,16 +167,31 @@ export function SundayTableWaitlistModal({
   const [experience, setExperience] = useState<WaitlistExperienceId | null>(
     null,
   );
+  const [language, setLanguage] = useState<WaitlistLanguageId | null>(null);
 
   // "Which table?" only makes sense once we know they're choosing between
   // girls-only and mixed — men and "prefer not to say" skip straight to
-  // the match-preferences step.
+  // the match-preferences step. "language" always comes first.
   const steps = useMemo<StepKey[]>(() => {
-    const base: StepKey[] = ["profile", "why", "company"];
+    const base: StepKey[] = ["language", "profile", "why", "company"];
     if (gender === "female") base.push("tableType");
     base.push("match");
     return base;
   }, [gender]);
+
+  // Which locale's copy to show for the question flow — switches once the
+  // language question is answered "english" or "dutch"; "both" (or not yet
+  // answered) keeps the site's own locale.
+  const questionLabels: WaitlistLabels =
+    language === "english"
+      ? locale === "en"
+        ? labels
+        : altLabels
+      : language === "dutch"
+        ? locale === "nl"
+          ? labels
+          : altLabels
+        : labels;
 
   useEffect(() => {
     if (!open) return;
@@ -208,6 +229,7 @@ export function SundayTableWaitlistModal({
     setVibe(null);
     setBudget(null);
     setExperience(null);
+    setLanguage(null);
   }, [open, cityName, presetInterest]);
 
   // Multi-select: any known cities they tapped, plus one free-text "other
@@ -288,9 +310,12 @@ export function SundayTableWaitlistModal({
   // snapshotted before the click's state update lands.
   async function savePreferences(overrides?: {
     tableType?: WaitlistTableTypeId | null;
+    language?: WaitlistLanguageId | null;
   }) {
     const effectiveTableType =
       overrides && "tableType" in overrides ? overrides.tableType : tableType;
+    const effectiveLanguage =
+      overrides && "language" in overrides ? overrides.language : language;
     try {
       await fetch("/api/waitlist", {
         method: "POST",
@@ -311,6 +336,7 @@ export function SundayTableWaitlistModal({
             vibe: vibe ? [vibe] : [],
             budget: budget ? [budget] : [],
             experience: experience ? [experience] : [],
+            language: effectiveLanguage ? [effectiveLanguage] : [],
           },
         }),
       });
@@ -330,7 +356,8 @@ export function SundayTableWaitlistModal({
       (ageRange ? 1 : 0) +
       (vibe ? 1 : 0) +
       (budget ? 1 : 0) +
-      (experience ? 1 : 0)
+      (experience ? 1 : 0) +
+      (language ? 1 : 0)
     );
   }
 
@@ -379,6 +406,16 @@ export function SundayTableWaitlistModal({
     }, 180);
   }
 
+  function selectLanguage(id: WaitlistLanguageId) {
+    setLanguage(id);
+    void savePreferences({ language: id });
+    // language is always the first step, never the last — same reasoning
+    // as selectTableType above.
+    window.setTimeout(() => {
+      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
+    }, 180);
+  }
+
   // Defensive clamp: if someone goes back and changes gender, `steps` can
   // shrink out from under a questionIndex that was set against the longer
   // array — this keeps the render in bounds either way.
@@ -420,20 +457,24 @@ export function SundayTableWaitlistModal({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
-                    {labels.eyebrow}
+                    {phase === "capture" ? labels.eyebrow : questionLabels.eyebrow}
                   </p>
                   <h2
                     id={titleId}
                     className="mt-2.5 font-serif text-[1.65rem] font-medium leading-[1.15] tracking-tight text-wine text-balance sm:text-[1.85rem]"
                   >
-                    {phase === "questions" ? labels.questionsTitle : labels.title}
+                    {phase === "questions"
+                      ? questionLabels.questionsTitle
+                      : phase === "done"
+                        ? questionLabels.title
+                        : labels.title}
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => onOpenChange(false)}
                   className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-wine/12 text-wine/45 transition hover:border-wine/25 hover:text-wine"
-                  aria-label={labels.close}
+                  aria-label={phase === "capture" ? labels.close : questionLabels.close}
                 >
                   <svg
                     width="14"
@@ -583,10 +624,10 @@ export function SundayTableWaitlistModal({
                     id={descId}
                     className="mt-3 text-[0.95rem] leading-relaxed text-wine/55"
                   >
-                    {labels.questionsBody}
+                    {questionLabels.questionsBody}
                   </p>
                   <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-wine/35">
-                    {labels.progress
+                    {questionLabels.progress
                       .replace("{n}", String(currentStepIndex + 1))
                       .replace("{total}", String(steps.length))}
                   </p>
@@ -606,17 +647,35 @@ export function SundayTableWaitlistModal({
                         : "mt-3"
                     }
                   >
+                      {currentStep === "language" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {questionLabels.language.title}
+                          </h3>
+                          <div className="mt-3 grid gap-2">
+                            {questionLabels.language.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={language === option.id}
+                                onClick={() => selectLanguage(option.id)}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+
                       {currentStep === "profile" ? (
                         <>
                           <PillRow
-                            label={labels.gender.title}
-                            options={labels.gender.options}
+                            label={questionLabels.gender.title}
+                            options={questionLabels.gender.options}
                             value={gender}
                             onChange={setGender}
                           />
                           <PillRow
-                            label={labels.ageRange.title}
-                            options={labels.ageRange.options}
+                            label={questionLabels.ageRange.title}
+                            options={questionLabels.ageRange.options}
                             value={ageRange}
                             onChange={setAgeRange}
                           />
@@ -625,7 +684,7 @@ export function SundayTableWaitlistModal({
                             onClick={advanceQuestion}
                             className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
                           >
-                            {labels.continueCta}
+                            {questionLabels.continueCta}
                           </button>
                         </>
                       ) : null}
@@ -633,10 +692,10 @@ export function SundayTableWaitlistModal({
                       {currentStep === "why" ? (
                         <>
                           <h3 className="font-serif text-lg text-wine">
-                            {labels.why.title}
+                            {questionLabels.why.title}
                           </h3>
                           <div className="mt-3 grid grid-cols-2 gap-2">
-                            {labels.why.options.map((option) => (
+                            {questionLabels.why.options.map((option) => (
                               <ChipButton
                                 key={option.id}
                                 label={option.label}
@@ -650,7 +709,7 @@ export function SundayTableWaitlistModal({
                               type="text"
                               value={whyOther}
                               onChange={(e) => setWhyOther(e.target.value)}
-                              placeholder={labels.why.otherPlaceholder}
+                              placeholder={questionLabels.why.otherPlaceholder}
                               className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
                             />
                           ) : null}
@@ -659,7 +718,7 @@ export function SundayTableWaitlistModal({
                             onClick={advanceQuestion}
                             className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
                           >
-                            {labels.continueCta}
+                            {questionLabels.continueCta}
                           </button>
                         </>
                       ) : null}
@@ -667,10 +726,10 @@ export function SundayTableWaitlistModal({
                       {currentStep === "company" ? (
                         <>
                           <h3 className="font-serif text-lg text-wine">
-                            {labels.company.title}
+                            {questionLabels.company.title}
                           </h3>
                           <div className="mt-3 grid grid-cols-2 gap-2">
-                            {labels.company.options.map((option) => (
+                            {questionLabels.company.options.map((option) => (
                               <ChipButton
                                 key={option.id}
                                 label={option.label}
@@ -684,7 +743,7 @@ export function SundayTableWaitlistModal({
                             onClick={advanceQuestion}
                             className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
                           >
-                            {labels.continueCta}
+                            {questionLabels.continueCta}
                           </button>
                         </>
                       ) : null}
@@ -692,10 +751,10 @@ export function SundayTableWaitlistModal({
                       {currentStep === "tableType" ? (
                         <>
                           <h3 className="font-serif text-lg text-wine">
-                            {labels.tableType.title}
+                            {questionLabels.tableType.title}
                           </h3>
                           <div className="mt-3 grid gap-2">
-                            {labels.tableType.options.map((option) => (
+                            {questionLabels.tableType.options.map((option) => (
                               <ChipButton
                                 key={option.id}
                                 label={option.label}
@@ -710,20 +769,20 @@ export function SundayTableWaitlistModal({
                       {currentStep === "match" ? (
                         <>
                           <PillRow
-                            label={labels.vibe.title}
-                            options={labels.vibe.options}
+                            label={questionLabels.vibe.title}
+                            options={questionLabels.vibe.options}
                             value={vibe}
                             onChange={setVibe}
                           />
                           <PillRow
-                            label={labels.budget.title}
-                            options={labels.budget.options}
+                            label={questionLabels.budget.title}
+                            options={questionLabels.budget.options}
                             value={budget}
                             onChange={setBudget}
                           />
                           <PillRow
-                            label={labels.experience.title}
-                            options={labels.experience.options}
+                            label={questionLabels.experience.title}
+                            options={questionLabels.experience.options}
                             value={experience}
                             onChange={setExperience}
                           />
@@ -732,7 +791,7 @@ export function SundayTableWaitlistModal({
                             onClick={advanceQuestion}
                             className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
                           >
-                            {labels.continueCta}
+                            {questionLabels.continueCta}
                           </button>
                         </>
                       ) : null}
@@ -747,14 +806,14 @@ export function SundayTableWaitlistModal({
                       disabled={questionIndex === 0}
                       className="font-semibold uppercase tracking-[0.14em] text-wine/40 transition hover:text-wine disabled:opacity-0"
                     >
-                      {labels.back}
+                      {questionLabels.back}
                     </button>
                     <button
                       type="button"
                       onClick={() => void submitEnrichment(true)}
                       className="font-semibold uppercase tracking-[0.14em] text-wine/40 transition hover:text-wine"
                     >
-                      {labels.skip}
+                      {questionLabels.skip}
                     </button>
                   </div>
                 </>
@@ -766,10 +825,10 @@ export function SundayTableWaitlistModal({
                     id={descId}
                     className="mt-3 text-[0.95rem] leading-relaxed text-wine/55"
                   >
-                    {labels.successBody}
+                    {questionLabels.successBody}
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-wine/45">
-                    {labels.successNext}
+                    {questionLabels.successNext}
                   </p>
 
                   <div className="mt-6 space-y-3">
@@ -783,7 +842,7 @@ export function SundayTableWaitlistModal({
                         →
                       </span>
                       <span className="text-sm font-semibold text-wine">
-                        {labels.whatsappGirlsLabel}
+                        {questionLabels.whatsappGirlsLabel}
                       </span>
                     </a>
                     <a
@@ -796,7 +855,7 @@ export function SundayTableWaitlistModal({
                         →
                       </span>
                       <span className="text-sm font-semibold text-wine">
-                        {labels.whatsappMixedLabel}
+                        {questionLabels.whatsappMixedLabel}
                       </span>
                     </a>
                   </div>
@@ -806,7 +865,7 @@ export function SundayTableWaitlistModal({
                     onClick={() => onOpenChange(false)}
                     className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-wine/15 px-7 text-xs font-semibold uppercase tracking-[0.16em] text-wine transition hover:border-wine/30"
                   >
-                    {labels.close}
+                    {questionLabels.close}
                   </button>
                 </>
               ) : null}

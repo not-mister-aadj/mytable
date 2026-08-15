@@ -30,6 +30,7 @@ const AGE_RANGE_IDS = new Set(["18_24", "25_34", "35_44", "45_plus"]);
 const VIBE_IDS = new Set(["people", "experience", "both"]);
 const BUDGET_IDS = new Set(["budget", "premium", "flexible"]);
 const EXPERIENCE_IDS = new Set(["curious", "experienced"]);
+const LANGUAGE_IDS = new Set(["english", "dutch", "both"]);
 
 function parseStringArray(value: unknown, allowed: Set<string>): string[] {
   if (!Array.isArray(value)) return [];
@@ -100,6 +101,7 @@ function parsePreferences(
   const vibe = parseStringArray(raw.vibe, VIBE_IDS);
   const budget = parseStringArray(raw.budget, BUDGET_IDS);
   const experience = parseStringArray(raw.experience, EXPERIENCE_IDS);
+  const language = parseStringArray(raw.language, LANGUAGE_IDS);
   const whyOther =
     typeof raw.whyOther === "string" ? raw.whyOther.trim().slice(0, 200) : "";
 
@@ -113,6 +115,7 @@ function parsePreferences(
     !vibe.length &&
     !budget.length &&
     !experience.length &&
+    !language.length &&
     !whyOther
   ) {
     return null;
@@ -134,6 +137,7 @@ function parsePreferences(
     vibe: vibe as WaitlistPreferences["vibe"],
     budget: budget as WaitlistPreferences["budget"],
     experience: experience as WaitlistPreferences["experience"],
+    language: language as WaitlistPreferences["language"],
     whyOther,
   };
 }

@@ -80,6 +80,9 @@ export function BrandLandingView({
 }: BrandLandingViewProps) {
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
   const waitlistLabels = getSundayTableLpLabels(locale).waitlist;
+  const altWaitlistLabels = getSundayTableLpLabels(
+    locale === "en" ? "nl" : "en",
+  ).waitlist;
   const heroImages = getFormatProofSlideshowImages(locale);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
@@ -338,6 +341,7 @@ export function BrandLandingView({
 
       <SundayTableWaitlistModal
         labels={waitlistLabels}
+        altLabels={altWaitlistLabels}
         locale={locale}
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}

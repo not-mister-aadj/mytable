@@ -8,7 +8,7 @@ import type { Locale } from "@/i18n/config";
 import { sundayTableLpCityPath, sundayTableLpPath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
-import { fillCity } from "@/i18n/get-sunday-table-lp";
+import { fillCity, getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
@@ -144,6 +144,9 @@ export function SundayTableLpView({
   const finalTitle = cityName
     ? fillCity(labels.final.titleCity, cityName)
     : labels.final.title;
+  const altWaitlistLabels = getSundayTableLpLabels(
+    locale === "en" ? "nl" : "en",
+  ).waitlist;
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   function openWaitlist(cta: string, source: string) {
@@ -156,6 +159,7 @@ export function SundayTableLpView({
     <>
       <SundayTableWaitlistModal
         labels={labels.waitlist}
+        altLabels={altWaitlistLabels}
         locale={locale}
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}

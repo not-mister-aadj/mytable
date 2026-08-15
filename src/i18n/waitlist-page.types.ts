@@ -38,6 +38,10 @@ export type WaitlistBudgetId = "budget" | "premium" | "flexible";
 /** Framed indirectly in copy as "discovering" vs "going deeper" */
 export type WaitlistExperienceId = "curious" | "experienced";
 
+/** Which language they want their events in — also drives which language
+ * the rest of the waitlist questionnaire itself is shown in. */
+export type WaitlistLanguageId = "english" | "dutch" | "both";
+
 /** How someone wants to join MyTable overall */
 export type WaitlistJoinIntentId =
   | "meet_new"
@@ -68,6 +72,7 @@ export type WaitlistPreferences = {
   vibe: WaitlistVibeId[];
   budget: WaitlistBudgetId[];
   experience: WaitlistExperienceId[];
+  language: WaitlistLanguageId[];
   /** Free-text elaboration when why includes "other" */
   whyOther: string;
 };

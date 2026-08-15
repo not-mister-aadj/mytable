@@ -15,6 +15,11 @@ import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
 import { getFormatProofSlideshowImages } from "@/data/format-proof-media";
+import {
+  getChefsSpecialLpLabels,
+  getWineTastingLpLabels,
+  getWineWalkLpLabels,
+} from "@/i18n/get-format-lp";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -119,6 +124,14 @@ export function FormatLandingView({
   const { culinary } = getBrandLandingTestimonialRows(locale);
   const proofImages = getFormatProofSlideshowImages(locale);
   const howItWorksImage = getGirlsOnlyHowItWorksImage(locale);
+  const altLocale = locale === "en" ? "nl" : "en";
+  const altWaitlistLabels = (
+    waitlistInterest === "wine_walk"
+      ? getWineWalkLpLabels(altLocale)
+      : waitlistInterest === "chefs_special"
+        ? getChefsSpecialLpLabels(altLocale)
+        : getWineTastingLpLabels(altLocale)
+  ).waitlist;
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   function openWaitlist(cta: string, source: string) {
@@ -130,6 +143,7 @@ export function FormatLandingView({
     <>
       <SundayTableWaitlistModal
         labels={labels.waitlist}
+        altLabels={altWaitlistLabels}
         locale={locale}
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}

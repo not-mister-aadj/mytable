@@ -112,6 +112,14 @@ export const wineTastingLpEn: FormatLpLabels = {
     back: "Back",
     continueCta: "Continue",
     progress: "Question {n} of {total}",
+    language: {
+      title: "Which language do you want your events in?",
+      options: [
+        { id: "english", label: "English-speaking events" },
+        { id: "dutch", label: "Dutch-speaking events" },
+        { id: "both", label: "Both are fine" },
+      ],
+    },
     why: {
       title: "Why are you joining the waitlist?",
       options: [

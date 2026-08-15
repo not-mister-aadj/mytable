@@ -13,129 +13,26 @@ import {
 } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
+import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
 import { Header } from "@/components/Header";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
-import { SUNDAY_TABLE_LP_CITIES } from "@/data/sunday-table-lp-cities";
+import { getFormatProofSlideshowImages } from "@/data/format-proof-media";
+import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
+import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const formatCtaClassName =
   "cta-lift cta-lift-outline relative mt-auto inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-wine/20 px-6 text-xs font-medium text-wine/70 transition hover:border-wine/40 hover:bg-wine hover:text-cream";
 
-const inputClassName =
-  "mt-1.5 w-full rounded-2xl border border-wine/10 bg-white px-4 py-3 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15";
-
 export type FinalCaptureLabels = {
   eyebrow: string;
   headline: string;
   body: string;
-  nameLabel: string;
-  namePlaceholder: string;
-  emailLabel: string;
-  emailPlaceholder: string;
   submit: string;
-  submitting: string;
   privacyNote: string;
-  successTitle: string;
-  successBody: string;
-  error: string;
 };
-
-function FinalCapture({
-  locale,
-  labels,
-}: {
-  locale: Locale;
-  labels: FinalCaptureLabels;
-}) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">(
-    "idle",
-  );
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!email.trim() || status === "submitting") return;
-    setStatus("submitting");
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          name: name.trim() || undefined,
-          cities: SUNDAY_TABLE_LP_CITIES.map((c) => c.name),
-          locale,
-          source: "waitlist",
-        }),
-      });
-      if (!res.ok) throw new Error("waitlist_capture_failed");
-      setStatus("done");
-    } catch {
-      setStatus("error");
-    }
-  }
-
-  if (status === "done") {
-    return (
-      <div className="rounded-3xl border border-wine/10 bg-cream/60 p-6 sm:p-8">
-        <p className="font-serif text-xl font-medium tracking-tight text-wine">
-          {labels.successTitle}
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-wine/60">
-          {labels.successBody}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <label className="block">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
-          {labels.nameLabel}
-        </span>
-        <input
-          type="text"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder={labels.namePlaceholder}
-          disabled={status === "submitting"}
-          className={inputClassName}
-        />
-      </label>
-
-      <label className="block">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
-          {labels.emailLabel}
-        </span>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder={labels.emailPlaceholder}
-          disabled={status === "submitting"}
-          className={inputClassName}
-        />
-      </label>
-
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="cta-lift cta-lift-burgundy mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition hover:bg-wine disabled:opacity-60"
-      >
-        {status === "submitting" ? labels.submitting : labels.submit}
-      </button>
-
-      <p className="text-center text-[11px] text-wine/40">
-        {status === "error" ? labels.error : labels.privacyNote}
-      </p>
-    </form>
-  );
-}
 
 export type BrandLandingFormatKey =
   | "sunday_table"
@@ -182,6 +79,14 @@ export function BrandLandingView({
   labels,
 }: BrandLandingViewProps) {
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
+  const waitlistLabels = getSundayTableLpLabels(locale).waitlist;
+  const heroImages = getFormatProofSlideshowImages(locale);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+
+  function openWaitlist(cta: string, source: string) {
+    trackSundayTableCtaClicked({ cta, source, locale });
+    setWaitlistOpen(true);
+  }
 
   const hrefForFormat: Record<BrandLandingFormatKey, string> = {
     sunday_table: sundayTableLpPath(locale),
@@ -235,12 +140,13 @@ export function BrandLandingView({
               transition={{ duration: 0.5, delay: 0.24, ease }}
               className="mt-9 flex flex-wrap items-center gap-3"
             >
-              <a
-                href="#waitlist"
+              <button
+                type="button"
+                onClick={() => openWaitlist("hero_primary", "brand_hero")}
                 className="cta-lift cta-lift-burgundy inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition hover:bg-wine"
               >
                 {headerDict.nav.waitlistCta}
-              </a>
+              </button>
               <a
                 href="#formats"
                 className="cta-lift cta-lift-outline inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-wine/20 bg-white/60 px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm transition hover:border-wine/40 hover:bg-white hover:text-wine"
@@ -259,7 +165,7 @@ export function BrandLandingView({
             transition={{ duration: 0.75, delay: 0.1, ease }}
             className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none"
           >
-            <SundayTableHeroGallery locale={locale} />
+            <SundayTableHeroGallery locale={locale} images={heroImages} />
           </motion.div>
         </div>
       </section>
@@ -395,8 +301,18 @@ export function BrandLandingView({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, delay: 0.08, ease }}
+            className="flex flex-col items-start justify-center gap-3 rounded-3xl border border-wine/10 bg-white/60 p-6 sm:p-8"
           >
-            <FinalCapture locale={locale} labels={labels.finalCapture} />
+            <button
+              type="button"
+              onClick={() => openWaitlist("final_capture", "brand_final")}
+              className="cta-lift cta-lift-burgundy inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition hover:bg-wine"
+            >
+              {labels.finalCapture.submit}
+            </button>
+            <p className="w-full text-center text-[11px] text-wine/40">
+              {labels.finalCapture.privacyNote}
+            </p>
           </motion.div>
         </div>
       </section>
@@ -410,14 +326,22 @@ export function BrandLandingView({
         aria-label={headerDict.nav.waitlistCta}
       >
         <div className="mx-auto max-w-7xl px-4 py-2.5">
-          <a
-            href="#waitlist"
+          <button
+            type="button"
+            onClick={() => openWaitlist("mobile_sticky", "brand_sticky")}
             className="cta-lift cta-lift-burgundy inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition hover:bg-wine"
           >
             {headerDict.nav.waitlistCta}
-          </a>
+          </button>
         </div>
       </div>
+
+      <SundayTableWaitlistModal
+        labels={waitlistLabels}
+        locale={locale}
+        open={waitlistOpen}
+        onOpenChange={setWaitlistOpen}
+      />
     </>
   );
 }

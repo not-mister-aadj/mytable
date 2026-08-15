@@ -10,7 +10,7 @@ export const wineWalkLpNl: FormatLpLabels = {
   socialProof: "Wijnwalk · meerdere locaties, één avond",
   headline: "Eén avond. Meerdere plekken. Geen gedoe met plannen.",
   line: "Wijnwalk laat je de stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Wij stippelen de route al voor je uit.",
-  cta: "Zet me op de lijst",
+  cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
   how: {
@@ -59,7 +59,7 @@ export const wineWalkLpNl: FormatLpLabels = {
     eyebrow: "Onderweg",
     title: "De stad ontdekken, met gezelschap dat blijft",
     body: "Echte momenten van MyTable-avonden.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   faq: {
     eyebrow: "Vragen",
@@ -88,7 +88,7 @@ export const wineWalkLpNl: FormatLpLabels = {
   final: {
     title: "Klaar om te lopen?",
     body: "Meerdere plekken. Eén avond. Jij erbij.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   waitlist: {
     eyebrow: "Wachtlijst",
@@ -102,7 +102,7 @@ export const wineWalkLpNl: FormatLpLabels = {
     cityOther: "Andere stad",
     cityOtherPlaceholder: "Welke stad?",
     formatLabel: "Geïnteresseerd in de volgende formats",
-    submit: "Zet me op de lijst",
+    submit: "Zet me op de wachtlijst",
     submitting: "Bezig…",
     privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
     error: "Er ging iets mis. Probeer het opnieuw.",

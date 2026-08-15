@@ -10,7 +10,7 @@ export const chefsSpecialLpNl: FormatLpLabels = {
   socialProof: "Chef's Table · beste gerechten, voorgeselecteerd",
   headline: "De beste gerechten. Eén tafel. Niks zelf regelen.",
   line: "Chef's Table is een zondagavond met de beste gerechten van het menu, voorgeselecteerd: voorgerechten, hoofdgerechten en dessert.",
-  cta: "Zet me op de lijst",
+  cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
   how: {
@@ -59,7 +59,7 @@ export const chefsSpecialLpNl: FormatLpLabels = {
     eyebrow: "Aan tafel",
     title: "Zondagavond, vol bord, nieuw gezelschap",
     body: "Echte momenten van MyTable-avonden.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   faq: {
     eyebrow: "Vragen",
@@ -88,7 +88,7 @@ export const chefsSpecialLpNl: FormatLpLabels = {
   final: {
     title: "Klaar om aan te schuiven?",
     body: "De beste gerechten. Eén tafel. Jij erbij.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   waitlist: {
     eyebrow: "Wachtlijst",
@@ -102,7 +102,7 @@ export const chefsSpecialLpNl: FormatLpLabels = {
     cityOther: "Andere stad",
     cityOtherPlaceholder: "Welke stad?",
     formatLabel: "Geïnteresseerd in de volgende formats",
-    submit: "Zet me op de lijst",
+    submit: "Zet me op de wachtlijst",
     submitting: "Bezig…",
     privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
     error: "Er ging iets mis. Probeer het opnieuw.",

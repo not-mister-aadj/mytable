@@ -2,7 +2,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { defaultLocale, type Locale } from "./i18n/config";
 import {
-  getAdminUrl,
   isAdminHost,
   isLocalDevHost,
   usesAdminSubdomainFromEnv,
@@ -68,7 +67,11 @@ export async function middleware(request: NextRequest) {
     return handleAdminSubdomain(request);
   }
 
-  // Admin lives only on dashboard.mytable.club — never on www
+  // Admin lives only on dashboard.mytable.club — never on www. Serve a
+  // normal 404 here rather than cross-domain-redirecting to getAdminUrl():
+  // that redirect crashed the Edge middleware (MIDDLEWARE_INVOCATION_FAILED)
+  // whenever NEXT_PUBLIC_ADMIN_URL wasn't a fully-qualified URL, and even
+  // when it is, this host should never expose (or link to) the admin app.
   if (
     usesAdminSubdomainFromEnv() &&
     (pathname.startsWith("/admin") ||
@@ -76,12 +79,9 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/dashboard/")) &&
     !isLocalDevHost(hostname)
   ) {
-    const subPath = pathname.startsWith("/admin")
-      ? pathname.slice("/admin".length) || "/"
-      : pathname === "/dashboard" || pathname === "/dashboard/"
-        ? "/"
-        : pathname.slice("/dashboard".length) || "/";
-    return NextResponse.redirect(new URL(subPath, getAdminUrl()));
+    const notFoundUrl = request.nextUrl.clone();
+    notFoundUrl.pathname = `/${defaultLocale}/__not-found__`;
+    return NextResponse.rewrite(notFoundUrl);
   }
 
   // /login and /inloggen used to redirect into a sign-in modal on the

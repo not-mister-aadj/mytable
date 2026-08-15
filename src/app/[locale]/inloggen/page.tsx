@@ -39,7 +39,7 @@ export default async function InloggenComingSoonPage({ params }: Props) {
           href={home}
           className="cta-lift cta-lift-burgundy mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition"
         >
-          {isEn ? "Join the waitlist" : "Zet me op de lijst"}
+          {isEn ? "Join the waitlist" : "Zet me op de wachtlijst"}
         </Link>
       </div>
     </main>

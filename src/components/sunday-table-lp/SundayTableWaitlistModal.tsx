@@ -281,8 +281,48 @@ export function SundayTableWaitlistModal({
     }
   }
 
-  async function submitEnrichment(skipped: boolean) {
-    const answeredCount =
+  // Saves whatever has been answered so far — called on every "Verder", not
+  // just the final one, so an abandoned modal still leaves us with partial
+  // answers instead of nothing. `overrides` covers selectTableType, whose
+  // auto-advance timer would otherwise read tableType from a closure
+  // snapshotted before the click's state update lands.
+  async function savePreferences(overrides?: {
+    tableType?: WaitlistTableTypeId | null;
+  }) {
+    const effectiveTableType =
+      overrides && "tableType" in overrides ? overrides.tableType : tableType;
+    try {
+      await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          cities: effectiveCities,
+          locale,
+          enrich: true,
+          preferences: {
+            why,
+            whyOther: why.includes("other") ? whyOther.trim() : "",
+            company,
+            tableType: effectiveTableType ? [effectiveTableType] : [],
+            interests,
+            gender: gender ? [gender] : [],
+            ageRange: ageRange ? [ageRange] : [],
+            vibe: vibe ? [vibe] : [],
+            budget: budget ? [budget] : [],
+            experience: experience ? [experience] : [],
+          },
+        }),
+      });
+    } catch {
+      // Non-blocking — the next step (or the final submit) retries with
+      // the latest answers either way, and the person is on the list
+      // regardless.
+    }
+  }
+
+  function answeredCount() {
+    return (
       (why.length > 0 ? 1 : 0) +
       (company.length > 0 ? 1 : 0) +
       (tableType ? 1 : 0) +
@@ -290,42 +330,17 @@ export function SundayTableWaitlistModal({
       (ageRange ? 1 : 0) +
       (vibe ? 1 : 0) +
       (budget ? 1 : 0) +
-      (experience ? 1 : 0);
+      (experience ? 1 : 0)
+    );
+  }
 
-    if (answeredCount > 0 || interests.length > 0) {
-      try {
-        await fetch("/api/waitlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            cities: effectiveCities,
-            locale,
-            enrich: true,
-            preferences: {
-              why,
-              whyOther: why.includes("other") ? whyOther.trim() : "",
-              company,
-              tableType: tableType ? [tableType] : [],
-              interests,
-              gender: gender ? [gender] : [],
-              ageRange: ageRange ? [ageRange] : [],
-              vibe: vibe ? [vibe] : [],
-              budget: budget ? [budget] : [],
-              experience: experience ? [experience] : [],
-            },
-          }),
-        });
-      } catch {
-        // Non-blocking — the person is already on the list either way.
-      }
-    }
-
+  async function submitEnrichment(skipped: boolean) {
+    await savePreferences();
     for (const c of effectiveCities) {
       trackSundayTableWaitlistEnriched({
         city: c,
         locale,
-        answered_count: answeredCount,
+        answered_count: answeredCount(),
         skipped,
       });
     }
@@ -334,6 +349,7 @@ export function SundayTableWaitlistModal({
 
   function advanceQuestion() {
     if (questionIndex < steps.length - 1) {
+      void savePreferences();
       setQuestionIndex((i) => i + 1);
     } else {
       void submitEnrichment(false);
@@ -354,7 +370,13 @@ export function SundayTableWaitlistModal({
 
   function selectTableType(id: WaitlistTableTypeId) {
     setTableType(id);
-    window.setTimeout(() => advanceQuestion(), 180);
+    void savePreferences({ tableType: id });
+    // tableType is never the last step (match always follows it) — advance
+    // directly instead of going through advanceQuestion, whose closure here
+    // would still see the pre-click tableType value.
+    window.setTimeout(() => {
+      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
+    }, 180);
   }
 
   // Defensive clamp: if someone goes back and changes gender, `steps` can

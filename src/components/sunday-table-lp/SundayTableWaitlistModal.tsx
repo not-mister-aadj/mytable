@@ -569,173 +569,152 @@ export function SundayTableWaitlistModal({
                       .replace("{total}", String(steps.length))}
                   </p>
 
-                  <AnimatePresence mode="wait">
-                    {currentStep === "profile" ? (
-                      <motion.div
-                        key="profile"
-                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25 }}
-                        className="mt-3 space-y-4"
-                      >
-                        <PillRow
-                          label={labels.gender.title}
-                          options={labels.gender.options}
-                          value={gender}
-                          onChange={setGender}
-                        />
-                        <PillRow
-                          label={labels.ageRange.title}
-                          options={labels.ageRange.options}
-                          value={ageRange}
-                          onChange={setAgeRange}
-                        />
-                        <button
-                          type="button"
-                          onClick={advanceQuestion}
-                          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
-                        >
-                          {labels.continueCta}
-                        </button>
-                      </motion.div>
-                    ) : null}
-
-                    {currentStep === "why" ? (
-                      <motion.div
-                        key="why"
-                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25 }}
-                        className="mt-3"
-                      >
-                        <h3 className="font-serif text-lg text-wine">
-                          {labels.why.title}
-                        </h3>
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          {labels.why.options.map((option) => (
-                            <ChipButton
-                              key={option.id}
-                              label={option.label}
-                              selected={why.includes(option.id)}
-                              onClick={() => toggleWhy(option.id)}
-                            />
-                          ))}
-                        </div>
-                        {why.includes("other") ? (
-                          <input
-                            type="text"
-                            value={whyOther}
-                            onChange={(e) => setWhyOther(e.target.value)}
-                            placeholder={labels.why.otherPlaceholder}
-                            className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
+                  {/* Not wrapped in AnimatePresence: in this React/Next
+                      version, its exit tracking never resolves here, which
+                      permanently blocks the next step from ever rendering.
+                      A plain keyed motion.div still animates each step in. */}
+                  <motion.div
+                    key={currentStep}
+                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={
+                      currentStep === "profile" || currentStep === "match"
+                        ? "mt-3 space-y-4"
+                        : "mt-3"
+                    }
+                  >
+                      {currentStep === "profile" ? (
+                        <>
+                          <PillRow
+                            label={labels.gender.title}
+                            options={labels.gender.options}
+                            value={gender}
+                            onChange={setGender}
                           />
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={advanceQuestion}
-                          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
-                        >
-                          {labels.continueCta}
-                        </button>
-                      </motion.div>
-                    ) : null}
+                          <PillRow
+                            label={labels.ageRange.title}
+                            options={labels.ageRange.options}
+                            value={ageRange}
+                            onChange={setAgeRange}
+                          />
+                          <button
+                            type="button"
+                            onClick={advanceQuestion}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                          >
+                            {labels.continueCta}
+                          </button>
+                        </>
+                      ) : null}
 
-                    {currentStep === "company" ? (
-                      <motion.div
-                        key="company"
-                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25 }}
-                        className="mt-3"
-                      >
-                        <h3 className="font-serif text-lg text-wine">
-                          {labels.company.title}
-                        </h3>
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          {labels.company.options.map((option) => (
-                            <ChipButton
-                              key={option.id}
-                              label={option.label}
-                              selected={company.includes(option.id)}
-                              onClick={() => toggleCompany(option.id)}
+                      {currentStep === "why" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {labels.why.title}
+                          </h3>
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {labels.why.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={why.includes(option.id)}
+                                onClick={() => toggleWhy(option.id)}
+                              />
+                            ))}
+                          </div>
+                          {why.includes("other") ? (
+                            <input
+                              type="text"
+                              value={whyOther}
+                              onChange={(e) => setWhyOther(e.target.value)}
+                              placeholder={labels.why.otherPlaceholder}
+                              className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
                             />
-                          ))}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={advanceQuestion}
-                          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
-                        >
-                          {labels.continueCta}
-                        </button>
-                      </motion.div>
-                    ) : null}
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={advanceQuestion}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                          >
+                            {labels.continueCta}
+                          </button>
+                        </>
+                      ) : null}
 
-                    {currentStep === "tableType" ? (
-                      <motion.div
-                        key="tableType"
-                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25 }}
-                        className="mt-3"
-                      >
-                        <h3 className="font-serif text-lg text-wine">
-                          {labels.tableType.title}
-                        </h3>
-                        <div className="mt-3 grid gap-2">
-                          {labels.tableType.options.map((option) => (
-                            <ChipButton
-                              key={option.id}
-                              label={option.label}
-                              selected={tableType === option.id}
-                              onClick={() => selectTableType(option.id)}
-                            />
-                          ))}
-                        </div>
-                      </motion.div>
-                    ) : null}
+                      {currentStep === "company" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {labels.company.title}
+                          </h3>
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {labels.company.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={company.includes(option.id)}
+                                onClick={() => toggleCompany(option.id)}
+                              />
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={advanceQuestion}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                          >
+                            {labels.continueCta}
+                          </button>
+                        </>
+                      ) : null}
 
-                    {currentStep === "match" ? (
-                      <motion.div
-                        key="match"
-                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25 }}
-                        className="mt-3 space-y-4"
-                      >
-                        <PillRow
-                          label={labels.vibe.title}
-                          options={labels.vibe.options}
-                          value={vibe}
-                          onChange={setVibe}
-                        />
-                        <PillRow
-                          label={labels.budget.title}
-                          options={labels.budget.options}
-                          value={budget}
-                          onChange={setBudget}
-                        />
-                        <PillRow
-                          label={labels.experience.title}
-                          options={labels.experience.options}
-                          value={experience}
-                          onChange={setExperience}
-                        />
-                        <button
-                          type="button"
-                          onClick={advanceQuestion}
-                          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
-                        >
-                          {labels.continueCta}
-                        </button>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
+                      {currentStep === "tableType" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {labels.tableType.title}
+                          </h3>
+                          <div className="mt-3 grid gap-2">
+                            {labels.tableType.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={tableType === option.id}
+                                onClick={() => selectTableType(option.id)}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+
+                      {currentStep === "match" ? (
+                        <>
+                          <PillRow
+                            label={labels.vibe.title}
+                            options={labels.vibe.options}
+                            value={vibe}
+                            onChange={setVibe}
+                          />
+                          <PillRow
+                            label={labels.budget.title}
+                            options={labels.budget.options}
+                            value={budget}
+                            onChange={setBudget}
+                          />
+                          <PillRow
+                            label={labels.experience.title}
+                            options={labels.experience.options}
+                            value={experience}
+                            onChange={setExperience}
+                          />
+                          <button
+                            type="button"
+                            onClick={advanceQuestion}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                          >
+                            {labels.continueCta}
+                          </button>
+                        </>
+                      ) : null}
+                    </motion.div>
 
                   <div className="mt-4 flex items-center justify-between text-xs">
                     <button

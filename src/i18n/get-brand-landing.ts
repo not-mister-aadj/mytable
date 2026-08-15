@@ -51,16 +51,8 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
         eyebrow: "Next step",
         headline: "Be there when your table forms.",
         body: "You'll only hear from us when a table is actually ready for you. No weekly emails, no spam. Just an invite, the moment it's time.",
-        nameLabel: "First name",
-        namePlaceholder: "Your name",
-        emailLabel: "Email address",
-        emailPlaceholder: "you@email.com",
         submit: "Join the waitlist",
-        submitting: "Joining…",
         privacyNote: "Free. No spam.",
-        successTitle: "You're on the list.",
-        successBody: "Check your inbox for a confirmation. We'll email you as soon as a table forms near you.",
-        error: "Something went wrong. Try again in a moment.",
       },
     };
   }
@@ -112,16 +104,8 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
       eyebrow: "Volgende stap",
       headline: "Wees erbij zodra jouw tafel vormt.",
       body: "Je hoort pas van ons zodra er echt een tafel voor je klaarstaat. Geen wekelijkse mail, geen spam. Gewoon een uitnodiging, op het moment dat het zover is.",
-      nameLabel: "Voornaam",
-      namePlaceholder: "Jouw naam",
-      emailLabel: "E-mailadres",
-      emailPlaceholder: "jij@email.com",
       submit: "Zet me op de wachtlijst",
-      submitting: "Bezig…",
       privacyNote: "Gratis. Geen spam.",
-      successTitle: "Je staat op de lijst.",
-      successBody: "Check je inbox voor een bevestiging. We mailen je zodra er een tafel vormt bij jou in de buurt.",
-      error: "Er ging iets mis. Probeer het zo nog eens.",
     },
   };
 }

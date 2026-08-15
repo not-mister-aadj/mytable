@@ -9,6 +9,9 @@ export async function sendSundayTableWaitlistWelcomeEmail(input: {
   locale: Locale;
   firstName?: string;
   city: string;
+  /** Usually unknown at this point — the enrichment questions haven't been
+   * asked yet — in which case both WhatsApp groups are offered. */
+  gender?: "female" | "male" | "other" | "unspecified";
 }): Promise<boolean> {
   return sendSimpleEmail({
     to: input.to,
@@ -17,6 +20,7 @@ export async function sendSundayTableWaitlistWelcomeEmail(input: {
       locale: input.locale,
       firstName: input.firstName,
       city: input.city,
+      gender: input.gender,
     }),
   });
 }

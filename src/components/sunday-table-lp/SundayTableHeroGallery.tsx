@@ -50,8 +50,16 @@ function NavButton({
   );
 }
 
-export function SundayTableHeroGallery({ locale }: { locale: Locale }) {
-  const slides = getGirlsOnlyHeroSlideshowImages(locale);
+export function SundayTableHeroGallery({
+  locale,
+  images,
+}: {
+  locale: Locale;
+  /** Override the default girls-only photo pool — used by the general
+   * format landing pages, whose hero gallery shows a mixed-gender audience. */
+  images?: { src: string; alt: string }[];
+}) {
+  const slides = images ?? getGirlsOnlyHeroSlideshowImages(locale);
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);

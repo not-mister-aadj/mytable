@@ -116,7 +116,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
       namePlaceholder: "Jouw naam",
       emailLabel: "E-mailadres",
       emailPlaceholder: "jij@email.com",
-      submit: "Zet me op de lijst",
+      submit: "Zet me op de wachtlijst",
       submitting: "Bezig…",
       privacyNote: "Gratis. Geen spam.",
       successTitle: "Je staat op de lijst.",

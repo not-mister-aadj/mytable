@@ -15,10 +15,8 @@ import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTable
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
-import {
-  getGirlsOnlyHeroSlideshowImages,
-  getGirlsOnlyHowItWorksImage,
-} from "@/data/girls-only-media";
+import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
+import { getFormatProofSlideshowImages } from "@/data/format-proof-media";
 import {
   SUNDAY_TABLE_LP_CITIES,
   type SundayTableLpCitySlug,
@@ -137,7 +135,7 @@ export function SundayTableLpView({
 }) {
   const reduceMotion = useReducedMotion();
   const { people } = getBrandLandingTestimonialRows(locale);
-  const proofImages = getGirlsOnlyHeroSlideshowImages(locale);
+  const proofImages = getFormatProofSlideshowImages(locale);
   const howItWorksImage = getGirlsOnlyHowItWorksImage(locale);
   const headline = cityName
     ? fillCity(labels.headlineCity, cityName)
@@ -240,7 +238,7 @@ export function SundayTableLpView({
             transition={{ duration: 0.65, delay: 0.05, ease }}
             className="relative order-1 mx-auto w-full min-w-0 max-w-full lg:order-2 lg:mx-0 lg:max-w-none lg:self-center"
           >
-            <SundayTableHeroGallery locale={locale} />
+            <SundayTableHeroGallery locale={locale} images={proofImages} />
           </motion.div>
         </div>
       </section>

@@ -10,7 +10,7 @@ export const wineTastingLpNl: FormatLpLabels = {
   socialProof: "Wijnproeverij · door de wijnbar samengesteld",
   headline: "Lekkere wijn. Eén tafel. Niks zelf regelen.",
   line: "Wijnproeverij geeft je een selectie wijnen met bite-pairings, gekozen door de wijnbar. Een gezellige middag aan één tafel, zonder dat je zelf iets hoeft uit te zoeken.",
-  cta: "Zet me op de lijst",
+  cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
   how: {
@@ -59,7 +59,7 @@ export const wineTastingLpNl: FormatLpLabels = {
     eyebrow: "Aan tafel",
     title: "Wijn als excuus, gesprek als bijvangst",
     body: "Echte momenten van MyTable-avonden.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   faq: {
     eyebrow: "Vragen",
@@ -88,7 +88,7 @@ export const wineTastingLpNl: FormatLpLabels = {
   final: {
     title: "Klaar om te proeven?",
     body: "Lekkere wijn. Eén tafel. Jij erbij.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   waitlist: {
     eyebrow: "Wachtlijst",
@@ -102,7 +102,7 @@ export const wineTastingLpNl: FormatLpLabels = {
     cityOther: "Andere stad",
     cityOtherPlaceholder: "Welke stad?",
     formatLabel: "Geïnteresseerd in de volgende formats",
-    submit: "Zet me op de lijst",
+    submit: "Zet me op de wachtlijst",
     submitting: "Bezig…",
     privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
     error: "Er ging iets mis. Probeer het opnieuw.",

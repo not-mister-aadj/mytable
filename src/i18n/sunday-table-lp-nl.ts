@@ -16,7 +16,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   line: "Sunday Table geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van de stad. Geen datingagenda. Alleen komen is normaal.",
   lineCity:
     "Sunday Table geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van {city}. Geen datingagenda. Alleen komen is normaal.",
-  cta: "Zet me op de lijst",
+  cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
   how: {
@@ -42,7 +42,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     eyebrow: "Aan tafel",
     title: "Solo gekomen. Met plannen naar huis.",
     body: "Echte momenten van MyTable-avonden.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
   },
   included: {
     eyebrow: "Inbegrepen",
@@ -74,7 +74,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     title: "Klaar voor je eerste Sunday Table?",
     titleCity: "Klaar voor Sunday Table in {city}?",
     body: "We mailen je zodra er een tafel vormt in jouw stad.",
-    cta: "Zet me op de lijst",
+    cta: "Zet me op de wachtlijst",
     earlyNote:
       "We zijn nog klein en persoonlijk. Jouw tafel helpt bepalen hoe Sunday Table verder groeit.",
   },
@@ -121,7 +121,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     cityOther: "Andere stad",
     cityOtherPlaceholder: "Welke stad?",
     formatLabel: "Geïnteresseerd in de volgende formats",
-    submit: "Zet me op de lijst",
+    submit: "Zet me op de wachtlijst",
     submitting: "Bezig…",
     privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
     error: "Er ging iets mis. Probeer het opnieuw.",

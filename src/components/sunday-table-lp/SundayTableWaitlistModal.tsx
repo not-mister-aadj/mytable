@@ -6,12 +6,14 @@ import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import type {
   WaitlistAgeRangeId,
+  WaitlistAltDayId,
   WaitlistBudgetId,
   WaitlistCompanyId,
   WaitlistExperienceId,
   WaitlistGenderId,
   WaitlistInterestId,
   WaitlistLanguageId,
+  WaitlistSundayAvailabilityId,
   WaitlistTableTypeId,
   WaitlistVibeId,
   WaitlistWhyId,
@@ -39,8 +41,17 @@ type Phase = "capture" | "questions" | "done";
  * grouped multi-question screens — a few quick taps, not a whole extra
  * screen per data point. "tableType" only appears for gender === "female",
  * see `useSteps` below. "language" always comes first — it also decides
- * which language the rest of the questionnaire renders in. */
-type StepKey = "language" | "profile" | "why" | "company" | "tableType" | "match";
+ * which language the rest of the questionnaire renders in. "altDays" only
+ * appears when "availability" is answered "no". */
+type StepKey =
+  | "language"
+  | "profile"
+  | "why"
+  | "company"
+  | "availability"
+  | "altDays"
+  | "tableType"
+  | "match";
 
 /** The 4 live, bookable formats — food_walk/aperitivo are waitlist-only
  * interest options elsewhere, not real products yet, so they're left out
@@ -168,16 +179,27 @@ export function SundayTableWaitlistModal({
     null,
   );
   const [language, setLanguage] = useState<WaitlistLanguageId | null>(null);
+  const [sundayAvailability, setSundayAvailability] =
+    useState<WaitlistSundayAvailabilityId | null>(null);
+  const [altDays, setAltDays] = useState<WaitlistAltDayId[]>([]);
 
   // "Which table?" only makes sense once we know they're choosing between
   // girls-only and mixed — men and "prefer not to say" skip straight to
-  // the match-preferences step. "language" always comes first.
+  // the match-preferences step. "language" always comes first. "altDays"
+  // only appears once "availability" is answered "no".
   const steps = useMemo<StepKey[]>(() => {
-    const base: StepKey[] = ["language", "profile", "why", "company"];
+    const base: StepKey[] = [
+      "language",
+      "profile",
+      "why",
+      "company",
+      "availability",
+    ];
+    if (sundayAvailability === "no") base.push("altDays");
     if (gender === "female") base.push("tableType");
     base.push("match");
     return base;
-  }, [gender]);
+  }, [gender, sundayAvailability]);
 
   // Which locale's copy to show for the question flow — switches once the
   // language question is answered "english" or "dutch"; "both" (or not yet
@@ -230,6 +252,8 @@ export function SundayTableWaitlistModal({
     setBudget(null);
     setExperience(null);
     setLanguage(null);
+    setSundayAvailability(null);
+    setAltDays([]);
   }, [open, cityName, presetInterest]);
 
   // Multi-select: any known cities they tapped, plus one free-text "other
@@ -311,11 +335,16 @@ export function SundayTableWaitlistModal({
   async function savePreferences(overrides?: {
     tableType?: WaitlistTableTypeId | null;
     language?: WaitlistLanguageId | null;
+    sundayAvailability?: WaitlistSundayAvailabilityId | null;
   }) {
     const effectiveTableType =
       overrides && "tableType" in overrides ? overrides.tableType : tableType;
     const effectiveLanguage =
       overrides && "language" in overrides ? overrides.language : language;
+    const effectiveSundayAvailability =
+      overrides && "sundayAvailability" in overrides
+        ? overrides.sundayAvailability
+        : sundayAvailability;
     try {
       await fetch("/api/waitlist", {
         method: "POST",
@@ -337,6 +366,10 @@ export function SundayTableWaitlistModal({
             budget: budget ? [budget] : [],
             experience: experience ? [experience] : [],
             language: effectiveLanguage ? [effectiveLanguage] : [],
+            sundayAvailability: effectiveSundayAvailability
+              ? [effectiveSundayAvailability]
+              : [],
+            altDays,
           },
         }),
       });
@@ -357,7 +390,9 @@ export function SundayTableWaitlistModal({
       (vibe ? 1 : 0) +
       (budget ? 1 : 0) +
       (experience ? 1 : 0) +
-      (language ? 1 : 0)
+      (language ? 1 : 0) +
+      (sundayAvailability ? 1 : 0) +
+      (altDays.length > 0 ? 1 : 0)
     );
   }
 
@@ -414,6 +449,22 @@ export function SundayTableWaitlistModal({
     window.setTimeout(() => {
       setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
     }, 180);
+  }
+
+  function selectAvailability(id: WaitlistSundayAvailabilityId) {
+    setSundayAvailability(id);
+    void savePreferences({ sundayAvailability: id });
+    // availability is never the last step (altDays or tableType/match always
+    // follows) — same reasoning as selectTableType/selectLanguage above.
+    window.setTimeout(() => {
+      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
+    }, 180);
+  }
+
+  function toggleAltDay(id: WaitlistAltDayId) {
+    setAltDays((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
+    );
   }
 
   // Defensive clamp: if someone goes back and changes gender, `steps` can
@@ -735,6 +786,49 @@ export function SundayTableWaitlistModal({
                                 label={option.label}
                                 selected={company.includes(option.id)}
                                 onClick={() => toggleCompany(option.id)}
+                              />
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={advanceQuestion}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                          >
+                            {questionLabels.continueCta}
+                          </button>
+                        </>
+                      ) : null}
+
+                      {currentStep === "availability" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {questionLabels.availability.title}
+                          </h3>
+                          <div className="mt-3 grid gap-2">
+                            {questionLabels.availability.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={sundayAvailability === option.id}
+                                onClick={() => selectAvailability(option.id)}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+
+                      {currentStep === "altDays" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {questionLabels.altDays.title}
+                          </h3>
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {questionLabels.altDays.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={altDays.includes(option.id)}
+                                onClick={() => toggleAltDay(option.id)}
                               />
                             ))}
                           </div>

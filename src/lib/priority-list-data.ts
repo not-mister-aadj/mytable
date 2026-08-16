@@ -50,6 +50,14 @@ function asPreferences(
   const language = Array.isArray(value.language)
     ? value.language.filter((item): item is string => typeof item === "string")
     : [];
+  const sundayAvailability = Array.isArray(value.sundayAvailability)
+    ? value.sundayAvailability.filter(
+        (item): item is string => typeof item === "string",
+      )
+    : [];
+  const altDays = Array.isArray(value.altDays)
+    ? value.altDays.filter((item): item is string => typeof item === "string")
+    : [];
   const whyOther =
     typeof value.whyOther === "string" ? value.whyOther : "";
   if (
@@ -64,6 +72,8 @@ function asPreferences(
     !budget.length &&
     !experience.length &&
     !language.length &&
+    !sundayAvailability.length &&
+    !altDays.length &&
     !whyOther
   ) {
     return null;
@@ -83,6 +93,9 @@ function asPreferences(
     budget: budget as WaitlistPreferences["budget"],
     experience: experience as WaitlistPreferences["experience"],
     language: language as WaitlistPreferences["language"],
+    sundayAvailability:
+      sundayAvailability as WaitlistPreferences["sundayAvailability"],
+    altDays: altDays as WaitlistPreferences["altDays"],
     whyOther,
   };
 }

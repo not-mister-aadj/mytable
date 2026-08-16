@@ -143,6 +143,26 @@ export const wineWalkLpEn: FormatLpLabels = {
         { id: "solo", label: "Solo" },
       ],
     },
+    availability: {
+      title: "Are you available on Sundays?",
+      options: [
+        { id: "both", label: "Yes, afternoon and evening" },
+        { id: "afternoon", label: "Only Sunday afternoon" },
+        { id: "evening", label: "Only Sunday evening" },
+        { id: "no", label: "No, Sunday doesn't work" },
+      ],
+    },
+    altDays: {
+      title: "Which other days would interest you?",
+      options: [
+        { id: "monday", label: "Monday" },
+        { id: "tuesday", label: "Tuesday" },
+        { id: "wednesday", label: "Wednesday" },
+        { id: "thursday", label: "Thursday" },
+        { id: "friday", label: "Friday" },
+        { id: "saturday", label: "Saturday" },
+      ],
+    },
     tableType: {
       title: "Which group?",
       options: [

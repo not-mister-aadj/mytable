@@ -42,6 +42,22 @@ export type WaitlistExperienceId = "curious" | "experienced";
  * the rest of the waitlist questionnaire itself is shown in. */
 export type WaitlistLanguageId = "english" | "dutch" | "both";
 
+/** Whether Sunday (the Sunday Table's day) actually works for them. */
+export type WaitlistSundayAvailabilityId =
+  | "afternoon"
+  | "evening"
+  | "both"
+  | "no";
+
+/** Only asked when sundayAvailability is "no": which other day(s) would work. */
+export type WaitlistAltDayId =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday";
+
 /** How someone wants to join MyTable overall */
 export type WaitlistJoinIntentId =
   | "meet_new"
@@ -73,6 +89,8 @@ export type WaitlistPreferences = {
   budget: WaitlistBudgetId[];
   experience: WaitlistExperienceId[];
   language: WaitlistLanguageId[];
+  sundayAvailability: WaitlistSundayAvailabilityId[];
+  altDays: WaitlistAltDayId[];
   /** Free-text elaboration when why includes "other" */
   whyOther: string;
 };

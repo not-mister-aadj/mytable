@@ -31,6 +31,15 @@ const VIBE_IDS = new Set(["people", "experience", "both"]);
 const BUDGET_IDS = new Set(["budget", "premium", "flexible"]);
 const EXPERIENCE_IDS = new Set(["curious", "experienced"]);
 const LANGUAGE_IDS = new Set(["english", "dutch", "both"]);
+const SUNDAY_AVAILABILITY_IDS = new Set(["afternoon", "evening", "both", "no"]);
+const ALT_DAY_IDS = new Set([
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+]);
 
 function parseStringArray(value: unknown, allowed: Set<string>): string[] {
   if (!Array.isArray(value)) return [];
@@ -102,6 +111,11 @@ function parsePreferences(
   const budget = parseStringArray(raw.budget, BUDGET_IDS);
   const experience = parseStringArray(raw.experience, EXPERIENCE_IDS);
   const language = parseStringArray(raw.language, LANGUAGE_IDS);
+  const sundayAvailability = parseStringArray(
+    raw.sundayAvailability,
+    SUNDAY_AVAILABILITY_IDS,
+  );
+  const altDays = parseStringArray(raw.altDays, ALT_DAY_IDS);
   const whyOther =
     typeof raw.whyOther === "string" ? raw.whyOther.trim().slice(0, 200) : "";
 
@@ -116,6 +130,8 @@ function parsePreferences(
     !budget.length &&
     !experience.length &&
     !language.length &&
+    !sundayAvailability.length &&
+    !altDays.length &&
     !whyOther
   ) {
     return null;
@@ -138,6 +154,9 @@ function parsePreferences(
     budget: budget as WaitlistPreferences["budget"],
     experience: experience as WaitlistPreferences["experience"],
     language: language as WaitlistPreferences["language"],
+    sundayAvailability:
+      sundayAvailability as WaitlistPreferences["sundayAvailability"],
+    altDays: altDays as WaitlistPreferences["altDays"],
     whyOther,
   };
 }

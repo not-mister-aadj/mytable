@@ -8,6 +8,8 @@ import type {
   WaitlistBudgetId,
   WaitlistExperienceId,
   WaitlistLanguageId,
+  WaitlistSundayAvailabilityId,
+  WaitlistAltDayId,
 } from "@/i18n/waitlist-page.types";
 
 export type SundayTableLpLabels = {
@@ -106,6 +108,16 @@ export type SundayTableLpLabels = {
     company: {
       title: string;
       options: Array<{ id: WaitlistCompanyId; label: string }>;
+    };
+    /** Whether Sunday itself works for them. */
+    availability: {
+      title: string;
+      options: Array<{ id: WaitlistSundayAvailabilityId; label: string }>;
+    };
+    /** Only shown when availability is answered "no". */
+    altDays: {
+      title: string;
+      options: Array<{ id: WaitlistAltDayId; label: string }>;
     };
     tableType: {
       title: string;

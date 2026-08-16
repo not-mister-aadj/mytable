@@ -143,6 +143,26 @@ export const chefsSpecialLpNl: FormatLpLabels = {
         { id: "solo", label: "Solo" },
       ],
     },
+    availability: {
+      title: "Ben je op zondag beschikbaar?",
+      options: [
+        { id: "both", label: "Ja, middag en avond" },
+        { id: "afternoon", label: "Alleen zondagmiddag" },
+        { id: "evening", label: "Alleen zondagavond" },
+        { id: "no", label: "Nee, zondag komt niet uit" },
+      ],
+    },
+    altDays: {
+      title: "Welke andere dag zou je interesseren?",
+      options: [
+        { id: "monday", label: "Maandag" },
+        { id: "tuesday", label: "Dinsdag" },
+        { id: "wednesday", label: "Woensdag" },
+        { id: "thursday", label: "Donderdag" },
+        { id: "friday", label: "Vrijdag" },
+        { id: "saturday", label: "Zaterdag" },
+      ],
+    },
     tableType: {
       title: "Welke tafel?",
       options: [

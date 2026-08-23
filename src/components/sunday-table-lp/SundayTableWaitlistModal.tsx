@@ -6,8 +6,8 @@ import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import type {
   WaitlistAgeRangeId,
+  WaitlistAllInclusivePriceId,
   WaitlistAltDayId,
-  WaitlistBudgetId,
   WaitlistCompanyId,
   WaitlistExperienceId,
   WaitlistGenderId,
@@ -15,6 +15,7 @@ import type {
   WaitlistLanguageId,
   WaitlistSundayAvailabilityId,
   WaitlistTableTypeId,
+  WaitlistTicketPriceId,
   WaitlistVibeId,
   WaitlistWhyId,
 } from "@/i18n/waitlist-page.types";
@@ -37,12 +38,14 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 type WaitlistLabels = SundayTableLpLabels["waitlist"];
 type Phase = "capture" | "questions" | "done";
-/** "profile" (gender + age) and "match" (vibe + budget + experience) are
- * grouped multi-question screens — a few quick taps, not a whole extra
- * screen per data point. "tableType" only appears for gender === "female",
- * see `useSteps` below. "language" always comes first — it also decides
- * which language the rest of the questionnaire renders in. "altDays" only
- * appears when "availability" is answered "no". */
+/** "profile" (gender + age) and "match" (vibe + experience) are grouped
+ * multi-question screens — a few quick taps, not a whole extra screen per
+ * data point. "tableType" only appears for gender === "female", see
+ * `useSteps` below. "language" always comes first — it also decides which
+ * language the rest of the questionnaire renders in. "altDays" only appears
+ * when "availability" is answered "no". "ticketPrice" always follows
+ * "match"; "allInclusivePrice" only appears when interests includes
+ * wine_tasting or chefs_special. */
 type StepKey =
   | "language"
   | "profile"
@@ -51,7 +54,9 @@ type StepKey =
   | "availability"
   | "altDays"
   | "tableType"
-  | "match";
+  | "match"
+  | "ticketPrice"
+  | "allInclusivePrice";
 
 /** The 4 live, bookable formats — food_walk/aperitivo are waitlist-only
  * interest options elsewhere, not real products yet, so they're left out
@@ -91,7 +96,7 @@ function ChipButton({
 }
 
 /** Compact single-select row of pills, for grouping a few quick-tap
- * questions onto one screen (gender+age, vibe+budget+experience). */
+ * questions onto one screen (gender+age, vibe+experience). */
 function PillRow<T extends string>({
   label,
   options,
@@ -174,7 +179,11 @@ export function SundayTableWaitlistModal({
   const [gender, setGender] = useState<WaitlistGenderId | null>(null);
   const [ageRange, setAgeRange] = useState<WaitlistAgeRangeId | null>(null);
   const [vibe, setVibe] = useState<WaitlistVibeId | null>(null);
-  const [budget, setBudget] = useState<WaitlistBudgetId | null>(null);
+  const [ticketPrice, setTicketPrice] = useState<WaitlistTicketPriceId | null>(
+    null,
+  );
+  const [allInclusivePrice, setAllInclusivePrice] =
+    useState<WaitlistAllInclusivePriceId | null>(null);
   const [experience, setExperience] = useState<WaitlistExperienceId | null>(
     null,
   );
@@ -186,7 +195,9 @@ export function SundayTableWaitlistModal({
   // "Which table?" only makes sense once we know they're choosing between
   // girls-only and mixed — men and "prefer not to say" skip straight to
   // the match-preferences step. "language" always comes first. "altDays"
-  // only appears once "availability" is answered "no".
+  // only appears once "availability" is answered "no". "ticketPrice" always
+  // follows "match"; "allInclusivePrice" only follows it when the person
+  // picked an interest that's actually sold all-inclusive.
   const steps = useMemo<StepKey[]>(() => {
     const base: StepKey[] = [
       "language",
@@ -197,9 +208,12 @@ export function SundayTableWaitlistModal({
     ];
     if (sundayAvailability === "no") base.push("altDays");
     if (gender === "female") base.push("tableType");
-    base.push("match");
+    base.push("match", "ticketPrice");
+    if (interests.includes("wine_tasting") || interests.includes("chefs_special")) {
+      base.push("allInclusivePrice");
+    }
     return base;
-  }, [gender, sundayAvailability]);
+  }, [gender, sundayAvailability, interests]);
 
   // Which locale's copy to show for the question flow — switches once the
   // language question is answered "english" or "dutch"; "both" (or not yet
@@ -249,7 +263,8 @@ export function SundayTableWaitlistModal({
     setGender(null);
     setAgeRange(null);
     setVibe(null);
-    setBudget(null);
+    setTicketPrice(null);
+    setAllInclusivePrice(null);
     setExperience(null);
     setLanguage(null);
     setSundayAvailability(null);
@@ -336,6 +351,8 @@ export function SundayTableWaitlistModal({
     tableType?: WaitlistTableTypeId | null;
     language?: WaitlistLanguageId | null;
     sundayAvailability?: WaitlistSundayAvailabilityId | null;
+    ticketPrice?: WaitlistTicketPriceId | null;
+    allInclusivePrice?: WaitlistAllInclusivePriceId | null;
   }) {
     const effectiveTableType =
       overrides && "tableType" in overrides ? overrides.tableType : tableType;
@@ -345,6 +362,14 @@ export function SundayTableWaitlistModal({
       overrides && "sundayAvailability" in overrides
         ? overrides.sundayAvailability
         : sundayAvailability;
+    const effectiveTicketPrice =
+      overrides && "ticketPrice" in overrides
+        ? overrides.ticketPrice
+        : ticketPrice;
+    const effectiveAllInclusivePrice =
+      overrides && "allInclusivePrice" in overrides
+        ? overrides.allInclusivePrice
+        : allInclusivePrice;
     try {
       await fetch("/api/waitlist", {
         method: "POST",
@@ -363,7 +388,13 @@ export function SundayTableWaitlistModal({
             gender: gender ? [gender] : [],
             ageRange: ageRange ? [ageRange] : [],
             vibe: vibe ? [vibe] : [],
-            budget: budget ? [budget] : [],
+            priceRanges: {
+              ticket: effectiveTicketPrice ? [effectiveTicketPrice] : [],
+              allInclusive: effectiveAllInclusivePrice
+                ? [effectiveAllInclusivePrice]
+                : [],
+            },
+            priceRangeSource: "self_reported",
             experience: experience ? [experience] : [],
             language: effectiveLanguage ? [effectiveLanguage] : [],
             sundayAvailability: effectiveSundayAvailability
@@ -388,7 +419,8 @@ export function SundayTableWaitlistModal({
       (gender ? 1 : 0) +
       (ageRange ? 1 : 0) +
       (vibe ? 1 : 0) +
-      (budget ? 1 : 0) +
+      (ticketPrice ? 1 : 0) +
+      (allInclusivePrice ? 1 : 0) +
       (experience ? 1 : 0) +
       (language ? 1 : 0) +
       (sundayAvailability ? 1 : 0) +
@@ -459,6 +491,31 @@ export function SundayTableWaitlistModal({
     window.setTimeout(() => {
       setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
     }, 180);
+  }
+
+  // Unlike tableType/language/availability, "ticketPrice" and
+  // "allInclusivePrice" can each land on the *last* step (allInclusivePrice
+  // only shows for some interests, so ticketPrice is sometimes the final
+  // question) — auto-advancing has to fall through to submitEnrichment
+  // there instead of clamping in place and going nowhere.
+  function advanceOrSubmit() {
+    if (questionIndex < steps.length - 1) {
+      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
+    } else {
+      void submitEnrichment(false);
+    }
+  }
+
+  function selectTicketPrice(id: WaitlistTicketPriceId) {
+    setTicketPrice(id);
+    void savePreferences({ ticketPrice: id });
+    window.setTimeout(advanceOrSubmit, 180);
+  }
+
+  function selectAllInclusivePrice(id: WaitlistAllInclusivePriceId) {
+    setAllInclusivePrice(id);
+    void savePreferences({ allInclusivePrice: id });
+    window.setTimeout(advanceOrSubmit, 180);
   }
 
   function toggleAltDay(id: WaitlistAltDayId) {
@@ -869,12 +926,6 @@ export function SundayTableWaitlistModal({
                             onChange={setVibe}
                           />
                           <PillRow
-                            label={questionLabels.budget.title}
-                            options={questionLabels.budget.options}
-                            value={budget}
-                            onChange={setBudget}
-                          />
-                          <PillRow
                             label={questionLabels.experience.title}
                             options={questionLabels.experience.options}
                             value={experience}
@@ -887,6 +938,46 @@ export function SundayTableWaitlistModal({
                           >
                             {questionLabels.continueCta}
                           </button>
+                        </>
+                      ) : null}
+
+                      {currentStep === "ticketPrice" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {questionLabels.ticketPrice.title}
+                          </h3>
+                          <div className="mt-3 grid gap-2">
+                            {questionLabels.ticketPrice.options.map((option) => (
+                              <ChipButton
+                                key={option.id}
+                                label={option.label}
+                                selected={ticketPrice === option.id}
+                                onClick={() => selectTicketPrice(option.id)}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+
+                      {currentStep === "allInclusivePrice" ? (
+                        <>
+                          <h3 className="font-serif text-lg text-wine">
+                            {questionLabels.allInclusivePrice.title}
+                          </h3>
+                          <div className="mt-3 grid gap-2">
+                            {questionLabels.allInclusivePrice.options.map(
+                              (option) => (
+                                <ChipButton
+                                  key={option.id}
+                                  label={option.label}
+                                  selected={allInclusivePrice === option.id}
+                                  onClick={() =>
+                                    selectAllInclusivePrice(option.id)
+                                  }
+                                />
+                              ),
+                            )}
+                          </div>
                         </>
                       ) : null}
                     </motion.div>

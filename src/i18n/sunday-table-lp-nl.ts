@@ -216,12 +216,27 @@ export const sundayTableLpNl: SundayTableLpLabels = {
         { id: "both", label: "Allebei evenveel" },
       ],
     },
-    budget: {
-      title: "Waar let je het meest op bij de prijs?",
+    ticketPrice: {
+      title:
+        "Je boekt een plekje aan tafel en betaalt zelf je wijn en hapjes. Wat is dan een eerlijke prijs voor het ticket?",
       options: [
-        { id: "budget", label: "Ik hou het betaalbaar" },
-        { id: "premium", label: "Beste ervaring, budget is bijzaak" },
-        { id: "flexible", label: "Ergens tussenin" },
+        { id: "under_5", label: "< €5" },
+        { id: "5_10", label: "€5-10" },
+        { id: "10_15", label: "€10-15" },
+        { id: "15_20", label: "€15-20" },
+        { id: "20_plus", label: "€20+" },
+      ],
+    },
+    allInclusivePrice: {
+      title:
+        "Stel dat wijn, eten en de tafel allemaal in één prijs zitten, met een speciaal MyTable menu per locatie, zodat je nergens meer voor hoeft af te rekenen. Wat zou je dan verwachten te betalen voor zo'n middag?",
+      options: [
+        { id: "under_25", label: "< €25" },
+        { id: "25_40", label: "€25-40" },
+        { id: "40_60", label: "€40-60" },
+        { id: "60_80", label: "€60-80" },
+        { id: "80_120", label: "€80-120" },
+        { id: "120_plus", label: "€120+" },
       ],
     },
     experience: {

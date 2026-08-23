@@ -41,9 +41,24 @@ function asPreferences(
   const vibe = Array.isArray(value.vibe)
     ? value.vibe.filter((item): item is string => typeof item === "string")
     : [];
-  const budget = Array.isArray(value.budget)
-    ? value.budget.filter((item): item is string => typeof item === "string")
+  const priceRangesRaw =
+    value.priceRanges && typeof value.priceRanges === "object"
+      ? (value.priceRanges as Record<string, unknown>)
+      : {};
+  const ticketPrice = Array.isArray(priceRangesRaw.ticket)
+    ? priceRangesRaw.ticket.filter(
+        (item): item is string => typeof item === "string",
+      )
     : [];
+  const allInclusivePrice = Array.isArray(priceRangesRaw.allInclusive)
+    ? priceRangesRaw.allInclusive.filter(
+        (item): item is string => typeof item === "string",
+      )
+    : [];
+  const priceRangeSource =
+    value.priceRangeSource === "inferred_from_legacy_budget_tag"
+      ? "inferred_from_legacy_budget_tag"
+      : "self_reported";
   const experience = Array.isArray(value.experience)
     ? value.experience.filter((item): item is string => typeof item === "string")
     : [];
@@ -69,7 +84,8 @@ function asPreferences(
     !gender.length &&
     !ageRange.length &&
     !vibe.length &&
-    !budget.length &&
+    !ticketPrice.length &&
+    !allInclusivePrice.length &&
     !experience.length &&
     !language.length &&
     !sundayAvailability.length &&
@@ -80,7 +96,12 @@ function asPreferences(
   }
   return {
     interests: interests as WaitlistPreferences["interests"],
-    priceRanges: {},
+    priceRanges: {
+      ticket: ticketPrice as WaitlistPreferences["priceRanges"]["ticket"],
+      allInclusive:
+        allInclusivePrice as WaitlistPreferences["priceRanges"]["allInclusive"],
+    },
+    priceRangeSource,
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
     joinIntent: [],
@@ -90,7 +111,6 @@ function asPreferences(
     gender: gender as WaitlistPreferences["gender"],
     ageRange: ageRange as WaitlistPreferences["ageRange"],
     vibe: vibe as WaitlistPreferences["vibe"],
-    budget: budget as WaitlistPreferences["budget"],
     experience: experience as WaitlistPreferences["experience"],
     language: language as WaitlistPreferences["language"],
     sundayAvailability:

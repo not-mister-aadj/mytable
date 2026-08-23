@@ -197,12 +197,27 @@ export const wineWalkLpEn: FormatLpLabels = {
         { id: "both", label: "Both equally" },
       ],
     },
-    budget: {
-      title: "What matters most to you on price?",
+    ticketPrice: {
+      title:
+        "You book a seat at the table and pay for your own wine and bites. What feels like a fair ticket price?",
       options: [
-        { id: "budget", label: "I keep it affordable" },
-        { id: "premium", label: "Best experience, budget is secondary" },
-        { id: "flexible", label: "Somewhere in between" },
+        { id: "under_5", label: "< €5" },
+        { id: "5_10", label: "€5-10" },
+        { id: "10_15", label: "€10-15" },
+        { id: "15_20", label: "€15-20" },
+        { id: "20_plus", label: "€20+" },
+      ],
+    },
+    allInclusivePrice: {
+      title:
+        "Say the wine, food and table are all included in one price, with a special MyTable menu at each location, so there's nothing left to pay on the day. What would you expect an afternoon like that to cost?",
+      options: [
+        { id: "under_25", label: "< €25" },
+        { id: "25_40", label: "€25-40" },
+        { id: "40_60", label: "€40-60" },
+        { id: "60_80", label: "€60-80" },
+        { id: "80_120", label: "€80-120" },
+        { id: "120_plus", label: "€120+" },
       ],
     },
     experience: {

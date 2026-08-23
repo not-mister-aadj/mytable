@@ -7,7 +7,8 @@ import {
   COMPANY_LABELS,
   TABLE_TYPE_LABELS,
   VIBE_LABELS,
-  BUDGET_LABELS,
+  TICKET_PRICE_LABELS,
+  ALL_INCLUSIVE_PRICE_LABELS,
   EXPERIENCE_LABELS,
   labelList,
 } from "@/lib/priority-list-labels";
@@ -31,7 +32,8 @@ export function priorityListRowsToExcelCsv(rows: PriorityListSignupRow[]): strin
     "Met wie",
     "Type tafel",
     "Sfeer",
-    "Budget",
+    "Ticketprijs",
+    "Alles-in prijs",
     "Ervaring",
     "Aangemeld op",
   ];
@@ -54,7 +56,14 @@ export function priorityListRowsToExcelCsv(rows: PriorityListSignupRow[]): strin
         labelList(prefs?.company ?? [], COMPANY_LABELS).join(", "),
         labelList(prefs?.tableType ?? [], TABLE_TYPE_LABELS).join(", "),
         labelList(prefs?.vibe ?? [], VIBE_LABELS).join(", "),
-        labelList(prefs?.budget ?? [], BUDGET_LABELS).join(", "),
+        labelList(
+          prefs?.priceRanges?.ticket ?? [],
+          TICKET_PRICE_LABELS,
+        ).join(", "),
+        labelList(
+          prefs?.priceRanges?.allInclusive ?? [],
+          ALL_INCLUSIVE_PRICE_LABELS,
+        ).join(", "),
         labelList(prefs?.experience ?? [], EXPERIENCE_LABELS).join(", "),
         new Intl.DateTimeFormat("nl-NL", {
           day: "2-digit",

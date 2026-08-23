@@ -37,6 +37,9 @@ yarn-error.log*
 # cursor MCP config (may contain access tokens)
 .cursor/mcp.json
 
+# Claude Code MCP config (contains the Supabase access token)
+.mcp.json
+
 # vercel
 .vercel
 

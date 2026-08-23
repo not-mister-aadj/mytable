@@ -306,7 +306,8 @@ export function WaitlistInsightsView({
     company: Record<string, string>;
     tableType: Record<string, string>;
     vibe: Record<string, string>;
-    budget: Record<string, string>;
+    ticketPrice: Record<string, string>;
+    allInclusivePrice: Record<string, string>;
     experience: Record<string, string>;
   };
 }) {
@@ -431,10 +432,18 @@ export function WaitlistInsightsView({
             labelFor={(id, fallback) => labelMaps.vibe[id] ?? fallback}
           />
           <HorizontalBars
-            title="Budget"
-            buckets={insights.breakdowns.budget}
+            title="Ticketprijs"
+            buckets={insights.breakdowns.ticketPrice}
             total={insights.totalSignups}
-            labelFor={(id, fallback) => labelMaps.budget[id] ?? fallback}
+            labelFor={(id, fallback) => labelMaps.ticketPrice[id] ?? fallback}
+          />
+          <HorizontalBars
+            title="Alles-in prijs"
+            buckets={insights.breakdowns.allInclusivePrice}
+            total={insights.totalSignups}
+            labelFor={(id, fallback) =>
+              labelMaps.allInclusivePrice[id] ?? fallback
+            }
           />
           <HorizontalBars
             title="Ervaring"

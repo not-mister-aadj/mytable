@@ -14,7 +14,8 @@ import {
   COMPANY_LABELS,
   TABLE_TYPE_LABELS,
   VIBE_LABELS,
-  BUDGET_LABELS,
+  TICKET_PRICE_LABELS,
+  ALL_INCLUSIVE_PRICE_LABELS,
   EXPERIENCE_LABELS,
   labelList,
 } from "@/lib/priority-list-labels";
@@ -120,7 +121,9 @@ function downloadCsv(csv: string, filename: string) {
 
 /** One preference-array field (gender, why, company, ...) filterable by a
  * single chosen value — "contains" match, since the underlying answers are
- * multi-select. */
+ * multi-select. "ticketPrice"/"allInclusivePrice" live nested under
+ * `preferences.priceRanges`, not as top-level arrays — see
+ * `getPrefFieldValues` below. */
 type PrefFilterKey =
   | "gender"
   | "ageRange"
@@ -128,7 +131,8 @@ type PrefFilterKey =
   | "company"
   | "tableType"
   | "vibe"
-  | "budget"
+  | "ticketPrice"
+  | "allInclusivePrice"
   | "experience";
 
 const PREF_FILTERS: Array<{
@@ -142,7 +146,12 @@ const PREF_FILTERS: Array<{
   { key: "company", label: "Met wie", options: COMPANY_LABELS },
   { key: "tableType", label: "Tafelkeuze", options: TABLE_TYPE_LABELS },
   { key: "vibe", label: "Sfeer", options: VIBE_LABELS },
-  { key: "budget", label: "Budget", options: BUDGET_LABELS },
+  { key: "ticketPrice", label: "Ticketprijs", options: TICKET_PRICE_LABELS },
+  {
+    key: "allInclusivePrice",
+    label: "Alles-in prijs",
+    options: ALL_INCLUSIVE_PRICE_LABELS,
+  },
   { key: "experience", label: "Ervaring", options: EXPERIENCE_LABELS },
 ];
 
@@ -153,9 +162,23 @@ const EMPTY_PREF_FILTERS: Record<PrefFilterKey, string> = {
   company: "all",
   tableType: "all",
   vibe: "all",
-  budget: "all",
+  ticketPrice: "all",
+  allInclusivePrice: "all",
   experience: "all",
 };
+
+/** gender/why/company/... are top-level preference arrays; ticketPrice and
+ * allInclusivePrice are nested under priceRanges — this is the one place
+ * that difference needs to be bridged for filtering. */
+function getPrefFieldValues(
+  prefs: PriorityListSignupRow["preferences"],
+  key: PrefFilterKey,
+): string[] {
+  if (!prefs) return [];
+  if (key === "ticketPrice") return prefs.priceRanges?.ticket ?? [];
+  if (key === "allInclusivePrice") return prefs.priceRanges?.allInclusive ?? [];
+  return (prefs[key] as string[] | undefined) ?? [];
+}
 
 export function PriorityListView({
   signups: initialSignups,
@@ -209,7 +232,7 @@ export function PriorityListView({
       for (const { key } of PREF_FILTERS) {
         const value = prefFilters[key];
         if (value === "all") continue;
-        const fieldValues = (row.preferences?.[key] as string[] | undefined) ?? [];
+        const fieldValues = getPrefFieldValues(row.preferences, key);
         if (!fieldValues.includes(value)) return false;
       }
       if (!q) return true;
@@ -460,7 +483,8 @@ export function PriorityListView({
                       (prefs.company?.length ?? 0) > 0 ||
                       (prefs.tableType?.length ?? 0) > 0 ||
                       (prefs.vibe?.length ?? 0) > 0 ||
-                      (prefs.budget?.length ?? 0) > 0 ||
+                      (prefs.priceRanges?.ticket?.length ?? 0) > 0 ||
+                      (prefs.priceRanges?.allInclusive?.length ?? 0) > 0 ||
                       (prefs.experience?.length ?? 0) > 0 ||
                       Boolean(prefs.whyOther));
 
@@ -554,10 +578,17 @@ export function PriorityListView({
                                 )}
                               />
                               <DetailField
-                                label="Budget"
+                                label="Ticketprijs"
                                 value={labelList(
-                                  prefs!.budget ?? [],
-                                  BUDGET_LABELS,
+                                  prefs!.priceRanges?.ticket ?? [],
+                                  TICKET_PRICE_LABELS,
+                                ).join(", ")}
+                              />
+                              <DetailField
+                                label="Alles-in prijs"
+                                value={labelList(
+                                  prefs!.priceRanges?.allInclusive ?? [],
+                                  ALL_INCLUSIVE_PRICE_LABELS,
                                 ).join(", ")}
                               />
                               <DetailField

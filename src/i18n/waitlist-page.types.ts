@@ -33,8 +33,6 @@ export type WaitlistAgeRangeId = "18_24" | "25_34" | "35_44" | "45_plus";
 /** People-first vs experience-first — what makes the evening for them */
 export type WaitlistVibeId = "people" | "experience" | "both";
 
-export type WaitlistBudgetId = "budget" | "premium" | "flexible";
-
 /** Framed indirectly in copy as "discovering" vs "going deeper" */
 export type WaitlistExperienceId = "curious" | "experienced";
 
@@ -65,18 +63,39 @@ export type WaitlistJoinIntentId =
   | "with_group"
   | "depends";
 
-/** Willing-to-pay bands, chosen per experience */
-export type WaitlistPriceRangeId =
-  | "upto_50"
-  | "50_75"
-  | "75_100"
-  | "100_plus";
+/** Fair price for a seat at the table, paying for wine/bites separately —
+ * asked of everyone. */
+export type WaitlistTicketPriceId =
+  | "under_5"
+  | "5_10"
+  | "10_15"
+  | "15_20"
+  | "20_plus";
+
+/** Expected price for an all-inclusive afternoon (wine + food + table in one
+ * price) — only asked when interests includes wine_tasting or chefs_special. */
+export type WaitlistAllInclusivePriceId =
+  | "under_25"
+  | "25_40"
+  | "40_60"
+  | "60_80"
+  | "80_120"
+  | "120_plus";
+
+/** Distinguishes a real answer to the two priceRanges questions above from
+ * the 17 legacy rows migrated forward from the old 3-option budget tag. */
+export type WaitlistPriceRangeSource =
+  | "self_reported"
+  | "inferred_from_legacy_budget_tag";
 
 /** Stored prefs on priority-list / signup rows (legacy waitlist shape). */
 export type WaitlistPreferences = {
   interests: WaitlistInterestId[];
-  /** Price bands the person is okay with, keyed by selected interest */
-  priceRanges: Partial<Record<WaitlistInterestId, WaitlistPriceRangeId[]>>;
+  priceRanges: {
+    ticket: WaitlistTicketPriceId[];
+    allInclusive: WaitlistAllInclusivePriceId[];
+  };
+  priceRangeSource: WaitlistPriceRangeSource;
   why: WaitlistWhyId[];
   company: WaitlistCompanyId[];
   joinIntent: WaitlistJoinIntentId[];
@@ -86,7 +105,6 @@ export type WaitlistPreferences = {
   gender: WaitlistGenderId[];
   ageRange: WaitlistAgeRangeId[];
   vibe: WaitlistVibeId[];
-  budget: WaitlistBudgetId[];
   experience: WaitlistExperienceId[];
   language: WaitlistLanguageId[];
   sundayAvailability: WaitlistSundayAvailabilityId[];

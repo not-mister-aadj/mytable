@@ -12,7 +12,8 @@ import {
   COMPANY_LABELS,
   TABLE_TYPE_LABELS,
   VIBE_LABELS,
-  BUDGET_LABELS,
+  TICKET_PRICE_LABELS,
+  ALL_INCLUSIVE_PRICE_LABELS,
   EXPERIENCE_LABELS,
 } from "@/lib/priority-list-labels";
 
@@ -45,7 +46,8 @@ export default async function AdminWaitlistInsightsPage() {
         company: COMPANY_LABELS,
         tableType: TABLE_TYPE_LABELS,
         vibe: VIBE_LABELS,
-        budget: BUDGET_LABELS,
+        ticketPrice: TICKET_PRICE_LABELS,
+        allInclusivePrice: ALL_INCLUSIVE_PRICE_LABELS,
         experience: EXPERIENCE_LABELS,
       }}
     />

@@ -55,10 +55,21 @@ export const VIBE_LABELS: Record<string, string> = {
   both: "Allebei",
 };
 
-export const BUDGET_LABELS: Record<string, string> = {
-  budget: "Budget",
-  premium: "Premium",
-  flexible: "Tussenin",
+export const TICKET_PRICE_LABELS: Record<string, string> = {
+  under_5: "< €5",
+  "5_10": "€5-10",
+  "10_15": "€10-15",
+  "15_20": "€15-20",
+  "20_plus": "€20+",
+};
+
+export const ALL_INCLUSIVE_PRICE_LABELS: Record<string, string> = {
+  under_25: "< €25",
+  "25_40": "€25-40",
+  "40_60": "€40-60",
+  "60_80": "€60-80",
+  "80_120": "€80-120",
+  "120_plus": "€120+",
 };
 
 export const EXPERIENCE_LABELS: Record<string, string> = {

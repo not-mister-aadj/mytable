@@ -5,7 +5,8 @@ import type {
   WaitlistGenderId,
   WaitlistAgeRangeId,
   WaitlistVibeId,
-  WaitlistBudgetId,
+  WaitlistTicketPriceId,
+  WaitlistAllInclusivePriceId,
   WaitlistExperienceId,
   WaitlistLanguageId,
   WaitlistSundayAvailabilityId,
@@ -135,9 +136,16 @@ export type SundayTableLpLabels = {
       title: string;
       options: Array<{ id: WaitlistVibeId; label: string }>;
     };
-    budget: {
+    /** Fair price for a seat at the table, wine/bites paid separately —
+     * always asked. */
+    ticketPrice: {
       title: string;
-      options: Array<{ id: WaitlistBudgetId; label: string }>;
+      options: Array<{ id: WaitlistTicketPriceId; label: string }>;
+    };
+    /** Only shown when interests includes wine_tasting or chefs_special. */
+    allInclusivePrice: {
+      title: string;
+      options: Array<{ id: WaitlistAllInclusivePriceId; label: string }>;
     };
     experience: {
       title: string;

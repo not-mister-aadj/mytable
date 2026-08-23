@@ -10,25 +10,31 @@ import type { Locale } from "@/i18n/config";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import { getSiteUrl } from "@/lib/env";
 
-const PRICE_RANGE_IDS = new Set([
-  "upto_50",
-  "50_75",
-  "75_100",
-  "100_plus",
+const TICKET_PRICE_IDS = new Set([
+  "under_5",
+  "5_10",
+  "10_15",
+  "15_20",
+  "20_plus",
 ]);
 
-const INTEREST_IDS = new Set([
-  "wine_tasting",
-  "chefs_special",
-  "wine_walk",
-  "food_walk",
-  "aperitivo",
+const ALL_INCLUSIVE_PRICE_IDS = new Set([
+  "under_25",
+  "25_40",
+  "40_60",
+  "60_80",
+  "80_120",
+  "120_plus",
+]);
+
+const PRICE_RANGE_SOURCE_IDS = new Set([
+  "self_reported",
+  "inferred_from_legacy_budget_tag",
 ]);
 
 const GENDER_IDS = new Set(["female", "male", "other", "unspecified"]);
 const AGE_RANGE_IDS = new Set(["18_24", "25_34", "35_44", "45_plus"]);
 const VIBE_IDS = new Set(["people", "experience", "both"]);
-const BUDGET_IDS = new Set(["budget", "premium", "flexible"]);
 const EXPERIENCE_IDS = new Set(["curious", "experienced"]);
 const LANGUAGE_IDS = new Set(["english", "dutch", "both"]);
 const SUNDAY_AVAILABILITY_IDS = new Set(["afternoon", "evening", "both", "no"]);
@@ -65,25 +71,32 @@ function checkRateLimit(key: string, max = 8, windowMs = 60_000): boolean {
 function parsePriceRanges(
   value: unknown,
 ): WaitlistPreferences["priceRanges"] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const raw = value as Record<string, unknown>;
-  const result: WaitlistPreferences["priceRanges"] = {};
-
-  for (const [key, ranges] of Object.entries(raw)) {
-    if (!INTEREST_IDS.has(key) || !Array.isArray(ranges)) continue;
-    const cleaned = ranges.filter(
-      (item): item is string =>
-        typeof item === "string" && PRICE_RANGE_IDS.has(item),
-    );
-    if (cleaned.length > 0) {
-      result[key as keyof WaitlistPreferences["priceRanges"]] =
-        cleaned as NonNullable<
-          WaitlistPreferences["priceRanges"][keyof WaitlistPreferences["priceRanges"]]
-        >;
-    }
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ticket: [], allInclusive: [] };
   }
+  const raw = value as Record<string, unknown>;
+  return {
+    ticket: parseStringArray(
+      raw.ticket,
+      TICKET_PRICE_IDS,
+    ) as WaitlistPreferences["priceRanges"]["ticket"],
+    allInclusive: parseStringArray(
+      raw.allInclusive,
+      ALL_INCLUSIVE_PRICE_IDS,
+    ) as WaitlistPreferences["priceRanges"]["allInclusive"],
+  };
+}
 
-  return result;
+/** New submissions always send "self_reported" (see the waitlist modal) —
+ * "inferred_from_legacy_budget_tag" only ever appears on rows the drizzle/0020
+ * migration backfilled from the old 3-option budget field, never on a fresh
+ * POST here, so an invalid/missing value safely defaults to self_reported. */
+function parsePriceRangeSource(
+  value: unknown,
+): WaitlistPreferences["priceRangeSource"] {
+  return typeof value === "string" && PRICE_RANGE_SOURCE_IDS.has(value)
+    ? (value as WaitlistPreferences["priceRangeSource"])
+    : "self_reported";
 }
 
 function parsePreferences(
@@ -105,10 +118,10 @@ function parsePreferences(
     ? raw.tableType.filter((item): item is string => typeof item === "string")
     : [];
   const priceRanges = parsePriceRanges(raw.priceRanges);
+  const priceRangeSource = parsePriceRangeSource(raw.priceRangeSource);
   const gender = parseStringArray(raw.gender, GENDER_IDS);
   const ageRange = parseStringArray(raw.ageRange, AGE_RANGE_IDS);
   const vibe = parseStringArray(raw.vibe, VIBE_IDS);
-  const budget = parseStringArray(raw.budget, BUDGET_IDS);
   const experience = parseStringArray(raw.experience, EXPERIENCE_IDS);
   const language = parseStringArray(raw.language, LANGUAGE_IDS);
   const sundayAvailability = parseStringArray(
@@ -127,7 +140,8 @@ function parsePreferences(
     !gender.length &&
     !ageRange.length &&
     !vibe.length &&
-    !budget.length &&
+    !priceRanges.ticket.length &&
+    !priceRanges.allInclusive.length &&
     !experience.length &&
     !language.length &&
     !sundayAvailability.length &&
@@ -140,6 +154,7 @@ function parsePreferences(
   return {
     interests: interests as WaitlistPreferences["interests"],
     priceRanges,
+    priceRangeSource,
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
     joinIntent: (Array.isArray(raw.joinIntent)
@@ -151,7 +166,6 @@ function parsePreferences(
     gender: gender as WaitlistPreferences["gender"],
     ageRange: ageRange as WaitlistPreferences["ageRange"],
     vibe: vibe as WaitlistPreferences["vibe"],
-    budget: budget as WaitlistPreferences["budget"],
     experience: experience as WaitlistPreferences["experience"],
     language: language as WaitlistPreferences["language"],
     sundayAvailability:

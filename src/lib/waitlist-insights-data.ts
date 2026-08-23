@@ -27,7 +27,8 @@ export type WaitlistInsights = {
     company: CountBucket[];
     tableType: CountBucket[];
     vibe: CountBucket[];
-    budget: CountBucket[];
+    ticketPrice: CountBucket[];
+    allInclusivePrice: CountBucket[];
     experience: CountBucket[];
   };
   cityFormatMatrix: {
@@ -76,6 +77,22 @@ function countField<K extends keyof WaitlistPreferences>(
   return counts;
 }
 
+/** Same as countField, but for the two priceRanges bands, which live nested
+ * under preferences.priceRanges instead of as a top-level array. */
+function countPriceRangeField(
+  rows: PriorityListSignupRow[],
+  field: "ticket" | "allInclusive",
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const values = row.preferences?.priceRanges?.[field] ?? [];
+    for (const value of values) {
+      counts.set(value, (counts.get(value) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
 /** How many of the 8 enrichment questions someone answered — the funnel
  * from "just captured" to "fully profiled". */
 function answeredFieldCount(prefs: WaitlistPreferences | null): number {
@@ -87,13 +104,17 @@ function answeredFieldCount(prefs: WaitlistPreferences | null): number {
     "company",
     "tableType",
     "vibe",
-    "budget",
     "experience",
   ];
-  return fields.filter((f) => {
+  const arrayFieldsAnswered = fields.filter((f) => {
     const v = prefs[f];
     return Array.isArray(v) && v.length > 0;
   }).length;
+  // ticketPrice is always asked (allInclusivePrice is conditional, so it
+  // isn't counted as one of the fixed 8 — it'd overcount completion for
+  // people who were never shown it).
+  const ticketPriceAnswered = prefs.priceRanges?.ticket?.length > 0 ? 1 : 0;
+  return arrayFieldsAnswered + ticketPriceAnswered;
 }
 
 export async function getWaitlistInsights(): Promise<WaitlistInsights> {
@@ -185,7 +206,8 @@ export async function getWaitlistInsights(): Promise<WaitlistInsights> {
     company: toBuckets(countField(rows, "company")),
     tableType: toBuckets(countField(rows, "tableType")),
     vibe: toBuckets(countField(rows, "vibe")),
-    budget: toBuckets(countField(rows, "budget")),
+    ticketPrice: toBuckets(countPriceRangeField(rows, "ticket")),
+    allInclusivePrice: toBuckets(countPriceRangeField(rows, "allInclusive")),
     experience: toBuckets(countField(rows, "experience")),
   };
 

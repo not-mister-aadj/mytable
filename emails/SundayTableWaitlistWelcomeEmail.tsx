@@ -51,7 +51,7 @@ export function SundayTableWaitlistWelcomeEmail({
         }}
       >
         {nl
-          ? "Zodra we genoeg mensen hebben voor een tafel die bij je past, mail we je meteen om je plek te claimen. Geen verdere actie nodig."
+          ? "Zodra we genoeg mensen hebben voor een tafel die bij je past, mailen we je meteen om je plek te claimen. Geen verdere actie nodig."
           : "As soon as we have enough people for a table that fits you, we'll email you right away to claim your seat. Nothing else to do for now."}
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 15, color: "#2b0d12" }}>

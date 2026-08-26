@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
@@ -11,6 +11,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
+import { WaitlistAutoOpen } from "@/components/WaitlistAutoOpen";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
@@ -141,6 +142,11 @@ export function FormatLandingView({
 
   return (
     <>
+      <Suspense fallback={null}>
+        <WaitlistAutoOpen
+          onTrigger={() => openWaitlist("auto_open", "direct_link")}
+        />
+      </Suspense>
       <SundayTableWaitlistModal
         labels={labels.waitlist}
         altLabels={altWaitlistLabels}

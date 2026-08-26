@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import {
   sundayTableLpPath,
@@ -14,6 +14,7 @@ import {
 import type { Dictionary } from "@/i18n/types";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
+import { WaitlistAutoOpen } from "@/components/WaitlistAutoOpen";
 import { Header } from "@/components/Header";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
@@ -100,6 +101,11 @@ export function BrandLandingView({
 
   return (
     <>
+      <Suspense fallback={null}>
+        <WaitlistAutoOpen
+          onTrigger={() => openWaitlist("auto_open", "direct_link")}
+        />
+      </Suspense>
       <Header dict={headerDict} locale={locale} />
 
       {/* Hero — the belief, not a product pitch */}

@@ -3,6 +3,8 @@ import {
   blogCategoryPath,
   blogPath,
   blogPostPath,
+  chefsSpecialLpCityPath,
+  chefsSpecialLpPath,
   experiencePath,
   girlsOnlyCityPath,
   localePath,
@@ -10,11 +12,16 @@ import {
   sundayTableLpCityPath,
   sundayTableLpPath,
   termsPath,
+  wineTastingLpCityPath,
+  wineTastingLpPath,
+  wineWalkLpCityPath,
+  wineWalkLpPath,
 } from "@/i18n/config";
 import {
   BLOG_CATEGORY_ORDER,
   getBlogPostsSorted,
 } from "@/data/blog";
+import { listFormatLpCities } from "@/data/format-lp-cities";
 import { listGirlsOnlyCities } from "@/data/girls-only-cities";
 import { SUNDAY_TABLE_LP_CITIES } from "@/data/sunday-table-lp-cities";
 import { getAgendaExperiences } from "@/lib/experiences";
@@ -135,6 +142,60 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
         priority: 0.93,
         lastmod: now,
         images: [absoluteUrl("/girls-only/table-group.jpg")],
+      }),
+    ),
+    ...pair({
+      nlPath: wineTastingLpPath("nl"),
+      enPath: wineTastingLpPath("en"),
+      changefreq: "weekly",
+      priority: 0.85,
+      lastmod: now,
+      images: [absoluteUrl("/girls-only/wine-moment.jpg")],
+    }),
+    ...listFormatLpCities().flatMap((city) =>
+      pair({
+        nlPath: wineTastingLpCityPath("nl", city.slug),
+        enPath: wineTastingLpCityPath("en", city.slug),
+        changefreq: "weekly",
+        priority: 0.8,
+        lastmod: now,
+        images: [absoluteUrl(city.heroImage)],
+      }),
+    ),
+    ...pair({
+      nlPath: wineWalkLpPath("nl"),
+      enPath: wineWalkLpPath("en"),
+      changefreq: "weekly",
+      priority: 0.85,
+      lastmod: now,
+      images: [absoluteUrl("/girls-only/duo-table.jpg")],
+    }),
+    ...listFormatLpCities().flatMap((city) =>
+      pair({
+        nlPath: wineWalkLpCityPath("nl", city.slug),
+        enPath: wineWalkLpCityPath("en", city.slug),
+        changefreq: "weekly",
+        priority: 0.8,
+        lastmod: now,
+        images: [absoluteUrl(city.heroImage)],
+      }),
+    ),
+    ...pair({
+      nlPath: chefsSpecialLpPath("nl"),
+      enPath: chefsSpecialLpPath("en"),
+      changefreq: "weekly",
+      priority: 0.85,
+      lastmod: now,
+      images: [absoluteUrl("/girls-only/table-group.jpg")],
+    }),
+    ...listFormatLpCities().flatMap((city) =>
+      pair({
+        nlPath: chefsSpecialLpCityPath("nl", city.slug),
+        enPath: chefsSpecialLpCityPath("en", city.slug),
+        changefreq: "weekly",
+        priority: 0.8,
+        lastmod: now,
+        images: [absoluteUrl(city.heroImage)],
       }),
     ),
     ...pair({

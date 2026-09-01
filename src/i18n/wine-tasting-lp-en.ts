@@ -5,11 +5,17 @@ export const wineTastingLpEn: FormatLpLabels = {
     title: "Wine Tasting · MyTable",
     description:
       "A selection of wines with bite pairings, chosen by the wine bar. A fun afternoon at one table. Join the waitlist.",
+    titleCity: "Wine Tasting in {city} · MyTable",
+    descriptionCity:
+      "A selection of wines with bite pairings in {city}, chosen by the wine bar. A fun afternoon at one table. Join the waitlist.",
   },
   brand: "MyTable",
   socialProof: "Wine tasting · put together by the wine bar",
   headline: "Good wine. One table. Nothing to plan.",
+  headlineCity: "Good wine in {city}. One table. Nothing to plan.",
   line: "Wine Tasting gives you a selection of wines with bite pairings, chosen by the wine bar. A fun afternoon at one table, without having to figure anything out yourself.",
+  lineCity:
+    "Wine Tasting gives you a selection of wines with bite pairings in {city}, chosen by the wine bar. A fun afternoon at one table, without having to figure anything out yourself.",
   cta: "Join the waitlist",
   ctaHint: "Free. No spam.",
   secondaryCta: "What you get",
@@ -87,6 +93,7 @@ export const wineTastingLpEn: FormatLpLabels = {
   },
   final: {
     title: "Ready to taste?",
+    titleCity: "Ready to taste in {city}?",
     body: "Good wine. One table. You're in.",
     cta: "Join the waitlist",
   },

@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { SundayTableLpView } from "@/components/sunday-table-lp/SundayTableLpView";
+import { JsonLd } from "@/components/seo/JsonLd";
 import {
   clubmemberPath,
   isValidLocale,
+  localePath,
+  sundayTableLpCityPath,
+  sundayTableLpPath,
   type Locale,
 } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -13,7 +17,14 @@ import {
   SUNDAY_TABLE_LP_CITIES,
 } from "@/data/sunday-table-lp-cities";
 import { getMemberUser } from "@/lib/member-auth";
+import {
+  breadcrumbJsonLd,
+  experienceCityJsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/site";
 
 export const revalidate = 60;
 
@@ -60,15 +71,43 @@ export default async function SundayTableLpCityPage({ params }: Props) {
 
   const dict = getDictionary(locale);
   const labels = getSundayTableLpLabels(locale);
+  const pageUrl = absoluteUrl(sundayTableLpCityPath(locale, city.slug));
+  const title = fillCity(labels.meta.titleCity, city.name);
+  const description = fillCity(labels.meta.descriptionCity, city.name);
+  // Both current Sunday Table cities sit in the same province; add a real
+  // per-city region lookup here if this list grows beyond Zuid-Holland.
+  const region = locale === "en" ? "South Holland" : "Zuid-Holland";
 
   return (
-    <SundayTableLpView
-      locale={locale}
-      labels={labels}
-      headerDict={dict.header}
-      footerDict={dict.footer}
-      cityName={city.name}
-      citySlug={city.slug}
-    />
+    <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          websiteJsonLd(locale),
+          ...experienceCityJsonLd({
+            pageUrl,
+            locale,
+            cityName: city.name,
+            region,
+            title,
+            description,
+            serviceType: locale === "en" ? "Recurring social dinner" : "Terugkerend sociaal diner",
+          }),
+          breadcrumbJsonLd(pageUrl, [
+            { name: "Home", path: localePath(locale) },
+            { name: labels.meta.title, path: sundayTableLpPath(locale) },
+            { name: city.name, path: sundayTableLpCityPath(locale, city.slug) },
+          ]),
+        ]}
+      />
+      <SundayTableLpView
+        locale={locale}
+        labels={labels}
+        headerDict={dict.header}
+        footerDict={dict.footer}
+        cityName={city.name}
+        citySlug={city.slug}
+      />
+    </>
   );
 }

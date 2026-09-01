@@ -5,11 +5,17 @@ export const wineTastingLpNl: FormatLpLabels = {
     title: "Wijnproeverij · MyTable",
     description:
       "Een selectie wijnen met bite-pairings, gekozen door de wijnbar. Een gezellige middag aan één tafel. Zet je op de wachtlijst.",
+    titleCity: "Wijnproeverij in {city} · MyTable",
+    descriptionCity:
+      "Een selectie wijnen met bite-pairings in {city}, gekozen door de wijnbar. Een gezellige middag aan één tafel. Zet je op de wachtlijst.",
   },
   brand: "MyTable",
   socialProof: "Wijnproeverij · door de wijnbar samengesteld",
   headline: "Lekkere wijn. Eén tafel. Niks zelf regelen.",
+  headlineCity: "Lekkere wijn in {city}. Eén tafel. Niks zelf regelen.",
   line: "Wijnproeverij geeft je een selectie wijnen met bite-pairings, gekozen door de wijnbar. Een gezellige middag aan één tafel, zonder dat je zelf iets hoeft uit te zoeken.",
+  lineCity:
+    "Wijnproeverij geeft je een selectie wijnen met bite-pairings in {city}, gekozen door de wijnbar. Een gezellige middag aan één tafel, zonder dat je zelf iets hoeft uit te zoeken.",
   cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
@@ -87,6 +93,7 @@ export const wineTastingLpNl: FormatLpLabels = {
   },
   final: {
     title: "Klaar om te proeven?",
+    titleCity: "Klaar om te proeven in {city}?",
     body: "Lekkere wijn. Eén tafel. Jij erbij.",
     cta: "Zet me op de wachtlijst",
   },

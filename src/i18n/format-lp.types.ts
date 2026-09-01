@@ -7,11 +7,17 @@ export type FormatLpLabels = {
   meta: {
     title: string;
     description: string;
+    /** `{city}` template, filled in on the per-city route. */
+    titleCity?: string;
+    descriptionCity?: string;
   };
   brand: string;
   socialProof: string;
   headline: string;
+  /** `{city}` template for the per-city route. */
+  headlineCity?: string;
   line: string;
+  lineCity?: string;
   cta: string;
   ctaHint: string;
   secondaryCta: string;
@@ -40,6 +46,7 @@ export type FormatLpLabels = {
   };
   final: {
     title: string;
+    titleCity?: string;
     body: string;
     cta: string;
   };

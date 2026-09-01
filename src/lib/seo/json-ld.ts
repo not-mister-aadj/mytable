@@ -400,3 +400,60 @@ export function girlsOnlyCityJsonLd(input: {
     },
   ];
 }
+
+/** City landing page for a single-experience format (wine tasting, wine
+ * walk, chef's special): Service + WebPage for local SEO. Generalized
+ * version of {@link girlsOnlyCityJsonLd} for formats other than Sunday
+ * Table's girls-only offering. */
+export function experienceCityJsonLd(input: {
+  pageUrl: string;
+  locale: Locale;
+  cityName: string;
+  region: string;
+  title: string;
+  description: string;
+  serviceType: string;
+}): JsonLd[] {
+  const { pageUrl, locale, cityName, region, title, description, serviceType } =
+    input;
+  const inLanguage = locale === "en" ? "en" : "nl";
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: title,
+      description,
+      inLanguage,
+      isPartOf: { "@id": websiteId() },
+      about: { "@id": `${pageUrl}#service` },
+      breadcrumb: { "@id": `${pageUrl}#breadcrumb` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "@id": `${pageUrl}#service`,
+      name: title,
+      description,
+      url: pageUrl,
+      provider: { "@id": orgId() },
+      serviceType,
+      areaServed: {
+        "@type": "City",
+        name: cityName,
+        containedInPlace: {
+          "@type": "AdministrativeArea",
+          name: region,
+        },
+      },
+      offers: {
+        "@type": "Offer",
+        availability: "https://schema.org/InStock",
+        priceCurrency: "EUR",
+        url: pageUrl,
+      },
+    },
+  ];
+}

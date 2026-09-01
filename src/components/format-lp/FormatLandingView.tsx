@@ -21,6 +21,7 @@ import {
   getWineTastingLpLabels,
   getWineWalkLpLabels,
 } from "@/i18n/get-format-lp";
+import { fillCity } from "@/i18n/get-sunday-table-lp";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -114,12 +115,16 @@ export function FormatLandingView({
   headerDict,
   footerDict,
   waitlistInterest,
+  cityName,
 }: {
   locale: Locale;
   labels: FormatLpLabels;
   headerDict: Dictionary["header"];
   footerDict: Dictionary["footer"];
   waitlistInterest: WaitlistInterestId;
+  /** Set on a per-city route (e.g. /wine-tasting/rotterdam) to fill the
+   * `{city}` templates and pin the waitlist signup to that city. */
+  cityName?: string | null;
 }) {
   const reduceMotion = useReducedMotion();
   const { culinary } = getBrandLandingTestimonialRows(locale);
@@ -134,6 +139,16 @@ export function FormatLandingView({
         : getWineTastingLpLabels(altLocale)
   ).waitlist;
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+
+  const headline = cityName
+    ? fillCity(labels.headlineCity ?? labels.headline, cityName)
+    : labels.headline;
+  const line = cityName
+    ? fillCity(labels.lineCity ?? labels.line, cityName)
+    : labels.line;
+  const finalTitle = cityName
+    ? fillCity(labels.final.titleCity ?? labels.final.title, cityName)
+    : labels.final.title;
 
   function openWaitlist(cta: string, source: string) {
     trackSundayTableCtaClicked({ cta, source, locale });
@@ -154,6 +169,7 @@ export function FormatLandingView({
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
         presetInterest={waitlistInterest}
+        cityName={cityName}
       />
       <Header dict={headerDict} locale={locale} />
 
@@ -180,7 +196,7 @@ export function FormatLandingView({
                 transition={{ duration: 0.5, delay: 0.06, ease }}
                 className="mt-3 w-full max-w-full font-serif text-[1.35rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-pretty sm:mt-4 sm:text-3xl lg:text-[2.15rem]"
               >
-                {labels.headline}
+                {headline}
               </motion.h1>
 
               <motion.p
@@ -189,7 +205,7 @@ export function FormatLandingView({
                 transition={{ duration: 0.5, delay: 0.12, ease }}
                 className="mt-4 w-full max-w-lg text-[0.95rem] leading-relaxed text-wine/55 text-pretty sm:mt-5 sm:text-[1.05rem]"
               >
-                {labels.line}
+                {line}
               </motion.p>
 
               <motion.div
@@ -453,7 +469,7 @@ export function FormatLandingView({
               transition={{ duration: 0.55, ease }}
               className="font-serif text-3xl font-medium tracking-tight text-wine text-balance sm:text-4xl lg:text-[2.75rem]"
             >
-              {labels.final.title}
+              {finalTitle}
             </motion.h2>
             <p className="mx-auto mt-3 max-w-md text-base text-wine/55 sm:mt-4">
               {labels.final.body}

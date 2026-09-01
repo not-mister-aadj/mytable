@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { SundayTableLpView } from "@/components/sunday-table-lp/SundayTableLpView";
+import { JsonLd } from "@/components/seo/JsonLd";
 import {
   clubmemberPath,
   isValidLocale,
+  localePath,
+  sundayTableLpPath,
   type Locale,
 } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import { getMemberUser } from "@/lib/member-auth";
+import { breadcrumbJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/site";
 
 export const revalidate = 60;
 
@@ -46,13 +51,26 @@ export default async function SundayTableLpPage({ params }: Props) {
 
   const dict = getDictionary(locale);
   const labels = getSundayTableLpLabels(locale);
+  const pageUrl = absoluteUrl(sundayTableLpPath(locale));
 
   return (
-    <SundayTableLpView
-      locale={locale}
-      labels={labels}
-      headerDict={dict.header}
-      footerDict={dict.footer}
-    />
+    <>
+      <JsonLd
+        data={[
+          organizationJsonLd(),
+          websiteJsonLd(locale),
+          breadcrumbJsonLd(pageUrl, [
+            { name: "Home", path: localePath(locale) },
+            { name: labels.meta.title, path: sundayTableLpPath(locale) },
+          ]),
+        ]}
+      />
+      <SundayTableLpView
+        locale={locale}
+        labels={labels}
+        headerDict={dict.header}
+        footerDict={dict.footer}
+      />
+    </>
   );
 }

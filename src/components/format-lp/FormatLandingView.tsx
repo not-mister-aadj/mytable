@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
@@ -116,6 +117,9 @@ export function FormatLandingView({
   footerDict,
   waitlistInterest,
   cityName,
+  citySlug,
+  cities,
+  formatBasePath,
 }: {
   locale: Locale;
   labels: FormatLpLabels;
@@ -125,6 +129,15 @@ export function FormatLandingView({
   /** Set on a per-city route (e.g. /wine-tasting/rotterdam) to fill the
    * `{city}` templates and pin the waitlist signup to that city. */
   cityName?: string | null;
+  /** Slug of the current city route, if any (drives which chip is hidden
+   * from the "other cities" list). */
+  citySlug?: string | null;
+  /** Every city this format targets, with the href already resolved for
+   * the current locale. Renders as a cross-link section so the new city
+   * pages are reachable by more than the sitemap alone. */
+  cities?: Array<{ slug: string; name: string; href: string }>;
+  /** Link back to the base (non-city) format page. */
+  formatBasePath?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const { culinary } = getBrandLandingTestimonialRows(locale);
@@ -417,6 +430,74 @@ export function FormatLandingView({
             </div>
           </div>
         </section>
+
+        {/* Cities */}
+        {cities && cities.length > 0 ? (
+          !citySlug ? (
+            <section className="border-b border-wine/8 bg-cream py-14 sm:py-20">
+              <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+                  {labels.cities.eyebrow}
+                </p>
+                <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+                  {labels.cities.title}
+                </h2>
+                <p className="mt-3 max-w-md text-base text-wine/60 sm:mt-4">
+                  {labels.cities.body}
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3 sm:mt-10">
+                  {cities.map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={city.href}
+                      onClick={() =>
+                        trackSundayTableCtaClicked({
+                          cta: "city_chip",
+                          source: "format_cities",
+                          locale,
+                        })
+                      }
+                      className="rounded-full border border-wine/15 bg-white px-5 py-3 text-sm font-medium text-wine transition hover:border-wine/40 hover:bg-wine hover:text-cream"
+                    >
+                      {city.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : (
+            <section className="border-b border-wine/8 bg-cream py-10 sm:py-12">
+              <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
+                <p className="text-sm text-wine/55">
+                  {cities
+                    .filter((c) => c.slug !== citySlug)
+                    .map((c, i) => (
+                      <span key={c.slug}>
+                        {i > 0 ? (
+                          <span className="mx-2 text-wine/25">·</span>
+                        ) : null}
+                        <Link
+                          href={c.href}
+                          className="underline-offset-4 transition hover:text-wine hover:underline"
+                        >
+                          {c.name}
+                        </Link>
+                      </span>
+                    ))}
+                </p>
+                {formatBasePath ? (
+                  <Link
+                    href={formatBasePath}
+                    className="text-xs font-semibold uppercase tracking-[0.16em] text-wine/45 transition hover:text-wine"
+                  >
+                    {labels.cities.title}
+                  </Link>
+                ) : null}
+              </div>
+            </section>
+          )
+        ) : null}
 
         {/* FAQ */}
         <section className="relative overflow-hidden border-b border-wine/8 bg-cream py-14 sm:py-20">

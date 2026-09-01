@@ -97,6 +97,11 @@ export const wineWalkLpEn: FormatLpLabels = {
     body: "Several places. One evening. You're in.",
     cta: "Join the waitlist",
   },
+  cities: {
+    eyebrow: "Cities",
+    title: "In your city too?",
+    body: "We're expanding. Join the waitlist for the city where you want to walk.",
+  },
   waitlist: {
     eyebrow: "Waitlist",
     title: "Join the waitlist",

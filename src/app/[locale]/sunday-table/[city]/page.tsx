@@ -20,6 +20,7 @@ import { getMemberUser } from "@/lib/member-auth";
 import {
   breadcrumbJsonLd,
   experienceCityJsonLd,
+  faqPageJsonLd,
   organizationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
@@ -93,6 +94,7 @@ export default async function SundayTableLpCityPage({ params }: Props) {
             description,
             serviceType: locale === "en" ? "Recurring social dinner" : "Terugkerend sociaal diner",
           }),
+          faqPageJsonLd(labels.faq.items, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
             { name: labels.meta.title, path: sundayTableLpPath(locale) },

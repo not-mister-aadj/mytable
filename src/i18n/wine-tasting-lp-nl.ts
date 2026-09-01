@@ -97,6 +97,11 @@ export const wineTastingLpNl: FormatLpLabels = {
     body: "Lekkere wijn. Eén tafel. Jij erbij.",
     cta: "Zet me op de wachtlijst",
   },
+  cities: {
+    eyebrow: "Steden",
+    title: "Ook in jouw stad?",
+    body: "We breiden uit. Zet je op de wachtlijst voor de stad waar jij wilt proeven.",
+  },
   waitlist: {
     eyebrow: "Wachtlijst",
     title: "Zet je op de lijst",

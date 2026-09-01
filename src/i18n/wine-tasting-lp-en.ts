@@ -97,6 +97,11 @@ export const wineTastingLpEn: FormatLpLabels = {
     body: "Good wine. One table. You're in.",
     cta: "Join the waitlist",
   },
+  cities: {
+    eyebrow: "Cities",
+    title: "In your city too?",
+    body: "We're expanding. Join the waitlist for the city where you want to taste.",
+  },
   waitlist: {
     eyebrow: "Waitlist",
     title: "Join the waitlist",

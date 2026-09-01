@@ -12,7 +12,12 @@ import {
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import { getMemberUser } from "@/lib/member-auth";
-import { breadcrumbJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/json-ld";
+import {
+  breadcrumbJsonLd,
+  faqPageJsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { absoluteUrl } from "@/lib/seo/site";
 
@@ -59,6 +64,7 @@ export default async function SundayTableLpPage({ params }: Props) {
         data={[
           organizationJsonLd(),
           websiteJsonLd(locale),
+          faqPageJsonLd(labels.faq.items, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
             { name: labels.meta.title, path: sundayTableLpPath(locale) },

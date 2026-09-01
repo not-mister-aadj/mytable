@@ -5,11 +5,17 @@ export const chefsSpecialLpNl: FormatLpLabels = {
     title: "Chef's Table · MyTable",
     description:
       "Zondagavond met de beste gerechten van het menu, voorgeselecteerd: voorgerechten, hoofdgerechten en dessert. Zet je op de wachtlijst.",
+    titleCity: "Chef's Table in {city} · MyTable",
+    descriptionCity:
+      "Zondagavond in {city} met de beste gerechten van het menu, voorgeselecteerd: voorgerechten, hoofdgerechten en dessert. Zet je op de wachtlijst.",
   },
   brand: "MyTable",
   socialProof: "Chef's Table · beste gerechten, voorgeselecteerd",
   headline: "De beste gerechten. Eén tafel. Niks zelf regelen.",
+  headlineCity: "De beste gerechten in {city}. Eén tafel. Niks zelf regelen.",
   line: "Chef's Table is een zondagavond met de beste gerechten van het menu, voorgeselecteerd: voorgerechten, hoofdgerechten en dessert.",
+  lineCity:
+    "Chef's Table is een zondagavond in {city} met de beste gerechten van het menu, voorgeselecteerd: voorgerechten, hoofdgerechten en dessert.",
   cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
@@ -87,6 +93,7 @@ export const chefsSpecialLpNl: FormatLpLabels = {
   },
   final: {
     title: "Klaar om aan te schuiven?",
+    titleCity: "Klaar om aan te schuiven in {city}?",
     body: "De beste gerechten. Eén tafel. Jij erbij.",
     cta: "Zet me op de wachtlijst",
   },

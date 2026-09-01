@@ -119,6 +119,18 @@ export function chefsSpecialLpPath(locale: Locale): string {
   return locale === "en" ? "/en/chefs-special" : "/chefs-special";
 }
 
+export function wineTastingLpCityPath(locale: Locale, citySlug: string): string {
+  return `${wineTastingLpPath(locale)}/${citySlug}`;
+}
+
+export function wineWalkLpCityPath(locale: Locale, citySlug: string): string {
+  return `${wineWalkLpPath(locale)}/${citySlug}`;
+}
+
+export function chefsSpecialLpCityPath(locale: Locale, citySlug: string): string {
+  return `${chefsSpecialLpPath(locale)}/${citySlug}`;
+}
+
 export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
   return locale === "en"
     ? `/en/girls-only/${citySlug}`

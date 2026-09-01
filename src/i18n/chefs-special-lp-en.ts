@@ -5,11 +5,17 @@ export const chefsSpecialLpEn: FormatLpLabels = {
     title: "Chef's Table · MyTable",
     description:
       "Sunday evening with the best dishes on the menu, pre-selected: starters, mains and dessert. Join the waitlist.",
+    titleCity: "Chef's Table in {city} · MyTable",
+    descriptionCity:
+      "Sunday evening in {city} with the best dishes on the menu, pre-selected: starters, mains and dessert. Join the waitlist.",
   },
   brand: "MyTable",
   socialProof: "Chef's Table · best dishes, pre-selected",
   headline: "The best dishes. One table. Nothing to plan.",
+  headlineCity: "The best dishes in {city}. One table. Nothing to plan.",
   line: "Chef's Table is a Sunday evening with the best dishes on the menu, pre-selected: starters, mains and dessert.",
+  lineCity:
+    "Chef's Table is a Sunday evening in {city} with the best dishes on the menu, pre-selected: starters, mains and dessert.",
   cta: "Join the waitlist",
   ctaHint: "Free. No spam.",
   secondaryCta: "What you get",
@@ -87,6 +93,7 @@ export const chefsSpecialLpEn: FormatLpLabels = {
   },
   final: {
     title: "Ready to pull up a chair?",
+    titleCity: "Ready to pull up a chair in {city}?",
     body: "The best dishes. One table. You're in.",
     cta: "Join the waitlist",
   },

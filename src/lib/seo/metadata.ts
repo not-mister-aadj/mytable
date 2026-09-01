@@ -4,6 +4,8 @@ import {
   blogCategoryPath,
   blogPath,
   blogPostPath,
+  chefsSpecialLpCityPath,
+  chefsSpecialLpPath,
   experiencePath,
   girlsOnlyCityPath,
   localePath,
@@ -11,6 +13,10 @@ import {
   sundayTableLpCityPath,
   sundayTableLpPath,
   termsPath,
+  wineTastingLpCityPath,
+  wineTastingLpPath,
+  wineWalkLpCityPath,
+  wineWalkLpPath,
   type Locale,
 } from "@/i18n/config";
 import { absoluteImageUrl, absoluteUrl } from "@/lib/seo/site";
@@ -22,6 +28,12 @@ export type SeoPathKind =
   | "girlsOnlyCity"
   | "sundayTableLp"
   | "sundayTableLpCity"
+  | "wineTastingLp"
+  | "wineTastingLpCity"
+  | "wineWalkLp"
+  | "wineWalkLpCity"
+  | "chefsSpecialLp"
+  | "chefsSpecialLpCity"
   | "experience"
   | "blog"
   | "blogPost"
@@ -44,6 +56,21 @@ function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
     case "sundayTableLpCity":
       if (!slug) throw new Error("sundayTableLpCity SEO path requires city slug");
       return sundayTableLpCityPath(locale, slug);
+    case "wineTastingLp":
+      return wineTastingLpPath(locale);
+    case "wineTastingLpCity":
+      if (!slug) throw new Error("wineTastingLpCity SEO path requires city slug");
+      return wineTastingLpCityPath(locale, slug);
+    case "wineWalkLp":
+      return wineWalkLpPath(locale);
+    case "wineWalkLpCity":
+      if (!slug) throw new Error("wineWalkLpCity SEO path requires city slug");
+      return wineWalkLpCityPath(locale, slug);
+    case "chefsSpecialLp":
+      return chefsSpecialLpPath(locale);
+    case "chefsSpecialLpCity":
+      if (!slug) throw new Error("chefsSpecialLpCity SEO path requires city slug");
+      return chefsSpecialLpCityPath(locale, slug);
     case "experience":
       if (!slug) throw new Error("experience SEO path requires slug");
       return experiencePath(locale, slug);

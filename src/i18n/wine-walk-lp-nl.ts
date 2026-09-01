@@ -5,11 +5,17 @@ export const wineWalkLpNl: FormatLpLabels = {
     title: "Wijnwalk · MyTable",
     description:
       "De stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Zet je op de wachtlijst.",
+    titleCity: "Wijnwalk in {city} · MyTable",
+    descriptionCity:
+      "{city} ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Zet je op de wachtlijst.",
   },
   brand: "MyTable",
   socialProof: "Wijnwalk · meerdere locaties, één avond",
   headline: "Eén avond. Meerdere plekken. Geen gedoe met plannen.",
+  headlineCity: "Eén avond in {city}. Meerdere plekken. Geen gedoe met plannen.",
   line: "Wijnwalk laat je de stad ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Wij stippelen de route al voor je uit.",
+  lineCity:
+    "Wijnwalk laat je {city} ontdekken door meerdere locaties te proberen, elk met wijn en spijs. Wij stippelen de route al voor je uit.",
   cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
@@ -87,6 +93,7 @@ export const wineWalkLpNl: FormatLpLabels = {
   },
   final: {
     title: "Klaar om te lopen?",
+    titleCity: "Klaar om te lopen in {city}?",
     body: "Meerdere plekken. Eén avond. Jij erbij.",
     cta: "Zet me op de wachtlijst",
   },

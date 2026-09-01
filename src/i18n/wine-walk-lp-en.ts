@@ -5,11 +5,17 @@ export const wineWalkLpEn: FormatLpLabels = {
     title: "Wine Walk · MyTable",
     description:
       "Discover the city by trying several venues, each with wine and food. Join the waitlist.",
+    titleCity: "Wine Walk in {city} · MyTable",
+    descriptionCity:
+      "Discover {city} by trying several venues, each with wine and food. Join the waitlist.",
   },
   brand: "MyTable",
   socialProof: "Wine walk · multiple venues, one evening",
   headline: "One evening. Several places. No planning hassle.",
+  headlineCity: "One evening in {city}. Several places. No planning hassle.",
   line: "Wine Walk lets you discover the city by trying several venues, each with wine and food. We map out the route for you.",
+  lineCity:
+    "Wine Walk lets you discover {city} by trying several venues, each with wine and food. We map out the route for you.",
   cta: "Join the waitlist",
   ctaHint: "Free. No spam.",
   secondaryCta: "What you get",
@@ -87,6 +93,7 @@ export const wineWalkLpEn: FormatLpLabels = {
   },
   final: {
     title: "Ready to walk?",
+    titleCity: "Ready to walk in {city}?",
     body: "Several places. One evening. You're in.",
     cta: "Join the waitlist",
   },

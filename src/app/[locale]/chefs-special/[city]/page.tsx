@@ -6,6 +6,7 @@ import {
   FORMAT_LP_CITY_SLUGS,
   formatLpCityFromSlug,
   formatLpCityRegion,
+  listFormatLpCities,
 } from "@/data/format-lp-cities";
 import {
   chefsSpecialLpCityPath,
@@ -20,6 +21,7 @@ import { getChefsSpecialLpLabels } from "@/i18n/get-format-lp";
 import {
   breadcrumbJsonLd,
   experienceCityJsonLd,
+  faqPageJsonLd,
   organizationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
@@ -72,6 +74,11 @@ export default async function ChefsSpecialLpCityPage({ params }: Props) {
     labels.meta.descriptionCity ?? labels.meta.description,
     city.cityName,
   );
+  const cities = listFormatLpCities().map((c) => ({
+    slug: c.slug,
+    name: c.cityName,
+    href: chefsSpecialLpCityPath(locale, c.slug),
+  }));
 
   return (
     <>
@@ -88,6 +95,7 @@ export default async function ChefsSpecialLpCityPage({ params }: Props) {
             description,
             serviceType: locale === "en" ? "Chef's table dinner" : "Chef's Table diner",
           }),
+          faqPageJsonLd(labels.faq.items, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
             { name: labels.meta.title, path: chefsSpecialLpPath(locale) },
@@ -102,6 +110,9 @@ export default async function ChefsSpecialLpCityPage({ params }: Props) {
         footerDict={dict.footer}
         waitlistInterest="chefs_special"
         cityName={city.cityName}
+        citySlug={city.slug}
+        cities={cities}
+        formatBasePath={chefsSpecialLpPath(locale)}
       />
     </>
   );

@@ -2,10 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FormatLandingView } from "@/components/format-lp/FormatLandingView";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { isValidLocale, localePath, wineTastingLpPath, type Locale } from "@/i18n/config";
+import { listFormatLpCities } from "@/data/format-lp-cities";
+import {
+  isValidLocale,
+  localePath,
+  wineTastingLpCityPath,
+  wineTastingLpPath,
+  type Locale,
+} from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getWineTastingLpLabels } from "@/i18n/get-format-lp";
-import { breadcrumbJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/json-ld";
+import {
+  breadcrumbJsonLd,
+  faqPageJsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { absoluteUrl } from "@/lib/seo/site";
 
@@ -40,6 +52,11 @@ export default async function WineTastingLpPage({ params }: Props) {
   const dict = getDictionary(locale);
   const labels = getWineTastingLpLabels(locale);
   const pageUrl = absoluteUrl(wineTastingLpPath(locale));
+  const cities = listFormatLpCities().map((city) => ({
+    slug: city.slug,
+    name: city.cityName,
+    href: wineTastingLpCityPath(locale, city.slug),
+  }));
 
   return (
     <>
@@ -47,6 +64,7 @@ export default async function WineTastingLpPage({ params }: Props) {
         data={[
           organizationJsonLd(),
           websiteJsonLd(locale),
+          faqPageJsonLd(labels.faq.items, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
             { name: labels.meta.title, path: wineTastingLpPath(locale) },
@@ -59,6 +77,7 @@ export default async function WineTastingLpPage({ params }: Props) {
         headerDict={dict.header}
         footerDict={dict.footer}
         waitlistInterest="wine_tasting"
+        cities={cities}
       />
     </>
   );

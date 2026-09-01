@@ -50,5 +50,10 @@ export type FormatLpLabels = {
     body: string;
     cta: string;
   };
+  cities: {
+    eyebrow: string;
+    title: string;
+    body: string;
+  };
   waitlist: SundayTableLpLabels["waitlist"];
 };

@@ -97,6 +97,11 @@ export const chefsSpecialLpEn: FormatLpLabels = {
     body: "The best dishes. One table. You're in.",
     cta: "Join the waitlist",
   },
+  cities: {
+    eyebrow: "Cities",
+    title: "In your city too?",
+    body: "We're expanding. Join the waitlist for the city where you want a seat.",
+  },
   waitlist: {
     eyebrow: "Waitlist",
     title: "Join the waitlist",

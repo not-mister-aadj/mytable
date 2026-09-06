@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { SundayTableLpView } from "@/components/sunday-table-lp/SundayTableLpView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
-  clubmemberPath,
   isValidLocale,
   localePath,
   sundayTableLpCityPath,
@@ -16,7 +15,6 @@ import {
   sundayTableLpCityFromSlug,
   SUNDAY_TABLE_LP_CITIES,
 } from "@/data/sunday-table-lp-cities";
-import { getMemberUser } from "@/lib/member-auth";
 import {
   breadcrumbJsonLd,
   experienceCityJsonLd,
@@ -65,11 +63,10 @@ export default async function SundayTableLpCityPage({ params }: Props) {
   const city = sundayTableLpCityFromSlug(citySlug);
   if (!city) notFound();
 
-  const user = await getMemberUser();
-  if (user) {
-    redirect(clubmemberPath(locale));
-  }
-
+  // Signed-in members are redirected to /clubmember by middleware before
+  // this component ever renders — see middleware.ts's member-gate check.
+  // Keeping this page free of cookies()/auth reads is what lets it stay
+  // statically prerendered (ISR) instead of rendering on every request.
   const dict = getDictionary(locale);
   const labels = getSundayTableLpLabels(locale);
   const pageUrl = absoluteUrl(sundayTableLpCityPath(locale, city.slug));

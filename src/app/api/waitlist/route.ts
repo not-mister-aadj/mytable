@@ -197,6 +197,15 @@ export async function POST(request: Request) {
     source?: "waitlist" | "newsletter";
     /** True for the second (preferences) POST of the two-step capture flow. */
     enrich?: boolean;
+    /** True only on the enrich POST that actually finishes the flow — either
+     * by completing the last question or by hitting "skip". Every other
+     * enrich POST is just an in-progress autosave (see savePreferences in
+     * the modal) and must not trigger the welcome email. */
+    complete?: boolean;
+    /** Echoed back from the capture response (`created`) so the completion
+     * POST — which never re-runs createWaitlistSignup's insert — can still
+     * tell whether this is a first-time signup worth welcoming. */
+    isNewSignup?: boolean;
     preferences?: unknown;
     meta?: {
       fbp?: string;
@@ -286,21 +295,33 @@ export async function POST(request: Request) {
       eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
       userData: metaUserDataFromRequest(request, metaContext, email),
     });
-
-    if (createdFlags[0]) {
-      void sendSundayTableWaitlistWelcomeEmail({
-        to: email,
-        locale,
-        firstName: name,
-        city: cities[0]!,
-      }).catch((error: unknown) => {
-        console.error(
-          "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
-          error,
-        );
-      });
-    }
   }
 
-  return NextResponse.json({ ok: true, id: signupIds[0], ids: signupIds });
+  // Welcome email now fires once the person is done filling in the
+  // questionnaire — whether they finished every question or hit "skip" —
+  // never on the bare capture step and never on an in-progress autosave.
+  // `isNewSignup` guards against re-sending it to someone who reopens the
+  // modal and completes the flow again for a city they already joined.
+  if (enrich && body.complete === true && body.isNewSignup === true) {
+    const gender = preferences?.gender?.[0];
+    void sendSundayTableWaitlistWelcomeEmail({
+      to: email,
+      locale,
+      firstName: name,
+      city: cities[0]!,
+      gender,
+    }).catch((error: unknown) => {
+      console.error(
+        "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
+        error,
+      );
+    });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    id: signupIds[0],
+    ids: signupIds,
+    created: createdFlags[0] ?? false,
+  });
 }

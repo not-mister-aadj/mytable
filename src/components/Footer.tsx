@@ -8,6 +8,7 @@ import {
   privacyPath,
   sundayTableLpPath,
   termsPath,
+  voorZakenPath,
   wineTastingLpPath,
   wineWalkLpPath,
   type Locale,
@@ -132,6 +133,13 @@ export function Footer({
               className="transition-colors hover:text-wine/70"
             >
               {dict.links.terms}
+            </Link>
+            <span className="mx-2 text-wine/25">·</span>
+            <Link
+              href={voorZakenPath(locale)}
+              className="transition-colors hover:text-wine/70"
+            >
+              {dict.links.forVenues}
             </Link>
           </p>
         </div>

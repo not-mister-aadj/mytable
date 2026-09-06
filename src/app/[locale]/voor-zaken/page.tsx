@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SundayTableLpView } from "@/components/sunday-table-lp/SundayTableLpView";
 import { JsonLd } from "@/components/seo/JsonLd";
-import {
-  isValidLocale,
-  localePath,
-  sundayTableLpPath,
-  type Locale,
-} from "@/i18n/config";
+import { VoorZakenView } from "@/components/voor-zaken/VoorZakenView";
+import { isValidLocale, localePath, voorZakenPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import {
   breadcrumbJsonLd,
-  faqPageJsonLd,
   organizationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
@@ -32,28 +25,25 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  const labels = getSundayTableLpLabels(locale as Locale);
+  const title = "Wat je eraan overhoudt | MyTable voor zaken";
+  const description =
+    "Hoe de Mixer werkt voor jouw bar of restaurant: geen kosten om mee te doen, en een rekentool om je eigen rendement door te rekenen.";
   return buildPageMetadata({
     locale: locale as Locale,
-    kind: "sundayTableLp",
-    title: labels.meta.title,
-    description: labels.meta.description,
-    image: "/girls-only/table-group.jpg",
+    kind: "voorZaken",
+    title,
+    description,
+    image: "/girls-only/table-wine-laughing.jpg",
   });
 }
 
-export default async function SundayTableLpPage({ params }: Props) {
+export default async function VoorZakenPage({ params }: Props) {
   const { locale: localeParam } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
 
-  // Signed-in members are redirected to /clubmember by middleware before
-  // this component ever renders — see middleware.ts's member-gate check.
-  // Keeping this page free of cookies()/auth reads is what lets it stay
-  // statically prerendered (ISR) instead of rendering on every request.
   const dict = getDictionary(locale);
-  const labels = getSundayTableLpLabels(locale);
-  const pageUrl = absoluteUrl(sundayTableLpPath(locale));
+  const pageUrl = absoluteUrl(voorZakenPath(locale));
 
   return (
     <>
@@ -61,16 +51,14 @@ export default async function SundayTableLpPage({ params }: Props) {
         data={[
           organizationJsonLd(),
           websiteJsonLd(locale),
-          faqPageJsonLd(labels.faq.items, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
-            { name: labels.meta.title, path: sundayTableLpPath(locale) },
+            { name: "Voor zaken", path: voorZakenPath(locale) },
           ]),
         ]}
       />
-      <SundayTableLpView
+      <VoorZakenView
         locale={locale}
-        labels={labels}
         headerDict={dict.header}
         footerDict={dict.footer}
       />

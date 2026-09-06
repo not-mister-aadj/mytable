@@ -170,6 +170,11 @@ export function SundayTableWaitlistModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
+  /** From the capture response — whether this was a brand-new signup, not a
+   * returning one. Threaded through to the completion POST so the welcome
+   * email (now sent on completion, not capture) doesn't go out again to
+   * someone who reopens the modal and re-finishes the flow. */
+  const [isNewSignup, setIsNewSignup] = useState(false);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [why, setWhy] = useState<WaitlistWhyId[]>([]);
@@ -255,6 +260,7 @@ export function SundayTableWaitlistModal({
     setInterests(presetInterest ? [presetInterest] : []);
     setError(null);
     setWaitlistId(null);
+    setIsNewSignup(false);
     setQuestionIndex(0);
     setWhy([]);
     setWhyOther("");
@@ -283,6 +289,12 @@ export function SundayTableWaitlistModal({
           ),
         ),
       );
+
+  // Mirrors the server-side gate in SundayTableWaitlistWelcomeEmail: the
+  // WhatsApp groups are Rotterdam-specific, so only the primary city (the
+  // one the welcome email is actually about) decides whether to offer them.
+  const showRotterdamWhatsapp =
+    effectiveCities[0]?.trim().toLowerCase() === "rotterdam";
 
   function toggleInterest(id: WaitlistInterestId) {
     setInterests((prev) =>
@@ -323,7 +335,7 @@ export function SundayTableWaitlistModal({
         setError(labels.error);
         return;
       }
-      const payload = (await res.json()) as { id?: string };
+      const payload = (await res.json()) as { id?: string; created?: boolean };
       for (const c of effectiveCities) {
         rememberPreferredCity(c);
         trackEmailSignupCompleted({
@@ -334,6 +346,7 @@ export function SundayTableWaitlistModal({
         });
       }
       setWaitlistId(payload.id ?? null);
+      setIsNewSignup(payload.created === true);
       setPhase("questions");
     } catch {
       setError(labels.error);
@@ -347,13 +360,20 @@ export function SundayTableWaitlistModal({
   // answers instead of nothing. `overrides` covers selectTableType, whose
   // auto-advance timer would otherwise read tableType from a closure
   // snapshotted before the click's state update lands.
-  async function savePreferences(overrides?: {
-    tableType?: WaitlistTableTypeId | null;
-    language?: WaitlistLanguageId | null;
-    sundayAvailability?: WaitlistSundayAvailabilityId | null;
-    ticketPrice?: WaitlistTicketPriceId | null;
-    allInclusivePrice?: WaitlistAllInclusivePriceId | null;
-  }) {
+  async function savePreferences(
+    overrides?: {
+      tableType?: WaitlistTableTypeId | null;
+      language?: WaitlistLanguageId | null;
+      sundayAvailability?: WaitlistSundayAvailabilityId | null;
+      ticketPrice?: WaitlistTicketPriceId | null;
+      allInclusivePrice?: WaitlistAllInclusivePriceId | null;
+    },
+    /** Set only by submitEnrichment — marks this as the save that actually
+     * finishes the flow (whether by completing every question or hitting
+     * "skip"), which is what triggers the welcome email server-side. Every
+     * other call is just a per-step autosave. */
+    opts?: { final?: boolean },
+  ) {
     const effectiveTableType =
       overrides && "tableType" in overrides ? overrides.tableType : tableType;
     const effectiveLanguage =
@@ -376,9 +396,13 @@ export function SundayTableWaitlistModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
+          name: name.trim() || undefined,
           cities: effectiveCities,
           locale,
           enrich: true,
+          ...(opts?.final
+            ? { complete: true, isNewSignup }
+            : {}),
           preferences: {
             why,
             whyOther: why.includes("other") ? whyOther.trim() : "",
@@ -429,7 +453,7 @@ export function SundayTableWaitlistModal({
   }
 
   async function submitEnrichment(skipped: boolean) {
-    await savePreferences();
+    await savePreferences(undefined, { final: true });
     for (const c of effectiveCities) {
       trackSundayTableWaitlistEnriched({
         city: c,
@@ -1012,38 +1036,45 @@ export function SundayTableWaitlistModal({
                   >
                     {questionLabels.successBody}
                   </p>
-                  <p className="mt-2 text-sm leading-relaxed text-wine/45">
-                    {questionLabels.successNext}
-                  </p>
 
-                  <div className="mt-6 space-y-3">
-                    <a
-                      href={GIRLS_WHATSAPP_GROUP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(43,13,18,0.06)] transition hover:border-[#25D366]/35"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
-                        →
-                      </span>
-                      <span className="text-sm font-semibold text-wine">
-                        {questionLabels.whatsappGirlsLabel}
-                      </span>
-                    </a>
-                    <a
-                      href={MIXED_WHATSAPP_GROUP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(43,13,18,0.06)] transition hover:border-[#25D366]/35"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wine text-cream">
-                        →
-                      </span>
-                      <span className="text-sm font-semibold text-wine">
-                        {questionLabels.whatsappMixedLabel}
-                      </span>
-                    </a>
-                  </div>
+                  {/* Same Rotterdam-only gate as the welcome email — these
+                      WhatsApp groups are Rotterdam-specific communities. */}
+                  {showRotterdamWhatsapp ? (
+                    <>
+                      <p className="mt-2 text-sm leading-relaxed text-wine/45">
+                        {questionLabels.successNext}
+                      </p>
+
+                      <div className="mt-6 space-y-3">
+                        <a
+                          href={GIRLS_WHATSAPP_GROUP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(43,13,18,0.06)] transition hover:border-[#25D366]/35"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
+                            →
+                          </span>
+                          <span className="text-sm font-semibold text-wine">
+                            {questionLabels.whatsappGirlsLabel}
+                          </span>
+                        </a>
+                        <a
+                          href={MIXED_WHATSAPP_GROUP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(43,13,18,0.06)] transition hover:border-[#25D366]/35"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wine text-cream">
+                            →
+                          </span>
+                          <span className="text-sm font-semibold text-wine">
+                            {questionLabels.whatsappMixedLabel}
+                          </span>
+                        </a>
+                      </div>
+                    </>
+                  ) : null}
 
                   <button
                     type="button"

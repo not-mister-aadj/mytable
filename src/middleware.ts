@@ -1,12 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { defaultLocale, type Locale } from "./i18n/config";
+import { clubmemberPath, defaultLocale, type Locale } from "./i18n/config";
 import {
   isAdminHost,
   isLocalDevHost,
   usesAdminSubdomainFromEnv,
 } from "@/lib/admin-url";
-import { updateSupabaseSession } from "@/lib/supabase/middleware";
+import {
+  updateSupabaseSession,
+  updateSupabaseSessionWithUser,
+} from "@/lib/supabase/middleware";
 
 const BLOG_CATEGORY_IDS = new Set([
   "tips",
@@ -19,6 +22,39 @@ function resolveLocale(pathname: string): Locale | null {
   if (pathname === "/en" || pathname.startsWith("/en/")) return "en";
   if (pathname === "/nl" || pathname.startsWith("/nl/")) return "nl";
   return null;
+}
+
+// Sunday Table's marketing pages redirect a signed-in member straight to
+// /clubmember — a plain, unconditional redirect, identical on the index and
+// every city page. Gating that here (rather than reading cookies inside the
+// page component) is what keeps these pages eligible for Next.js's
+// static/ISR cache — cookies()/auth reads inside a page component force
+// Next to render it dynamically on every request, including every crawler
+// hit. (The homepage has its own, onboarding-aware redirect target — not a
+// flat /clubmember — so it stays out of this gate and keeps its own check.)
+// Suffix is the pathname with any /en or /nl prefix stripped and a trailing
+// slash removed, e.g. "/sunday-table", "/sunday-table/rotterdam".
+const MEMBER_GATED_MARKETING_PATTERN = /^\/sunday-table(?:\/[^/]+)?$/;
+
+function isMemberGatedMarketingSuffix(suffix: string): boolean {
+  return MEMBER_GATED_MARKETING_PATTERN.test(suffix.replace(/\/$/, ""));
+}
+
+/** Redirects a signed-in member away from a gated marketing path; null if anonymous. */
+async function memberGateRedirect(
+  request: NextRequest,
+  locale: Locale,
+): Promise<NextResponse | null> {
+  const { response, user } = await updateSupabaseSessionWithUser(request);
+  if (!user) return null;
+  const target = request.nextUrl.clone();
+  target.pathname = clubmemberPath(locale);
+  target.search = "";
+  const redirectResponse = NextResponse.redirect(target);
+  response.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie);
+  });
+  return redirectResponse;
 }
 
 /** True for asset-like paths (foo.png), not JWT segments that contain dots. */
@@ -137,6 +173,10 @@ export async function middleware(request: NextRequest) {
 
   if (explicit === "en") {
     const suffix = pathname.slice(3) || "";
+    if (isMemberGatedMarketingSuffix(suffix)) {
+      const gate = await memberGateRedirect(request, "en");
+      if (gate) return gate;
+    }
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = `/en${suffix || ""}`;
     return NextResponse.rewrite(rewriteUrl);
@@ -150,9 +190,18 @@ export async function middleware(request: NextRequest) {
       redirectUrl.pathname = visible;
       return NextResponse.redirect(redirectUrl);
     }
+    if (isMemberGatedMarketingSuffix(suffix)) {
+      const gate = await memberGateRedirect(request, "nl");
+      if (gate) return gate;
+    }
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = `/nl${suffix || ""}`;
     return NextResponse.rewrite(rewriteUrl);
+  }
+
+  if (isMemberGatedMarketingSuffix(pathname === "/" ? "" : pathname)) {
+    const gate = await memberGateRedirect(request, defaultLocale);
+    if (gate) return gate;
   }
 
   const rewriteUrl = request.nextUrl.clone();

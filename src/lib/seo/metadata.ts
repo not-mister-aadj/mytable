@@ -13,6 +13,7 @@ import {
   sundayTableLpCityPath,
   sundayTableLpPath,
   termsPath,
+  voorZakenPath,
   wineTastingLpCityPath,
   wineTastingLpPath,
   wineWalkLpCityPath,
@@ -39,7 +40,8 @@ export type SeoPathKind =
   | "blogPost"
   | "blogCategory"
   | "privacy"
-  | "terms";
+  | "terms"
+  | "voorZaken";
 
 function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
   switch (kind) {
@@ -86,6 +88,8 @@ function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
       return privacyPath(locale);
     case "terms":
       return termsPath(locale);
+    case "voorZaken":
+      return voorZakenPath(locale);
   }
 }
 

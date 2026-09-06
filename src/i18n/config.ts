@@ -119,6 +119,11 @@ export function chefsSpecialLpPath(locale: Locale): string {
   return locale === "en" ? "/en/chefs-special" : "/chefs-special";
 }
 
+/** Venue-facing "what's in it for you" page for the Mixer format. */
+export function voorZakenPath(locale: Locale): string {
+  return locale === "en" ? "/en/voor-zaken" : "/voor-zaken";
+}
+
 export function wineTastingLpCityPath(locale: Locale, citySlug: string): string {
   return `${wineTastingLpPath(locale)}/${citySlug}`;
 }

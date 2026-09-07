@@ -300,10 +300,12 @@ export function SundayTableWaitlistModal({
       );
 
   // Mirrors the server-side gate in SundayTableWaitlistWelcomeEmail: the
-  // WhatsApp groups are Rotterdam-specific, so only the primary city (the
-  // one the welcome email is actually about) decides whether to offer them.
-  const showRotterdamWhatsapp =
-    effectiveCities[0]?.trim().toLowerCase() === "rotterdam";
+  // WhatsApp groups are Rotterdam-specific, offered when Rotterdam is any
+  // one of the cities this signup is for (the email now lists all of them,
+  // not just the first).
+  const showRotterdamWhatsapp = effectiveCities.some(
+    (c) => c.trim().toLowerCase() === "rotterdam",
+  );
 
   function toggleInterest(id: WaitlistInterestId) {
     setInterests((prev) =>

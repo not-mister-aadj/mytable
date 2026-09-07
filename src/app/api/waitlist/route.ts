@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
-import { createWaitlistSignup } from "@/lib/waitlist-data";
+import {
+  claimWaitlistWelcomeEmail,
+  createWaitlistSignup,
+  releaseWaitlistWelcomeEmailClaim,
+} from "@/lib/waitlist-data";
 import { onWaitlistJoined } from "@/lib/customers/hooks";
 import { sendSundayTableWaitlistWelcomeEmail } from "@/lib/email/sendSundayTableWaitlistEmails";
 import { sendMetaCapiLead } from "@/lib/analytics/metaCapi";
@@ -302,20 +306,42 @@ export async function POST(request: Request) {
   // never on the bare capture step and never on an in-progress autosave.
   // `isNewSignup` guards against re-sending it to someone who reopens the
   // modal and completes the flow again for a city they already joined.
+  //
+  // A "complete" POST can itself arrive more than once for the same
+  // person (a double-tap on the finish/skip button with no loading state
+  // on a slow connection previously sent the welcome email once per tap),
+  // so the actual send is gated behind an atomic per-signup claim —
+  // whichever POST claims it first sends the email, every later duplicate
+  // sees it already claimed and skips.
   if (enrich && body.complete === true && body.isNewSignup === true) {
-    const gender = preferences?.gender?.[0];
-    void sendSundayTableWaitlistWelcomeEmail({
-      to: email,
-      locale,
-      firstName: name,
-      city: cities[0]!,
-      gender,
-    }).catch((error: unknown) => {
-      console.error(
-        "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
-        error,
-      );
-    });
+    const welcomeSignupId = signupIds[0]!;
+    void claimWaitlistWelcomeEmail(welcomeSignupId)
+      .then(async (claimed) => {
+        if (!claimed) return;
+        try {
+          const gender = preferences?.gender?.[0];
+          await sendSundayTableWaitlistWelcomeEmail({
+            to: email,
+            locale,
+            firstName: name,
+            city: cities[0]!,
+            gender,
+          });
+        } catch (error) {
+          console.error(
+            "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
+            error,
+          );
+          // Sending failed after we claimed it — release so a later
+          // legitimate attempt (or a manual resend) can still go out.
+          await releaseWaitlistWelcomeEmailClaim(welcomeSignupId).catch(
+            () => {},
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("[waitlist] claimWaitlistWelcomeEmail failed:", error);
+      });
   }
 
   return NextResponse.json({

@@ -229,6 +229,13 @@ export const waitlistSignups = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /** Idempotency guard for the questionnaire-completion welcome email —
+     * claimed atomically (see claimWaitlistWelcomeEmail) so a duplicate
+     * "complete" POST (e.g. a double-tap on the finish/skip button on a
+     * slow connection) can only ever result in one email being sent. */
+    welcomeEmailSentAt: timestamp("welcome_email_sent_at", {
+      withTimezone: true,
+    }),
   },
   (table) => ({
     emailCityUnique: uniqueIndex("waitlist_signups_email_city_unique").on(

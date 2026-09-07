@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
@@ -175,6 +175,15 @@ export function SundayTableWaitlistModal({
    * email (now sent on completion, not capture) doesn't go out again to
    * someone who reopens the modal and re-finishes the flow. */
   const [isNewSignup, setIsNewSignup] = useState(false);
+  /** Guards submitEnrichment against firing more than once — a real bug we
+   * saw in production: the finish/skip button has no loading state, so on
+   * a slow connection someone taps it repeatedly (nothing visibly happens
+   * after the first tap) and each tap independently completed the
+   * questionnaire, sending the welcome email once per tap. A ref (not
+   * state) so the check is synchronous and can't be raced by a second tap
+   * landing before React re-renders a disabled button. */
+  const finishingRef = useRef(false);
+  const [finishing, setFinishing] = useState(false);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [why, setWhy] = useState<WaitlistWhyId[]>([]);
@@ -453,6 +462,9 @@ export function SundayTableWaitlistModal({
   }
 
   async function submitEnrichment(skipped: boolean) {
+    if (finishingRef.current) return;
+    finishingRef.current = true;
+    setFinishing(true);
     await savePreferences(undefined, { final: true });
     for (const c of effectiveCities) {
       trackSundayTableWaitlistEnriched({
@@ -814,7 +826,8 @@ export function SundayTableWaitlistModal({
                           <button
                             type="button"
                             onClick={advanceQuestion}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                            disabled={finishing}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
                           >
                             {questionLabels.continueCta}
                           </button>
@@ -848,7 +861,8 @@ export function SundayTableWaitlistModal({
                           <button
                             type="button"
                             onClick={advanceQuestion}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                            disabled={finishing}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
                           >
                             {questionLabels.continueCta}
                           </button>
@@ -873,7 +887,8 @@ export function SundayTableWaitlistModal({
                           <button
                             type="button"
                             onClick={advanceQuestion}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                            disabled={finishing}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
                           >
                             {questionLabels.continueCta}
                           </button>
@@ -916,7 +931,8 @@ export function SundayTableWaitlistModal({
                           <button
                             type="button"
                             onClick={advanceQuestion}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                            disabled={finishing}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
                           >
                             {questionLabels.continueCta}
                           </button>
@@ -958,7 +974,8 @@ export function SundayTableWaitlistModal({
                           <button
                             type="button"
                             onClick={advanceQuestion}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                            disabled={finishing}
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
                           >
                             {questionLabels.continueCta}
                           </button>
@@ -1012,7 +1029,7 @@ export function SundayTableWaitlistModal({
                       onClick={() =>
                         setQuestionIndex((i) => Math.max(0, i - 1))
                       }
-                      disabled={questionIndex === 0}
+                      disabled={questionIndex === 0 || finishing}
                       className="font-semibold uppercase tracking-[0.14em] text-wine/40 transition hover:text-wine disabled:opacity-0"
                     >
                       {questionLabels.back}
@@ -1020,7 +1037,8 @@ export function SundayTableWaitlistModal({
                     <button
                       type="button"
                       onClick={() => void submitEnrichment(true)}
-                      className="font-semibold uppercase tracking-[0.14em] text-wine/40 transition hover:text-wine"
+                      disabled={finishing}
+                      className="font-semibold uppercase tracking-[0.14em] text-wine/40 transition hover:text-wine disabled:opacity-60"
                     >
                       {questionLabels.skip}
                     </button>

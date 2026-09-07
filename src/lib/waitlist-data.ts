@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
@@ -89,4 +89,29 @@ export async function createWaitlistSignup(input: {
     }
     return { ok: false, error: "Could not save signup" };
   }
+}
+
+/** Atomically claims the right to send this signup's questionnaire-
+ * completion welcome email. Returns true (and marks it sent) only for the
+ * caller that wins the race — a duplicate "complete" POST for the same
+ * person (double-tap on the finish/skip button, a retried request, a
+ * reopened modal) sees the column already set and gets false, so the
+ * email never goes out twice. Call `releaseWaitlistWelcomeEmailClaim` if
+ * the send itself then fails, so a later legitimate attempt can retry. */
+export async function claimWaitlistWelcomeEmail(id: string): Promise<boolean> {
+  const db = getDb();
+  const [claimed] = await db
+    .update(waitlistSignups)
+    .set({ welcomeEmailSentAt: sql`now()` })
+    .where(and(eq(waitlistSignups.id, id), isNull(waitlistSignups.welcomeEmailSentAt)))
+    .returning({ id: waitlistSignups.id });
+  return Boolean(claimed);
+}
+
+export async function releaseWaitlistWelcomeEmailClaim(id: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(waitlistSignups)
+    .set({ welcomeEmailSentAt: null })
+    .where(eq(waitlistSignups.id, id));
 }

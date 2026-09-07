@@ -324,7 +324,7 @@ export async function POST(request: Request) {
             to: email,
             locale,
             firstName: name,
-            city: cities[0]!,
+            cities,
             gender,
           });
         } catch (error) {

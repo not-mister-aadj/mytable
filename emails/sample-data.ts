@@ -100,7 +100,7 @@ export const sampleSundayTableWaitlistWelcomeProps: SundayTableWaitlistWelcomeEm
   {
     locale: "nl",
     firstName: "Sophie",
-    city: "Rotterdam",
+    cities: ["Rotterdam", "Utrecht"],
   };
 
 export const sampleSundayTableWaitlistInviteProps: SundayTableWaitlistInviteEmailProps =

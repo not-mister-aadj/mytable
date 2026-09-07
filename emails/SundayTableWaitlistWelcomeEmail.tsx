@@ -4,11 +4,13 @@ import {
   GIRLS_WHATSAPP_GROUP_URL,
   MIXED_WHATSAPP_GROUP_URL,
 } from "@/lib/member-onboarding";
+import { joinCityNames } from "@/lib/email/format-cities";
 
 export type SundayTableWaitlistWelcomeEmailProps = {
   locale: "nl" | "en";
   firstName?: string;
-  city: string;
+  /** Every city this signup joined the waitlist for, not just one. */
+  cities: string[];
   /** Unknown at signup time unless the enrichment questions were already
    * answered — when unset, both WhatsApp groups are offered so the person
    * can self-select. */
@@ -18,7 +20,7 @@ export type SundayTableWaitlistWelcomeEmailProps = {
 export function SundayTableWaitlistWelcomeEmail({
   locale,
   firstName,
-  city,
+  cities,
   gender,
 }: SundayTableWaitlistWelcomeEmailProps) {
   const nl = locale !== "en";
@@ -29,9 +31,10 @@ export function SundayTableWaitlistWelcomeEmail({
     : nl
       ? "Hoi,"
       : "Hi,";
+  const cityLabel = joinCityNames(cities, locale);
   // WhatsApp groups are Rotterdam-specific communities — only offer them
-  // when Rotterdam is the city this signup is for, not to every city.
-  const showWhatsapp = city.trim().toLowerCase() === "rotterdam";
+  // when Rotterdam is one of the cities this signup is for.
+  const showWhatsapp = cities.some((c) => c.trim().toLowerCase() === "rotterdam");
   const showGirlsOnly = showWhatsapp && (gender === "female" || gender === undefined);
   const showMixed = showWhatsapp && gender !== "female";
 
@@ -42,8 +45,8 @@ export function SundayTableWaitlistWelcomeEmail({
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12" }}>
         {nl
-          ? `Je staat op de wachtlijst voor Sunday Table in ${city}.`
-          : `You're on the Sunday Table waitlist for ${city}.`}
+          ? `Je staat op de wachtlijst voor Sunday Table in ${cityLabel}.`
+          : `You're on the Sunday Table waitlist for ${cityLabel}.`}
       </p>
       <p
         style={{

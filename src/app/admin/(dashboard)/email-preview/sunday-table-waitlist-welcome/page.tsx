@@ -10,7 +10,7 @@ export default async function SundayTableWaitlistWelcomeEmailPreviewPage() {
     SundayTableWaitlistWelcomeEmail(sampleSundayTableWaitlistWelcomeProps),
   );
   const subject = sundayTableWaitlistWelcomeSubject(
-    sampleSundayTableWaitlistWelcomeProps.city,
+    sampleSundayTableWaitlistWelcomeProps.cities,
     sampleSundayTableWaitlistWelcomeProps.locale,
   );
 

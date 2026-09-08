@@ -161,9 +161,6 @@ function parsePreferences(
     priceRangeSource,
     why: why as WaitlistPreferences["why"],
     company: company as WaitlistPreferences["company"],
-    joinIntent: (Array.isArray(raw.joinIntent)
-      ? raw.joinIntent.filter((item): item is string => typeof item === "string")
-      : []) as WaitlistPreferences["joinIntent"],
     tableType: tableType as WaitlistPreferences["tableType"],
     cities,
     regionFlexible: Boolean(raw.regionFlexible),

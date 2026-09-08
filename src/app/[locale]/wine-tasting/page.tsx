@@ -1,25 +1,23 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { FormatLandingView } from "@/components/format-lp/FormatLandingView";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { listFormatLpCities } from "@/data/format-lp-cities";
-import {
-  isValidLocale,
-  localePath,
-  wineTastingLpCityPath,
-  wineTastingLpPath,
-  type Locale,
-} from "@/i18n/config";
-import { getDictionary } from "@/i18n/get-dictionary";
+import { wineTastingLpCityPath, wineTastingLpPath } from "@/i18n/config";
 import { getWineTastingLpLabels } from "@/i18n/get-format-lp";
 import {
-  breadcrumbJsonLd,
-  faqPageJsonLd,
-  organizationJsonLd,
-  websiteJsonLd,
-} from "@/lib/seo/json-ld";
-import { buildPageMetadata } from "@/lib/seo/metadata";
-import { absoluteUrl } from "@/lib/seo/site";
+  buildFormatLpMetadata,
+  formatLpStaticParams,
+  renderFormatLpPage,
+  type FormatLpPageConfig,
+} from "@/lib/format-lp-page";
+
+const config: FormatLpPageConfig = {
+  getLabels: getWineTastingLpLabels,
+  path: wineTastingLpPath,
+  cityPath: wineTastingLpCityPath,
+  metadataKind: "wineTastingLp",
+  metadataCityKind: "wineTastingLpCity",
+  image: "/girls-only/wine-moment.jpg",
+  waitlistInterest: "wine_tasting",
+  serviceType: (locale) => (locale === "en" ? "Wine tasting" : "Wijnproeverij"),
+};
 
 export const revalidate = 60;
 
@@ -28,57 +26,13 @@ type Props = {
 };
 
 export function generateStaticParams() {
-  return [{ locale: "nl" }, { locale: "en" }];
+  return formatLpStaticParams();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isValidLocale(locale)) return {};
-  const labels = getWineTastingLpLabels(locale as Locale);
-  return buildPageMetadata({
-    locale: locale as Locale,
-    kind: "wineTastingLp",
-    title: labels.meta.title,
-    description: labels.meta.description,
-    image: "/girls-only/wine-moment.jpg",
-  });
+  return buildFormatLpMetadata(config, params);
 }
 
 export default async function WineTastingLpPage({ params }: Props) {
-  const { locale: localeParam } = await params;
-  if (!isValidLocale(localeParam)) notFound();
-  const locale = localeParam as Locale;
-
-  const dict = getDictionary(locale);
-  const labels = getWineTastingLpLabels(locale);
-  const pageUrl = absoluteUrl(wineTastingLpPath(locale));
-  const cities = listFormatLpCities().map((city) => ({
-    slug: city.slug,
-    name: city.cityName,
-    href: wineTastingLpCityPath(locale, city.slug),
-  }));
-
-  return (
-    <>
-      <JsonLd
-        data={[
-          organizationJsonLd(),
-          websiteJsonLd(locale),
-          faqPageJsonLd(labels.faq.items, pageUrl),
-          breadcrumbJsonLd(pageUrl, [
-            { name: "Home", path: localePath(locale) },
-            { name: labels.meta.title, path: wineTastingLpPath(locale) },
-          ]),
-        ]}
-      />
-      <FormatLandingView
-        locale={locale}
-        labels={labels}
-        headerDict={dict.header}
-        footerDict={dict.footer}
-        waitlistInterest="wine_tasting"
-        cities={cities}
-      />
-    </>
-  );
+  return renderFormatLpPage(config, params);
 }

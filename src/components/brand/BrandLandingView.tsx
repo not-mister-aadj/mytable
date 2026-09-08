@@ -21,8 +21,7 @@ import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonial
 import { getFormatProofSlideshowImages } from "@/data/format-proof-media";
 import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
-
-const ease = [0.22, 1, 0.36, 1] as const;
+import { ease } from "@/lib/motion";
 
 const formatCtaClassName =
   "cta-lift cta-lift-outline relative mt-auto inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-wine/20 px-6 text-xs font-medium text-wine/70 transition hover:border-wine/40 hover:bg-wine hover:text-cream";

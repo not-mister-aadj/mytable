@@ -151,7 +151,6 @@ export type SundayTableLpLabels = {
       title: string;
       options: Array<{ id: WaitlistExperienceId; label: string }>;
     };
-    successTitle: string;
     successBody: string;
     successNext: string;
     whatsappGirlsLabel: string;

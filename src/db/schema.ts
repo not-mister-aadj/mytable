@@ -294,53 +294,10 @@ export const siteSettings = pgTable("site_settings", {
     .defaultNow(),
 });
 
-export type ClubPlanId = "1m" | "5m" | "12m";
-export type ClubMembershipStatus =
-  | "pending"
-  | "active"
-  | "past_due"
-  | "canceled";
 export type SundayTableSignupStatus =
   | "pending_payment"
   | "confirmed"
   | "cancelled";
-
-export const clubMemberships = pgTable(
-  "club_memberships",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    email: text("email").notNull(),
-    name: text("name"),
-    userId: uuid("user_id"),
-    customerId: uuid("customer_id").references(() => customers.id),
-    planId: text("plan_id").notNull(),
-    status: text("status").notNull().default("pending"),
-    stripeCustomerId: text("stripe_customer_id"),
-    stripeSubscriptionId: text("stripe_subscription_id"),
-    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
-    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
-    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
-    /** Period end we already emailed a 7-day renewal reminder for. */
-    renewalReminderPeriodEnd: timestamp("renewal_reminder_period_end", {
-      withTimezone: true,
-    }),
-    locale: text("locale").notNull().default("nl"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => ({
-    stripeSubscriptionUnique: uniqueIndex(
-      "club_memberships_stripe_subscription_unique",
-    ).on(table.stripeSubscriptionId),
-    stripeSessionUnique: uniqueIndex(
-      "club_memberships_stripe_session_unique",
-    ).on(table.stripeCheckoutSessionId),
-  }),
-);
 
 export const sundayTableSignups = pgTable(
   "sunday_table_signups",
@@ -355,7 +312,6 @@ export const sundayTableSignups = pgTable(
     locale: text("locale").notNull().default("nl"),
     userId: uuid("user_id"),
     customerId: uuid("customer_id").references(() => customers.id),
-    membershipId: uuid("membership_id").references(() => clubMemberships.id),
     status: text("status").notNull().default("pending_payment"),
     plusOne: boolean("plus_one").notNull().default(false),
     attendedAt: timestamp("attended_at", { withTimezone: true }),
@@ -484,7 +440,6 @@ export type Event = typeof events.$inferSelect;
 export type EventSlugRedirect = typeof eventSlugRedirects.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
-export type ClubMembership = typeof clubMemberships.$inferSelect;
 export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
 export type SundayTableWaitlistInvite =
   typeof sundayTableWaitlistInvites.$inferSelect;

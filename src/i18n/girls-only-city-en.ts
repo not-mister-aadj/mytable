@@ -94,8 +94,8 @@ function buildCityPageEn(
       title: `${enName}`,
       steps: [
         {
-          title: "Clubmember",
-          description: "Access to Sunday Table.",
+          title: "Waitlist",
+          description: "Join the list for your city.",
         },
         {
           title: "First Sunday",
@@ -126,7 +126,7 @@ function buildCityPageEn(
         {
           question: "Cost?",
           answer:
-            "Via Clubmember. Drinks and bites on location. Culinary tickets separate, 10% off.",
+            "Joining the waitlist is free. Once a table is ready for you, you'll hear the price. You pay for drinks and bites yourself, on location.",
         },
         {
           question: "When?",

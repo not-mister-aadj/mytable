@@ -78,21 +78,6 @@ export function sundayTablePlusOneRemovedSubject(
   return `Sunday Table +1 verwijderd: ${city.trim()} · ${date.trim()}`;
 }
 
-export function membershipRenewalReminderSubject(
-  renewalDate: string,
-  locale: "nl" | "en" = "nl",
-  variant: "trial_upsell" | "renewal" = "renewal",
-): string {
-  if (variant === "trial_upsell") {
-    return locale === "en"
-      ? "Your next Sunday Table is coming up"
-      : "De volgende Sunday Table komt eraan";
-  }
-  return locale === "en"
-    ? `Your Clubmember plan renews on ${renewalDate.trim()}`
-    : `Je Clubmember verlengt op ${renewalDate.trim()}`;
-}
-
 export function womenWelcomeSubject(locale: "nl" | "en" = "nl"): string {
   return locale === "en" ? "Welcome to MyTable" : "Welkom bij MyTable";
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
-import { clubmemberPath } from "@/i18n/config";
+import { sundayTableLpPath } from "@/i18n/config";
 import type { GirlsOnlyPageLabels } from "@/i18n/girls-only-page.types";
 import { GirlsOnlyHeroMedia } from "@/components/girls-only/GirlsOnlyHeroMedia";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
@@ -26,7 +26,7 @@ export function HomeIntentHero({
 }: HomeIntentHeroProps) {
   const [path, setPath] = useState<PathId | null>(null);
   const intent = labels.intent;
-  const meetHref = clubmemberPath(locale);
+  const meetHref = sundayTableLpPath(locale);
   const culinaryHref = agendaHref;
   const trustPills = labels.hero.trustLine.split(" · ");
   const active = path === "meet" ? intent.meet : path === "culinary" ? intent.culinary : null;

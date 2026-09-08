@@ -106,9 +106,6 @@ export const experiencePageNl: ExperiencePageLabels = {
   bookingFemaleOnlyNote: "Deze ervaring is alleen voor vrouwen.",
   bookingPriorityList:
     "Zet me op de wachtlijst. Ik hoor als eerste over nieuwe data en krijg een mooie korting.",
-  bookingClubDiscountApplied: "Clubmember −10%",
-  bookingClubDiscountPromo: "Clubmembers krijgen 10% korting.",
-  bookingClubDiscountPromoLink: "Bekijk Clubmember",
   bookingMediaConsent:
     "Tijdens het event kunnen foto's en video's gemaakt worden voor MyTable (website, socials en e-mail).",
   bookingMediaConsentReadMore: "Meer in onze",
@@ -221,7 +218,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Zit ik met onbekenden?",
           answer:
-            "Nee. Je boekt tickets voor jezelf of je gezelschap. Matching met nieuwe mensen gebeurt alleen via Clubmember en Sunday Table, niet op deze ervaring.",
+            "Nee. Je boekt tickets voor jezelf of je gezelschap. Matching met nieuwe mensen gebeurt alleen via Sunday Table, niet op deze ervaring.",
         },
         {
           question: "Kan ik dieetwensen doorgeven?",
@@ -247,12 +244,6 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Kan ik annuleren of ruilen?",
           answer:
             "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
-        },
-        {
-          question: "Krijg ik korting als Clubmember?",
-          answer:
-            "Ja. Actieve Clubmembers krijgen 10% korting op culinaire tickets (proeverijen, wandelingen en Chef's Table). Lees meer op de",
-          link: { label: "Clubmember-pagina", to: "clubmember" },
         },
       ],
     },
@@ -314,8 +305,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik alleen boeken?",
           answer:
-            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij",
-          link: { label: "Sunday Table", to: "clubmember" },
+            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij Sunday Table.",
         },
         {
           question: "Moet ik veel wandelen?",
@@ -346,12 +336,6 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Kan ik annuleren of verplaatsen?",
           answer:
             "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
-        },
-        {
-          question: "Krijg ik korting als Clubmember?",
-          answer:
-            "Ja. Actieve Clubmembers krijgen 10% korting op culinaire tickets. Lees meer op de",
-          link: { label: "Clubmember-pagina", to: "clubmember" },
         },
       ],
     },
@@ -424,8 +408,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik alleen boeken?",
           answer:
-            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je zit met wie je meeneemt, niet met onbekenden. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij",
-          link: { label: "Sunday Table", to: "clubmember" },
+            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je zit met wie je meeneemt, niet met onbekenden. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij Sunday Table.",
         },
         {
           question: "Wanneer zijn de Chef's Tables?",
@@ -441,12 +424,6 @@ export const experiencePageNl: ExperiencePageLabels = {
           question: "Kan ik annuleren of verplaatsen?",
           answer:
             "Annuleren is niet mogelijk. Wel kun je tot 48 uur voor de start gratis verplaatsen naar een andere datum. Mail ons daarvoor op info@mytable.club.",
-        },
-        {
-          question: "Krijg ik korting als Clubmember?",
-          answer:
-            "Ja. Actieve Clubmembers krijgen 10% korting op culinaire tickets. Lees meer op de",
-          link: { label: "Clubmember-pagina", to: "clubmember" },
         },
       ],
     },

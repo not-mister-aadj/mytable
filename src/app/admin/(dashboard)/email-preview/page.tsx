@@ -84,14 +84,6 @@ export default async function EmailPreviewIndexPage() {
             Wachtlijst uitnodiging
           </Link>
         </li>
-        <li>
-          <Link
-            href={adminPath("/email-preview/membership-renewal")}
-            className="font-medium text-burgundy underline-offset-2 hover:underline"
-          >
-            Clubmember trial einde (7 dagen)
-          </Link>
-        </li>
       </ul>
     </div>
   );

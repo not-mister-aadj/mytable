@@ -74,8 +74,6 @@ interface ExperiencePageContentProps {
   routePoints?: RouteMapPoint[];
   /** Admin live preview: same layout, no sticky bar / related / scroll chrome */
   previewMode?: boolean;
-  /** Active Clubmember — show and charge 10% off. */
-  clubMemberDiscount?: boolean;
 }
 
 export function ExperiencePageContent({
@@ -86,7 +84,6 @@ export function ExperiencePageContent({
   eventVenues,
   routePoints: routePointsProp,
   previewMode = false,
-  clubMemberDiscount = false,
 }: ExperiencePageContentProps) {
   const searchParams = useSearchParams();
   const fromSundayTable = searchParams.get("from") === "sunday-table";
@@ -231,7 +228,6 @@ export function ExperiencePageContent({
                     compact
                     fitViewport
                     scheduleNote={scheduleNote}
-                    clubMemberDiscount={clubMemberDiscount}
                     fromSundayTable={fromSundayTable}
                     affiliateCode={affiliateCode}
                     referralCode={referralCode}
@@ -254,7 +250,6 @@ export function ExperiencePageContent({
                   fitViewport
                   scheduleNote={scheduleNote}
                   className="mt-4"
-                  clubMemberDiscount={clubMemberDiscount}
                   fromSundayTable={fromSundayTable}
                   affiliateCode={affiliateCode}
                   referralCode={referralCode}
@@ -296,7 +291,6 @@ export function ExperiencePageContent({
                   locale={locale}
                   compact
                   scheduleNote={scheduleNote}
-                  clubMemberDiscount={clubMemberDiscount}
                   fromSundayTable={fromSundayTable}
                   affiliateCode={affiliateCode}
                   referralCode={referralCode}

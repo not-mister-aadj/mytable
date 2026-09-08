@@ -239,21 +239,6 @@ export function trackGroupInvitationShared(props: {
   capture(PostHogEvents.inviteShareClicked, props);
 }
 
-export function trackClubmemberPaid(props: {
-  plan_id?: string;
-  locale?: string;
-}): void {
-  capture(PostHogEvents.clubmemberPaid, props);
-}
-
-export function trackSundayRsvp(props: {
-  city?: string;
-  table_type?: string;
-  locale?: string;
-}): void {
-  capture(PostHogEvents.sundayRsvp, props);
-}
-
 export function trackInviteShareClicked(props: {
   channel: string;
   locale?: string;

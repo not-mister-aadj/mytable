@@ -14,19 +14,6 @@ export const MAX_BOOKING_SEATS = 6;
 /** Flat per-person price in cents — same for every ticket quantity. */
 export const FLAT_PER_PERSON_CENTS = 4900;
 
-/** Active Clubmembers get this % off culinary experience tickets. */
-export const CLUBMEMBER_EXPERIENCE_DISCOUNT_PERCENT = 10;
-
-export function applyClubmemberDiscount(
-  amountCents: number,
-  isClubMember: boolean,
-): number {
-  if (!isClubMember || amountCents <= 0) return amountCents;
-  return Math.round(
-    amountCents * (1 - CLUBMEMBER_EXPERIENCE_DISCOUNT_PERCENT / 100),
-  );
-}
-
 /** Fixed per-person prices in cents — server-authoritative at checkout. */
 export const TIER_PER_PERSON_CENTS: Record<BookingTier, number> = {
   solo: FLAT_PER_PERSON_CENTS,
@@ -146,7 +133,6 @@ export function computeTierPrice(
   tier: BookingTier,
   seatCount?: number,
   options?: {
-    clubMemberDiscount?: boolean;
     /** Per-person list price in cents (from events.price_cents). */
     perPersonCents?: number;
   },
@@ -156,16 +142,12 @@ export function computeTierPrice(
     seatCount != null
       ? clampTicketSeats(seatCount, null)
       : cfg.seats;
-  const listCents =
+  const perPersonCents =
     typeof options?.perPersonCents === "number" &&
     Number.isFinite(options.perPersonCents) &&
     options.perPersonCents > 0
       ? Math.round(options.perPersonCents)
       : FLAT_PER_PERSON_CENTS;
-  const perPersonCents = applyClubmemberDiscount(
-    listCents,
-    Boolean(options?.clubMemberDiscount),
-  );
   const totalCents = perPersonCents * seats;
   return {
     tier,

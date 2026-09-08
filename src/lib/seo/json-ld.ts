@@ -104,9 +104,7 @@ export function faqPageJsonLd(
       name: item.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: item.link
-          ? `${item.answer} ${item.link.label}.`
-          : item.answer,
+        text: item.answer,
       },
     })),
     url: pageUrl,

@@ -14,7 +14,6 @@ export const en: Dictionary = {
       girlsOnly: "Sunday Table",
       calendar: "Agenda",
       account: "Account",
-      clubmember: "Clubmember",
       experiences: "Agenda",
       blog: "Blog",
       myAccount: "My account",
@@ -71,18 +70,17 @@ export const en: Dictionary = {
     },
     crossFeed: {
       eyebrow: "No one to go with yet?",
-      title: "Meet people via Clubmember",
+      title: "Meet people via Sunday Table",
       body: "Sunday Table is for joining solo, then booking something from the agenda together.",
       benefits: [
         "Join Sunday Table on your own",
         "Meet new people in your city",
-        "10% off culinary experiences",
       ],
-      cta: "Go to Clubmember",
+      cta: "Go to Sunday Table",
     },
     sundayTableGroup: {
       title: "Book with your Sunday Table",
-      body: "Pick a Wine Walk or Food Walk in your city. Members get 10% off.",
+      body: "Pick a Wine Walk or Food Walk in your city.",
     },
     browse: {
       cityLabel: "City",
@@ -250,12 +248,12 @@ export const en: Dictionary = {
       {
         question: "What is MyTable?",
         answer:
-          "Culinary events at partner restaurants: wine tastings and more. You book tickets for yourself or your party and bring your own group. We handle everything around the table; you come for good wine, chef's specials, and good company. Meeting new people happens through Clubmember / Sunday Table.",
+          "Culinary events at partner restaurants: wine tastings and more. You book tickets for yourself or your party and bring your own group. We handle everything around the table; you come for good wine, chef's specials, and good company. Meeting new people happens through Sunday Table.",
       },
       {
         question: "Will I sit with strangers?",
         answer:
-          "No. On the agenda you book your own seats: solo or with friends. Matching with new people only happens through Clubmember and Sunday Table.",
+          "No. On the agenda you book your own seats: solo or with friends. Matching with new people only happens through Sunday Table.",
       },
       {
         question: "When are the events?",

@@ -12,7 +12,7 @@ export type SundayTableCancelEmailProps = {
   date: string;
   time: string;
   tableType: "girls_only" | "mixed";
-  clubmemberUrl: string;
+  sundayTableUrl: string;
 };
 
 export function SundayTableCancelEmail({
@@ -22,7 +22,7 @@ export function SundayTableCancelEmail({
   date,
   time,
   tableType,
-  clubmemberUrl,
+  sundayTableUrl,
 }: SundayTableCancelEmailProps) {
   const nl = locale !== "en";
   const greeting = firstName
@@ -86,11 +86,11 @@ export function SundayTableCancelEmail({
       <CTASection
         helperText={
           nl
-            ? "Bekijk open Sunday Tables in je Clubmember-hub."
-            : "See open Sunday Tables in your Clubmember hub."
+            ? "Zet je weer op de wachtlijst zodra je wilt."
+            : "Join the waitlist again whenever you're ready."
         }
-        href={clubmemberUrl}
-        label={nl ? "Naar Clubmember →" : "Open Clubmember →"}
+        href={sundayTableUrl}
+        label={nl ? "Naar Sunday Table →" : "Open Sunday Table →"}
       />
     </EmailLayout>
   );

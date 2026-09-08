@@ -106,9 +106,6 @@ export const experiencePageEn: ExperiencePageLabels = {
   bookingFemaleOnlyNote: "This experience is for women only.",
   bookingPriorityList:
     "Add me to the waitlist. I'll hear about new dates first and get a nice discount.",
-  bookingClubDiscountApplied: "Clubmember −10%",
-  bookingClubDiscountPromo: "Clubmembers get 10% off.",
-  bookingClubDiscountPromoLink: "See Clubmember",
   bookingMediaConsent:
     "Photos and videos may be taken during the event for MyTable (website, socials and email).",
   bookingMediaConsentReadMore: "More in our",
@@ -222,7 +219,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Will I sit with strangers?",
           answer:
-            "No. You book tickets for yourself or your party. Matching with new people happens only via Clubmember and Sunday Table, not on this experience.",
+            "No. You book tickets for yourself or your party. Matching with new people happens only via Sunday Table, not on this experience.",
         },
         {
           question: "Can I share dietary requirements?",
@@ -248,12 +245,6 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Can I cancel or exchange?",
           answer:
             "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
-        },
-        {
-          question: "Do Clubmembers get a discount?",
-          answer:
-            "Yes. Active Clubmembers get 10% off culinary tickets (tastings, walks and Chef's Table). Read more on the",
-          link: { label: "Clubmember page", to: "clubmember" },
         },
       ],
     },
@@ -315,8 +306,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I book alone?",
           answer:
-            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You follow the route with your own party; we do not match you with other guests. Want to meet new culinary friends instead? That happens at",
-          link: { label: "Sunday Table", to: "clubmember" },
+            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You follow the route with your own party; we do not match you with other guests. Want to meet new culinary friends instead? That happens at Sunday Table.",
         },
         {
           question: "Do I have to walk a lot?",
@@ -347,12 +337,6 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Can I cancel or move my booking?",
           answer:
             "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
-        },
-        {
-          question: "Do Clubmembers get a discount?",
-          answer:
-            "Yes. Active Clubmembers get 10% off culinary tickets. Read more on the",
-          link: { label: "Clubmember page", to: "clubmember" },
         },
       ],
     },
@@ -425,8 +409,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I book alone?",
           answer:
-            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You sit with the people you bring, not with strangers. Want to meet new culinary friends instead? That happens at",
-          link: { label: "Sunday Table", to: "clubmember" },
+            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You sit with the people you bring, not with strangers. Want to meet new culinary friends instead? That happens at Sunday Table.",
         },
         {
           question: "When are the Chef's Tables?",
@@ -442,12 +425,6 @@ export const experiencePageEn: ExperiencePageLabels = {
           question: "Can I cancel or move my booking?",
           answer:
             "Cancellations are not available. You can move to another date for free up to 48 hours before start. Email us at info@mytable.club to arrange that.",
-        },
-        {
-          question: "Do Clubmembers get a discount?",
-          answer:
-            "Yes. Active Clubmembers get 10% off culinary tickets. Read more on the",
-          link: { label: "Clubmember page", to: "clubmember" },
         },
       ],
     },

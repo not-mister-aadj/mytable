@@ -1,11 +1,11 @@
 import { and, inArray, sql } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
-import { clubMemberships, sundayTableSignups } from "@/db/schema";
+import { sundayTableSignups } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 
-/** Keep membership + open signup locales aligned with account language. */
+/** Keep open Sunday Table signup locales aligned with account language. */
 export async function fanOutMemberEmailLocale(
   email: string,
   locale: Locale,
@@ -14,11 +14,6 @@ export async function fanOutMemberEmailLocale(
 
   const normalized = normalizeEmail(email);
   const db = getDb();
-
-  await db
-    .update(clubMemberships)
-    .set({ locale })
-    .where(sql`lower(${clubMemberships.email}) = ${normalized}`);
 
   await db
     .update(sundayTableSignups)

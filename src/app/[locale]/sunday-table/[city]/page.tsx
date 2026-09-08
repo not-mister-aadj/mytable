@@ -63,8 +63,6 @@ export default async function SundayTableLpCityPage({ params }: Props) {
   const city = sundayTableLpCityFromSlug(citySlug);
   if (!city) notFound();
 
-  // Signed-in members are redirected to /clubmember by middleware before
-  // this component ever renders — see middleware.ts's member-gate check.
   // Keeping this page free of cookies()/auth reads is what lets it stay
   // statically prerendered (ISR) instead of rendering on every request.
   const dict = getDictionary(locale);

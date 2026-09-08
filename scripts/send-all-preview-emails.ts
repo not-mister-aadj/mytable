@@ -2,7 +2,6 @@ import { config } from "dotenv";
 import type { ReactElement } from "react";
 import { BookingConfirmationEmail } from "../emails/BookingConfirmationEmail";
 import { BookingMovedEmail } from "../emails/BookingMovedEmail";
-import { MembershipRenewalReminderEmail } from "../emails/MembershipRenewalReminderEmail";
 import { SundayTableCancelEmail } from "../emails/SundayTableCancelEmail";
 import { SundayTableConfirmationEmail } from "../emails/SundayTableConfirmationEmail";
 import { SundayTableCulinaryEmail } from "../emails/SundayTableCulinaryEmail";
@@ -13,7 +12,6 @@ import { SundayTableReviewEmail } from "../emails/SundayTableReviewEmail";
 import {
   sampleBookingConfirmationProps,
   sampleBookingMovedProps,
-  sampleMembershipRenewalReminderProps,
   sampleSundayTableCancelProps,
   sampleSundayTableConfirmationProps,
   sampleSundayTableLocationProps,
@@ -31,7 +29,6 @@ import {
 import {
   bookingConfirmationSubject,
   bookingMovedSubject,
-  membershipRenewalReminderSubject,
   sundayTableCancelSubject,
   sundayTableConfirmationSubject,
   sundayTableLocationSubject,
@@ -72,14 +69,6 @@ async function sendOne(input: {
 
 async function main() {
   console.log("Sending all preview emails to", to);
-
-  const renewalSample = sampleMembershipRenewalReminderProps;
-  const renewalRegular = {
-    ...renewalSample,
-    variant: "renewal" as const,
-    planLabel: "MyTable Club · 5 maanden",
-    amountLabel: "€ 50,00",
-  };
 
   const jobs: Array<{
     label: string;
@@ -168,24 +157,6 @@ async function main() {
         city: "Rotterdam",
         agendaUrl: "https://www.mytable.club/agenda",
       }),
-    },
-    {
-      label: "membership-trial-upsell",
-      subject: membershipRenewalReminderSubject(
-        renewalSample.renewalDateLabel,
-        renewalSample.locale,
-        "trial_upsell",
-      ),
-      element: MembershipRenewalReminderEmail(renewalSample),
-    },
-    {
-      label: "membership-renewal",
-      subject: membershipRenewalReminderSubject(
-        renewalRegular.renewalDateLabel,
-        renewalRegular.locale,
-        "renewal",
-      ),
-      element: MembershipRenewalReminderEmail(renewalRegular),
     },
   ];
 

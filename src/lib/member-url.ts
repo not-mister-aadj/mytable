@@ -1,12 +1,12 @@
 import { getLocalDevOrigin, getSiteUrl, isLocalDevHost } from "@/lib/admin-url";
 import {
   accountPath,
-  clubmemberPath,
   loginPath,
+  sundayTableLpPath,
   type Locale,
 } from "@/i18n/config";
 
-export { accountPath, clubmemberPath, loginPath };
+export { accountPath, loginPath };
 
 /**
  * OAuth callback for members — BeSquare-style `/auth/callback`.
@@ -35,7 +35,7 @@ export function sanitizeMemberNextPath(
   next: string | null | undefined,
   locale: Locale,
 ): string {
-  const fallback = clubmemberPath(locale);
+  const fallback = sundayTableLpPath(locale);
   if (!next) return fallback;
   if (next.startsWith("http://") || next.startsWith("https://")) {
     try {

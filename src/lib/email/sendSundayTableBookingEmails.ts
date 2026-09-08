@@ -4,7 +4,7 @@ import { getDb } from "@/db/index";
 import { SundayTableCancelEmail } from "@/emails/SundayTableCancelEmail";
 import { SundayTableConfirmationEmail } from "@/emails/SundayTableConfirmationEmail";
 import { SundayTablePlusOneEmail } from "@/emails/SundayTablePlusOneEmail";
-import { clubmemberPath, type Locale } from "@/i18n/config";
+import { sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
 import {
@@ -138,7 +138,6 @@ export function buildSundayTableConfirmationProps(
     time: timeLabel,
     tableType,
     plusOne: row.plusOne,
-    clubmemberUrl: `${getSiteUrl()}${clubmemberPath(locale)}`,
     calendarUrl: sundayTableCalendarDownloadUrl({
       city: row.city,
       tableDate: dateIso,
@@ -161,7 +160,7 @@ export function buildSundayTableCancelProps(
     date: dateLabel,
     time: timeLabel,
     tableType: signupTableType(row),
-    clubmemberUrl: `${getSiteUrl()}${clubmemberPath(locale)}`,
+    sundayTableUrl: `${getSiteUrl()}${sundayTableLpPath(locale)}`,
   };
 }
 
@@ -179,7 +178,6 @@ export function buildSundayTablePlusOneProps(
     time: timeLabel,
     tableType: signupTableType(row),
     action,
-    clubmemberUrl: `${getSiteUrl()}${clubmemberPath(locale)}`,
   };
 }
 

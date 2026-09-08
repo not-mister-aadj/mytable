@@ -24,11 +24,6 @@ export interface ExperienceExpectItem {
 export interface ExperienceFaqItem {
   question: string;
   answer: string;
-  /** Optional link after the answer text (e.g. Sunday Table). */
-  link?: {
-    label: string;
-    to: "clubmember";
-  };
 }
 
 export interface ExperienceVenue {
@@ -160,11 +155,6 @@ export interface ExperiencePageLabels {
   bookingStepBack: string;
   bookingFemaleOnlyNote: string;
   bookingPriorityList: string;
-  /** Shown when Clubmember discount is already applied. */
-  bookingClubDiscountApplied: string;
-  /** Promo under price for non-members. */
-  bookingClubDiscountPromo: string;
-  bookingClubDiscountPromoLink: string;
   bookingMediaConsent: string;
   bookingMediaConsentReadMore: string;
   bookingMediaConsentTerms: string;
@@ -303,7 +293,6 @@ export interface Dictionary {
       girlsOnly: string;
       calendar: string;
       account: string;
-      clubmember: string;
       experiences: string;
       blog: string;
       myAccount: string;

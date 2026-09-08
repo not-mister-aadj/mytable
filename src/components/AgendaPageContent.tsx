@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
-import { clubmemberPath } from "@/i18n/config";
+import { sundayTableLpPath } from "@/i18n/config";
 import type { WaitlistInterestId } from "@/i18n/waitlist-page.types";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { trackAgendaViewed } from "@/lib/posthog/analytics";
@@ -172,7 +172,7 @@ export function AgendaPageContent({
             empty={dict.empty}
             onShowAll={clearAllFilters}
             clearLabel={dict.browse.clear}
-            communityHref={clubmemberPath(locale)}
+            communityHref={sundayTableLpPath(locale)}
             hasOtherTables={items.length > 0 && hasActiveFilters}
           />
         </section>

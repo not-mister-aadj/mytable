@@ -14,6 +14,8 @@ import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTable
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
 import { WaitlistAutoOpen } from "@/components/WaitlistAutoOpen";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
+import { PrimaryCta } from "@/components/format-lp/PrimaryCta";
+import { ProofPhotoStrip } from "@/components/format-lp/ProofPhotoStrip";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { getGirlsOnlyHowItWorksImage } from "@/data/girls-only-media";
 import { getFormatProofSlideshowImages } from "@/data/format-proof-media";
@@ -24,87 +26,7 @@ import {
 } from "@/i18n/get-format-lp";
 import { fillCity } from "@/i18n/get-sunday-table-lp";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
-
-const ease = [0.22, 1, 0.36, 1] as const;
-
-function PrimaryCta({
-  label,
-  hint,
-  onClick,
-  variant = "burgundy",
-  className = "",
-}: {
-  label: string;
-  hint?: string;
-  onClick?: () => void;
-  variant?: "burgundy" | "cream";
-  className?: string;
-}) {
-  const isCream = variant === "cream";
-  return (
-    <div className={`w-full min-w-0 sm:w-auto ${className}`}>
-      <button
-        type="button"
-        onClick={onClick}
-        className={`cta-lift inline-flex min-h-[3.25rem] w-full max-w-full flex-col items-center justify-center rounded-full px-9 py-3 text-center sm:min-w-[15.5rem] sm:w-auto ${
-          isCream
-            ? "cta-lift-cream bg-cream text-wine shadow-[0_14px_32px_rgba(0,0,0,0.22)] hover:bg-white"
-            : "cta-lift-burgundy bg-burgundy text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] hover:bg-wine"
-        }`}
-      >
-        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em]">
-          {label}
-        </span>
-        {hint ? (
-          <span
-            className={`mt-0.5 text-[11px] font-medium normal-case tracking-normal ${
-              isCream ? "text-wine/55" : "text-cream/70"
-            }`}
-          >
-            {hint}
-          </span>
-        ) : null}
-      </button>
-    </div>
-  );
-}
-
-function ProofPhotoStrip({
-  images,
-  reduceMotion,
-}: {
-  images: Array<{ src: string; alt: string }>;
-  reduceMotion: boolean | null;
-}) {
-  const track = [...images, ...images];
-  return (
-    <div className="mt-10">
-      <div className="relative overflow-hidden">
-        <div
-          className={`flex w-max gap-3 pl-5 sm:gap-4 sm:pl-8 lg:gap-5 lg:pl-10 ${
-            reduceMotion ? "" : "animate-photo-marquee-right"
-          }`}
-        >
-          {track.map((image, index) => (
-            <div
-              key={`${image.src}-${index}`}
-              className="relative h-56 w-44 shrink-0 overflow-hidden sm:h-64 sm:w-48 lg:h-[17.5rem] lg:w-[13.5rem]"
-            >
-              <Image
-                src={image.src}
-                alt={index < images.length ? image.alt : ""}
-                fill
-                sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 360px"
-                quality={90}
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+import { ease } from "@/lib/motion";
 
 /** Shared landing page for the single-experience formats (wine tasting, wine
  * walk, chef's special) — a lighter sibling of SundayTableLpView, kept as a

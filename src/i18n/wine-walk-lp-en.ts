@@ -1,4 +1,5 @@
 import type { FormatLpLabels } from "@/i18n/format-lp.types";
+import { buildWaitlistLabelsEn } from "@/i18n/build-waitlist-labels";
 
 export const wineWalkLpEn: FormatLpLabels = {
   meta: {
@@ -102,156 +103,10 @@ export const wineWalkLpEn: FormatLpLabels = {
     title: "In your city too?",
     body: "We're expanding. Join the waitlist for the city where you want to walk.",
   },
-  waitlist: {
-    eyebrow: "Waitlist",
-    title: "Join the waitlist",
+  waitlist: buildWaitlistLabelsEn({
     body: "We'll let you know as soon as a wine walk forms in your city.",
-    nameLabel: "Name",
-    namePlaceholder: "First name",
-    emailLabel: "Email",
-    emailPlaceholder: "you@email.com",
-    cityLabel: "In the following cities",
-    cityOther: "Other city",
-    cityOtherPlaceholder: "Which city?",
-    formatLabel: "Interested in the following formats",
-    submit: "Join the waitlist",
-    submitting: "Sending…",
-    privacyNote: "No spam. Unsubscribe anytime.",
-    error: "Something went wrong. Please try again.",
-    questionsTitle: "A few quick questions",
     questionsBody: "Helps us find the right wine walk for you. Totally optional.",
-    skip: "Skip",
-    back: "Back",
-    continueCta: "Continue",
-    progress: "Question {n} of {total}",
-    language: {
-      title: "Which language do you want your events in?",
-      options: [
-        { id: "english", label: "English-speaking events" },
-        { id: "dutch", label: "Dutch-speaking events" },
-        { id: "both", label: "Both are fine" },
-      ],
-    },
-    why: {
-      title: "Why are you joining the waitlist?",
-      options: [
-        { id: "discover_wines", label: "Discover wine" },
-        { id: "discover_flavours", label: "New flavors" },
-        { id: "discover_places", label: "New places" },
-        { id: "no_organise", label: "Not organizing it myself" },
-        { id: "treat", label: "Treating myself" },
-        { id: "new_city", label: "New to the city" },
-        { id: "just_fun", label: "Just a nice Sunday, no particular reason" },
-        { id: "other", label: "Something else" },
-      ],
-      otherPlaceholder: "Tell us...",
-    },
-    company: {
-      title: "Who do you like to come with?",
-      options: [
-        { id: "meet_new", label: "Meet new people" },
-        { id: "bring_friends", label: "With friends" },
-        { id: "bring_partner", label: "With a partner" },
-        { id: "solo", label: "Solo" },
-      ],
-    },
-    availability: {
-      title: "Are you available on Sundays?",
-      options: [
-        { id: "both", label: "Yes, afternoon and evening" },
-        { id: "afternoon", label: "Only Sunday afternoon" },
-        { id: "evening", label: "Only Sunday evening" },
-        { id: "no", label: "No, Sunday doesn't work" },
-      ],
-    },
-    altDays: {
-      title: "Which other days would interest you?",
-      options: [
-        { id: "monday", label: "Monday" },
-        { id: "tuesday", label: "Tuesday" },
-        { id: "wednesday", label: "Wednesday" },
-        { id: "thursday", label: "Thursday" },
-        { id: "friday", label: "Friday" },
-        { id: "saturday", label: "Saturday" },
-      ],
-    },
-    tableType: {
-      title: "Which group?",
-      options: [
-        { id: "girls_only", label: "Girls only" },
-        { id: "mixed", label: "Mixed" },
-        { id: "no_preference", label: "No preference" },
-      ],
-    },
-    gender: {
-      title: "Gender",
-      options: [
-        { id: "female", label: "Woman" },
-        { id: "male", label: "Man" },
-        { id: "other", label: "Other" },
-        { id: "unspecified", label: "Prefer not to say" },
-      ],
-    },
-    ageRange: {
-      title: "Age",
-      options: [
-        { id: "18_24", label: "18-24" },
-        { id: "25_34", label: "25-34" },
-        { id: "35_44", label: "35-44" },
-        { id: "45_plus", label: "45+" },
-      ],
-    },
-    vibe: {
-      title: "What makes an evening for you?",
-      options: [
-        { id: "people", label: "The people at the table" },
-        { id: "experience", label: "The food and wine" },
-        { id: "both", label: "Both equally" },
-      ],
-    },
-    ticketPrice: {
-      title:
-        "You book a seat at the table and pay for your own wine and bites. What feels like a fair ticket price?",
-      options: [
-        { id: "under_5", label: "< €5" },
-        { id: "5_10", label: "€5-10" },
-        { id: "10_15", label: "€10-15" },
-        { id: "15_20", label: "€15-20" },
-        { id: "20_plus", label: "€20+" },
-      ],
-    },
-    allInclusivePrice: {
-      title:
-        "Say the wine, food and table are all included in one price, with a special MyTable menu at each location, so there's nothing left to pay on the day. What would you expect an afternoon like that to cost?",
-      options: [
-        { id: "under_25", label: "< €25" },
-        { id: "25_40", label: "€25-40" },
-        { id: "40_60", label: "€40-60" },
-        { id: "60_80", label: "€60-80" },
-        { id: "80_120", label: "€80-120" },
-        { id: "120_plus", label: "€120+" },
-      ],
-    },
-    experience: {
-      title: "How would you describe yourself?",
-      options: [
-        {
-          id: "curious",
-          label: "I like trying new things, no need to be an expert",
-        },
-        {
-          id: "experienced",
-          label: "I already know a lot, I'm after the better stuff",
-        },
-      ],
-    },
-    successTitle: "You're on the list",
     successBody: "As soon as a wine walk forms in your city, you'll hear from us.",
-    successNext:
-      "Prefer updates over WhatsApp instead of email? Join the group, we post our announcements there too.",
-    whatsappGirlsLabel: "Girls only WhatsApp",
-    whatsappMixedLabel: "Mixed WhatsApp",
-    close: "Close",
-    dialogAria: "Join the waitlist",
-  },
+    tableTypeTitle: "Which group?",
+  }),
 };

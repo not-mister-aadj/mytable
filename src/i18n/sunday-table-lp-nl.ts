@@ -1,5 +1,160 @@
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 
+/** Base waitlist copy — reused by every format page's waitlist block via
+ * buildWaitlistLabelsNl() in build-waitlist-labels.ts, overriding only the
+ * few lines that mention "tafel" specifically. */
+export const sundayTableWaitlistNl: SundayTableLpLabels["waitlist"] = {
+  eyebrow: "Wachtlijst",
+  title: "Zet je op de lijst",
+  body: "We laten je weten zodra er een tafel vormt in jouw stad.",
+  nameLabel: "Naam",
+  namePlaceholder: "Voornaam",
+  emailLabel: "E-mail",
+  emailPlaceholder: "jij@email.nl",
+  cityLabel: "In de volgende steden",
+  cityOther: "Andere stad",
+  cityOtherPlaceholder: "Welke stad?",
+  formatLabel: "Geïnteresseerd in de volgende formats",
+  submit: "Zet me op de wachtlijst",
+  submitting: "Bezig…",
+  privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
+  error: "Er ging iets mis. Probeer het opnieuw.",
+  questionsTitle: "Nog een paar korte vragen",
+  questionsBody: "Helpt ons de juiste tafel voor je te vinden. Helemaal optioneel.",
+  skip: "Overslaan",
+  back: "Terug",
+  continueCta: "Verder",
+  progress: "Vraag {n} van {total}",
+  language: {
+    title: "In welke taal wil je je events?",
+    options: [
+      { id: "english", label: "Engelstalige events" },
+      { id: "dutch", label: "Nederlandstalige events" },
+      { id: "both", label: "Beide zijn prima" },
+    ],
+  },
+  why: {
+    title: "Waarom sta je op de lijst?",
+    options: [
+      { id: "discover_wines", label: "Wijn ontdekken" },
+      { id: "discover_flavours", label: "Nieuwe smaken" },
+      { id: "discover_places", label: "Nieuwe plekken" },
+      { id: "no_organise", label: "Niks zelf hoeven regelen" },
+      { id: "treat", label: "Mezelf trakteren" },
+      { id: "new_city", label: "Nieuw in de stad" },
+      { id: "just_fun", label: "Gewoon een leuke zondag, zonder speciale reden" },
+      { id: "other", label: "Iets anders" },
+    ],
+    otherPlaceholder: "Vertel het ons...",
+  },
+  company: {
+    title: "Met wie kom je het liefst?",
+    options: [
+      { id: "meet_new", label: "Nieuwe mensen ontmoeten" },
+      { id: "bring_friends", label: "Met vrienden" },
+      { id: "bring_partner", label: "Met partner" },
+      { id: "solo", label: "Solo" },
+    ],
+  },
+  availability: {
+    title: "Ben je op zondag beschikbaar?",
+    options: [
+      { id: "both", label: "Ja, middag en avond" },
+      { id: "afternoon", label: "Alleen zondagmiddag" },
+      { id: "evening", label: "Alleen zondagavond" },
+      { id: "no", label: "Nee, zondag komt niet uit" },
+    ],
+  },
+  altDays: {
+    title: "Welke andere dag zou je interesseren?",
+    options: [
+      { id: "monday", label: "Maandag" },
+      { id: "tuesday", label: "Dinsdag" },
+      { id: "wednesday", label: "Woensdag" },
+      { id: "thursday", label: "Donderdag" },
+      { id: "friday", label: "Vrijdag" },
+      { id: "saturday", label: "Zaterdag" },
+    ],
+  },
+  tableType: {
+    title: "Welke tafel?",
+    options: [
+      { id: "girls_only", label: "Girls only" },
+      { id: "mixed", label: "Gemengd" },
+      { id: "no_preference", label: "Maakt niet uit" },
+    ],
+  },
+  gender: {
+    title: "Gender",
+    options: [
+      { id: "female", label: "Vrouw" },
+      { id: "male", label: "Man" },
+      { id: "other", label: "Anders" },
+      { id: "unspecified", label: "Zeg ik liever niet" },
+    ],
+  },
+  ageRange: {
+    title: "Leeftijd",
+    options: [
+      { id: "18_24", label: "18-24" },
+      { id: "25_34", label: "25-34" },
+      { id: "35_44", label: "35-44" },
+      { id: "45_plus", label: "45+" },
+    ],
+  },
+  vibe: {
+    title: "Wat maakt een avond voor jou geslaagd?",
+    options: [
+      { id: "people", label: "De mensen aan tafel" },
+      { id: "experience", label: "Het eten en de wijn" },
+      { id: "both", label: "Allebei evenveel" },
+    ],
+  },
+  ticketPrice: {
+    title:
+      "Je boekt een plekje aan tafel en betaalt zelf je wijn en hapjes. Wat is dan een eerlijke prijs voor het ticket?",
+    options: [
+      { id: "under_5", label: "< €5" },
+      { id: "5_10", label: "€5-10" },
+      { id: "10_15", label: "€10-15" },
+      { id: "15_20", label: "€15-20" },
+      { id: "20_plus", label: "€20+" },
+    ],
+  },
+  allInclusivePrice: {
+    title:
+      "Stel dat wijn, eten en de tafel allemaal in één prijs zitten, met een speciaal MyTable menu per locatie, zodat je nergens meer voor hoeft af te rekenen. Wat zou je dan verwachten te betalen voor zo'n middag?",
+    options: [
+      { id: "under_25", label: "< €25" },
+      { id: "25_40", label: "€25-40" },
+      { id: "40_60", label: "€40-60" },
+      { id: "60_80", label: "€60-80" },
+      { id: "80_120", label: "€80-120" },
+      { id: "120_plus", label: "€120+" },
+    ],
+  },
+  experience: {
+    title: "Hoe zou je jezelf omschrijven?",
+    options: [
+      {
+        id: "curious",
+        label: "Ik probeer graag iets nieuws, hoef geen expert te zijn",
+      },
+      {
+        id: "experienced",
+        label: "Ik weet er al veel van, ik zoek de betere dingen",
+      },
+    ],
+  },
+  successBody: "Zodra er een tafel vormt in jouw stad, hoor je van ons.",
+  successNext:
+    "Liever updates via WhatsApp dan mail? Join de groep, daar doen we ook onze aankondigingen.",
+  whatsappGirlsLabel: "Girls only WhatsApp",
+  whatsappMixedLabel: "Gemengde WhatsApp",
+  close: "Sluiten",
+  dialogAria: "Wachtlijst aanmelden",
+};
+
 export const sundayTableLpNl: SundayTableLpLabels = {
   meta: {
     title: "Sunday Table · Nieuwe mensen, nieuwe plekken",
@@ -109,156 +264,5 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       },
     ],
   },
-  waitlist: {
-    eyebrow: "Wachtlijst",
-    title: "Zet je op de lijst",
-    body: "We laten je weten zodra er een tafel vormt in jouw stad.",
-    nameLabel: "Naam",
-    namePlaceholder: "Voornaam",
-    emailLabel: "E-mail",
-    emailPlaceholder: "jij@email.nl",
-    cityLabel: "In de volgende steden",
-    cityOther: "Andere stad",
-    cityOtherPlaceholder: "Welke stad?",
-    formatLabel: "Geïnteresseerd in de volgende formats",
-    submit: "Zet me op de wachtlijst",
-    submitting: "Bezig…",
-    privacyNote: "Geen spam. Je kunt je altijd uitschrijven.",
-    error: "Er ging iets mis. Probeer het opnieuw.",
-    questionsTitle: "Nog een paar korte vragen",
-    questionsBody: "Helpt ons de juiste tafel voor je te vinden. Helemaal optioneel.",
-    skip: "Overslaan",
-    back: "Terug",
-    continueCta: "Verder",
-    progress: "Vraag {n} van {total}",
-    language: {
-      title: "In welke taal wil je je events?",
-      options: [
-        { id: "english", label: "Engelstalige events" },
-        { id: "dutch", label: "Nederlandstalige events" },
-        { id: "both", label: "Beide zijn prima" },
-      ],
-    },
-    why: {
-      title: "Waarom sta je op de lijst?",
-      options: [
-        { id: "discover_wines", label: "Wijn ontdekken" },
-        { id: "discover_flavours", label: "Nieuwe smaken" },
-        { id: "discover_places", label: "Nieuwe plekken" },
-        { id: "no_organise", label: "Niks zelf hoeven regelen" },
-        { id: "treat", label: "Mezelf trakteren" },
-        { id: "new_city", label: "Nieuw in de stad" },
-        { id: "just_fun", label: "Gewoon een leuke zondag, zonder speciale reden" },
-        { id: "other", label: "Iets anders" },
-      ],
-      otherPlaceholder: "Vertel het ons...",
-    },
-    company: {
-      title: "Met wie kom je het liefst?",
-      options: [
-        { id: "meet_new", label: "Nieuwe mensen ontmoeten" },
-        { id: "bring_friends", label: "Met vrienden" },
-        { id: "bring_partner", label: "Met partner" },
-        { id: "solo", label: "Solo" },
-      ],
-    },
-    availability: {
-      title: "Ben je op zondag beschikbaar?",
-      options: [
-        { id: "both", label: "Ja, middag en avond" },
-        { id: "afternoon", label: "Alleen zondagmiddag" },
-        { id: "evening", label: "Alleen zondagavond" },
-        { id: "no", label: "Nee, zondag komt niet uit" },
-      ],
-    },
-    altDays: {
-      title: "Welke andere dag zou je interesseren?",
-      options: [
-        { id: "monday", label: "Maandag" },
-        { id: "tuesday", label: "Dinsdag" },
-        { id: "wednesday", label: "Woensdag" },
-        { id: "thursday", label: "Donderdag" },
-        { id: "friday", label: "Vrijdag" },
-        { id: "saturday", label: "Zaterdag" },
-      ],
-    },
-    tableType: {
-      title: "Welke tafel?",
-      options: [
-        { id: "girls_only", label: "Girls only" },
-        { id: "mixed", label: "Gemengd" },
-        { id: "no_preference", label: "Maakt niet uit" },
-      ],
-    },
-    gender: {
-      title: "Gender",
-      options: [
-        { id: "female", label: "Vrouw" },
-        { id: "male", label: "Man" },
-        { id: "other", label: "Anders" },
-        { id: "unspecified", label: "Zeg ik liever niet" },
-      ],
-    },
-    ageRange: {
-      title: "Leeftijd",
-      options: [
-        { id: "18_24", label: "18-24" },
-        { id: "25_34", label: "25-34" },
-        { id: "35_44", label: "35-44" },
-        { id: "45_plus", label: "45+" },
-      ],
-    },
-    vibe: {
-      title: "Wat maakt een avond voor jou geslaagd?",
-      options: [
-        { id: "people", label: "De mensen aan tafel" },
-        { id: "experience", label: "Het eten en de wijn" },
-        { id: "both", label: "Allebei evenveel" },
-      ],
-    },
-    ticketPrice: {
-      title:
-        "Je boekt een plekje aan tafel en betaalt zelf je wijn en hapjes. Wat is dan een eerlijke prijs voor het ticket?",
-      options: [
-        { id: "under_5", label: "< €5" },
-        { id: "5_10", label: "€5-10" },
-        { id: "10_15", label: "€10-15" },
-        { id: "15_20", label: "€15-20" },
-        { id: "20_plus", label: "€20+" },
-      ],
-    },
-    allInclusivePrice: {
-      title:
-        "Stel dat wijn, eten en de tafel allemaal in één prijs zitten, met een speciaal MyTable menu per locatie, zodat je nergens meer voor hoeft af te rekenen. Wat zou je dan verwachten te betalen voor zo'n middag?",
-      options: [
-        { id: "under_25", label: "< €25" },
-        { id: "25_40", label: "€25-40" },
-        { id: "40_60", label: "€40-60" },
-        { id: "60_80", label: "€60-80" },
-        { id: "80_120", label: "€80-120" },
-        { id: "120_plus", label: "€120+" },
-      ],
-    },
-    experience: {
-      title: "Hoe zou je jezelf omschrijven?",
-      options: [
-        {
-          id: "curious",
-          label: "Ik probeer graag iets nieuws, hoef geen expert te zijn",
-        },
-        {
-          id: "experienced",
-          label: "Ik weet er al veel van, ik zoek de betere dingen",
-        },
-      ],
-    },
-    successTitle: "Je staat op de lijst",
-    successBody: "Zodra er een tafel vormt in jouw stad, hoor je van ons.",
-    successNext:
-      "Liever updates via WhatsApp dan mail? Join de groep, daar doen we ook onze aankondigingen.",
-    whatsappGirlsLabel: "Girls only WhatsApp",
-    whatsappMixedLabel: "Gemengde WhatsApp",
-    close: "Sluiten",
-    dialogAria: "Wachtlijst aanmelden",
-  },
+  waitlist: sundayTableWaitlistNl,
 };

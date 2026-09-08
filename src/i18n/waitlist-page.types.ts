@@ -56,13 +56,6 @@ export type WaitlistAltDayId =
   | "friday"
   | "saturday";
 
-/** How someone wants to join MyTable overall */
-export type WaitlistJoinIntentId =
-  | "meet_new"
-  | "bring_someone"
-  | "with_group"
-  | "depends";
-
 /** Fair price for a seat at the table, paying for wine/bites separately —
  * asked of everyone. */
 export type WaitlistTicketPriceId =
@@ -98,7 +91,6 @@ export type WaitlistPreferences = {
   priceRangeSource: WaitlistPriceRangeSource;
   why: WaitlistWhyId[];
   company: WaitlistCompanyId[];
-  joinIntent: WaitlistJoinIntentId[];
   tableType: WaitlistTableTypeId[];
   cities: string[];
   regionFlexible: boolean;

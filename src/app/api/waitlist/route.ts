@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import {
   claimWaitlistWelcomeEmail,
@@ -288,14 +288,25 @@ export async function POST(request: Request) {
   if (!enrich) {
     const metaContext = parseMetaTrackingContext(body.meta);
     const primaryCity = cities[0]!;
-    void sendMetaCapiLead({
-      email,
-      city: primaryCity,
-      source: body.source === "newsletter" ? "newsletter" : "waitlist",
-      waitlistId: signupIds[0]!,
-      eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
-      userData: metaUserDataFromRequest(request, metaContext, email),
-    });
+    // Fire-and-forget work started here isn't guaranteed to finish on a
+    // serverless platform — Vercel can freeze the function the moment the
+    // response below is sent, killing any promise that isn't kept alive via
+    // `after()`. (Confirmed as the actual cause of a real bug: welcome
+    // emails worked in every local/dev test but essentially never landed in
+    // production, because the un-awaited send was getting cut off after the
+    // response returned.)
+    after(() =>
+      sendMetaCapiLead({
+        email,
+        city: primaryCity,
+        source: body.source === "newsletter" ? "newsletter" : "waitlist",
+        waitlistId: signupIds[0]!,
+        eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
+        userData: metaUserDataFromRequest(request, metaContext, email),
+      }).catch((error: unknown) => {
+        console.error("[waitlist] sendMetaCapiLead failed:", error);
+      }),
+    );
   }
 
   // Welcome email now fires once the person is done filling in the
@@ -310,35 +321,41 @@ export async function POST(request: Request) {
   // so the actual send is gated behind an atomic per-signup claim —
   // whichever POST claims it first sends the email, every later duplicate
   // sees it already claimed and skips.
+  //
+  // Wrapped in `after()` so Vercel keeps this invocation alive until the
+  // claim + email send settle, instead of racing the function teardown
+  // that happens right after `NextResponse.json` below is returned.
   if (enrich && body.complete === true && body.isNewSignup === true) {
     const welcomeSignupId = signupIds[0]!;
-    void claimWaitlistWelcomeEmail(welcomeSignupId)
-      .then(async (claimed) => {
-        if (!claimed) return;
-        try {
-          const gender = preferences?.gender?.[0];
-          await sendSundayTableWaitlistWelcomeEmail({
-            to: email,
-            locale,
-            firstName: name,
-            cities,
-            gender,
-          });
-        } catch (error) {
-          console.error(
-            "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
-            error,
-          );
-          // Sending failed after we claimed it — release so a later
-          // legitimate attempt (or a manual resend) can still go out.
-          await releaseWaitlistWelcomeEmailClaim(welcomeSignupId).catch(
-            () => {},
-          );
-        }
-      })
-      .catch((error: unknown) => {
-        console.error("[waitlist] claimWaitlistWelcomeEmail failed:", error);
-      });
+    after(() =>
+      claimWaitlistWelcomeEmail(welcomeSignupId)
+        .then(async (claimed) => {
+          if (!claimed) return;
+          try {
+            const gender = preferences?.gender?.[0];
+            await sendSundayTableWaitlistWelcomeEmail({
+              to: email,
+              locale,
+              firstName: name,
+              cities,
+              gender,
+            });
+          } catch (error) {
+            console.error(
+              "[waitlist] sendSundayTableWaitlistWelcomeEmail failed:",
+              error,
+            );
+            // Sending failed after we claimed it — release so a later
+            // legitimate attempt (or a manual resend) can still go out.
+            await releaseWaitlistWelcomeEmailClaim(welcomeSignupId).catch(
+              () => {},
+            );
+          }
+        })
+        .catch((error: unknown) => {
+          console.error("[waitlist] claimWaitlistWelcomeEmail failed:", error);
+        }),
+    );
   }
 
   return NextResponse.json({

@@ -2,8 +2,6 @@
 
 import type { ReactNode } from "react";
 import { AuthSessionProvider } from "@/features/auth/AuthSessionContext";
-import { SignInProvider } from "@/features/auth/SignInProvider";
-import { MemberShell } from "@/components/MemberShell";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 
@@ -16,14 +14,11 @@ export function AuthProviders({
   locale: Locale;
   nav: Dictionary["header"]["nav"];
 }) {
-  return (
-    <AuthSessionProvider>
-      {/* Sign-in is paused site-wide — SignInQueryOpener (?signin=1) is no
-       * longer mounted, so there's no reachable path into the auth modal.
-       * See src/app/[locale]/login/page.tsx for the coming-soon page. */}
-      <SignInProvider locale={locale}>
-        <MemberShell>{children}</MemberShell>
-      </SignInProvider>
-    </AuthSessionProvider>
-  );
+  // Sign-in is paused site-wide — there's no reachable path into an auth
+  // modal (the modal, its query-param opener, and the whole post-login
+  // onboarding flow were removed). AuthSessionProvider stays: useAuthSession()
+  // is still live for prefilling checkout, the language switcher, etc.
+  void locale;
+  void nav;
+  return <AuthSessionProvider>{children}</AuthSessionProvider>;
 }

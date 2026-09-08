@@ -1,6 +1,5 @@
 import { Text } from "@react-email/components";
 import { BookingSummaryCard } from "./components/BookingSummaryCard";
-import { CTASection } from "./components/CTASection";
 import { EmailHero } from "./components/EmailHero";
 import { EmailLayout } from "./components/EmailLayout";
 import { emailType } from "./brand";
@@ -14,7 +13,6 @@ export type SundayTablePlusOneEmailProps = {
   tableType: "girls_only" | "mixed";
   /** Whether the +1 was just added or removed. */
   action: "added" | "removed";
-  clubmemberUrl: string;
 };
 
 export function SundayTablePlusOneEmail({
@@ -25,7 +23,6 @@ export function SundayTablePlusOneEmail({
   time,
   tableType,
   action,
-  clubmemberUrl,
 }: SundayTablePlusOneEmailProps) {
   const nl = locale !== "en";
   const added = action === "added";
@@ -108,22 +105,12 @@ export function SundayTablePlusOneEmail({
       >
         {added
           ? nl
-            ? "Afmelden kan tot de RSVP-sluiting in je Clubmember-hub."
-            : "You can remove the +1 until RSVP closes in your Clubmember hub."
+            ? "Wil je de +1 toch weer afmelden? Antwoord gewoon op deze mail."
+            : "Want to remove the +1 after all? Just reply to this email."
           : nl
-            ? "Wil je later toch iemand meenemen? Voeg opnieuw een +1 toe in je Clubmember-hub."
-            : "Want to bring someone later? Add a +1 again in your Clubmember hub."}
+            ? "Wil je later toch iemand meenemen? Antwoord op deze mail, dan voegen we een +1 toe."
+            : "Want to bring someone later? Reply to this email and we'll add a +1."}
       </Text>
-
-      <CTASection
-        helperText={
-          nl
-            ? "Beheer je RSVP en +1 in Clubmember."
-            : "Manage your RSVP and +1 in Clubmember."
-        }
-        href={clubmemberUrl}
-        label={nl ? "Naar Clubmember →" : "Open Clubmember →"}
-      />
     </EmailLayout>
   );
 }

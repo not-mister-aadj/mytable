@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/Button";
 import {
   experiencePath,
   girlsOnlyCityPath,
-  clubmemberPath,
   joinPath,
+  sundayTableLpPath,
   type Locale,
 } from "@/i18n/config";
 import type { GirlsOnlyCityDefinition } from "@/data/girls-only-cities";
@@ -52,7 +52,7 @@ export function GirlsOnlyCityView({
 }: GirlsOnlyCityViewProps) {
   const hasEvents = events.length > 0;
   const quizHref = joinPath(locale);
-  const claimHref = `${clubmemberPath(locale)}?claim=1#happening`;
+  const claimHref = sundayTableLpPath(locale);
   const primaryHref =
     sundayScarcity && sundayScarcity.seatsLeft > 0
       ? claimHref
@@ -429,7 +429,7 @@ export function GirlsOnlyCityView({
           </div>
           <div className="mt-8 flex justify-center">
             <Button
-              href={clubmemberPath(locale)}
+              href={sundayTableLpPath(locale)}
               className="bg-wine px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-cream hover:bg-burgundy sm:text-sm"
             >
               <span aria-hidden className="mr-2 opacity-90">

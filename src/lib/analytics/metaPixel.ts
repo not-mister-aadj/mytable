@@ -233,7 +233,6 @@ export function landingPageView(
     | "agenda"
     | "join"
     | "girls_only"
-    | "clubmember"
     | "waitlist",
 ): void {
   const params = withUtm({

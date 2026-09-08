@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { clubmemberPath, type Locale } from "@/i18n/config";
+import { sundayTableLpPath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 
 interface NewsletterCTAProps {
@@ -38,7 +38,7 @@ export function NewsletterCTA({
                 className="[&_h2]:text-cream [&_p]:text-cream/80"
               />
               <Button
-                href={clubmemberPath(locale)}
+                href={sundayTableLpPath(locale)}
                 variant="secondary"
                 className="mt-8 bg-cream px-8 py-3.5 text-burgundy hover:bg-beige sm:mt-10"
               >

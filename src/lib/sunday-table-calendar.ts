@@ -1,4 +1,4 @@
-import { clubmemberPath, type Locale } from "@/i18n/config";
+import { sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
 import {
   amsterdamDateTime,
@@ -88,19 +88,16 @@ export function buildSundayTableCalendarCopy(input: SundayTableCalendarInput): {
         ? "Gemengd"
         : "Mixed";
   const title = `MyTable Sunday Table · ${input.city}`;
-  const hub = `${getSiteUrl()}${clubmemberPath(input.locale ?? (nl ? "nl" : "en"))}`;
   const description = nl
     ? [
         `Sunday Table in ${input.city} (${tableLabel}).`,
         "14:00-17:00. Drankjes en hapjes op locatie.",
         "Exacte locatie krijg je 24 uur van tevoren per mail.",
-        `Beheer je RSVP: ${hub}`,
       ].join("\n")
     : [
         `Sunday Table in ${input.city} (${tableLabel}).`,
         "2:00-5:00 PM. Drinks and bites on location.",
         "You’ll get the exact location by email 24 hours beforehand.",
-        `Manage your RSVP: ${hub}`,
       ].join("\n");
 
   return {
@@ -135,7 +132,7 @@ export function buildSundayTableIcs(input: SundayTableCalendarInput): string | n
     `LOCATION:${escapeIcsText(location)}`,
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
-    `URL:${getSiteUrl()}${clubmemberPath(input.locale ?? "nl")}`,
+    `URL:${getSiteUrl()}${sundayTableLpPath(input.locale ?? "nl")}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];
@@ -154,7 +151,7 @@ export function sundayTableCalendarDownloadUrl(
     locale: input.locale ?? "nl",
   });
   if (input.signupId) params.set("signup_id", input.signupId);
-  return `${getSiteUrl()}/api/clubmember/calendar?${params.toString()}`;
+  return `${getSiteUrl()}/api/sunday-table/calendar?${params.toString()}`;
 }
 
 /** Google Calendar template link (opens add-event UI with fields prefilled). */

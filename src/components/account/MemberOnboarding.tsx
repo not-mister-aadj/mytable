@@ -8,9 +8,9 @@ import type { Locale } from "@/i18n/config";
 import {
   accountPath,
   agendaPath,
-  clubmemberPath,
   joinPath,
   localePath,
+  sundayTableLpPath,
 } from "@/i18n/config";
 import { Logo } from "@/components/Logo";
 import type { AccountAuthLabels, AccountOnboardingLabels } from "@/i18n/account.types";
@@ -387,7 +387,7 @@ export function MemberOnboarding({
       }
       router.refresh();
       if (destination === "meet") {
-        router.push(clubmemberPath(locale));
+        router.push(sundayTableLpPath(locale));
       } else {
         const q =
           prefs.interests.length > 0
@@ -441,8 +441,6 @@ export function MemberOnboarding({
   }
 
   function stepAfterIntent(): FlowStep {
-    // Tastes/interests move to post-purchase enrichment so the pre-purchase
-    // path stays as short as possible. See PostPurchaseEnrichment.tsx.
     return "city";
   }
 
@@ -1345,7 +1343,7 @@ export function MemberOnboarding({
                     title={labels.welcomeBack.meetCta}
                     hint={labels.welcomeBack.meetHint}
                     onClick={() =>
-                      router.push(clubmemberPath(locale))
+                      router.push(sundayTableLpPath(locale))
                     }
                     index={0}
                   />

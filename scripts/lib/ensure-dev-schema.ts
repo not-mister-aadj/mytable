@@ -30,6 +30,9 @@ const MIGRATION_FILES = [
   "0019_sunday_table_reviews.sql",
   "0020_sunday_table_waitlist_invites.sql",
   "0021_waitlist_preferences.sql",
+  "0022_drop_referral_system.sql",
+  "0023_waitlist_welcome_email_idempotency.sql",
+  "0024_remove_club_membership.sql",
 ];
 
 async function tableExists(sql: postgres.Sql, name: string): Promise<boolean> {

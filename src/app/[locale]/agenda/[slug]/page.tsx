@@ -39,9 +39,6 @@ import {
 import { absoluteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { getActiveMembershipForUser } from "@/lib/club/memberships";
-import { getMemberUser } from "@/lib/member-auth";
-import { isDbConfigured } from "@/db/index";
 import { resolveEventSlugRedirect } from "@/lib/event-slug.server";
 
 type Props = {
@@ -164,21 +161,6 @@ export default async function ExperienceDetailPage({ params }: Props) {
   const primaryVenue = eventVenues?.find((v) => v.kind !== "locationTbd");
   const pageUrl = absoluteUrl(experiencePath(locale, experience.slug));
 
-  let clubMemberDiscount = false;
-  if (isDbConfigured()) {
-    const user = await getMemberUser();
-    if (user?.email) {
-      const membership = await getActiveMembershipForUser({
-        userId: user.id,
-        email: user.email,
-      });
-      clubMemberDiscount = Boolean(
-        membership &&
-          (membership.status === "active" || membership.status === "past_due"),
-      );
-    }
-  }
-
   return (
     <>
       <JsonLd
@@ -216,7 +198,6 @@ export default async function ExperienceDetailPage({ params }: Props) {
             locale={locale}
             eventVenues={eventVenues}
             routePoints={routePoints}
-            clubMemberDiscount={clubMemberDiscount}
           />
         </Suspense>
         <NewsletterCTA

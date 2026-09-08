@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
-import {
-  fulfillClubCheckoutSession,
-  syncClubMembershipFromSubscription,
-} from "@/lib/club/memberships";
 import { onPaymentFailed } from "@/lib/customers/hooks";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
@@ -53,26 +49,7 @@ export async function POST(request: Request) {
   ) {
     const session = event.data.object as import("stripe").Stripe.Checkout.Session;
 
-    if (session.metadata?.mytable_kind === "club_membership") {
-      if (
-        session.payment_status === "paid" ||
-        session.status === "complete"
-      ) {
-        try {
-          await fulfillClubCheckoutSession(session);
-        } catch (err) {
-          console.error("[stripe webhook] club fulfill", err);
-          captureCriticalError(err, {
-            flow: "payment",
-            step: "club_fulfill",
-            tags: {
-              stripe_event: event.type,
-              session_id: session.id,
-            },
-          });
-        }
-      }
-    } else if (isCheckoutPaymentSettled(session)) {
+    if (isCheckoutPaymentSettled(session)) {
       try {
         const result = await fulfillPaidCheckoutSession(session);
         if (result === "not_paid") {
@@ -105,26 +82,6 @@ export async function POST(request: Request) {
           },
         });
       }
-    }
-  }
-
-  if (
-    event.type === "customer.subscription.updated" ||
-    event.type === "customer.subscription.deleted"
-  ) {
-    const sub = event.data.object as import("stripe").Stripe.Subscription;
-    try {
-      await syncClubMembershipFromSubscription(sub);
-    } catch (err) {
-      console.error("[stripe webhook] subscription sync", err);
-      captureCriticalError(err, {
-        flow: "payment",
-        step: "subscription_sync",
-        tags: {
-          stripe_event: event.type,
-          subscription_id: sub.id,
-        },
-      });
     }
   }
 
@@ -173,16 +130,6 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as import("stripe").Stripe.Checkout.Session;
-    if (session.metadata?.mytable_kind === "club_membership") {
-      try {
-        const { abandonPendingCheckoutSession } = await import(
-          "@/lib/club/memberships"
-        );
-        await abandonPendingCheckoutSession(session.id);
-      } catch (err) {
-        console.error("[stripe webhook] club session expired", err);
-      }
-    }
     const bookingId = session.metadata?.booking_id;
     const eventId = session.metadata?.event_id;
     if (bookingId) {

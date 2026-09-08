@@ -7,7 +7,6 @@ export type AnalyticsPageType =
   | "failed"
   | "legal"
   | "join"
-  | "clubmember"
   | "sunday_table"
   | "girls_only"
   | "blog"
@@ -21,20 +20,11 @@ export function inferPageType(pathname: string): AnalyticsPageType {
   if (path === "/" || path === "") return "home";
   if (path === "/agenda") return "agenda";
   if (path.startsWith("/agenda/")) return "event_detail";
-  if (
-    path.startsWith("/boeking/bevestigd") ||
-    path.startsWith("/clubmember/bevestigd")
-  ) {
+  if (path.startsWith("/boeking/bevestigd")) {
     return "success";
   }
-  if (
-    path.startsWith("/boeking/geannuleerd") ||
-    path.startsWith("/clubmember/geannuleerd")
-  ) {
+  if (path.startsWith("/boeking/geannuleerd")) {
     return "failed";
-  }
-  if (path === "/clubmember" || path.startsWith("/clubmember/")) {
-    return "clubmember";
   }
   if (path === "/join" || path.startsWith("/join/")) return "join";
   if (path === "/sunday-table" || path.startsWith("/sunday-table/")) {
@@ -78,7 +68,6 @@ export function isLandingPageType(pageType: AnalyticsPageType): boolean {
     pageType === "join" ||
     pageType === "girls_only" ||
     pageType === "sunday_table" ||
-    pageType === "clubmember" ||
     pageType === "waitlist"
   );
 }

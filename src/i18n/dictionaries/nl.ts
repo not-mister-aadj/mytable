@@ -14,7 +14,6 @@ export const nl: Dictionary = {
       girlsOnly: "Sunday Table",
       calendar: "Agenda",
       account: "Account",
-      clubmember: "Clubmember",
       experiences: "Agenda",
       blog: "Blog",
       myAccount: "My account",
@@ -71,18 +70,17 @@ export const nl: Dictionary = {
     },
     crossFeed: {
       eyebrow: "Nog niemand om mee te gaan?",
-      title: "Ontmoet mensen via Clubmember",
+      title: "Ontmoet mensen via Sunday Table",
       body: "Sunday Table is voor wie solo wil aanschuiven, en daarna samen iets van de agenda wil boeken.",
       benefits: [
         "Solo aan tafel bij Sunday Table",
         "Nieuwe mensen in jouw stad",
-        "10% korting op culinaire ervaringen",
       ],
-      cta: "Naar Clubmember",
+      cta: "Naar Sunday Table",
     },
     sundayTableGroup: {
       title: "Boek met je Sunday Table",
-      body: "Kies een Wine Walk of Food Walk in jouw stad. Leden krijgen 10% korting.",
+      body: "Kies een Wine Walk of Food Walk in jouw stad.",
     },
     browse: {
       cityLabel: "Stad",
@@ -250,12 +248,12 @@ export const nl: Dictionary = {
       {
         question: "Wat is MyTable?",
         answer:
-          "Culinaire evenementen in partnerrestaurants: wijnproeverijen en meer. Je boekt tickets voor jezelf of je gezelschap en komt met je eigen party. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid. Nieuwe mensen ontmoeten doe je via Clubmember / Sunday Table.",
+          "Culinaire evenementen in partnerrestaurants: wijnproeverijen en meer. Je boekt tickets voor jezelf of je gezelschap en komt met je eigen party. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid. Nieuwe mensen ontmoeten doe je via Sunday Table.",
       },
       {
         question: "Kom ik bij onbekenden aan tafel?",
         answer:
-          "Nee. Op de agenda boek je je eigen plekken: solo of met vrienden. Matching met nieuwe mensen gebeurt alleen via Clubmember en Sunday Table.",
+          "Nee. Op de agenda boek je je eigen plekken: solo of met vrienden. Matching met nieuwe mensen gebeurt alleen via Sunday Table.",
       },
       {
         question: "Wanneer zijn de events?",

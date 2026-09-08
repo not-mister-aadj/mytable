@@ -1,6 +1,5 @@
 import type { BookingConfirmationEmailProps } from "@/emails/BookingConfirmationEmail";
 import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
-import type { MembershipRenewalReminderEmailProps } from "@/emails/MembershipRenewalReminderEmail";
 import type { SundayTableCancelEmailProps } from "@/emails/SundayTableCancelEmail";
 import type { SundayTableConfirmationEmailProps } from "@/emails/SundayTableConfirmationEmail";
 import type { SundayTableLocationEmailProps } from "@/emails/SundayTableLocationEmail";
@@ -50,9 +49,8 @@ export const sampleSundayTableConfirmationProps: SundayTableConfirmationEmailPro
     time: "14:00",
     tableType: "girls_only",
     plusOne: false,
-    clubmemberUrl: "https://mytable.club/clubmember",
     calendarUrl:
-      "https://mytable.club/api/clubmember/calendar?city=Rotterdam&date=2026-08-02&type=girls_only&locale=nl",
+      "https://mytable.club/api/sunday-table/calendar?city=Rotterdam&date=2026-08-02&type=girls_only&locale=nl",
   };
 
 export const sampleSundayTableCancelProps: SundayTableCancelEmailProps = {
@@ -62,7 +60,7 @@ export const sampleSundayTableCancelProps: SundayTableCancelEmailProps = {
   date: "zondag 2 augustus 2026",
   time: "14:00",
   tableType: "girls_only",
-  clubmemberUrl: "https://mytable.club/clubmember",
+  sundayTableUrl: "https://mytable.club/sunday-table",
 };
 
 export const sampleSundayTablePlusOneAddedProps: SundayTablePlusOneEmailProps = {
@@ -73,7 +71,6 @@ export const sampleSundayTablePlusOneAddedProps: SundayTablePlusOneEmailProps = 
   time: "14:00",
   tableType: "mixed",
   action: "added",
-  clubmemberUrl: "https://mytable.club/clubmember",
 };
 
 export const sampleSundayTablePlusOneRemovedProps: SundayTablePlusOneEmailProps =
@@ -93,7 +90,7 @@ export const sampleSundayTableLocationProps: SundayTableLocationEmailProps = {
   address: "Witte de Withstraat 12, Rotterdam",
   notes: "Bel aan bij de rode deur.",
   calendarUrl:
-    "https://mytable.club/api/clubmember/calendar?city=Rotterdam&date=2026-08-02&type=girls_only&locale=nl",
+    "https://mytable.club/api/sunday-table/calendar?city=Rotterdam&date=2026-08-02&type=girls_only&locale=nl",
 };
 
 export const sampleSundayTableWaitlistWelcomeProps: SundayTableWaitlistWelcomeEmailProps =
@@ -123,20 +120,3 @@ export const sampleSundayTableReviewProps: SundayTableReviewEmailProps = {
   reviewUrl: "https://www.mytable.club/review/sample-token",
 };
 
-export const sampleMembershipRenewalReminderProps: MembershipRenewalReminderEmailProps =
-  {
-    locale: "nl",
-    firstName: "Sophie",
-    variant: "trial_upsell",
-    planLabel: "MyTable Club · 1 maand trial",
-    amountLabel: "€ 21,00",
-    renewalDateLabel: "zondag 6 september 2026",
-    manageUrl: "https://www.mytable.club/clubmember",
-    nextTableDateLabel: "zondag 6 september 2026",
-    nextTableIsSoon: true,
-    plan1mTotalLabel: "€ 21,00",
-    plan5mTotalLabel: "€ 50,00",
-    plan12mTotalLabel: "€ 100,00",
-    plan5mPerMonthLabel: "€ 10,00",
-    plan12mPerMonthLabel: "€ 8,33",
-  };

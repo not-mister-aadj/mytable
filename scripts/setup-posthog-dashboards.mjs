@@ -205,26 +205,15 @@ const DASHBOARDS = [
         { label: "Agenda", event: "agenda_viewed" },
         { label: "Event detail", event: "event_detail_viewed" },
       ]),
-      funnelInsight("Sunday Table → Clubmember", [
+      funnelInsight("Sunday Table → Waitlist", [
         {
           label: "Sunday Table LP",
           event: "page_viewed",
           properties: [{ key: "page_type", value: "sunday_table" }],
         },
         { label: "CTA clicked", event: "sunday_table_cta_clicked" },
-        {
-          label: "Join",
-          event: "page_viewed",
-          properties: [{ key: "page_type", value: "join" }],
-        },
-        { label: "Onboarding step", event: "onboarding_step_viewed" },
-        {
-          label: "Clubmember",
-          event: "page_viewed",
-          properties: [{ key: "page_type", value: "clubmember" }],
-        },
-        { label: "Checkout started", event: "checkout_started" },
-        { label: "Clubmember paid", event: "clubmember_paid" },
+        { label: "Waitlist joined", event: "email_signup_completed" },
+        { label: "Questionnaire completed", event: "sunday_table_waitlist_enriched" },
       ]),
       funnelInsight("Onboarding drop-off", [
         {

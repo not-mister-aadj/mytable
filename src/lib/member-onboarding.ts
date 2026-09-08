@@ -1,5 +1,5 @@
 import type { Locale } from "@/i18n/config";
-import { agendaPath, clubmemberPath, joinPath } from "@/i18n/config";
+import { agendaPath, joinPath, sundayTableLpPath } from "@/i18n/config";
 import type {
   WaitlistInterestId,
   WaitlistTableTypeId,
@@ -71,34 +71,9 @@ export function wantsCulinaryPath(
 }
 
 /**
- * After club ticket purchase: finish profile + deferred quiz steps.
- * Name / birth date / personality were skipped in the short join funnel.
- */
-export function needsPostPurchaseEnrichment(
-  prefs: Pick<
-    MemberOnboardingPrefs,
-    "joinIntent" | "personality" | "name" | "birthDate" | "gender"
-  >,
-): boolean {
-  if (!wantsMeetPath(prefs.joinIntent)) return false;
-  if (!prefs.name.trim() || !prefs.birthDate) return true;
-  if (prefs.personality === null) return true;
-  return false;
-}
-
-/**
- * Enough quiz answers to open Clubmember checkout (before name/birth).
- */
-export function canStartClubCheckout(
-  prefs: Pick<MemberOnboardingPrefs, "joinIntent" | "gender">,
-): boolean {
-  return wantsMeetPath(prefs.joinIntent) && prefs.gender !== null;
-}
-
-/**
  * Where to land after login/signup.
  * Culinary (or no quiz intent, e.g. normal login) → agenda.
- * Meet / both → clubmember in claim mode (Sunday Table + what you get).
+ * Meet / both → Sunday Table (the "meet new people" format).
  */
 export function postLoginPath(
   locale: Locale,
@@ -106,7 +81,7 @@ export function postLoginPath(
   options?: { interests?: string[] },
 ): string {
   if (joinIntent === "meet_new" || joinIntent === "both") {
-    return `${clubmemberPath(locale)}?claim=1#happening`;
+    return sundayTableLpPath(locale);
   }
   const base = agendaPath(locale);
   if (options?.interests && options.interests.length > 0) {

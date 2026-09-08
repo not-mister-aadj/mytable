@@ -16,7 +16,6 @@ export type SundayTableConfirmationEmailProps = {
   time: string;
   tableType: "girls_only" | "mixed";
   plusOne?: boolean;
-  clubmemberUrl: string;
   /** Download .ics / add to calendar */
   calendarUrl: string;
 };

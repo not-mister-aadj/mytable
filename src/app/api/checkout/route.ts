@@ -25,8 +25,6 @@ import {
   seatingForTier,
   tierForSeats,
 } from "@/lib/booking-tiers";
-import { getActiveMembershipForUser } from "@/lib/club/memberships";
-import { getMemberUser } from "@/lib/member-auth";
 import {
   MEDIA_MARKETING_CONSENT_EVENT,
   MEDIA_MARKETING_CONSENT_VERSION,
@@ -175,20 +173,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const memberUser = await getMemberUser();
-  let clubMemberDiscount = false;
-  if (memberUser?.email) {
-    const membership = await getActiveMembershipForUser({
-      userId: memberUser.id,
-      email: memberUser.email,
-    });
-    clubMemberDiscount = Boolean(
-      membership &&
-        (membership.status === "active" || membership.status === "past_due"),
-    );
-  }
   const tierPrice = computeTierPrice(requestedTier, seats, {
-    clubMemberDiscount,
     perPersonCents: event.priceCents,
   });
 
@@ -326,7 +311,6 @@ export async function POST(request: Request) {
         booking_id: booking.id,
         event_id: event.id,
         pricing_tier: requestedTier,
-        club_member_discount: clubMemberDiscount ? "1" : "0",
         affiliate_code: booking.affiliateCode ?? "",
         from_sunday_table: booking.fromSundayTable ? "1" : "0",
       },

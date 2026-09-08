@@ -1,4 +1,4 @@
-import { clubmemberPath, type Locale } from "@/i18n/config";
+import { sundayTableLpPath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -9,7 +9,7 @@ interface AgendaCrossFeedProps {
 }
 
 export function AgendaCrossFeed({ labels, locale }: AgendaCrossFeedProps) {
-  const clubHref = clubmemberPath(locale);
+  const communityHref = sundayTableLpPath(locale);
 
   return (
     <div className="bg-cream">
@@ -40,7 +40,7 @@ export function AgendaCrossFeed({ labels, locale }: AgendaCrossFeedProps) {
                 </ul>
               ) : null}
               <Button
-                href={clubHref}
+                href={communityHref}
                 variant="secondary"
                 className="mt-6 bg-cream px-8 py-3 text-burgundy hover:bg-beige"
               >

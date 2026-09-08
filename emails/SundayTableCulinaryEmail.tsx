@@ -42,8 +42,8 @@ export function SundayTableCulinaryEmail({
         }}
       >
         {nl
-          ? "Clubmembers krijgen 10% korting. Culinaire tickets zijn all-in."
-          : "Clubmembers get 10% off. Culinary tickets are all-in."}
+          ? "Culinaire tickets zijn all-in."
+          : "Culinary tickets are all-in."}
       </p>
       <Button href={agendaUrl}>
         {nl ? "Bekijk de agenda" : "See the agenda"}

@@ -6,6 +6,5 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE booking_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sunday_table_signups ENABLE ROW LEVEL SECURITY;
-ALTER TABLE club_memberships ENABLE ROW LEVEL SECURITY;
 
 -- No policies for anon/authenticated = deny all direct client access

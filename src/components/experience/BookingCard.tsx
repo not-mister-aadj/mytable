@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { Dictionary, ExperienceItem } from "@/i18n/types";
-import { privacyPath, termsPath, clubmemberPath, type Locale } from "@/i18n/config";
+import { privacyPath, termsPath, type Locale } from "@/i18n/config";
 import {
   canReserve,
   formatSpotsBadge,
@@ -49,8 +49,6 @@ interface BookingCardProps {
   fitViewport?: boolean;
   /** e.g. "Altijd op zondag · Middag" */
   scheduleNote?: string;
-  /** Active Clubmember — 10% off culinary tickets. */
-  clubMemberDiscount?: boolean;
   /** Booked via post-Sunday Table group CTA. */
   fromSundayTable?: boolean;
   /** Optional ambassador code from URL. */
@@ -88,7 +86,6 @@ export function BookingCard({
   compact = false,
   fitViewport = false,
   scheduleNote,
-  clubMemberDiscount = false,
   fromSundayTable = false,
   affiliateCode = null,
   referralCode = null,
@@ -142,17 +139,13 @@ export function BookingCard({
   const tier = tierForSeats(seats);
   const listPerPersonCents = Math.round(experience.price * 100);
   const selectedTierPrice = computeTierPrice(tier, seats, {
-    clubMemberDiscount,
     perPersonCents: listPerPersonCents,
   });
-  const listPerPersonEuros = Math.round(listPerPersonCents / 100);
   const seatingPreference = seatingForTier(tier);
-  const priceLine = clubMemberDiscount
-    ? `€${selectedTierPrice.totalEuros} · €${selectedTierPrice.perPersonEuros} p.p.`
-    : `€${selectedTierPrice.totalEuros} · ${tierLabels.perPerson.replace(
-        "{price}",
-        String(selectedTierPrice.perPersonEuros),
-      )}`;
+  const priceLine = `€${selectedTierPrice.totalEuros} · ${tierLabels.perPerson.replace(
+    "{price}",
+    String(selectedTierPrice.perPersonEuros),
+  )}`;
 
   useEffect(() => {
     setFormStep(1);
@@ -284,34 +277,6 @@ export function BookingCard({
       >
         {priceLine}
       </p>
-      {clubMemberDiscount ? (
-        <p
-          className={`text-xs font-medium ${
-            compact ? "mt-1" : "mt-1.5"
-          } ${isFemaleOnly ? "text-rose-deep/80" : "text-burgundy/80"}`}
-        >
-          {labels.bookingClubDiscountApplied}
-          <span className="ml-1.5 text-wine/40 line-through">
-            €{listPerPersonEuros} p.p.
-          </span>
-        </p>
-      ) : (
-        <p
-          className={`text-xs leading-snug text-wine/60 ${
-            compact ? "mt-1" : "mt-1.5"
-          }`}
-        >
-          {labels.bookingClubDiscountPromo}{" "}
-          <Link
-            href={clubmemberPath(locale)}
-            className={`font-medium underline decoration-current/30 underline-offset-2 transition hover:decoration-current ${
-              isFemaleOnly ? "text-rose-deep" : "text-burgundy"
-            }`}
-          >
-            {labels.bookingClubDiscountPromoLink}
-          </Link>
-        </p>
-      )}
 
       {isClosed || isSoldOut ? (
         <span
@@ -509,7 +474,6 @@ export function BookingCard({
                         tierForSeats(next),
                         next,
                         {
-                          clubMemberDiscount,
                           perPersonCents: listPerPersonCents,
                         },
                       );

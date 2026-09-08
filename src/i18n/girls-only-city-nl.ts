@@ -93,8 +93,8 @@ function buildCityPageNl(
       title: `${name}`,
       steps: [
         {
-          title: "Clubmember",
-          description: "Toegang tot Sunday Table.",
+          title: "Wachtlijst",
+          description: "Zet je op de lijst voor jouw stad.",
         },
         {
           title: "Eerste zondag",
@@ -125,7 +125,7 @@ function buildCityPageNl(
         {
           question: "Kosten?",
           answer:
-            "Via Clubmember. Drank en hapjes op locatie. Culinaire tickets apart, 10% korting.",
+            "Op de wachtlijst staan is gratis. Zodra er een tafel voor je klaarstaat, hoor je de prijs. Drank en hapjes betaal je zelf op locatie.",
         },
         {
           question: "Wanneer?",

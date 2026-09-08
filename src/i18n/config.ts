@@ -79,25 +79,12 @@ export function girlsOnlyPath(locale: Locale): string {
   return locale === "en" ? "/en/girls-only" : "/girls-only";
 }
 
-/** Member-only Clubmember hub (Sunday Wine Table). */
-export function clubmemberPath(locale: Locale): string {
-  return locale === "en" ? "/en/clubmember" : "/clubmember";
-}
-
-export function clubmemberConfirmedPath(locale: Locale): string {
-  return `${clubmemberPath(locale)}/bevestigd`;
-}
-
-export function clubmemberCancelledPath(locale: Locale): string {
-  return `${clubmemberPath(locale)}/geannuleerd`;
-}
-
 /** Pre-auth onboarding funnel (commit → vibe → signup). */
 export function joinPath(locale: Locale): string {
   return locale === "en" ? "/en/join" : "/join";
 }
 
-/** Public Sunday Table / Clubmember marketing landing. */
+/** Public Sunday Table marketing landing. */
 export function sundayTableLpPath(locale: Locale): string {
   return locale === "en" ? "/en/sunday-table" : "/sunday-table";
 }

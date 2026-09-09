@@ -25,9 +25,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  const title = "Wat je eraan overhoudt | MyTable voor zaken";
+  const title = "Een volle zaak op je rustigste moment | MyTable voor zaken";
   const description =
-    "Hoe de Mixer werkt voor jouw bar of restaurant: geen kosten om mee te doen, en een rekentool om je eigen rendement door te rekenen.";
+    "Wij vullen een rustig moment in jouw wijnbar of restaurant met volle tafels. Jouw prijzen, geen korting, geen contract, geen kosten om mee te doen.";
   return buildPageMetadata({
     locale: locale as Locale,
     kind: "voorZaken",

@@ -49,3 +49,6 @@ next-env.d.ts
 
 .vercel
 .env.local
+
+# scraped prospectlijsten en gegenereerde output
+/tmp/

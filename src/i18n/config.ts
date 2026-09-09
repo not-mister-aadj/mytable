@@ -106,7 +106,7 @@ export function chefsSpecialLpPath(locale: Locale): string {
   return locale === "en" ? "/en/chefs-special" : "/chefs-special";
 }
 
-/** Venue-facing "what's in it for you" page for the Mixer format. */
+/** Venue-facing "what's in it for you" page for wine bars and restaurants. */
 export function voorZakenPath(locale: Locale): string {
   return locale === "en" ? "/en/voor-zaken" : "/voor-zaken";
 }

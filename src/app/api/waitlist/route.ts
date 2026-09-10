@@ -13,6 +13,7 @@ import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
 import type { Locale } from "@/i18n/config";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import { getSiteUrl } from "@/lib/env";
+import { normalizeWaitlistCities } from "@/lib/waitlist-city";
 
 const TICKET_PRICE_IDS = new Set([
   "under_5",
@@ -223,12 +224,12 @@ export async function POST(request: Request) {
   const email = body.email?.trim();
   const locale: Locale = body.locale === "en" ? "en" : "nl";
   const name = body.name?.trim() || undefined;
-  const cities = Array.from(
-    new Set(
-      (body.cities?.length ? body.cities : body.city ? [body.city] : [])
-        .map((city) => city.trim())
-        .filter(Boolean),
-    ),
+  // Free-text city entry ("andere stad") used to land in the table exactly as
+  // typed, and the unique key is (email, city) — so one person entering
+  // "Den Bosch !!", "Den Bosch" and "Den bosch" became three signups for three
+  // different cities. Normalising here collapses those onto one row.
+  const cities = normalizeWaitlistCities(
+    body.cities?.length ? body.cities : body.city ? [body.city] : [],
   );
 
   if (!email || cities.length === 0) {

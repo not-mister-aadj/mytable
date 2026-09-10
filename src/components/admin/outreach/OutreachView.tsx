@@ -58,6 +58,25 @@ function matchesFilter(row: OutreachProspectRow, filter: FilterKey): boolean {
   }
 }
 
+function MapPinIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
@@ -410,6 +429,20 @@ export function OutreachView({
                 </p>
               </Link>
               <div className="flex flex-wrap items-center gap-3 text-xs text-wine/60">
+                {/* Outside the row Link on purpose — an anchor inside an anchor
+                    is invalid and the browser would swallow one of the two. */}
+                {row.mapsUrl ? (
+                  <a
+                    href={row.mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`${row.name} op Google Maps`}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border-subtle bg-cream px-2.5 py-1 text-xs text-wine/65 transition hover:border-burgundy/40 hover:text-burgundy"
+                  >
+                    <MapPinIcon />
+                    Maps
+                  </a>
+                ) : null}
                 <OutreachStatusPill status={row.status} />
                 <span title="Verstuurde mails in de sequence">
                   Stap {row.sequenceStep}

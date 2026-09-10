@@ -11,6 +11,8 @@ import { redirect } from "next/navigation";
 const NAV_ITEM_PATHS = [
   { label: "Dashboard", path: "/", exact: true },
   { label: "Wachtlijst", path: "/priority-list" },
+  // The venue side of the business: which wine bars we mailed, what came back.
+  { label: "Outreach", path: "/outreach" },
   // Sunday Table lives on its own route (different data model — invite-based,
   // no direct price/capacity) but is a tab inside this same section, one tap
   // from the sidebar. See FormatTabs.tsx.

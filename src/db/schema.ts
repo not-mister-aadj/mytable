@@ -432,6 +432,159 @@ export const affiliateCommissions = pgTable(
   }),
 );
 
+
+/** Cold-outreach prospect: a wine bar or restaurant we want as a partner. */
+export const outreachProspects = pgTable(
+  "outreach_prospects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    city: text("city").notNull(),
+    category: text("category"),
+    address: text("address"),
+    website: text("website"),
+    email: text("email"),
+    phone: text("phone"),
+    mapsUrl: text("maps_url"),
+    rating: text("rating"),
+    reviewsCount: integer("reviews_count"),
+    priceLevel: text("price_level"),
+    contactName: text("contact_name"),
+    status: text("status").notNull().default("new"),
+    /** Sequence mails sent so far (0 = never mailed). */
+    sequenceStep: integer("sequence_step").notNull().default(0),
+    /** When the next sequence mail is due; cleared as soon as they reply. */
+    nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true }),
+    lastContactedAt: timestamp("last_contacted_at", { withTimezone: true }),
+    lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
+    notes: text("notes"),
+    source: text("source").notNull().default("import"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    cityNameUnique: uniqueIndex("outreach_prospects_city_name_unique").on(
+      table.city,
+      table.name,
+    ),
+  }),
+);
+
+/** Editable mail copy: steps 1..n of the sequence plus the reply template. */
+export const outreachTemplates = pgTable("outreach_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  key: text("key").notNull().unique(),
+  name: text("name").notNull(),
+  /** "sequence" | "reply" | "other" */
+  kind: text("kind").notNull().default("sequence"),
+  step: integer("step"),
+  /** Days to wait after the previous step before this one is due. */
+  delayDays: integer("delay_days").notNull().default(4),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  attachmentPath: text("attachment_path"),
+  attachmentName: text("attachment_name"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** One sent mail, with the delivery state Resend reports back. */
+export const outreachMessages = pgTable("outreach_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  prospectId: uuid("prospect_id")
+    .notNull()
+    .references(() => outreachProspects.id, { onDelete: "cascade" }),
+  templateId: uuid("template_id").references(() => outreachTemplates.id, {
+    onDelete: "set null",
+  }),
+  /** Snapshots — the template may be edited later, the sent mail may not. */
+  templateKey: text("template_key"),
+  step: integer("step"),
+  toEmail: text("to_email").notNull(),
+  subject: text("subject").notNull(),
+  bodySnapshot: text("body_snapshot").notNull(),
+  attachmentName: text("attachment_name"),
+  resendMessageId: text("resend_message_id"),
+  status: text("status").notNull().default("sent"),
+  error: text("error"),
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  firstOpenedAt: timestamp("first_opened_at", { withTimezone: true }),
+  lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }),
+  openCount: integer("open_count").notNull().default(0),
+  firstClickedAt: timestamp("first_clicked_at", { withTimezone: true }),
+  clickCount: integer("click_count").notNull().default(0),
+  bouncedAt: timestamp("bounced_at", { withTimezone: true }),
+  complainedAt: timestamp("complained_at", { withTimezone: true }),
+  repliedAt: timestamp("replied_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Raw Resend webhook log, kept verbatim so a mapping bug can be replayed. */
+export const outreachEvents = pgTable(
+  "outreach_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    messageId: uuid("message_id").references(() => outreachMessages.id, {
+      onDelete: "cascade",
+    }),
+    resendMessageId: text("resend_message_id"),
+    type: text("type").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    /** Resend retries webhooks; the same event must not count twice. */
+    dedupe: uniqueIndex("outreach_events_dedupe").on(
+      table.resendMessageId,
+      table.type,
+      table.occurredAt,
+    ),
+  }),
+);
+
+/** Human-logged timeline entry: their reply, a call, a note. */
+export const outreachActivities = pgTable("outreach_activities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  prospectId: uuid("prospect_id")
+    .notNull()
+    .references(() => outreachProspects.id, { onDelete: "cascade" }),
+  messageId: uuid("message_id").references(() => outreachMessages.id, {
+    onDelete: "set null",
+  }),
+  /** "reply" | "note" | "call" | "meeting" | "status" */
+  type: text("type").notNull(),
+  body: text("body"),
+  /** "positive" | "neutral" | "negative" */
+  sentiment: text("sentiment"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Customer = typeof customers.$inferSelect;
 export type CustomerActivity = typeof customerActivities.$inferSelect;
 export type ExperienceType = typeof experienceTypes.$inferSelect;
@@ -446,3 +599,8 @@ export type SundayTableWaitlistInvite =
 export type SundayTableReview = typeof sundayTableReviews.$inferSelect;
 export type AffiliateCode = typeof affiliateCodes.$inferSelect;
 export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;
+export type OutreachProspect = typeof outreachProspects.$inferSelect;
+export type OutreachTemplate = typeof outreachTemplates.$inferSelect;
+export type OutreachMessage = typeof outreachMessages.$inferSelect;
+export type OutreachEvent = typeof outreachEvents.$inferSelect;
+export type OutreachActivity = typeof outreachActivities.$inferSelect;

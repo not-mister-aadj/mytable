@@ -129,21 +129,28 @@ async function main() {
 
     if (APPLY) {
       const richest = [...group].sort((a, b) => score(b) - score(a))[0];
-      await db
-        .update(waitlistSignups)
-        .set({
-          city: canonical,
-          name: group.find((row) => row.name)?.name ?? keep.name,
-          preferences: richest.preferences ?? keep.preferences,
-          customerId: group.find((row) => row.customerId)?.customerId ?? keep.customerId,
-          welcomeEmailSentAt:
-            group.find((row) => row.welcomeEmailSentAt)?.welcomeEmailSentAt ??
-            keep.welcomeEmailSentAt,
-        })
-        .where(inArray(waitlistSignups.id, [keep.id]));
-      await db
-        .delete(waitlistSignups)
-        .where(inArray(waitlistSignups.id, drop.map((row) => row.id)));
+      // Delete before renaming, inside one transaction. Renaming first collides
+      // with the unique key whenever a row still waiting to be deleted already
+      // carries the canonical spelling — which is exactly what happened on the
+      // first real run ("Den Bosch" existed next to "Den Bosch!").
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(waitlistSignups)
+          .where(inArray(waitlistSignups.id, drop.map((row) => row.id)));
+        await tx
+          .update(waitlistSignups)
+          .set({
+            city: canonical,
+            name: group.find((row) => row.name)?.name ?? keep.name,
+            preferences: richest.preferences ?? keep.preferences,
+            customerId:
+              group.find((row) => row.customerId)?.customerId ?? keep.customerId,
+            welcomeEmailSentAt:
+              group.find((row) => row.welcomeEmailSentAt)?.welcomeEmailSentAt ??
+              keep.welcomeEmailSentAt,
+          })
+          .where(inArray(waitlistSignups.id, [keep.id]));
+      });
       merged += 1;
       removed += drop.length;
     }

@@ -275,6 +275,12 @@ export function OutreachView({
             Importeer CSV
           </button>
           <Link
+            href={adminPath("/outreach/mails")}
+            className="inline-flex items-center justify-center rounded-full border border-burgundy/25 bg-cream px-5 py-2.5 text-sm font-medium text-burgundy transition hover:border-burgundy/50 hover:bg-burgundy/[0.04]"
+          >
+            Verzonden mails
+          </Link>
+          <Link
             href={adminPath("/outreach/templates")}
             className="inline-flex items-center justify-center rounded-full border border-burgundy/25 bg-cream px-5 py-2.5 text-sm font-medium text-burgundy transition hover:border-burgundy/50 hover:bg-burgundy/[0.04]"
           >

@@ -13,7 +13,8 @@ is, en wat ze terugschreven.
    tweede import ververst contactgegevens en laat status, sequence en notities staan.
 2. **Templates.** Onder `/admin/outreach/templates` staan de mails. Een template
    van soort *sequence* heeft een stap (1, 2, 3…) en een wachttijd in dagen. Een
-   template van soort *antwoord* stuur je met de hand als iemand reageert.
+   Er is bewust geen antwoord-template: reageert een zaak, dan schrijf je dat
+   antwoord met de hand vanuit je eigen inbox.
    Placeholders: `{{naam}}`, `{{stad}}`, `{{categorie}}`, `{{contact}}`, `{{website}}`.
    Een PDF-bijlage upload je bij het template; die gaat met elke verzending mee.
 3. **Versturen.** Selecteer zaken in de lijst en klik *Verstuur volgende stap*.

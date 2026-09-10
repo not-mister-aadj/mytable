@@ -105,9 +105,13 @@ export async function deleteOutreachTemplate(id: string): Promise<void> {
 }
 
 /**
- * The live outreach copy. Steps 1-3 are the founder's own text; only the venue
- * name and city are placeholders so the same mails work in a second city.
- * Follow-ups keep "Re:" on the original subject so they read as one thread.
+ * The live outreach copy: the founder's own text, with only the venue name and
+ * city as placeholders so the same mails work in a second city. Follow-ups keep
+ * "Re:" on the original subject so they read as one thread.
+ *
+ * There is deliberately no reply template. Answers to a venue that wrote back
+ * are written by hand from the founder's own inbox — a templated reply to a
+ * real reply reads as exactly what it is.
  */
 export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
   {
@@ -164,33 +168,6 @@ mytable.club`,
 Ik stuur hierover nog één laatste berichtje. Is een groep van 10–20 personen op zondagmiddag iets waar jullie voor openstaan?
 
 Als het niet past, is dat natuurlijk ook helemaal goed.
-
-Cheers,
-Team MyTable
-mytable.club`,
-    attachmentPath: null,
-    attachmentName: null,
-    isActive: true,
-  },
-  {
-    key: "venue-reply",
-    name: "Antwoord op reactie",
-    kind: "reply",
-    step: null,
-    delayDays: 0,
-    subject: "Re: tafel reserveren op zondagmiddag",
-    body: `Hi,
-
-Fijn, dank voor je reactie.
-
-Even concreet: wij zetten een zondagmiddag op de agenda en verzamelen de aanmeldingen. Een paar dagen van tevoren krijgen jullie het definitieve aantal door. Iedereen bestelt ter plekke zelf drankjes en bites bij jullie, dus jullie factureren zoals altijd.
-
-Wat ik van jullie nodig heb:
-- Welke zondagmiddagen komen jullie uit?
-- Hoeveel mensen kunnen er maximaal, verdeeld over een paar tafels?
-- Willen jullie vooraf een minimum afspreken?
-
-Bellen kan ook, dan is het in vijf minuten rond.
 
 Cheers,
 Team MyTable

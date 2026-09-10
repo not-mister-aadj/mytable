@@ -42,11 +42,27 @@ export type OutreachProspectRow = {
   createdAt: string;
   /** Aggregates over everything we sent to this prospect. */
   messageCount: number;
+  deliveredCount: number;
   openedCount: number;
   clickedCount: number;
+  bouncedCount: number;
   replyCount: number;
   lastSentAt: string | null;
   lastOpenedAt: string | null;
+  /** One entry per sequence mail that went out, oldest step first. */
+  steps: OutreachStepState[];
+};
+
+/** What happened to one mail of the sequence — drives the dots in the list. */
+export type OutreachStepState = {
+  step: number;
+  sentAt: string;
+  deliveredAt: string | null;
+  openedAt: string | null;
+  openCount: number;
+  clickCount: number;
+  bouncedAt: string | null;
+  failed: boolean;
 };
 
 export type OutreachMessageRow = {
@@ -91,14 +107,19 @@ function toStatus(value: string): OutreachStatus {
 type ProspectAggregateRow = {
   prospect: OutreachProspect;
   messageCount: number;
+  deliveredCount: number;
   openedCount: number;
   clickedCount: number;
+  bouncedCount: number;
   replyCount: number;
   lastSentAt: Date | string | null;
   lastOpenedAt: Date | string | null;
 };
 
-function mapProspectRow(row: ProspectAggregateRow): OutreachProspectRow {
+function mapProspectRow(
+  row: ProspectAggregateRow,
+  steps: OutreachStepState[] = [],
+): OutreachProspectRow {
   const p = row.prospect;
   return {
     id: p.id,
@@ -121,11 +142,14 @@ function mapProspectRow(row: ProspectAggregateRow): OutreachProspectRow {
     lastActivityAt: iso(p.lastActivityAt),
     createdAt: iso(p.createdAt)!,
     messageCount: Number(row.messageCount ?? 0),
+    deliveredCount: Number(row.deliveredCount ?? 0),
     openedCount: Number(row.openedCount ?? 0),
     clickedCount: Number(row.clickedCount ?? 0),
+    bouncedCount: Number(row.bouncedCount ?? 0),
     replyCount: Number(row.replyCount ?? 0),
     lastSentAt: iso(row.lastSentAt),
     lastOpenedAt: iso(row.lastOpenedAt),
+    steps,
   };
 }
 
@@ -133,25 +157,83 @@ function mapProspectRow(row: ProspectAggregateRow): OutreachProspectRow {
 const prospectAggregateSelection = {
   prospect: outreachProspects,
   messageCount: sql<number>`count(${outreachMessages.id})::int`,
+  deliveredCount: sql<number>`count(${outreachMessages.deliveredAt})::int`,
   openedCount: sql<number>`count(${outreachMessages.firstOpenedAt})::int`,
   clickedCount: sql<number>`count(${outreachMessages.firstClickedAt})::int`,
+  bouncedCount: sql<number>`count(${outreachMessages.bouncedAt})::int`,
   replyCount: sql<number>`(select count(*)::int from ${outreachActivities} where ${outreachActivities.prospectId} = ${outreachProspects.id} and ${outreachActivities.type} = 'reply')`,
   lastSentAt: sql<Date | null>`max(${outreachMessages.sentAt})`,
   lastOpenedAt: sql<Date | null>`max(${outreachMessages.lastOpenedAt})`,
 };
 
-export async function getOutreachProspects(): Promise<OutreachProspectRow[]> {
-  const rows = await getDb()
-    .select(prospectAggregateSelection)
-    .from(outreachProspects)
-    .leftJoin(
-      outreachMessages,
-      eq(outreachMessages.prospectId, outreachProspects.id),
-    )
-    .groupBy(outreachProspects.id)
-    .orderBy(asc(outreachProspects.name));
+function toStepState(message: {
+  step: number | null;
+  status: string;
+  sentAt: Date;
+  deliveredAt: Date | null;
+  firstOpenedAt: Date | null;
+  openCount: number;
+  clickCount: number;
+  bouncedAt: Date | null;
+}): OutreachStepState {
+  return {
+    step: message.step ?? 0,
+    sentAt: iso(message.sentAt)!,
+    deliveredAt: iso(message.deliveredAt),
+    openedAt: iso(message.firstOpenedAt),
+    openCount: message.openCount,
+    clickCount: message.clickCount,
+    bouncedAt: iso(message.bouncedAt),
+    failed: message.status === "failed",
+  };
+}
 
-  return rows.map(mapProspectRow);
+/**
+ * Per-mail state for every prospect at once. One extra query beats a lateral
+ * join here: the list is a few hundred rows and the messages are far fewer.
+ */
+async function getStepStatesByProspect(): Promise<Map<string, OutreachStepState[]>> {
+  const messages = await getDb()
+    .select({
+      prospectId: outreachMessages.prospectId,
+      step: outreachMessages.step,
+      status: outreachMessages.status,
+      sentAt: outreachMessages.sentAt,
+      deliveredAt: outreachMessages.deliveredAt,
+      firstOpenedAt: outreachMessages.firstOpenedAt,
+      openCount: outreachMessages.openCount,
+      clickCount: outreachMessages.clickCount,
+      bouncedAt: outreachMessages.bouncedAt,
+    })
+    .from(outreachMessages)
+    .orderBy(asc(outreachMessages.sentAt));
+
+  const byProspect = new Map<string, OutreachStepState[]>();
+  for (const message of messages) {
+    const list = byProspect.get(message.prospectId) ?? [];
+    list.push(toStepState(message));
+    byProspect.set(message.prospectId, list);
+  }
+  return byProspect;
+}
+
+export async function getOutreachProspects(): Promise<OutreachProspectRow[]> {
+  const [rows, stepsByProspect] = await Promise.all([
+    getDb()
+      .select(prospectAggregateSelection)
+      .from(outreachProspects)
+      .leftJoin(
+        outreachMessages,
+        eq(outreachMessages.prospectId, outreachProspects.id),
+      )
+      .groupBy(outreachProspects.id)
+      .orderBy(asc(outreachProspects.name)),
+    getStepStatesByProspect(),
+  ]);
+
+  return rows.map((row) =>
+    mapProspectRow(row, stepsByProspect.get(row.prospect.id) ?? []),
+  );
 }
 
 export async function getOutreachProspect(
@@ -185,7 +267,10 @@ export async function getOutreachProspect(
   ]);
 
   return {
-    ...mapProspectRow(row),
+    ...mapProspectRow(
+      row,
+      [...messages].reverse().map(toStepState),
+    ),
     messages: messages.map((m) => ({
       id: m.id,
       templateKey: m.templateKey,

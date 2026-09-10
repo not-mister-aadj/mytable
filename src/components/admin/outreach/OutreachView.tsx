@@ -16,6 +16,9 @@ import {
   sendSequenceAction,
 } from "@/app/admin/(dashboard)/outreach/actions";
 import { OutreachStatusPill } from "@/components/admin/outreach/OutreachStatusPill";
+import { OutreachFunnelPanel } from "@/components/admin/outreach/OutreachFunnelPanel";
+import { OutreachStepDots } from "@/components/admin/outreach/OutreachStepDots";
+import { buildOutreachFunnel } from "@/lib/outreach/funnel";
 
 type FilterKey = "all" | "todo" | "due" | "waiting" | "replied" | "won";
 
@@ -77,6 +80,35 @@ function MapPinIcon() {
   );
 }
 
+type SortKey = "name" | "recent" | "engagement" | "due";
+
+const SORT_LABELS: Record<SortKey, string> = {
+  name: "Naam A–Z",
+  recent: "Laatst gemaild",
+  engagement: "Meeste reactie",
+  due: "Opvolgen eerst",
+};
+
+function time(iso: string | null): number {
+  return iso ? new Date(iso).getTime() : 0;
+}
+
+const SORTERS: Record<
+  SortKey,
+  (a: OutreachProspectRow, b: OutreachProspectRow) => number
+> = {
+  name: (a, b) => a.name.localeCompare(b.name, "nl"),
+  recent: (a, b) => time(b.lastSentAt) - time(a.lastSentAt),
+  // Antwoorden wegen zwaarder dan opens: dat is het signaal dat telt.
+  engagement: (a, b) =>
+    b.replyCount * 100 + b.openedCount - (a.replyCount * 100 + a.openedCount),
+  due: (a, b) => {
+    const aDue = a.nextFollowUpAt ? time(a.nextFollowUpAt) : Infinity;
+    const bDue = b.nextFollowUpAt ? time(b.nextFollowUpAt) : Infinity;
+    return aDue - bDue;
+  },
+};
+
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
@@ -104,6 +136,7 @@ export function OutreachView({
   const [statusFilter, setStatusFilter] = useState<"all" | OutreachStatus>("all");
   const [cityFilter, setCityFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortKey>("name");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
   const [csv, setCsv] = useState("");
@@ -118,7 +151,7 @@ export function OutreachView({
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return prospects.filter((row) => {
+    const rows = prospects.filter((row) => {
       if (!matchesFilter(row, filter)) return false;
       if (statusFilter !== "all" && row.status !== statusFilter) return false;
       if (cityFilter !== "all" && row.city !== cityFilter) return false;
@@ -127,34 +160,30 @@ export function OutreachView({
         .filter(Boolean)
         .some((value) => value!.toLowerCase().includes(query));
     });
-  }, [prospects, filter, statusFilter, cityFilter, search]);
-
-  const stats = useMemo(() => {
-    const mailed = prospects.filter((row) => row.messageCount > 0);
-    const opened = mailed.filter((row) => row.openedCount > 0);
-    const replied = prospects.filter((row) => row.replyCount > 0);
-    const due = prospects.filter(isDue);
-    return {
-      total: prospects.length,
-      mailed: mailed.length,
-      opened: opened.length,
-      openRate:
-        mailed.length > 0
-          ? `${Math.round((opened.length / mailed.length) * 100)}%`
-          : "—",
-      replied: replied.length,
-      replyRate:
-        mailed.length > 0
-          ? `${Math.round((replied.length / mailed.length) * 100)}%`
-          : "—",
-      due: due.length,
-      partners: prospects.filter((row) => row.status === "partner").length,
-    };
-  }, [prospects]);
+    return [...rows].sort(SORTERS[sort]);
+  }, [prospects, filter, statusFilter, cityFilter, search, sort]);
 
   const sequenceLength = templates.filter(
     (template) => template.kind === "sequence" && template.isActive,
   ).length;
+
+  /** The "what do I do next" numbers; the funnel below carries the rates. */
+  const stats = useMemo(() => {
+    const todo = prospects.filter(
+      (row) => row.messageCount === 0 && row.status === "new" && row.email,
+    );
+    return {
+      todo: todo.length,
+      due: prospects.filter(isDue).length,
+      noEmail: prospects.filter((row) => !row.email).length,
+      replied: prospects.filter((row) => row.replyCount > 0).length,
+    };
+  }, [prospects]);
+
+  const funnel = useMemo(
+    () => buildOutreachFunnel(filtered, sequenceLength),
+    [filtered, sequenceLength],
+  );
 
   const selectable = filtered.filter((row) => Boolean(row.email));
   const allSelected =
@@ -305,10 +334,26 @@ export function OutreachView({
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Zaken" value={String(stats.total)} hint={`${stats.mailed} gemaild`} />
-        <StatCard label="Geopend" value={stats.openRate} hint={`${stats.opened} van ${stats.mailed}`} />
-        <StatCard label="Geantwoord" value={stats.replyRate} hint={`${stats.replied} reacties`} />
-        <StatCard label="Opvolgen" value={String(stats.due)} hint={`${stats.partners} partner`} />
+        <StatCard
+          label="Nog te mailen"
+          value={String(stats.todo)}
+          hint="met e-mailadres"
+        />
+        <StatCard
+          label="Opvolgen nu"
+          value={String(stats.due)}
+          hint="wachttijd verstreken"
+        />
+        <StatCard
+          label="Antwoorden"
+          value={String(stats.replied)}
+          hint="zaken die reageerden"
+        />
+        <StatCard
+          label="Bellen"
+          value={String(stats.noEmail)}
+          hint="geen e-mailadres"
+        />
       </div>
 
       <div className="space-y-4 rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)] sm:p-6">
@@ -366,6 +411,18 @@ export function OutreachView({
                 </option>
               ))}
             </select>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as SortKey)}
+              className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
+              aria-label="Sorteer"
+            >
+              {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                <option key={key} value={key}>
+                  {SORT_LABELS[key]}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -395,6 +452,8 @@ export function OutreachView({
           </span>
         </div>
       </div>
+
+      <OutreachFunnelPanel funnel={funnel} />
 
       <div className="divide-y divide-border-subtle/60 overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige">
         {filtered.length === 0 ? (
@@ -444,23 +503,36 @@ export function OutreachView({
                   </a>
                 ) : null}
                 <OutreachStatusPill status={row.status} />
-                <span title="Verstuurde mails in de sequence">
-                  Stap {row.sequenceStep}
-                  {sequenceLength > 0 ? `/${sequenceLength}` : ""}
-                </span>
-                <span title="Laatste mail">{formatDate(row.lastSentAt)}</span>
                 <span
-                  className={row.openedCount > 0 ? "text-burgundy" : undefined}
-                  title="Geopende mails"
+                  className="flex items-center gap-2"
+                  title={`${row.sequenceStep} van ${sequenceLength || "?"} mails verstuurd`}
                 >
-                  {row.openedCount} open
+                  <OutreachStepDots
+                    steps={row.steps}
+                    sequenceLength={sequenceLength}
+                  />
+                  <span className="text-wine/50">
+                    {row.lastSentAt ? formatDate(row.lastSentAt) : "—"}
+                  </span>
                 </span>
-                <span
-                  className={row.replyCount > 0 ? "text-burgundy" : undefined}
-                  title="Geregistreerde antwoorden"
-                >
-                  {row.replyCount} reply
-                </span>
+                {row.openedCount > 0 ? (
+                  <span className="text-burgundy" title="Geopende mails">
+                    {row.openedCount}× open
+                  </span>
+                ) : null}
+                {row.replyCount > 0 ? (
+                  <span
+                    className="rounded-full border border-gold/40 bg-gold/[0.12] px-2 py-0.5 font-medium text-[#7A5A2B]"
+                    title="Geregistreerde antwoorden"
+                  >
+                    {row.replyCount}× antwoord
+                  </span>
+                ) : null}
+                {row.bouncedCount > 0 ? (
+                  <span className="text-red-700" title="Bounces">
+                    bounce
+                  </span>
+                ) : null}
                 {isDue(row) ? (
                   <span className="rounded-full border border-burgundy/30 bg-burgundy/[0.06] px-2 py-0.5 font-medium text-burgundy">
                     Opvolgen

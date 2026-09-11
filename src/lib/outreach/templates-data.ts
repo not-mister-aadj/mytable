@@ -30,7 +30,8 @@ function mapTemplate(row: OutreachTemplate): OutreachTemplateRow {
     attachmentPath: row.attachmentPath,
     attachmentName: row.attachmentName,
     isActive: row.isActive,
-    updatedAt: row.updatedAt.toISOString(),
+    // Never null per the schema; guarded so one bad row cannot take the page down.
+    updatedAt: (row.updatedAt ?? new Date(0)).toISOString(),
   };
 }
 
@@ -188,16 +189,23 @@ export async function ensureDefaultOutreachTemplates(): Promise<void> {
   const missing = DEFAULT_OUTREACH_TEMPLATES.filter((row) => !known.has(row.key));
   if (missing.length === 0) return;
 
-  await db.insert(outreachTemplates).values(
-    missing.map((row) => ({
-      key: row.key,
-      name: row.name,
-      kind: row.kind,
-      step: row.step,
-      delayDays: row.delayDays,
-      subject: row.subject,
-      body: row.body,
-      isActive: row.isActive,
-    })),
-  );
+  // ON CONFLICT: two requests can both see a key as missing — a first page
+  // load racing a second, or a read that came back incomplete while the
+  // database was timing out. Either way the row exists; a duplicate is not an
+  // error worth failing the whole dashboard over.
+  await db
+    .insert(outreachTemplates)
+    .values(
+      missing.map((row) => ({
+        key: row.key,
+        name: row.name,
+        kind: row.kind,
+        step: row.step,
+        delayDays: row.delayDays,
+        subject: row.subject,
+        body: row.body,
+        isActive: row.isActive,
+      })),
+    )
+    .onConflictDoNothing();
 }

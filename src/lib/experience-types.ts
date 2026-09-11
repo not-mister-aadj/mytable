@@ -1,4 +1,3 @@
-import { cache } from "react";
 import { eq, inArray } from "drizzle-orm";
 import { experienceTypes } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -46,8 +45,24 @@ export async function ensureExperienceTypesSeeded() {
     .onConflictDoNothing();
 }
 
-/** At most once per request */
-export const ensureExperienceTypesSeededCached = cache(ensureExperienceTypesSeeded);
+let seeded: Promise<void> | null = null;
+
+/**
+ * At most once per server instance rather than once per request. This runs on
+ * the public experience pages, where every extra round trip to the database is
+ * one more chance for a request to stall; the types it guarantees only change
+ * with a deploy, which starts fresh instances anyway. A failure clears the
+ * memo so the next request tries again.
+ */
+export function ensureExperienceTypesSeededCached(): Promise<void> {
+  if (!seeded) {
+    seeded = ensureExperienceTypesSeeded().catch((error: unknown) => {
+      seeded = null;
+      throw error;
+    });
+  }
+  return seeded;
+}
 
 export async function getExperienceTypesBySlugs(slugs: string[]) {
   if (!isDbConfigured() || slugs.length === 0) return [];

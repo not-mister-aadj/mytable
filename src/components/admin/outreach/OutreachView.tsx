@@ -19,6 +19,12 @@ import { OutreachStatusPill } from "@/components/admin/outreach/OutreachStatusPi
 import { OutreachFunnelPanel } from "@/components/admin/outreach/OutreachFunnelPanel";
 import { OutreachStepDots } from "@/components/admin/outreach/OutreachStepDots";
 import { buildOutreachFunnel } from "@/lib/outreach/funnel";
+import {
+  VENUE_TYPES,
+  VENUE_TYPE_LABELS,
+  venueType,
+  type VenueType,
+} from "@/lib/outreach/venue-type";
 
 type FilterKey = "all" | "todo" | "due" | "waiting" | "replied" | "won";
 
@@ -135,6 +141,7 @@ export function OutreachView({
   const [filter, setFilter] = useState<FilterKey>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | OutreachStatus>("all");
   const [cityFilter, setCityFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | VenueType>("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("name");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -149,19 +156,31 @@ export function OutreachView({
     [prospects],
   );
 
+  const typeCounts = useMemo(() => {
+    const counts = new Map<VenueType, number>();
+    for (const row of prospects) {
+      const type = venueType(row.category);
+      counts.set(type, (counts.get(type) ?? 0) + 1);
+    }
+    return counts;
+  }, [prospects]);
+
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     const rows = prospects.filter((row) => {
       if (!matchesFilter(row, filter)) return false;
       if (statusFilter !== "all" && row.status !== statusFilter) return false;
       if (cityFilter !== "all" && row.city !== cityFilter) return false;
+      if (typeFilter !== "all" && venueType(row.category) !== typeFilter) {
+        return false;
+      }
       if (!query) return true;
       return [row.name, row.email, row.category, row.address]
         .filter(Boolean)
         .some((value) => value!.toLowerCase().includes(query));
     });
     return [...rows].sort(SORTERS[sort]);
-  }, [prospects, filter, statusFilter, cityFilter, search, sort]);
+  }, [prospects, filter, statusFilter, cityFilter, typeFilter, search, sort]);
 
   const sequenceLength = templates.filter(
     (template) => template.kind === "sequence" && template.isActive,
@@ -389,6 +408,21 @@ export function OutreachView({
             className="w-full max-w-md rounded-full border border-border-subtle bg-cream px-4 py-2.5 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
           />
           <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={typeFilter}
+              onChange={(event) =>
+                setTypeFilter(event.target.value as "all" | VenueType)
+              }
+              className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
+              aria-label="Filter op type zaak"
+            >
+              <option value="all">Alle types</option>
+              {VENUE_TYPES.filter((type) => typeCounts.has(type)).map((type) => (
+                <option key={type} value={type}>
+                  {VENUE_TYPE_LABELS[type]} ({typeCounts.get(type)})
+                </option>
+              ))}
+            </select>
             <select
               value={statusFilter}
               onChange={(event) =>

@@ -18,15 +18,18 @@ import {
   updateOutreachProspectDetails,
 } from "@/lib/outreach/prospects-data";
 import {
+  manualMailSource,
   nextSequenceTemplate,
   renderOutreachMail,
   sendOutreachBatch,
   sendOutreachMail,
+  type OutreachMailSource,
 } from "@/lib/outreach/send";
 import {
   deleteOutreachTemplate,
   getOutreachTemplates,
   saveOutreachTemplate,
+  type OutreachTemplateRow,
 } from "@/lib/outreach/templates-data";
 
 type ActionResult = { error: string | null };
@@ -97,6 +100,11 @@ export async function sendSequenceAction(prospectIds: string[]): Promise<{
         failures.push({ name: prospect.name, reason: "geen e-mailadres" });
         continue;
       }
+      const blocked = blockedReason(prospect.status);
+      if (blocked) {
+        failures.push({ name: prospect.name, reason: blocked });
+        continue;
+      }
       const template = nextSequenceTemplate(templates, prospect.sequenceStep);
       if (!template) {
         failures.push({ name: prospect.name, reason: "sequence is klaar" });
@@ -148,6 +156,8 @@ export async function sendTemplateAction(
     const template = templates.find((row) => row.id === templateId);
     if (!prospect) return { error: "Zaak niet gevonden." };
     if (!template) return { error: "Template niet gevonden." };
+    const blocked = blockedReason(prospect.status);
+    if (blocked) return { error: `Niet verstuurd: ${blocked}.` };
 
     const result = await sendOutreachMail({
       prospect,
@@ -161,6 +171,127 @@ export async function sendTemplateAction(
   } catch (error) {
     console.error("[outreach] template send failed", error);
     return { error: "Versturen mislukt." };
+  }
+}
+
+/** Venues that must not get another mail, whatever the sender picked. */
+function blockedReason(status: string): string | null {
+  if (status === "unsubscribed") return "afgemeld";
+  if (status === "bounced") return "bounce";
+  return null;
+}
+
+type BulkSendResult = {
+  error: string | null;
+  sent: number;
+  failures: { name: string; reason: string }[];
+};
+
+/** Shared tail of every bulk send: skip who cannot be mailed, send the rest. */
+async function sendToTargets(
+  targets: Awaited<ReturnType<typeof getOutreachSendTargets>>,
+  source: OutreachMailSource,
+  templates: OutreachTemplateRow[],
+): Promise<BulkSendResult> {
+  const failures: BulkSendResult["failures"] = [];
+  const queue: Parameters<typeof sendOutreachBatch>[0] = [];
+
+  for (const prospect of targets) {
+    if (!prospect.email) {
+      failures.push({ name: prospect.name, reason: "geen e-mailadres" });
+      continue;
+    }
+    const blocked = blockedReason(prospect.status);
+    if (blocked) {
+      failures.push({ name: prospect.name, reason: blocked });
+      continue;
+    }
+    queue.push({
+      prospect,
+      template: source,
+      nextTemplate:
+        source.kind === "sequence"
+          ? nextSequenceTemplate(templates, source.step ?? 0)
+          : null,
+    });
+  }
+
+  const results = await sendOutreachBatch(queue);
+  for (const [index, result] of results.entries()) {
+    if (!result.ok) {
+      failures.push({ name: queue[index].prospect.name, reason: result.error });
+    }
+  }
+  return {
+    error: null,
+    sent: results.filter((result) => result.ok).length,
+    failures,
+  };
+}
+
+/**
+ * Send one chosen template to every selected venue. Unlike sendSequenceAction
+ * this does not pick the next step per venue — the sender chose this mail.
+ */
+export async function sendTemplateToManyAction(
+  prospectIds: string[],
+  templateId: string,
+): Promise<BulkSendResult> {
+  const context = await guard();
+  if ("error" in context) return { error: context.error, sent: 0, failures: [] };
+
+  try {
+    const [targets, templates] = await Promise.all([
+      getOutreachSendTargets(prospectIds),
+      getOutreachTemplates(),
+    ]);
+    const template = templates.find((row) => row.id === templateId);
+    if (!template) {
+      return { error: "Template niet gevonden.", sent: 0, failures: [] };
+    }
+    const result = await sendToTargets(targets, template, templates);
+    revalidateOutreach();
+    return result;
+  } catch (error) {
+    console.error("[outreach] template bulk send failed", error);
+    return { error: "Versturen mislukt.", sent: 0, failures: [] };
+  }
+}
+
+/**
+ * Send a mail written by hand in the dashboard — to one venue from its page
+ * or to a whole selection. Placeholders are filled per venue, it is logged
+ * like any other mail, and it never moves anyone along the sequence.
+ */
+export async function sendCustomMailAction(input: {
+  prospectIds: string[];
+  subject: string;
+  body: string;
+}): Promise<BulkSendResult> {
+  const context = await guard();
+  if ("error" in context) return { error: context.error, sent: 0, failures: [] };
+  if (!input.subject.trim()) {
+    return { error: "Onderwerp is leeg.", sent: 0, failures: [] };
+  }
+  if (!input.body.trim()) return { error: "Tekst is leeg.", sent: 0, failures: [] };
+
+  try {
+    const [targets, templates] = await Promise.all([
+      getOutreachSendTargets(input.prospectIds),
+      getOutreachTemplates(),
+    ]);
+    const result = await sendToTargets(
+      targets,
+      manualMailSource(input.subject.trim(), input.body),
+      templates,
+    );
+    revalidateOutreach(
+      input.prospectIds.length === 1 ? input.prospectIds[0] : undefined,
+    );
+    return result;
+  } catch (error) {
+    console.error("[outreach] custom mail send failed", error);
+    return { error: "Versturen mislukt.", sent: 0, failures: [] };
   }
 }
 

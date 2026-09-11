@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { adminPath } from "@/lib/admin-url";
 import {
+  OUTREACH_MANUAL_MAIL_DRAFT,
   OUTREACH_STATUSES,
   OUTREACH_STATUS_LABELS,
   type OutreachStatus,
@@ -13,9 +14,12 @@ import type { OutreachProspectRow } from "@/lib/outreach/prospects-data";
 import type { OutreachTemplateRow } from "@/lib/outreach/templates-data";
 import {
   importProspectsCsvAction,
+  sendCustomMailAction,
   sendSequenceAction,
+  sendTemplateToManyAction,
 } from "@/app/admin/(dashboard)/outreach/actions";
 import { OutreachStatusPill } from "@/components/admin/outreach/OutreachStatusPill";
+import { CustomMailFields } from "@/components/admin/outreach/CustomMailFields";
 import { OutreachFunnelPanel } from "@/components/admin/outreach/OutreachFunnelPanel";
 import { OutreachStepDots } from "@/components/admin/outreach/OutreachStepDots";
 import { buildOutreachFunnel } from "@/lib/outreach/funnel";
@@ -144,6 +148,10 @@ export function OutreachView({
   const [typeFilter, setTypeFilter] = useState<"all" | VenueType>("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("name");
+  const [sendMode, setSendMode] = useState<"next" | "template" | "custom">("next");
+  const [bulkTemplateId, setBulkTemplateId] = useState(templates[0]?.id ?? "");
+  const [customSubject, setCustomSubject] = useState("");
+  const [customBody, setCustomBody] = useState(OUTREACH_MANUAL_MAIL_DRAFT);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
   const [csv, setCsv] = useState("");
@@ -208,6 +216,10 @@ export function OutreachView({
   const allSelected =
     selectable.length > 0 && selectable.every((row) => selected.has(row.id));
 
+  /** The venue the custom-mail preview is filled in for. */
+  const previewProspect =
+    prospects.find((row) => selected.has(row.id)) ?? selectable[0] ?? null;
+
   function toggle(id: string) {
     setSelected((current) => {
       const next = new Set(current);
@@ -224,9 +236,22 @@ export function OutreachView({
   function handleSend() {
     const ids = [...selected];
     if (ids.length === 0) return;
+    const count = `${ids.length} ${ids.length === 1 ? "zaak" : "zaken"}`;
+    const chosenTemplate = templates.find((template) => template.id === bulkTemplateId);
+    if (sendMode === "template" && !chosenTemplate) return;
+    if (sendMode === "custom" && (!customSubject.trim() || !customBody.trim())) {
+      setMessage("Vul een onderwerp en een tekst in voor je eigen mail.");
+      return;
+    }
+    const question =
+      sendMode === "next"
+        ? `Volgende stap versturen naar ${count}?\n\nZaken die al de hele sequence hebben gehad worden overgeslagen.`
+        : sendMode === "template"
+          ? `"${chosenTemplate?.name}" versturen naar ${count}?`
+          : `Je eigen mail "${customSubject.trim()}" versturen naar ${count}?`;
     if (
       !confirm(
-        `Volgende stap versturen naar ${ids.length} ${ids.length === 1 ? "zaak" : "zaken"}?\n\nDit stuurt echte mail. Zaken die al de hele sequence hebben gehad worden overgeslagen.`,
+        `${question}\n\nDit stuurt echte mail. Afgemelde zaken en bounces worden altijd overgeslagen.`,
       )
     ) {
       return;
@@ -234,7 +259,16 @@ export function OutreachView({
 
     setMessage(null);
     startTransition(async () => {
-      const result = await sendSequenceAction(ids);
+      const result =
+        sendMode === "next"
+          ? await sendSequenceAction(ids)
+          : sendMode === "template"
+            ? await sendTemplateToManyAction(ids, bulkTemplateId)
+            : await sendCustomMailAction({
+                prospectIds: ids,
+                subject: customSubject,
+                body: customBody,
+              });
       if (result.error) {
         setMessage(result.error);
         return;
@@ -476,21 +510,58 @@ export function OutreachView({
             />
             Alles in filter ({selectable.length})
           </label>
+          <select
+            value={sendMode}
+            onChange={(event) =>
+              setSendMode(event.target.value as "next" | "template" | "custom")
+            }
+            className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
+            aria-label="Wat versturen"
+          >
+            <option value="next">Volgende stap van de sequence</option>
+            <option value="template">Een specifiek template</option>
+            <option value="custom">Eigen mail</option>
+          </select>
+          {sendMode === "template" ? (
+            <select
+              value={bulkTemplateId}
+              onChange={(event) => setBulkTemplateId(event.target.value)}
+              className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
+              aria-label="Kies template"
+            >
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
           <button
             type="button"
             onClick={handleSend}
             disabled={pending || selected.size === 0}
             className="inline-flex items-center justify-center rounded-full bg-burgundy px-5 py-2.5 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-40"
           >
-            {pending
-              ? "Bezig met versturen…"
-              : `Verstuur volgende stap (${selected.size})`}
+            {pending ? "Bezig met versturen…" : `Verstuur naar ${selected.size}`}
           </button>
           <span className="text-xs text-wine/50">
             {filtered.length} van {prospects.length} zaken
             {sequenceLength > 0 ? ` · sequence van ${sequenceLength} mails` : ""}
           </span>
         </div>
+
+        {sendMode === "custom" ? (
+          <div className="border-t border-border-subtle/60 pt-4">
+            <CustomMailFields
+              subject={customSubject}
+              body={customBody}
+              onSubjectChange={setCustomSubject}
+              onBodyChange={setCustomBody}
+              previewProspect={previewProspect}
+              disabled={pending}
+            />
+          </div>
+        ) : null}
       </div>
 
       <OutreachFunnelPanel funnel={funnel} />

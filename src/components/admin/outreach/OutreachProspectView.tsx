@@ -104,7 +104,14 @@ export function OutreachProspectView({
   );
 
   const [mode, setMode] = useState<"template" | "custom">("template");
-  const lastSubject = prospect.messages[0]?.subject ?? "";
+  // Reply on the last mail that came from a template, never on a hand-written
+  // one: a one-off subject (or a test) must not quietly become the next draft.
+  const lastSubject =
+    prospect.messages.find(
+      (entry) =>
+        entry.templateKey !== null &&
+        entry.templateKey !== OUTREACH_MANUAL_MAIL_KEY,
+    )?.subject ?? "";
   const [customSubject, setCustomSubject] = useState(
     lastSubject && !/^re:/i.test(lastSubject) ? `Re: ${lastSubject}` : lastSubject,
   );

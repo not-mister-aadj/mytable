@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { adminPath } from "@/lib/admin-url";
+import { OUTREACH_MANUAL_MAIL_KEY } from "@/lib/outreach/constants";
 import {
   MAIL_STATUSES,
   MAIL_STATUS_CLASSES,
@@ -223,6 +224,10 @@ export function OutreachMailLog({ messages }: { messages: OutreachMessageLogRow[
                             {row.step ? (
                               <span className="rounded-full border border-border-subtle px-2 py-0.5">
                                 Mail {row.step}
+                              </span>
+                            ) : row.templateKey === OUTREACH_MANUAL_MAIL_KEY ? (
+                              <span className="rounded-full border border-gold/40 bg-gold/[0.12] px-2 py-0.5 text-[#7A5A2B]">
+                                Eigen mail
                               </span>
                             ) : null}
                             <span

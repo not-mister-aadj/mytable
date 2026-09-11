@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { outreachMessages, outreachProspects } from "@/db/schema";
-import { renderEmailForDelivery } from "@/lib/email/render-email";
 import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/resend";
 import { createSupabaseAdminClient, MEDIA_BUCKET } from "@/lib/supabase/admin";
 import {
@@ -11,10 +10,9 @@ import {
 } from "@/lib/outreach/constants";
 import {
   fillOutreachTemplate,
-  outreachBodyParagraphs,
+  outreachTextToHtml,
 } from "@/lib/outreach/render-template";
 import type { OutreachTemplateRow } from "@/lib/outreach/templates-data";
-import { VenueOutreachEmail } from "@/emails/VenueOutreachEmail";
 
 /**
  * Cold outreach must not ride on the transactional domain: one spam complaint
@@ -33,9 +31,6 @@ export function getOutreachReplyTo(): string {
 export function isOutreachDomainSeparate(): boolean {
   return Boolean(process.env.OUTREACH_EMAIL_FROM?.trim());
 }
-
-export const OUTREACH_OPT_OUT_LINE =
-  "Liever geen mail meer van ons? Antwoord met “nee” en je hoort niets meer.";
 
 export type OutreachSendTarget = {
   id: string;
@@ -56,31 +51,26 @@ export type OutreachSendResult =
 export type RenderedOutreachMail = {
   subject: string;
   body: string;
-  paragraphs: string[];
   html: string;
   text: string;
 };
 
-/** Fill the template for one prospect — also used by the preview in the UI. */
+/**
+ * Fill the template for one prospect — also used by the preview in the UI.
+ *
+ * The mail goes out as plain text plus an HTML part shaped exactly like what a
+ * mail client produces for a typed message. The HTML is only there to carry
+ * the open-tracking pixel; nothing about it may look generated — no layout, no
+ * font, no footer.
+ */
 export async function renderOutreachMail(
   template: Pick<OutreachTemplateRow, "subject" | "body">,
   prospect: OutreachSendTarget,
 ): Promise<RenderedOutreachMail> {
   const subject = fillOutreachTemplate(template.subject, prospect);
   const body = fillOutreachTemplate(template.body, prospect);
-  const paragraphs = outreachBodyParagraphs(body);
-  const { html } = await renderEmailForDelivery(
-    VenueOutreachEmail({
-      preview: paragraphs[0]?.slice(0, 120) ?? subject,
-      paragraphs,
-      footer: OUTREACH_OPT_OUT_LINE,
-    }),
-  );
-  // The plain-text alternative is the template body verbatim. Rendering it out
-  // of the React email would collapse single newlines, which glues a signature
-  // into one line ("Cheers, Siraadj MyTable mytable.club").
-  const text = `${body.replace(/\r\n/g, "\n").trim()}\n\n${OUTREACH_OPT_OUT_LINE}\n`;
-  return { subject, body, paragraphs, html, text };
+  const text = body.replace(/\r\n/g, "\n").trim() + "\n";
+  return { subject, body, html: outreachTextToHtml(body), text };
 }
 
 function attachmentUrl(path: string): string {

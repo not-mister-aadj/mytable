@@ -101,3 +101,13 @@ export const OUTREACH_PLACEHOLDERS = [
   { token: "{{contact}}", description: "Contactpersoon, anders “team”" },
   { token: "{{website}}", description: "Website zonder https://" },
 ] as const;
+
+/** templateKey stored on a mail written by hand in the dashboard. */
+export const OUTREACH_MANUAL_MAIL_KEY = "manual";
+
+/**
+ * Starting text for a hand-written mail: an open greeting and the sign-off
+ * every venue mail uses.
+ */
+export const OUTREACH_MANUAL_MAIL_DRAFT =
+  "Hi,\n\n\n\nCheers,\nTeam MyTable\nmytable.club";

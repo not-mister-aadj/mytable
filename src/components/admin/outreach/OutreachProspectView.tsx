@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { adminPath } from "@/lib/admin-url";
 import {
+  OUTREACH_MANUAL_MAIL_DRAFT,
+  OUTREACH_MANUAL_MAIL_KEY,
   OUTREACH_SENTIMENTS,
   OUTREACH_SENTIMENT_LABELS,
   OUTREACH_STATUSES,
@@ -19,11 +21,13 @@ import {
   deleteProspectAction,
   logReplyAction,
   previewTemplateAction,
+  sendCustomMailAction,
   sendTemplateAction,
   setStatusAction,
   updateProspectAction,
 } from "@/app/admin/(dashboard)/outreach/actions";
 import { OutreachStatusPill } from "@/components/admin/outreach/OutreachStatusPill";
+import { CustomMailFields } from "@/components/admin/outreach/CustomMailFields";
 
 function formatDateTime(iso: string): string {
   return new Intl.DateTimeFormat("nl-NL", {
@@ -99,6 +103,13 @@ export function OutreachProspectView({
     null,
   );
 
+  const [mode, setMode] = useState<"template" | "custom">("template");
+  const lastSubject = prospect.messages[0]?.subject ?? "";
+  const [customSubject, setCustomSubject] = useState(
+    lastSubject && !/^re:/i.test(lastSubject) ? `Re: ${lastSubject}` : lastSubject,
+  );
+  const [customBody, setCustomBody] = useState(OUTREACH_MANUAL_MAIL_DRAFT);
+
   const [replyBody, setReplyBody] = useState("");
   const [sentiment, setSentiment] = useState<OutreachSentiment>("positive");
   const [noteBody, setNoteBody] = useState("");
@@ -161,6 +172,35 @@ export function OutreachProspectView({
       () => sendTemplateAction(prospect.id, templateId),
       "Mail verstuurd.",
     );
+  }
+
+  function handleSendCustom() {
+    if (!email.trim()) {
+      setMessage("Vul eerst een e-mailadres in.");
+      return;
+    }
+    if (!customSubject.trim() || !customBody.trim()) {
+      setMessage("Vul een onderwerp en een tekst in.");
+      return;
+    }
+    if (
+      !confirm(
+        `Je eigen mail versturen naar ${email}?\n\nOnderwerp: ${customSubject.trim()}`,
+      )
+    ) {
+      return;
+    }
+    setMessage(null);
+    startTransition(async () => {
+      const result = await sendCustomMailAction({
+        prospectIds: [prospect.id],
+        subject: customSubject,
+        body: customBody,
+      });
+      const failure = result.error ?? result.failures[0]?.reason ?? null;
+      setMessage(failure ? `Niet verstuurd: ${failure}.` : "Mail verstuurd.");
+      if (!failure) router.refresh();
+    });
   }
 
   function handleDelete() {
@@ -252,52 +292,91 @@ export function OutreachProspectView({
         <div className="space-y-6">
           <section className="space-y-4 rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
             <h2 className="font-serif text-xl text-burgundy">Mail versturen</h2>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <select
-                value={templateId}
-                onChange={(event) => {
-                  setTemplateId(event.target.value);
-                  setPreview(null);
-                }}
-                className="w-full rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40 sm:max-w-xs"
-              >
-                {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                    {template.id === nextTemplateId ? " — nu aan de beurt" : ""}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={handlePreview}
-                disabled={pending || !templateId}
-                className="rounded-full border border-burgundy/25 bg-cream px-4 py-2 text-sm font-medium text-burgundy transition hover:border-burgundy/50 disabled:opacity-40"
-              >
-                Preview
-              </button>
-              <button
-                type="button"
-                onClick={handleSend}
-                disabled={pending || !templateId}
-                className="rounded-full bg-burgundy px-5 py-2 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-40"
-              >
-                {pending ? "Bezig…" : "Verstuur"}
-              </button>
+            <div className="inline-flex rounded-full border border-border-subtle bg-cream p-1 text-sm">
+              {(["template", "custom"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setMode(value)}
+                  className={`rounded-full px-4 py-1.5 font-medium transition ${
+                    mode === value
+                      ? "bg-burgundy text-cream"
+                      : "text-wine/70 hover:text-burgundy"
+                  }`}
+                >
+                  {value === "template" ? "Template" : "Eigen mail"}
+                </button>
+              ))}
             </div>
-            {preview ? (
-              <div className="rounded-xl border border-border-subtle bg-cream p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-wine/45">
-                  Onderwerp
-                </p>
-                <p className="mt-1 text-sm font-medium text-burgundy">
-                  {preview.subject}
-                </p>
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-wine/80">
-                  {preview.body}
-                </p>
-              </div>
-            ) : null}
+            {mode === "template" ? (
+              <>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <select
+                    value={templateId}
+                    onChange={(event) => {
+                      setTemplateId(event.target.value);
+                      setPreview(null);
+                    }}
+                    className="w-full rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40 sm:max-w-xs"
+                  >
+                    {templates.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.name}
+                        {template.id === nextTemplateId ? " — nu aan de beurt" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handlePreview}
+                    disabled={pending || !templateId}
+                    className="rounded-full border border-burgundy/25 bg-cream px-4 py-2 text-sm font-medium text-burgundy transition hover:border-burgundy/50 disabled:opacity-40"
+                  >
+                    Preview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSend}
+                    disabled={pending || !templateId}
+                    className="rounded-full bg-burgundy px-5 py-2 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-40"
+                  >
+                    {pending ? "Bezig…" : "Verstuur"}
+                  </button>
+                </div>
+                {preview ? (
+                  <div className="rounded-xl border border-border-subtle bg-cream p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-wine/45">
+                      Onderwerp
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-burgundy">
+                      {preview.subject}
+                    </p>
+                    <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-wine/80">
+                      {preview.body}
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <CustomMailFields
+                  subject={customSubject}
+                  body={customBody}
+                  onSubjectChange={setCustomSubject}
+                  onBodyChange={setCustomBody}
+                  previewProspect={prospect}
+                  disabled={pending}
+                />
+                <button
+                  type="button"
+                  onClick={handleSendCustom}
+                  disabled={pending || !customSubject.trim() || !customBody.trim()}
+                  className="rounded-full bg-burgundy px-5 py-2 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-40"
+                >
+                  {pending ? "Bezig…" : "Verstuur eigen mail"}
+                </button>
+              </>
+            )}
           </section>
 
           <section className="space-y-4 rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
@@ -372,7 +451,11 @@ export function OutreachProspectView({
                         </div>
                         <p className="mt-1 text-xs text-wine/55">
                           {[
-                            mail.step ? `Stap ${mail.step}` : mail.templateKey,
+                            mail.step
+                              ? `Stap ${mail.step}`
+                              : mail.templateKey === OUTREACH_MANUAL_MAIL_KEY
+                                ? "Eigen mail"
+                                : mail.templateKey,
                             mail.attachmentName ? `📎 ${mail.attachmentName}` : null,
                             mail.deliveredAt ? "afgeleverd" : null,
                             mail.openCount > 0

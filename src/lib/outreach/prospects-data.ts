@@ -210,6 +210,8 @@ async function getStepStatesByProspect(): Promise<Map<string, OutreachStepState[
 
   const byProspect = new Map<string, OutreachStepState[]>();
   for (const message of messages) {
+    // Hand-written mails are not a step of the sequence and get no dot.
+    if (message.step === null) continue;
     const list = byProspect.get(message.prospectId) ?? [];
     list.push(toStepState(message));
     byProspect.set(message.prospectId, list);
@@ -269,7 +271,10 @@ export async function getOutreachProspect(
   return {
     ...mapProspectRow(
       row,
-      [...messages].reverse().map(toStepState),
+      [...messages]
+        .reverse()
+        .filter((message) => message.step !== null)
+        .map(toStepState),
     ),
     messages: messages.map((m) => ({
       id: m.id,

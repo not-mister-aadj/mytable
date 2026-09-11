@@ -4,12 +4,20 @@ import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL;
 
-/** Supabase transaction pooler (6543): small pool per instance; avoid HMR leaks in dev. */
+/**
+ * Supabase transaction pooler (6543): small pool per instance; avoid HMR leaks
+ * in dev.
+ *
+ * connect_timeout is 5s, not 10: functions run in fra1 next to the database, so
+ * a healthy handshake takes tens of milliseconds. When the pooler is not
+ * answering, public pages fall back to the static catalog, and every extra
+ * second here is a second a visitor stares at a blank page first.
+ */
 const postgresOptions = {
   prepare: false as const,
   max: 3,
   idle_timeout: 20,
-  connect_timeout: 10,
+  connect_timeout: 5,
 };
 
 type PostgresClient = ReturnType<typeof postgres>;

@@ -43,11 +43,29 @@ export function unknownPlaceholders(text: string): string[] {
   return [...found];
 }
 
-/** Blank-line separated blocks; single newlines stay inside a paragraph. */
-export function outreachBodyParagraphs(body: string): string[] {
-  return body
-    .replace(/\r\n/g, "\n")
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean);
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * The HTML part of an outreach mail, built the way Gmail's own composer builds
+ * a typed message: one div per line, an empty line as <div><br></div>, and no
+ * styling at all, so every mail client shows it in its own default font.
+ *
+ * The HTML part exists only because open tracking needs one to carry its pixel.
+ * It must not look any different from a mail typed by hand — no width, no font,
+ * no colours, no footer.
+ */
+export function outreachTextToHtml(text: string): string {
+  const lines = text.replace(/\r\n/g, "\n").trim().split("\n");
+  const inner = lines
+    .map((line) =>
+      line.trim() ? `<div>${escapeHtml(line)}</div>` : "<div><br></div>",
+    )
+    .join("");
+  return `<div dir="ltr">${inner}</div>`;
 }

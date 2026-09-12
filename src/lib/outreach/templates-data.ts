@@ -106,13 +106,11 @@ export async function deleteOutreachTemplate(id: string): Promise<void> {
 }
 
 /**
- * The live outreach copy: the founder's own text, with only the venue name and
- * city as placeholders so the same mails work in a second city. Follow-ups keep
- * "Re:" on the original subject so they read as one thread.
- *
- * There is deliberately no reply template. Answers to a venue that wrote back
- * are written by hand from the founder's own inbox — a templated reply to a
- * real reply reads as exactly what it is.
+ * The live outreach copy: the founder's own text, with the venue name and city
+ * as placeholders so the same mails work in a second city. Both Sundays are
+ * named on purpose — a venue can answer yes or no in one line, where an open
+ * "some Sunday" forces them to write back before they can say anything.
+ * Follow-ups keep "Re:" on the original subject so they read as one thread.
  */
 export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
   {
@@ -121,14 +119,14 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
     kind: "sequence",
     step: 1,
     delayDays: 0,
-    subject: "tafel reserveren op zondagmiddag",
+    subject: "tafel reserveren zondag 18 of 25 oktober",
     body: `Hi,
 
-Ik ben voor MyTable op zoek naar een locatie in {{stad}} waar we op zondagmiddag met ongeveer 10–20 personen kunnen zitten, verdeeld over een paar tafels.
+Ik zoek voor MyTable een plek in {{stad}} waar we op zondagmiddag 18 of 25 oktober met 14 tot 20 mensen kunnen zitten, verdeeld over een paar tafels.
 
-De aanmeldingen lopen via ons. Op locatie bestelt iedereen zelf drankjes en bites bij jullie.
+Wij brengen de mensen mee: zij melden zich bij ons aan, en bij jullie bestelt en betaalt iedereen zelf zijn drankjes en bites. Voor jullie is het een gevulde tafel op een rustige middag.
 
-Zou dit bij {{naam}} kunnen?
+Zou een van die twee zondagen lukken bij {{naam}}? En zo niet, is er een zondag die jullie beter uitkomt?
 
 Cheers,
 Team MyTable
@@ -143,10 +141,10 @@ mytable.club`,
     kind: "sequence",
     step: 2,
     delayDays: 4,
-    subject: "Re: tafel reserveren op zondagmiddag",
+    subject: "Re: tafel reserveren zondag 18 of 25 oktober",
     body: `Hi,
 
-Ik wilde even checken of een reservering voor 10–20 personen op zondagmiddag bij {{naam}} mogelijk is.
+Ik wilde even checken of een tafel voor 14 tot 20 personen op zondag 18 of 25 oktober bij {{naam}} mogelijk is.
 
 Of kan ik dit beter met iemand anders binnen jullie team bespreken?
 
@@ -163,10 +161,10 @@ mytable.club`,
     kind: "sequence",
     step: 3,
     delayDays: 7,
-    subject: "Re: tafel reserveren op zondagmiddag",
+    subject: "Re: tafel reserveren zondag 18 of 25 oktober",
     body: `Hi,
 
-Ik stuur hierover nog één laatste berichtje. Is een groep van 10–20 personen op zondagmiddag iets waar jullie voor openstaan?
+Ik stuur hierover nog een laatste berichtje. Is een groep van 14 tot 20 mensen op zondagmiddag 18 of 25 oktober iets waar jullie voor openstaan?
 
 Als het niet past, is dat natuurlijk ook helemaal goed.
 

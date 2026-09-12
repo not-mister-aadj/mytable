@@ -106,11 +106,11 @@ export async function deleteOutreachTemplate(id: string): Promise<void> {
 }
 
 /**
- * The live outreach copy. It reads as a reservation request, not as a pitch:
- * the greeting already says who the mail is for, the two Sundays are named so
- * a yes or no costs one line, and the only explanation given is the one a
- * venue actually worries about (no work, no bill, no risk).
- * Follow-ups keep "Re:" on the original subject so they read as one thread.
+ * The live outreach copy. It reads as a reservation request, not a pitch: the
+ * opening question carries the time, the number of tables and the number of
+ * people, so a host can answer it the way any reservation gets answered.
+ * All three mails share one subject line, minus the "Re:", so the follow-ups
+ * land in the same conversation as the first mail.
  */
 export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
   {
@@ -119,16 +119,14 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
     kind: "sequence",
     step: 1,
     delayDays: 0,
-    subject: "tafel reserveren zondag 18 of 25 oktober",
+    subject: "tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
-Ik wil voor MyTable een tafel reserveren op zondagmiddag 18 of 25 oktober, voor 14 tot 20 mensen.
+Kunnen we op zondagmiddag 18 of 25 oktober vanaf 14.00 uur drie à vier tafels bij jullie reserveren, voor in totaal 14 tot 20 personen?
 
-Wij stellen het gezelschap samen; ze bestellen bij jullie zelf hun drankjes en bites. Jullie hoeven alleen de tafels vrij te houden.
+Via MyTable brengen we beginnende wijnliefhebbers in kleine groepjes bij elkaar voor een gezellige middag. De gasten bestellen en betalen zelf hun wijn en eventuele bites; jullie hoeven alleen de tafels vrij te houden.
 
-Lukt een van die twee zondagen?
-
-Cheers,
+Groet,
 Team MyTable
 mytable.club`,
     attachmentPath: null,
@@ -141,14 +139,14 @@ mytable.club`,
     kind: "sequence",
     step: 2,
     delayDays: 4,
-    subject: "Re: tafel reserveren zondag 18 of 25 oktober",
+    subject: "Re: tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
-Ik wilde even checken of een tafel voor 14 tot 20 personen op zondag 18 of 25 oktober mogelijk is.
+Ik wilde even checken of drie à vier tafels voor 14 tot 20 personen op zondagmiddag 18 of 25 oktober mogelijk zijn.
 
 Of kan ik dit beter met iemand anders binnen jullie team bespreken?
 
-Cheers,
+Groet,
 Team MyTable
 mytable.club`,
     attachmentPath: null,
@@ -161,14 +159,14 @@ mytable.club`,
     kind: "sequence",
     step: 3,
     delayDays: 7,
-    subject: "Re: tafel reserveren zondag 18 of 25 oktober",
+    subject: "Re: tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
 Ik stuur hierover nog een laatste berichtje. Is een groep van 14 tot 20 mensen op zondagmiddag 18 of 25 oktober iets waar jullie voor openstaan?
 
 Als het niet past, is dat natuurlijk ook helemaal goed.
 
-Cheers,
+Groet,
 Team MyTable
 mytable.club`,
     attachmentPath: null,

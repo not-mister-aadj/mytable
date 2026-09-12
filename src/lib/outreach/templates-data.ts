@@ -106,10 +106,10 @@ export async function deleteOutreachTemplate(id: string): Promise<void> {
 }
 
 /**
- * The live outreach copy: the founder's own text, with the venue name and city
- * as placeholders so the same mails work in a second city. Both Sundays are
- * named on purpose — a venue can answer yes or no in one line, where an open
- * "some Sunday" forces them to write back before they can say anything.
+ * The live outreach copy. It reads as a reservation request, not as a pitch:
+ * the greeting already says who the mail is for, the two Sundays are named so
+ * a yes or no costs one line, and the only explanation given is the one a
+ * venue actually worries about (no work, no bill, no risk).
  * Follow-ups keep "Re:" on the original subject so they read as one thread.
  */
 export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
@@ -120,13 +120,13 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
     step: 1,
     delayDays: 0,
     subject: "tafel reserveren zondag 18 of 25 oktober",
-    body: `Hi,
+    body: `Hi {{naam}},
 
-Ik zoek voor MyTable een plek in {{stad}} waar we op zondagmiddag 18 of 25 oktober met 14 tot 20 mensen kunnen zitten, verdeeld over een paar tafels.
+Ik wil voor MyTable een tafel reserveren op zondagmiddag 18 of 25 oktober, voor 14 tot 20 mensen.
 
-Wij brengen de mensen mee: zij melden zich bij ons aan, en bij jullie bestelt en betaalt iedereen zelf zijn drankjes en bites. Voor jullie is het een gevulde tafel op een rustige middag.
+Wij stellen het gezelschap samen; ze bestellen bij jullie zelf hun drankjes en bites. Jullie hoeven alleen de tafels vrij te houden.
 
-Zou een van die twee zondagen lukken bij {{naam}}? En zo niet, is er een zondag die jullie beter uitkomt?
+Lukt een van die twee zondagen?
 
 Cheers,
 Team MyTable
@@ -142,9 +142,9 @@ mytable.club`,
     step: 2,
     delayDays: 4,
     subject: "Re: tafel reserveren zondag 18 of 25 oktober",
-    body: `Hi,
+    body: `Hi {{naam}},
 
-Ik wilde even checken of een tafel voor 14 tot 20 personen op zondag 18 of 25 oktober bij {{naam}} mogelijk is.
+Ik wilde even checken of een tafel voor 14 tot 20 personen op zondag 18 of 25 oktober mogelijk is.
 
 Of kan ik dit beter met iemand anders binnen jullie team bespreken?
 
@@ -162,7 +162,7 @@ mytable.club`,
     step: 3,
     delayDays: 7,
     subject: "Re: tafel reserveren zondag 18 of 25 oktober",
-    body: `Hi,
+    body: `Hi {{naam}},
 
 Ik stuur hierover nog een laatste berichtje. Is een groep van 14 tot 20 mensen op zondagmiddag 18 of 25 oktober iets waar jullie voor openstaan?
 

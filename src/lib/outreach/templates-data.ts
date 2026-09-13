@@ -122,9 +122,11 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
     subject: "tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
-Kunnen we op zondagmiddag 18 of 25 oktober vanaf 14.00 uur drie à vier tafels bij jullie reserveren, voor in totaal 14 tot 20 personen?
+Via MyTable brengen we beginnende wijnliefhebbers in kleine groepjes bij elkaar voor een gezellige zondagmiddag. We hebben al een paar geslaagde edities gehouden.
 
-Via MyTable brengen we beginnende wijnliefhebbers in kleine groepjes bij elkaar voor een gezellige middag. De gasten bestellen en betalen zelf hun wijn en eventuele bites; jullie hoeven alleen de tafels vrij te houden.
+Eigenlijk willen we gewoon een paar tafels bij jullie reserveren op een rustige zondagmiddag. Kan dat op 18 of 25 oktober, vanaf 14.00 uur, voor in totaal 14 tot 20 personen?
+
+De gasten bestellen en betalen zelf van de kaart, net als jullie gewone gasten. Is dat handiger, dan kiezen we samen een iets kleinere kaart voor ze uit.
 
 Groet,
 Team MyTable

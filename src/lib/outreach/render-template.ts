@@ -51,6 +51,20 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/** A line that is nothing but a web address, e.g. "instagram.com/mytable.club". */
+const BARE_URL_LINE = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i;
+
+/**
+ * One line of the mail as HTML. A line holding only a web address becomes a
+ * link, as Gmail does when you type an address into a signature; everything
+ * else stays plain text.
+ */
+function lineToHtml(line: string): string {
+  if (!BARE_URL_LINE.test(line)) return escapeHtml(line);
+  const href = /^https?:\/\//i.test(line) ? line : `https://${line}`;
+  return `<a href="${escapeHtml(href)}">${escapeHtml(line)}</a>`;
+}
+
 /**
  * The HTML part of an outreach mail, built the way Gmail's own composer builds
  * a typed message: one div per line, an empty line as <div><br></div>, and no
@@ -64,7 +78,7 @@ export function outreachTextToHtml(text: string): string {
   const lines = text.replace(/\r\n/g, "\n").trim().split("\n");
   const inner = lines
     .map((line) =>
-      line.trim() ? `<div>${escapeHtml(line)}</div>` : "<div><br></div>",
+      line.trim() ? `<div>${lineToHtml(line.trim())}</div>` : "<div><br></div>",
     )
     .join("");
   // A complete document, so the open-tracking pixel always has a <body> to be

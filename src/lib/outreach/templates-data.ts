@@ -122,9 +122,9 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
     subject: "tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
-Kunnen we op zondag 18 of 25 oktober een paar tafels bij jullie reserveren, in een van jullie daluren? De gasten bestellen en betalen zelf van de kaart, net als jullie gewone gasten.
+We willen graag een paar tafels bij jullie reserveren op zondag 18 of 25 oktober, in een van jullie daluren. Hebben jullie op een van die dagen plek?
 
-Via MyTable brengen we beginnende wijnliefhebbers in kleine groepjes bij elkaar voor een gezellige zondagmiddag. We hebben al een paar geslaagde edities gehouden.
+Het gaat om een groepje van MyTable, waar we beginnende wijnliefhebbers samenbrengen op zondagmiddag. Iedereen bestelt en betaalt zelf van de kaart, net als jullie gewone gasten. We hebben al een paar geslaagde edities gehouden.
 
 Groet,
 Team MyTable

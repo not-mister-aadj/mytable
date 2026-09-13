@@ -126,7 +126,7 @@ Via MyTable brengen we beginnende wijnliefhebbers in kleine groepjes bij elkaar 
 
 Eigenlijk willen we gewoon een paar tafels bij jullie reserveren op een rustig moment. Kan dat op zondag 18 of 25 oktober, in een van jullie daluren, voor in totaal 14 tot 20 personen?
 
-De gasten bestellen en betalen zelf van de kaart, net als jullie gewone gasten. Is dat handiger, dan kiezen we samen een iets kleinere kaart voor ze uit.
+De gasten bestellen en betalen zelf van de kaart, net als jullie gewone gasten, en er zijn voor jullie geen kosten aan verbonden. Afhankelijk van hoeveel tafels we mogen vullen, is het vaak handig om samen een iets kleinere kaart uit te kiezen.
 
 Groet,
 Team MyTable

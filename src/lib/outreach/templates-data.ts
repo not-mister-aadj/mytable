@@ -124,7 +124,7 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
 
 Via MyTable brengen we beginnende wijnliefhebbers in kleine groepjes bij elkaar voor een gezellige zondagmiddag. We hebben al een paar geslaagde edities gehouden.
 
-Eigenlijk willen we gewoon een paar tafels bij jullie reserveren op een rustig moment. Kan dat op zondag 18 of 25 oktober, in een van jullie daluren, voor in totaal 14 tot 20 personen?
+Eigenlijk willen we gewoon een paar tafels bij jullie reserveren op een rustig moment. Kan dat op zondag 18 of 25 oktober, in een van jullie daluren?
 
 De gasten bestellen en betalen zelf van de kaart, net als jullie gewone gasten, en er zijn voor jullie geen kosten aan verbonden. Afhankelijk van hoeveel tafels we mogen vullen, is het vaak handig om samen een iets kleinere kaart uit te kiezen.
 
@@ -144,7 +144,7 @@ mytable.club`,
     subject: "Re: tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
-Ik wilde even checken of drie à vier tafels voor 14 tot 20 personen op zondagmiddag 18 of 25 oktober mogelijk zijn.
+Ik wilde even checken of een paar tafels op zondag 18 of 25 oktober bij jullie mogelijk zijn, in een van jullie daluren.
 
 Of kan ik dit beter met iemand anders binnen jullie team bespreken?
 
@@ -164,7 +164,7 @@ mytable.club`,
     subject: "Re: tafels reserveren zondag 18 of 25 oktober",
     body: `Hi {{naam}},
 
-Ik stuur hierover nog een laatste berichtje. Is een groep van 14 tot 20 mensen op zondagmiddag 18 of 25 oktober iets waar jullie voor openstaan?
+Ik stuur hierover nog een laatste berichtje. Staan jullie open voor een paar tafels op zondag 18 of 25 oktober?
 
 Als het niet past, is dat natuurlijk ook helemaal goed.
 

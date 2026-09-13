@@ -110,4 +110,4 @@ export const OUTREACH_MANUAL_MAIL_KEY = "manual";
  * every venue mail uses (the founder's own name, website and Instagram).
  */
 export const OUTREACH_MANUAL_MAIL_DRAFT =
-  "Hi,\n\n\n\nGroet,\nFreek\nmytable.club\ninstagram.com/mytable.club";
+  "Hi,\n\n\n\nMet vriendelijke groet,\nFreek\nwww.mytable.club\ninstagram.com/mytable.club";

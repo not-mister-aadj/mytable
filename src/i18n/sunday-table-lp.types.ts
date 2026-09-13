@@ -87,6 +87,12 @@ export type SundayTableLpLabels = {
     submitting: string;
     privacyNote: string;
     error: string;
+    /** Shown instead of the generic error when the first name is missing. */
+    errorName: string;
+    /** Shown when the email is missing or not a valid address. */
+    errorEmail: string;
+    /** Shown when no city is chosen. */
+    errorCity: string;
     questionsTitle: string;
     questionsBody: string;
     skip: string;

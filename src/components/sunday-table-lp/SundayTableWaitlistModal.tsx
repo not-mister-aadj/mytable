@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import * as Sentry from "@sentry/nextjs";
 import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
 import type {
@@ -33,6 +34,27 @@ import {
   trackSundayTableWaitlistEnriched,
 } from "@/lib/posthog/analytics";
 import { VISIBLE_ONBOARDING_CITIES } from "@/lib/member-onboarding";
+
+/** Same check as createWaitlistSignup on the server. */
+/**
+ * A signup that fails in the browser never reaches the server logs, so report
+ * it here: which check stopped it, or what the server or network said. No
+ * name or email is sent along; the user agent shows in-app browsers.
+ */
+function reportSignupFailure(
+  reason: "missing_name" | "invalid_email" | "missing_city" | "server" | "network",
+  extra?: Record<string, unknown>,
+): void {
+  Sentry.withScope((scope) => {
+    scope.setTag("flow", "waitlist_signup");
+    scope.setTag("failure_reason", reason);
+    scope.setFingerprint(["waitlist_signup", reason]);
+    if (extra) scope.setExtras(extra);
+    Sentry.captureMessage("Waitlist signup failed: " + reason, "warning");
+  });
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -183,6 +205,8 @@ export function SundayTableWaitlistModal({
    * state) so the check is synchronous and can't be raced by a second tap
    * landing before React re-renders a disabled button. */
   const finishingRef = useRef(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [finishing, setFinishing] = useState(false);
 
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -321,8 +345,29 @@ export function SundayTableWaitlistModal({
 
   async function submitCapture() {
     setError(null);
-    if (!name.trim() || !email.trim() || effectiveCities.length === 0) {
-      setError(labels.error);
+    // In-app browsers (Instagram, Facebook) can autofill these fields without
+    // firing an input event, leaving React state empty while the field shows a
+    // value. Read the field itself as a fallback, and put the value back into
+    // state for the follow-up preference POSTs.
+    const nameValue = (name || nameInputRef.current?.value || "").trim();
+    const emailValue = (email || emailInputRef.current?.value || "").trim();
+    if (nameValue !== name) setName(nameValue);
+    if (emailValue !== email) setEmail(emailValue);
+
+    // Say what is missing instead of a generic error.
+    if (!nameValue) {
+      setError(labels.errorName);
+      reportSignupFailure("missing_name");
+      return;
+    }
+    if (!EMAIL_PATTERN.test(emailValue)) {
+      setError(labels.errorEmail);
+      reportSignupFailure("invalid_email", { empty: emailValue.length === 0 });
+      return;
+    }
+    if (effectiveCities.length === 0) {
+      setError(labels.errorCity);
+      reportSignupFailure("missing_city");
       return;
     }
     setIsSubmitting(true);
@@ -331,8 +376,8 @@ export function SundayTableWaitlistModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim(),
-          name: name.trim(),
+          email: emailValue,
+          name: nameValue,
           cities: effectiveCities,
           locale,
           source: "waitlist",
@@ -343,14 +388,23 @@ export function SundayTableWaitlistModal({
         }),
       });
       if (!res.ok) {
-        setError(labels.error);
+        const failure = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setError(
+          failure?.error === "Invalid email" ? labels.errorEmail : labels.error,
+        );
+        reportSignupFailure("server", {
+          status: res.status,
+          error: failure?.error,
+        });
         return;
       }
       const payload = (await res.json()) as { id?: string; created?: boolean };
       for (const c of effectiveCities) {
         rememberPreferredCity(c);
         trackEmailSignupCompleted({
-          email: email.trim(),
+          email: emailValue,
           city: c,
           language: locale,
           source_section: "sunday_table_lp_waitlist",
@@ -359,8 +413,12 @@ export function SundayTableWaitlistModal({
       setWaitlistId(payload.id ?? null);
       setIsNewSignup(payload.created === true);
       setPhase("questions");
-    } catch {
+    } catch (networkError) {
       setError(labels.error);
+      reportSignupFailure("network", {
+        message:
+          networkError instanceof Error ? networkError.message : String(networkError),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -652,7 +710,10 @@ export function SundayTableWaitlistModal({
                         {labels.nameLabel}
                       </span>
                       <input
+                        ref={nameInputRef}
                         type="text"
+                        name="name"
+                        autoComplete="given-name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={labels.namePlaceholder}
@@ -665,7 +726,13 @@ export function SundayTableWaitlistModal({
                         {labels.emailLabel}
                       </span>
                       <input
+                        ref={emailInputRef}
                         type="email"
+                        name="email"
+                        autoComplete="email"
+                        inputMode="email"
+                        autoCapitalize="none"
+                        spellCheck={false}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder={labels.emailPlaceholder}

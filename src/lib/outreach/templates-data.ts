@@ -124,11 +124,12 @@ export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
 
 We willen graag een paar tafels bij jullie reserveren op zondag 18 of 25 oktober, in een van jullie daluren. Hebben jullie op een van die dagen plek?
 
-Het gaat om een groepje van MyTable, waar we beginnende wijnliefhebbers samenbrengen op zondagmiddag. Iedereen bestelt en betaalt zelf van de kaart, net als jullie gewone gasten. We hebben al een paar geslaagde edities gehouden.
+Het gaat om een groepje van MyTable, waarmee we vaker beginnende wijnliefhebbers samenbrengen op zondagmiddag. Iedereen bestelt en betaalt zelf van de kaart, net als jullie gewone gasten.
 
 Groet,
-Team MyTable
-mytable.club`,
+Freek
+mytable.club
+instagram.com/mytable.club`,
     attachmentPath: null,
     attachmentName: null,
     isActive: true,
@@ -147,8 +148,9 @@ Ik wilde even checken of een paar tafels op zondag 18 of 25 oktober bij jullie m
 Of kan ik dit beter met iemand anders binnen jullie team bespreken?
 
 Groet,
-Team MyTable
-mytable.club`,
+Freek
+mytable.club
+instagram.com/mytable.club`,
     attachmentPath: null,
     attachmentName: null,
     isActive: true,
@@ -167,8 +169,9 @@ Ik stuur hierover nog een laatste berichtje. Staan jullie open voor een paar taf
 Als het niet past, is dat natuurlijk ook helemaal goed.
 
 Groet,
-Team MyTable
-mytable.club`,
+Freek
+mytable.club
+instagram.com/mytable.club`,
     attachmentPath: null,
     attachmentName: null,
     isActive: true,

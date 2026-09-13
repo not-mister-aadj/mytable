@@ -107,7 +107,7 @@ export const OUTREACH_MANUAL_MAIL_KEY = "manual";
 
 /**
  * Starting text for a hand-written mail: an open greeting and the sign-off
- * every venue mail uses.
+ * every venue mail uses (the founder's own name, website and Instagram).
  */
 export const OUTREACH_MANUAL_MAIL_DRAFT =
-  "Hi,\n\n\n\nCheers,\nTeam MyTable\nmytable.club";
+  "Hi,\n\n\n\nGroet,\nFreek\nmytable.club\ninstagram.com/mytable.club";

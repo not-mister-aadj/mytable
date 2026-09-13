@@ -67,5 +67,7 @@ export function outreachTextToHtml(text: string): string {
       line.trim() ? `<div>${escapeHtml(line)}</div>` : "<div><br></div>",
     )
     .join("");
-  return `<div dir="ltr">${inner}</div>`;
+  // A complete document, so the open-tracking pixel always has a <body> to be
+  // placed in. Still no styling anywhere: the mail looks exactly as before.
+  return `<html><head><meta charset="utf-8"></head><body><div dir="ltr">${inner}</div></body></html>`;
 }

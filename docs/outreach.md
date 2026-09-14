@@ -53,10 +53,12 @@ dev-schema automatisch toe).
 - **Opens zijn een indicatie, geen waarheid.** Apple Mail Privacy Protection
   laadt de tracking-pixel vooraf, dus een deel van de "geopend" is de mailserver
   en niet de eigenaar van de zaak. Kliks en antwoorden zijn de harde signalen.
-- **Koude B2B-mail mag**, maar geef een uitweg. De mails hebben geen zichtbare
-  afmeldregel meer (die verraadde dat het software was), wel een onzichtbare
-  List-Unsubscribe-header. Zegt een zaak "nee", zet hem dan echt op *Afgemeld*:
-  elke verzendroute slaat afgemelde zaken en bounces daarna over.
+- **Koude B2B-mail mag**, maar geef een uitweg. De mails hebben geen afmeldregel
+  en ook geen List-Unsubscribe-header meer: die liet Apple Mail en Gmail een
+  knop "Uitschrijven" boven de mail tonen, en een getypte reservering heeft
+  die nooit. De uitweg is antwoorden. Zegt een zaak "nee" of "stop", zet hem
+  dan op *Afgemeld*: elke verzendroute slaat afgemelde zaken en bounces daarna
+  over.
 - **De mail moet eruitzien alsof hij getypt is.** De HTML is opgebouwd zoals
   Gmail een getypte mail opbouwt, zonder opmaak, lettertype of breedte. Hij
   bestaat alleen om de open-pixel te dragen.

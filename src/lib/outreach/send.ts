@@ -150,11 +150,10 @@ export async function sendOutreachMail(input: {
     html: mail.html,
     text: mail.text,
     attachments,
-    headers: {
-      // One-click opt-out for mail clients; the reply lands in the same inbox
-      // the venue would answer to anyway.
-      "List-Unsubscribe": `<mailto:${getOutreachReplyTo()}?subject=Uitschrijven>`,
-    },
+    // Deliberately no List-Unsubscribe header: mail clients turn it into an
+    // "Unsubscribe" button above the message, and a reservation request typed
+    // by a person never has one. A venue that is not interested replies or
+    // ignores the mail, and the sequence ends after mail 3.
     tags: [{ name: "outreach_prospect", value: prospect.id }],
   });
 

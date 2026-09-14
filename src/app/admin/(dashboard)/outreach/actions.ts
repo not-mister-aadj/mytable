@@ -6,6 +6,8 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath } from "@/lib/admin-url";
 import {
   isOutreachStatus,
+  OUTREACH_STATUS_LABELS,
+  OUTREACH_STOPPED_STATUSES,
   type OutreachSentiment,
 } from "@/lib/outreach/constants";
 import { parseProspectsCsv } from "@/lib/outreach/parse-prospects-csv";
@@ -100,7 +102,10 @@ export async function sendSequenceAction(prospectIds: string[]): Promise<{
         failures.push({ name: prospect.name, reason: "geen e-mailadres" });
         continue;
       }
-      const blocked = blockedReason(prospect.status);
+      const blocked = blockedReason(prospect.status, {
+        sequence: true,
+        bulk: true,
+      });
       if (blocked) {
         failures.push({ name: prospect.name, reason: blocked });
         continue;
@@ -156,7 +161,10 @@ export async function sendTemplateAction(
     const template = templates.find((row) => row.id === templateId);
     if (!prospect) return { error: "Zaak niet gevonden." };
     if (!template) return { error: "Template niet gevonden." };
-    const blocked = blockedReason(prospect.status);
+    const blocked = blockedReason(prospect.status, {
+      sequence: template.kind === "sequence",
+      bulk: false,
+    });
     if (blocked) return { error: `Niet verstuurd: ${blocked}.` };
 
     const result = await sendOutreachMail({
@@ -174,10 +182,25 @@ export async function sendTemplateAction(
   }
 }
 
-/** Venues that must not get another mail, whatever the sender picked. */
-function blockedReason(status: string): string | null {
+/**
+ * Venues that must not get this mail. Unsubscribed and bounced venues get
+ * nothing at all. A venue that answered or said no has left the sequence for
+ * good: no sequence mail and no bulk send may reach it, only a mail sent on
+ * purpose from its own page.
+ */
+function blockedReason(
+  status: string,
+  mail: { sequence: boolean; bulk: boolean },
+): string | null {
   if (status === "unsubscribed") return "afgemeld";
   if (status === "bounced") return "bounce";
+  if (
+    (mail.sequence || mail.bulk) &&
+    isOutreachStatus(status) &&
+    OUTREACH_STOPPED_STATUSES.includes(status)
+  ) {
+    return OUTREACH_STATUS_LABELS[status].toLowerCase();
+  }
   return null;
 }
 
@@ -201,7 +224,10 @@ async function sendToTargets(
       failures.push({ name: prospect.name, reason: "geen e-mailadres" });
       continue;
     }
-    const blocked = blockedReason(prospect.status);
+    const blocked = blockedReason(prospect.status, {
+      sequence: source.kind === "sequence",
+      bulk: targets.length > 1,
+    });
     if (blocked) {
       failures.push({ name: prospect.name, reason: blocked });
       continue;

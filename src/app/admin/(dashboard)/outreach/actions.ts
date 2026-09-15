@@ -161,6 +161,8 @@ export async function sendTemplateAction(
     const template = templates.find((row) => row.id === templateId);
     if (!prospect) return { error: "Zaak niet gevonden." };
     if (!template) return { error: "Template niet gevonden." };
+    // A switched-off template is a paused campaign: nothing may go out with it.
+    if (!template.isActive) return { error: "Deze template staat uit." };
     const blocked = blockedReason(prospect.status, {
       sequence: template.kind === "sequence",
       bulk: false,
@@ -274,6 +276,9 @@ export async function sendTemplateToManyAction(
     const template = templates.find((row) => row.id === templateId);
     if (!template) {
       return { error: "Template niet gevonden.", sent: 0, failures: [] };
+    }
+    if (!template.isActive) {
+      return { error: "Deze template staat uit.", sent: 0, failures: [] };
     }
     const result = await sendToTargets(targets, template, templates);
     revalidateOutreach();

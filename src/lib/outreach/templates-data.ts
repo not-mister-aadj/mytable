@@ -132,7 +132,8 @@ www.mytable.club
 instagram.com/mytable.club`,
     attachmentPath: null,
     attachmentName: null,
-    isActive: true,
+    // Campaign paused on 15 September 2026: enough venues replied.
+    isActive: false,
   },
   {
     key: "venue-step-2",
@@ -153,7 +154,8 @@ www.mytable.club
 instagram.com/mytable.club`,
     attachmentPath: null,
     attachmentName: null,
-    isActive: true,
+    // Campaign paused on 15 September 2026: enough venues replied.
+    isActive: false,
   },
   {
     key: "venue-step-3",
@@ -174,7 +176,8 @@ www.mytable.club
 instagram.com/mytable.club`,
     attachmentPath: null,
     attachmentName: null,
-    isActive: true,
+    // Campaign paused on 15 September 2026: enough venues replied.
+    isActive: false,
   },
 ];
 

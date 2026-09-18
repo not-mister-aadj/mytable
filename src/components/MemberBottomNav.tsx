@@ -4,6 +4,7 @@ import {
   wineTastingLpPath,
   wineWalkLpPath,
   chefsSpecialLpPath,
+  agendaPath,
 } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 
@@ -35,6 +36,11 @@ export function publicNavItems(locale: Locale, _nav: NavLabels) {
       href: chefsSpecialLpPath(locale),
       label: "Chef's Table",
       match: (path: string) => path === "/chefs-special",
+    },
+    {
+      href: agendaPath(locale),
+      label: "Agenda",
+      match: (path: string) => path === "/agenda" || path.startsWith("/agenda/"),
     },
   ] as const;
 }

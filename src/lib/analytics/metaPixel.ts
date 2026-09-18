@@ -195,8 +195,7 @@ export function initMetaPixel(advancedMatching?: MetaAdvancedMatching): void {
     const script = document.createElement("script");
     script.async = true;
     script.src = "https://connect.facebook.net/en_US/fbevents.js";
-    const first = document.getElementsByTagName("script")[0];
-    first?.parentNode?.insertBefore(script, first);
+    document.head.appendChild(script);
 
     window.fbq("init", pixelId, matching);
     lastAdvancedMatchingKey = matchingKey;

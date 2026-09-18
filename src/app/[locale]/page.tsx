@@ -4,18 +4,13 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getBrandLandingLabels } from "@/i18n/get-brand-landing";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { getMemberUser } from "@/lib/member-auth";
-import {
-  readOnboardingFromMetadata,
-  resolvePostAuthPath,
-} from "@/lib/member-onboarding";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
   organizationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
@@ -43,19 +38,6 @@ export function generateStaticParams() {
 export default async function Home({ params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
-
-  const user = await getMemberUser();
-  if (user) {
-    const { completed, prefs } = readOnboardingFromMetadata(
-      user.user_metadata as Record<string, unknown>,
-    );
-    redirect(
-      resolvePostAuthPath(locale, {
-        completed,
-        prefs,
-      }),
-    );
-  }
 
   const dict = getDictionary(locale);
   const labels = getBrandLandingLabels(locale);

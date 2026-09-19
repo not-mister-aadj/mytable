@@ -1,5 +1,5 @@
 import { and, asc, eq, gte } from "drizzle-orm";
-import { getDb } from "@/db/index";
+import { getDb, isDbConfigured } from "@/db/index";
 import { sundayTableLocations } from "@/db/schema";
 import type { SundayTableKey, SundayTableType } from "@/lib/sunday-table-shared";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
@@ -39,6 +39,7 @@ function mapRow(row: typeof sundayTableLocations.$inferSelect): SundayTableLocat
 export async function getSundayTableLocation(
   key: SundayTableKey,
 ): Promise<SundayTableLocation | null> {
+  if (!isDbConfigured()) return null;
   const db = getDb();
   const [row] = await db
     .select()
@@ -59,6 +60,7 @@ export async function getSundayTableLocation(
 export async function getNextSundayTableLocation(
   city?: string,
 ): Promise<SundayTableLocation | null> {
+  if (!isDbConfigured()) return null;
   const db = getDb();
   const todayIso = amsterdamDateIso(new Date());
   const conditions = [gte(sundayTableLocations.tableDate, todayIso)];
@@ -78,6 +80,7 @@ export async function getNextSundayTableLocation(
 export async function getUpcomingSundayTableLocations(
   city?: string,
 ): Promise<SundayTableLocation[]> {
+  if (!isDbConfigured()) return [];
   const db = getDb();
   const todayIso = amsterdamDateIso(new Date());
   const conditions = [gte(sundayTableLocations.tableDate, todayIso)];

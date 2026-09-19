@@ -1,107 +1,91 @@
 "use client";
 
 import type { Dictionary } from "@/i18n/types";
-import type { DateFilterOption } from "@/lib/agenda";
 
 interface AgendaBrowseBarProps {
   browse: Dictionary["agenda"]["browse"];
   cities: string[];
-  dates: DateFilterOption[];
   selectedCity: string;
-  selectedDate: string;
   onCityChange: (city: string) => void;
-  onDateChange: (dateKey: string) => void;
   resultCount: number;
   onClear: () => void;
   hasActiveFilters: boolean;
+  /** Opens the waitlist modal for "your city isn't here yet". */
+  onWaitlistClick: () => void;
 }
 
 export function AgendaBrowseBar({
   browse,
   cities,
-  dates,
   selectedCity,
-  selectedDate,
   onCityChange,
-  onDateChange,
   resultCount,
   onClear,
   hasActiveFilters,
+  onWaitlistClick,
 }: AgendaBrowseBarProps) {
-  const selectClass =
-    "w-full appearance-none rounded-xl border border-wine/15 bg-cream px-3.5 py-2.5 pr-9 text-sm font-medium text-wine shadow-sm transition focus:border-wine/30 focus:outline-none focus:ring-2 focus:ring-wine/10";
+  const chipBase =
+    "inline-flex shrink-0 items-center rounded-full border px-4 py-2 text-sm font-medium transition";
+  const chipActive = "border-burgundy bg-burgundy text-cream";
+  const chipInactive =
+    "border-wine/15 bg-cream text-wine/70 hover:border-wine/30 hover:text-wine";
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/55">
-            {browse.cityLabel}
-          </span>
-          <div className="relative">
-            <select
-              value={selectedCity}
-              onChange={(e) => onCityChange(e.target.value)}
-              className={selectClass}
-              aria-label={browse.cityLabel}
-            >
-              <option value="">{browse.cityAll}</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-            <span
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-wine/40"
-              aria-hidden
-            >
-              ▾
-            </span>
-          </div>
-        </label>
-
-        <label className="block">
-          <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/55">
-            {browse.dateLabel}
-          </span>
-          <div className="relative">
-            <select
-              value={selectedDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className={selectClass}
-              aria-label={browse.dateLabel}
-            >
-              <option value="">{browse.dateAll}</option>
-              {dates.map((date) => (
-                <option key={date.key} value={date.key}>
-                  {date.label}
-                </option>
-              ))}
-            </select>
-            <span
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-wine/40"
-              aria-hidden
-            >
-              ▾
-            </span>
-          </div>
-        </label>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-wine/60">
-          {browse.results.replace("{count}", String(resultCount))}
-        </p>
-        {hasActiveFilters ? (
+      <div>
+        <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/55">
+          {browse.cityLabel}
+        </span>
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-label={browse.cityLabel}
+        >
           <button
             type="button"
-            onClick={onClear}
-            className="text-sm font-medium text-burgundy underline-offset-2 transition hover:text-wine hover:underline"
+            onClick={() => onCityChange("")}
+            className={`${chipBase} ${selectedCity === "" ? chipActive : chipInactive}`}
           >
-            {browse.clear}
+            {browse.cityAll}
           </button>
-        ) : null}
+          {cities.map((city) => (
+            <button
+              key={city}
+              type="button"
+              onClick={() => onCityChange(city)}
+              className={`${chipBase} ${selectedCity === city ? chipActive : chipInactive}`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <p className="text-sm text-wine/60">
+            {browse.results.replace("{count}", String(resultCount))}
+          </p>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={onClear}
+              className="text-sm font-medium text-burgundy underline-offset-2 transition hover:text-wine hover:underline"
+            >
+              {browse.clear}
+            </button>
+          ) : null}
+        </div>
+        <p className="text-sm text-wine/55">
+          {browse.cityMissingNote}{" "}
+          <button
+            type="button"
+            onClick={onWaitlistClick}
+            className="font-medium text-burgundy underline-offset-2 transition hover:text-wine hover:underline"
+          >
+            {browse.cityMissingCta}
+          </button>
+        </p>
       </div>
     </div>
   );

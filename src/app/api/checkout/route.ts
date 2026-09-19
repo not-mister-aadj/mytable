@@ -22,6 +22,7 @@ import {
   isBookingTier,
   MIN_BOOKING_SEATS,
   resolveSeatsForTier,
+  resolveSundayTableSeats,
   seatingForTier,
   tierForSeats,
 } from "@/lib/booking-tiers";
@@ -100,10 +101,6 @@ export async function POST(request: Request) {
   const eventId = body.eventId?.trim();
   const email = body.email?.trim().toLowerCase();
   const customerName = body.name?.trim();
-  const requestedTier = isBookingTier(body.pricingTier)
-    ? body.pricingTier
-    : tierForSeats(Math.max(1, Number(body.seats) || 1));
-  const seatingPreference = seatingForTier(requestedTier);
   const locale = (body.locale === "en" ? "en" : "nl") as Locale;
 
   if (!eventId || !email || !email.includes("@")) {
@@ -154,18 +151,52 @@ export async function POST(request: Request) {
     );
   }
 
+  // Sunday Table seats strangers at one shared table (max 2 tickets, no
+  // "bring your own party" minimum). Everything else keeps the existing
+  // tier system (min 2, own-table bookings).
+  const isSundayTable = event.experienceType === "sunday-table";
+  const requestedTier = isBookingTier(body.pricingTier)
+    ? body.pricingTier
+    : tierForSeats(Math.max(1, Number(body.seats) || 1));
+  const seatingPreference = isSundayTable
+    ? "join_others"
+    : seatingForTier(requestedTier);
+
   const spotsLeft = event.capacity - event.spotsSold;
-  const requestedSeats = Math.max(
-    MIN_BOOKING_SEATS,
-    Number(body.seats) || MIN_BOOKING_SEATS,
-  );
-  const seats = resolveSeatsForTier(requestedTier, requestedSeats, spotsLeft);
+
+  let seats: number | null;
+  let perSeatCents: number;
+  let amountCents: number;
+
+  if (isSundayTable) {
+    const requestedSeats = Math.max(1, Number(body.seats) || 1);
+    seats = resolveSundayTableSeats(requestedSeats, spotsLeft);
+    perSeatCents = event.priceCents;
+    amountCents = seats !== null ? perSeatCents * seats : 0;
+  } else {
+    const requestedSeats = Math.max(
+      MIN_BOOKING_SEATS,
+      Number(body.seats) || MIN_BOOKING_SEATS,
+    );
+    seats = resolveSeatsForTier(requestedTier, requestedSeats, spotsLeft);
+    const tierPrice =
+      seats !== null
+        ? computeTierPrice(requestedTier, seats, {
+            perPersonCents: event.priceCents,
+          })
+        : null;
+    perSeatCents = tierPrice?.perPersonCents ?? event.priceCents;
+    amountCents = tierPrice?.totalCents ?? 0;
+  }
 
   if (seats === null) {
     return NextResponse.json(
       {
-        error:
-          locale === "en"
+        error: isSundayTable
+          ? locale === "en"
+            ? "Invalid number of seats (1 or 2)."
+            : "Ongeldig aantal plekken (1 of 2)."
+          : locale === "en"
             ? `Invalid number of seats (minimum ${MIN_BOOKING_SEATS}).`
             : `Ongeldig aantal plekken (minimaal ${MIN_BOOKING_SEATS}).`,
       },
@@ -173,16 +204,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const tierPrice = computeTierPrice(requestedTier, seats, {
-    perPersonCents: event.priceCents,
-  });
-
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
   }
-
-  const perSeatCents = tierPrice.perPersonCents;
-  const amountCents = tierPrice.totalCents;
   const [booking] = await db
     .insert(bookings)
     .values({

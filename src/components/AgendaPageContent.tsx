@@ -7,14 +7,11 @@ import { sundayTableLpPath } from "@/i18n/config";
 import type { WaitlistInterestId } from "@/i18n/waitlist-page.types";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { trackAgendaViewed } from "@/lib/posthog/analytics";
-import {
-  buildDateFilterOptions,
-  filterAgendaByCity,
-  filterAgendaByDate,
-  sortAgendaTimeline,
-} from "@/lib/agenda";
+import { filterAgendaByCity, sortAgendaTimeline } from "@/lib/agenda";
 import { enrichExperience } from "@/lib/experience-detail";
 import { interestsToMoods } from "@/lib/member-onboarding";
+import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
+import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
 import { AgendaBrowseBar } from "./agenda/AgendaBrowseBar";
 import { EmptyAgendaState } from "./agenda/EmptyAgendaState";
 import { EventGrid } from "./agenda/EventGrid";
@@ -58,7 +55,11 @@ export function AgendaPageContent({
   const fromSundayTable = searchParams.get("from") === "sunday-table";
   const affiliateFromQuery = searchParams.get("aff")?.trim() ?? "";
   const [selectedCity, setSelectedCity] = useState(cityFromQuery);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const waitlistLabels = getSundayTableLpLabels(locale).waitlist;
+  const altWaitlistLabels = getSundayTableLpLabels(
+    locale === "en" ? "nl" : "en",
+  ).waitlist;
 
   useEffect(() => {
     if (cityFromQuery) setSelectedCity(cityFromQuery);
@@ -82,19 +83,12 @@ export function AgendaPageContent({
     [items],
   );
 
-  const dateOptions = useMemo(
-    () => buildDateFilterOptions(items),
-    [items],
+  const filteredItems = useMemo(
+    () => filterAgendaByCity(items, selectedCity),
+    [items, selectedCity],
   );
 
-  const filteredItems = useMemo(() => {
-    let result = items;
-    result = filterAgendaByCity(result, selectedCity);
-    result = filterAgendaByDate(result, selectedDate);
-    return result;
-  }, [items, selectedCity, selectedDate]);
-
-  const hasActiveFilters = selectedCity !== "" || selectedDate !== "";
+  const hasActiveFilters = selectedCity !== "";
 
   useEffect(() => {
     trackAgendaViewed({
@@ -107,10 +101,9 @@ export function AgendaPageContent({
 
   function clearAllFilters() {
     setSelectedCity(cityFromQuery);
-    setSelectedDate("");
   }
 
-  const filterKey = `${selectedCity}-${selectedDate}`;
+  const filterKey = selectedCity;
   const experienceQuery =
     fromSundayTable || affiliateFromQuery
       ? [
@@ -125,6 +118,13 @@ export function AgendaPageContent({
 
   return (
     <div className="mx-auto max-w-lg px-5 sm:px-6 lg:max-w-5xl xl:max-w-6xl">
+      <SundayTableWaitlistModal
+        labels={waitlistLabels}
+        altLabels={altWaitlistLabels}
+        locale={locale}
+        open={waitlistOpen}
+        onOpenChange={setWaitlistOpen}
+      />
       {fromSundayTable && dict.sundayTableGroup ? (
         <div className="mb-6 rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3.5 sm:px-5">
           <p className="font-serif text-lg font-medium text-wine">
@@ -142,14 +142,12 @@ export function AgendaPageContent({
         <AgendaBrowseBar
           browse={dict.browse}
           cities={cities}
-          dates={dateOptions}
           selectedCity={selectedCity}
-          selectedDate={selectedDate}
           onCityChange={setSelectedCity}
-          onDateChange={setSelectedDate}
           resultCount={filteredItems.length}
           onClear={clearAllFilters}
           hasActiveFilters={hasActiveFilters}
+          onWaitlistClick={() => setWaitlistOpen(true)}
         />
       </section>
 

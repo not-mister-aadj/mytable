@@ -1,7 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, gte } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { sundayTableLocations } from "@/db/schema";
 import type { SundayTableKey, SundayTableType } from "@/lib/sunday-table-shared";
+import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 
 export type SundayTableLocation = {
   id: string;
@@ -17,6 +18,22 @@ export type SundayTableLocation = {
 function normalizeDate(value: string | Date): string {
   if (typeof value === "string") return value.slice(0, 10);
   return value.toISOString().slice(0, 10);
+}
+
+function mapRow(row: typeof sundayTableLocations.$inferSelect): SundayTableLocation {
+  return {
+    id: row.id,
+    city: row.city,
+    tableDate: normalizeDate(row.tableDate),
+    tableType:
+      row.tableType === "girls_only" || row.tableType === "mixed"
+        ? row.tableType
+        : "mixed",
+    venueName: row.venueName,
+    address: row.address,
+    notes: row.notes,
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 export async function getSundayTableLocation(
@@ -35,20 +52,44 @@ export async function getSundayTableLocation(
     )
     .limit(1);
 
-  if (!row) return null;
-  return {
-    id: row.id,
-    city: row.city,
-    tableDate: normalizeDate(row.tableDate),
-    tableType:
-      row.tableType === "girls_only" || row.tableType === "mixed"
-        ? row.tableType
-        : "mixed",
-    venueName: row.venueName,
-    address: row.address,
-    notes: row.notes,
-    updatedAt: row.updatedAt.toISOString(),
-  };
+  return row ? mapRow(row) : null;
+}
+
+/** Nearest upcoming Sunday Table (today or later), optionally scoped to one city. */
+export async function getNextSundayTableLocation(
+  city?: string,
+): Promise<SundayTableLocation | null> {
+  const db = getDb();
+  const todayIso = amsterdamDateIso(new Date());
+  const conditions = [gte(sundayTableLocations.tableDate, todayIso)];
+  if (city) conditions.push(eq(sundayTableLocations.city, city));
+
+  const [row] = await db
+    .select()
+    .from(sundayTableLocations)
+    .where(and(...conditions))
+    .orderBy(asc(sundayTableLocations.tableDate))
+    .limit(1);
+
+  return row ? mapRow(row) : null;
+}
+
+/** All upcoming Sunday Tables (today or later), soonest first, optionally scoped to one city. */
+export async function getUpcomingSundayTableLocations(
+  city?: string,
+): Promise<SundayTableLocation[]> {
+  const db = getDb();
+  const todayIso = amsterdamDateIso(new Date());
+  const conditions = [gte(sundayTableLocations.tableDate, todayIso)];
+  if (city) conditions.push(eq(sundayTableLocations.city, city));
+
+  const rows = await db
+    .select()
+    .from(sundayTableLocations)
+    .where(and(...conditions))
+    .orderBy(asc(sundayTableLocations.tableDate));
+
+  return rows.map(mapRow);
 }
 
 export async function upsertSundayTableLocation(input: {
@@ -79,19 +120,7 @@ export async function upsertSundayTableLocation(input: {
       })
       .where(eq(sundayTableLocations.id, existing.id))
       .returning();
-    return {
-      id: updated!.id,
-      city: updated!.city,
-      tableDate: normalizeDate(updated!.tableDate),
-      tableType:
-        updated!.tableType === "girls_only" || updated!.tableType === "mixed"
-          ? updated!.tableType
-          : "mixed",
-      venueName: updated!.venueName,
-      address: updated!.address,
-      notes: updated!.notes,
-      updatedAt: updated!.updatedAt.toISOString(),
-    };
+    return mapRow(updated!);
   }
 
   const [created] = await db
@@ -106,17 +135,5 @@ export async function upsertSundayTableLocation(input: {
     })
     .returning();
 
-  return {
-    id: created!.id,
-    city: created!.city,
-    tableDate: normalizeDate(created!.tableDate),
-    tableType:
-      created!.tableType === "girls_only" || created!.tableType === "mixed"
-        ? created!.tableType
-        : "mixed",
-    venueName: created!.venueName,
-    address: created!.address,
-    notes: created!.notes,
-    updatedAt: created!.updatedAt.toISOString(),
-  };
+  return mapRow(created!);
 }

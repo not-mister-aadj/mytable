@@ -10,7 +10,7 @@ import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
-import { getSpotsLeft } from "@/lib/experience-booking";
+import { formatPerPerson, getSpotsLeft } from "@/lib/experience-booking";
 import {
   formatAlmostFullImageHint,
   formatCardDateTimeLine,
@@ -42,6 +42,23 @@ function cardCategoryLine(experience: ExperienceItem, tags: string[]): string {
   return experience.category;
 }
 
+/** "Sunday Table · 20-39" -> "20-39 jaar". Several Sunday Table editions can
+ * run side by side with only their age bracket differing, and that bracket
+ * is easy to miss in the small category caption (and a bare "35+" doesn't
+ * read as an age on its own), so it also gets its own spelled-out badge in
+ * the (for this format, otherwise unused) price-chip corner. */
+function sundayTableBracket(
+  experience: ExperienceItem,
+  locale: Locale,
+): string | null {
+  if (experience.category !== "Sunday Table") return null;
+  const parts = experience.experienceName.split("·").map((part) => part.trim());
+  const bracket = parts.length > 1 ? parts[parts.length - 1] : null;
+  if (!bracket) return null;
+  const yearsWord = locale === "en" ? "yrs" : "jaar";
+  return `${bracket} ${yearsWord}`;
+}
+
 export function ExperienceCard({
   experience,
   statusLabels,
@@ -49,7 +66,7 @@ export function ExperienceCard({
   reserveCta: _reserveCta,
   viewTableCta: _viewTableCta,
   joinIndividuallyCta: _joinIndividuallyCta,
-  perPersonFromLabel: _perPersonFromLabel,
+  perPersonFromLabel,
   href,
   locale = "nl",
   sourceSection = "agenda_grid",
@@ -75,8 +92,15 @@ export function ExperienceCard({
   const hasCardImage = Boolean(cardSrc);
   const headline = experience.city;
   const categoryLine = cardCategoryLine(experience, visibleTags);
+  const ageBracket = sundayTableBracket(experience, locale);
+  const isSundayTable = experience.category === "Sunday Table";
+  const mixedLabel = isSundayTable ? (locale === "en" ? "Mixed" : "Gemengd") : null;
   const dateTimeLine = formatCardDateTimeLine(experience.dateTime, locale);
   const spotsLeft = getSpotsLeft(experience);
+  const priceLabel =
+    experience.price > 0
+      ? formatPerPerson(experience.price, perPersonFromLabel)
+      : null;
   const showUrgencyHint =
     !isUnavailable &&
     spotsLeft !== null &&
@@ -145,6 +169,24 @@ export function ExperienceCard({
       {!isUnavailable && !showUrgencyHint && !isFemaleOnly && experience.status === "new" ? (
         <span className="absolute left-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-burgundy shadow-sm sm:text-[11px]">
           {statusLabels.new}
+        </span>
+      ) : null}
+
+      {priceLabel && !isUnavailable ? (
+        <span className="absolute right-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
+          {priceLabel}
+        </span>
+      ) : null}
+
+      {ageBracket && !priceLabel && !isUnavailable ? (
+        <span className="absolute right-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
+          {ageBracket}
+        </span>
+      ) : null}
+
+      {mixedLabel && !priceLabel && !isUnavailable ? (
+        <span className="absolute right-3 top-11 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
+          {mixedLabel}
         </span>
       ) : null}
 

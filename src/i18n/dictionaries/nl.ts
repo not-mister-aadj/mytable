@@ -69,14 +69,14 @@ export const nl: Dictionary = {
       cta: "Bekijk de agenda",
     },
     crossFeed: {
-      eyebrow: "Nog niemand om mee te gaan?",
-      title: "Ontmoet mensen via Sunday Table",
-      body: "Sunday Table is voor wie solo wil aanschuiven, en daarna samen iets van de agenda wil boeken.",
+      eyebrow: "Jouw stad of datum niet gevonden?",
+      title: "Zet je op de wachtlijst",
+      body: "Laat weten in welke stad en voor welk format je een tafel wilt. Je hoort als eerste zodra er een nieuwe datum bijkomt.",
       benefits: [
-        "Solo aan tafel bij Sunday Table",
-        "Nieuwe mensen in jouw stad",
+        "Als eerste een seintje bij nieuwe data",
+        "Voor elke stad en elk format",
       ],
-      cta: "Naar Sunday Table",
+      cta: "Zet je op de wachtlijst",
     },
     sundayTableGroup: {
       title: "Boek met je Sunday Table",
@@ -85,10 +85,10 @@ export const nl: Dictionary = {
     browse: {
       cityLabel: "Stad",
       cityAll: "Alle steden",
-      dateLabel: "Datum",
-      dateAll: "Alle data",
       results: "{count} resultaten",
       clear: "Filters wissen",
+      cityMissingNote: "Jouw stad er nog niet bij, of wil je updates over nieuwe tafels?",
+      cityMissingCta: "Zet je op de wachtlijst",
     },
     tabsAriaLabel: "Filter op type",
     tabs: [

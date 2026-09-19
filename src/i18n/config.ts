@@ -93,6 +93,15 @@ export function sundayTableLpCityPath(locale: Locale, citySlug: string): string 
   return `${sundayTableLpPath(locale)}/${citySlug}`;
 }
 
+/** Public reveal page for one Sunday Table date (city + venue). */
+export function sundayTableLocationPath(
+  locale: Locale,
+  citySlug: string,
+  tableDate: string,
+): string {
+  return `${sundayTableLpCityPath(locale, citySlug)}/${tableDate}`;
+}
+
 /** Public single-experience format landing pages. */
 export function wineTastingLpPath(locale: Locale): string {
   return locale === "en" ? "/en/wine-tasting" : "/wine-tasting";

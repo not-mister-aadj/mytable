@@ -71,9 +71,12 @@ export function EventGrid({
                   reserveCta={reserveCta}
                   viewTableCta={viewTableCta}
                   perPersonFromLabel={perPersonFromLabel}
-                  href={`${experiencePath(locale, experience.slug)}${
-                    linkQuery ? `?${linkQuery}` : ""
-                  }`}
+                  href={
+                    experience.externalHref ??
+                    `${experiencePath(locale, experience.slug)}${
+                      linkQuery ? `?${linkQuery}` : ""
+                    }`
+                  }
                   locale={locale}
                   sourceSection="agenda_grid"
                 />

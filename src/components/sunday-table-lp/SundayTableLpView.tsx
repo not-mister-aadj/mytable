@@ -13,6 +13,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
+import { NextSundayTableCard } from "@/components/sunday-table-lp/NextSundayTableCard";
 import { WaitlistAutoOpen } from "@/components/WaitlistAutoOpen";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { PrimaryCta } from "@/components/format-lp/PrimaryCta";
@@ -35,6 +36,7 @@ export function SundayTableLpView({
   footerDict,
   cityName,
   citySlug,
+  nextLocation,
 }: {
   locale: Locale;
   labels: SundayTableLpLabels;
@@ -42,6 +44,12 @@ export function SundayTableLpView({
   footerDict: Dictionary["footer"];
   cityName?: string | null;
   citySlug?: SundayTableLpCitySlug | null;
+  /** Nearest upcoming Sunday Table with a revealed venue, if there is one. */
+  nextLocation?: {
+    tableDate: string;
+    venueName: string;
+    citySlug: SundayTableLpCitySlug;
+  } | null;
 }) {
   const reduceMotion = useReducedMotion();
   const { people } = getBrandLandingTestimonialRows(locale);
@@ -82,7 +90,6 @@ export function SundayTableLpView({
         presetInterest="sunday_table"
       />
       <Header dict={headerDict} locale={locale} />
-
       <div className="overflow-x-clip">
       {/* Hero: same composition as main language page — copy left, carousel right */}
       <section
@@ -161,6 +168,19 @@ export function SundayTableLpView({
           </motion.div>
         </div>
       </section>
+
+      {nextLocation ? (
+        <section className="border-b border-wine/8 bg-beige/60 py-6 sm:py-8">
+          <div className="mx-auto max-w-2xl px-5 sm:px-8">
+            <NextSundayTableCard
+              locale={locale}
+              tableDate={nextLocation.tableDate}
+              venueName={nextLocation.venueName}
+              citySlug={nextLocation.citySlug}
+            />
+          </div>
+        </section>
+      ) : null}
 
       {/* Proof — real testimonials, right after the hero, before we explain anything */}
       <section className="overflow-hidden border-b border-wine/8 bg-white py-14 sm:py-20">

@@ -15,6 +15,7 @@ import {
   sundayTableLpCityFromSlug,
   SUNDAY_TABLE_LP_CITIES,
 } from "@/data/sunday-table-lp-cities";
+import { getNextSundayTableLocation } from "@/lib/sunday-table-locations";
 import {
   breadcrumbJsonLd,
   experienceCityJsonLd,
@@ -73,6 +74,7 @@ export default async function SundayTableLpCityPage({ params }: Props) {
   // Both current Sunday Table cities sit in the same province; add a real
   // per-city region lookup here if this list grows beyond Zuid-Holland.
   const region = locale === "en" ? "South Holland" : "Zuid-Holland";
+  const nextLocation = await getNextSundayTableLocation(city.name);
 
   return (
     <>
@@ -104,6 +106,15 @@ export default async function SundayTableLpCityPage({ params }: Props) {
         footerDict={dict.footer}
         cityName={city.name}
         citySlug={city.slug}
+        nextLocation={
+          nextLocation
+            ? {
+                tableDate: nextLocation.tableDate,
+                venueName: nextLocation.venueName,
+                citySlug: city.slug,
+              }
+            : null
+        }
       />
     </>
   );

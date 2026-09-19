@@ -2,7 +2,7 @@
 export const BOOKING_CLOSE_HOURS = 48;
 
 /** Days after event start to keep showing on the agenda page. */
-export const AGENDA_RETENTION_DAYS = 7;
+export const AGENDA_RETENTION_DAYS = 30;
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_DAY = 24 * MS_PER_HOUR;

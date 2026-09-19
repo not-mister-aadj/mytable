@@ -276,6 +276,8 @@ export interface ExperienceItem {
   customFaq?: ExperienceFaqItem[];
   galleryImages?: string[];
   galleryImageSettings?: ImageSettings[];
+  /** Overrides the default /agenda/[slug] link (e.g. Sunday Table reveal pages). */
+  externalHref?: string;
 }
 
 export interface AgendaTab {
@@ -353,10 +355,11 @@ export interface Dictionary {
     browse: {
       cityLabel: string;
       cityAll: string;
-      dateLabel: string;
-      dateAll: string;
       results: string;
       clear: string;
+      /** Persistent prompt: "Your city not listed yet?" */
+      cityMissingNote: string;
+      cityMissingCta: string;
     };
     tabsAriaLabel: string;
     tabs: AgendaTab[];

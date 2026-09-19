@@ -27,18 +27,25 @@ function agendaImageForVenue(venueName: string): string {
   return images.cheers;
 }
 
-/** The ticketed event's own name ("Sunday Table · 20-39") if one exists for
- * this location yet, so editions with different age brackets read
- * distinctly on the agenda card instead of all saying plain "Sunday Table". */
-async function ticketedEventName(
+/** The ticketed event's own name ("Sunday Table · 20-39") and live
+ * capacity/spotsSold, if one exists for this location yet. Without these,
+ * getSpotsLeft() (src/lib/experience-booking.ts) falls back to a hardcoded
+ * 12 for any "available" item, so the agenda card never reflected real
+ * bookings. */
+async function ticketedEventInfo(
   location: SundayTableLocation,
   startsAt: Date,
   locale: Locale,
-): Promise<string | null> {
+): Promise<{ name: string; capacity: number; spotsSold: number } | null> {
   if (!isDbConfigured()) return null;
   const db = getDb();
   const [row] = await db
-    .select({ nameNl: events.nameNl, nameEn: events.nameEn })
+    .select({
+      nameNl: events.nameNl,
+      nameEn: events.nameEn,
+      capacity: events.capacity,
+      spotsSold: events.spotsSold,
+    })
     .from(events)
     .where(
       and(
@@ -50,7 +57,11 @@ async function ticketedEventName(
     )
     .limit(1);
   if (!row) return null;
-  return locale === "en" ? row.nameEn : row.nameNl;
+  return {
+    name: locale === "en" ? row.nameEn : row.nameNl,
+    capacity: row.capacity,
+    spotsSold: row.spotsSold,
+  };
 }
 
 async function buildSundayTableAgendaItem(
@@ -63,17 +74,22 @@ async function buildSundayTableAgendaItem(
   const startsAt = parseAmsterdamDateIso(location.tableDate);
   if (!startsAt) return null;
 
-  const name = (await ticketedEventName(location, startsAt, locale)) ?? "Sunday Table";
+  const ticketed = await ticketedEventInfo(location, startsAt, locale);
+  const spotsLeft = ticketed
+    ? Math.max(0, ticketed.capacity - ticketed.spotsSold)
+    : null;
 
   return {
     id: `sunday-table-${location.city}-${location.tableDate}`,
     city: location.city,
-    experienceName: name,
+    experienceName: ticketed?.name ?? "Sunday Table",
     category: "Sunday Table",
     dateTime: formatSundayTableCardDateTime(startsAt, locale),
     startsAt: startsAt.toISOString(),
     price: 0,
-    status: "available",
+    status: spotsLeft === 0 ? "soldOut" : "available",
+    capacity: ticketed?.capacity,
+    spotsSold: ticketed?.spotsSold,
     image: agendaImageForVenue(location.venueName),
     mood: "tastings",
     femaleOnly: false,

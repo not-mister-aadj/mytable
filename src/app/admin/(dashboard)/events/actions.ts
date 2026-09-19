@@ -203,7 +203,7 @@ async function applyEventUpdate(id: string, formData: FormData) {
   }
 
   if (row.workflowStatus === "published") {
-    revalidateEventPaths(row.slug);
+    revalidateEventPaths(row);
   }
   return row;
 }
@@ -233,7 +233,7 @@ export async function saveAndPublishEventAction(id: string, formData: FormData) 
     })
     .where(eq(events.id, id))
     .returning();
-  if (published) revalidateEventPaths(published.slug);
+  if (published) revalidateEventPaths(published);
   redirect(adminPath(`/events/${id}/edit?published=1`));
 }
 
@@ -276,7 +276,7 @@ export async function publishEventAction(id: string) {
     })
     .where(eq(events.id, id))
     .returning();
-  if (row) revalidateEventPaths(row.slug);
+  if (row) revalidateEventPaths(row);
   redirect(adminPath(`/events/${id}/edit?published=1`));
 }
 
@@ -291,7 +291,7 @@ export async function unpublishEventAction(id: string) {
     })
     .where(eq(events.id, id))
     .returning();
-  if (row) revalidateEventPaths(row.slug);
+  if (row) revalidateEventPaths(row);
   redirect(adminPath(`/events/${id}/edit?unpublished=1`));
 }
 
@@ -316,7 +316,7 @@ export async function deleteEventAction(id: string) {
 
   await db.delete(events).where(eq(events.id, id));
   if (event.workflowStatus === "published") {
-    revalidateEventPaths(event.slug);
+    revalidateEventPaths(event);
   }
   redirect(adminPath("/events"));
 }
@@ -513,7 +513,7 @@ export async function removeBookingFromEventAction(
     }
 
     await reconcileEventSpotsSold([eventId]);
-    revalidateEventPaths(slug.slug);
+    revalidateEventPaths(slug.event);
 
     return { error: null };
   } catch (error) {
@@ -680,8 +680,8 @@ export async function transferBookingToEventAction(
     }
 
     await reconcileEventSpotsSold([...slugs.eventIds]);
-    revalidateEventPaths(slugs.sourceSlug);
-    revalidateEventPaths(slugs.targetSlug);
+    revalidateEventPaths(slugs.sourceEvent);
+    revalidateEventPaths(slugs.targetEvent);
 
     try {
       const movedProps = await buildBookingMovedEmailProps(

@@ -302,7 +302,7 @@ export async function fulfillPaidCheckoutSession(
     return { booking, ev };
   });
 
-  revalidateEventPaths(updated.ev.slug);
+  revalidateEventPaths(updated.ev);
 
   await deliverConfirmationEmail(
     updated.booking,

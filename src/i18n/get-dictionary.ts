@@ -39,7 +39,7 @@ export async function getDictionaryWithLanding(
   return withExperienceItems(locale, items);
 }
 
-/** Agenda page: includes closed events up to 7 days after start. */
+/** Agenda page: includes closed events up to AGENDA_RETENTION_DAYS (1 month) after start. */
 export async function getDictionaryWithAgenda(
   locale: Locale,
 ): Promise<Dictionary> {

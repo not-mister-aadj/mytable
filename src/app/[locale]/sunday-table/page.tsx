@@ -10,6 +10,8 @@ import {
 } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
+import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
+import { getNextSundayTableLocation } from "@/lib/sunday-table-locations";
 import {
   breadcrumbJsonLd,
   faqPageJsonLd,
@@ -52,6 +54,10 @@ export default async function SundayTableLpPage({ params }: Props) {
   const dict = getDictionary(locale);
   const labels = getSundayTableLpLabels(locale);
   const pageUrl = absoluteUrl(sundayTableLpPath(locale));
+  const nextLocationRow = await getNextSundayTableLocation();
+  const nextLocationSlug = nextLocationRow
+    ? sundayTableLpSlugFromCity(nextLocationRow.city)
+    : null;
 
   return (
     <>
@@ -71,6 +77,15 @@ export default async function SundayTableLpPage({ params }: Props) {
         labels={labels}
         headerDict={dict.header}
         footerDict={dict.footer}
+        nextLocation={
+          nextLocationRow && nextLocationSlug
+            ? {
+                tableDate: nextLocationRow.tableDate,
+                venueName: nextLocationRow.venueName,
+                citySlug: nextLocationSlug,
+              }
+            : null
+        }
       />
     </>
   );

@@ -169,3 +169,29 @@ export function getBookingTiers(): BookingTierPrice[] {
 export function getLowestTierPerPersonEuros(): number {
   return FLAT_PER_PERSON_CENTS / 100;
 }
+
+/**
+ * Sunday Table seats strangers at one shared table, so bookings don't use
+ * the "bring your own party" tier system above (min 2 seats). A guest books
+ * for themselves, optionally plus one.
+ */
+export const SUNDAY_TABLE_MIN_SEATS = 1;
+export const SUNDAY_TABLE_MAX_SEATS = 2;
+
+export function maxSundayTableSeats(spotsLeft: number | null): number {
+  if (spotsLeft === null) return SUNDAY_TABLE_MAX_SEATS;
+  return Math.max(0, Math.min(SUNDAY_TABLE_MAX_SEATS, spotsLeft));
+}
+
+export function resolveSundayTableSeats(
+  requestedSeats: number,
+  spotsLeft: number | null,
+): number | null {
+  const seats = Math.floor(requestedSeats);
+  if (!Number.isFinite(seats)) return null;
+  if (seats < SUNDAY_TABLE_MIN_SEATS || seats > SUNDAY_TABLE_MAX_SEATS) {
+    return null;
+  }
+  if (spotsLeft !== null && seats > spotsLeft) return null;
+  return seats;
+}

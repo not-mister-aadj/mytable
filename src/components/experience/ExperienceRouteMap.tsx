@@ -10,11 +10,14 @@ const ROUTE_COLOR = "#5A0F1B";
 
 interface ExperienceRouteMapProps {
   points: RouteMapPoint[];
+  /** Allow drag-pan and scroll/pinch zoom. Defaults to a static impression. */
+  interactive?: boolean;
 }
 
 function initRouteImpressionMap(
   container: HTMLDivElement,
   points: RouteMapPoint[],
+  interactive: boolean,
 ): maplibregl.Map {
   const lngs = points.map((p) => p.lng);
   const lats = points.map((p) => p.lat);
@@ -28,8 +31,12 @@ function initRouteImpressionMap(
     ],
     zoom: 13,
     attributionControl: { compact: true },
-    interactive: false,
+    interactive,
   });
+
+  if (interactive) {
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  }
 
   map.on("load", () => {
     if (points.length >= 2) {
@@ -105,7 +112,10 @@ function initRouteImpressionMap(
   return map;
 }
 
-export function ExperienceRouteMap({ points }: ExperienceRouteMapProps) {
+export function ExperienceRouteMap({
+  points,
+  interactive = false,
+}: ExperienceRouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -114,13 +124,13 @@ export function ExperienceRouteMap({ points }: ExperienceRouteMapProps) {
     if (!container || points.length === 0) return;
 
     container.replaceChildren();
-    mapRef.current = initRouteImpressionMap(container, points);
+    mapRef.current = initRouteImpressionMap(container, points, interactive);
 
     return () => {
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [points]);
+  }, [points, interactive]);
 
   if (points.length === 0) return null;
 
@@ -129,8 +139,8 @@ export function ExperienceRouteMap({ points }: ExperienceRouteMapProps) {
       <div
         ref={containerRef}
         className="h-[min(52vw,420px)] min-h-[320px] w-full bg-[#f5f3ef] sm:min-h-[400px]"
-        role="img"
-        aria-label="Kaart met stops langs de route"
+        role={interactive ? undefined : "img"}
+        aria-label={interactive ? undefined : "Kaart met stops langs de route"}
       />
     </div>
   );

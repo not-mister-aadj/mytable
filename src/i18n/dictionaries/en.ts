@@ -69,14 +69,14 @@ export const en: Dictionary = {
       cta: "Browse the agenda",
     },
     crossFeed: {
-      eyebrow: "No one to go with yet?",
-      title: "Meet people via Sunday Table",
-      body: "Sunday Table is for joining solo, then booking something from the agenda together.",
+      eyebrow: "Not seeing your city or date?",
+      title: "Join the waitlist",
+      body: "Tell us which city and format you're after. You'll be the first to hear when a new date is added.",
       benefits: [
-        "Join Sunday Table on your own",
-        "Meet new people in your city",
+        "First to know about new dates",
+        "For every city and format",
       ],
-      cta: "Go to Sunday Table",
+      cta: "Join the waitlist",
     },
     sundayTableGroup: {
       title: "Book with your Sunday Table",
@@ -85,10 +85,10 @@ export const en: Dictionary = {
     browse: {
       cityLabel: "City",
       cityAll: "All cities",
-      dateLabel: "Date",
-      dateAll: "All dates",
       results: "{count} results",
       clear: "Clear filters",
+      cityMissingNote: "Don't see your city yet, or just want updates on new tables?",
+      cityMissingCta: "Join the waitlist",
     },
     tabsAriaLabel: "Filter by type",
     tabs: [

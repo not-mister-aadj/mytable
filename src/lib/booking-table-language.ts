@@ -1,6 +1,9 @@
 import type { Locale } from "@/i18n/config";
 
-export type TableLanguagePreference = "both_fine" | "prefer_dutch";
+export type TableLanguagePreference =
+  | "both_fine"
+  | "prefer_dutch"
+  | "prefer_english";
 
 export const DEFAULT_TABLE_LANGUAGE_PREFERENCE: TableLanguagePreference =
   "both_fine";
@@ -8,7 +11,11 @@ export const DEFAULT_TABLE_LANGUAGE_PREFERENCE: TableLanguagePreference =
 export function isTableLanguagePreference(
   value: unknown,
 ): value is TableLanguagePreference {
-  return value === "both_fine" || value === "prefer_dutch";
+  return (
+    value === "both_fine" ||
+    value === "prefer_dutch" ||
+    value === "prefer_english"
+  );
 }
 
 export function formatTableLanguagePreference(
@@ -16,11 +23,11 @@ export function formatTableLanguagePreference(
   locale: Locale,
 ): string {
   if (locale === "en") {
-    return preference === "prefer_dutch"
-      ? "Prefer Dutch if possible"
-      : "Dutch or English, both fine";
+    if (preference === "prefer_dutch") return "Prefer Dutch if possible";
+    if (preference === "prefer_english") return "Prefer English if possible";
+    return "Dutch or English, both fine";
   }
-  return preference === "prefer_dutch"
-    ? "Liever Nederlands"
-    : "Nederlands of Engels, prima";
+  if (preference === "prefer_dutch") return "Liever Nederlands";
+  if (preference === "prefer_english") return "Liever Engels";
+  return "Nederlands of Engels, prima";
 }

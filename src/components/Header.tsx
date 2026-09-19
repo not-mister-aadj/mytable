@@ -5,7 +5,7 @@ import { Logo } from "./Logo";
 import { useEffect, useId, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/i18n/config";
-import { localePath } from "@/i18n/config";
+import { agendaPath, localePath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { FastLink } from "./ui/FastLink";
@@ -35,6 +35,8 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
   const pathname = usePathname() ?? "/";
   const path = stripLocale(pathname);
   const navItems = publicNavItems(locale, dict.nav);
+  const agendaHref = agendaPath(locale);
+  const agendaActive = path === "/agenda" || path.startsWith("/agenda/");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -68,7 +70,7 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
           : "site-header--top"
       } ${className}`}
     >
-      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-8 sm:py-3.5 md:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:px-10">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-8 sm:py-3.5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4 lg:px-10">
         <div className="justify-self-start">
           <Link
             href={home}
@@ -80,7 +82,7 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
         </div>
 
         <nav
-          className="hidden items-center justify-center gap-1 justify-self-center md:flex lg:gap-2"
+          className="hidden items-center justify-center gap-0.5 justify-self-center md:flex lg:gap-2"
           aria-label={dict.nav.navAria}
         >
           {navItems.map(({ href, label, match }) => {
@@ -89,7 +91,7 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
               <FastLink
                 key={href}
                 href={href}
-                className={`cta-lift cta-lift-outline inline-flex items-center rounded-full px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                className={`cta-lift cta-lift-outline inline-flex items-center whitespace-nowrap rounded-full px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition lg:px-3.5 lg:text-xs lg:tracking-[0.12em] ${
                   active
                     ? "bg-wine/8 text-wine"
                     : "text-wine/55 hover:text-wine"
@@ -102,6 +104,16 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
         </nav>
 
         <div className="flex items-center justify-end gap-1.5 justify-self-end sm:gap-3">
+          <FastLink
+            href={agendaHref}
+            className={`cta-lift cta-lift-burgundy hidden items-center whitespace-nowrap rounded-full bg-burgundy px-2.5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-wine md:inline-flex lg:px-4 lg:text-xs lg:tracking-[0.12em] ${
+              agendaActive ? "opacity-80" : ""
+            }`}
+          >
+            <span aria-current={agendaActive ? "page" : undefined}>
+              Agenda
+            </span>
+          </FastLink>
           <LanguageSwitcher
             locale={locale}
             label={dict.languageSwitch}
@@ -146,6 +158,17 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
                 </FastLink>
               );
             })}
+            <FastLink
+              href={agendaHref}
+              onClick={() => setMenuOpen(false)}
+              className={`cta-lift cta-lift-burgundy mt-2 inline-flex items-center justify-center rounded-2xl bg-burgundy px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-cream transition hover:bg-wine ${
+                agendaActive ? "opacity-80" : ""
+              }`}
+            >
+              <span aria-current={agendaActive ? "page" : undefined}>
+                Agenda
+              </span>
+            </FastLink>
           </nav>
         </div>
       ) : null}

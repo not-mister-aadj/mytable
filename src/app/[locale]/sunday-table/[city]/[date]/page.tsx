@@ -22,6 +22,7 @@ import {
 } from "@/lib/sunday-wine-table";
 import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
+import { images } from "@/data/images";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
@@ -69,25 +70,8 @@ function buildVenueHeroImages(venueName: string, locale: Locale): HeroImage[] {
   }
   return [
     {
-      src: "/girls-only/wine-tasting-toast.jpg",
-      alt:
-        locale === "en"
-          ? "A full table raises a toast during a MyTable wine tasting"
-          : "Een volle tafel proost tijdens een MyTable wijnproeverij",
-    },
-    {
-      src: "/girls-only/wine-tasting-conversation.jpg",
-      alt:
-        locale === "en"
-          ? "Guests in conversation over a glass of wine at a MyTable event"
-          : "Gasten in gesprek met een glas wijn tijdens een MyTable event",
-    },
-    {
-      src: "/girls-only/wine-moment.jpg",
-      alt:
-        locale === "en"
-          ? "A guest enjoying a glass of wine in good company"
-          : "Een gast geniet van een glas wijn in goed gezelschap",
+      src: images.wineGlasses,
+      alt: locale === "en" ? "A glass of wine being poured" : "Een glas wijn wordt ingeschonken",
     },
   ];
 }

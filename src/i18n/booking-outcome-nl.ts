@@ -6,7 +6,7 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
     headline: "Je tafel staat klaar",
     subtext:
       "Je betaling is verwerkt. Binnen enkele minuten ontvang je alle details per e-mail.",
-    primaryCta: "Aan tafel bekijken",
+    primaryCta: "Tafel bekijken",
     secondaryCta: "Bekijk meer tafels",
   },
   failed: {

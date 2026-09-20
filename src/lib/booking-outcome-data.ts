@@ -16,7 +16,10 @@ import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
 import { images } from "@/data/images";
 import { getDictionary } from "@/i18n/get-dictionary";
-import type { Locale } from "@/i18n/config";
+import { experiencePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
+import { amsterdamDateIso } from "@/lib/sunday-wine-table";
+import { getSundayTableLocation } from "@/lib/sunday-table-locations";
+import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
 
 export type BookingGalleryItem = {
   url: string;
@@ -26,6 +29,10 @@ export type BookingGalleryItem = {
 export type BookingOutcomeSummary = {
   eventName: string;
   eventSlug: string;
+  /** Where the primary CTA links to: the Sunday Table reveal page for that
+   * experience type (its `events` row has no real detail page of its own),
+   * the generic experience page for everything else. */
+  eventHref: string;
   eventId?: string;
   experienceType?: string;
   bookingId?: string;
@@ -99,6 +106,31 @@ async function resolveEventGallery(
   };
 }
 
+/**
+ * Sunday Table's ticketing `events` row has no real detail page of its own
+ * (the generic /agenda/[slug] template renders the wrong experience-type
+ * copy for it). Its actual reveal page lives at /sunday-table/[city]/[date],
+ * keyed by the separate sunday_table_locations table. Mirrors the same
+ * resolution used for the confirmation email (src/lib/email/build-email-props.ts).
+ */
+async function resolveEventHref(row: Event, locale: Locale): Promise<string> {
+  if (row.experienceType === "sunday-table") {
+    const citySlug = sundayTableLpSlugFromCity(row.city);
+    if (citySlug) {
+      const tableDate = amsterdamDateIso(new Date(row.startsAt));
+      const location = await getSundayTableLocation({
+        city: row.city,
+        tableDate,
+        tableType: "mixed",
+      });
+      if (location) {
+        return sundayTableLocationPath(locale, citySlug, tableDate);
+      }
+    }
+  }
+  return experiencePath(locale, row.slug);
+}
+
 async function mapEventToSummary(
   row: Event,
   locale: Locale,
@@ -111,10 +143,12 @@ async function mapEventToSummary(
 ): Promise<BookingOutcomeSummary> {
   const item = await enrichDbEvent(row, locale);
   const gallery = await resolveEventGallery(row, locale);
+  const eventHref = await resolveEventHref(row, locale);
 
   return {
     eventName: locale === "nl" ? row.nameNl : row.nameEn,
     eventSlug: row.slug,
+    eventHref,
     eventId: row.id,
     experienceType: row.experienceType ?? DEFAULT_EXPERIENCE_TYPE,
     bookingId: booking?.id,

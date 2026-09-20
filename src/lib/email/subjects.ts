@@ -104,6 +104,17 @@ export function sundayTableWaitlistInviteSubject(
   return `Er vormt zich een tafel in ${city.trim()} · ${date.trim()}`;
 }
 
+export function sundayTableTicketsOpenSubject(
+  city: string,
+  date: string,
+  locale: "nl" | "en" = "nl",
+): string {
+  if (locale === "en") {
+    return `Tickets are open: Sunday Table ${city.trim()} · ${date.trim()}`;
+  }
+  return `Aanmelden is open: Sunday Table ${city.trim()} · ${date.trim()}`;
+}
+
 /** Extra signal for clients that group on custom entity refs. */
 export function bookingEmailHeaders(bookingCode: string): Record<string, string> {
   return { "X-Entity-Ref-ID": bookingCode.trim() };

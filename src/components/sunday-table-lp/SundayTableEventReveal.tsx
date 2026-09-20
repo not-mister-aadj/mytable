@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { SundayTableBookingCard } from "@/components/sunday-table-lp/SundayTableBookingCard";
+import { SundayTableNotifyMeForm } from "@/components/sunday-table-lp/SundayTableNotifyMeForm";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { trackGroupInvitationShared } from "@/lib/posthog/analytics";
@@ -52,6 +53,10 @@ interface SundayTableEventRevealProps {
   comingSoonChipLabel: string;
   comingSoonTitle: string;
   comingSoonBody: string;
+  comingSoonEmailLabel: string;
+  comingSoonSubmitLabel: string;
+  comingSoonSuccessLabel: string;
+  comingSoonErrorLabel: string;
   bookingEmailLabel: string;
   bookingNameLabel: string;
   bookingSeatsLabel: string;
@@ -100,6 +105,10 @@ export function SundayTableEventReveal({
   comingSoonChipLabel,
   comingSoonTitle,
   comingSoonBody,
+  comingSoonEmailLabel,
+  comingSoonSubmitLabel,
+  comingSoonSuccessLabel,
+  comingSoonErrorLabel,
   bookingEmailLabel,
   bookingNameLabel,
   bookingSeatsLabel,
@@ -299,14 +308,16 @@ export function SundayTableEventReveal({
                 </dl>
 
                 {comingSoon ? (
-                  <div className="mt-6 rounded-2xl border border-wine/10 bg-cream/70 px-5 py-6 text-center">
-                    <p className="font-serif text-lg font-medium text-wine">
-                      {comingSoonTitle}
-                    </p>
-                    <p className="mt-2 text-sm leading-relaxed text-wine/65">
-                      {comingSoonBody}
-                    </p>
-                  </div>
+                  <SundayTableNotifyMeForm
+                    eventId={eventId}
+                    locale={locale}
+                    title={comingSoonTitle}
+                    body={comingSoonBody}
+                    emailLabel={comingSoonEmailLabel}
+                    submitLabel={comingSoonSubmitLabel}
+                    successLabel={comingSoonSuccessLabel}
+                    errorLabel={comingSoonErrorLabel}
+                  />
                 ) : (
                   <SundayTableBookingCard
                     eventId={eventId}

@@ -5,6 +5,7 @@ import { adminPath, resolveHostname } from "@/lib/admin-url";
 import {
   saveSundayTableLocationAction,
   inviteWaitlistForSundayTableAction,
+  openTicketSalesAction,
 } from "@/app/admin/(dashboard)/sunday-tables/actions";
 import { SIGNUPS_PAUSED } from "@/app/admin/(dashboard)/sunday-tables/signups-paused";
 import {
@@ -13,6 +14,8 @@ import {
 } from "@/lib/sunday-table-signups-data";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import { getWaitlistInviteStats } from "@/lib/sunday-table-waitlist-invites";
+import { findSundayTableTicketEvent } from "@/lib/sunday-table-ticket-event";
+import { getUnnotifiedEventSignups } from "@/lib/event-notify-signups";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -38,11 +41,17 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
     "localhost:3001";
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
 
-  const [members, location, waitlistStats] = await Promise.all([
+  const [members, location, waitlistStats, ticketEvent] = await Promise.all([
     getSundayTableMembers(table),
     getSundayTableLocation(table),
     getWaitlistInviteStats(table),
+    findSundayTableTicketEvent(table),
   ]);
+
+  const comingSoon = Boolean(ticketEvent?.extras?.comingSoon);
+  const notifySignupCount = comingSoon
+    ? (await getUnnotifiedEventSignups(ticketEvent!.id)).length
+    : 0;
 
   return (
     <SundayTableDetailView
@@ -63,6 +72,9 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
       waitlistStats={waitlistStats}
       inviteWaitlistAction={inviteWaitlistForSundayTableAction}
       signupsPaused={SIGNUPS_PAUSED}
+      comingSoon={comingSoon}
+      notifySignupCount={notifySignupCount}
+      openTicketSalesAction={openTicketSalesAction}
     />
   );
 }

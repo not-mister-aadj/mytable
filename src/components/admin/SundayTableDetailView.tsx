@@ -7,7 +7,10 @@ import type {
   SundayTableMemberRow,
   SundayTableSignupProfile,
 } from "@/lib/sunday-table-shared";
-import type { InviteWaitlistActionState } from "@/app/admin/(dashboard)/sunday-tables/actions";
+import type {
+  InviteWaitlistActionState,
+  OpenTicketSalesActionState,
+} from "@/app/admin/(dashboard)/sunday-tables/actions";
 
 function formatTableDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -169,6 +172,76 @@ function InviteWaitlistCard({
   );
 }
 
+function OpenTicketSalesCard({
+  table,
+  venueName,
+  notifySignupCount,
+  openTicketSalesAction,
+}: {
+  table: SundayTableKey;
+  venueName: string;
+  notifySignupCount: number;
+  openTicketSalesAction: (
+    prevState: OpenTicketSalesActionState | null,
+    formData: FormData,
+  ) => Promise<OpenTicketSalesActionState>;
+}) {
+  const [state, formAction, isPending] = useActionState(
+    openTicketSalesAction,
+    null,
+  );
+
+  return (
+    <form
+      action={formAction}
+      onSubmit={(event) => {
+        if (
+          !window.confirm(
+            `Ticketverkoop openen voor ${table.city}? Dit maakt de tafel boekbaar en mailt direct ${notifySignupCount} mensen die op deze specifieke datum wachten.`,
+          )
+        ) {
+          event.preventDefault();
+        }
+      }}
+      className="rounded-2xl border border-gold/40 bg-gold/10 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]"
+    >
+      <input type="hidden" name="city" value={table.city} />
+      <input type="hidden" name="tableDate" value={table.tableDate} />
+      <input type="hidden" name="tableType" value={table.tableType} />
+      <input type="hidden" name="venueName" value={venueName} />
+      <h2 className="font-serif text-xl text-burgundy">
+        Ticketverkoop openen
+      </h2>
+      <p className="mt-1 text-sm text-wine/60">
+        Deze tafel staat nu als &ldquo;binnenkort bekend&rdquo; op de site, zonder
+        boekingsformulier.{" "}
+        <span className="font-semibold text-burgundy">
+          {notifySignupCount}
+        </span>{" "}
+        mensen hebben zich specifiek voor deze datum aangemeld om een seintje
+        te krijgen. Klik hieronder om de echte locatie ({venueName}) live te
+        zetten, het boekingsformulier te tonen, en die mensen meteen te
+        mailen.
+      </p>
+      <button
+        type="submit"
+        disabled={isPending || !venueName}
+        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-xs font-semibold uppercase tracking-[0.12em] text-cream disabled:opacity-40"
+      >
+        {isPending ? "Openen…" : "Ticketverkoop openen"}
+      </button>
+      {state?.error ? (
+        <p className="mt-3 text-sm text-red-700">{state.error}</p>
+      ) : state?.opened ? (
+        <p className="mt-3 text-sm text-wine/70">
+          Verkoop geopend. {state.sent} mensen gemaild
+          {state.failed > 0 ? `, ${state.failed} mislukt` : ""}.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
 function InvitePausedNotice({
   waitlistStats,
 }: {
@@ -205,6 +278,9 @@ export function SundayTableDetailView({
   waitlistStats,
   inviteWaitlistAction,
   signupsPaused,
+  comingSoon,
+  notifySignupCount,
+  openTicketSalesAction,
 }: {
   table: SundayTableKey;
   members: SundayTableMemberRow[];
@@ -222,6 +298,14 @@ export function SundayTableDetailView({
     formData: FormData,
   ) => Promise<InviteWaitlistActionState>;
   signupsPaused: boolean;
+  /** Whether this cohort's ticketed event is still marked "coming soon"
+   * (visible, not yet bookable), see src/lib/sunday-table-ticket-event.ts. */
+  comingSoon: boolean;
+  notifySignupCount: number;
+  openTicketSalesAction: (
+    prevState: OpenTicketSalesActionState | null,
+    formData: FormData,
+  ) => Promise<OpenTicketSalesActionState>;
 }) {
   return (
     <div className="space-y-8">
@@ -291,6 +375,15 @@ export function SundayTableDetailView({
           Locatie opslaan
         </button>
       </form>
+
+      {comingSoon ? (
+        <OpenTicketSalesCard
+          table={table}
+          venueName={location?.venueName ?? ""}
+          notifySignupCount={notifySignupCount}
+          openTicketSalesAction={openTicketSalesAction}
+        />
+      ) : null}
 
       {signupsPaused ? (
         <InvitePausedNotice waitlistStats={waitlistStats} />

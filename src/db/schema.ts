@@ -271,6 +271,28 @@ export const sundayTableWaitlistInvites = pgTable(
   }),
 );
 
+export const eventNotifySignups = pgTable(
+  "event_notify_signups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    locale: text("locale").notNull().default("nl"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+  },
+  (table) => ({
+    eventEmailUnique: uniqueIndex("event_notify_signups_event_email_unique").on(
+      table.eventId,
+      table.email,
+    ),
+  }),
+);
+
 export const customerActivities = pgTable("customer_activities", {
   id: uuid("id").primaryKey().defaultRandom(),
   customerId: uuid("customer_id")
@@ -596,6 +618,7 @@ export type SiteSetting = typeof siteSettings.$inferSelect;
 export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
 export type SundayTableWaitlistInvite =
   typeof sundayTableWaitlistInvites.$inferSelect;
+export type EventNotifySignup = typeof eventNotifySignups.$inferSelect;
 export type SundayTableReview = typeof sundayTableReviews.$inferSelect;
 export type AffiliateCode = typeof affiliateCodes.$inferSelect;
 export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;

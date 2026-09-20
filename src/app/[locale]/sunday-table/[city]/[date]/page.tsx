@@ -195,7 +195,11 @@ export default async function SundayTableEventPage({ params }: Props) {
           comingSoonChipLabel: "Coming soon",
           comingSoonTitle: "Registration opens soon",
           comingSoonBody:
-            "We're finalizing the venue for this table. Once it's confirmed, we'll announce it here and open registration.",
+            "We're finalizing the venue for this table. Leave your email and we'll let you know the moment registration opens.",
+          comingSoonEmailLabel: "Email",
+          comingSoonSubmitLabel: "Notify me",
+          comingSoonSuccessLabel: "Done. We'll email you as soon as it's open.",
+          comingSoonErrorLabel: "Something went wrong. Please try again.",
           bookingEmailLabel: "Email",
           bookingNameLabel: "Name",
           bookingSeatsLabel: "Tickets",
@@ -277,7 +281,11 @@ export default async function SundayTableEventPage({ params }: Props) {
           comingSoonChipLabel: "Binnenkort bekend",
           comingSoonTitle: "Aanmelden opent binnenkort",
           comingSoonBody:
-            "We ronden de locatie voor deze tafel nog af. Zodra die vaststaat, kondigen we hem hier aan en gaat het aanmelden open.",
+            "We ronden de locatie voor deze tafel nog af. Laat je e-mail achter, dan laten we je weten zodra het aanmelden open gaat.",
+          comingSoonEmailLabel: "E-mail",
+          comingSoonSubmitLabel: "Hou me op de hoogte",
+          comingSoonSuccessLabel: "Gelukt. We mailen je zodra het open gaat.",
+          comingSoonErrorLabel: "Er ging iets mis. Probeer het opnieuw.",
           bookingEmailLabel: "E-mail",
           bookingNameLabel: "Naam",
           bookingSeatsLabel: "Tickets",
@@ -395,6 +403,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           comingSoonChipLabel={copy.comingSoonChipLabel}
           comingSoonTitle={copy.comingSoonTitle}
           comingSoonBody={copy.comingSoonBody}
+          comingSoonEmailLabel={copy.comingSoonEmailLabel}
+          comingSoonSubmitLabel={copy.comingSoonSubmitLabel}
+          comingSoonSuccessLabel={copy.comingSoonSuccessLabel}
+          comingSoonErrorLabel={copy.comingSoonErrorLabel}
           bookingEmailLabel={copy.bookingEmailLabel}
           bookingNameLabel={copy.bookingNameLabel}
           bookingSeatsLabel={copy.bookingSeatsLabel}

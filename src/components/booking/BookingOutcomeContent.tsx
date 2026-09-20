@@ -40,6 +40,15 @@ export function BookingOutcomeContent({
         : dict.failed;
   const eventHref = summary ? summary.eventHref : agendaPath(locale);
   const agendaHref = agendaPath(locale);
+  const isSundayTable = summary?.experienceType === "sunday-table";
+  // Sunday Table's own confirmation drops the dietary-notes step (its venue
+  // isn't known yet at booking time, so there's nothing to notify there
+  // about), and the wine/food discovery pitch and "next table" cross-sell
+  // below, both written for the culinary formats and off-message for a
+  // seat at a shared table with strangers.
+  const nextStepsItems = isSundayTable
+    ? dict.nextSteps.items.filter((_, index) => index !== 1)
+    : dict.nextSteps.items;
   const defaultGalleryItems: BookingGalleryItem[] = [
     { url: images.wineGlasses },
     { url: images.restaurantDining },
@@ -181,7 +190,7 @@ export function BookingOutcomeContent({
               {dict.nextSteps.title}
             </h2>
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
-              {dict.nextSteps.items.map((item, index) => (
+              {nextStepsItems.map((item, index) => (
                 <div
                   key={item.title}
                   className="rounded-2xl border border-border-subtle bg-beige/60 p-5 sm:p-6"
@@ -200,7 +209,7 @@ export function BookingOutcomeContent({
         ) : null}
 
         {/* Community */}
-        {variant !== "pending" ? (
+        {variant !== "pending" && !isSundayTable ? (
           <section className="border-t border-border-subtle py-12 sm:py-16">
             <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
               <div>
@@ -221,7 +230,7 @@ export function BookingOutcomeContent({
         ) : null}
       </div>
 
-      {variant === "success" ? (
+      {variant === "success" && !isSundayTable ? (
         <NextTableConversion
           labels={
             locale === "en"

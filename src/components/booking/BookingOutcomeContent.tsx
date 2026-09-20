@@ -38,9 +38,7 @@ export function BookingOutcomeContent({
       : variant === "success"
         ? dict.success
         : dict.failed;
-  const eventHref = summary
-    ? `/${locale}/agenda/${summary.eventSlug}`
-    : agendaPath(locale);
+  const eventHref = summary ? summary.eventHref : agendaPath(locale);
   const agendaHref = agendaPath(locale);
   const defaultGalleryItems: BookingGalleryItem[] = [
     { url: images.wineGlasses },

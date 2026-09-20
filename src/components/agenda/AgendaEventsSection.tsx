@@ -10,7 +10,6 @@ import {
   type SundayTableLocation,
 } from "@/lib/sunday-table-locations";
 import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
-import { images } from "@/data/images";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
 import {
@@ -19,12 +18,12 @@ import {
 } from "@/lib/sunday-wine-table";
 
 /** Manually curated per-venue card photo until Sunday Table locations get
- * their own image field. Falls back to a neutral stock photo for new venues. */
+ * their own image field. Falls back to a wine-themed photo for new venues. */
 function agendaImageForVenue(venueName: string): string {
   if (venueName === "Bar Juni Rotterdam") {
     return "https://lh3.googleusercontent.com/grass-cs/ACvplmPKHPMZLbYmXXtC7a58PZZXLNLyYVbh6MRSFgUerRrfHIuVrFPWpbL6PJEEE7g98cQ-HZDirRJoY7D7WXBNHAZMPMDr3matKwDmgYtgoXZmnsoswO2hHtZNvhOCgJOql5VWJkywm4G80yYn=w1600-h1200-p-k-no";
   }
-  return images.cheers;
+  return "/girls-only/wine-tasting-toast.jpg";
 }
 
 /** The ticketed event's own name ("Sunday Table · 20-39") and live

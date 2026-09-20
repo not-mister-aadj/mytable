@@ -213,6 +213,7 @@ export function BrandLandingView({
                     alt={format.imageAlt}
                     fill
                     sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
+                    quality={90}
                     className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </Link>

@@ -129,6 +129,7 @@ export function SundayTableHeroGallery({
               alt={isActive ? slide.alt : ""}
               fill
               sizes={MAIN_SIZES}
+              quality={90}
               priority={slideIndex === 0}
               loading={slideIndex === 0 ? "eager" : "lazy"}
               className={`object-cover transition-opacity duration-700 ${

@@ -13,6 +13,7 @@ const statusBadgeStyles: Record<ExperienceStatusKey, string> = {
   soldOut: "bg-burgundy text-cream",
   closed: "bg-wine/70 text-cream",
   new: "bg-cream text-burgundy ring-2 ring-gold",
+  comingSoon: "bg-wine/10 text-wine ring-1 ring-wine/20",
 };
 
 function labelClassName(label: EventPublicLabel): string {

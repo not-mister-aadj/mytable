@@ -3,7 +3,8 @@ export type ExperienceStatusKey =
   | "almostFull"
   | "soldOut"
   | "closed"
-  | "new";
+  | "new"
+  | "comingSoon";
 
 export type AgendaTabKey =
   | "all"

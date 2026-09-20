@@ -78,6 +78,7 @@ export type GirlsOnlyCityPageLabels = {
     soldOut: string;
     closed: string;
     new: string;
+    comingSoon: string;
   };
   femaleOnlyBadge: string;
   reserveCta: string;

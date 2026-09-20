@@ -44,8 +44,14 @@ interface SundayTableEventRevealProps {
   eventId: string;
   spotsLeft: number;
   pricePerSeatEuros: number;
+  /** Venue is still being finalized: shows the page but replaces the
+   * booking form with an announcement instead of taking payments. */
+  comingSoon?: boolean;
   ticketsLeftLabel: string;
   soldOutChipLabel: string;
+  comingSoonChipLabel: string;
+  comingSoonTitle: string;
+  comingSoonBody: string;
   bookingEmailLabel: string;
   bookingNameLabel: string;
   bookingSeatsLabel: string;
@@ -88,8 +94,12 @@ export function SundayTableEventReveal({
   eventId,
   spotsLeft,
   pricePerSeatEuros,
+  comingSoon = false,
   ticketsLeftLabel,
   soldOutChipLabel,
+  comingSoonChipLabel,
+  comingSoonTitle,
+  comingSoonBody,
   bookingEmailLabel,
   bookingNameLabel,
   bookingSeatsLabel,
@@ -165,14 +175,18 @@ export function SundayTableEventReveal({
 
                 <span
                   className={`absolute left-4 top-4 z-10 inline-flex items-center rounded-full px-3.5 py-2 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm ${
-                    spotsLeft > 0
-                      ? "bg-gold text-wine"
-                      : "bg-[#14060a]/50 text-cream"
+                    comingSoon
+                      ? "bg-[#14060a]/50 text-cream"
+                      : spotsLeft > 0
+                        ? "bg-gold text-wine"
+                        : "bg-[#14060a]/50 text-cream"
                   }`}
                 >
-                  {spotsLeft > 0
-                    ? ticketsLeftLabel.replace("{count}", String(spotsLeft))
-                    : soldOutChipLabel}
+                  {comingSoon
+                    ? comingSoonChipLabel
+                    : spotsLeft > 0
+                      ? ticketsLeftLabel.replace("{count}", String(spotsLeft))
+                      : soldOutChipLabel}
                 </span>
 
                 <button
@@ -215,15 +229,17 @@ export function SundayTableEventReveal({
                 ) : null}
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <a
-                  href="https://www.google.com/maps/search/?api=1&query=Juni+Rotterdam"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex shrink-0 items-center gap-1.5 text-sm text-wine/60 transition hover:text-wine"
-                >
-                  <span className="font-semibold text-wine">★ 4.9</span>
-                  <span className="whitespace-nowrap">· 123 reviews op Google</span>
-                </a>
+                {!comingSoon ? (
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=Juni+Rotterdam"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex shrink-0 items-center gap-1.5 text-sm text-wine/60 transition hover:text-wine"
+                  >
+                    <span className="font-semibold text-wine">★ 4.9</span>
+                    <span className="whitespace-nowrap">· 123 reviews op Google</span>
+                  </a>
+                ) : null}
                 <p className="truncate text-xs text-wine/45">{activeImage?.alt}</p>
               </div>
             </div>
@@ -265,39 +281,54 @@ export function SundayTableEventReveal({
                   <div className="flex items-baseline justify-between gap-4">
                     <dt className="text-sm text-wine/60">{venueFieldLabel}</dt>
                     <dd className="text-right">
-                      <a
-                        href={mapsHref}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-serif text-lg text-wine underline-offset-4 hover:underline"
-                      >
-                        {venueName}
-                      </a>
+                      {comingSoon ? (
+                        <p className="font-serif text-lg text-wine">{venueName}</p>
+                      ) : (
+                        <a
+                          href={mapsHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-serif text-lg text-wine underline-offset-4 hover:underline"
+                        >
+                          {venueName}
+                        </a>
+                      )}
                       <p className="mt-0.5 text-sm text-wine/60">{address}</p>
                     </dd>
                   </div>
                 </dl>
 
-                <SundayTableBookingCard
-                  eventId={eventId}
-                  locale={locale}
-                  pricePerSeatEuros={pricePerSeatEuros}
-                  spotsLeft={spotsLeft}
-                  emailLabel={bookingEmailLabel}
-                  nameLabel={bookingNameLabel}
-                  seatsLabel={bookingSeatsLabel}
-                  seatOneLabel={bookingSeatOneLabel}
-                  seatTwoLabel={bookingSeatTwoLabel}
-                  languageLabel={bookingLanguageLabel}
-                  languageDutchLabel={bookingLanguageDutchLabel}
-                  languageEnglishLabel={bookingLanguageEnglishLabel}
-                  languageBothLabel={bookingLanguageBothLabel}
-                  ctaLabel={bookingCtaLabel}
-                  ctaLabelPlural={bookingCtaLabelPlural}
-                  soldOutLabel={bookingSoldOutLabel}
-                  guarantees={bookingGuarantees}
-                  genericErrorLabel={bookingErrorLabel}
-                />
+                {comingSoon ? (
+                  <div className="mt-6 rounded-2xl border border-wine/10 bg-cream/70 px-5 py-6 text-center">
+                    <p className="font-serif text-lg font-medium text-wine">
+                      {comingSoonTitle}
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-wine/65">
+                      {comingSoonBody}
+                    </p>
+                  </div>
+                ) : (
+                  <SundayTableBookingCard
+                    eventId={eventId}
+                    locale={locale}
+                    pricePerSeatEuros={pricePerSeatEuros}
+                    spotsLeft={spotsLeft}
+                    emailLabel={bookingEmailLabel}
+                    nameLabel={bookingNameLabel}
+                    seatsLabel={bookingSeatsLabel}
+                    seatOneLabel={bookingSeatOneLabel}
+                    seatTwoLabel={bookingSeatTwoLabel}
+                    languageLabel={bookingLanguageLabel}
+                    languageDutchLabel={bookingLanguageDutchLabel}
+                    languageEnglishLabel={bookingLanguageEnglishLabel}
+                    languageBothLabel={bookingLanguageBothLabel}
+                    ctaLabel={bookingCtaLabel}
+                    ctaLabelPlural={bookingCtaLabelPlural}
+                    soldOutLabel={bookingSoldOutLabel}
+                    guarantees={bookingGuarantees}
+                    genericErrorLabel={bookingErrorLabel}
+                  />
+                )}
               </div>
             </div>
           </div>

@@ -122,14 +122,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
       )
     : null;
+  const comingSoon = Boolean(ticketEvent?.extras?.comingSoon);
   const bracketSuffix = ageBracket ? ` · ${ageBracket}` : "";
   const dateLabel = formatSundayTableDate(table, locale as Locale);
-  const title =
-    locale === "en"
+  const title = comingSoon
+    ? locale === "en"
+      ? `Sunday Table${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
+      : `Sunday Table${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
+    : locale === "en"
       ? `Sunday Table${bracketSuffix} · ${dateLabel} at ${location.venueName} | MyTable`
       : `Sunday Table${bracketSuffix} · ${dateLabel} bij ${location.venueName} | MyTable`;
-  const description =
-    locale === "en"
+  const description = comingSoon
+    ? locale === "en"
+      ? `Sunday Table is coming to ${city.name} on ${dateLabel}. Venue announced soon.`
+      : `Sunday Table komt naar ${city.name} op ${dateLabel}. Locatie volgt binnenkort.`
+    : locale === "en"
       ? `Join Sunday Table in ${city.name} on ${dateLabel}, at ${location.venueName}.`
       : `Schuif aan bij Sunday Table in ${city.name} op ${dateLabel}, bij ${location.venueName}.`;
   return { title, description };
@@ -144,6 +151,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   const { city, table, location } = found;
   const ticketEvent = await loadTicketEvent(city.name, table);
   if (!ticketEvent) notFound();
+  const comingSoon = Boolean(ticketEvent.extras?.comingSoon);
   const spotsLeft = Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold);
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
@@ -179,6 +187,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           venueFieldLabel: "Venue",
           ticketsLeftLabel: "{count} spots left",
           soldOutChipLabel: "Sold out",
+          comingSoonChipLabel: "Coming soon",
+          comingSoonTitle: "Registration opens soon",
+          comingSoonBody:
+            "We're finalizing the venue for this table. Once it's confirmed, we'll announce it here and open registration.",
           bookingEmailLabel: "Email",
           bookingNameLabel: "Name",
           bookingSeatsLabel: "Tickets",
@@ -257,6 +269,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           venueFieldLabel: "Locatie",
           ticketsLeftLabel: "Nog {count} plekken",
           soldOutChipLabel: "Uitverkocht",
+          comingSoonChipLabel: "Binnenkort bekend",
+          comingSoonTitle: "Aanmelden opent binnenkort",
+          comingSoonBody:
+            "We ronden de locatie voor deze tafel nog af. Zodra die vaststaat, kondigen we hem hier aan en gaat het aanmelden open.",
           bookingEmailLabel: "E-mail",
           bookingNameLabel: "Naam",
           bookingSeatsLabel: "Tickets",
@@ -368,8 +384,12 @@ export default async function SundayTableEventPage({ params }: Props) {
           eventId={ticketEvent.id}
           spotsLeft={spotsLeft}
           pricePerSeatEuros={pricePerSeatEuros}
+          comingSoon={comingSoon}
           ticketsLeftLabel={copy.ticketsLeftLabel}
           soldOutChipLabel={copy.soldOutChipLabel}
+          comingSoonChipLabel={copy.comingSoonChipLabel}
+          comingSoonTitle={copy.comingSoonTitle}
+          comingSoonBody={copy.comingSoonBody}
           bookingEmailLabel={copy.bookingEmailLabel}
           bookingNameLabel={copy.bookingNameLabel}
           bookingSeatsLabel={copy.bookingSeatsLabel}

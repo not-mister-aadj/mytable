@@ -25,6 +25,7 @@ const STATUS_LABELS_NL: Record<ExperienceStatusKey, string> = {
   soldOut: "Uitverkocht",
   closed: "Uitverkocht",
   new: "Nieuw",
+  comingSoon: "Binnenkort",
 };
 
 export function getEventPublicLabels(event: Event): EventPublicLabel[] {

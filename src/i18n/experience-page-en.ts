@@ -163,6 +163,7 @@ export const experiencePageEn: ExperiencePageLabels = {
     soldOut: "This table is sold out",
     closed: "Sold out",
     new: "New in our lineup",
+    comingSoon: "Details coming soon",
   },
   closedCta: "Sold out",
   moods: {

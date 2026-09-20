@@ -263,6 +263,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
     soldOut: "Uitverkocht",
     closed: "Uitverkocht",
     new: "Nieuw",
+    comingSoon: "Binnenkort",
   },
   femaleOnlyBadge: "Girls only",
   reserveCta: "Reserveer",

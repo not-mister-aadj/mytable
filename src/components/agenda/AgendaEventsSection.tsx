@@ -36,7 +36,12 @@ async function ticketedEventInfo(
   location: SundayTableLocation,
   startsAt: Date,
   locale: Locale,
-): Promise<{ name: string; capacity: number; spotsSold: number } | null> {
+): Promise<{
+  name: string;
+  capacity: number;
+  spotsSold: number;
+  comingSoon: boolean;
+} | null> {
   if (!isDbConfigured()) return null;
   const db = getDb();
   const [row] = await db
@@ -45,6 +50,7 @@ async function ticketedEventInfo(
       nameEn: events.nameEn,
       capacity: events.capacity,
       spotsSold: events.spotsSold,
+      extras: events.extras,
     })
     .from(events)
     .where(
@@ -61,6 +67,7 @@ async function ticketedEventInfo(
     name: locale === "en" ? row.nameEn : row.nameNl,
     capacity: row.capacity,
     spotsSold: row.spotsSold,
+    comingSoon: Boolean(row.extras?.comingSoon),
   };
 }
 
@@ -87,7 +94,11 @@ async function buildSundayTableAgendaItem(
     dateTime: formatSundayTableCardDateTime(startsAt, locale),
     startsAt: startsAt.toISOString(),
     price: 0,
-    status: spotsLeft === 0 ? "soldOut" : "available",
+    status: ticketed?.comingSoon
+      ? "comingSoon"
+      : spotsLeft === 0
+        ? "soldOut"
+        : "available",
     capacity: ticketed?.capacity,
     spotsSold: ticketed?.spotsSold,
     image: agendaImageForVenue(location.venueName),

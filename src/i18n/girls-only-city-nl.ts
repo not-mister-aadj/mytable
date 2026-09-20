@@ -12,6 +12,7 @@ const sharedStatus = {
   soldOut: "Uitverkocht",
   closed: "Gesloten",
   new: "Nieuw",
+  comingSoon: "Binnenkort",
 } as const;
 
 function buildCityPageNl(

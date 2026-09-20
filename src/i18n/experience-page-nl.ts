@@ -162,6 +162,7 @@ export const experiencePageNl: ExperiencePageLabels = {
     soldOut: "Deze tafel is uitverkocht",
     closed: "Uitverkocht",
     new: "Nieuw in ons aanbod",
+    comingSoon: "Binnenkort bekend",
   },
   closedCta: "Uitverkocht",
   moods: {

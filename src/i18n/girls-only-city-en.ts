@@ -12,6 +12,7 @@ const sharedStatus = {
   soldOut: "Sold out",
   closed: "Closed",
   new: "New",
+  comingSoon: "Coming soon",
 } as const;
 
 function buildCityPageEn(

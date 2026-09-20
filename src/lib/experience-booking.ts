@@ -69,7 +69,8 @@ export function formatViewsLabel(template: string, count: number): string {
 }
 
 export function canReserve(experience: ExperienceItem): boolean {
-  if (experience.status === "closed") return false;
+  if (experience.status === "closed" || experience.status === "comingSoon")
+    return false;
   const left = getSpotsLeft(experience);
   if (left !== null) return left >= MIN_BOOKING_SEATS;
   return experience.status !== "soldOut";

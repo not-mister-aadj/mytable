@@ -78,6 +78,7 @@ export function ExperienceCard({
   const isUnavailable = isSoldOut || isClosed;
   const isAlmostFull = experience.status === "almostFull";
   const isAvailable = experience.status === "available";
+  const isComingSoon = experience.status === "comingSoon";
   const isFemaleOnly = resolveFemaleOnly(
     experience.femaleOnly,
     experience.atmosphereTags,
@@ -169,6 +170,12 @@ export function ExperienceCard({
       {!isUnavailable && !showUrgencyHint && !isFemaleOnly && experience.status === "new" ? (
         <span className="absolute left-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-burgundy shadow-sm sm:text-[11px]">
           {statusLabels.new}
+        </span>
+      ) : null}
+
+      {isComingSoon && !isFemaleOnly ? (
+        <span className="absolute left-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-wine/80 shadow-sm sm:text-[11px]">
+          {statusLabels.comingSoon}
         </span>
       ) : null}
 

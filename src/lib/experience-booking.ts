@@ -50,13 +50,27 @@ export function formatFromPerPerson(basePrice: number, label: string): string {
 
 export const SPOTS_URGENCY_THRESHOLD = 15;
 
+/** A freshly published event starts at (near-)full capacity, so showing its
+ * real spots-left count from the first visitor makes even a well-selling
+ * event look unimpressive (and for a small-capacity format like Sunday
+ * Table, that count is basically always "urgent"). Hide the number until
+ * real demand has proven itself. Catalog items with no tracked spotsSold
+ * fall through unchanged, since there's nothing to gate on. */
+export const SPOTS_VISIBLE_FROM_SOLD = 10;
+
+export function hasEnoughSoldToShowSpots(spotsSold?: number): boolean {
+  return spotsSold === undefined || spotsSold >= SPOTS_VISIBLE_FROM_SOLD;
+}
+
 export function shouldShowSpotsLeftBadge(
   spotsLeft: number | null,
+  spotsSold?: number,
 ): spotsLeft is number {
   return (
     spotsLeft !== null &&
     spotsLeft > 0 &&
-    spotsLeft <= SPOTS_URGENCY_THRESHOLD
+    spotsLeft <= SPOTS_URGENCY_THRESHOLD &&
+    hasEnoughSoldToShowSpots(spotsSold)
   );
 }
 

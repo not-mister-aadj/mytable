@@ -10,7 +10,11 @@ import {
   displayAtmosphereTags,
   resolveFemaleOnly,
 } from "@/lib/event-extras";
-import { formatPerPerson, getSpotsLeft } from "@/lib/experience-booking";
+import {
+  formatPerPerson,
+  getSpotsLeft,
+  hasEnoughSoldToShowSpots,
+} from "@/lib/experience-booking";
 import {
   formatAlmostFullImageHint,
   formatCardDateTimeLine,
@@ -106,7 +110,8 @@ export function ExperienceCard({
     !isUnavailable &&
     spotsLeft !== null &&
     spotsLeft > 0 &&
-    (isAlmostFull || (isAvailable && spotsLeft <= 15));
+    (isAlmostFull || (isAvailable && spotsLeft <= 15)) &&
+    hasEnoughSoldToShowSpots(experience.spotsSold);
   const urgencyHintText = isAlmostFull
     ? formatAlmostFullImageHint(spotsLeft!, locale)
     : formatSpotsLeftHint(spotsLeft!, locale);

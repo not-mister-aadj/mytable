@@ -23,6 +23,7 @@ import {
 import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
 import { images } from "@/data/images";
+import { hasEnoughSoldToShowSpots } from "@/lib/experience-booking";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
@@ -158,6 +159,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   if (!ticketEvent) notFound();
   const comingSoon = Boolean(ticketEvent.extras?.comingSoon);
   const spotsLeft = Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold);
+  const showSpotsCount = hasEnoughSoldToShowSpots(ticketEvent.spotsSold);
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
@@ -191,6 +193,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
           ticketsLeftLabel: "{count} spots left",
+          availableChipLabel: "Available",
           soldOutChipLabel: "Sold out",
           comingSoonChipLabel: "Coming soon",
           comingSoonTitle: "Registration opens soon",
@@ -277,6 +280,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",
           ticketsLeftLabel: "Nog {count} plekken",
+          availableChipLabel: "Beschikbaar",
           soldOutChipLabel: "Uitverkocht",
           comingSoonChipLabel: "Binnenkort bekend",
           comingSoonTitle: "Aanmelden opent binnenkort",
@@ -396,9 +400,11 @@ export default async function SundayTableEventPage({ params }: Props) {
           faqItems={copy.faqItems}
           eventId={ticketEvent.id}
           spotsLeft={spotsLeft}
+          showSpotsCount={showSpotsCount}
           pricePerSeatEuros={pricePerSeatEuros}
           comingSoon={comingSoon}
           ticketsLeftLabel={copy.ticketsLeftLabel}
+          availableChipLabel={copy.availableChipLabel}
           soldOutChipLabel={copy.soldOutChipLabel}
           comingSoonChipLabel={copy.comingSoonChipLabel}
           comingSoonTitle={copy.comingSoonTitle}

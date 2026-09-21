@@ -44,11 +44,15 @@ interface SundayTableEventRevealProps {
   faqItems: { question: string; answer: string }[];
   eventId: string;
   spotsLeft: number;
+  /** False until enough real tickets have sold. Hides the numeric count in
+   * favor of a neutral "available" badge (see hasEnoughSoldToShowSpots). */
+  showSpotsCount: boolean;
   pricePerSeatEuros: number;
   /** Venue is still being finalized: shows the page but replaces the
    * booking form with an announcement instead of taking payments. */
   comingSoon?: boolean;
   ticketsLeftLabel: string;
+  availableChipLabel: string;
   soldOutChipLabel: string;
   comingSoonChipLabel: string;
   comingSoonTitle: string;
@@ -98,9 +102,11 @@ export function SundayTableEventReveal({
   faqItems,
   eventId,
   spotsLeft,
+  showSpotsCount,
   pricePerSeatEuros,
   comingSoon = false,
   ticketsLeftLabel,
+  availableChipLabel,
   soldOutChipLabel,
   comingSoonChipLabel,
   comingSoonTitle,
@@ -193,9 +199,11 @@ export function SundayTableEventReveal({
                 >
                   {comingSoon
                     ? comingSoonChipLabel
-                    : spotsLeft > 0
-                      ? ticketsLeftLabel.replace("{count}", String(spotsLeft))
-                      : soldOutChipLabel}
+                    : spotsLeft === 0
+                      ? soldOutChipLabel
+                      : showSpotsCount
+                        ? ticketsLeftLabel.replace("{count}", String(spotsLeft))
+                        : availableChipLabel}
                 </span>
 
                 <button

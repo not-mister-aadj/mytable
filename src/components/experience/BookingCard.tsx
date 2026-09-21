@@ -286,7 +286,7 @@ export function BookingCard({
         >
           {statusLabels.soldOut}
         </span>
-      ) : shouldShowSpotsLeftBadge(spotsLeft) ? (
+      ) : shouldShowSpotsLeftBadge(spotsLeft, experience.spotsSold) ? (
         <span
           className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream sm:px-3.5 sm:py-1.5 sm:text-xs ${
             compact ? "mt-2.5" : "mt-4"

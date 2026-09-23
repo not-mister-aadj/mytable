@@ -86,11 +86,40 @@ type StepKey =
 const FORMAT_OPTIONS: Array<{
   id: WaitlistInterestId;
   label: { nl: string; en: string };
+  subtitle: { nl: string; en: string };
 }> = [
-  { id: "sunday_table", label: { nl: "Sunday Table", en: "Sunday Table" } },
-  { id: "wine_tasting", label: { nl: "Wijnproeverij", en: "Wine Tasting" } },
-  { id: "wine_walk", label: { nl: "Wijnwalk", en: "Wine Walk" } },
-  { id: "chefs_special", label: { nl: "Chef's Table", en: "Chef's Table" } },
+  {
+    id: "sunday_table",
+    label: { nl: "Sunday Table", en: "Sunday Table" },
+    subtitle: {
+      nl: "Ontmoet nieuwe mensen aan tafel, elke maand",
+      en: "Meet new people at the table, every month",
+    },
+  },
+  {
+    id: "wine_tasting",
+    label: { nl: "Wijnproeverij", en: "Wine Tasting" },
+    subtitle: {
+      nl: "Proef bijzondere wijnen met bijpassende hapjes",
+      en: "Taste special wines with matching bites",
+    },
+  },
+  {
+    id: "wine_walk",
+    label: { nl: "Wijnwalk", en: "Wine Walk" },
+    subtitle: {
+      nl: "Wandel met je eigen groep langs de leukste wijnbars en restaurants",
+      en: "Walk with your own group past the best wine bars and restaurants",
+    },
+  },
+  {
+    id: "chefs_special",
+    label: { nl: "Chef's Table", en: "Chef's Table" },
+    subtitle: {
+      nl: "De chef kiest zijn beste gerechten in kleine porties, zodat je meer kan proeven",
+      en: "The chef picks their best dishes in small portions, so you can taste more",
+    },
+  },
 ];
 
 function ChipButton({
@@ -745,21 +774,33 @@ export function SundayTableWaitlistModal({
                       <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
                         {labels.formatLabel}
                       </span>
-                      <div className="mt-1.5 flex flex-wrap gap-2">
-                        {FORMAT_OPTIONS.map((format) => (
-                          <button
-                            key={format.id}
-                            type="button"
-                            onClick={() => toggleInterest(format.id)}
-                            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                              interests.includes(format.id)
-                                ? "border-burgundy bg-burgundy text-cream"
-                                : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
-                            }`}
-                          >
-                            {format.label[locale === "en" ? "en" : "nl"]}
-                          </button>
-                        ))}
+                      <div className="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {FORMAT_OPTIONS.map((format) => {
+                          const selected = interests.includes(format.id);
+                          return (
+                            <button
+                              key={format.id}
+                              type="button"
+                              onClick={() => toggleInterest(format.id)}
+                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                                selected
+                                  ? "border-burgundy bg-burgundy text-cream"
+                                  : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
+                              }`}
+                            >
+                              <span className="block text-sm font-semibold">
+                                {format.label[locale === "en" ? "en" : "nl"]}
+                              </span>
+                              <span
+                                className={`mt-0.5 block text-xs leading-snug ${
+                                  selected ? "text-cream/75" : "text-wine/55"
+                                }`}
+                              >
+                                {format.subtitle[locale === "en" ? "en" : "nl"]}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 

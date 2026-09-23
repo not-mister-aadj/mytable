@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import {
   experiencePath,
   girlsOnlyCityPath,
-  joinPath,
+  sundayTableLpCityPath,
   sundayTableLpPath,
   type Locale,
 } from "@/i18n/config";
@@ -17,6 +17,7 @@ import {
   girlsOnlyCityDisplayRegion,
   listGirlsOnlyCities,
 } from "@/data/girls-only-cities";
+import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
 import type { GirlsOnlyCityPageLabels } from "@/i18n/girls-only-city.types";
 import type { EnrichedExperience } from "@/lib/experience-detail";
 
@@ -51,7 +52,13 @@ export function GirlsOnlyCityView({
   sundayScarcity = null,
 }: GirlsOnlyCityViewProps) {
   const hasEvents = events.length > 0;
-  const quizHref = joinPath(locale);
+  // /join was removed with the old sign-up flow (see SIGNUPS_PAUSED). Route
+  // to that city's own Sunday Table page when one exists, else the general
+  // waitlist page, so this is never a dead link.
+  const sundayTableCitySlug = sundayTableLpSlugFromCity(city.cityName);
+  const quizHref = sundayTableCitySlug
+    ? sundayTableLpCityPath(locale, sundayTableCitySlug)
+    : sundayTableLpPath(locale);
   const claimHref = sundayTableLpPath(locale);
   const primaryHref =
     sundayScarcity && sundayScarcity.seatsLeft > 0

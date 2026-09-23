@@ -47,6 +47,9 @@ export function cityHasBookableGirlsOnlyEvent(
   events: EnrichedExperience[],
 ): boolean {
   return events.some(
-    (item) => item.status !== "soldOut" && item.status !== "closed",
+    (item) =>
+      item.status !== "soldOut" &&
+      item.status !== "closed" &&
+      item.status !== "comingSoon",
   );
 }

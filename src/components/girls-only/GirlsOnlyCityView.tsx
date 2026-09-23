@@ -256,7 +256,10 @@ export function GirlsOnlyCityView({
                       >
                         <ExperienceCard
                           experience={experience}
-                          href={experiencePath(locale, experience.slug)}
+                          href={
+                            experience.externalHref ??
+                            experiencePath(locale, experience.slug)
+                          }
                           statusLabels={labels.status}
                           femaleOnlyBadge={labels.femaleOnlyBadge}
                           reserveCta={labels.reserveCta}

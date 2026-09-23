@@ -188,7 +188,7 @@ export default async function SundayTableEventPage({ params }: Props) {
       ? {
           eyebrow: `Sunday Table · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           intro:
-            "Most people join MyTable for two things: discovering the tastiest new places, and meeting new people. At Sunday Table, you sit down at a table of 4 to 6 people you don't know yet, at one of the city's best spots. Some Sundays there are several of these tables running at the same venue. This Sunday, you get both.",
+            "Most people join MyTable for two things: discovering the tastiest new places, and meeting new people. At Sunday Table, you sit down at a table of 4 to 6 people you don't know yet, at one of the city's best spots. Some Sundays there are several of these tables running at the same venue.",
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
@@ -275,7 +275,7 @@ export default async function SundayTableEventPage({ params }: Props) {
       : {
           eyebrow: `Sunday Table · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           intro:
-            "De meeste mensen komen bij MyTable voor twee dingen: de lekkerste nieuwe plekken ontdekken en nieuwe mensen ontmoeten. Bij Sunday Table schuif je aan bij een tafel van 4 tot 6 mensen die je nog niet kent, bij een van de leukste plekken van de stad. Soms staan er die middag meerdere van deze tafels bij dezelfde venue. Zo krijg je deze zondag allebei.",
+            "De meeste mensen komen bij MyTable voor twee dingen: de lekkerste nieuwe plekken ontdekken en nieuwe mensen ontmoeten. Bij Sunday Table schuif je aan bij een tafel van 4 tot 6 mensen die je nog niet kent, bij een van de leukste plekken van de stad. Soms staan er die middag meerdere van deze tafels bij dezelfde venue.",
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",

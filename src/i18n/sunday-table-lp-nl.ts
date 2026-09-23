@@ -180,7 +180,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   how: {
     eyebrow: "Zo werkt het",
     title: "Voor nieuwe smaken én nieuwe gezichten",
-    body: "Sunday Table is waar je nieuwe mensen ontmoet en de leukste culinaire plekken van de stad ontdekt. Met je nieuwe tafelgenoten boek je daarna wine walks, proeverijen en diners.",
+    body: "Sunday Table is waar je nieuwe mensen ontmoet en de leukste culinaire plekken van de stad ontdekt. Je schuift aan bij een tafel van 4 tot 6 mensen, en soms staan er meerdere van deze tafels bij dezelfde venue. Met je nieuwe tafelgenoten boek je daarna wine walks, proeverijen en diners.",
     steps: [
       {
         title: "Zet je op de lijst",

@@ -180,7 +180,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   how: {
     eyebrow: "How it works",
     title: "For new flavors and new faces",
-    body: "Sunday Table is where you meet new people and discover the city's best culinary spots. With your new tablemates you then book wine walks, tastings and dinners.",
+    body: "Sunday Table is where you meet new people and discover the city's best culinary spots. You join a table of 4 to 6 people, and some venues run several of these tables at once. With your new tablemates you then book wine walks, tastings and dinners.",
     steps: [
       {
         title: "Join the waitlist",

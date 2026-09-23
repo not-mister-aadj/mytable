@@ -24,6 +24,7 @@ import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
 import { images } from "@/data/images";
 import { hasEnoughSoldToShowSpots } from "@/lib/experience-booking";
+import { getSundayTableMotivationStats } from "@/lib/sunday-table-motivation-stats";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
@@ -173,6 +174,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   const tags = [ageBracketLabel, mixedLabel].filter(
     (tag): tag is string => Boolean(tag),
   );
+  const motivationStats = await getSundayTableMotivationStats();
 
   const dict = getDictionary(locale);
   const dateLabel = formatSundayTableDate(table, locale);
@@ -227,10 +229,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           statsEyebrow: "Why people come to MyTable",
           statsTitle: "Sound familiar? Here's what we see across all our events",
           stats: [
-            { value: "65%", label: "come to meet new people" },
-            { value: "61%", label: "come solo" },
-            { value: "58%", label: "want to discover a new place" },
-            { value: "53%", label: "just come for good company" },
+            { value: `${motivationStats.meetNewPeople}%`, label: "come to meet new people" },
+            { value: `${motivationStats.solo}%`, label: "come solo" },
+            { value: `${motivationStats.discoverPlaces}%`, label: "want to discover a new place" },
+            { value: `${motivationStats.justForFun}%`, label: "just come for good company" },
           ],
           faqEyebrow: "Questions",
           faqTitle: "Still on the fence? Here are the answers",
@@ -314,10 +316,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           statsEyebrow: "Waarom mensen bij MyTable komen",
           statsTitle: "Herkenbaar? Dit blijkt uit de data van al onze events",
           stats: [
-            { value: "65%", label: "komt om nieuwe mensen te ontmoeten" },
-            { value: "61%", label: "komt in z'n eentje" },
-            { value: "58%", label: "wil een nieuwe plek ontdekken" },
-            { value: "53%", label: "komt gewoon voor de gezelligheid" },
+            { value: `${motivationStats.meetNewPeople}%`, label: "komt om nieuwe mensen te ontmoeten" },
+            { value: `${motivationStats.solo}%`, label: "komt in z'n eentje" },
+            { value: `${motivationStats.discoverPlaces}%`, label: "wil een nieuwe plek ontdekken" },
+            { value: `${motivationStats.justForFun}%`, label: "komt gewoon voor de gezelligheid" },
           ],
           faqEyebrow: "Vragen",
           faqTitle: "Nog twijfels? Hier zijn de antwoorden",

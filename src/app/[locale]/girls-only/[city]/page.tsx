@@ -21,11 +21,10 @@ import {
   getGirlsOnlyCityLabels,
   getUpcomingGirlsOnlyCityEvents,
 } from "@/lib/girls-only-city";
-import { getSundayTableSeatStats } from "@/lib/sunday-table-capacity";
-import {
-  amsterdamDateIso,
-  getUpcomingSundayWineTables,
-} from "@/lib/sunday-wine-table";
+import { getNextSundayTableLocation } from "@/lib/sunday-table-locations";
+import { buildSundayTableAgendaItem } from "@/lib/sunday-table-agenda-item";
+import { hasEnoughSoldToShowSpots } from "@/lib/experience-booking";
+import { enrichExperience } from "@/lib/experience-detail";
 import {
   breadcrumbJsonLd,
   faqPageJsonLd,
@@ -73,35 +72,44 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
   const city = getGirlsOnlyCity(citySlug as GirlsOnlyCitySlug)!;
   const labels = getGirlsOnlyCityLabels(city.slug, locale);
   const dict = await getDictionaryWithAgenda(locale);
-  const events = getUpcomingGirlsOnlyCityEvents(
+  const wineTastingEvents = getUpcomingGirlsOnlyCityEvents(
     dict.agenda.items,
     locale,
     city.cityName,
     6,
   );
+
+  // The real, ticketed Sunday Table for this city (if one is scheduled),
+  // same data the agenda page and reveal page use, replacing the old
+  // sunday_table_signups-based scarcity line that showed a date/seat count
+  // for every city regardless of whether a table actually existed there.
+  const nextLocation = await getNextSundayTableLocation(city.cityName);
+  const sundayTableItem = nextLocation
+    ? await buildSundayTableAgendaItem(nextLocation, locale)
+    : null;
+  const events = sundayTableItem
+    ? [enrichExperience(sundayTableItem), ...wineTastingEvents]
+    : wineTastingEvents;
+
   const hasBookable = cityHasBookableGirlsOnlyEvent(events);
   const pageUrl = absoluteUrl(girlsOnlyCityPath(locale, city.slug));
   const agendaHref = agendaPath(locale);
   const region = girlsOnlyCityDisplayRegion(city, locale);
 
-  const upcomingSunday = getUpcomingSundayWineTables(1)[0] ?? null;
-  const tableDate = upcomingSunday ? amsterdamDateIso(upcomingSunday) : null;
   let sundayScarcity: { seatsLeft: number; dateLabel: string } | null = null;
-  if (tableDate && upcomingSunday) {
-    const [mixed, girls] = await Promise.all([
-      getSundayTableSeatStats({
-        city: city.cityName,
-        tableDate,
-        tableType: "mixed",
-      }),
-      getSundayTableSeatStats({
-        city: city.cityName,
-        tableDate,
-        tableType: "girls_only",
-      }),
-    ]);
-    const seatsLeft = Math.max(mixed.seatsLeft, girls.seatsLeft);
-    const dateLabel = upcomingSunday.toLocaleDateString(
+  if (
+    sundayTableItem &&
+    sundayTableItem.status === "available" &&
+    sundayTableItem.capacity !== undefined &&
+    sundayTableItem.spotsSold !== undefined &&
+    hasEnoughSoldToShowSpots(sundayTableItem.spotsSold) &&
+    sundayTableItem.startsAt
+  ) {
+    const seatsLeft = Math.max(
+      0,
+      sundayTableItem.capacity - sundayTableItem.spotsSold,
+    );
+    const dateLabel = new Date(sundayTableItem.startsAt).toLocaleDateString(
       locale === "en" ? "en-GB" : "nl-NL",
       {
         day: "numeric",

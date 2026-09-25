@@ -23,8 +23,8 @@ function buildCityPageEn(
 
   return {
     meta: {
-      title: `Sunday Table in ${enName} · MyTable`,
-      description: `Sunday Table in ${enName}. Every first Sunday. New people. Then culinary experiences.`,
+      title: `Meet new people in ${enName} · Sunday Table`,
+      description: `Join 4 to 6 new people on a Sunday afternoon in ${enName}. Join the waitlist and be the first to hear when the first table in ${enName} opens.`,
     },
     breadcrumbHome: "Home",
     breadcrumbGirlsOnly: "Sunday Table",

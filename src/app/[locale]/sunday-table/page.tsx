@@ -68,7 +68,7 @@ export default async function SundayTableLpPage({ params }: Props) {
           faqPageJsonLd(labels.faq.items, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
-            { name: labels.meta.title, path: sundayTableLpPath(locale) },
+            { name: "Sunday Table", path: sundayTableLpPath(locale) },
           ]),
         ]}
       />

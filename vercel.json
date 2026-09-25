@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/sunday-table-lifecycle",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/waitlist-abandoned-welcome",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

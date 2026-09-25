@@ -23,7 +23,10 @@ import {
 } from "@/data/blog";
 import { listFormatLpCities } from "@/data/format-lp-cities";
 import { listGirlsOnlyCities } from "@/data/girls-only-cities";
-import { SUNDAY_TABLE_LP_CITIES } from "@/data/sunday-table-lp-cities";
+import {
+  SUNDAY_TABLE_LP_CITIES,
+  sundayTableLpCityFromSlug,
+} from "@/data/sunday-table-lp-cities";
 import { getAgendaExperiences } from "@/lib/experiences";
 import { absoluteImageUrl, absoluteUrl, getSeoSiteUrl } from "@/lib/seo/site";
 
@@ -116,7 +119,11 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
       lastmod: now,
       images: [absoluteUrl("/girls-only/hero-poster.jpg")],
     }),
-    ...listGirlsOnlyCities().flatMap((city) =>
+    // Rotterdam and Den Haag are covered by their Sunday Table landing pages
+    // below, which share the same URL.
+    ...listGirlsOnlyCities()
+      .filter((city) => !sundayTableLpCityFromSlug(city.slug))
+      .flatMap((city) =>
       pair({
         nlPath: girlsOnlyCityPath("nl", city.slug),
         enPath: girlsOnlyCityPath("en", city.slug),

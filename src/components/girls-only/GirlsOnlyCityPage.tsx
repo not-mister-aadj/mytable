@@ -3,18 +3,10 @@ import { GirlsOnlyCityView } from "@/components/girls-only/GirlsOnlyCityView";
 import { Header } from "@/components/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
-  GIRLS_ONLY_CITY_SLUGS,
-  getGirlsOnlyCity,
   girlsOnlyCityDisplayRegion,
-  isGirlsOnlyCitySlug,
-  type GirlsOnlyCitySlug,
+  type GirlsOnlyCityDefinition,
 } from "@/data/girls-only-cities";
-import {
-  agendaPath,
-  girlsOnlyCityPath,
-  isValidLocale,
-  type Locale,
-} from "@/i18n/config";
+import { agendaPath, girlsOnlyCityPath, type Locale } from "@/i18n/config";
 import { getDictionaryWithAgenda } from "@/i18n/get-dictionary";
 import {
   cityHasBookableGirlsOnlyEvent,
@@ -35,41 +27,31 @@ import {
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { absoluteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
-export const revalidate = 60;
-
-type Props = {
-  params: Promise<{ locale: string; city: string }>;
-};
-
-export async function generateStaticParams() {
-  const locales: Locale[] = ["nl", "en"];
-  return locales.flatMap((locale) =>
-    GIRLS_ONLY_CITY_SLUGS.map((city) => ({ locale, city })),
-  );
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale, city: citySlug } = await params;
-  if (!isValidLocale(locale) || !isGirlsOnlyCitySlug(citySlug)) return {};
-  const city = getGirlsOnlyCity(citySlug)!;
-  const labels = getGirlsOnlyCityLabels(citySlug, locale);
+/** SEO city page ("Sunday Table in Utrecht") for cities without their own
+ * Sunday Table landing page. Served at /sunday-table/[city]. */
+export function girlsOnlyCityMetadata(
+  city: GirlsOnlyCityDefinition,
+  locale: Locale,
+): Metadata {
+  const labels = getGirlsOnlyCityLabels(city.slug, locale);
   return buildPageMetadata({
     locale,
     kind: "girlsOnlyCity",
     slug: city.slug,
-    title: `${labels.meta.title} | MyTable`,
+    title: labels.meta.title,
     description: labels.meta.description,
     image: city.heroImage,
   });
 }
 
-export default async function GirlsOnlyCityPage({ params }: Props) {
-  const { locale, city: citySlug } = await params;
-  if (!isValidLocale(locale) || !isGirlsOnlyCitySlug(citySlug)) notFound();
-
-  const city = getGirlsOnlyCity(citySlug as GirlsOnlyCitySlug)!;
+export async function GirlsOnlyCityPage({
+  city,
+  locale,
+}: {
+  city: GirlsOnlyCityDefinition;
+  locale: Locale;
+}) {
   const labels = getGirlsOnlyCityLabels(city.slug, locale);
   const dict = await getDictionaryWithAgenda(locale);
   const wineTastingEvents = getUpcomingGirlsOnlyCityEvents(
@@ -80,9 +62,7 @@ export default async function GirlsOnlyCityPage({ params }: Props) {
   );
 
   // The real, ticketed Sunday Table for this city (if one is scheduled),
-  // same data the agenda page and reveal page use, replacing the old
-  // sunday_table_signups-based scarcity line that showed a date/seat count
-  // for every city regardless of whether a table actually existed there.
+  // same data the agenda page and reveal page use.
   const nextLocation = await getNextSundayTableLocation(city.cityName);
   const sundayTableItem = nextLocation
     ? await buildSundayTableAgendaItem(nextLocation, locale)

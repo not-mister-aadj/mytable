@@ -63,7 +63,20 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    return [];
+    // City pages moved from /girls-only to /sunday-table. The slug pattern
+    // only matches plain slugs, so the /girls-only/*.jpg images keep working.
+    return [
+      {
+        source: "/girls-only/:city([a-z-]+)",
+        destination: "/sunday-table/:city",
+        permanent: true,
+      },
+      {
+        source: "/:locale(en|nl)/girls-only/:city([a-z-]+)",
+        destination: "/:locale/sunday-table/:city",
+        permanent: true,
+      },
+    ];
   },
 };
 

@@ -208,7 +208,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     items: [
       {
         title: "A table full of new people",
-        body: "Every first Sunday at a table with faces you don’t know yet.",
+        body: "Every month on a Sunday at a table with faces you don’t know yet.",
       },
       {
         title: "Your own table or matched",

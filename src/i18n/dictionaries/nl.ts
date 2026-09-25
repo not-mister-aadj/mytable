@@ -7,7 +7,7 @@ export const nl: Dictionary = {
   meta: {
     title: "MyTable · Goede smaak. Goed gezelschap.",
     description:
-      "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+      "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
   },
   header: {
     nav: {
@@ -309,7 +309,7 @@ export const nl: Dictionary = {
   footer: {
     tagline: "Goede smaak. Goed gezelschap.",
     description:
-      "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+      "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
     nationwide: "Heel Nederland",
     columns: {
       explore: "Ontdekken",

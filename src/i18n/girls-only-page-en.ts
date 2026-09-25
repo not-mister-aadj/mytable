@@ -88,7 +88,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       {
         question: "What is a Sunday Table?",
         answer:
-          "Every first Sunday. New people. Then culinary experiences.",
+          "Every month. New people. Then culinary experiences.",
       },
       {
         question: "Can I come alone?",
@@ -118,7 +118,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       {
         question: "When are Sunday Tables?",
         answer:
-          "Around the first Sunday of the month, usually in the afternoon. Exact dates are on the agenda and your table card.",
+          "Once a month on a Sunday, usually in the afternoon. Exact dates are on the agenda and your table card.",
       },
       {
         question: "Where does it take place?",
@@ -201,7 +201,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   sundayTable: {
     eyebrow: "Sunday Table",
     title: "Meet the people you’ll make plans with.",
-    body: "Join a welcoming table every first Sunday of the month. Come solo, meet new people and discover who you want to share your next experience with.",
+    body: "Join a welcoming table, every month on a Sunday. Come solo, meet new people and discover who you want to share your next experience with.",
   },
   premium: {
     eyebrow: "Next: culinary experiences",

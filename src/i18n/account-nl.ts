@@ -71,7 +71,7 @@ export const accountPageNl: AccountPageLabels = {
           cta: "Verder",
         },
         {
-          title: "Elke eerste zondag. Maximaal tien plekken.",
+          title: "Elke maand. Maximaal tien plekken.",
           subtitle: "Wij matchen de tafel. Jij komt solo of met iemand.",
           image: "/girls-only/table-group.jpg",
           imageAlt: "Een groep aan tafel bij MyTable",
@@ -104,7 +104,7 @@ export const accountPageNl: AccountPageLabels = {
       both: [
         {
           title: "MyTable brengt je in het echt aan tafel.",
-          subtitle: "Nieuwe mensen elke eerste zondag van de maand, op een nieuwe locatie.",
+          subtitle: "Nieuwe mensen elke maand op zondag, op een nieuwe locatie.",
           image: "/girls-only/table-wine-laughing.jpg",
           imageAlt: "Mensen lachen samen aan een MyTable-tafel",
           cta: "Verder",
@@ -129,7 +129,7 @@ export const accountPageNl: AccountPageLabels = {
     goal: {
       title: "Sunday Table",
       lines: [
-        "Elke eerste zondag van de maand.",
+        "Elke maand op zondag.",
         "Nieuwe mensen ontmoeten.",
         "Daarna culinaire ervaringen boeken met je nieuwe groep.",
       ],
@@ -140,7 +140,7 @@ export const accountPageNl: AccountPageLabels = {
       title: "Wat brengt je hier?",
       subtitle: "Kies wat het beste past. Je kunt later altijd wijzigen.",
       meetTitle: "Nieuwe mensen ontmoeten",
-      meetHint: "Sunday Table. Elke eerste zondag.",
+      meetHint: "Sunday Table. Elke maand.",
       culinaryTitle: "Culinaire ontdekkingen",
       culinaryHint: "Wine Walks, proeverijen, diners",
       bothTitle: "Beide",
@@ -236,7 +236,7 @@ export const accountPageNl: AccountPageLabels = {
     commit: {
       meet: {
         title: "Sunday Table",
-        body: "Lijkt het je leuk om elke eerste zondag van de maand nieuwe mensen te ontmoeten aan tafel?",
+        body: "Lijkt het je leuk om elke maand op zondag nieuwe mensen te ontmoeten aan tafel?",
         cta: "Ja, dat wil ik",
       },
       culinary: {
@@ -246,7 +246,7 @@ export const accountPageNl: AccountPageLabels = {
       },
       both: {
         title: "MyTable",
-        body: "Lijkt het je leuk om elke eerste zondag nieuwe mensen te ontmoeten, én daarna culinaire ervaringen te delen?",
+        body: "Lijkt het je leuk om elke maand op zondag nieuwe mensen te ontmoeten, én daarna culinaire ervaringen te delen?",
         cta: "Ja, dat wil ik",
       },
     },
@@ -280,8 +280,8 @@ export const accountPageNl: AccountPageLabels = {
     },
     membership: {
       title: "Clubmember",
-      body: "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen. Early access + 10% korting.",
-      perk1: "Sunday Table elke eerste zondag",
+      body: "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen. Early access + 10% korting.",
+      perk1: "Sunday Table elke maand",
       perk2: "Early access",
       perk3: "10% op culinaire ervaringen",
       ctaYes: "Houd me op de hoogte",

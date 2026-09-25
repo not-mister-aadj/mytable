@@ -88,7 +88,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       {
         question: "Wat is een Sunday Table?",
         answer:
-          "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+          "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
       },
       {
         question: "Kan ik ook alleen komen?",
@@ -118,7 +118,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
       {
         question: "Wanneer zijn de Sunday Tables?",
         answer:
-          "Rond de eerste zondag van de maand, meestal ’s middags. Exacte data staan in de agenda en op je tafelkaart.",
+          "Eén keer per maand op zondag, meestal ’s middags. Exacte data staan in de agenda en op je tafelkaart.",
       },
       {
         question: "Waar vindt het plaats?",
@@ -201,7 +201,7 @@ export const girlsOnlyPageNl: GirlsOnlyPageLabels = {
   sundayTable: {
     eyebrow: "Sunday Table",
     title: "Meet the people you’ll make plans with.",
-    body: "Join een warme tafel elke eerste zondag van de maand. Kom solo, ontmoet nieuwe mensen en ontdek met wie je je volgende ervaring wilt delen.",
+    body: "Join een warme tafel, elke maand op zondag. Kom solo, ontmoet nieuwe mensen en ontdek met wie je je volgende ervaring wilt delen.",
   },
   premium: {
     eyebrow: "Daarna: culinaire ervaringen",

@@ -32,7 +32,7 @@ function buildCityPageEn(
       regionLabel: city.regionEn,
       headline: `Sunday Table in ${enName}`,
       subheadline:
-        "Every first Sunday. New people. Then culinary experiences.",
+        "Every month. New people. Then culinary experiences.",
       trustBullets: ["Solo welcome", "Matching", "Then culinary plans"],
       ctaBook: "Claim your seat",
       ctaPriority: "Go to Sunday Table",
@@ -43,7 +43,7 @@ function buildCityPageEn(
       eyebrow: "Agenda",
       title: `Tables in ${enName}`,
       subtitle: `Next Sunday Table in ${enName}.`,
-      emptyTitle: `Every first Sunday in ${enName}`,
+      emptyTitle: `Every month in ${enName}`,
       emptyBody: "Claim your seat. We match you at the table.",
       emptyCta: "Go to Sunday Table",
       viewAll: "All Sundays",
@@ -51,7 +51,7 @@ function buildCityPageEn(
     priority: {
       eyebrow: "Sunday Table",
       title: `${enName}`,
-      subtitle: "Every first Sunday. New people. Then culinary experiences.",
+      subtitle: "Every month. New people. Then culinary experiences.",
       nameLabel: "First name",
       namePlaceholder: "Your first name",
       emailLabel: "Email",
@@ -64,10 +64,10 @@ function buildCityPageEn(
     included: {
       eyebrow: "The offer",
       title: `Sunday Table in ${enName}`,
-      subtitle: "Every first Sunday. New people. Culinary plans.",
+      subtitle: "Every month. New people. Culinary plans.",
       items: [
         {
-          title: "Every first Sunday",
+          title: "Every month",
           description: "Fixed rhythm. Every month.",
         },
         {
@@ -99,7 +99,7 @@ function buildCityPageEn(
           description: "Join the list for your city.",
         },
         {
-          title: "First Sunday",
+          title: "On a Sunday",
           description: "New people. Matching.",
         },
         {
@@ -114,7 +114,7 @@ function buildCityPageEn(
         {
           question: `What is Sunday Table in ${enName}?`,
           answer:
-            "Every first Sunday. New people. Then culinary experiences.",
+            "Every month. New people. Then culinary experiences.",
         },
         {
           question: "Solo?",
@@ -131,7 +131,7 @@ function buildCityPageEn(
         },
         {
           question: "When?",
-          answer: "Every first Sunday of the month.",
+          answer: "Once a month, on a Sunday afternoon.",
         },
         {
           question: "Dating?",
@@ -146,7 +146,7 @@ function buildCityPageEn(
     },
     finalCta: {
       title: `Sunday Table in ${enName}`,
-      subtitle: "Every first Sunday. New people. Culinary plans.",
+      subtitle: "Every month. New people. Culinary plans.",
       ctaBook: "Claim your seat",
       ctaPriority: "Go to Sunday Table",
     },
@@ -155,7 +155,7 @@ function buildCityPageEn(
     reserveCta: "Reserve",
     viewTableCta: "View table",
     perPersonFrom: "from",
-    socialPromise: "Every first Sunday. New people. Culinary plans.",
+    socialPromise: "Every month. New people. Culinary plans.",
   };
 }
 

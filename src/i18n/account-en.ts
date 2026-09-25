@@ -71,7 +71,7 @@ export const accountPageEn: AccountPageLabels = {
           cta: "Continue",
         },
         {
-          title: "Every first Sunday. Up to ten seats.",
+          title: "Every month. Up to ten seats.",
           subtitle: "We match the table. You come solo or with someone.",
           image: "/girls-only/table-group.jpg",
           imageAlt: "A group at a MyTable",
@@ -104,7 +104,7 @@ export const accountPageEn: AccountPageLabels = {
       both: [
         {
           title: "MyTable brings you to a real table.",
-          subtitle: "New people every first Sunday of the month, at a new location.",
+          subtitle: "New people every month on a Sunday, at a new location.",
           image: "/girls-only/table-wine-laughing.jpg",
           imageAlt: "People laughing together at a MyTable",
           cta: "Continue",
@@ -129,7 +129,7 @@ export const accountPageEn: AccountPageLabels = {
     goal: {
       title: "Sunday Table",
       lines: [
-        "Every first Sunday of the month.",
+        "Every month on a Sunday.",
         "Meet new people.",
         "Then book culinary experiences with your new group.",
       ],
@@ -140,7 +140,7 @@ export const accountPageEn: AccountPageLabels = {
       title: "What brings you here?",
       subtitle: "Pick what fits best. You can always change this later.",
       meetTitle: "Meet new people",
-      meetHint: "Sunday Table. Every first Sunday.",
+      meetHint: "Sunday Table. Every month.",
       culinaryTitle: "Culinary discoveries",
       culinaryHint: "Wine Walks, tastings, dinners",
       bothTitle: "Both",
@@ -236,7 +236,7 @@ export const accountPageEn: AccountPageLabels = {
     commit: {
       meet: {
         title: "Sunday Table",
-        body: "Would you like to meet new people at the table every first Sunday of the month?",
+        body: "Would you like to meet new people at the table every month on a Sunday?",
         cta: "Yes, I’m in",
       },
       culinary: {
@@ -246,7 +246,7 @@ export const accountPageEn: AccountPageLabels = {
       },
       both: {
         title: "MyTable",
-        body: "Would you like to meet new people every first Sunday, and share culinary experiences after?",
+        body: "Would you like to meet new people every month on a Sunday, and share culinary experiences after?",
         cta: "Yes, I’m in",
       },
     },
@@ -280,8 +280,8 @@ export const accountPageEn: AccountPageLabels = {
     },
     membership: {
       title: "Clubmember",
-      body: "Every first Sunday. New people. Then culinary experiences. Early access + 10% off.",
-      perk1: "Sunday Table every first Sunday",
+      body: "Every month. New people. Then culinary experiences. Early access + 10% off.",
+      perk1: "Sunday Table every month",
       perk2: "Early access",
       perk3: "10% off culinary experiences",
       ctaYes: "Keep me in the loop",

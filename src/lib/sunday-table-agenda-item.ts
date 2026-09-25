@@ -34,6 +34,7 @@ async function ticketedEventInfo(
   name: string;
   capacity: number;
   spotsSold: number;
+  priceCents: number;
   comingSoon: boolean;
 } | null> {
   if (!isDbConfigured()) return null;
@@ -44,6 +45,7 @@ async function ticketedEventInfo(
       nameEn: events.nameEn,
       capacity: events.capacity,
       spotsSold: events.spotsSold,
+      priceCents: events.priceCents,
       extras: events.extras,
     })
     .from(events)
@@ -61,6 +63,7 @@ async function ticketedEventInfo(
     name: locale === "en" ? row.nameEn : row.nameNl,
     capacity: row.capacity,
     spotsSold: row.spotsSold,
+    priceCents: row.priceCents,
     comingSoon: Boolean(row.extras?.comingSoon),
   };
 }
@@ -92,7 +95,7 @@ export async function buildSundayTableAgendaItem(
     category: "Sunday Table",
     dateTime: formatSundayTableCardDateTime(startsAt, locale),
     startsAt: startsAt.toISOString(),
-    price: 0,
+    price: ticketed ? ticketed.priceCents / 100 : 0,
     status: ticketed?.comingSoon
       ? "comingSoon"
       : spotsLeft === 0

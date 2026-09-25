@@ -160,12 +160,12 @@ export const sundayTableWaitlistNl: SundayTableLpLabels["waitlist"] = {
 
 export const sundayTableLpNl: SundayTableLpLabels = {
   meta: {
-    title: "Sunday Table · Nieuwe mensen, nieuwe plekken",
-    titleCity: "Sunday Table in {city} · Nieuwe mensen, nieuwe plekken",
+    title: "Nieuwe mensen ontmoeten aan tafel · Sunday Table",
+    titleCity: "Nieuwe mensen ontmoeten in {city} · Sunday Table",
     description:
-      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van de stad, elke eerste zondag van de maand. Girls only of gemengd. Zet je op de wachtlijst.",
+      "Schuif op zondagmiddag aan bij 4 tot 6 nieuwe mensen op een van de leukste plekken van de stad. €10 om aan te schuiven, je bestelt zelf.",
     descriptionCity:
-      "Ontmoet nieuwe mensen en ontdek de leukste culinaire plekken van {city}, elke eerste zondag van de maand. Girls only of gemengd. Zet je op de wachtlijst.",
+      "Schuif op zondagmiddag aan bij 4 tot 6 nieuwe mensen op een van de leukste plekken van {city}. €10 om aan te schuiven, je bestelt zelf.",
   },
   brand: "MyTable",
   socialProof: "Live in Rotterdam & Den Haag. Meer volgen gauw.",

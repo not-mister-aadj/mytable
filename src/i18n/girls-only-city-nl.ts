@@ -31,7 +31,7 @@ function buildCityPageNl(
       regionLabel: city.regionNl,
       headline: `Sunday Table in ${name}`,
       subheadline:
-        "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+        "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
       trustBullets: ["Solo welkom", "Matching", "Daarna culinaire plannen"],
       ctaBook: "Claim je plek",
       ctaPriority: "Naar Sunday Table",
@@ -42,7 +42,7 @@ function buildCityPageNl(
       eyebrow: "Agenda",
       title: `Tafels in ${name}`,
       subtitle: `Volgende Sunday Table in ${name}.`,
-      emptyTitle: `Elke eerste zondag in ${name}`,
+      emptyTitle: `Elke maand in ${name}`,
       emptyBody: "Claim je plek. Wij matchen je aan tafel.",
       emptyCta: "Naar Sunday Table",
       viewAll: "Alle zondagen",
@@ -50,7 +50,7 @@ function buildCityPageNl(
     priority: {
       eyebrow: "Sunday Table",
       title: `${name}`,
-      subtitle: "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+      subtitle: "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
       nameLabel: "Voornaam",
       namePlaceholder: "Je voornaam",
       emailLabel: "E-mail",
@@ -63,10 +63,10 @@ function buildCityPageNl(
     included: {
       eyebrow: "Het aanbod",
       title: `Sunday Table in ${name}`,
-      subtitle: "Elke eerste zondag. Nieuwe mensen. Culinaire plannen.",
+      subtitle: "Elke maand. Nieuwe mensen. Culinaire plannen.",
       items: [
         {
-          title: "Elke eerste zondag",
+          title: "Elke maand",
           description: "Vaste ritme. Elke maand.",
         },
         {
@@ -98,7 +98,7 @@ function buildCityPageNl(
           description: "Zet je op de lijst voor jouw stad.",
         },
         {
-          title: "Eerste zondag",
+          title: "Op zondag",
           description: "Nieuwe mensen. Matching.",
         },
         {
@@ -113,7 +113,7 @@ function buildCityPageNl(
         {
           question: `Wat is Sunday Table in ${name}?`,
           answer:
-            "Elke eerste zondag. Nieuwe mensen. Daarna culinaire ervaringen.",
+            "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
         },
         {
           question: "Solo?",
@@ -130,7 +130,7 @@ function buildCityPageNl(
         },
         {
           question: "Wanneer?",
-          answer: "Elke eerste zondag van de maand.",
+          answer: "Eén keer per maand, op zondagmiddag.",
         },
         {
           question: "Dating?",
@@ -145,7 +145,7 @@ function buildCityPageNl(
     },
     finalCta: {
       title: `Sunday Table in ${name}`,
-      subtitle: "Elke eerste zondag. Nieuwe mensen. Culinaire plannen.",
+      subtitle: "Elke maand. Nieuwe mensen. Culinaire plannen.",
       ctaBook: "Claim je plek",
       ctaPriority: "Naar Sunday Table",
     },
@@ -154,7 +154,7 @@ function buildCityPageNl(
     reserveCta: "Reserveer",
     viewTableCta: "Bekijk tafel",
     perPersonFrom: "vanaf",
-    socialPromise: "Elke eerste zondag. Nieuwe mensen. Culinaire plannen.",
+    socialPromise: "Elke maand. Nieuwe mensen. Culinaire plannen.",
   };
 }
 

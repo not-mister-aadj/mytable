@@ -7,7 +7,7 @@ export const en: Dictionary = {
   meta: {
     title: "MyTable · Good taste. Great company.",
     description:
-      "Every first Sunday. New people. Then culinary experiences.",
+      "Every month. New people. Then culinary experiences.",
   },
   header: {
     nav: {
@@ -309,7 +309,7 @@ export const en: Dictionary = {
   footer: {
     tagline: "Good taste. Great company.",
     description:
-      "Every first Sunday. New people. Then culinary experiences.",
+      "Every month. New people. Then culinary experiences.",
     nationwide: "All of the Netherlands",
     columns: {
       explore: "Explore",

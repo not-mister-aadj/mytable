@@ -208,7 +208,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     items: [
       {
         title: "Een tafel vol nieuwe mensen",
-        body: "Elke eerste zondag aan tafel met gezichten die je nog niet kent.",
+        body: "Elke maand op zondag aan tafel met gezichten die je nog niet kent.",
       },
       {
         title: "Eigen tafel of gematcht",

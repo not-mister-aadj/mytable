@@ -16,6 +16,11 @@ import {
   SUNDAY_TABLE_LP_CITIES,
 } from "@/data/sunday-table-lp-cities";
 import { getNextSundayTableLocation } from "@/lib/sunday-table-locations";
+import { getGirlsOnlyCity, listGirlsOnlyCities } from "@/data/girls-only-cities";
+import {
+  GirlsOnlyCityPage,
+  girlsOnlyCityMetadata,
+} from "@/components/girls-only/GirlsOnlyCityPage";
 import {
   breadcrumbJsonLd,
   experienceCityJsonLd,
@@ -32,18 +37,27 @@ type Props = {
   params: Promise<{ locale: string; city: string }>;
 };
 
+/** Cities with a full Sunday Table landing page get that page; every other
+ * city gets the lighter city SEO page. */
+function seoOnlyCity(citySlug: string) {
+  return sundayTableLpCityFromSlug(citySlug) ? undefined : getGirlsOnlyCity(citySlug);
+}
+
 export function generateStaticParams() {
+  const slugs = new Set([
+    ...SUNDAY_TABLE_LP_CITIES.map((city) => city.slug),
+    ...listGirlsOnlyCities().map((city) => city.slug),
+  ]);
   return ["nl", "en"].flatMap((locale) =>
-    SUNDAY_TABLE_LP_CITIES.map((city) => ({
-      locale,
-      city: city.slug,
-    })),
+    [...slugs].map((city) => ({ locale, city })),
   );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, city: citySlug } = await params;
   if (!isValidLocale(locale)) return {};
+  const seoCity = seoOnlyCity(citySlug);
+  if (seoCity) return girlsOnlyCityMetadata(seoCity, locale as Locale);
   const city = sundayTableLpCityFromSlug(citySlug);
   if (!city) return {};
   const labels = getSundayTableLpLabels(locale as Locale);
@@ -61,6 +75,8 @@ export default async function SundayTableLpCityPage({ params }: Props) {
   const { locale: localeParam, city: citySlug } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
+  const seoCity = seoOnlyCity(citySlug);
+  if (seoCity) return <GirlsOnlyCityPage city={seoCity} locale={locale} />;
   const city = sundayTableLpCityFromSlug(citySlug);
   if (!city) notFound();
 

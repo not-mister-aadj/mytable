@@ -132,10 +132,10 @@ export function chefsSpecialLpCityPath(locale: Locale, citySlug: string): string
   return `${chefsSpecialLpPath(locale)}/${citySlug}`;
 }
 
+/** City SEO page. Lives under /sunday-table since the tables stopped being
+ * girls-only; old /girls-only/[city] URLs redirect here (next.config.ts). */
 export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
-  return locale === "en"
-    ? `/en/girls-only/${citySlug}`
-    : `/girls-only/${citySlug}`;
+  return sundayTableLpCityPath(locale, citySlug);
 }
 
 export function blogPath(locale: Locale): string {

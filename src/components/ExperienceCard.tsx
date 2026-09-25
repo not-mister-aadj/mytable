@@ -50,7 +50,7 @@ function cardCategoryLine(experience: ExperienceItem, tags: string[]): string {
  * run side by side with only their age bracket differing, and that bracket
  * is easy to miss in the small category caption (and a bare "35+" doesn't
  * read as an age on its own), so it also gets its own spelled-out badge in
- * the (for this format, otherwise unused) price-chip corner. */
+ * the top-right corner, above the "Mixed" and price chips. */
 function sundayTableBracket(
   experience: ExperienceItem,
   locale: Locale,
@@ -185,18 +185,22 @@ export function ExperienceCard({
       ) : null}
 
       {priceLabel && !isUnavailable ? (
-        <span className="absolute right-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
+        <span
+          className={`absolute right-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px] ${
+            mixedLabel ? "top-[4.75rem]" : "top-3"
+          }`}
+        >
           {priceLabel}
         </span>
       ) : null}
 
-      {ageBracket && !priceLabel && !isUnavailable ? (
+      {ageBracket && !isUnavailable ? (
         <span className="absolute right-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
           {ageBracket}
         </span>
       ) : null}
 
-      {mixedLabel && !priceLabel && !isUnavailable ? (
+      {mixedLabel && !isUnavailable ? (
         <span className="absolute right-3 top-11 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
           {mixedLabel}
         </span>

@@ -50,7 +50,7 @@ function cardCategoryLine(experience: ExperienceItem, tags: string[]): string {
  * run side by side with only their age bracket differing, and that bracket
  * is easy to miss in the small category caption (and a bare "35+" doesn't
  * read as an age on its own), so it also gets its own spelled-out badge in
- * the top-right corner, above the "Mixed" and price chips. */
+ * the top-right corner, together with "Mixed". */
 function sundayTableBracket(
   experience: ExperienceItem,
   locale: Locale,
@@ -96,10 +96,18 @@ export function ExperienceCard({
     cardSettings?.url ?? experience.cardImage ?? experience.image;
   const hasCardImage = Boolean(cardSrc);
   const headline = experience.city;
-  const categoryLine = cardCategoryLine(experience, visibleTags);
   const ageBracket = sundayTableBracket(experience, locale);
   const isSundayTable = experience.category === "Sunday Table";
-  const mixedLabel = isSundayTable ? (locale === "en" ? "Mixed" : "Gemengd") : null;
+  // The age bracket already has its own badge, so the caption drops it.
+  const categoryLine =
+    isSundayTable && ageBracket
+      ? "Sunday Table"
+      : cardCategoryLine(experience, visibleTags);
+  const sundayTableBadge = isSundayTable
+    ? [ageBracket, locale === "en" ? "Mixed" : "Gemengd"]
+        .filter(Boolean)
+        .join(" · ")
+    : null;
   const dateTimeLine = formatCardDateTimeLine(experience.dateTime, locale);
   const spotsLeft = getSpotsLeft(experience);
   const priceLabel =
@@ -184,25 +192,13 @@ export function ExperienceCard({
         </span>
       ) : null}
 
-      {priceLabel && !isUnavailable ? (
-        <span
-          className={`absolute right-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px] ${
-            mixedLabel ? "top-[4.75rem]" : "top-3"
-          }`}
-        >
-          {priceLabel}
-        </span>
-      ) : null}
-
-      {ageBracket && !isUnavailable ? (
+      {sundayTableBadge && !isUnavailable ? (
         <span className="absolute right-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
-          {ageBracket}
+          {sundayTableBadge}
         </span>
-      ) : null}
-
-      {mixedLabel && !isUnavailable ? (
-        <span className="absolute right-3 top-11 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
-          {mixedLabel}
+      ) : priceLabel && !isUnavailable ? (
+        <span className="absolute right-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-wine shadow-sm sm:text-[11px]">
+          {priceLabel}
         </span>
       ) : null}
 
@@ -217,6 +213,11 @@ export function ExperienceCard({
           <p className="mt-1 text-sm leading-snug text-cream/85 sm:text-[0.95rem]">
             {dateTimeLine}
           </p>
+          {sundayTableBadge && priceLabel && !isUnavailable ? (
+            <p className="mt-0.5 text-sm font-semibold leading-snug text-cream sm:text-[0.95rem]">
+              {priceLabel}
+            </p>
+          ) : null}
         </div>
 
         <span

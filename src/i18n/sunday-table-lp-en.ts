@@ -170,10 +170,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   brand: "MyTable",
   socialProof: "Live in Rotterdam & The Hague. More coming soon.",
   headline: "A social life you don't have to plan",
-  headlineCity: "A social life you don't have to plan, in {city}",
   line: "Sunday Table gives you a table of new people every month, at the city's best culinary spots. No dating agenda. Coming solo is normal.",
-  lineCity:
-    "Sunday Table gives you a table of new people every month, at {city}'s best culinary spots. No dating agenda. Coming solo is normal.",
   cta: "Join the waitlist",
   ctaHint: "Free. No spam.",
   secondaryCta: "What you get",
@@ -230,7 +227,6 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   },
   final: {
     title: "Ready for your first Sunday Table?",
-    titleCity: "Ready for Sunday Table in {city}?",
     body: "We'll email you once a table forms in your city.",
     cta: "Join the waitlist",
     earlyNote:

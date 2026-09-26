@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SundayTableLpView } from "@/components/sunday-table-lp/SundayTableLpView";
+import { SundayTableCityView } from "@/components/sunday-table-lp/SundayTableCityView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   isValidLocale,
@@ -10,12 +10,19 @@ import {
   type Locale,
 } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { fillCity, getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
+import {
+  fillCity,
+  getSundayTableCityLabels,
+  getSundayTableLpLabels,
+} from "@/i18n/get-sunday-table-lp";
 import {
   sundayTableLpCityFromSlug,
   SUNDAY_TABLE_LP_CITIES,
 } from "@/data/sunday-table-lp-cities";
-import { getNextSundayTableLocation } from "@/lib/sunday-table-locations";
+import {
+  getUpcomingSundayTableDates,
+  nextBookablePerBracket,
+} from "@/lib/sunday-table-city-dates";
 import { getGirlsOnlyCity, listGirlsOnlyCities } from "@/data/girls-only-cities";
 import {
   GirlsOnlyCityPage,
@@ -43,6 +50,11 @@ function seoOnlyCity(citySlug: string) {
   return sundayTableLpCityFromSlug(citySlug) ? undefined : getGirlsOnlyCity(citySlug);
 }
 
+/** English copy says "The Hague"; the database and URLs keep "Den Haag". */
+function cityDisplayName(name: string, locale: Locale): string {
+  return locale === "en" && name === "Den Haag" ? "The Hague" : name;
+}
+
 export function generateStaticParams() {
   const slugs = new Set([
     ...SUNDAY_TABLE_LP_CITIES.map((city) => city.slug),
@@ -61,12 +73,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const city = sundayTableLpCityFromSlug(citySlug);
   if (!city) return {};
   const labels = getSundayTableLpLabels(locale as Locale);
+  const cityName = cityDisplayName(city.name, locale as Locale);
   return buildPageMetadata({
     locale: locale as Locale,
     kind: "sundayTableLpCity",
     slug: city.slug,
-    title: fillCity(labels.meta.titleCity, city.name),
-    description: fillCity(labels.meta.descriptionCity, city.name),
+    title: fillCity(labels.meta.titleCity, cityName),
+    description: fillCity(labels.meta.descriptionCity, cityName),
     image: "/girls-only/table-group.jpg",
   });
 }
@@ -84,13 +97,19 @@ export default async function SundayTableLpCityPage({ params }: Props) {
   // statically prerendered (ISR) instead of rendering on every request.
   const dict = getDictionary(locale);
   const labels = getSundayTableLpLabels(locale);
+  const cityLabels = getSundayTableCityLabels(locale);
+  const cityName = cityDisplayName(city.name, locale);
   const pageUrl = absoluteUrl(sundayTableLpCityPath(locale, city.slug));
-  const title = fillCity(labels.meta.titleCity, city.name);
-  const description = fillCity(labels.meta.descriptionCity, city.name);
+  const title = fillCity(labels.meta.titleCity, cityName);
+  const description = fillCity(labels.meta.descriptionCity, cityName);
   // Both current Sunday Table cities sit in the same province; add a real
   // per-city region lookup here if this list grows beyond Zuid-Holland.
   const region = locale === "en" ? "South Holland" : "Zuid-Holland";
-  const nextLocation = await getNextSundayTableLocation(city.name);
+  const dates = await getUpcomingSundayTableDates(city.name, city.slug, locale);
+  const faqItems = cityLabels.faq.items.map((item) => ({
+    question: item.question,
+    answer: fillCity(item.answer, cityName),
+  }));
 
   return (
     <>
@@ -101,36 +120,30 @@ export default async function SundayTableLpCityPage({ params }: Props) {
           ...experienceCityJsonLd({
             pageUrl,
             locale,
-            cityName: city.name,
+            cityName,
             region,
             title,
             description,
             serviceType: locale === "en" ? "Recurring social dinner" : "Terugkerend sociaal diner",
           }),
-          faqPageJsonLd(labels.faq.items, pageUrl),
+          faqPageJsonLd(faqItems, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
             { name: "Sunday Table", path: sundayTableLpPath(locale) },
-            { name: city.name, path: sundayTableLpCityPath(locale, city.slug) },
+            { name: cityName, path: sundayTableLpCityPath(locale, city.slug) },
           ]),
         ]}
       />
-      <SundayTableLpView
+      <SundayTableCityView
         locale={locale}
-        labels={labels}
+        lpLabels={labels}
+        labels={cityLabels}
         headerDict={dict.header}
         footerDict={dict.footer}
-        cityName={city.name}
+        cityName={cityName}
         citySlug={city.slug}
-        nextLocation={
-          nextLocation
-            ? {
-                tableDate: nextLocation.tableDate,
-                venueName: nextLocation.venueName,
-                citySlug: city.slug,
-              }
-            : null
-        }
+        dates={dates}
+        nextTables={nextBookablePerBracket(dates)}
       />
     </>
   );

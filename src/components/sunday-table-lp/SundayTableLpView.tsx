@@ -5,10 +5,10 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
-import { sundayTableLpCityPath, sundayTableLpPath } from "@/i18n/config";
+import { sundayTableLpCityPath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
-import { fillCity, getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
+import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
@@ -25,7 +25,6 @@ import {
   SUNDAY_TABLE_LP_CITIES,
   type SundayTableLpCitySlug,
 } from "@/data/sunday-table-lp-cities";
-import { rememberPreferredCity } from "@/lib/member-onboarding";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 import { ease } from "@/lib/motion";
 
@@ -34,16 +33,12 @@ export function SundayTableLpView({
   labels,
   headerDict,
   footerDict,
-  cityName,
-  citySlug,
   nextLocation,
 }: {
   locale: Locale;
   labels: SundayTableLpLabels;
   headerDict: Dictionary["header"];
   footerDict: Dictionary["footer"];
-  cityName?: string | null;
-  citySlug?: SundayTableLpCitySlug | null;
   /** Nearest upcoming Sunday Table with a revealed venue, if there is one. */
   nextLocation?: {
     tableDate: string;
@@ -55,20 +50,12 @@ export function SundayTableLpView({
   const { people } = getBrandLandingTestimonialRows(locale);
   const proofImages = getFormatProofSlideshowImages(locale);
   const howItWorksImage = getGirlsOnlyHowItWorksImage(locale);
-  const headline = cityName
-    ? fillCity(labels.headlineCity, cityName)
-    : labels.headline;
-  const line = cityName ? fillCity(labels.lineCity, cityName) : labels.line;
-  const finalTitle = cityName
-    ? fillCity(labels.final.titleCity, cityName)
-    : labels.final.title;
   const altWaitlistLabels = getSundayTableLpLabels(
     locale === "en" ? "nl" : "en",
   ).waitlist;
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   function openWaitlist(cta: string, source: string) {
-    if (cityName) rememberPreferredCity(cityName);
     trackSundayTableCtaClicked({ cta, source, locale });
     setWaitlistOpen(true);
   }
@@ -86,7 +73,6 @@ export function SundayTableLpView({
         locale={locale}
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
-        cityName={cityName}
         presetInterest="sunday_table"
       />
       <Header dict={headerDict} locale={locale} />
@@ -115,7 +101,7 @@ export function SundayTableLpView({
               transition={{ duration: 0.5, delay: 0.06, ease }}
               className="mt-3 w-full max-w-full font-serif text-[1.35rem] font-medium leading-[1.15] tracking-tight text-wine/90 text-pretty sm:mt-4 sm:text-3xl lg:text-[2.15rem]"
             >
-              {headline}
+              {labels.headline}
             </motion.h1>
 
             <motion.p
@@ -124,7 +110,7 @@ export function SundayTableLpView({
               transition={{ duration: 0.5, delay: 0.12, ease }}
               className="mt-4 w-full max-w-lg text-[0.95rem] leading-relaxed text-wine/55 text-pretty sm:mt-5 sm:text-[1.05rem]"
             >
-              {line}
+              {labels.line}
             </motion.p>
 
             <motion.div
@@ -393,74 +379,46 @@ export function SundayTableLpView({
       </section>
 
       {/* Cities */}
-      {!citySlug ? (
-        <section className="border-b border-wine/8 bg-cream py-14 sm:py-20 lg:py-24">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
-              {labels.cities.eyebrow}
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
-              {labels.cities.title}
-            </h2>
-            <p className="mt-3 max-w-md text-base text-wine/60 sm:mt-4">
-              {labels.cities.body}
-            </p>
+      <section className="border-b border-wine/8 bg-cream py-14 sm:py-20 lg:py-24">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+            {labels.cities.eyebrow}
+          </p>
+          <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-wine sm:text-4xl">
+            {labels.cities.title}
+          </h2>
+          <p className="mt-3 max-w-md text-base text-wine/60 sm:mt-4">
+            {labels.cities.body}
+          </p>
 
-            <div className="mt-8 flex flex-wrap gap-3 sm:mt-10">
-              {SUNDAY_TABLE_LP_CITIES.map((city) => (
-                <Link
-                  key={city.slug}
-                  href={sundayTableLpCityPath(locale, city.slug)}
-                  onClick={() =>
-                    trackSundayTableCtaClicked({
-                      cta: "city_chip",
-                      source: "sunday_table_cities",
-                      locale,
-                    })
-                  }
-                  className="rounded-full border border-wine/15 bg-white px-5 py-3 text-sm font-medium text-wine transition hover:border-wine/40 hover:bg-wine hover:text-cream"
-                >
-                  {city.name}
-                </Link>
-              ))}
-            </div>
+          <div className="mt-8 flex flex-wrap gap-3 sm:mt-10">
+            {SUNDAY_TABLE_LP_CITIES.map((city) => (
+              <Link
+                key={city.slug}
+                href={sundayTableLpCityPath(locale, city.slug)}
+                onClick={() =>
+                  trackSundayTableCtaClicked({
+                    cta: "city_chip",
+                    source: "sunday_table_cities",
+                    locale,
+                  })
+                }
+                className="rounded-full border border-wine/15 bg-white px-5 py-3 text-sm font-medium text-wine transition hover:border-wine/40 hover:bg-wine hover:text-cream"
+              >
+                {city.name}
+              </Link>
+            ))}
+          </div>
 
-            <p className="mt-6 text-sm text-wine/45 sm:mt-8">
-              <span className="font-semibold uppercase tracking-[0.14em] text-wine/35">
-                {labels.cities.comingSoon}
-              </span>
-              <span className="mx-2 text-wine/25">·</span>
-              {labels.cities.comingSoonCities}
-            </p>
-          </div>
-        </section>
-      ) : (
-        <section className="border-b border-wine/8 bg-cream py-10 sm:py-12">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
-            <p className="text-sm text-wine/55">
-              {SUNDAY_TABLE_LP_CITIES.filter((c) => c.slug !== citySlug).map(
-                (c, i) => (
-                  <span key={c.slug}>
-                    {i > 0 ? <span className="mx-2 text-wine/25">·</span> : null}
-                    <Link
-                      href={sundayTableLpCityPath(locale, c.slug)}
-                      className="underline-offset-4 transition hover:text-wine hover:underline"
-                    >
-                      {c.name}
-                    </Link>
-                  </span>
-                ),
-              )}
-            </p>
-            <Link
-              href={sundayTableLpPath(locale)}
-              className="text-xs font-semibold uppercase tracking-[0.16em] text-wine/45 transition hover:text-wine"
-            >
-              {labels.cities.title}
-            </Link>
-          </div>
-        </section>
-      )}
+          <p className="mt-6 text-sm text-wine/45 sm:mt-8">
+            <span className="font-semibold uppercase tracking-[0.14em] text-wine/35">
+              {labels.cities.comingSoon}
+            </span>
+            <span className="mx-2 text-wine/25">·</span>
+            {labels.cities.comingSoonCities}
+          </p>
+        </div>
+      </section>
 
       {/* Final CTA */}
       <section className="relative overflow-hidden bg-white py-14 pb-28 sm:py-24 sm:pb-24 lg:py-28">
@@ -473,7 +431,7 @@ export function SundayTableLpView({
             transition={{ duration: 0.55, ease }}
             className="font-serif text-3xl font-medium tracking-tight text-wine text-balance sm:text-4xl lg:text-[2.75rem]"
           >
-            {finalTitle}
+            {labels.final.title}
           </motion.h2>
           <p className="mx-auto mt-3 max-w-md text-base text-wine/55 sm:mt-4">
             {labels.final.body}

@@ -24,9 +24,7 @@ export type SundayTableLpLabels = {
   /** Early social proof, above the headline */
   socialProof: string;
   headline: string;
-  headlineCity: string;
   line: string;
-  lineCity: string;
   cta: string;
   /** Reassurance under primary CTAs, e.g. "Gratis. Geen spam." */
   ctaHint: string;
@@ -58,7 +56,6 @@ export type SundayTableLpLabels = {
   };
   final: {
     title: string;
-    titleCity: string;
     body: string;
     cta: string;
     /** Honest early-stage framing — no fabricated scale numbers */

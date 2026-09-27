@@ -516,7 +516,12 @@ function MeetYourTable({ tickets }: { tickets: EventTicketRow[] }) {
           return (
             <li key={ticket.id} className="rounded-xl border border-border-subtle bg-cream px-4 py-3.5">
               <div className="flex items-baseline justify-between gap-3">
-                <p className="font-medium text-wine">{firstName}</p>
+                <p className="font-medium text-wine">
+                  {firstName}
+                  <span className="ml-2 font-mono text-xs font-normal text-wine/50">
+                    {ticket.reservationCode}
+                  </span>
+                </p>
                 <p className="text-xs text-wine/50">
                   {status}
                   {intro.answeredAt ? ` · Delen: ${intro.shareConsent ? "ja" : "nee"}` : ""}

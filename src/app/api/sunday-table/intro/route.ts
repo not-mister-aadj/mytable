@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import {
   findSundayTableIntroBooking,
+  findSundayTableIntroBookingByCode,
   hasAnyIntroAnswer,
   parseSundayTableIntro,
   saveSundayTableIntro,
@@ -22,9 +23,10 @@ function checkRateLimit(key: string, max = 10, windowMs = 60_000): boolean {
   return true;
 }
 
-/** Saves a guest's "meet your table" answers. The booking is identified either
- * by the Stripe checkout session (confirmation page right after payment) or by
- * the signed token from the reminder email; never by a plain booking id. */
+/** Saves a guest's "meet your table" answers. The booking is identified by the
+ * Stripe checkout session (confirmation page right after payment), by the
+ * signed token from the reminder email, or, when a link lost its token, by the
+ * booking number together with the booking email. Never by a plain booking id. */
 export async function POST(request: Request) {
   if (!isDbConfigured()) {
     return NextResponse.json({ error: "Unavailable" }, { status: 503 });
@@ -35,7 +37,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  let body: { sessionId?: unknown; token?: unknown; intro?: unknown };
+  let body: {
+    sessionId?: unknown;
+    token?: unknown;
+    reservationCode?: unknown;
+    email?: unknown;
+    intro?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
@@ -48,6 +56,12 @@ export async function POST(request: Request) {
   } else if (typeof body.token === "string") {
     const bookingId = await verifySundayTableIntroToken(body.token);
     if (bookingId) booking = await findSundayTableIntroBooking({ bookingId });
+  } else if (typeof body.reservationCode === "string" && typeof body.email === "string") {
+    // Typed in by hand, so guessable: a much tighter limit than the links.
+    if (!checkRateLimit(`intro-code:${ip}`, 5, 10 * 60_000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+    booking = await findSundayTableIntroBookingByCode(body.reservationCode, body.email);
   }
 
   if (!booking) {

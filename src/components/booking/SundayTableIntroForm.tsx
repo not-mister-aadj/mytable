@@ -33,6 +33,12 @@ const copy = {
     empty: "Vul minstens één vraag in.",
     error: "Er ging iets mis. Probeer het opnieuw.",
     previewNote: "Voorbeeld: zo ziet de vragenlijst eruit na een boeking. Er wordt niets opgeslagen.",
+    bookingCode: "Boekingsnummer",
+    bookingCodeHint: "Staat in je bevestigingsmail, bijv. MT-5B5230E1",
+    bookingEmail: "E-mailadres waarmee je boekte",
+    bookingEmailPlaceholder: "jij@email.nl",
+    bookingNotFound: "We vinden geen boeking met dit nummer en e-mailadres. Check je bevestigingsmail.",
+    bookingMissing: "Vul je boekingsnummer en e-mailadres in.",
   },
   en: {
     eyebrow: "Meet your table",
@@ -57,6 +63,12 @@ const copy = {
     empty: "Fill in at least one question.",
     error: "Something went wrong. Please try again.",
     previewNote: "Preview: this is what the questions look like after booking. Nothing is saved.",
+    bookingCode: "Booking number",
+    bookingCodeHint: "It's in your confirmation email, e.g. MT-5B5230E1",
+    bookingEmail: "Email address you booked with",
+    bookingEmailPlaceholder: "you@email.com",
+    bookingNotFound: "We can't find a booking with this number and email. Check your confirmation email.",
+    bookingMissing: "Fill in your booking number and email.",
   },
 } as const;
 
@@ -101,21 +113,29 @@ function ChoiceRow<T extends string>({
 
 /** "Meet your table" questions for a Sunday Table guest. Shown right after
  * payment (identified by the checkout session) and on the page the reminder
- * email links to (identified by a signed token). */
+ * email links to (identified by a signed token). When the link does not
+ * identify a booking, the guest fills in their booking number and email. */
 export function SundayTableIntroForm({
   locale,
   city,
   auth,
+  bookingCode,
   initial,
 }: {
   locale: Locale;
   city: string;
   /** `preview` shows the real form but saves nothing, for looking at it
-   * without a booking (the `?voorbeeld=1` page and test emails). */
-  auth: { sessionId: string } | { token: string } | { preview: true };
+   * without a booking (the `?voorbeeld=1` page and test emails). `manual`
+   * asks for the booking number and email instead of trusting the link. */
+  auth: { sessionId: string } | { token: string } | { preview: true } | { manual: true };
+  /** "MT-5B5230E1", shown at the top so guest and admin see the same code. */
+  bookingCode?: string | null;
   initial?: Partial<SundayTableIntro> | null;
 }) {
   const t = copy[locale === "en" ? "en" : "nl"];
+  const manual = "manual" in auth;
+  const [manualCode, setManualCode] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
   const [conversationStyle, setConversationStyle] = useState<IntroConversationStyle | null>(
     initial?.conversationStyle ?? null,
   );
@@ -145,6 +165,10 @@ export function SundayTableIntroForm({
       setSaved(true);
       return;
     }
+    if (manual && (!manualCode.trim() || !manualEmail.trim())) {
+      setError(t.bookingMissing);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -152,7 +176,9 @@ export function SundayTableIntroForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...auth,
+          ...(manual
+            ? { reservationCode: manualCode, email: manualEmail }
+            : auth),
           // Filling in this optional form after reading the privacy line is
           // the consent to share it with the table.
           intro: {
@@ -166,12 +192,13 @@ export function SundayTableIntroForm({
         }),
       });
       if (!res.ok) {
-        setError(t.error);
+        setError(res.status === 404 && manual ? t.bookingNotFound : t.error);
         return;
       }
       trackSundayTableCtaClicked({
         cta: "intro_saved",
-        source: "sessionId" in auth ? "booking_confirmation" : "intro_email",
+        source:
+          "sessionId" in auth ? "booking_confirmation" : manual ? "intro_manual" : "intro_email",
         locale,
       });
       setSaved(true);
@@ -213,6 +240,44 @@ export function SundayTableIntroForm({
               {t.title}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-wine/65">{t.lead}</p>
+
+            {manual ? (
+              <div className="mt-6 grid gap-4 rounded-2xl border border-wine/10 bg-white/60 p-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-wine">
+                  {t.bookingCode}
+                  <input
+                    type="text"
+                    required
+                    autoCapitalize="characters"
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
+                    placeholder="MT-5B5230E1"
+                    className={inputClass}
+                  />
+                  <span className="mt-1 block text-xs font-normal text-wine/50">
+                    {t.bookingCodeHint}
+                  </span>
+                </label>
+                <label className="block text-sm font-medium text-wine">
+                  {t.bookingEmail}
+                  <input
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    placeholder={t.bookingEmailPlaceholder}
+                    className={inputClass}
+                  />
+                </label>
+              </div>
+            ) : bookingCode ? (
+              <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/70 px-3.5 py-1.5 text-sm text-wine">
+                <span className="text-wine/55">{t.bookingCode}:</span>
+                <span className="font-mono font-semibold tracking-wide">{bookingCode}</span>
+                <span aria-hidden className="text-emerald-700">✓</span>
+              </p>
+            ) : null}
 
             <div className="mt-6 space-y-4">
               <ChoiceRow

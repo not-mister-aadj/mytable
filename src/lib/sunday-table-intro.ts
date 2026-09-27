@@ -1,7 +1,8 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import { getDb } from "@/db/index";
 import { bookings, events } from "@/db/schema";
+import { reservationCode } from "@/lib/booking-display";
 
 /** "Meet your table": the short introduction a Sunday Table guest fills in
  * right after payment, or later via the reminder email. */
@@ -63,6 +64,8 @@ export function hasAnyIntroAnswer(intro: SundayTableIntro): boolean {
 
 type IntroBooking = {
   id: string;
+  /** "MT-5B5230E1", the booking number guests see in their emails. */
+  reservationCode: string;
   email: string;
   city: string;
   locale: string;
@@ -87,6 +90,7 @@ function toIntroBooking(row: {
 }): IntroBooking {
   return {
     id: row.id,
+    reservationCode: reservationCode(row.id),
     email: row.email,
     city: row.city,
     locale: row.locale,
@@ -140,6 +144,40 @@ export async function findSundayTableIntroBooking(
     )
     .limit(1);
   return row ? toIntroBooking(row) : null;
+}
+
+/** Parses "MT-5B5230E1", "mt 5b5230e1" or "5B5230E1" into the 8 hex
+ * characters it is made of (see reservationCode), or null. */
+function parseReservationCode(raw: string): string | null {
+  const hex = raw.trim().toLowerCase().replace(/^mt/, "").replace(/[\s-]/g, "");
+  return /^[0-9a-f]{8}$/.test(hex) ? hex : null;
+}
+
+/** For guests whose link lost its token: the booking number alone could be
+ * mistyped onto someone else's booking, so it only counts together with the
+ * email the booking was made with. Ambiguous codes match nothing. */
+export async function findSundayTableIntroBookingByCode(
+  code: string,
+  email: string,
+): Promise<IntroBooking | null> {
+  const hex = parseReservationCode(code);
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!hex || !normalizedEmail.includes("@")) return null;
+  const db = getDb();
+  const rows = await db
+    .select(introColumns)
+    .from(bookings)
+    .innerJoin(events, eq(events.id, bookings.eventId))
+    .where(
+      and(
+        sql`replace(${bookings.id}::text, '-', '') like ${hex + "%"}`,
+        sql`lower(${bookings.email}) = ${normalizedEmail}`,
+        eq(bookings.paymentStatus, "paid"),
+        eq(events.experienceType, "sunday-table"),
+      ),
+    )
+    .limit(2);
+  return rows.length === 1 ? toIntroBooking(rows[0]!) : null;
 }
 
 /** Saves the answers. The first save with any answer marks the intro as

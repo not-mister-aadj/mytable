@@ -43,6 +43,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
           locale={locale}
           city="Rotterdam"
           auth={{ preview: true }}
+          bookingCode="MT-1A2B3C4D"
           initial={isIntroConversationStyle(style) ? { conversationStyle: style } : null}
         />
       </IntroShell>
@@ -50,13 +51,28 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
   }
 
   const bookingId = token ? await verifySundayTableIntroToken(token) : null;
-  if (!token || !bookingId) notFound();
+  const booking = bookingId ? await findSundayTableIntroBooking({ bookingId }) : null;
+
+  // No (valid) token, e.g. the link was cut off or edited: ask for the booking
+  // number and email instead of showing "page not found".
+  if (!token || !booking) {
+    return (
+      <IntroShell locale={locale} dict={dict}>
+        <SundayTableIntroForm
+          locale={locale}
+          // City unknown until the booking is found.
+          city={locale === "en" ? "your city" : "de stad"}
+          auth={{ manual: true }}
+          initial={isIntroConversationStyle(style) ? { conversationStyle: style } : null}
+        />
+      </IntroShell>
+    );
+  }
 
   if (isIntroConversationStyle(style)) {
-    await saveSundayTableIntroConversationStyle(bookingId, style);
+    await saveSundayTableIntroConversationStyle(booking.id, style);
+    if (!booking.intro.conversationStyle) booking.intro.conversationStyle = style;
   }
-  const booking = await findSundayTableIntroBooking({ bookingId });
-  if (!booking) notFound();
 
   return (
     <IntroShell locale={locale} dict={dict}>
@@ -64,6 +80,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
         locale={locale}
         city={booking.city}
         auth={{ token }}
+        bookingCode={booking.reservationCode}
         initial={booking.intro}
       />
     </IntroShell>

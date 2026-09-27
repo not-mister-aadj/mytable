@@ -21,6 +21,7 @@ export type EventTicketRow = {
   transferredBy: string | null;
   /** "Meet your table" answers (Sunday Table only). */
   intro: {
+    conversationStyle: string | null;
     askMeAbout: string | null;
     favoriteSpot: string | null;
     wine: string | null;

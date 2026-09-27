@@ -121,6 +121,7 @@ export async function getEventTicketsData(
         transferredAt: b.transferredAt?.toISOString() ?? null,
         transferredBy: b.transferredBy,
         intro: {
+          conversationStyle: b.introConversationStyle,
           askMeAbout: b.introAskMeAbout,
           favoriteSpot: b.introFavoriteSpot,
           wine: b.introWine,

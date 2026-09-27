@@ -203,6 +203,8 @@ export const bookings = pgTable("bookings", {
   introFavoriteSpot: text("intro_favorite_spot"),
   introWine: text("intro_wine"),
   introIntoNow: text("intro_into_now"),
+  /** "talker" | "listener" | "both" (drizzle/0028). */
+  introConversationStyle: text("intro_conversation_style"),
   introShareConsent: boolean("intro_share_consent").notNull().default(false),
   introAnsweredAt: timestamp("intro_answered_at", { withTimezone: true }),
   introRequestSentAt: timestamp("intro_request_sent_at", { withTimezone: true }),

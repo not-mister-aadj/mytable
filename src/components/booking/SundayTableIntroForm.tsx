@@ -2,14 +2,20 @@
 
 import { useState } from "react";
 import type { Locale } from "@/i18n/config";
-import type { IntroWine, SundayTableIntro } from "@/lib/sunday-table-intro";
+import type {
+  IntroConversationStyle,
+  IntroWine,
+  SundayTableIntro,
+} from "@/lib/sunday-table-intro";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 
 const copy = {
   nl: {
     eyebrow: "Meet your table",
-    title: "Maak je tafel alvast persoonlijk",
-    lead: "30 seconden. Twee dagen van tevoren stellen we iedereen aan tafel aan elkaar voor. Alles is optioneel.",
+    title: "Help ons je juiste tafel te vinden",
+    lead: "We verdelen iedereen over tafels van 4 tot 6. Met jouw antwoorden zetten we je bij mensen die bij je passen, en twee dagen van tevoren stellen we je tafel aan elkaar voor. Vul je niets in, dan delen we je willekeurig in.",
+    style: "Aan tafel ben jij meer…",
+    styles: { talker: "🗣️ De prater", listener: "👂 De luisteraar", both: "⚖️ Allebei" },
     askMeAbout: "Waar mogen mensen je naar vragen?",
     askMeAboutPlaceholder: "bijv. mijn reis naar Japan",
     favoriteSpot: "Wat is jouw favoriete plek in {city}?",
@@ -22,7 +28,7 @@ const copy = {
     save: "Opslaan",
     saving: "Opslaan…",
     savedTitle: "Top, opgeslagen!",
-    savedBody: "Twee dagen van tevoren krijg je een mail waarin we je tafel aan elkaar voorstellen.",
+    savedBody: "We gebruiken je antwoorden voor de tafelindeling. Twee dagen van tevoren krijg je een mail waarin we je tafel aan elkaar voorstellen.",
     edit: "Aanpassen",
     empty: "Vul minstens één vraag in.",
     error: "Er ging iets mis. Probeer het opnieuw.",
@@ -30,8 +36,10 @@ const copy = {
   },
   en: {
     eyebrow: "Meet your table",
-    title: "Make your table a bit personal",
-    lead: "30 seconds. Two days before, we introduce everyone at the table to each other. Everything is optional.",
+    title: "Help us find your table",
+    lead: "We split everyone into tables of 4 to 6. Your answers help us seat you with people who suit you, and two days before, we introduce your table to each other. Skip it, and we seat you at random.",
+    style: "At the table, you are more…",
+    styles: { talker: "🗣️ The talker", listener: "👂 The listener", both: "⚖️ Both" },
     askMeAbout: "What can people ask you about?",
     askMeAboutPlaceholder: "e.g. my trip to Japan",
     favoriteSpot: "What's your favourite spot in {city}?",
@@ -44,7 +52,7 @@ const copy = {
     save: "Save",
     saving: "Saving…",
     savedTitle: "Great, saved!",
-    savedBody: "Two days before, you'll get an email introducing your table to each other.",
+    savedBody: "We use your answers for the seating. Two days before, you'll get an email introducing your table to each other.",
     edit: "Edit",
     empty: "Fill in at least one question.",
     error: "Something went wrong. Please try again.",
@@ -54,6 +62,42 @@ const copy = {
 
 const inputClass =
   "mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 text-sm text-wine shadow-sm transition placeholder:text-wine/35 focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10";
+
+/** A row of three toggle buttons; clicking the selected one clears it. */
+function ChoiceRow<T extends string>({
+  label,
+  options,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  options: { value: T; label: string }[];
+  selected: T | null;
+  onSelect: (value: T | null) => void;
+}) {
+  return (
+    <div>
+      <span className="block text-sm font-medium text-wine">{label}</span>
+      <div className="mt-1.5 grid grid-cols-3 gap-2">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={selected === option.value}
+            onClick={() => onSelect(selected === option.value ? null : option.value)}
+            className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
+              selected === option.value
+                ? "border-burgundy bg-burgundy text-cream"
+                : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /** "Meet your table" questions for a Sunday Table guest. Shown right after
  * payment (identified by the checkout session) and on the page the reminder
@@ -72,6 +116,9 @@ export function SundayTableIntroForm({
   initial?: Partial<SundayTableIntro> | null;
 }) {
   const t = copy[locale === "en" ? "en" : "nl"];
+  const [conversationStyle, setConversationStyle] = useState<IntroConversationStyle | null>(
+    initial?.conversationStyle ?? null,
+  );
   const [askMeAbout, setAskMeAbout] = useState(initial?.askMeAbout ?? "");
   const [favoriteSpot, setFavoriteSpot] = useState(initial?.favoriteSpot ?? "");
   const [wine, setWine] = useState<IntroWine | null>(initial?.wine ?? null);
@@ -83,7 +130,13 @@ export function SundayTableIntroForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (saving) return;
-    if (!askMeAbout.trim() && !favoriteSpot.trim() && !wine && !intoNow.trim()) {
+    if (
+      !conversationStyle &&
+      !askMeAbout.trim() &&
+      !favoriteSpot.trim() &&
+      !wine &&
+      !intoNow.trim()
+    ) {
       setError(t.empty);
       return;
     }
@@ -102,7 +155,14 @@ export function SundayTableIntroForm({
           ...auth,
           // Filling in this optional form after reading the privacy line is
           // the consent to share it with the table.
-          intro: { askMeAbout, favoriteSpot, wine, intoNow, shareConsent: true },
+          intro: {
+            conversationStyle,
+            askMeAbout,
+            favoriteSpot,
+            wine,
+            intoNow,
+            shareConsent: true,
+          },
         }),
       });
       if (!res.ok) {
@@ -155,6 +215,24 @@ export function SundayTableIntroForm({
             <p className="mt-2 text-sm leading-relaxed text-wine/65">{t.lead}</p>
 
             <div className="mt-6 space-y-4">
+              <ChoiceRow
+                label={t.style}
+                options={(["talker", "listener", "both"] as const).map((value) => ({
+                  value,
+                  label: t.styles[value],
+                }))}
+                selected={conversationStyle}
+                onSelect={setConversationStyle}
+              />
+              <ChoiceRow
+                label={t.wine}
+                options={(["red", "white", "bubbles"] as const).map((value) => ({
+                  value,
+                  label: t.wines[value],
+                }))}
+                selected={wine}
+                onSelect={setWine}
+              />
               <label className="block text-sm font-medium text-wine">
                 {t.askMeAbout}
                 <input
@@ -177,26 +255,6 @@ export function SundayTableIntroForm({
                   className={inputClass}
                 />
               </label>
-              <div>
-                <span className="block text-sm font-medium text-wine">{t.wine}</span>
-                <div className="mt-1.5 grid grid-cols-3 gap-2">
-                  {(["red", "white", "bubbles"] as const).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={wine === value}
-                      onClick={() => setWine(wine === value ? null : value)}
-                      className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
-                        wine === value
-                          ? "border-burgundy bg-burgundy text-cream"
-                          : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
-                      }`}
-                    >
-                      {t.wines[value]}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <label className="block text-sm font-medium text-wine">
                 {t.intoNow}
                 <input

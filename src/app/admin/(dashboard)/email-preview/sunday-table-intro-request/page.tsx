@@ -10,8 +10,7 @@ export default async function SundayTableIntroRequestEmailPreviewPage() {
     SundayTableIntroRequestEmail({
       locale: "nl",
       firstName: "Anne",
-      city: "Rotterdam",
-      dateLabel: "zondag 25 oktober 2026",
+      dateLabel: "zondag 25 oktober",
       // The preview page, so every button in this preview opens something.
       introUrl: absoluteUrl("/boeking/intro?voorbeeld=1"),
     }),
@@ -24,7 +23,7 @@ export default async function SundayTableIntroRequestEmailPreviewPage() {
           E-mail preview · Meet your table (herinnering)
         </h1>
         <p className="mt-1 text-sm text-wine/60">
-          Onderwerp: {sundayTableIntroRequestSubject("Rotterdam", "nl")}
+          Onderwerp: {sundayTableIntroRequestSubject("nl")}
         </p>
         <p className="mt-1 text-sm text-wine/60">
           Gaat ongeveer 15 minuten na een Sunday Table-boeking uit, alleen als de

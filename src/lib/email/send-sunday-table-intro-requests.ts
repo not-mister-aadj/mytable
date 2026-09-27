@@ -79,7 +79,7 @@ export async function sendSundayTableIntroRequests(
     if (!claimed) continue;
 
     const [event] = await db
-      .select({ city: events.city, startsAt: events.startsAt })
+      .select({ startsAt: events.startsAt })
       .from(events)
       .where(eq(events.id, claimed.eventId))
       .limit(1);
@@ -92,12 +92,12 @@ export async function sendSundayTableIntroRequests(
       const firstName = claimed.customerName?.trim().split(/\s+/)[0] || undefined;
       ok = await send({
         to: claimed.email,
-        subject: sundayTableIntroRequestSubject(event!.city, locale),
+        subject: sundayTableIntroRequestSubject(locale),
         element: SundayTableIntroRequestEmail({
           locale,
           firstName,
-          city: event!.city,
-          dateLabel: formatSundayTableDate(event!.startsAt, locale),
+          // "zondag 1 november": the year only adds noise in this email.
+          dateLabel: formatSundayTableDate(event!.startsAt, locale).replace(/\s\d{4}$/, ""),
           introUrl,
         }),
       });

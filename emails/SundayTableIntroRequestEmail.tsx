@@ -1,54 +1,54 @@
 import { EmailLayout } from "./components/EmailLayout";
-import { Button } from "./components/Button";
 import { emailBrand, emailFonts, emailRadii } from "./brand";
 
 export type SundayTableIntroRequestEmailProps = {
   locale: "nl" | "en";
   firstName?: string;
-  city: string;
   dateLabel: string;
   /** The intro page for this booking, with its signed token. */
   introUrl: string;
 };
 
-const wineOptions = [
-  { value: "red", nl: "🍷 Rood", en: "🍷 Red" },
-  { value: "white", nl: "🥂 Wit", en: "🥂 White" },
-  { value: "bubbles", nl: "🍾 Bubbels", en: "🍾 Bubbles" },
+const styleOptions = [
+  { value: "talker", nl: "🗣️ De prater", en: "🗣️ The talker" },
+  { value: "listener", nl: "👂 De luisteraar", en: "👂 The listener" },
+  { value: "both", nl: "⚖️ Allebei", en: "⚖️ Both" },
 ] as const;
 
+const textStyle = { margin: "0 0 14px", fontSize: 16, color: "#2b0d12", lineHeight: 1.5 };
+
 /** Sent once, about 15 minutes after a Sunday Table booking, to guests who
- * skipped the "meet your table" questions on the confirmation page. One
- * wine click already counts as an answer and opens the other questions. */
+ * skipped the questions on the confirmation page. The reason to answer: the
+ * answers decide who they are seated with. One click on a button already
+ * counts as an answer and opens the rest of the questions. */
 export function SundayTableIntroRequestEmail({
   locale,
   firstName,
-  city,
   dateLabel,
   introUrl,
 }: SundayTableIntroRequestEmailProps) {
   const nl = locale !== "en";
-  const withWine = (wine: string) =>
-    `${introUrl}${introUrl.includes("?") ? "&" : "?"}wine=${wine}`;
+  const withStyle = (style: string) =>
+    `${introUrl}${introUrl.includes("?") ? "&" : "?"}style=${style}`;
 
   return (
     <EmailLayout
       preview={
         nl
-          ? "Twee dagen van tevoren stellen we je tafel aan elkaar voor."
-          : "Two days before, we introduce your table to each other."
+          ? "Met één klik zetten we je bij mensen die bij je passen."
+          : "One click and we seat you with people who suit you."
       }
     >
-      <p style={{ margin: "0 0 16px", fontSize: 16, color: "#2b0d12" }}>
+      <p style={{ ...textStyle, margin: "0 0 16px" }}>
         {nl ? `Hoi${firstName ? ` ${firstName}` : ""},` : `Hi${firstName ? ` ${firstName}` : ""},`}
       </p>
-      <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12", lineHeight: 1.5 }}>
+      <p style={textStyle}>
         {nl
-          ? `Leuk dat je aanschuift bij Sunday Table in ${city} op ${dateLabel}. Twee dagen van tevoren stellen we iedereen aan tafel aan elkaar voor, zodat je niet als vreemde binnenloopt.`
-          : `Great to have you at Sunday Table in ${city} on ${dateLabel}. Two days before, we introduce everyone at the table to each other, so you don't walk in as a stranger.`}
+          ? `Op ${dateLabel} verdelen we iedereen over tafels van 4 tot 6. Met een paar antwoorden zetten we je bij mensen die bij je passen. Zonder antwoorden delen we je willekeurig in.`
+          : `On ${dateLabel} we split everyone into tables of 4 to 6. A few answers help us seat you with people who suit you. Without them, we seat you at random.`}
       </p>
-      <p style={{ margin: "0 0 20px", fontSize: 16, color: "#2b0d12", lineHeight: 1.5 }}>
-        {nl ? "Om te beginnen: rood, wit of bubbels?" : "To start: red, white or bubbles?"}
+      <p style={{ ...textStyle, margin: "0 0 20px" }}>
+        {nl ? "Om te beginnen, aan tafel ben jij meer:" : "To start, at the table you are more:"}
       </p>
 
       <table
@@ -56,17 +56,17 @@ export function SundayTableIntroRequestEmail({
         width="100%"
         cellPadding={0}
         cellSpacing={0}
-        style={{ borderCollapse: "separate", borderSpacing: "8px 0", margin: "0 -8px 24px" }}
+        style={{ borderCollapse: "separate", borderSpacing: "8px 0", margin: "0 -8px 28px" }}
       >
         <tbody>
           <tr>
-            {wineOptions.map((option) => (
+            {styleOptions.map((option) => (
               <td key={option.value} align="center" width="33%">
                 <a
-                  href={withWine(option.value)}
+                  href={withStyle(option.value)}
                   style={{
                     display: "block",
-                    padding: "14px 6px",
+                    padding: "14px 4px",
                     borderRadius: emailRadii.pill,
                     border: `1px solid ${emailBrand.divider}`,
                     backgroundColor: emailBrand.card,
@@ -85,12 +85,11 @@ export function SundayTableIntroRequestEmail({
         </tbody>
       </table>
 
-      <p style={{ margin: "0 0 20px", fontSize: 15, color: "#5c3a42", lineHeight: 1.5 }}>
-        {nl
-          ? "Daarna nog drie korte vragen: waar mensen je naar mogen vragen, je favoriete plek in de stad en waar je nu helemaal into bent. Alles is optioneel en we delen het alleen met je tafelgenoten."
-          : "Then three quick questions: what people can ask you about, your favourite spot in the city and what you're into right now. Everything is optional and we only share it with your tablemates."}
+      <p style={{ margin: 0, fontSize: 16, color: "#2b0d12", lineHeight: 1.5 }}>
+        Cheers,
+        <br />
+        MyTable
       </p>
-      <Button href={introUrl}>{nl ? "Stel jezelf voor" : "Introduce yourself"}</Button>
     </EmailLayout>
   );
 }

@@ -15,6 +15,7 @@ export interface EnglishComingSoonLabels {
   body: string;
   cta: string;
   success: string;
+  error: string;
 }
 
 interface SundayTableBookingCardProps {
@@ -100,19 +101,21 @@ export function SundayTableBookingCard({
           email,
           name,
           cities: [cityName],
-          locale,
+          // They asked for English, so any mail they get from us (starting
+          // with the waitlist welcome) should be in English too.
+          locale: "en",
           source: "waitlist",
           preferences: { language: ["english"] },
         }),
       });
       if (!res.ok) {
-        setError(genericErrorLabel);
+        setError(englishComingSoon.error);
         return;
       }
       trackSundayTableEnglishRequested({ step: "notify", city: cityName, locale });
       setEnglishNotified(true);
     } catch {
-      setError(genericErrorLabel);
+      setError(englishComingSoon.error);
     } finally {
       setLoading(false);
     }

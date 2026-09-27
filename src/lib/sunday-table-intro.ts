@@ -13,7 +13,16 @@ export function isIntroWine(value: unknown): value is IntroWine {
   return INTRO_WINES.includes(value as IntroWine);
 }
 
+export const INTRO_CONVERSATION_STYLES = ["talker", "listener", "both"] as const;
+export type IntroConversationStyle = (typeof INTRO_CONVERSATION_STYLES)[number];
+
+export function isIntroConversationStyle(value: unknown): value is IntroConversationStyle {
+  return INTRO_CONVERSATION_STYLES.includes(value as IntroConversationStyle);
+}
+
 export type SundayTableIntro = {
+  /** Talker or listener at the table, used to balance the seating. */
+  conversationStyle: IntroConversationStyle | null;
   askMeAbout: string;
   favoriteSpot: string;
   wine: IntroWine | null;
@@ -31,6 +40,9 @@ function cleanAnswer(value: unknown): string {
 export function parseSundayTableIntro(raw: unknown): SundayTableIntro {
   const input = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   return {
+    conversationStyle: isIntroConversationStyle(input.conversationStyle)
+      ? input.conversationStyle
+      : null,
     askMeAbout: cleanAnswer(input.askMeAbout),
     favoriteSpot: cleanAnswer(input.favoriteSpot),
     wine: isIntroWine(input.wine) ? input.wine : null,
@@ -40,7 +52,13 @@ export function parseSundayTableIntro(raw: unknown): SundayTableIntro {
 }
 
 export function hasAnyIntroAnswer(intro: SundayTableIntro): boolean {
-  return Boolean(intro.askMeAbout || intro.favoriteSpot || intro.wine || intro.intoNow);
+  return Boolean(
+    intro.conversationStyle ||
+      intro.askMeAbout ||
+      intro.favoriteSpot ||
+      intro.wine ||
+      intro.intoNow,
+  );
 }
 
 type IntroBooking = {
@@ -59,6 +77,7 @@ function toIntroBooking(row: {
   city: string;
   locale: string;
   customerName: string | null;
+  introConversationStyle: string | null;
   introAskMeAbout: string | null;
   introFavoriteSpot: string | null;
   introWine: string | null;
@@ -73,6 +92,9 @@ function toIntroBooking(row: {
     locale: row.locale,
     customerName: row.customerName,
     intro: {
+      conversationStyle: isIntroConversationStyle(row.introConversationStyle)
+        ? row.introConversationStyle
+        : null,
       askMeAbout: row.introAskMeAbout ?? "",
       favoriteSpot: row.introFavoriteSpot ?? "",
       wine: isIntroWine(row.introWine) ? row.introWine : null,
@@ -89,6 +111,7 @@ const introColumns = {
   city: events.city,
   locale: bookings.locale,
   customerName: bookings.customerName,
+  introConversationStyle: bookings.introConversationStyle,
   introAskMeAbout: bookings.introAskMeAbout,
   introFavoriteSpot: bookings.introFavoriteSpot,
   introWine: bookings.introWine,
@@ -129,6 +152,7 @@ export async function saveSundayTableIntro(
   await db
     .update(bookings)
     .set({
+      introConversationStyle: intro.conversationStyle,
       introAskMeAbout: intro.askMeAbout || null,
       introFavoriteSpot: intro.favoriteSpot || null,
       introWine: intro.wine,
@@ -139,17 +163,18 @@ export async function saveSundayTableIntro(
     .where(eq(bookings.id, bookingId));
 }
 
-/** One-click wine answer from the reminder email. Only fills an empty field,
- * so a later click never overwrites what someone typed on the page. */
-export async function saveSundayTableIntroWine(
+/** One-click answer from the reminder email ("talker", "listener" or
+ * "both"). Only fills an empty field, so a later click never overwrites what
+ * someone chose on the page. */
+export async function saveSundayTableIntroConversationStyle(
   bookingId: string,
-  wine: IntroWine,
+  style: IntroConversationStyle,
 ): Promise<void> {
   const db = getDb();
   await db
     .update(bookings)
-    .set({ introWine: wine, introAnsweredAt: new Date() })
-    .where(and(eq(bookings.id, bookingId), isNull(bookings.introWine)));
+    .set({ introConversationStyle: style, introAnsweredAt: new Date() })
+    .where(and(eq(bookings.id, bookingId), isNull(bookings.introConversationStyle)));
 }
 
 const TOKEN_PURPOSE = "sunday_table_intro";

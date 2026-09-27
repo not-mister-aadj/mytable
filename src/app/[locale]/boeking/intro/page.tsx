@@ -7,8 +7,8 @@ import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
   findSundayTableIntroBooking,
-  isIntroWine,
-  saveSundayTableIntroWine,
+  isIntroConversationStyle,
+  saveSundayTableIntroConversationStyle,
   verifySundayTableIntroToken,
 } from "@/lib/sunday-table-intro";
 
@@ -21,17 +21,17 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ token?: string; wine?: string; voorbeeld?: string }>;
+  searchParams: Promise<{ token?: string; style?: string; voorbeeld?: string }>;
 };
 
-/** Where the "introduce yourself" reminder email links to. A wine button in
- * the email already carries the answer (`?wine=red`), so that one click is
+/** Where the "introduce yourself" reminder email links to. A button in the
+ * email already carries the answer (`?style=talker`), so that one click is
  * saved on arrival and the rest of the questions are right there. */
 export default async function SundayTableIntroPage({ params, searchParams }: Props) {
   const { locale: localeParam } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
-  const { token, wine, voorbeeld } = await searchParams;
+  const { token, style, voorbeeld } = await searchParams;
   const dict = getDictionary(locale);
 
   // `?voorbeeld=1`: the real form with nothing behind it, so the questions can
@@ -43,7 +43,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
           locale={locale}
           city="Rotterdam"
           auth={{ preview: true }}
-          initial={isIntroWine(wine) ? { wine } : null}
+          initial={isIntroConversationStyle(style) ? { conversationStyle: style } : null}
         />
       </IntroShell>
     );
@@ -52,8 +52,8 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
   const bookingId = token ? await verifySundayTableIntroToken(token) : null;
   if (!token || !bookingId) notFound();
 
-  if (isIntroWine(wine)) {
-    await saveSundayTableIntroWine(bookingId, wine);
+  if (isIntroConversationStyle(style)) {
+    await saveSundayTableIntroConversationStyle(bookingId, style);
   }
   const booking = await findSundayTableIntroBooking({ bookingId });
   if (!booking) notFound();

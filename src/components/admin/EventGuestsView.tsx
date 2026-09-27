@@ -462,6 +462,12 @@ function GuestTableRow({
   );
 }
 
+const CONVERSATION_STYLE_LABELS: Record<string, string> = {
+  talker: "Prater",
+  listener: "Luisteraar",
+  both: "Allebei",
+};
+
 const WINE_LABELS: Record<string, string> = {
   red: "Rood",
   white: "Wit",
@@ -496,6 +502,12 @@ function MeetYourTable({ tickets }: { tickets: EventTicketRow[] }) {
               ? "Mail verstuurd, nog niet ingevuld"
               : "Nog niet ingevuld";
           const answers = [
+            [
+              "Aan tafel",
+              intro.conversationStyle
+                ? (CONVERSATION_STYLE_LABELS[intro.conversationStyle] ?? intro.conversationStyle)
+                : null,
+            ],
             ["Vraag me over", intro.askMeAbout],
             ["Favoriete plek", intro.favoriteSpot],
             ["Wijn", intro.wine ? (WINE_LABELS[intro.wine] ?? intro.wine) : null],

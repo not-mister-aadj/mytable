@@ -8,6 +8,12 @@ export type TableLanguagePreference =
 export const DEFAULT_TABLE_LANGUAGE_PREFERENCE: TableLanguagePreference =
   "both_fine";
 
+/** Sunday Tables are held in Dutch for now. While this is false, picking
+ * "English" on a Sunday Table date page offers a "notify me" sign-up instead
+ * of a ticket, and checkout refuses English-only Sunday Table bookings. Flip
+ * to true once English-speaking tables are running. */
+export const ENGLISH_SUNDAY_TABLES_OPEN = false;
+
 export function isTableLanguagePreference(
   value: unknown,
 ): value is TableLanguagePreference {

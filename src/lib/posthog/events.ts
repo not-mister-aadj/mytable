@@ -22,6 +22,7 @@ export const PostHogEvents = {
   waitlistSignup: "waitlist_signup",
   whatsappJoinClicked: "whatsapp_join_clicked",
   sundayTableCtaClicked: "sunday_table_cta_clicked",
+  sundayTableEnglishRequested: "sunday_table_english_requested",
   scrollDepthReached: "scroll_depth_reached",
   onboardingStepViewed: "onboarding_step_viewed",
   onboardingStepCompleted: "onboarding_step_completed",

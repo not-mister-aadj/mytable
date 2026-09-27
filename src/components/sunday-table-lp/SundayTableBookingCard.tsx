@@ -5,12 +5,24 @@ import type { Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
 import {
   DEFAULT_TABLE_LANGUAGE_PREFERENCE,
+  ENGLISH_SUNDAY_TABLES_OPEN,
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
+import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+
+export interface EnglishComingSoonLabels {
+  title: string;
+  body: string;
+  cta: string;
+  success: string;
+}
 
 interface SundayTableBookingCardProps {
   eventId: string;
   locale: Locale;
+  /** City of this table, used for the "notify me" sign-up. */
+  cityName: string;
+  englishComingSoon: EnglishComingSoonLabels;
   pricePerSeatEuros: number;
   spotsLeft: number;
   emailLabel: string;
@@ -32,6 +44,8 @@ interface SundayTableBookingCardProps {
 export function SundayTableBookingCard({
   eventId,
   locale,
+  cityName,
+  englishComingSoon,
   pricePerSeatEuros,
   spotsLeft,
   emailLabel,
@@ -57,13 +71,60 @@ export function SundayTableBookingCard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [englishNotified, setEnglishNotified] = useState(false);
+
   const soldOut = spotsLeft <= 0;
   const maxSeats = Math.min(2, spotsLeft);
   const total = pricePerSeatEuros * seats;
+  // Tables are Dutch-speaking for now: "English" stays selectable, but it
+  // swaps the ticket button for a sign-up for the first English table.
+  const englishOnlyWaiting =
+    !ENGLISH_SUNDAY_TABLES_OPEN && tableLanguagePreference === "prefer_english";
+
+  function selectLanguage(value: TableLanguagePreference) {
+    setTableLanguagePreference(value);
+    setError(null);
+    if (value === "prefer_english" && !ENGLISH_SUNDAY_TABLES_OPEN) {
+      trackSundayTableEnglishRequested({ step: "selected", city: cityName, locale });
+    }
+  }
+
+  async function notifyEnglish() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name,
+          cities: [cityName],
+          locale,
+          source: "waitlist",
+          preferences: { language: ["english"] },
+        }),
+      });
+      if (!res.ok) {
+        setError(genericErrorLabel);
+        return;
+      }
+      trackSundayTableEnglishRequested({ step: "notify", city: cityName, locale });
+      setEnglishNotified(true);
+    } catch {
+      setError(genericErrorLabel);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (soldOut || loading) return;
+    if (englishOnlyWaiting) {
+      if (!englishNotified) await notifyEnglish();
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -137,7 +198,7 @@ export function SundayTableBookingCard({
             <button
               key={value}
               type="button"
-              onClick={() => setTableLanguagePreference(value)}
+              onClick={() => selectLanguage(value)}
               className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
                 tableLanguagePreference === value
                   ? "border-burgundy bg-burgundy text-cream"
@@ -150,6 +211,23 @@ export function SundayTableBookingCard({
         </div>
       </div>
 
+      {englishOnlyWaiting ? (
+        <div className="rounded-2xl border border-gold/40 bg-gold/10 px-4 py-4">
+          <p className="font-serif text-lg leading-snug text-wine">
+            {englishComingSoon.title}
+          </p>
+          <p className="mt-1.5 text-sm leading-relaxed text-wine/70">
+            {englishComingSoon.body}
+          </p>
+          {englishNotified ? (
+            <p className="mt-3 text-sm font-semibold text-wine">
+              ✓ {englishComingSoon.success}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {englishOnlyWaiting ? null : (
       <div>
         <span className="block text-sm font-medium text-wine">{seatsLabel}</span>
         <div className="mt-1.5 grid grid-cols-2 gap-2">
@@ -178,15 +256,23 @@ export function SundayTableBookingCard({
           </button>
         </div>
       </div>
+      )}
 
       {error ? <p className="text-sm text-red-800">{error}</p> : null}
 
-      <Button
-        type="submit"
-        className="w-full justify-center bg-burgundy px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.1em] text-cream hover:bg-wine"
-      >
-        {loading ? "…" : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
-      </Button>
+      {englishOnlyWaiting && englishNotified ? null : (
+        <Button
+          type="submit"
+          className="w-full justify-center bg-burgundy px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.1em] text-cream hover:bg-wine"
+        >
+          {loading
+            ? "…"
+            : englishOnlyWaiting
+              ? englishComingSoon.cta
+              : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
+        </Button>
+      )}
+      {englishOnlyWaiting ? null : (
       <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-wine/50">
         {guarantees.map((item) => (
           <span key={item} className="inline-flex items-center gap-1">
@@ -197,6 +283,7 @@ export function SundayTableBookingCard({
           </span>
         ))}
       </p>
+      )}
     </form>
   );
 }

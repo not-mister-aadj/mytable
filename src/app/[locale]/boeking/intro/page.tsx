@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ token?: string; wine?: string }>;
+  searchParams: Promise<{ token?: string; wine?: string; voorbeeld?: string }>;
 };
 
 /** Where the "introduce yourself" reminder email links to. A wine button in
@@ -31,7 +31,23 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
   const { locale: localeParam } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
-  const { token, wine } = await searchParams;
+  const { token, wine, voorbeeld } = await searchParams;
+  const dict = getDictionary(locale);
+
+  // `?voorbeeld=1`: the real form with nothing behind it, so the questions can
+  // be shown to anyone without a booking or a signed link.
+  if (voorbeeld === "1") {
+    return (
+      <IntroShell locale={locale} dict={dict}>
+        <SundayTableIntroForm
+          locale={locale}
+          city="Rotterdam"
+          auth={{ preview: true }}
+          initial={isIntroWine(wine) ? { wine } : null}
+        />
+      </IntroShell>
+    );
+  }
 
   const bookingId = token ? await verifySundayTableIntroToken(token) : null;
   if (!token || !bookingId) notFound();
@@ -42,20 +58,32 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
   const booking = await findSundayTableIntroBooking({ bookingId });
   if (!booking) notFound();
 
-  const dict = getDictionary(locale);
+  return (
+    <IntroShell locale={locale} dict={dict}>
+      <SundayTableIntroForm
+        locale={locale}
+        city={booking.city}
+        auth={{ token }}
+        initial={booking.intro}
+      />
+    </IntroShell>
+  );
+}
 
+function IntroShell({
+  locale,
+  dict,
+  children,
+}: {
+  locale: Locale;
+  dict: ReturnType<typeof getDictionary>;
+  children: React.ReactNode;
+}) {
   return (
     <>
       <Header dict={dict.header} locale={locale} />
       <main className="bg-beige pt-28 sm:pt-36">
-        <div className="mx-auto max-w-5xl px-5 sm:px-8">
-          <SundayTableIntroForm
-            locale={locale}
-            city={booking.city}
-            auth={{ token }}
-            initial={booking.intro}
-          />
-        </div>
+        <div className="mx-auto max-w-5xl px-5 sm:px-8">{children}</div>
       </main>
       <Footer dict={dict.footer} locale={locale} />
     </>

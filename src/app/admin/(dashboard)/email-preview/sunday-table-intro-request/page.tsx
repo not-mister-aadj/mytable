@@ -23,7 +23,7 @@ export default async function SundayTableIntroRequestEmailPreviewPage() {
           E-mail preview · Meet your table (herinnering)
         </h1>
         <p className="mt-1 text-sm text-wine/60">
-          Onderwerp: {sundayTableIntroRequestSubject("nl")}
+          Onderwerp: {sundayTableIntroRequestSubject("zondag 25 oktober", "nl")}
         </p>
         <p className="mt-1 text-sm text-wine/60">
           Gaat ongeveer 15 minuten na een Sunday Table-boeking uit, alleen als de

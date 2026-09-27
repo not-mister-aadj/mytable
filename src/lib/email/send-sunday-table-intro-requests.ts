@@ -90,16 +90,12 @@ export async function sendSundayTableIntroRequests(
       const token = await signSundayTableIntroToken(claimed.id);
       const introUrl = `${absoluteUrl(introPath(locale))}?token=${encodeURIComponent(token)}`;
       const firstName = claimed.customerName?.trim().split(/\s+/)[0] || undefined;
+      // "zondag 1 november": the year only adds noise in this email.
+      const dateLabel = formatSundayTableDate(event!.startsAt, locale).replace(/\s\d{4}$/, "");
       ok = await send({
         to: claimed.email,
-        subject: sundayTableIntroRequestSubject(locale),
-        element: SundayTableIntroRequestEmail({
-          locale,
-          firstName,
-          // "zondag 1 november": the year only adds noise in this email.
-          dateLabel: formatSundayTableDate(event!.startsAt, locale).replace(/\s\d{4}$/, ""),
-          introUrl,
-        }),
+        subject: sundayTableIntroRequestSubject(dateLabel, locale),
+        element: SundayTableIntroRequestEmail({ locale, firstName, dateLabel, introUrl }),
       });
     } catch (error) {
       console.error("[intro] request email failed:", error);

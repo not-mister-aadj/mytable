@@ -12,8 +12,8 @@ import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 const copy = {
   nl: {
     eyebrow: "Meet your table",
-    title: "Help ons je juiste tafel te vinden",
-    lead: "We verdelen iedereen over tafels van 4 tot 6. Met jouw antwoorden zetten we je bij mensen die bij je passen, en twee dagen van tevoren stellen we je tafel aan elkaar voor. Vul je niets in, dan delen we je willekeurig in.",
+    title: "Help ons met je tafelindeling",
+    lead: "We verdelen iedereen over tafels van 4 tot 6. Bij het indelen houden we rekening met je antwoorden, en twee dagen van tevoren stellen we je tafel aan elkaar voor. Vul je niets in, dan delen we je willekeurig in.",
     style: "Aan tafel ben jij meer…",
     styles: { talker: "🗣️ De prater", listener: "👂 De luisteraar", both: "⚖️ Allebei" },
     askMeAbout: "Waar mogen mensen je naar vragen?",
@@ -36,8 +36,8 @@ const copy = {
   },
   en: {
     eyebrow: "Meet your table",
-    title: "Help us find your table",
-    lead: "We split everyone into tables of 4 to 6. Your answers help us seat you with people who suit you, and two days before, we introduce your table to each other. Skip it, and we seat you at random.",
+    title: "Help us seat you",
+    lead: "We split everyone into tables of 4 to 6. We take your answers into account when we do, and two days before, we introduce your table to each other. Skip it, and we seat you at random.",
     style: "At the table, you are more…",
     styles: { talker: "🗣️ The talker", listener: "👂 The listener", both: "⚖️ Both" },
     askMeAbout: "What can people ask you about?",

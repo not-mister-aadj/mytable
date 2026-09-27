@@ -104,10 +104,15 @@ export function sundayTableWaitlistInviteSubject(
   return `Er vormt zich een tafel in ${city.trim()} · ${date.trim()}`;
 }
 
-export function sundayTableIntroRequestSubject(locale: "nl" | "en" = "nl"): string {
+/** "Je tafelindeling voor zondag 1 november": reads as news about a booking
+ * they paid for, which gets opened far more than a playful question. */
+export function sundayTableIntroRequestSubject(
+  dateLabel: string,
+  locale: "nl" | "en" = "nl",
+): string {
   return locale === "en"
-    ? "Are you the talker or the listener?"
-    : "Ben jij de prater of de luisteraar?";
+    ? `Your table for ${dateLabel.trim()}`
+    : `Je tafelindeling voor ${dateLabel.trim()}`;
 }
 
 export function sundayTableTicketsOpenSubject(

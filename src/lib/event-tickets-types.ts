@@ -19,6 +19,16 @@ export type EventTicketRow = {
   lifecycleStatus: "active" | "transferred" | "removed";
   transferredAt: string | null;
   transferredBy: string | null;
+  /** "Meet your table" answers (Sunday Table only). */
+  intro: {
+    askMeAbout: string | null;
+    favoriteSpot: string | null;
+    wine: string | null;
+    intoNow: string | null;
+    shareConsent: boolean;
+    answeredAt: string | null;
+    requestSentAt: string | null;
+  };
   transferDestination: EventTicketTransferDestination | null;
 };
 

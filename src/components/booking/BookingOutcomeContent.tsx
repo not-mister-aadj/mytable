@@ -23,6 +23,9 @@ interface BookingOutcomeContentProps {
   locale: Locale;
   summary: BookingOutcomeSummary | null;
   timedOut?: boolean;
+  /** Rendered right under the booking summary card, e.g. the Sunday Table
+   * "meet your table" questions. */
+  afterSummary?: React.ReactNode;
 }
 
 export function BookingOutcomeContent({
@@ -31,6 +34,7 @@ export function BookingOutcomeContent({
   locale,
   summary,
   timedOut = false,
+  afterSummary,
 }: BookingOutcomeContentProps) {
   const copy =
     variant === "pending"
@@ -182,6 +186,8 @@ export function BookingOutcomeContent({
             </div>
           </section>
         ) : null}
+
+        {afterSummary}
 
         {/* Next steps (success only) */}
         {variant === "success" ? (

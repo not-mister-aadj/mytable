@@ -6,6 +6,7 @@ import { bookingOutcomeEn } from "@/i18n/booking-outcome-en";
 import { bookingOutcomeNl } from "@/i18n/booking-outcome-nl";
 import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
+import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 
 const POLL_MS = 1000;
@@ -82,6 +83,15 @@ export function BookingConfirmationView({
         locale={locale}
         summary={summary}
         timedOut={timedOut}
+        afterSummary={
+          sessionId && summary?.experienceType === "sunday-table" ? (
+            <SundayTableIntroForm
+              locale={locale}
+              city={summary.city}
+              auth={{ sessionId }}
+            />
+          ) : null
+        }
       />
     </>
   );

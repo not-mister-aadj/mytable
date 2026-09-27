@@ -192,6 +192,17 @@ export function trackSundayTableCtaClicked(props: {
   capture(PostHogEvents.sundayTableCtaClicked, props);
 }
 
+/** Someone picked "English" on a Sunday Table date page while those tables
+ * are still Dutch-only: `selected` when they pick it, `notify` when they
+ * leave their details for the first English-speaking table. */
+export function trackSundayTableEnglishRequested(props: {
+  step: "selected" | "notify";
+  city: string;
+  locale: string;
+}): void {
+  capture(PostHogEvents.sundayTableEnglishRequested, props);
+}
+
 export function trackScrollDepthReached(props: {
   depth_percent: number;
   page_path: string;

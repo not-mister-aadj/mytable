@@ -16,7 +16,10 @@ import {
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { isTableLanguagePreference } from "@/lib/booking-table-language";
+import {
+  ENGLISH_SUNDAY_TABLES_OPEN,
+  isTableLanguagePreference,
+} from "@/lib/booking-table-language";
 import {
   computeTierPrice,
   isBookingTier,
@@ -155,6 +158,25 @@ export async function POST(request: Request) {
   // "bring your own party" minimum). Everything else keeps the existing
   // tier system (min 2, own-table bookings).
   const isSundayTable = event.experienceType === "sunday-table";
+
+  // The date page never offers a ticket for "English", but guard it here too
+  // so nobody who only speaks English ends up at a Dutch-speaking table.
+  if (
+    isSundayTable &&
+    !ENGLISH_SUNDAY_TABLES_OPEN &&
+    tableLanguagePreference === "prefer_english"
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en"
+            ? "This table is held in Dutch. English-speaking tables are coming soon."
+            : "Deze tafel is in het Nederlands. Engelstalige tafels komen binnenkort.",
+      },
+      { status: 400 },
+    );
+  }
+
   const requestedTier = isBookingTier(body.pricingTier)
     ? body.pricingTier
     : tierForSeats(Math.max(1, Number(body.seats) || 1));

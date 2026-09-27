@@ -237,6 +237,12 @@ export default async function SundayTableEventPage({ params }: Props) {
             "Our own wine and food pairing picks",
           ],
           bookingErrorLabel: "Something went wrong. Please try again.",
+          englishComingSoon: {
+            title: "English-speaking tables are coming",
+            body: `This table is held in Dutch. Speak Dutch too? Pick "No preference" and join us. Prefer English? We'll let you know first when the first English-speaking table in ${city.name === "Den Haag" ? "The Hague" : city.name} opens.`,
+            cta: "Keep me posted",
+            success: "Great, you'll be the first to know.",
+          },
           shareLabel: "Share",
           shareCopiedLabel: "Link copied",
           shareTitle: `Sunday Table · ${dateLabel} at ${location.venueName}`,
@@ -324,6 +330,12 @@ export default async function SundayTableEventPage({ params }: Props) {
             "Onze eigen wijnspijs-aanraders",
           ],
           bookingErrorLabel: "Er ging iets mis. Probeer het opnieuw.",
+          englishComingSoon: {
+            title: "Engelstalige tafels komen eraan",
+            body: `Deze tafel is in het Nederlands. Spreek je ook Nederlands? Kies dan "Maakt niet uit" en schuif gewoon aan. Liever Engels? Dan laten we je als eerste weten wanneer de eerste Engelstalige tafel in ${city.name} opent.`,
+            cta: "Hou me op de hoogte",
+            success: "Top, je hoort het als eerste.",
+          },
           shareLabel: "Delen",
           shareCopiedLabel: "Link gekopieerd",
           shareTitle: `Sunday Table · ${dateLabel} bij ${location.venueName}`,
@@ -444,6 +456,8 @@ export default async function SundayTableEventPage({ params }: Props) {
           bookingGuarantees={copy.bookingGuarantees}
           bookingErrorLabel={copy.bookingErrorLabel}
           perSeatLabel={locale === "en" ? "per seat" : "per plek"}
+          cityName={city.name}
+          englishComingSoon={copy.englishComingSoon}
           googleRating={venueGoogleRating(location.venueName, locale)}
         />
       </main>

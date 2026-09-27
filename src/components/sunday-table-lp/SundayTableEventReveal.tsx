@@ -3,7 +3,10 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { SundayTableBookingCard } from "@/components/sunday-table-lp/SundayTableBookingCard";
+import {
+  SundayTableBookingCard,
+  type EnglishComingSoonLabels,
+} from "@/components/sunday-table-lp/SundayTableBookingCard";
 import { SundayTableNotifyMeForm } from "@/components/sunday-table-lp/SundayTableNotifyMeForm";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
@@ -77,6 +80,9 @@ interface SundayTableEventRevealProps {
   bookingErrorLabel: string;
   /** "per plek" / "per seat", next to the price. */
   perSeatLabel: string;
+  /** City of this table ("Rotterdam"), for the English-table sign-up. */
+  cityName: string;
+  englishComingSoon: EnglishComingSoonLabels;
   /** Google rating of the venue, only for venues we have a verified rating for. */
   googleRating?: { score: string; label: string; href: string } | null;
 }
@@ -134,6 +140,8 @@ export function SundayTableEventReveal({
   bookingGuarantees,
   bookingErrorLabel,
   perSeatLabel,
+  cityName,
+  englishComingSoon,
   googleRating = null,
 }: SundayTableEventRevealProps) {
   const [shareCopied, setShareCopied] = useState(false);
@@ -369,6 +377,8 @@ export function SundayTableEventReveal({
                 <SundayTableBookingCard
                   eventId={eventId}
                   locale={locale}
+                  cityName={cityName}
+                  englishComingSoon={englishComingSoon}
                   pricePerSeatEuros={pricePerSeatEuros}
                   spotsLeft={spotsLeft}
                   emailLabel={bookingEmailLabel}

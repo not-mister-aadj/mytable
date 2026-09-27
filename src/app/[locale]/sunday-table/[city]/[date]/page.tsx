@@ -242,6 +242,7 @@ export default async function SundayTableEventPage({ params }: Props) {
             body: `This table is held in Dutch. Speak Dutch too? Pick "No preference" and join us. Prefer English? We'll let you know first when the first English-speaking table in ${city.name === "Den Haag" ? "The Hague" : city.name} opens.`,
             cta: "Keep me posted",
             success: "Great, you'll be the first to know.",
+            error: "Something went wrong. Please try again.",
           },
           shareLabel: "Share",
           shareCopiedLabel: "Link copied",
@@ -330,11 +331,15 @@ export default async function SundayTableEventPage({ params }: Props) {
             "Onze eigen wijnspijs-aanraders",
           ],
           bookingErrorLabel: "Er ging iets mis. Probeer het opnieuw.",
+          // In English on the Dutch page too: whoever sees this just said
+          // they'd rather speak English. Only the button name stays Dutch,
+          // since that's what the button on this page says.
           englishComingSoon: {
-            title: "Engelstalige tafels komen eraan",
-            body: `Deze tafel is in het Nederlands. Spreek je ook Nederlands? Kies dan "Maakt niet uit" en schuif gewoon aan. Liever Engels? Dan laten we je als eerste weten wanneer de eerste Engelstalige tafel in ${city.name} opent.`,
-            cta: "Hou me op de hoogte",
-            success: "Top, je hoort het als eerste.",
+            title: "English-speaking tables are coming",
+            body: `This table is held in Dutch. Speak Dutch too? Pick "Maakt niet uit" (no preference) and join us. Prefer English? We'll let you know first when the first English-speaking table in ${city.name === "Den Haag" ? "The Hague" : city.name} opens.`,
+            cta: "Keep me posted",
+            success: "Great, you'll be the first to know.",
+            error: "Something went wrong. Please try again.",
           },
           shareLabel: "Delen",
           shareCopiedLabel: "Link gekopieerd",

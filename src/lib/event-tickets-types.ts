@@ -26,6 +26,7 @@ export type EventTicketRow = {
     favoriteSpot: string | null;
     wine: string | null;
     intoNow: string | null;
+    plusOneName: string | null;
     shareConsent: boolean;
     answeredAt: string | null;
     requestSentAt: string | null;

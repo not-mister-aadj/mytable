@@ -518,6 +518,12 @@ function MeetYourTable({ tickets }: { tickets: EventTicketRow[] }) {
               <div className="flex items-baseline justify-between gap-3">
                 <p className="font-medium text-wine">
                   {firstName}
+                  {ticket.seats === 2 ? (
+                    <span className="font-normal text-wine/70">
+                      {" "}
+                      + {intro.plusOneName || "vriend(in), naam onbekend"}
+                    </span>
+                  ) : null}
                   <span className="ml-2 font-mono text-xs font-normal text-wine/50">
                     {ticket.reservationCode}
                   </span>

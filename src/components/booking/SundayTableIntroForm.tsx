@@ -39,6 +39,11 @@ const copy = {
     bookingEmailPlaceholder: "jij@email.nl",
     bookingNotFound: "We vinden geen boeking met dit nummer en e-mailadres. Check je bevestigingsmail.",
     bookingMissing: "Vul je boekingsnummer en e-mailadres in.",
+    plusOneTitle: "Je komt met z'n tweeën",
+    plusOneName: "Voornaam van je +1",
+    plusOnePlaceholder: "bijv. Sophie",
+    plusOneHint: "Jullie zitten samen aan tafel.",
+    plusOneManualHint: "Alleen invullen als je 2 tickets hebt gekocht. Jullie zitten samen aan tafel.",
   },
   en: {
     eyebrow: "Meet your table",
@@ -69,6 +74,11 @@ const copy = {
     bookingEmailPlaceholder: "you@email.com",
     bookingNotFound: "We can't find a booking with this number and email. Check your confirmation email.",
     bookingMissing: "Fill in your booking number and email.",
+    plusOneTitle: "You're coming as two",
+    plusOneName: "First name of your +1",
+    plusOnePlaceholder: "e.g. Sophie",
+    plusOneHint: "You'll sit at the same table.",
+    plusOneManualHint: "Only if you bought 2 tickets. You'll sit at the same table.",
   },
 } as const;
 
@@ -120,6 +130,7 @@ export function SundayTableIntroForm({
   city,
   auth,
   bookingCode,
+  seats,
   initial,
 }: {
   locale: Locale;
@@ -130,6 +141,8 @@ export function SundayTableIntroForm({
   auth: { sessionId: string } | { token: string } | { preview: true } | { manual: true };
   /** "MT-5B5230E1", shown at the top so guest and admin see the same code. */
   bookingCode?: string | null;
+  /** Tickets on the booking; with 2, the buyer can name their +1. */
+  seats?: number | null;
   initial?: Partial<SundayTableIntro> | null;
 }) {
   const t = copy[locale === "en" ? "en" : "nl"];
@@ -143,6 +156,9 @@ export function SundayTableIntroForm({
   const [favoriteSpot, setFavoriteSpot] = useState(initial?.favoriteSpot ?? "");
   const [wine, setWine] = useState<IntroWine | null>(initial?.wine ?? null);
   const [intoNow, setIntoNow] = useState(initial?.intoNow ?? "");
+  const [plusOneName, setPlusOneName] = useState(initial?.plusOneName ?? "");
+  // Unknown until a manually entered booking is found, so offer it there too.
+  const showPlusOne = seats === 2 || manual;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +171,8 @@ export function SundayTableIntroForm({
       !askMeAbout.trim() &&
       !favoriteSpot.trim() &&
       !wine &&
-      !intoNow.trim()
+      !intoNow.trim() &&
+      !plusOneName.trim()
     ) {
       setError(t.empty);
       return;
@@ -187,6 +204,7 @@ export function SundayTableIntroForm({
             favoriteSpot,
             wine,
             intoNow,
+            plusOneName,
             shareConsent: true,
           },
         }),
@@ -332,6 +350,27 @@ export function SundayTableIntroForm({
                 />
               </label>
             </div>
+
+            {showPlusOne ? (
+              <div className="mt-6 rounded-2xl border border-wine/10 bg-white/60 p-4">
+                <p className="font-serif text-lg text-wine">{t.plusOneTitle}</p>
+                <label className="mt-2 block text-sm font-medium text-wine">
+                  {t.plusOneName}
+                  <input
+                    type="text"
+                    maxLength={60}
+                    autoComplete="off"
+                    value={plusOneName}
+                    onChange={(e) => setPlusOneName(e.target.value)}
+                    placeholder={t.plusOnePlaceholder}
+                    className={inputClass}
+                  />
+                  <span className="mt-1 block text-xs font-normal text-wine/50">
+                    {manual ? t.plusOneManualHint : t.plusOneHint}
+                  </span>
+                </label>
+              </div>
+            ) : null}
 
             <p className="mt-4 text-xs text-wine/50">{t.privacy}</p>
             {error ? <p className="mt-3 text-sm text-red-800">{error}</p> : null}

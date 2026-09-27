@@ -21,7 +21,13 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ token?: string; style?: string; voorbeeld?: string }>;
+  searchParams: Promise<{
+    token?: string;
+    style?: string;
+    voorbeeld?: string;
+    /** Preview only: `tickets=2` shows the +1 question. */
+    tickets?: string;
+  }>;
 };
 
 /** Where the "introduce yourself" reminder email links to. A button in the
@@ -31,7 +37,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
   const { locale: localeParam } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
-  const { token, style, voorbeeld } = await searchParams;
+  const { token, style, voorbeeld, tickets } = await searchParams;
   const dict = getDictionary(locale);
 
   // `?voorbeeld=1`: the real form with nothing behind it, so the questions can
@@ -44,6 +50,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
           city="Rotterdam"
           auth={{ preview: true }}
           bookingCode="MT-1A2B3C4D"
+          seats={tickets === "2" ? 2 : 1}
           initial={isIntroConversationStyle(style) ? { conversationStyle: style } : null}
         />
       </IntroShell>
@@ -81,6 +88,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
         city={booking.city}
         auth={{ token }}
         bookingCode={booking.reservationCode}
+        seats={booking.seats}
         initial={booking.intro}
       />
     </IntroShell>

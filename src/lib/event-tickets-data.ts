@@ -126,6 +126,7 @@ export async function getEventTicketsData(
           favoriteSpot: b.introFavoriteSpot,
           wine: b.introWine,
           intoNow: b.introIntoNow,
+          plusOneName: b.introPlusOneName,
           shareConsent: b.introShareConsent,
           answeredAt: b.introAnsweredAt?.toISOString() ?? null,
           requestSentAt: b.introRequestSentAt?.toISOString() ?? null,

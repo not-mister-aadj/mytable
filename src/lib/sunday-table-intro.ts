@@ -28,6 +28,8 @@ export type SundayTableIntro = {
   favoriteSpot: string;
   wine: IntroWine | null;
   intoNow: string;
+  /** First name of the +1 on a 2-ticket booking; they always sit together. */
+  plusOneName: string;
   shareConsent: boolean;
 };
 
@@ -48,6 +50,7 @@ export function parseSundayTableIntro(raw: unknown): SundayTableIntro {
     favoriteSpot: cleanAnswer(input.favoriteSpot),
     wine: isIntroWine(input.wine) ? input.wine : null,
     intoNow: cleanAnswer(input.intoNow),
+    plusOneName: cleanAnswer(input.plusOneName).slice(0, 60),
     shareConsent: input.shareConsent === true,
   };
 }
@@ -58,12 +61,14 @@ export function hasAnyIntroAnswer(intro: SundayTableIntro): boolean {
       intro.askMeAbout ||
       intro.favoriteSpot ||
       intro.wine ||
-      intro.intoNow,
+      intro.intoNow ||
+      intro.plusOneName,
   );
 }
 
 type IntroBooking = {
   id: string;
+  seats: number;
   /** "MT-5B5230E1", the booking number guests see in their emails. */
   reservationCode: string;
   email: string;
@@ -80,7 +85,9 @@ function toIntroBooking(row: {
   city: string;
   locale: string;
   customerName: string | null;
+  seats: number;
   introConversationStyle: string | null;
+  introPlusOneName: string | null;
   introAskMeAbout: string | null;
   introFavoriteSpot: string | null;
   introWine: string | null;
@@ -90,6 +97,7 @@ function toIntroBooking(row: {
 }): IntroBooking {
   return {
     id: row.id,
+    seats: row.seats,
     reservationCode: reservationCode(row.id),
     email: row.email,
     city: row.city,
@@ -103,6 +111,7 @@ function toIntroBooking(row: {
       favoriteSpot: row.introFavoriteSpot ?? "",
       wine: isIntroWine(row.introWine) ? row.introWine : null,
       intoNow: row.introIntoNow ?? "",
+      plusOneName: row.introPlusOneName ?? "",
       shareConsent: row.introShareConsent,
     },
     answeredAt: row.introAnsweredAt,
@@ -115,7 +124,9 @@ const introColumns = {
   city: events.city,
   locale: bookings.locale,
   customerName: bookings.customerName,
+  seats: bookings.seats,
   introConversationStyle: bookings.introConversationStyle,
+  introPlusOneName: bookings.introPlusOneName,
   introAskMeAbout: bookings.introAskMeAbout,
   introFavoriteSpot: bookings.introFavoriteSpot,
   introWine: bookings.introWine,
@@ -195,6 +206,7 @@ export async function saveSundayTableIntro(
       introFavoriteSpot: intro.favoriteSpot || null,
       introWine: intro.wine,
       introIntoNow: intro.intoNow || null,
+      introPlusOneName: intro.plusOneName || null,
       introShareConsent: intro.shareConsent,
       ...(hasAnyIntroAnswer(intro) ? { introAnsweredAt: new Date() } : {}),
     })

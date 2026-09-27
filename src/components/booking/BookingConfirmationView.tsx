@@ -90,6 +90,7 @@ export function BookingConfirmationView({
               city={summary.city}
               auth={{ sessionId }}
               bookingCode={summary.reservationCode}
+              seats={summary.seats}
             />
           ) : null
         }

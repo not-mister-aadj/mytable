@@ -104,6 +104,15 @@ export function sundayTableWaitlistInviteSubject(
   return `Er vormt zich een tafel in ${city.trim()} · ${date.trim()}`;
 }
 
+export function sundayTableIntroRequestSubject(
+  city: string,
+  locale: "nl" | "en" = "nl",
+): string {
+  return locale === "en"
+    ? `Meet your table: Sunday Table ${city.trim()}`
+    : `Leer je tafel kennen: Sunday Table ${city.trim()}`;
+}
+
 export function sundayTableTicketsOpenSubject(
   city: string,
   date: string,

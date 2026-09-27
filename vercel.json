@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/waitlist-abandoned-welcome",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/sunday-table-intro-requests",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

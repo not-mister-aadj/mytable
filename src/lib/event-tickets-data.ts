@@ -120,6 +120,15 @@ export async function getEventTicketsData(
         lifecycleStatus: b.lifecycleStatus,
         transferredAt: b.transferredAt?.toISOString() ?? null,
         transferredBy: b.transferredBy,
+        intro: {
+          askMeAbout: b.introAskMeAbout,
+          favoriteSpot: b.introFavoriteSpot,
+          wine: b.introWine,
+          intoNow: b.introIntoNow,
+          shareConsent: b.introShareConsent,
+          answeredAt: b.introAnsweredAt?.toISOString() ?? null,
+          requestSentAt: b.introRequestSentAt?.toISOString() ?? null,
+        },
         transferDestination: destination
           ? {
               eventId: destination.id,

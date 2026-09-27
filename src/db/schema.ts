@@ -198,6 +198,14 @@ export const bookings = pgTable("bookings", {
   transferredFromBookingId: uuid("transferred_from_booking_id"),
   transferredAt: timestamp("transferred_at", { withTimezone: true }),
   transferredBy: text("transferred_by"),
+  /** "Meet your table" answers, Sunday Table only (drizzle/0027). */
+  introAskMeAbout: text("intro_ask_me_about"),
+  introFavoriteSpot: text("intro_favorite_spot"),
+  introWine: text("intro_wine"),
+  introIntoNow: text("intro_into_now"),
+  introShareConsent: boolean("intro_share_consent").notNull().default(false),
+  introAnsweredAt: timestamp("intro_answered_at", { withTimezone: true }),
+  introRequestSentAt: timestamp("intro_request_sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

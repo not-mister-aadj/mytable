@@ -462,6 +462,74 @@ function GuestTableRow({
   );
 }
 
+const WINE_LABELS: Record<string, string> = {
+  red: "Rood",
+  white: "Wit",
+  bubbles: "Bubbels",
+};
+
+/** Sunday Table "meet your table" answers per guest, for writing the
+ * introduction email, the seating plan and the place cards. */
+function MeetYourTable({ tickets }: { tickets: EventTicketRow[] }) {
+  if (tickets.length === 0) return null;
+  const answered = tickets.filter((t) => t.intro.answeredAt).length;
+
+  return (
+    <section className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5 shadow-[0_12px_40px_rgba(43,13,18,0.05)] sm:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-serif text-xl text-burgundy">Meet your table</h2>
+        <p className="text-sm text-wine/55">
+          {answered} van {tickets.length} ingevuld
+        </p>
+      </div>
+      <p className="mt-1 text-sm text-wine/55">
+        Voor de voorstelmail, de tafelschikking en de naamkaartjes. Alleen delen met
+        tafelgenoten als &quot;Delen&quot; op ja staat.
+      </p>
+      <ul className="mt-5 grid gap-3 md:grid-cols-2">
+        {tickets.map((ticket) => {
+          const firstName = ticket.customerName?.trim().split(/\s+/)[0] || "Gast";
+          const { intro } = ticket;
+          const status = intro.answeredAt
+            ? "Ingevuld"
+            : intro.requestSentAt
+              ? "Mail verstuurd, nog niet ingevuld"
+              : "Nog niet ingevuld";
+          const answers = [
+            ["Vraag me over", intro.askMeAbout],
+            ["Favoriete plek", intro.favoriteSpot],
+            ["Wijn", intro.wine ? (WINE_LABELS[intro.wine] ?? intro.wine) : null],
+            ["Nu into", intro.intoNow],
+          ] as const;
+          return (
+            <li key={ticket.id} className="rounded-xl border border-border-subtle bg-cream px-4 py-3.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-medium text-wine">{firstName}</p>
+                <p className="text-xs text-wine/50">
+                  {status}
+                  {intro.answeredAt ? ` · Delen: ${intro.shareConsent ? "ja" : "nee"}` : ""}
+                </p>
+              </div>
+              {intro.answeredAt ? (
+                <dl className="mt-2 space-y-1 text-sm">
+                  {answers.map(([label, value]) =>
+                    value ? (
+                      <div key={label} className="flex gap-2">
+                        <dt className="w-28 shrink-0 text-wine/50">{label}</dt>
+                        <dd className="text-wine">{value}</dd>
+                      </div>
+                    ) : null,
+                  )}
+                </dl>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 export function EventGuestsView({
   event,
   tickets,
@@ -686,6 +754,10 @@ export function EventGuestsView({
           </div>
         </>
       )}
+
+      <MeetYourTable
+        tickets={tickets.filter((t) => t.lifecycleStatus === "active")}
+      />
     </div>
   );
 }

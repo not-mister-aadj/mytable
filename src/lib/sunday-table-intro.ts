@@ -1,0 +1,184 @@
+import { and, eq, isNull } from "drizzle-orm";
+import { SignJWT, jwtVerify } from "jose";
+import { getDb } from "@/db/index";
+import { bookings, events } from "@/db/schema";
+
+/** "Meet your table": the short introduction a Sunday Table guest fills in
+ * right after payment, or later via the reminder email. */
+
+export const INTRO_WINES = ["red", "white", "bubbles"] as const;
+export type IntroWine = (typeof INTRO_WINES)[number];
+
+export function isIntroWine(value: unknown): value is IntroWine {
+  return INTRO_WINES.includes(value as IntroWine);
+}
+
+export type SundayTableIntro = {
+  askMeAbout: string;
+  favoriteSpot: string;
+  wine: IntroWine | null;
+  intoNow: string;
+  shareConsent: boolean;
+};
+
+const MAX_ANSWER_LENGTH = 140;
+
+function cleanAnswer(value: unknown): string {
+  return typeof value === "string" ? value.trim().slice(0, MAX_ANSWER_LENGTH) : "";
+}
+
+/** Normalizes untrusted input into an intro; unknown fields are dropped. */
+export function parseSundayTableIntro(raw: unknown): SundayTableIntro {
+  const input = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    askMeAbout: cleanAnswer(input.askMeAbout),
+    favoriteSpot: cleanAnswer(input.favoriteSpot),
+    wine: isIntroWine(input.wine) ? input.wine : null,
+    intoNow: cleanAnswer(input.intoNow),
+    shareConsent: input.shareConsent === true,
+  };
+}
+
+export function hasAnyIntroAnswer(intro: SundayTableIntro): boolean {
+  return Boolean(intro.askMeAbout || intro.favoriteSpot || intro.wine || intro.intoNow);
+}
+
+type IntroBooking = {
+  id: string;
+  email: string;
+  city: string;
+  locale: string;
+  customerName: string | null;
+  intro: SundayTableIntro;
+  answeredAt: Date | null;
+};
+
+function toIntroBooking(row: {
+  id: string;
+  email: string;
+  city: string;
+  locale: string;
+  customerName: string | null;
+  introAskMeAbout: string | null;
+  introFavoriteSpot: string | null;
+  introWine: string | null;
+  introIntoNow: string | null;
+  introShareConsent: boolean;
+  introAnsweredAt: Date | null;
+}): IntroBooking {
+  return {
+    id: row.id,
+    email: row.email,
+    city: row.city,
+    locale: row.locale,
+    customerName: row.customerName,
+    intro: {
+      askMeAbout: row.introAskMeAbout ?? "",
+      favoriteSpot: row.introFavoriteSpot ?? "",
+      wine: isIntroWine(row.introWine) ? row.introWine : null,
+      intoNow: row.introIntoNow ?? "",
+      shareConsent: row.introShareConsent,
+    },
+    answeredAt: row.introAnsweredAt,
+  };
+}
+
+const introColumns = {
+  id: bookings.id,
+  email: bookings.email,
+  city: events.city,
+  locale: bookings.locale,
+  customerName: bookings.customerName,
+  introAskMeAbout: bookings.introAskMeAbout,
+  introFavoriteSpot: bookings.introFavoriteSpot,
+  introWine: bookings.introWine,
+  introIntoNow: bookings.introIntoNow,
+  introShareConsent: bookings.introShareConsent,
+  introAnsweredAt: bookings.introAnsweredAt,
+};
+
+/** A paid Sunday Table booking, found by id or by Stripe checkout session. */
+export async function findSundayTableIntroBooking(
+  by: { bookingId: string } | { checkoutSessionId: string },
+): Promise<IntroBooking | null> {
+  const db = getDb();
+  const [row] = await db
+    .select(introColumns)
+    .from(bookings)
+    .innerJoin(events, eq(events.id, bookings.eventId))
+    .where(
+      and(
+        "bookingId" in by
+          ? eq(bookings.id, by.bookingId)
+          : eq(bookings.stripeCheckoutSessionId, by.checkoutSessionId),
+        eq(bookings.paymentStatus, "paid"),
+        eq(events.experienceType, "sunday-table"),
+      ),
+    )
+    .limit(1);
+  return row ? toIntroBooking(row) : null;
+}
+
+/** Saves the answers. The first save with any answer marks the intro as
+ * answered, which also stops the reminder email from going out. */
+export async function saveSundayTableIntro(
+  bookingId: string,
+  intro: SundayTableIntro,
+): Promise<void> {
+  const db = getDb();
+  await db
+    .update(bookings)
+    .set({
+      introAskMeAbout: intro.askMeAbout || null,
+      introFavoriteSpot: intro.favoriteSpot || null,
+      introWine: intro.wine,
+      introIntoNow: intro.intoNow || null,
+      introShareConsent: intro.shareConsent,
+      ...(hasAnyIntroAnswer(intro) ? { introAnsweredAt: new Date() } : {}),
+    })
+    .where(eq(bookings.id, bookingId));
+}
+
+/** One-click wine answer from the reminder email. Only fills an empty field,
+ * so a later click never overwrites what someone typed on the page. */
+export async function saveSundayTableIntroWine(
+  bookingId: string,
+  wine: IntroWine,
+): Promise<void> {
+  const db = getDb();
+  await db
+    .update(bookings)
+    .set({ introWine: wine, introAnsweredAt: new Date() })
+    .where(and(eq(bookings.id, bookingId), isNull(bookings.introWine)));
+}
+
+const TOKEN_PURPOSE = "sunday_table_intro";
+
+function getTokenSecret(): Uint8Array {
+  const raw =
+    process.env.REVIEW_TOKEN_SECRET?.trim() ||
+    process.env.CRON_SECRET?.trim() ||
+    process.env.AUTH_SECRET?.trim();
+  if (!raw) throw new Error("REVIEW_TOKEN_SECRET or CRON_SECRET is required");
+  return new TextEncoder().encode(raw);
+}
+
+/** Link token for the reminder email, so the intro page opens without login
+ * and only for this one booking. */
+export async function signSundayTableIntroToken(bookingId: string): Promise<string> {
+  return new SignJWT({ bookingId, purpose: TOKEN_PURPOSE })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${60 * 24 * 60 * 60}s`)
+    .sign(getTokenSecret());
+}
+
+export async function verifySundayTableIntroToken(token: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(token, getTokenSecret());
+    if (payload.purpose !== TOKEN_PURPOSE) return null;
+    return typeof payload.bookingId === "string" ? payload.bookingId : null;
+  } catch {
+    return null;
+  }
+}

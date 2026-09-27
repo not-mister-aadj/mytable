@@ -26,6 +26,7 @@ const copy = {
     edit: "Aanpassen",
     empty: "Vul minstens één vraag in.",
     error: "Er ging iets mis. Probeer het opnieuw.",
+    previewNote: "Voorbeeld: zo ziet de vragenlijst eruit na een boeking. Er wordt niets opgeslagen.",
   },
   en: {
     eyebrow: "Meet your table",
@@ -47,6 +48,7 @@ const copy = {
     edit: "Edit",
     empty: "Fill in at least one question.",
     error: "Something went wrong. Please try again.",
+    previewNote: "Preview: this is what the questions look like after booking. Nothing is saved.",
   },
 } as const;
 
@@ -64,8 +66,10 @@ export function SundayTableIntroForm({
 }: {
   locale: Locale;
   city: string;
-  auth: { sessionId: string } | { token: string };
-  initial?: SundayTableIntro | null;
+  /** `preview` shows the real form but saves nothing, for looking at it
+   * without a booking (the `?voorbeeld=1` page and test emails). */
+  auth: { sessionId: string } | { token: string } | { preview: true };
+  initial?: Partial<SundayTableIntro> | null;
 }) {
   const t = copy[locale === "en" ? "en" : "nl"];
   const [askMeAbout, setAskMeAbout] = useState(initial?.askMeAbout ?? "");
@@ -81,6 +85,11 @@ export function SundayTableIntroForm({
     if (saving) return;
     if (!askMeAbout.trim() && !favoriteSpot.trim() && !wine && !intoNow.trim()) {
       setError(t.empty);
+      return;
+    }
+    if ("preview" in auth) {
+      setError(null);
+      setSaved(true);
       return;
     }
     setSaving(true);
@@ -116,6 +125,11 @@ export function SundayTableIntroForm({
   return (
     <section className="pb-12 sm:pb-16">
       <div className="mx-auto max-w-2xl rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20px_50px_rgba(43,13,18,0.06)] sm:px-8 sm:py-8">
+        {"preview" in auth ? (
+          <p className="mb-4 rounded-xl bg-gold/15 px-3.5 py-2 text-xs font-medium text-wine/75">
+            {t.previewNote}
+          </p>
+        ) : null}
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">
           {t.eyebrow}
         </p>

@@ -78,6 +78,20 @@ function buildVenueHeroImages(venueName: string, locale: Locale): HeroImage[] {
   ];
 }
 
+/** Google rating per venue, curated by hand like the photos above. Venues
+ * without a verified rating show none, so a new venue never borrows another
+ * venue's reviews. */
+function venueGoogleRating(venueName: string, locale: Locale) {
+  if (venueName === "Bar Juni Rotterdam") {
+    return {
+      score: "4.9",
+      label: locale === "en" ? "123 Google reviews" : "123 reviews op Google",
+      href: "https://www.google.com/maps/search/?api=1&query=Juni+Rotterdam",
+    };
+  }
+  return null;
+}
+
 async function loadTicketEvent(cityName: string, startsAt: Date) {
   if (!isDbConfigured()) return null;
   const db = getDb();
@@ -429,6 +443,8 @@ export default async function SundayTableEventPage({ params }: Props) {
           bookingSoldOutLabel={copy.bookingSoldOutLabel}
           bookingGuarantees={copy.bookingGuarantees}
           bookingErrorLabel={copy.bookingErrorLabel}
+          perSeatLabel={locale === "en" ? "per seat" : "per plek"}
+          googleRating={venueGoogleRating(location.venueName, locale)}
         />
       </main>
       <Footer dict={dict.footer} locale={locale} />

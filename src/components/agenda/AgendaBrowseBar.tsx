@@ -7,6 +7,10 @@ interface AgendaBrowseBarProps {
   cities: string[];
   selectedCity: string;
   onCityChange: (city: string) => void;
+  /** Age brackets on offer ("20-39", "35+"); the row is hidden when empty. */
+  ageBrackets: string[];
+  selectedAge: string;
+  onAgeChange: (bracket: string) => void;
   resultCount: number;
   onClear: () => void;
   hasActiveFilters: boolean;
@@ -19,6 +23,9 @@ export function AgendaBrowseBar({
   cities,
   selectedCity,
   onCityChange,
+  ageBrackets,
+  selectedAge,
+  onAgeChange,
   resultCount,
   onClear,
   hasActiveFilters,
@@ -30,14 +37,23 @@ export function AgendaBrowseBar({
   const chipInactive =
     "border-wine/15 bg-cream text-wine/70 hover:border-wine/30 hover:text-wine";
 
+  // On phones this bar sticks under the header while the cards scroll by,
+  // so it stays compact there: one swipeable line per filter, the group
+  // names only for screen readers, and no waitlist line (the page ends with
+  // its own waitlist block).
+  const labelClass =
+    "sr-only text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/55 sm:not-sr-only sm:mb-2 sm:block";
+  const rowClass =
+    "-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5 sm:space-y-4">
       <div>
-        <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-wine/55">
+        <span className={labelClass}>
           {browse.cityLabel}
         </span>
         <div
-          className="flex flex-wrap gap-2"
+          className={rowClass}
           role="group"
           aria-label={browse.cityLabel}
         >
@@ -61,10 +77,43 @@ export function AgendaBrowseBar({
         </div>
       </div>
 
+      {ageBrackets.length > 0 ? (
+        <div>
+          <span className={labelClass}>
+            {browse.ageLabel}
+          </span>
+          <div
+            className={rowClass}
+            role="group"
+            aria-label={browse.ageLabel}
+          >
+            <button
+              type="button"
+              onClick={() => onAgeChange("")}
+              className={`${chipBase} ${selectedAge === "" ? chipActive : chipInactive}`}
+            >
+              {browse.ageAll}
+            </button>
+            {ageBrackets.map((bracket) => (
+              <button
+                key={bracket}
+                type="button"
+                onClick={() => onAgeChange(bracket)}
+                className={`${chipBase} ${selectedAge === bracket ? chipActive : chipInactive}`}
+              >
+                {browse.ageOption.replace("{bracket}", bracket)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
           <p className="text-sm text-wine/60">
-            {browse.results.replace("{count}", String(resultCount))}
+            {resultCount === 1
+              ? browse.resultsOne
+              : browse.results.replace("{count}", String(resultCount))}
           </p>
           {hasActiveFilters ? (
             <button
@@ -76,7 +125,7 @@ export function AgendaBrowseBar({
             </button>
           ) : null}
         </div>
-        <p className="text-sm text-wine/55">
+        <p className="hidden text-sm text-wine/55 sm:block">
           {browse.cityMissingNote}{" "}
           <button
             type="button"

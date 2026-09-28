@@ -356,7 +356,12 @@ export interface Dictionary {
     browse: {
       cityLabel: string;
       cityAll: string;
+      ageLabel: string;
+      ageAll: string;
+      /** Chip text for one bracket: "{bracket} jaar" -> "35+ jaar". */
+      ageOption: string;
       results: string;
+      resultsOne: string;
       clear: string;
       /** Persistent prompt: "Your city not listed yet?" */
       cityMissingNote: string;

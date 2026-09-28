@@ -6,6 +6,7 @@ import type { Dictionary, ExperienceItem } from "@/i18n/types";
 import { PositionedImage } from "@/components/ui/PositionedImage";
 import type { AnalyticsSourceSection } from "@/lib/posthog/events";
 import { trackEventCardClicked } from "@/lib/posthog/analytics";
+import { agendaAgeBracket } from "@/lib/agenda";
 import {
   displayAtmosphereTags,
   resolveFemaleOnly,
@@ -55,9 +56,7 @@ function sundayTableBracket(
   experience: ExperienceItem,
   locale: Locale,
 ): string | null {
-  if (experience.category !== "Sunday Table") return null;
-  const parts = experience.experienceName.split("·").map((part) => part.trim());
-  const bracket = parts.length > 1 ? parts[parts.length - 1] : null;
+  const bracket = agendaAgeBracket(experience);
   if (!bracket) return null;
   const yearsWord = locale === "en" ? "yrs" : "jaar";
   return `${bracket} ${yearsWord}`;

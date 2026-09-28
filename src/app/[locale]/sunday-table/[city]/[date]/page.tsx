@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SundayTableEventReveal } from "@/components/sunday-table-lp/SundayTableEventReveal";
+import type {
+  DateHighlights,
+  DaySteps,
+  VenueAbout,
+} from "@/components/sunday-table-lp/SundayTableDateDetails";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -76,6 +81,47 @@ function buildVenueHeroImages(venueName: string, locale: Locale): HeroImage[] {
       alt: locale === "en" ? "A glass of wine being poured" : "Een glas wijn wordt ingeschonken",
     },
   ];
+}
+
+/** "Over de locatie" per venue, written by hand like the photos above.
+ * Sources for Juni: junirotterdam.nl and local press (Uitagenda Rotterdam,
+ * De Havenloods). Unknown venues get no section rather than a guess. */
+function venueAbout(
+  venueName: string,
+  address: string,
+  mapsHref: string,
+  locale: Locale,
+): { short: string; about: VenueAbout } | null {
+  if (venueName !== "Bar Juni Rotterdam") return null;
+  const en = locale === "en";
+  return {
+    short: en
+      ? "Rotterdam's first wine and cheese bar, hand-picked by us. All you have to do is show up."
+      : "De eerste wijn- en kaasbar van Rotterdam, door ons uitgekozen. Jij hoeft alleen te komen.",
+    about: {
+      eyebrow: en ? "About the venue" : "Over de locatie",
+      name: "Juni",
+      body: en
+        ? "Juni is Rotterdam's first wine and cheese bar, started by Puck and Nienke, who met working at restaurant OX. The cheese counter is full of Dutch cheeses from small makers, next to wines from France, Italy and Spain. A small, warm place with around 25 seats. Normally it's walk-in only. For Sunday Table, we keep a table for you."
+        : "Juni is de eerste wijn- en kaasbar van Rotterdam, opgezet door Puck en Nienke, die elkaar leerden kennen bij restaurant OX. In de kaasvitrine liggen vooral Nederlandse kazen van kleine makers, met wijnen uit Frankrijk, Italië en Spanje ernaast. Een kleine, warme zaak met zo'n 25 plekken. Normaal loop je hier gewoon binnen. Voor Sunday Table houden we een tafel voor je vrij.",
+      facts: [
+        { label: en ? "Address" : "Adres", value: address, href: mapsHref },
+        {
+          label: en ? "Getting there" : "Bereikbaarheid",
+          value: en
+            ? "A few minutes' walk from Voorschoterlaan metro (lines A, B and C)"
+            : "Een paar minuten lopen van metrostation Voorschoterlaan (lijn A, B en C)",
+        },
+        {
+          label: en ? "On the menu" : "Op de kaart",
+          value: en
+            ? "Cheese boards and small seasonal dishes"
+            : "Kaasplanken en kleine seizoensgerechten",
+        },
+        { label: en ? "Neighbourhood" : "Buurt", value: "Kralingen" },
+      ],
+    },
+  };
 }
 
 /** Google rating per venue, curated by hand like the photos above. Venues
@@ -198,6 +244,98 @@ export default async function SundayTableEventPage({ params }: Props) {
   const timeLabel = formatSundayTableTime(locale);
   const pageUrl = absoluteUrl(sundayTableLocationPath(locale, city.slug, date));
   const heroImages = buildVenueHeroImages(location.venueName, locale);
+  const venue = venueAbout(
+    location.venueName,
+    location.address,
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      `${location.venueName}, ${location.address}`,
+    )}`,
+    locale,
+  );
+  const en = locale === "en";
+  const cityName = en && city.name === "Den Haag" ? "The Hague" : city.name;
+
+  const highlights: DateHighlights = {
+    eyebrow: en ? "Highlights" : "Hoogtepunten",
+    title: en ? "Why this will be a Sunday to remember" : "Waarom dit een zondag wordt om te onthouden",
+    items: [
+      {
+        title: en ? "New people, without the awkward start" : "Nieuwe mensen, zonder ongemakkelijk begin",
+        body: en
+          ? "You join 4 to 6 people at your stage of life. Two days before, we introduce everyone to each other."
+          : "Je schuift aan bij 4 tot 6 mensen in jouw levensfase. Twee dagen van tevoren stellen we iedereen aan elkaar voor.",
+        image: {
+          src: "/girls-only/wine-tasting-conversation.jpg",
+          alt: en ? "Guests in conversation at a MyTable table" : "Gasten in gesprek aan een MyTable-tafel",
+        },
+      },
+      {
+        title: en ? "A place you didn't know yet" : "Een adres dat je nog niet kende",
+        body:
+          venue?.short ??
+          (en
+            ? `A carefully chosen spot in ${cityName}. All you have to do is show up.`
+            : `Een zorgvuldig gekozen adres in ${cityName}. Jij hoeft alleen te komen.`),
+        image: venue
+          ? heroImages[0]!
+          : {
+              src: "/girls-only/table-group.jpg",
+              alt: en ? "A full MyTable table" : "Een volle MyTable-tafel",
+            },
+      },
+      {
+        title: en ? "Wine without the snobbery" : "Wijn zonder snobisme",
+        body: en
+          ? "Order whatever you like. Our picks from the menu help you choose."
+          : "Bestel wat jij lekker vindt. Onze aanraders van de kaart helpen je kiezen.",
+        image: {
+          src: "/girls-only/wine-tasting-toast.jpg",
+          alt: en ? "A table raising their glasses" : "Een tafel die het glas heft",
+        },
+      },
+      {
+        title: en ? "Coming alone is perfectly normal" : "Alleen komen is de normaalste zaak",
+        body: en
+          ? "Many guests come solo. You're in good company."
+          : "Veel gasten komen solo. Je bent dus in goed gezelschap.",
+        image: {
+          src: "/girls-only/smiling-glasses.jpg",
+          alt: en ? "A guest laughing with a glass of wine" : "Een lachende gast met een glas wijn",
+        },
+      },
+    ],
+  };
+
+  const venueLabel = venue ? venue.about.name : null;
+  const daySteps: DaySteps = {
+    eyebrow: en ? "On the day" : "Op de dag zelf",
+    title: en ? "How it works" : "Zo werkt het",
+    steps: [
+      {
+        title: en ? "Walk in, your table is ready" : "Kom binnen, je tafel staat klaar",
+        body: en
+          ? `At 2:00 PM a table is reserved for you${venueLabel ? ` at ${venueLabel}` : ""}. You already know who's joining, so the ice is half broken.`
+          : `Om 14:00 staat er${venueLabel ? ` bij ${venueLabel}` : ""} een tafel voor je gereserveerd. Je weet al wie er aanschuiven, dus het ijs is half gebroken.`,
+      },
+      {
+        title: en ? "Taste, talk and discover" : "Proeven, praten en ontdekken",
+        body: en
+          ? "Order whatever you fancy from the menu and take your time. Plan for two to three hours. Staying longer is fine."
+          : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur. Langer blijven mag.",
+      },
+      {
+        title: en ? "Head home with new names in your phone" : "Ga naar huis met nieuwe namen in je telefoon",
+        body: en
+          ? "Stay a little longer or go for dinner together. Who knows where the afternoon ends."
+          : "Blijf nog even hangen of ga samen ergens eten. Wie weet waar de middag eindigt.",
+      },
+    ],
+  };
+
+  // Kept to one short line so the buy button still fits a laptop screen.
+  const includedLine = en
+    ? "Included: reserved table · introductions beforehand · our menu picks"
+    : "Inbegrepen: gereserveerde tafel · voorstelrondje vooraf · onze aanraders";
 
   const copy =
     locale === "en"
@@ -464,6 +602,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           cityName={city.name}
           englishComingSoon={copy.englishComingSoon}
           googleRating={venueGoogleRating(location.venueName, locale)}
+          highlights={highlights}
+          daySteps={daySteps}
+          venueAbout={venue?.about ?? null}
+          includedLine={includedLine}
         />
       </main>
       <Footer dict={dict.footer} locale={locale} />

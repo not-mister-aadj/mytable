@@ -774,7 +774,12 @@ export function SundayTableWaitlistModal({
                       <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
                         {labels.formatLabel}
                       </span>
-                      <div className="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {/* On a phone these are small pills again, so the whole
+                          form fits on one screen with the submit button in
+                          view (the stacked cards with subtitles pushed it
+                          below the fold and sign-ups dropped). The subtitles
+                          only show from tablet width up. */}
+                      <div className="mt-1.5 flex flex-wrap gap-2 sm:grid sm:grid-cols-2">
                         {FORMAT_OPTIONS.map((format) => {
                           const selected = interests.includes(format.id);
                           return (
@@ -782,17 +787,17 @@ export function SundayTableWaitlistModal({
                               key={format.id}
                               type="button"
                               onClick={() => toggleInterest(format.id)}
-                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                              className={`rounded-full border px-4 py-2 text-left transition sm:rounded-2xl sm:py-3 ${
                                 selected
                                   ? "border-burgundy bg-burgundy text-cream"
                                   : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
                               }`}
                             >
-                              <span className="block text-sm font-semibold">
+                              <span className="block text-sm font-medium sm:font-semibold">
                                 {format.label[locale === "en" ? "en" : "nl"]}
                               </span>
                               <span
-                                className={`mt-0.5 block text-xs leading-snug ${
+                                className={`mt-0.5 hidden text-xs leading-snug sm:block ${
                                   selected ? "text-cream/75" : "text-wine/55"
                                 }`}
                               >

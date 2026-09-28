@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 import type { Locale } from "@/i18n/config";
 import { trackGroupInvitationShared } from "@/lib/posthog/analytics";
 
@@ -60,11 +67,38 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
+const DESKTOP_QUERY = "(min-width: 1024px)";
+
+/** Which ends of the sideways-scrolling tab row have tabs hidden past them,
+ * so the row can fade out there as a hint that there is more to swipe to. */
+function useOverflowEdges(ref: RefObject<HTMLElement | null>) {
+  const [edges, setEdges] = useState({ start: false, end: false });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setEdges({ start: el.scrollLeft > 4, end: el.scrollLeft < max - 4 });
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [ref]);
+  return edges;
+}
+
 /** Fever-style tab bar for a Sunday Table date page: jumps to each section,
  * underlines the one you are reading, and has a button that copies the
- * page link so it can be pasted anywhere. Sticks under the site header. */
+ * page link so it can be pasted anywhere. Sticks under the site header.
+ * On phones it spans the full width flush under the header, without the
+ * "Overzicht" tab or the share button (the photo has its own). */
 export function SundayTableSectionNav({
   items,
+  idleSectionId,
   shareUrl,
   shareLabel,
   copiedLabel,
@@ -72,6 +106,9 @@ export function SundayTableSectionNav({
 }: {
   /** The first item is the top of the page ("Overzicht"). */
   items: SectionNavItem[];
+  /** A block between the sections that has no tab of its own (the booking
+   * form on phones): while it is being read, no tab is underlined. */
+  idleSectionId?: string;
   shareUrl: string;
   shareLabel: string;
   copiedLabel: string;
@@ -80,7 +117,9 @@ export function SundayTableSectionNav({
   const headerHeight = useSiteHeaderHeight();
   const [active, setActive] = useState(items[0]?.id ?? "");
   const [copied, setCopied] = useState(false);
+  const listRef = useRef<HTMLUListElement>(null);
   const tabRefs = useRef(new Map<string, HTMLAnchorElement>());
+  const edges = useOverflowEdges(listRef);
   // Room above a section once scrolled to: the site header plus this bar.
   const offset = headerHeight + 64;
 
@@ -89,10 +128,18 @@ export function SundayTableSectionNav({
     const onScroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        const line = offset + 8;
         let current = items[0]?.id ?? "";
         for (const item of items.slice(1)) {
           const el = document.getElementById(item.id);
-          if (el && el.getBoundingClientRect().top <= offset + 8) current = item.id;
+          if (el && el.getBoundingClientRect().top <= line) current = item.id;
+        }
+        // On desktop the booking panel sits in its own column, so it never
+        // stands between two sections there.
+        const idle = idleSectionId ? document.getElementById(idleSectionId) : null;
+        if (idle && !window.matchMedia(DESKTOP_QUERY).matches) {
+          const box = idle.getBoundingClientRect();
+          if (box.top <= line && box.bottom > line) current = "";
         }
         setActive(current);
       });
@@ -103,12 +150,28 @@ export function SundayTableSectionNav({
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [items, offset]);
+  }, [items, offset, idleSectionId]);
 
-  // On phones the tabs scroll sideways: keep the active one in view.
+  // On phones the tabs scroll sideways: keep the active one in the middle.
   useEffect(() => {
-    tabRefs.current.get(active)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const list = listRef.current;
+    const tab = tabRefs.current.get(active);
+    if (!list || !tab || list.scrollWidth <= list.clientWidth) return;
+    list.scrollTo({
+      left: tab.offsetLeft - (list.clientWidth - tab.offsetWidth) / 2,
+      behavior: "smooth",
+    });
   }, [active]);
+
+  const fade = [
+    edges.start ? "transparent 0" : "black 0",
+    edges.start ? "black 2rem" : null,
+    edges.end ? "black calc(100% - 2.5rem)" : null,
+    edges.end ? "transparent 100%" : "black 100%",
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const fadeMask = `linear-gradient(to right, ${fade})`;
 
   const goTo = useCallback(
     (id: string) => {
@@ -133,20 +196,24 @@ export function SundayTableSectionNav({
 
   return (
     <div
-      className="pointer-events-none sticky z-40 -mt-2 mb-6 lg:mb-8"
-      style={{ top: headerHeight + 8 }}
+      className="pointer-events-none sticky top-[var(--nav-top)] z-40 -mt-2 mb-6 lg:top-[calc(var(--nav-top)+8px)] lg:mb-8"
+      style={{ "--nav-top": `${headerHeight}px` } as CSSProperties}
     >
       {/* Same columns as the page below, so on desktop the bar only covers
           the left column and the booking panel on the right stays visible. */}
-      <div className="mx-auto grid max-w-lg px-5 sm:px-6 lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12">
+      <div className="mx-auto grid lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12 lg:px-6">
         <nav
           data-section-nav
           aria-label={locale === "en" ? "Page sections" : "Onderdelen van de pagina"}
-          className="pointer-events-auto flex min-w-0 items-center rounded-2xl border border-wine/10 bg-cream/95 pl-2 shadow-[0_10px_30px_rgba(43,13,18,0.08)] backdrop-blur-md"
+          className="pointer-events-auto flex min-w-0 items-center border-b border-wine/10 bg-cream/95 backdrop-blur-md lg:rounded-2xl lg:border lg:pl-2 lg:shadow-[0_10px_30px_rgba(43,13,18,0.08)]"
         >
-          <ul className="flex min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {items.map((item) => (
-              <li key={item.id} className="shrink-0">
+          <ul
+            ref={listRef}
+            className="relative flex min-w-0 flex-1 overflow-x-auto px-2.5 [scrollbar-width:none] sm:px-3.5 lg:px-0 [&::-webkit-scrollbar]:hidden"
+            style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
+          >
+            {items.map((item, index) => (
+              <li key={item.id} className={index === 0 ? "hidden shrink-0 lg:block" : "shrink-0"}>
                 <a
                   ref={(el) => {
                     if (el) tabRefs.current.set(item.id, el);
@@ -168,7 +235,7 @@ export function SundayTableSectionNav({
               </li>
             ))}
           </ul>
-          <div className="relative flex shrink-0 items-center border-l border-wine/10 px-1.5">
+          <div className="relative hidden shrink-0 items-center border-l border-wine/10 px-1.5 lg:flex">
             <button
               type="button"
               onClick={share}

@@ -15,6 +15,10 @@ import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 import type { ConfirmationPurchaseData } from "@/lib/analytics/confirmationPurchase";
 import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
 import { ensureConfirmationEmailForCheckoutSession } from "@/lib/email/ensure-confirmation-email";
+import {
+  findSundayTableIntroBooking,
+  type SundayTableIntro,
+} from "@/lib/sunday-table-intro";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
@@ -46,6 +50,9 @@ export default async function BookingConfirmedPage({
     pending: boolean;
   } = { summary: null, pending: false };
   let purchase: ConfirmationPurchaseData | null = null;
+  // Answers already saved for this booking, so coming back to this page
+  // shows them instead of an empty form.
+  let savedIntro: SundayTableIntro | null = null;
 
   if (sessionId) {
     await tryFulfillCheckoutSessionSafe(sessionId, {
@@ -60,6 +67,10 @@ export default async function BookingConfirmedPage({
         locale as Locale,
       );
       purchase = await getConfirmationPurchase(sessionId, locale as Locale);
+      if (confirmation.summary?.experienceType === "sunday-table") {
+        savedIntro =
+          (await findSundayTableIntroBooking({ checkoutSessionId: sessionId }))?.intro ?? null;
+      }
     } catch (err) {
       console.error("[confirmation page] failed to load booking status", err);
     }
@@ -89,6 +100,7 @@ export default async function BookingConfirmedPage({
         sessionId={sessionId ?? null}
         locale={locale as Locale}
         initialSummary={confirmation.summary}
+        savedIntro={savedIntro}
       />
       <Footer dict={dict.footer} locale={locale} />
     </>

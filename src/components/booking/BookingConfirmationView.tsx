@@ -8,6 +8,7 @@ import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeConten
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
+import type { SundayTableIntro } from "@/lib/sunday-table-intro";
 
 const POLL_MS = 1000;
 const POLL_MAX = 45;
@@ -16,12 +17,15 @@ type Props = {
   sessionId: string | null;
   locale: Locale;
   initialSummary: BookingOutcomeSummary | null;
+  /** "Meet your table" answers already saved for this booking, if any. */
+  savedIntro?: SundayTableIntro | null;
 };
 
 export function BookingConfirmationView({
   sessionId,
   locale,
   initialSummary,
+  savedIntro = null,
 }: Props) {
   const dict = locale === "en" ? bookingOutcomeEn : bookingOutcomeNl;
   const [summary, setSummary] = useState(initialSummary);
@@ -91,6 +95,7 @@ export function BookingConfirmationView({
               auth={{ sessionId }}
               bookingCode={summary.reservationCode}
               seats={summary.seats}
+              initial={savedIntro}
             />
           ) : null
         }

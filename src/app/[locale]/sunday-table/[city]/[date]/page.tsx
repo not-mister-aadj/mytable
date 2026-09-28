@@ -91,13 +91,10 @@ function venueAbout(
   address: string,
   mapsHref: string,
   locale: Locale,
-): { short: string; about: VenueAbout } | null {
+): { about: VenueAbout } | null {
   if (venueName !== "Bar Juni Rotterdam") return null;
   const en = locale === "en";
   return {
-    short: en
-      ? "Juni, Rotterdam's first wine and cheese bar. All you have to do is show up."
-      : "Juni, de eerste wijn- en kaasbar van Rotterdam. Jij hoeft alleen te komen.",
     about: {
       eyebrow: en ? "About the venue" : "Over de locatie",
       name: "Juni",
@@ -274,11 +271,11 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         // Not "a place you didn't know yet": plenty of guests will know it.
         title: en ? "We pick the place" : "Wij kiezen de plek",
-        body:
-          venue?.short ??
-          (en
-            ? `A carefully chosen spot in ${cityName}. All you have to do is show up.`
-            : `Een zorgvuldig gekozen adres in ${cityName}. Jij hoeft alleen te komen.`),
+        // Same text for every Sunday Table; the venue itself is described in
+        // "Over de locatie".
+        body: en
+          ? `A carefully chosen spot in ${cityName}. All you have to do is show up.`
+          : `Een zorgvuldig gekozen adres in ${cityName}. Jij hoeft alleen te komen.`,
         image: venue
           ? heroImages[0]!
           : {

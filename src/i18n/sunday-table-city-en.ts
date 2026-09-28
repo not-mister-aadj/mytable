@@ -56,7 +56,7 @@ export const sundayTableCityEn: SundayTableCityLabels = {
   what: {
     eyebrow: "What is Sunday Table",
     title: "Meet new people without organizing it yourself",
-    body: "Sunday Table is a fixed Sunday afternoon for anyone in {city} who wants to meet new people. Not a dating event, not a networking drink. Just a table with people at your stage of life, somewhere you haven't been yet.",
+    body: "Sunday Table is a fixed Sunday afternoon for anyone in {city} who wants to meet new people. Not a dating event, not a networking drink. Just a table with new people, at a place we pick for you.",
     items: [
       {
         title: "New people",
@@ -90,7 +90,7 @@ export const sundayTableCityEn: SundayTableCityLabels = {
       },
       {
         question: "Why age groups?",
-        answer: "So you're at a table with people at the same stage of life. There are two groups: 20 to 39 and 35+.",
+        answer: "So you're at a table with people your own age. There are two groups: 20 to 39 and 35+.",
       },
       {
         question: "Is this a dating event?",

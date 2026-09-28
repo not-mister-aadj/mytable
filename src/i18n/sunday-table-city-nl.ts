@@ -56,7 +56,7 @@ export const sundayTableCityNl: SundayTableCityLabels = {
   what: {
     eyebrow: "Wat is Sunday Table",
     title: "Nieuwe mensen leren kennen, zonder het zelf te organiseren",
-    body: "Sunday Table is een vaste zondagmiddag voor iedereen in {city} die nieuwe mensen wil ontmoeten. Geen datingavond en geen netwerkborrel. Gewoon aan tafel met mensen in jouw levensfase, op een plek waar je zelf nog niet was.",
+    body: "Sunday Table is een vaste zondagmiddag voor iedereen in {city} die nieuwe mensen wil ontmoeten. Geen datingavond en geen netwerkborrel. Gewoon aan tafel met nieuwe mensen, op een plek die wij voor je uitkiezen.",
     items: [
       {
         title: "Nieuwe mensen",
@@ -90,7 +90,7 @@ export const sundayTableCityNl: SundayTableCityLabels = {
       },
       {
         question: "Waarom leeftijdsgroepen?",
-        answer: "Zo zit je aan tafel met mensen in dezelfde fase van hun leven. We werken met twee groepen: 20 tot 39 jaar en 35+.",
+        answer: "Zo zit je aan tafel met leeftijdsgenoten. We werken met twee groepen: 20 tot 39 jaar en 35+.",
       },
       {
         question: "Is het een datingevent?",

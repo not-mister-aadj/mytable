@@ -168,7 +168,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       "Join 4 to 6 new people on a Sunday afternoon at one of {city}'s best spots. €10 to take a seat, you order what you like.",
   },
   brand: "MyTable",
-  socialProof: "Live in Rotterdam & The Hague. More coming soon.",
+  socialProof: "Live in Rotterdam, The Hague and Utrecht. More coming soon.",
   headline: "A social life you don't have to plan",
   line: "Sunday Table gives you a table of new people every month, at the city's best culinary spots. No dating agenda. Coming solo is normal.",
   cta: "Join the waitlist",
@@ -221,9 +221,9 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   cities: {
     eyebrow: "Cities",
     title: "Open now",
-    body: "We fill these two first. More cities follow.",
+    body: "These are open now. More cities follow.",
     comingSoon: "Coming soon",
-    comingSoonCities: "Utrecht · Amsterdam · Eindhoven · Groningen",
+    comingSoonCities: "Amsterdam · Eindhoven · Groningen",
   },
   final: {
     title: "Ready for your first Sunday Table?",

@@ -60,7 +60,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
     brand: "MyTable",
     earlyAccessBadge: "Wees een van de eersten aan tafel",
     belief: "Smaak is leuker gedeeld.",
-    line: "Maandelijkse tafels in Rotterdam en Den Haag. Wijnproeverijen, wijnwalks, Chef's Tables.",
+    line: "Maandelijkse tafels in Rotterdam, Den Haag en Utrecht. Wijnproeverijen, wijnwalks, Chef's Tables.",
     scrollCta: "Bekijk de formats",
     whyHeadline: "We begonnen dit omdat we het zelf misten.",
     whyParagraphs: [

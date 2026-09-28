@@ -144,6 +144,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Tafel niet beschikbaar." }, { status: 404 });
   }
 
+  // Shown in the agenda but not on sale yet: the date page offers "notify
+  // me" instead of a ticket, and a direct request must not get round that.
+  if (event.extras?.comingSoon) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en"
+            ? "Tickets for this table are not on sale yet."
+            : "Aanmelden voor deze tafel is nog niet open.",
+      },
+      { status: 409 },
+    );
+  }
+
   if (isEventClosedForBooking(event.startsAt)) {
     return NextResponse.json(
       {

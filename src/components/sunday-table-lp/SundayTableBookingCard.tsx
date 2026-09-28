@@ -39,6 +39,8 @@ interface SundayTableBookingCardProps {
   ctaLabelPlural: string;
   soldOutLabel: string;
   guarantees: string[];
+  /** "Wat je krijgt voor €10", shown under the buy button. */
+  included?: { title: string; items: string[]; note: string } | null;
   genericErrorLabel: string;
 }
 
@@ -62,6 +64,7 @@ export function SundayTableBookingCard({
   ctaLabelPlural,
   soldOutLabel,
   guarantees,
+  included = null,
   genericErrorLabel,
 }: SundayTableBookingCardProps) {
   const [email, setEmail] = useState("");
@@ -274,6 +277,24 @@ export function SundayTableBookingCard({
               ? englishComingSoon.cta
               : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
+      )}
+      {englishOnlyWaiting || !included ? null : (
+        <div className="rounded-2xl border border-wine/10 bg-white/60 px-4 py-3.5">
+          <p className="text-sm font-semibold text-wine">{included.title}</p>
+          <ul className="mt-2 space-y-1.5">
+            {included.items.map((item) => (
+              <li key={item} className="flex gap-2 text-sm leading-snug text-wine/75">
+                <span aria-hidden className="shrink-0 text-emerald-700">
+                  ✓
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2.5 border-t border-wine/10 pt-2 text-xs leading-snug text-wine/55">
+            {included.note}
+          </p>
+        </div>
       )}
       {englishOnlyWaiting ? null : (
       <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-wine/50">

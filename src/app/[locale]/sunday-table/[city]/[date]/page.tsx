@@ -332,10 +332,29 @@ export default async function SundayTableEventPage({ params }: Props) {
     ],
   };
 
-  // Kept to one short line so the buy button still fits a laptop screen.
-  const includedLine = en
-    ? "Included: reserved table · introductions beforehand · our menu picks"
-    : "Inbegrepen: gereserveerde tafel · voorstelrondje vooraf · onze aanraders";
+  // Under the buy button, so its length never pushes the button out of view.
+  // Four ticks plus the note, one thing per line.
+  const included = en
+    ? {
+        title: `What you get for €${pricePerSeatEuros}`,
+        items: [
+          "A seat at a table with 4 to 6 new people",
+          "A place we picked for you",
+          "An email two days before with who's joining",
+          "Our tips from the menu",
+        ],
+        note: "Food and drinks you pay for yourself at the venue.",
+      }
+    : {
+        title: `Wat je krijgt voor €${pricePerSeatEuros}`,
+        items: [
+          "Een plek aan tafel met 4 tot 6 nieuwe mensen",
+          "Een zaak die wij voor je uitkozen",
+          "Twee dagen vooraf een mail met wie er aanschuiven",
+          "Onze tips van de kaart",
+        ],
+        note: "Eten en drinken reken je zelf af bij de zaak.",
+      };
 
   const copy =
     locale === "en"
@@ -369,11 +388,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           bookingCtaLabel: "Buy your ticket",
           bookingCtaLabelPlural: "Buy your tickets",
           bookingSoldOutLabel: "This table is fully booked.",
-          bookingGuarantees: [
-            "Free reschedule up to 48h in advance",
-            "Secure payment via iDEAL",
-            "Our own wine and food pairing picks",
-          ],
+          bookingGuarantees: ["Secure payment via iDEAL", "Free rescheduling up to 48 hours before"],
           bookingErrorLabel: "Something went wrong. Please try again.",
           englishComingSoon: {
             title: "English-speaking tables are coming",
@@ -463,11 +478,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           bookingCtaLabel: "Koop je ticket",
           bookingCtaLabelPlural: "Koop je tickets",
           bookingSoldOutLabel: "Deze tafel zit vol.",
-          bookingGuarantees: [
-            "Gratis verplaatsen tot 48u van tevoren",
-            "Veilig betalen via iDEAL",
-            "Onze eigen wijnspijs-aanraders",
-          ],
+          bookingGuarantees: ["Veilig betalen via iDEAL", "Kosteloos verplaatsen tot 48 uur vooraf"],
           bookingErrorLabel: "Er ging iets mis. Probeer het opnieuw.",
           // In English on the Dutch page too: whoever sees this just said
           // they'd rather speak English. Only the button name stays Dutch,
@@ -605,7 +616,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           highlights={highlights}
           daySteps={daySteps}
           venueAbout={venue?.about ?? null}
-          includedLine={includedLine}
+          included={included}
           sectionNavLabels={
             en
               ? {

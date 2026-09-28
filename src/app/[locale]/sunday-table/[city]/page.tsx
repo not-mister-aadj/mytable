@@ -102,9 +102,14 @@ export default async function SundayTableLpCityPage({ params }: Props) {
   const pageUrl = absoluteUrl(sundayTableLpCityPath(locale, city.slug));
   const title = fillCity(labels.meta.titleCity, cityName);
   const description = fillCity(labels.meta.descriptionCity, cityName);
-  // Both current Sunday Table cities sit in the same province; add a real
-  // per-city region lookup here if this list grows beyond Zuid-Holland.
-  const region = locale === "en" ? "South Holland" : "Zuid-Holland";
+  const cityData = getGirlsOnlyCity(city.slug);
+  const region = cityData
+    ? locale === "en"
+      ? cityData.regionEn
+      : cityData.regionNl
+    : locale === "en"
+      ? "South Holland"
+      : "Zuid-Holland";
   const dates = await getUpcomingSundayTableDates(city.name, city.slug, locale);
   const faqItems = cityLabels.faq.items.map((item) => ({
     question: item.question,

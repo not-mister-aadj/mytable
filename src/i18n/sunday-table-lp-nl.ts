@@ -168,7 +168,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       "Schuif op zondagmiddag aan bij 4 tot 6 nieuwe mensen op een van de leukste plekken van {city}. €10 om aan te schuiven, je bestelt zelf.",
   },
   brand: "MyTable",
-  socialProof: "Live in Rotterdam & Den Haag. Meer volgen gauw.",
+  socialProof: "Live in Rotterdam, Den Haag en Utrecht. Meer volgen gauw.",
   headline: "Een sociaal leven zonder dat je het zelf hoeft te plannen",
   line: "Sunday Table geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van de stad. Geen datingagenda. Alleen komen is normaal.",
   cta: "Zet me op de wachtlijst",
@@ -221,9 +221,9 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   cities: {
     eyebrow: "Steden",
     title: "Nu open",
-    body: "We vullen eerst deze twee. Meer steden volgen.",
+    body: "Hier schuif je nu aan. Meer steden volgen.",
     comingSoon: "Binnenkort",
-    comingSoonCities: "Utrecht · Amsterdam · Eindhoven · Groningen",
+    comingSoonCities: "Amsterdam · Eindhoven · Groningen",
   },
   final: {
     title: "Klaar voor je eerste Sunday Table?",

@@ -262,7 +262,7 @@ export default async function SundayTableEventPage({ params }: Props) {
     nextLabel: en ? "Next" : "Volgende",
     items: [
       {
-        title: en ? "You'll know your table" : "Je kent je tafel al",
+        title: en ? "A table full of new faces" : "Een tafel vol nieuwe gezichten",
         body: en
           ? "You join 4 to 6 new people. Two days before, we introduce everyone to each other."
           : "Je schuift aan bij 4 tot 6 nieuwe mensen. Twee dagen van tevoren stellen we iedereen aan elkaar voor.",

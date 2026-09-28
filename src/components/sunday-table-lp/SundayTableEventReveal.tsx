@@ -9,6 +9,14 @@ import {
 } from "@/components/sunday-table-lp/SundayTableBookingCard";
 import { SundayTableNotifyMeForm } from "@/components/sunday-table-lp/SundayTableNotifyMeForm";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
+import {
+  SundayTableDaySteps,
+  SundayTableHighlights,
+  SundayTableVenueAbout,
+  type DateHighlights,
+  type DaySteps,
+  type VenueAbout,
+} from "@/components/sunday-table-lp/SundayTableDateDetails";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { trackGroupInvitationShared } from "@/lib/posthog/analytics";
 
@@ -85,6 +93,14 @@ interface SundayTableEventRevealProps {
   englishComingSoon: EnglishComingSoonLabels;
   /** Google rating of the venue, only for venues we have a verified rating for. */
   googleRating?: { score: string; label: string; href: string } | null;
+  /** Photo cards: why this will be a good Sunday. */
+  highlights: DateHighlights;
+  /** What the afternoon itself looks like, in three steps. */
+  daySteps: DaySteps;
+  /** Story and practical details of the venue; null while it is unknown. */
+  venueAbout?: VenueAbout | null;
+  /** One line under the price: what the ticket includes. */
+  includedLine: string;
 }
 
 export function SundayTableEventReveal({
@@ -143,6 +159,10 @@ export function SundayTableEventReveal({
   cityName,
   englishComingSoon,
   googleRating = null,
+  highlights,
+  daySteps,
+  venueAbout = null,
+  includedLine,
 }: SundayTableEventRevealProps) {
   const [shareCopied, setShareCopied] = useState(false);
   const [slide, setSlide] = useState(0);
@@ -321,6 +341,12 @@ export function SundayTableEventReveal({
             <p className="mt-4 max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg">
               {intro}
             </p>
+
+            {/* On phones these come before the booking form, so people know
+                what it is before they are asked to pay; on desktop the form
+                stays in view on the right while they read. */}
+            <SundayTableHighlights highlights={highlights} />
+            <SundayTableDaySteps daySteps={daySteps} />
           </div>
 
           <div
@@ -361,6 +387,9 @@ export function SundayTableEventReveal({
                   </dd>
                 </div>
               </dl>
+              <p className="mt-3 border-t border-wine/10 pt-2.5 text-xs leading-snug text-wine/65">
+                {includedLine}
+              </p>
 
               {comingSoon ? (
                 <SundayTableNotifyMeForm
@@ -401,6 +430,11 @@ export function SundayTableEventReveal({
           </div>
 
           <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+            {venueAbout && !comingSoon ? (
+              <div className="mb-10 lg:mt-14">
+                <SundayTableVenueAbout venue={venueAbout} />
+              </div>
+            ) : null}
             <div className="border-t border-wine/10 pt-10 lg:mt-14">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {statsEyebrow}

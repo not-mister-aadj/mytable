@@ -324,7 +324,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur. Langer blijven mag.",
       },
       {
-        title: en ? "Head home with new names in your phone" : "Ga naar huis met nieuwe namen in je telefoon",
+        title: en ? "And after? That's up to you." : "En daarna? Dat bepalen jullie.",
         body: en
           ? "Stay a little longer or go for dinner together. Who knows where the afternoon ends."
           : "Blijf nog even hangen of ga samen ergens eten. Wie weet waar de middag eindigt.",

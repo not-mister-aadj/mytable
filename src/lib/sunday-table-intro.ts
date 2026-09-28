@@ -191,8 +191,10 @@ export async function findSundayTableIntroBookingByCode(
   return rows.length === 1 ? toIntroBooking(rows[0]!) : null;
 }
 
-/** Saves the answers. The first save with any answer marks the intro as
- * answered, which also stops the reminder email from going out. */
+/** Saves the answers. Only fields that are filled in are written: a field
+ * left empty keeps whatever was saved before, so opening the form blank and
+ * saving one answer can never wipe the others. The first save with any
+ * answer marks the intro as answered, which also stops the reminder email. */
 export async function saveSundayTableIntro(
   bookingId: string,
   intro: SundayTableIntro,
@@ -201,13 +203,13 @@ export async function saveSundayTableIntro(
   await db
     .update(bookings)
     .set({
-      introConversationStyle: intro.conversationStyle,
-      introAskMeAbout: intro.askMeAbout || null,
-      introFavoriteSpot: intro.favoriteSpot || null,
-      introWine: intro.wine,
-      introIntoNow: intro.intoNow || null,
-      introPlusOneName: intro.plusOneName || null,
-      introShareConsent: intro.shareConsent,
+      ...(intro.conversationStyle ? { introConversationStyle: intro.conversationStyle } : {}),
+      ...(intro.askMeAbout ? { introAskMeAbout: intro.askMeAbout } : {}),
+      ...(intro.favoriteSpot ? { introFavoriteSpot: intro.favoriteSpot } : {}),
+      ...(intro.wine ? { introWine: intro.wine } : {}),
+      ...(intro.intoNow ? { introIntoNow: intro.intoNow } : {}),
+      ...(intro.plusOneName ? { introPlusOneName: intro.plusOneName } : {}),
+      ...(intro.shareConsent ? { introShareConsent: true } : {}),
       ...(hasAnyIntroAnswer(intro) ? { introAnsweredAt: new Date() } : {}),
     })
     .where(eq(bookings.id, bookingId));

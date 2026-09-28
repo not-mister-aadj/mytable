@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import type {
   IntroConversationStyle,
@@ -39,6 +39,7 @@ const copy = {
     bookingEmailPlaceholder: "jij@email.nl",
     bookingNotFound: "We vinden geen boeking met dit nummer en e-mailadres. Check je bevestigingsmail.",
     bookingMissing: "Vul je boekingsnummer en e-mailadres in.",
+    bookingFound: "Boeking gevonden",
     plusOneTitle: "Je komt met z'n tweeën",
     plusOneName: "Voornaam van je +1",
     plusOnePlaceholder: "bijv. Sophie",
@@ -74,6 +75,7 @@ const copy = {
     bookingEmailPlaceholder: "you@email.com",
     bookingNotFound: "We can't find a booking with this number and email. Check your confirmation email.",
     bookingMissing: "Fill in your booking number and email.",
+    bookingFound: "Booking found",
     plusOneTitle: "You're coming as two",
     plusOneName: "First name of your +1",
     plusOnePlaceholder: "e.g. Sophie",
@@ -157,8 +159,59 @@ export function SundayTableIntroForm({
   const [wine, setWine] = useState<IntroWine | null>(initial?.wine ?? null);
   const [intoNow, setIntoNow] = useState(initial?.intoNow ?? "");
   const [plusOneName, setPlusOneName] = useState(initial?.plusOneName ?? "");
+  // Manual version: the booking typed in by the guest, once it is found.
+  const [found, setFound] = useState<{
+    reservationCode: string;
+    city: string;
+    seats: number;
+  } | null>(null);
+  const [lookupMissed, setLookupMissed] = useState(false);
+  const lastLookup = useRef("");
   // Unknown until a manually entered booking is found, so offer it there too.
-  const showPlusOne = seats === 2 || manual;
+  const showPlusOne = seats === 2 || (manual && (found ? found.seats === 2 : true));
+  const cityLabel = found?.city ?? city;
+
+  /** Manual version: once both fields are filled in, find the booking and
+   * show what was saved before. Only fills fields that are still empty, so
+   * nothing the guest already typed on this page is replaced. */
+  async function lookupBooking() {
+    const code = manualCode.trim();
+    const email = manualEmail.trim();
+    if (!manual || !code || !email.includes("@")) return;
+    const key = `${code.toLowerCase()}|${email.toLowerCase()}`;
+    if (key === lastLookup.current) return;
+    lastLookup.current = key;
+    try {
+      const res = await fetch("/api/sunday-table/intro/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationCode: code, email }),
+      });
+      if (!res.ok) {
+        setFound(null);
+        setLookupMissed(res.status === 404);
+        return;
+      }
+      const data = (await res.json()) as {
+        reservationCode: string;
+        city: string;
+        seats: number;
+        intro: SundayTableIntro;
+      };
+      setFound({ reservationCode: data.reservationCode, city: data.city, seats: data.seats });
+      setLookupMissed(false);
+      setError(null);
+      const saved = data.intro;
+      setConversationStyle((v) => v ?? saved.conversationStyle);
+      setWine((v) => v ?? saved.wine);
+      setAskMeAbout((v) => v || saved.askMeAbout);
+      setFavoriteSpot((v) => v || saved.favoriteSpot);
+      setIntoNow((v) => v || saved.intoNow);
+      setPlusOneName((v) => v || saved.plusOneName);
+    } catch {
+      // Not critical: saving still checks the number and email itself.
+    }
+  }
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -269,6 +322,7 @@ export function SundayTableIntroForm({
                     autoCapitalize="characters"
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
+                    onBlur={lookupBooking}
                     placeholder="MT-5B5230E1"
                     className={inputClass}
                   />
@@ -284,10 +338,21 @@ export function SundayTableIntroForm({
                     autoComplete="email"
                     value={manualEmail}
                     onChange={(e) => setManualEmail(e.target.value)}
+                    onBlur={lookupBooking}
                     placeholder={t.bookingEmailPlaceholder}
                     className={inputClass}
                   />
                 </label>
+                {found ? (
+                  <p className="text-sm text-wine sm:col-span-2">
+                    <span aria-hidden className="text-emerald-700">✓</span> {t.bookingFound}:{" "}
+                    <span className="font-mono font-semibold tracking-wide">
+                      {found.reservationCode}
+                    </span>
+                  </p>
+                ) : lookupMissed ? (
+                  <p className="text-sm text-red-800 sm:col-span-2">{t.bookingNotFound}</p>
+                ) : null}
               </div>
             ) : bookingCode ? (
               <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/70 px-3.5 py-1.5 text-sm text-wine">
@@ -328,7 +393,7 @@ export function SundayTableIntroForm({
                 />
               </label>
               <label className="block text-sm font-medium text-wine">
-                {t.favoriteSpot.replace("{city}", city)}
+                {t.favoriteSpot.replace("{city}", cityLabel)}
                 <input
                   type="text"
                   maxLength={140}
@@ -366,7 +431,7 @@ export function SundayTableIntroForm({
                     className={inputClass}
                   />
                   <span className="mt-1 block text-xs font-normal text-wine/50">
-                    {manual ? t.plusOneManualHint : t.plusOneHint}
+                    {manual && !found ? t.plusOneManualHint : t.plusOneHint}
                   </span>
                 </label>
               </div>

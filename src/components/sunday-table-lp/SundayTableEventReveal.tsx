@@ -9,6 +9,7 @@ import {
 } from "@/components/sunday-table-lp/SundayTableBookingCard";
 import { SundayTableNotifyMeForm } from "@/components/sunday-table-lp/SundayTableNotifyMeForm";
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
+import { SundayTableSectionNav } from "@/components/sunday-table-lp/SundayTableSectionNav";
 import {
   SundayTableDaySteps,
   SundayTableHighlights,
@@ -101,6 +102,17 @@ interface SundayTableEventRevealProps {
   venueAbout?: VenueAbout | null;
   /** One line under the price: what the ticket includes. */
   includedLine: string;
+  /** Labels for the sticky tab bar. */
+  sectionNavLabels: {
+    overview: string;
+    highlights: string;
+    howItWorks: string;
+    venue: string;
+    reviews: string;
+    faq: string;
+    share: string;
+    copied: string;
+  };
 }
 
 export function SundayTableEventReveal({
@@ -163,6 +175,7 @@ export function SundayTableEventReveal({
   daySteps,
   venueAbout = null,
   includedLine,
+  sectionNavLabels,
 }: SundayTableEventRevealProps) {
   const [shareCopied, setShareCopied] = useState(false);
   const [slide, setSlide] = useState(0);
@@ -224,6 +237,22 @@ export function SundayTableEventReveal({
   return (
     <>
       <section className="bg-cream pb-28 pt-24 sm:pt-32 lg:pb-20">
+        <SundayTableSectionNav
+          locale={locale}
+          shareUrl={shareUrl}
+          shareLabel={sectionNavLabels.share}
+          copiedLabel={sectionNavLabels.copied}
+          items={[
+            { id: "overzicht", label: sectionNavLabels.overview },
+            { id: "hoogtepunten", label: sectionNavLabels.highlights },
+            { id: "zo-werkt-het", label: sectionNavLabels.howItWorks },
+            ...(venueAbout && !comingSoon
+              ? [{ id: "locatie", label: sectionNavLabels.venue }]
+              : []),
+            { id: "ervaringen", label: sectionNavLabels.reviews },
+            { id: "vragen", label: sectionNavLabels.faq },
+          ]}
+        />
         {/* One grid for the whole page: on desktop the booking panel has its
             own column and stays in view while the rest scrolls past; on
             mobile it falls in right after the intro. */}
@@ -435,7 +464,7 @@ export function SundayTableEventReveal({
                 <SundayTableVenueAbout venue={venueAbout} />
               </div>
             ) : null}
-            <div className="border-t border-wine/10 pt-10 lg:mt-14">
+            <div id="ervaringen" className="border-t border-wine/10 pt-10 lg:mt-14">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {statsEyebrow}
               </p>
@@ -466,7 +495,7 @@ export function SundayTableEventReveal({
               />
             </div>
 
-            <div className="mt-6 border-t border-wine/10 pt-10">
+            <div id="vragen" className="mt-6 border-t border-wine/10 pt-10">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {faqEyebrow}
               </p>

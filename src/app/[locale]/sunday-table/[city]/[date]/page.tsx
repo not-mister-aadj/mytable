@@ -609,6 +609,29 @@ export default async function SundayTableEventPage({ params }: Props) {
           daySteps={daySteps}
           venueAbout={venue?.about ?? null}
           includedLine={includedLine}
+          sectionNavLabels={
+            en
+              ? {
+                  overview: "Overview",
+                  highlights: "Highlights",
+                  howItWorks: "How it works",
+                  venue: "Venue",
+                  reviews: "Reviews",
+                  faq: "FAQ",
+                  share: "Share",
+                  copied: "Link copied",
+                }
+              : {
+                  overview: "Overzicht",
+                  highlights: "Hoogtepunten",
+                  howItWorks: "Zo werkt het",
+                  venue: "Locatie",
+                  reviews: "Ervaringen",
+                  faq: "Vragen",
+                  share: "Delen",
+                  copied: "Link gekopieerd",
+                }
+          }
         />
       </main>
       <Footer dict={dict.footer} locale={locale} />

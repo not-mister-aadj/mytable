@@ -51,7 +51,7 @@ export function SundayTableHighlights({ highlights }: { highlights: DateHighligh
     "flex h-9 w-9 items-center justify-center rounded-full border border-wine/15 bg-white text-wine transition hover:border-wine/40";
 
   return (
-    <section className="mt-12">
+    <section id="hoogtepunten" className="mt-12">
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <p className={sectionEyebrow}>{highlights.eyebrow}</p>
@@ -150,7 +150,7 @@ function StepIcon({ index }: { index: number }) {
  * to heading home. Booking is left out; that part is obvious. */
 export function SundayTableDaySteps({ daySteps }: { daySteps: DaySteps }) {
   return (
-    <section className="mt-12">
+    <section id="zo-werkt-het" className="mt-12">
       <p className={sectionEyebrow}>{daySteps.eyebrow}</p>
       <h2 className={sectionTitle}>{daySteps.title}</h2>
       <ol className="mt-6 space-y-6">
@@ -176,7 +176,7 @@ export function SundayTableDaySteps({ daySteps }: { daySteps: DaySteps }) {
  * details, so nobody has to look it up before booking. */
 export function SundayTableVenueAbout({ venue }: { venue: VenueAbout }) {
   return (
-    <section className="rounded-[1.5rem] border border-wine/10 bg-white/70 p-6 shadow-[0_20px_50px_rgba(43,13,18,0.05)] sm:p-8">
+    <section id="locatie" className="rounded-[1.5rem] border border-wine/10 bg-white/70 p-6 shadow-[0_20px_50px_rgba(43,13,18,0.05)] sm:p-8">
       <p className={sectionEyebrow}>{venue.eyebrow}</p>
       <h2 className={sectionTitle}>{venue.name}</h2>
       <p className="mt-4 max-w-xl text-base leading-relaxed text-wine/70">{venue.body}</p>

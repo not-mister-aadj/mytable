@@ -351,6 +351,9 @@ export function BrandLandingView({
         locale={locale}
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
+        // Sunday Table is what the ads sell; pre-selecting it saves the
+        // visitor a choice. They can still pick other formats or untick it.
+        presetInterest="sunday_table"
       />
     </>
   );

@@ -262,10 +262,10 @@ export default async function SundayTableEventPage({ params }: Props) {
     nextLabel: en ? "Next" : "Volgende",
     items: [
       {
-        title: en ? "New people, without the awkward start" : "Nieuwe mensen, zonder ongemakkelijk begin",
+        title: en ? "You'll know your table" : "Je kent je tafel al",
         body: en
-          ? "You join 4 to 6 people at your stage of life. Two days before, we introduce everyone to each other."
-          : "Je schuift aan bij 4 tot 6 mensen in jouw levensfase. Twee dagen van tevoren stellen we iedereen aan elkaar voor.",
+          ? "You join 4 to 6 new people. Two days before, we introduce everyone to each other."
+          : "Je schuift aan bij 4 tot 6 nieuwe mensen. Twee dagen van tevoren stellen we iedereen aan elkaar voor.",
         image: {
           src: "/girls-only/wine-tasting-conversation.jpg",
           alt: en ? "Guests in conversation at a MyTable table" : "Gasten in gesprek aan een MyTable-tafel",
@@ -297,7 +297,7 @@ export default async function SundayTableEventPage({ params }: Props) {
         },
       },
       {
-        title: en ? "Coming alone is perfectly normal" : "Alleen komen is de normaalste zaak",
+        title: en ? "Coming alone is normal" : "Alleen komen is normaal",
         body: en
           ? "Many guests come solo. You're in good company."
           : "Veel gasten komen solo. Je bent dus in goed gezelschap.",

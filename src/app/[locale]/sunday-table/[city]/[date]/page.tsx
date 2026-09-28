@@ -91,13 +91,10 @@ function venueAbout(
   address: string,
   mapsHref: string,
   locale: Locale,
-): { short: string; about: VenueAbout } | null {
+): { about: VenueAbout } | null {
   if (venueName !== "Bar Juni Rotterdam") return null;
   const en = locale === "en";
   return {
-    short: en
-      ? "Juni, Rotterdam's first wine and cheese bar. All you have to do is show up."
-      : "Juni, de eerste wijn- en kaasbar van Rotterdam. Jij hoeft alleen te komen.",
     about: {
       eyebrow: en ? "About the venue" : "Over de locatie",
       name: "Juni",
@@ -262,7 +259,7 @@ export default async function SundayTableEventPage({ params }: Props) {
     nextLabel: en ? "Next" : "Volgende",
     items: [
       {
-        title: en ? "You'll know your table" : "Je kent je tafel al",
+        title: en ? "A table full of new faces" : "Een tafel vol nieuwe gezichten",
         body: en
           ? "You join 4 to 6 new people. Two days before, we introduce everyone to each other."
           : "Je schuift aan bij 4 tot 6 nieuwe mensen. Twee dagen van tevoren stellen we iedereen aan elkaar voor.",
@@ -274,11 +271,11 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         // Not "a place you didn't know yet": plenty of guests will know it.
         title: en ? "We pick the place" : "Wij kiezen de plek",
-        body:
-          venue?.short ??
-          (en
-            ? `A carefully chosen spot in ${cityName}. All you have to do is show up.`
-            : `Een zorgvuldig gekozen adres in ${cityName}. Jij hoeft alleen te komen.`),
+        // Same text for every Sunday Table; the venue itself is described in
+        // "Over de locatie".
+        body: en
+          ? `A carefully chosen spot in ${cityName}. All you have to do is show up.`
+          : `Een zorgvuldig gekozen adres in ${cityName}. Jij hoeft alleen te komen.`,
         image: venue
           ? heroImages[0]!
           : {
@@ -327,7 +324,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur. Langer blijven mag.",
       },
       {
-        title: en ? "Head home with new names in your phone" : "Ga naar huis met nieuwe namen in je telefoon",
+        title: en ? "And after? That's up to you." : "En daarna? Dat bepalen jullie.",
         body: en
           ? "Stay a little longer or go for dinner together. Who knows where the afternoon ends."
           : "Blijf nog even hangen of ga samen ergens eten. Wie weet waar de middag eindigt.",

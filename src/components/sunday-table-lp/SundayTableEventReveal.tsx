@@ -100,8 +100,8 @@ interface SundayTableEventRevealProps {
   daySteps: DaySteps;
   /** Story and practical details of the venue; null while it is unknown. */
   venueAbout?: VenueAbout | null;
-  /** One line under the price: what the ticket includes. */
-  includedLine: string;
+  /** "Wat je krijgt voor €10", under the buy button. */
+  included: { title: string; items: string[]; note: string };
   /** Labels for the sticky tab bar. */
   sectionNavLabels: {
     overview: string;
@@ -174,7 +174,7 @@ export function SundayTableEventReveal({
   highlights,
   daySteps,
   venueAbout = null,
-  includedLine,
+  included,
   sectionNavLabels,
 }: SundayTableEventRevealProps) {
   const [shareCopied, setShareCopied] = useState(false);
@@ -416,9 +416,6 @@ export function SundayTableEventReveal({
                   </dd>
                 </div>
               </dl>
-              <p className="mt-3 border-t border-wine/10 pt-2.5 text-xs leading-snug text-wine/65">
-                {includedLine}
-              </p>
 
               {comingSoon ? (
                 <SundayTableNotifyMeForm
@@ -452,6 +449,7 @@ export function SundayTableEventReveal({
                   ctaLabelPlural={bookingCtaLabelPlural}
                   soldOutLabel={bookingSoldOutLabel}
                   guarantees={bookingGuarantees}
+                  included={included}
                   genericErrorLabel={bookingErrorLabel}
                 />
               )}

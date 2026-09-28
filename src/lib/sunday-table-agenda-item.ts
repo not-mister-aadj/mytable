@@ -13,12 +13,16 @@ import {
 } from "@/lib/sunday-wine-table";
 
 /** Manually curated per-venue card photo until Sunday Table locations get
- * their own image field. Falls back to a wine-themed photo for new venues. */
-export function agendaImageForVenue(venueName: string): string {
+ * their own image field. Other venues (including "Locatie volgt") use the
+ * photo set on the event in admin, then a wine-themed default. */
+export function agendaImageForVenue(
+  venueName: string,
+  eventImageUrl?: string | null,
+): string {
   if (venueName === "Bar Juni Rotterdam") {
     return "https://lh3.googleusercontent.com/grass-cs/ACvplmPKHPMZLbYmXXtC7a58PZZXLNLyYVbh6MRSFgUerRrfHIuVrFPWpbL6PJEEE7g98cQ-HZDirRJoY7D7WXBNHAZMPMDr3matKwDmgYtgoXZmnsoswO2hHtZNvhOCgJOql5VWJkywm4G80yYn=w1600-h1200-p-k-no";
   }
-  return images.wineGlasses;
+  return eventImageUrl?.trim() || images.wineGlasses;
 }
 
 /** The ticketed event's own name ("Sunday Table · 20-39") and live
@@ -36,6 +40,7 @@ async function ticketedEventInfo(
   spotsSold: number;
   priceCents: number;
   comingSoon: boolean;
+  imageUrl: string | null;
 } | null> {
   if (!isDbConfigured()) return null;
   const db = getDb();
@@ -47,6 +52,7 @@ async function ticketedEventInfo(
       spotsSold: events.spotsSold,
       priceCents: events.priceCents,
       extras: events.extras,
+      imageUrl: events.imageUrl,
     })
     .from(events)
     .where(
@@ -65,6 +71,7 @@ async function ticketedEventInfo(
     spotsSold: row.spotsSold,
     priceCents: row.priceCents,
     comingSoon: Boolean(row.extras?.comingSoon),
+    imageUrl: row.imageUrl,
   };
 }
 
@@ -103,7 +110,7 @@ export async function buildSundayTableAgendaItem(
         : "available",
     capacity: ticketed?.capacity,
     spotsSold: ticketed?.spotsSold,
-    image: agendaImageForVenue(location.venueName),
+    image: agendaImageForVenue(location.venueName, ticketed?.imageUrl),
     mood: "tastings",
     femaleOnly: false,
     externalHref: sundayTableLocationPath(locale, citySlug, location.tableDate),

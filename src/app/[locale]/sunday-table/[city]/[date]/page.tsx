@@ -47,8 +47,13 @@ interface HeroImage {
 }
 
 /** Manually curated per-venue photos until Sunday Table locations get their
- * own image field. Falls back to a neutral stock photo for new venues. */
-function buildVenueHeroImages(venueName: string, locale: Locale): HeroImage[] {
+ * own image field. Other venues (including "Locatie volgt") show the photo
+ * set on the event in admin, then a neutral stock photo. */
+function buildVenueHeroImages(
+  venueName: string,
+  eventImageUrl: string | null,
+  locale: Locale,
+): HeroImage[] {
   if (venueName === "Bar Juni Rotterdam") {
     return [
       {
@@ -72,6 +77,14 @@ function buildVenueHeroImages(venueName: string, locale: Locale): HeroImage[] {
           locale === "en"
             ? "A full table raises a toast during a MyTable wine tasting"
             : "Een volle tafel proost tijdens een MyTable wijnproeverij",
+      },
+    ];
+  }
+  if (eventImageUrl?.trim()) {
+    return [
+      {
+        src: eventImageUrl.trim(),
+        alt: locale === "en" ? "Wine at the table" : "Wijn aan tafel",
       },
     ];
   }
@@ -240,7 +253,11 @@ export default async function SundayTableEventPage({ params }: Props) {
     dateLabel.slice(1);
   const timeLabel = formatSundayTableTime(locale);
   const pageUrl = absoluteUrl(sundayTableLocationPath(locale, city.slug, date));
-  const heroImages = buildVenueHeroImages(location.venueName, locale);
+  const heroImages = buildVenueHeroImages(
+    location.venueName,
+    ticketEvent.imageUrl,
+    locale,
+  );
   const venue = venueAbout(
     location.venueName,
     location.address,

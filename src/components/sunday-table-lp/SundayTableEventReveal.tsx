@@ -239,6 +239,7 @@ export function SundayTableEventReveal({
       <section className="bg-cream pb-28 pt-24 sm:pt-32 lg:pb-20">
         <SundayTableSectionNav
           locale={locale}
+          idleSectionId="boeken"
           shareUrl={shareUrl}
           shareLabel={sectionNavLabels.share}
           copiedLabel={sectionNavLabels.copied}

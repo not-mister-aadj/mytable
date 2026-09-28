@@ -96,8 +96,8 @@ function venueAbout(
   const en = locale === "en";
   return {
     short: en
-      ? "Rotterdam's first wine and cheese bar, hand-picked by us. All you have to do is show up."
-      : "De eerste wijn- en kaasbar van Rotterdam, door ons uitgekozen. Jij hoeft alleen te komen.",
+      ? "Juni, Rotterdam's first wine and cheese bar. All you have to do is show up."
+      : "Juni, de eerste wijn- en kaasbar van Rotterdam. Jij hoeft alleen te komen.",
     about: {
       eyebrow: en ? "About the venue" : "Over de locatie",
       name: "Juni",
@@ -258,6 +258,8 @@ export default async function SundayTableEventPage({ params }: Props) {
   const highlights: DateHighlights = {
     eyebrow: en ? "Highlights" : "Hoogtepunten",
     title: en ? "Why this will be a Sunday to remember" : "Waarom dit een zondag wordt om te onthouden",
+    prevLabel: en ? "Previous" : "Vorige",
+    nextLabel: en ? "Next" : "Volgende",
     items: [
       {
         title: en ? "New people, without the awkward start" : "Nieuwe mensen, zonder ongemakkelijk begin",
@@ -270,7 +272,8 @@ export default async function SundayTableEventPage({ params }: Props) {
         },
       },
       {
-        title: en ? "A place you didn't know yet" : "Een adres dat je nog niet kende",
+        // Not "a place you didn't know yet": plenty of guests will know it.
+        title: en ? "We pick the place" : "Wij kiezen de plek",
         body:
           venue?.short ??
           (en

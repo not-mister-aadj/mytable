@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useRef } from "react";
 
 export type DateHighlight = {
   title: string;
@@ -10,6 +13,9 @@ export type DateHighlights = {
   eyebrow: string;
   title: string;
   items: DateHighlight[];
+  /** Labels for the desktop scroll buttons, for screen readers. */
+  prevLabel: string;
+  nextLabel: string;
 };
 
 export type DaySteps = {
@@ -30,28 +36,69 @@ const sectionTitle =
   "mt-3 font-serif text-2xl font-medium tracking-tight text-wine text-balance sm:text-3xl";
 
 /** "Waarom dit een zondag wordt om te onthouden": photo cards with one
- * benefit each. Swipeable on phones, a 2 x 2 grid from tablet up. */
+ * benefit each, in a single row that scrolls sideways so the block stays
+ * compact. Swipe on phones; arrow buttons on bigger screens. */
 export function SundayTableHighlights({ highlights }: { highlights: DateHighlights }) {
+  const rowRef = useRef<HTMLUListElement>(null);
+
+  function scrollRow(direction: 1 | -1) {
+    const row = rowRef.current;
+    if (!row) return;
+    row.scrollBy({ left: direction * row.clientWidth * 0.8, behavior: "smooth" });
+  }
+
+  const arrowClass =
+    "flex h-9 w-9 items-center justify-center rounded-full border border-wine/15 bg-white text-wine transition hover:border-wine/40";
+
   return (
     <section className="mt-12">
-      <p className={sectionEyebrow}>{highlights.eyebrow}</p>
-      <h2 className={sectionTitle}>{highlights.title}</h2>
-      <ul className="-mx-5 mt-6 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className={sectionEyebrow}>{highlights.eyebrow}</p>
+          <h2 className={sectionTitle}>{highlights.title}</h2>
+        </div>
+        <div className="hidden shrink-0 gap-2 sm:flex">
+          <button
+            type="button"
+            aria-label={highlights.prevLabel}
+            onClick={() => scrollRow(-1)}
+            className={arrowClass}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label={highlights.nextLabel}
+            onClick={() => scrollRow(1)}
+            className={arrowClass}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <ul
+        ref={rowRef}
+        className="-mx-5 mt-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+      >
         {highlights.items.map((item) => (
-          <li key={item.title} className="w-[78%] shrink-0 snap-start sm:w-auto">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-beige">
+          <li key={item.title} className="w-[62%] shrink-0 snap-start sm:w-[220px]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-beige">
               <Image
                 src={item.image.src}
                 alt={item.image.alt}
                 fill
-                sizes="(max-width: 640px) 78vw, (max-width: 1024px) 45vw, 320px"
+                sizes="(max-width: 640px) 62vw, 220px"
                 className="object-cover"
               />
             </div>
-            <h3 className="mt-3 font-serif text-lg font-medium leading-snug tracking-tight text-wine">
+            <h3 className="mt-2.5 font-serif text-base font-medium leading-snug tracking-tight text-wine">
               {item.title}
             </h3>
-            <p className="mt-1 text-sm leading-relaxed text-wine/65">{item.body}</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-wine/65">{item.body}</p>
           </li>
         ))}
       </ul>

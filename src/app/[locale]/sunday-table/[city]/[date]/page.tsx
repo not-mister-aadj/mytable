@@ -267,7 +267,6 @@ export default async function SundayTableEventPage({ params }: Props) {
     locale,
   );
   const en = locale === "en";
-  const cityName = en && city.name === "Den Haag" ? "The Hague" : city.name;
 
   const highlights: DateHighlights = {
     eyebrow: en ? "Highlights" : "Hoogtepunten",
@@ -277,28 +276,16 @@ export default async function SundayTableEventPage({ params }: Props) {
     items: [
       {
         title: en ? "A table full of new faces" : "Een tafel vol nieuwe gezichten",
+        // "4 to 6 people" is already in the intro and in "Wat je krijgt", and
+        // the place in the title and "Over de locatie", so each highlight
+        // adds something the rest of the page does not say.
         body: en
-          ? "You join 4 to 6 new people. Two days before, we introduce everyone to each other."
-          : "Je schuift aan bij 4 tot 6 nieuwe mensen. Twee dagen van tevoren stellen we iedereen aan elkaar voor.",
+          ? "Two days before, we introduce everyone to each other. So you already know a few names when you walk in."
+          : "Twee dagen vooraf stellen we iedereen aan elkaar voor. Zo ken je al een paar namen voor je binnenloopt.",
         image: {
           src: "/girls-only/wine-tasting-conversation.jpg",
           alt: en ? "Guests in conversation at a MyTable table" : "Gasten in gesprek aan een MyTable-tafel",
         },
-      },
-      {
-        // Not "a place you didn't know yet": plenty of guests will know it.
-        title: en ? "We pick the place" : "Wij kiezen de plek",
-        // Same text for every Sunday Table; the venue itself is described in
-        // "Over de locatie".
-        body: en
-          ? `A carefully chosen spot in ${cityName}. All you have to do is show up.`
-          : `Een zorgvuldig gekozen adres in ${cityName}. Jij hoeft alleen te komen.`,
-        image: venue
-          ? heroImages[0]!
-          : {
-              src: "/girls-only/table-group.jpg",
-              alt: en ? "A full MyTable table" : "Een volle MyTable-tafel",
-            },
       },
       {
         title: en ? "Wine without the snobbery" : "Wijn zonder snobisme",
@@ -331,8 +318,8 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         title: en ? "Walk in, your table is ready" : "Kom binnen, je tafel staat klaar",
         body: en
-          ? `At 2:00 PM a table is reserved for you${venueLabel ? ` at ${venueLabel}` : ""}. You already know who's joining, so the ice is half broken.`
-          : `Om 14:00 staat er${venueLabel ? ` bij ${venueLabel}` : ""} een tafel voor je gereserveerd. Je weet al wie er aanschuiven, dus het ijs is half gebroken.`,
+          ? `At 2:00 PM a table is reserved for you${venueLabel ? ` at ${venueLabel}` : ""}. Walk in and take a seat.`
+          : `Om 14:00 staat er${venueLabel ? ` bij ${venueLabel}` : ""} een tafel voor jullie gereserveerd. Loop binnen en schuif aan.`,
       },
       {
         title: en ? "Taste, talk and discover" : "Proeven, praten en ontdekken",

@@ -86,7 +86,11 @@ export const nl: Dictionary = {
     browse: {
       cityLabel: "Stad",
       cityAll: "Alle steden",
+      ageLabel: "Leeftijd",
+      ageAll: "Alle leeftijden",
+      ageOption: "{bracket} jaar",
       results: "{count} resultaten",
+      resultsOne: "1 resultaat",
       clear: "Filters wissen",
       cityMissingNote: "Jouw stad er nog niet bij, of wil je updates over nieuwe tafels?",
       cityMissingCta: "Zet je op de wachtlijst",

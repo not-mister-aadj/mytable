@@ -7,7 +7,14 @@ import { sundayTableLpPath } from "@/i18n/config";
 import type { WaitlistInterestId } from "@/i18n/waitlist-page.types";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { trackAgendaViewed } from "@/lib/posthog/analytics";
-import { filterAgendaByCity, sortAgendaTimeline } from "@/lib/agenda";
+import {
+  filterAgendaByAge,
+  filterAgendaByCity,
+  listAgendaAgeBrackets,
+  resolveAgendaAgeParam,
+  resolveAgendaCityParam,
+  sortAgendaTimeline,
+} from "@/lib/agenda";
 import { enrichExperience } from "@/lib/experience-detail";
 import { interestsToMoods } from "@/lib/member-onboarding";
 import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
@@ -51,10 +58,26 @@ export function AgendaPageContent({
     () => interestsToMoods(parseInterestParam(searchParams.get("interest"))),
     [searchParams],
   );
-  const cityFromQuery = searchParams.get("city")?.trim() ?? "";
+  // Links (e.g. from ads) can open the agenda already filtered:
+  // ?stad=utrecht&leeftijd=35. "city" and "age" work too.
+  const rawCityParam =
+    searchParams.get("city") ?? searchParams.get("stad") ?? "";
+  const rawAgeParam =
+    searchParams.get("leeftijd") ?? searchParams.get("age") ?? "";
   const fromSundayTable = searchParams.get("from") === "sunday-table";
   const affiliateFromQuery = searchParams.get("aff")?.trim() ?? "";
+  const cities = useMemo(
+    () => [...new Set(agendaItems.map((item) => item.city))].sort(),
+    [agendaItems],
+  );
+  const ageBrackets = useMemo(
+    () => listAgendaAgeBrackets(agendaItems),
+    [agendaItems],
+  );
+  const cityFromQuery = resolveAgendaCityParam(rawCityParam, cities);
+  const ageFromQuery = resolveAgendaAgeParam(rawAgeParam, ageBrackets);
   const [selectedCity, setSelectedCity] = useState(cityFromQuery);
+  const [selectedAge, setSelectedAge] = useState(ageFromQuery);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const waitlistLabels = getSundayTableLpLabels(locale).waitlist;
   const altWaitlistLabels = getSundayTableLpLabels(
@@ -64,6 +87,13 @@ export function AgendaPageContent({
   useEffect(() => {
     if (cityFromQuery) setSelectedCity(cityFromQuery);
   }, [cityFromQuery]);
+
+  // A new ?leeftijd= in the URL (client-side navigation) selects that age.
+  const [ageParamSeen, setAgeParamSeen] = useState(ageFromQuery);
+  if (ageFromQuery !== ageParamSeen) {
+    setAgeParamSeen(ageFromQuery);
+    if (ageFromQuery) setSelectedAge(ageFromQuery);
+  }
 
   const items = useMemo(() => {
     const sorted = sortAgendaTimeline(
@@ -78,17 +108,12 @@ export function AgendaPageContent({
     });
   }, [agendaItems, locale, preferredMoods]);
 
-  const cities = useMemo(
-    () => [...new Set(items.map((item) => item.city))].sort(),
-    [items],
-  );
-
   const filteredItems = useMemo(
-    () => filterAgendaByCity(items, selectedCity),
-    [items, selectedCity],
+    () => filterAgendaByAge(filterAgendaByCity(items, selectedCity), selectedAge),
+    [items, selectedCity, selectedAge],
   );
 
-  const hasActiveFilters = selectedCity !== "";
+  const hasActiveFilters = selectedCity !== "" || selectedAge !== "";
 
   useEffect(() => {
     trackAgendaViewed({
@@ -100,10 +125,11 @@ export function AgendaPageContent({
   }, []);
 
   function clearAllFilters() {
-    setSelectedCity(cityFromQuery);
+    setSelectedCity("");
+    setSelectedAge("");
   }
 
-  const filterKey = selectedCity;
+  const filterKey = `${selectedCity}|${selectedAge}`;
   const experienceQuery =
     fromSundayTable || affiliateFromQuery
       ? [
@@ -137,13 +163,16 @@ export function AgendaPageContent({
       ) : null}
       <section
         id="agenda-browse"
-        className={`scroll-mt-24 sticky ${stickyTopClass} z-30 -mx-5 border-b border-wine/10 bg-cream/95 px-5 py-5 backdrop-blur-md sm:static sm:mx-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none`}
+        className={`scroll-mt-24 sticky ${stickyTopClass} z-30 -mx-5 border-b border-wine/10 bg-cream/95 px-5 py-3.5 backdrop-blur-md sm:static sm:mx-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none`}
       >
         <AgendaBrowseBar
           browse={dict.browse}
           cities={cities}
           selectedCity={selectedCity}
           onCityChange={setSelectedCity}
+          ageBrackets={ageBrackets}
+          selectedAge={selectedAge}
+          onAgeChange={setSelectedAge}
           resultCount={filteredItems.length}
           onClear={clearAllFilters}
           hasActiveFilters={hasActiveFilters}

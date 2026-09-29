@@ -86,7 +86,11 @@ export const en: Dictionary = {
     browse: {
       cityLabel: "City",
       cityAll: "All cities",
+      ageLabel: "Age",
+      ageAll: "All ages",
+      ageOption: "{bracket} yrs",
       results: "{count} results",
+      resultsOne: "1 result",
       clear: "Clear filters",
       cityMissingNote: "Don't see your city yet, or just want updates on new tables?",
       cityMissingCta: "Join the waitlist",

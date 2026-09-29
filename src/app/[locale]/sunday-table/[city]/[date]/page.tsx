@@ -270,7 +270,7 @@ export default async function SundayTableEventPage({ params }: Props) {
 
   const highlights: DateHighlights = {
     eyebrow: en ? "Highlights" : "Hoogtepunten",
-    title: en ? "Why this will be a Sunday to remember" : "Waarom dit een zondag wordt om te onthouden",
+    title: en ? "A Sunday you won't forget" : "Een zondag die je niet snel vergeet",
     prevLabel: en ? "Previous" : "Vorige",
     nextLabel: en ? "Next" : "Volgende",
     items: [

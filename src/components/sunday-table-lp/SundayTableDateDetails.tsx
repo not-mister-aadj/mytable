@@ -35,7 +35,7 @@ const sectionEyebrow = "text-[11px] font-semibold uppercase tracking-[0.28em] te
 const sectionTitle =
   "mt-3 font-serif text-2xl font-medium tracking-tight text-wine text-balance sm:text-3xl";
 
-/** "Waarom dit een zondag wordt om te onthouden": photo cards with one
+/** "Een zondag die je niet snel vergeet": photo cards with one
  * benefit each, in a single row that scrolls sideways so the block stays
  * compact. Swipe on phones; arrow buttons on bigger screens. */
 export function SundayTableHighlights({ highlights }: { highlights: DateHighlights }) {

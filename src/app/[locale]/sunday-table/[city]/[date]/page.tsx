@@ -324,8 +324,8 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         title: en ? "Taste, talk and discover" : "Proeven, praten en ontdekken",
         body: en
-          ? "Order whatever you fancy from the menu and take your time. Plan for two to three hours. Staying longer is fine."
-          : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur. Langer blijven mag.",
+          ? "Order whatever you fancy from the menu and take your time. Plan for two to three hours."
+          : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur.",
       },
       {
         title: en ? "And after? That's up to you." : "En daarna? Dat bepalen jullie.",

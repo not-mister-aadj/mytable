@@ -270,7 +270,7 @@ export default async function SundayTableEventPage({ params }: Props) {
 
   const highlights: DateHighlights = {
     eyebrow: en ? "Highlights" : "Hoogtepunten",
-    title: en ? "Why this will be a Sunday to remember" : "Waarom dit een zondag wordt om te onthouden",
+    title: en ? "A Sunday you won't forget" : "Een zondag die je niet snel vergeet",
     prevLabel: en ? "Previous" : "Vorige",
     nextLabel: en ? "Next" : "Volgende",
     items: [
@@ -324,8 +324,8 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         title: en ? "Taste, talk and discover" : "Proeven, praten en ontdekken",
         body: en
-          ? "Order whatever you fancy from the menu and take your time. Plan for two to three hours. Staying longer is fine."
-          : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur. Langer blijven mag.",
+          ? "Order whatever you fancy from the menu and take your time. Plan for two to three hours."
+          : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur.",
       },
       {
         title: en ? "And after? That's up to you." : "En daarna? Dat bepalen jullie.",

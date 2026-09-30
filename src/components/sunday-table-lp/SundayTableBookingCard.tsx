@@ -8,6 +8,7 @@ import {
   isEnglishOpenForSundayTable,
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
+import { getStoredUtm } from "@/lib/analytics/utm";
 import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
 
 export interface EnglishComingSoonLabels {
@@ -145,6 +146,7 @@ export function SundayTableBookingCard({
           seats,
           locale,
           tableLanguagePreference,
+          utm: getStoredUtm(),
         }),
       });
       const data = await res.json();

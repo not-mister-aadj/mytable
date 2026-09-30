@@ -98,7 +98,10 @@ function canTrack(): boolean {
 }
 
 function withUtm<T extends Record<string, unknown>>(params: T): T & UtmParams {
-  return { ...getStoredUtm(), ...params };
+  // The per-recipient mail code stays on our side; Meta only gets the UTM tags.
+  const utm = { ...getStoredUtm() };
+  delete utm.ref;
+  return { ...utm, ...params };
 }
 
 function logMetaEvent(event: string, params?: Record<string, unknown>): void {

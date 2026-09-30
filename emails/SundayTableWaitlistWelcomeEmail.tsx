@@ -35,8 +35,10 @@ export function SundayTableWaitlistWelcomeEmail({
   // WhatsApp groups are Rotterdam-specific communities — only offer them
   // when Rotterdam is one of the cities this signup is for.
   const showWhatsapp = cities.some((c) => c.trim().toLowerCase() === "rotterdam");
+  // Women get both groups, since the Sunday Tables on sale are mixed.
+  // Everyone else only gets the mixed group chat.
   const showGirlsOnly = showWhatsapp && (gender === "female" || gender === undefined);
-  const showMixed = showWhatsapp && gender !== "female";
+  const showMixed = showWhatsapp;
 
   return (
     <EmailLayout preview={nl ? "Je staat op de lijst" : "You're on the list"}>

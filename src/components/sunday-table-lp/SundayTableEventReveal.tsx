@@ -35,6 +35,8 @@ interface SundayTableEventRevealProps {
   venueName: string;
   address: string;
   heroImages: HeroImage[];
+  /** One short line in bold above the intro. */
+  introLead?: string;
   intro: string;
   eyebrow: string;
   detailsLabel: string;
@@ -122,6 +124,7 @@ export function SundayTableEventReveal({
   venueName,
   address,
   heroImages,
+  introLead,
   intro,
   eyebrow,
   detailsLabel,
@@ -368,7 +371,12 @@ export function SundayTableEventReveal({
             <p className="mt-3 text-lg font-medium text-wine/90 sm:text-xl">
               {dateLabel} · {timeLabel}
             </p>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg">
+            {introLead ? (
+              <p className="mt-5 max-w-xl font-serif text-xl text-wine sm:text-2xl">
+                {introLead}
+              </p>
+            ) : null}
+            <p className={`${introLead ? "mt-2" : "mt-4"} max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg`}>
               {intro}
             </p>
 

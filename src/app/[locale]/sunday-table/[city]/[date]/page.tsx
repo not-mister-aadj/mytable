@@ -328,8 +328,8 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         title: en ? "Walk in, your table is ready" : "Kom binnen, je tafel staat klaar",
         body: en
-          ? `At 2:00 PM your table is waiting${venueLabel ? ` at ${venueLabel}` : ""}. Take a seat and pick a glass from the menu.`
-          : `Om 14:00 staat je tafel${venueLabel ? ` bij ${venueLabel}` : ""} klaar. Schuif aan en kies een glas van de kaart.`,
+          ? `At 2:00 PM your table is waiting${venueLabel ? ` at ${venueLabel}` : ""}. Take a seat and pick a glass from the menu, or one of our MyTable picks.`
+          : `Om 14:00 staat je tafel${venueLabel ? ` bij ${venueLabel}` : ""} klaar. Schuif aan en kies een glas van de kaart, of een van onze MyTable-aanraders.`,
       },
       {
         title: en ? "Stay as long as you like" : "Blijf zo lang je wilt",

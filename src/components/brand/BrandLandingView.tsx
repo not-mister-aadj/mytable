@@ -24,7 +24,7 @@ import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
 import { ease } from "@/lib/motion";
 
 const formatCtaClassName =
-  "cta-lift cta-lift-outline relative mt-auto inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-wine/20 px-6 text-xs font-medium text-wine/70 transition hover:border-wine/40 hover:bg-wine hover:text-cream";
+  "cta-lift cta-lift-outline relative mt-auto inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-wine/20 px-6 text-xs font-medium text-wine/70 transition hover:border-wine/40 hover:bg-wine hover:text-cream";
 
 export type FinalCaptureLabels = {
   eyebrow: string;
@@ -225,12 +225,16 @@ export function BrandLandingView({
                   {format.name}
                 </h3>
                 <p className="mb-5 mt-1.5 text-sm text-wine/55">{format.line}</p>
-                <Link href={hrefForFormat[format.key]} className={formatCtaClassName}>
+                <button
+                  type="button"
+                  onClick={() => openWaitlist(format.key, "format_card")}
+                  className={formatCtaClassName}
+                >
                   {format.cta}
                   <span aria-hidden className="text-sm leading-none opacity-70">
                     ›
                   </span>
-                </Link>
+                </button>
               </motion.div>
             ))}
           </div>

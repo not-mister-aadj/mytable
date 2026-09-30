@@ -267,6 +267,14 @@ export default async function SundayTableEventPage({ params }: Props) {
     locale,
   );
   const en = locale === "en";
+  const venueLabel = venue ? venue.about.name : null;
+  const venueTeam = en
+    ? venueLabel
+      ? `the team at ${venueLabel}`
+      : "the team at the venue"
+    : venueLabel
+      ? `het team van ${venueLabel}`
+      : "het team van de zaak";
 
   const highlights: DateHighlights = {
     eyebrow: en ? "Highlights" : "Hoogtepunten",
@@ -275,33 +283,30 @@ export default async function SundayTableEventPage({ params }: Props) {
     nextLabel: en ? "Next" : "Volgende",
     items: [
       {
-        title: en ? "A table full of new faces" : "Een tafel vol nieuwe gezichten",
-        // "4 to 6 people" is already in the intro and in "Wat je krijgt", and
-        // the place in the title and "Over de locatie", so each highlight
-        // adds something the rest of the page does not say.
+        title: en ? "Places we love" : "Plekken die wij goed vinden",
         body: en
-          ? "Two days before, we introduce everyone to each other. So you already know a few names when you walk in."
-          : "Twee dagen vooraf stellen we iedereen aan elkaar voor. Zo ken je al een paar namen voor je binnenloopt.",
-        image: {
-          src: "/girls-only/wine-tasting-conversation.jpg",
-          alt: en ? "Guests in conversation at a MyTable table" : "Gasten in gesprek aan een MyTable-tafel",
-        },
-      },
-      {
-        title: en ? "Wine without the snobbery" : "Wijn zonder snobisme",
-        body: en
-          ? "Order whatever you like. Our picks from the menu help you choose."
-          : "Bestel wat jij lekker vindt. Onze aanraders van de kaart helpen je kiezen.",
+          ? "No tourist spots. Bars where we like to sit ourselves, for the wine and for the atmosphere."
+          : "Geen toeristische zaken. Bars waar wij zelf graag zitten, om de wijn en om de sfeer.",
         image: {
           src: "/girls-only/wine-tasting-toast.jpg",
           alt: en ? "A table raising their glasses" : "Een tafel die het glas heft",
         },
       },
       {
-        title: en ? "Coming alone is normal" : "Alleen komen is normaal",
+        title: en ? "A table that fits" : "Een tafel die klopt",
         body: en
-          ? "Many guests come solo. You're in good company."
-          : "Veel gasten komen solo. Je bent dus in goed gezelschap.",
+          ? "Everyone at the table is in the mood for it. Two days before, you already know who's joining."
+          : "Iedereen aan tafel heeft er zin in. Twee dagen vooraf weet je al wie er aanschuiven.",
+        image: {
+          src: "/girls-only/wine-tasting-conversation.jpg",
+          alt: en ? "Guests in conversation at a MyTable table" : "Gasten in gesprek aan een MyTable-tafel",
+        },
+      },
+      {
+        title: en ? "Picks from the menu" : "Aanraders van de kaart",
+        body: en
+          ? `From us beforehand, and on the day from ${venueTeam}. All you do is choose.`
+          : `Van ons vooraf, en ter plekke van ${venueTeam}. Jij hoeft alleen te kiezen.`,
         image: {
           src: "/girls-only/smiling-glasses.jpg",
           alt: en ? "A guest laughing with a glass of wine" : "Een lachende gast met een glas wijn",
@@ -310,28 +315,27 @@ export default async function SundayTableEventPage({ params }: Props) {
     ],
   };
 
-  const venueLabel = venue ? venue.about.name : null;
   const daySteps: DaySteps = {
-    eyebrow: en ? "On the day" : "Op de dag zelf",
+    eyebrow: en ? "In three steps" : "In drie stappen",
     title: en ? "How it works" : "Zo werkt het",
     steps: [
       {
+        title: en ? "Pick your Sunday" : "Kies je zondag",
+        body: en
+          ? "Your ticket reserves a seat at one of our tables."
+          : "Met je ticket reserveer je een plek aan een van onze tafels.",
+      },
+      {
         title: en ? "Walk in, your table is ready" : "Kom binnen, je tafel staat klaar",
         body: en
-          ? `At 2:00 PM a table is reserved for you${venueLabel ? ` at ${venueLabel}` : ""}. Walk in and take a seat.`
-          : `Om 14:00 staat er${venueLabel ? ` bij ${venueLabel}` : ""} een tafel voor jullie gereserveerd. Loop binnen en schuif aan.`,
+          ? `At 2:00 PM your table is waiting${venueLabel ? ` at ${venueLabel}` : ""}. A glass, a board to share, and a conversation that gets going by itself.`
+          : `Om 14:00 staat je tafel${venueLabel ? ` bij ${venueLabel}` : ""} klaar. Een glas, een plankje en een gesprek dat vanzelf op gang komt.`,
       },
       {
-        title: en ? "Taste, talk and discover" : "Proeven, praten en ontdekken",
+        title: en ? "Stay as long as you like" : "Blijf zo lang je wilt",
         body: en
-          ? "Order whatever you fancy from the menu and take your time. Plan for two to three hours."
-          : "Bestel van de kaart waar je zin in hebt en neem de tijd. Reken op twee tot drie uur.",
-      },
-      {
-        title: en ? "And after? That's up to you." : "En daarna? Dat bepalen jullie.",
-        body: en
-          ? "Stay a little longer or go for dinner together. Who knows where the afternoon ends."
-          : "Blijf nog even hangen of ga samen ergens eten. Wie weet waar de middag eindigt.",
+          ? "Plan for two to three hours. Or longer, if it clicks."
+          : "Reken op twee tot drie uur. Of langer, als het klikt.",
       },
     ],
   };
@@ -347,7 +351,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           "An email two days before with who's joining",
           "Our tips from the menu",
         ],
-        note: "Food and drinks you pay for yourself at the venue.",
+        note: "Your ticket is your seat at the table. What you drink and eat, you order yourself from the menu.",
       }
     : {
         title: `Wat je krijgt voor €${pricePerSeatEuros}`,
@@ -357,15 +361,16 @@ export default async function SundayTableEventPage({ params }: Props) {
           "Twee dagen vooraf een mail met wie er aanschuiven",
           "Onze tips van de kaart",
         ],
-        note: "Eten en drinken reken je zelf af bij de zaak.",
+        note: "Je ticket is je plek aan tafel. Wat je drinkt en eet, bestel je zelf van de kaart.",
       };
 
   const copy =
     locale === "en"
       ? {
           eyebrow: `Sunday Table · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
+          introLead: "Good wine tastes better in good company.",
           intro:
-            "Most people join MyTable for two things: discovering the tastiest new places, and meeting new people. At Sunday Table, you sit down at a table of 4 to 6 people you don't know yet, at one of the city's best spots. Some Sundays there are several of these tables running at the same venue.",
+            "MyTable is a wine club for people who love a good glass and a good conversation. We pick the wine bar and reserve several tables there. You join one of those tables, with four to six easygoing people your own age.",
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
@@ -454,8 +459,9 @@ export default async function SundayTableEventPage({ params }: Props) {
         }
       : {
           eyebrow: `Sunday Table · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
+          introLead: "Goede wijn smaakt beter in goed gezelschap.",
           intro:
-            "De meeste mensen komen bij MyTable voor twee dingen: de lekkerste nieuwe plekken ontdekken en nieuwe mensen ontmoeten. Bij Sunday Table schuif je aan bij een tafel van 4 tot 6 mensen die je nog niet kent, bij een van de leukste plekken van de stad. Soms staan er die middag meerdere van deze tafels bij dezelfde venue.",
+            "MyTable is een wijnclub voor mensen die houden van een mooi glas en een goed gesprek. Wij kiezen de wijnbar en reserveren er meerdere tafels. Jij schuift aan bij een van die tafels, met vier tot zes gezellige mensen van je leeftijd.",
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",
@@ -568,6 +574,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           venueName={location.venueName}
           address={location.address}
           heroImages={heroImages}
+          introLead={copy.introLead}
           intro={copy.intro}
           eyebrow={copy.eyebrow}
           tags={tags}

@@ -195,6 +195,31 @@ html.samsung-force-light picture {
   animation: toast-out 0.32s ease-in forwards;
 }
 
+/* A form error hops in so it catches the eye. */
+@keyframes field-error-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.4rem);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(0.2rem);
+  }
+  65% {
+    transform: translateY(-0.12rem);
+  }
+  85% {
+    transform: translateY(0.05rem);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-field-error-bounce {
+  animation: field-error-bounce 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Premium CTA lift — simple hover for fine pointers only */
 .cta-lift {
   transition:
@@ -239,7 +264,8 @@ html.samsung-force-light picture {
   }
 
   .animate-toast-in,
-  .animate-toast-out {
+  .animate-toast-out,
+  .animate-field-error-bounce {
     animation: none;
   }
 

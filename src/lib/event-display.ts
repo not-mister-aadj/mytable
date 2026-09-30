@@ -52,9 +52,9 @@ export function formatSpotsLeftHint(
   locale: Locale,
 ): string {
   if (locale === "nl") {
-    return `Nog ${spotsLeft} plekken`;
+    return spotsLeft === 1 ? "Nog maar 1 plek" : `Nog maar ${spotsLeft} plekken`;
   }
-  return `${spotsLeft} spots left`;
+  return spotsLeft === 1 ? "Only 1 spot left" : `Only ${spotsLeft} spots left`;
 }
 
 export function formatAlmostFullImageHint(

@@ -30,6 +30,7 @@ import type { SundayTableCityDate } from "@/lib/sunday-table-city-dates";
 import { formatSundayTableTime } from "@/lib/sunday-wine-table";
 import { rememberPreferredCity } from "@/lib/member-onboarding";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
+import { formatSpotsLeftHint } from "@/lib/event-display";
 import { ease } from "@/lib/motion";
 
 const bookButtonClass =
@@ -291,7 +292,7 @@ export function SundayTableCityView({
                       : table.status === "comingSoon"
                         ? labels.dates.comingSoon
                         : table.spotsLeft !== null
-                          ? fill(labels.dates.spotsLeft, { count: table.spotsLeft })
+                          ? formatSpotsLeftHint(table.spotsLeft, locale)
                           : null;
                   return (
                     <li
@@ -334,10 +335,16 @@ export function SundayTableCityView({
                         </div>
                       </div>
                       <div className="flex items-center justify-between gap-4 border-t border-wine/8 pt-3 sm:flex-col sm:items-end sm:gap-2 sm:border-0 sm:pt-0">
-                        <p className="text-sm text-wine/55">
-                          <span className="font-serif text-xl text-wine">€{table.priceEuros}</span>{" "}
-                          {locale === "en" ? "per seat" : "per plek"}
-                        </p>
+                        {table.status === "comingSoon" ? (
+                          <p className="font-serif text-xl text-wine">
+                            {locale === "en" ? "Coming soon" : "Binnenkort"}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-wine/55">
+                            <span className="font-serif text-xl text-wine">€{table.priceEuros}</span>{" "}
+                            {locale === "en" ? "per seat" : "per plek"}
+                          </p>
+                        )}
                         <FastLink
                           href={table.href}
                           onClick={() => trackBook("date_row", "sunday_table_city_dates")}

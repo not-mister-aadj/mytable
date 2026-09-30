@@ -28,7 +28,8 @@ import {
 import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
 import { images } from "@/data/images";
-import { hasEnoughSoldToShowSpots } from "@/lib/experience-booking";
+import { shouldShowSpotsCount } from "@/lib/experience-booking";
+import { formatSpotsLeftHint } from "@/lib/event-display";
 import { getSundayTableMotivationStats } from "@/lib/sunday-table-motivation-stats";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -230,7 +231,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   if (!ticketEvent) notFound();
   const comingSoon = Boolean(ticketEvent.extras?.comingSoon);
   const spotsLeft = Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold);
-  const showSpotsCount = hasEnoughSoldToShowSpots(ticketEvent.spotsSold);
+  const showSpotsCount = shouldShowSpotsCount(spotsLeft, ticketEvent.spotsSold);
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
@@ -374,7 +375,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
-          ticketsLeftLabel: "{count} spots left",
+          ticketsLeftLabel: formatSpotsLeftHint(spotsLeft, "en"),
           availableChipLabel: "Available",
           soldOutChipLabel: "Sold out",
           comingSoonChipLabel: "Coming soon",
@@ -465,7 +466,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",
-          ticketsLeftLabel: "Nog {count} plekken",
+          ticketsLeftLabel: formatSpotsLeftHint(spotsLeft, "nl"),
           availableChipLabel: "Beschikbaar",
           soldOutChipLabel: "Uitverkocht",
           comingSoonChipLabel: "Binnenkort bekend",

@@ -220,6 +220,10 @@ export function SundayTableWaitlistModal({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Which field the error is about, so it can be shown on that field. A line
+  // above the submit button alone went unseen on phones with the keyboard
+  // open: people with an empty name gave up instead of filling it in.
+  const [fieldError, setFieldError] = useState<"name" | "email" | null>(null);
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
   /** From the capture response — whether this was a brand-new signup, not a
    * returning one. Threaded through to the completion POST so the welcome
@@ -321,6 +325,7 @@ export function SundayTableWaitlistModal({
     setShowOtherCity(false);
     setInterests(presetInterest ? [presetInterest] : []);
     setError(null);
+    setFieldError(null);
     setWaitlistId(null);
     setIsNewSignup(false);
     setQuestionIndex(0);
@@ -372,8 +377,17 @@ export function SundayTableWaitlistModal({
     );
   }
 
+  function flagField(field: "name" | "email", message: string) {
+    setError(message);
+    setFieldError(field);
+    const input = field === "name" ? nameInputRef.current : emailInputRef.current;
+    input?.focus();
+    input?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+
   async function submitCapture() {
     setError(null);
+    setFieldError(null);
     // In-app browsers (Instagram, Facebook) can autofill these fields without
     // firing an input event, leaving React state empty while the field shows a
     // value. Read the field itself as a fallback, and put the value back into
@@ -385,12 +399,12 @@ export function SundayTableWaitlistModal({
 
     // Say what is missing instead of a generic error.
     if (!nameValue) {
-      setError(labels.errorName);
+      flagField("name", labels.errorName);
       reportSignupFailure("missing_name");
       return;
     }
     if (!EMAIL_PATTERN.test(emailValue)) {
-      setError(labels.errorEmail);
+      flagField("email", labels.errorEmail);
       reportSignupFailure("invalid_email", { empty: emailValue.length === 0 });
       return;
     }
@@ -744,11 +758,28 @@ export function SundayTableWaitlistModal({
                         name="name"
                         autoComplete="given-name"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          if (fieldError === "name") {
+                            setFieldError(null);
+                            setError(null);
+                          }
+                        }}
                         placeholder={labels.namePlaceholder}
                         disabled={isSubmitting}
-                        className="mt-1.5 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
+                        aria-invalid={fieldError === "name" ? true : undefined}
+                        aria-describedby={fieldError === "name" ? "waitlist-field-error" : undefined}
+                        className={`mt-1.5 w-full rounded-2xl border bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:ring-2 ${
+                          fieldError === "name"
+                            ? "border-burgundy ring-2 ring-burgundy/20 focus:border-burgundy focus:ring-burgundy/25"
+                            : "border-wine/10 focus:border-burgundy/40 focus:ring-burgundy/15"
+                        }`}
                       />
+                      {fieldError === "name" && error ? (
+                        <span id="waitlist-field-error" role="alert" className="mt-1.5 block text-sm font-medium text-burgundy">
+                          {error}
+                        </span>
+                      ) : null}
                     </label>
                     <label className="block">
                       <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
@@ -763,11 +794,28 @@ export function SundayTableWaitlistModal({
                         autoCapitalize="none"
                         spellCheck={false}
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (fieldError === "email") {
+                            setFieldError(null);
+                            setError(null);
+                          }
+                        }}
                         placeholder={labels.emailPlaceholder}
                         disabled={isSubmitting}
-                        className="mt-1.5 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
+                        aria-invalid={fieldError === "email" ? true : undefined}
+                        aria-describedby={fieldError === "email" ? "waitlist-field-error" : undefined}
+                        className={`mt-1.5 w-full rounded-2xl border bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:ring-2 ${
+                          fieldError === "email"
+                            ? "border-burgundy ring-2 ring-burgundy/20 focus:border-burgundy focus:ring-burgundy/25"
+                            : "border-wine/10 focus:border-burgundy/40 focus:ring-burgundy/15"
+                        }`}
                       />
+                      {fieldError === "email" && error ? (
+                        <span id="waitlist-field-error" role="alert" className="mt-1.5 block text-sm font-medium text-burgundy">
+                          {error}
+                        </span>
+                      ) : null}
                     </label>
 
                     <div>
@@ -855,7 +903,7 @@ export function SundayTableWaitlistModal({
                     ) : null}
                   </div>
 
-                  {error ? (
+                  {error && !fieldError ? (
                     <p className="mt-3 text-sm text-burgundy" role="alert">
                       {error}
                     </p>

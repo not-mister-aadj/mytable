@@ -26,6 +26,7 @@ import {
   SUNDAY_TABLE_LP_CITIES,
   type SundayTableLpCitySlug,
 } from "@/data/sunday-table-lp-cities";
+import { formatEuroAmount } from "@/lib/booking-display";
 import type { SundayTableCityDate } from "@/lib/sunday-table-city-dates";
 import { formatSundayTableTime } from "@/lib/sunday-wine-table";
 import { rememberPreferredCity } from "@/lib/member-onboarding";
@@ -137,7 +138,7 @@ export function SundayTableCityView({
   function bookHint(table: SundayTableCityDate) {
     return fill(labels.hero.bookHint, {
       date: table.dateLabel,
-      price: table.priceEuros,
+      price: formatEuroAmount(table.priceEuros, locale),
     });
   }
 
@@ -335,7 +336,7 @@ export function SundayTableCityView({
                       </div>
                       <div className="flex items-center justify-between gap-4 border-t border-wine/8 pt-3 sm:flex-col sm:items-end sm:gap-2 sm:border-0 sm:pt-0">
                         <p className="text-sm text-wine/55">
-                          <span className="font-serif text-xl text-wine">€{table.priceEuros}</span>{" "}
+                          <span className="font-serif text-xl text-wine">€{formatEuroAmount(table.priceEuros, locale)}</span>{" "}
                           {locale === "en" ? "per seat" : "per plek"}
                         </p>
                         <FastLink

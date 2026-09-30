@@ -1,4 +1,6 @@
+import type { Locale } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
+import { formatEuroAmount } from "@/lib/booking-display";
 import { showViewCount } from "@/lib/env";
 import {
   getLowestTierPerPersonEuros,
@@ -36,8 +38,12 @@ export function getViewsThisWeek(experienceId: string): number | null {
   return 22 + (hash % 28);
 }
 
-export function formatPerPerson(price: number, label: string): string {
-  return label.replace("{price}", String(price));
+export function formatPerPerson(
+  price: number,
+  label: string,
+  locale: Locale = "nl",
+): string {
+  return label.replace("{price}", formatEuroAmount(price, locale));
 }
 
 export function formatFromPerPerson(basePrice: number, label: string): string {

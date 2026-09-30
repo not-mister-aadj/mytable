@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { formatEuroAmount } from "@/lib/booking-display";
+import { includesWelcomeGlass } from "@/lib/sunday-table-welcome-glass";
 import { SundayTableEventReveal } from "@/components/sunday-table-lp/SundayTableEventReveal";
 import type {
   DateHighlights,
@@ -231,7 +233,9 @@ export default async function SundayTableEventPage({ params }: Props) {
   const comingSoon = Boolean(ticketEvent.extras?.comingSoon);
   const spotsLeft = Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold);
   const showSpotsCount = hasEnoughSoldToShowSpots(ticketEvent.spotsSold);
-  const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
+  const pricePerSeatEuros = ticketEvent.priceCents / 100;
+  const priceLabel = formatEuroAmount(pricePerSeatEuros, locale);
+  const welcomeGlass = includesWelcomeGlass(ticketEvent.id);
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
   );
@@ -340,24 +344,30 @@ export default async function SundayTableEventPage({ params }: Props) {
   // Four ticks plus the note, one thing per line.
   const included = en
     ? {
-        title: `What you get for €${pricePerSeatEuros}`,
+        title: `What you get for €${priceLabel}`,
         items: [
           "A seat at a table with 4 to 6 new people",
+          ...(welcomeGlass ? ["A glass of wine when you arrive"] : []),
           "A place we picked for you",
           "An email two days before with who's joining",
           "Our tips from the menu",
         ],
-        note: "Food and drinks you pay for yourself at the venue.",
+        note: welcomeGlass
+          ? "Any further food and drinks you pay for yourself at the venue."
+          : "Food and drinks you pay for yourself at the venue.",
       }
     : {
-        title: `Wat je krijgt voor €${pricePerSeatEuros}`,
+        title: `Wat je krijgt voor €${priceLabel}`,
         items: [
           "Een plek aan tafel met 4 tot 6 nieuwe mensen",
+          ...(welcomeGlass ? ["Een glas wijn bij binnenkomst"] : []),
           "Een zaak die wij voor je uitkozen",
           "Twee dagen vooraf een mail met wie er aanschuiven",
           "Onze tips van de kaart",
         ],
-        note: "Eten en drinken reken je zelf af bij de zaak.",
+        note: welcomeGlass
+          ? "Verder eten en drinken reken je zelf af bij de zaak."
+          : "Eten en drinken reken je zelf af bij de zaak.",
       };
 
   const copy =
@@ -428,7 +438,9 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "What does it cost?",
               answer:
-                "€10 for your seat. That's it. Drinks and bites you order and pay for yourself, straight from the menu. That menu changes regularly, so the day before, we email our own picks.",
+                welcomeGlass
+                  ? `€${priceLabel} for your seat, including a glass of wine when you arrive. Any further drinks and bites you order and pay for yourself, straight from the menu. That menu changes regularly, so the day before, we email our own picks.`
+                  : `€${priceLabel} for your seat. That's it. Drinks and bites you order and pay for yourself, straight from the menu. That menu changes regularly, so the day before, we email our own picks.`,
             },
             {
               question: "Do I need to worry about allergies or dietary needs?",
@@ -521,7 +533,9 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Wat kost het?",
               answer:
-                "€10 voor je plek aan tafel. Meer niet. Drankjes en bites bestel en betaal je zelf ter plekke, rechtstreeks van de kaart. Die kaart wisselt regelmatig, dus een dag van tevoren mailen we onze aanraders.",
+                welcomeGlass
+                  ? `€${priceLabel} voor je plek aan tafel, inclusief een glas wijn bij binnenkomst. Verdere drankjes en bites bestel en betaal je zelf ter plekke, rechtstreeks van de kaart. Die kaart wisselt regelmatig, dus een dag van tevoren mailen we onze aanraders.`
+                  : `€${priceLabel} voor je plek aan tafel. Meer niet. Drankjes en bites bestel en betaal je zelf ter plekke, rechtstreeks van de kaart. Die kaart wisselt regelmatig, dus een dag van tevoren mailen we onze aanraders.`,
             },
             {
               question: "Moet ik rekening houden met allergieën of dieetwensen?",

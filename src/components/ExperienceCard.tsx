@@ -112,7 +112,7 @@ export function ExperienceCard({
   const spotsLeft = getSpotsLeft(experience);
   const priceLabel =
     experience.price > 0
-      ? formatPerPerson(experience.price, perPersonFromLabel)
+      ? formatPerPerson(experience.price, perPersonFromLabel, locale)
       : null;
   const showUrgencyHint =
     !isUnavailable &&

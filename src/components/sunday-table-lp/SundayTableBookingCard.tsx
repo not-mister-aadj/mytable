@@ -8,6 +8,7 @@ import {
   isEnglishOpenForSundayTable,
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
+import { formatEuroAmount } from "@/lib/booking-display";
 import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
 
 export interface EnglishComingSoonLabels {
@@ -276,7 +277,7 @@ export function SundayTableBookingCard({
             ? "…"
             : englishOnlyWaiting
               ? englishComingSoon.cta
-              : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
+              : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${formatEuroAmount(total, locale)}`}
         </Button>
       )}
       {englishOnlyWaiting || !included ? null : (

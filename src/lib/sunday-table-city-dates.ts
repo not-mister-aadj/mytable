@@ -78,7 +78,7 @@ export async function getUpcomingSundayTableDates(
         ageBracket: ageBracketFromEventName(
           locale === "en" ? event.nameEn : event.nameNl,
         ),
-        priceEuros: Math.round(event.priceCents / 100),
+        priceEuros: event.priceCents / 100,
         status: event.extras?.comingSoon
           ? "comingSoon"
           : seatsLeft === 0

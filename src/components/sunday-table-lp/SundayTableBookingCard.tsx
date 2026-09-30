@@ -5,7 +5,7 @@ import type { Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
 import {
   DEFAULT_TABLE_LANGUAGE_PREFERENCE,
-  ENGLISH_SUNDAY_TABLES_OPEN,
+  isEnglishOpenForSundayTable,
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
 import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
@@ -80,15 +80,16 @@ export function SundayTableBookingCard({
   const soldOut = spotsLeft <= 0;
   const maxSeats = Math.min(2, spotsLeft);
   const total = pricePerSeatEuros * seats;
-  // Tables are Dutch-speaking for now: "English" stays selectable, but it
+  // Most tables are Dutch-speaking: there "English" stays selectable, but it
   // swaps the ticket button for a sign-up for the first English table.
+  const englishOpen = isEnglishOpenForSundayTable(eventId);
   const englishOnlyWaiting =
-    !ENGLISH_SUNDAY_TABLES_OPEN && tableLanguagePreference === "prefer_english";
+    !englishOpen && tableLanguagePreference === "prefer_english";
 
   function selectLanguage(value: TableLanguagePreference) {
     setTableLanguagePreference(value);
     setError(null);
-    if (value === "prefer_english" && !ENGLISH_SUNDAY_TABLES_OPEN) {
+    if (value === "prefer_english" && !englishOpen) {
       trackSundayTableEnglishRequested({ step: "selected", city: cityName, locale });
     }
   }

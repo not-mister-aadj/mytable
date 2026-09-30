@@ -8,11 +8,21 @@ export type TableLanguagePreference =
 export const DEFAULT_TABLE_LANGUAGE_PREFERENCE: TableLanguagePreference =
   "both_fine";
 
-/** Sunday Tables are held in Dutch for now. While this is false, picking
- * "English" on a Sunday Table date page offers a "notify me" sign-up instead
- * of a ticket, and checkout refuses English-only Sunday Table bookings. Flip
- * to true once English-speaking tables are running. */
-export const ENGLISH_SUNDAY_TABLES_OPEN = false;
+/** Sunday Tables where English speakers can buy a ticket, by event id. On
+ * every other Sunday Table, picking "English" on the date page offers a
+ * "notify me" sign-up instead of a ticket, and checkout refuses English-only
+ * bookings, so nobody who only speaks English ends up at a Dutch table.
+ * Add an event here once it can seat an English-speaking table. */
+const ENGLISH_SUNDAY_TABLE_EVENT_IDS: ReadonlySet<string> = new Set([
+  // Rotterdam, Bar Juni, 25 October 2026 (35+)
+  "76e4b79f-af75-42ff-bee3-80ecf9cf45d7",
+  // Rotterdam, Bar Juni, 1 November 2026 (20-39)
+  "1bcdeabb-10e8-4655-8ed6-f55dea38b76c",
+]);
+
+export function isEnglishOpenForSundayTable(eventId: string): boolean {
+  return ENGLISH_SUNDAY_TABLE_EVENT_IDS.has(eventId);
+}
 
 export function isTableLanguagePreference(
   value: unknown,

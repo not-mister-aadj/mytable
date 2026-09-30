@@ -17,7 +17,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import {
-  ENGLISH_SUNDAY_TABLES_OPEN,
+  isEnglishOpenForSundayTable,
   isTableLanguagePreference,
 } from "@/lib/booking-table-language";
 import {
@@ -173,11 +173,12 @@ export async function POST(request: Request) {
   // tier system (min 2, own-table bookings).
   const isSundayTable = event.experienceType === "sunday-table";
 
-  // The date page never offers a ticket for "English", but guard it here too
-  // so nobody who only speaks English ends up at a Dutch-speaking table.
+  // The date page only offers a ticket for "English" on tables that can seat
+  // English speakers. Guard it here too, so nobody who only speaks English
+  // ends up at a Dutch-speaking table.
   if (
     isSundayTable &&
-    !ENGLISH_SUNDAY_TABLES_OPEN &&
+    !isEnglishOpenForSundayTable(event.id) &&
     tableLanguagePreference === "prefer_english"
   ) {
     return NextResponse.json(

@@ -16,6 +16,7 @@ import {
 } from "@/components/admin/bookings/BookingStatusPills";
 import type { AdminOperationalStatus } from "@/lib/admin-bookings-types";
 import type { AdminPaymentStatus } from "@/lib/admin-bookings-types";
+import type { CustomerVisits } from "@/lib/venue-visits";
 
 function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("nl-NL", {
@@ -46,10 +47,33 @@ function KpiCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+function WhenPill({ happened }: { happened: boolean }) {
+  return happened ? (
+    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-200">
+      geweest
+    </span>
+  ) : (
+    <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200">
+      gepland
+    </span>
+  );
+}
+
+function plusOneSummary(totals: CustomerVisits["totals"]): string {
+  if (totals.timesWithPlusOne === 0) return "Komt altijd alleen.";
+  const times = totals.timesWithPlusOne === 1 ? "1 keer" : `${totals.timesWithPlusOne} keer`;
+  const names =
+    totals.plusOneNames.length > 0 ? ` (${totals.plusOneNames.join(", ")})` : "";
+  return `${times} met een +1, samen ${totals.plusOnes} extra ${totals.plusOnes === 1 ? "plek" : "plekken"}${names}.`;
+}
+
 export function CustomerProfileView({
   profile,
+  visits,
 }: {
   profile: AdminCustomerProfile;
+  /** Paid, active bookings as visits, see src/lib/venue-visits.ts. */
+  visits: CustomerVisits;
 }) {
   const router = useRouter();
   const [notes, setNotes] = useState(profile.notes ?? "");
@@ -176,6 +200,78 @@ export function CustomerProfileView({
           </div>
         </section>
       </div>
+
+      <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
+          Bezocht
+        </h2>
+        <p className="mt-2 text-sm text-wine/65">
+          {visits.totals.events} {visits.totals.events === 1 ? "event" : "events"}
+          {" · "}
+          {visits.totals.venues} {visits.totals.venues === 1 ? "venue" : "venues"}
+          {" · "}
+          {plusOneSummary(visits.totals)}
+        </p>
+        {visits.visits.length === 0 ? (
+          <p className="mt-4 text-sm text-wine/60">
+            Nog geen betaalde, actieve boekingen.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border-subtle/80 text-xs uppercase tracking-[0.06em] text-wine/50">
+                  <th className="py-2 pr-4">Datum</th>
+                  <th className="py-2 pr-4">Event</th>
+                  <th className="py-2 pr-4">Stad</th>
+                  <th className="py-2 pr-4">Venue</th>
+                  <th className="py-2 pr-4">Plekken</th>
+                  <th className="py-2 pr-4">+1</th>
+                  <th className="py-2" />
+                </tr>
+              </thead>
+              <tbody>
+                {visits.visits.map((v) => (
+                  <tr
+                    key={v.bookingId}
+                    className="border-b border-border-subtle/40 last:border-0"
+                  >
+                    <td className="py-3 pr-4 text-wine/70">
+                      {formatDate(v.startsAt)}
+                    </td>
+                    <td className="py-3 pr-4 font-medium text-wine">
+                      {v.eventName}
+                    </td>
+                    <td className="py-3 pr-4 text-wine/70">{v.city}</td>
+                    <td className="py-3 pr-4 text-wine/70">
+                      {v.venues.length === 0
+                        ? "-"
+                        : v.venues.map((venue, i) => (
+                            <span key={venue.id}>
+                              {i > 0 ? ", " : ""}
+                              <Link
+                                href={adminPath(`/venues/${venue.id}`)}
+                                className="hover:text-burgundy hover:underline"
+                              >
+                                {venue.name}
+                              </Link>
+                            </span>
+                          ))}
+                    </td>
+                    <td className="py-3 pr-4">{v.seats}</td>
+                    <td className="py-3 pr-4 text-wine/70">
+                      {v.seats > 1 ? (v.plusOneName ?? "ja") : "-"}
+                    </td>
+                    <td className="py-3">
+                      <WhenPill happened={v.happened} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <section className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">

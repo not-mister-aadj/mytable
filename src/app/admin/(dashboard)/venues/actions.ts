@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { events, experienceTypes, venues } from "@/db/schema";
+import { events, eventVenues, experienceTypes, venues } from "@/db/schema";
+import { getVenueVisits } from "@/lib/venue-visits";
 import type { Venue } from "@/db/schema";
 import { parseEventExtras } from "@/lib/event-extras";
 import {
@@ -258,6 +259,16 @@ export async function deleteVenueAction(id: string) {
   const db = getDb();
   const venue = await getVenueById(id);
   if (!venue) throw new Error("Venue niet gevonden");
+
+  // event_venues restricts deletes so visit history never disappears by
+  // accident. Links without any paid guest are safe to drop.
+  const { totals } = await getVenueVisits(id);
+  if (totals.guests > 0) {
+    throw new Error(
+      "Deze venue heeft bezoekgeschiedenis en kan niet worden verwijderd.",
+    );
+  }
+  await db.delete(eventVenues).where(eq(eventVenues.venueId, id));
 
   await detachVenueFromReferences(db, id);
   await db.delete(venues).where(eq(venues.id, id));

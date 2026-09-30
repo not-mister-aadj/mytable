@@ -16,6 +16,8 @@ import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import { getWaitlistInviteStats } from "@/lib/sunday-table-waitlist-invites";
 import { findSundayTableTicketEvent } from "@/lib/sunday-table-ticket-event";
 import { getUnnotifiedEventSignups } from "@/lib/event-notify-signups";
+import { getAllVenuesForAdmin } from "@/lib/venues";
+import { getEventVenueIds } from "@/lib/event-venues";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -41,12 +43,27 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
     "localhost:3001";
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
 
-  const [members, location, waitlistStats, ticketEvent] = await Promise.all([
-    getSundayTableMembers(table),
-    getSundayTableLocation(table),
-    getWaitlistInviteStats(table),
-    findSundayTableTicketEvent(table),
-  ]);
+  const [members, location, waitlistStats, ticketEvent, allVenues] =
+    await Promise.all([
+      getSundayTableMembers(table),
+      getSundayTableLocation(table),
+      getWaitlistInviteStats(table),
+      findSundayTableTicketEvent(table),
+      getAllVenuesForAdmin(),
+    ]);
+
+  // The venue picker: venues in this table's city, plus whichever venue the
+  // ticket event is linked to now (even if its city is spelled differently).
+  const linkedVenueId = ticketEvent
+    ? ((await getEventVenueIds(ticketEvent.id))[0] ?? null)
+    : null;
+  const cityKey = table.city.trim().toLowerCase();
+  const venueOptions = allVenues
+    .filter(
+      (v) => v.city.trim().toLowerCase() === cityKey || v.id === linkedVenueId,
+    )
+    .map((v) => ({ id: v.id, name: v.name, address: v.address ?? "" }))
+    .sort((a, b) => a.name.localeCompare(b.name, "nl"));
 
   const comingSoon = Boolean(ticketEvent?.extras?.comingSoon);
   const notifySignupCount = comingSoon
@@ -69,6 +86,9 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
           : null
       }
       saveLocationAction={saveSundayTableLocationAction}
+      venueOptions={venueOptions}
+      linkedVenueId={linkedVenueId}
+      hasTicketEvent={Boolean(ticketEvent)}
       waitlistStats={waitlistStats}
       inviteWaitlistAction={inviteWaitlistForSundayTableAction}
       signupsPaused={SIGNUPS_PAUSED}

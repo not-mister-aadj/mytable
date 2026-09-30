@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { CustomerProfileView } from "@/components/admin/CustomerProfileView";
 import { isDbConfigured } from "@/db/index";
 import { getAdminCustomerProfile } from "@/lib/admin-customers-data";
+import { getCustomerVisits } from "@/lib/venue-visits";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 
@@ -18,7 +19,10 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
   }
 
   const { id } = await params;
-  const profile = await getAdminCustomerProfile(id);
+  const [profile, visits] = await Promise.all([
+    getAdminCustomerProfile(id),
+    getCustomerVisits(id),
+  ]);
 
   if (!profile) {
     notFound();
@@ -29,5 +33,5 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
     total_bookings: profile.totalBookings,
   });
 
-  return <CustomerProfileView profile={profile} />;
+  return <CustomerProfileView profile={profile} visits={visits} />;
 }

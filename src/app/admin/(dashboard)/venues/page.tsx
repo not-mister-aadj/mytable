@@ -3,10 +3,15 @@ import { VenueRow } from "@/components/admin/VenueRow";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getAllVenues } from "@/lib/venues";
+import { getVenueVisitSummaries } from "@/lib/venue-visits";
+import { isDbConfigured } from "@/db/index";
 
 export default async function AdminVenuesPage() {
   await requireAdmin();
-  const rows = await getAllVenues();
+  const [rows, visitStats] = await Promise.all([
+    getAllVenues(),
+    isDbConfigured() ? getVenueVisitSummaries() : Promise.resolve(new Map()),
+  ]);
 
   return (
     <div>
@@ -26,7 +31,14 @@ export default async function AdminVenuesPage() {
             Nog geen restaurants of locaties. Voeg je eerste venue toe.
           </p>
         ) : (
-          rows.map((v) => <VenueRow key={v.id} venue={v} />)
+          rows.map((v) => (
+            <VenueRow
+              key={v.id}
+              venue={v}
+              guests={visitStats.get(v.id)?.guests ?? 0}
+              returningBuyers={visitStats.get(v.id)?.returningBuyers ?? 0}
+            />
+          ))
         )}
       </div>
     </div>

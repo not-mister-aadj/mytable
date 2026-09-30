@@ -4,17 +4,23 @@ import {
   customerActivities,
   customers,
   events,
+  waitlistSignups,
 } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { resolveOperationalBookingStatus } from "@/lib/booking-lifecycle";
 import {
   customerDisplayName,
+  normalizeEmail,
 } from "@/lib/customers/normalize";
 import {
   customerStatusLabel,
   resolveCustomerStatus,
 } from "@/lib/customers/status";
 import { reconcileAllCustomers } from "@/lib/customers/reconcile";
+import {
+  pickCustomerWaitlistAnswers,
+  type CustomerWaitlistAnswers,
+} from "@/lib/customers/list-answers";
 import { syncPendingCheckoutsIfStale } from "@/lib/stripe/sync-pending-checkouts";
 import type { CustomerStatusKey } from "@/lib/customers/types";
 
@@ -22,6 +28,9 @@ export type AdminCustomerListRow = {
   id: string;
   email: string;
   displayName: string;
+  firstName: string | null;
+  /** Favourite city from bookings, else the preferred or waitlist city. */
+  city: string | null;
   favoriteCity: string | null;
   favoriteEventType: string | null;
   totalBookings: number;
@@ -31,9 +40,15 @@ export type AdminCustomerListRow = {
   failedPaymentsCount: number;
   waitlistCount: number;
   lastBookingAt: string | null;
+  /** first_seen_at, falling back to created_at. */
+  memberSince: string;
+  firstBookingAt: string | null;
+  /** Same rule as the KPI cards: at least one paid booking with revenue. */
+  isBuyer: boolean;
+  tags: string[];
   status: CustomerStatusKey;
   statusLabel: string;
-};
+} & CustomerWaitlistAnswers;
 
 export type AdminCustomersKpi = {
   totalCustomers: number;
@@ -102,7 +117,10 @@ export type AdminCustomerProfile = {
   activities: AdminCustomerActivityRow[];
 };
 
-function mapCustomerRow(row: typeof customers.$inferSelect): AdminCustomerListRow {
+function mapCustomerRow(
+  row: typeof customers.$inferSelect,
+  answers: CustomerWaitlistAnswers & { waitlistCity: string | null },
+): AdminCustomerListRow {
   const status = resolveCustomerStatus({
     paidBookingsCount: row.paidBookingsCount,
     totalBookings: row.totalBookings,
@@ -114,6 +132,8 @@ function mapCustomerRow(row: typeof customers.$inferSelect): AdminCustomerListRo
     id: row.id,
     email: row.email,
     displayName: customerDisplayName(row.firstName, row.lastName, row.email),
+    firstName: row.firstName,
+    city: row.favoriteCity ?? row.preferredCity ?? answers.waitlistCity,
     favoriteCity: row.favoriteCity,
     favoriteEventType: row.favoriteEventType,
     totalBookings: row.totalBookings,
@@ -123,6 +143,14 @@ function mapCustomerRow(row: typeof customers.$inferSelect): AdminCustomerListRo
     failedPaymentsCount: row.failedPaymentsCount,
     waitlistCount: row.waitlistCount,
     lastBookingAt: row.lastBookingAt?.toISOString() ?? null,
+    memberSince: (row.firstSeenAt ?? row.createdAt).toISOString(),
+    firstBookingAt: row.firstBookingAt?.toISOString() ?? null,
+    isBuyer: row.paidBookingsCount > 0 && row.totalSpentCents > 0,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    ageRange: answers.ageRange,
+    gender: answers.gender,
+    waitlistLanguage: answers.waitlistLanguage,
+    ticketBudget: answers.ticketBudget,
     status,
     statusLabel: customerStatusLabel(status),
   };
@@ -138,9 +166,44 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
     .from(customers)
     .orderBy(desc(customers.lastSeenAt));
 
-  const customersList = rows
-    .map(mapCustomerRow)
-    .filter((c) => c.paidBookingsCount > 0 && c.totalSpentCents > 0);
+  const signupRows = await db
+    .select({
+      customerId: waitlistSignups.customerId,
+      email: waitlistSignups.email,
+      city: waitlistSignups.city,
+      preferences: waitlistSignups.preferences,
+    })
+    .from(waitlistSignups)
+    .orderBy(desc(waitlistSignups.createdAt));
+
+  // Newest first, so the first match per customer is the latest answer.
+  const signupsByCustomer = new Map<string, typeof signupRows>();
+  const signupsByEmail = new Map<string, typeof signupRows>();
+  for (const signup of signupRows) {
+    if (signup.customerId) {
+      const list = signupsByCustomer.get(signup.customerId) ?? [];
+      list.push(signup);
+      signupsByCustomer.set(signup.customerId, list);
+    }
+    const key = normalizeEmail(signup.email);
+    const list = signupsByEmail.get(key) ?? [];
+    list.push(signup);
+    signupsByEmail.set(key, list);
+  }
+
+  const allCustomers = rows.map((row) => {
+    const signups =
+      signupsByCustomer.get(row.id) ??
+      signupsByEmail.get(row.emailNormalized) ??
+      [];
+    return mapCustomerRow(row, {
+      ...pickCustomerWaitlistAnswers(signups.map((s) => s.preferences)),
+      waitlistCity: signups[0]?.city ?? null,
+    });
+  });
+
+  // KPI cards keep counting buyers only, as before.
+  const customersList = allCustomers.filter((c) => c.isBuyer);
 
   const payingCustomers = customersList.filter((c) => c.paidBookingsCount > 0).length;
   const repeatCustomers = customersList.filter((c) => c.paidBookingsCount > 1).length;
@@ -153,22 +216,22 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
 
   const cities = [
     ...new Set(
-      customersList
-        .map((c) => c.favoriteCity)
+      allCustomers
+        .map((c) => c.city)
         .filter((c): c is string => Boolean(c)),
     ),
   ].sort();
 
   const eventTypes = [
     ...new Set(
-      customersList
+      allCustomers
         .map((c) => c.favoriteEventType)
         .filter((t): t is string => Boolean(t)),
     ),
   ].sort();
 
   return {
-    customers: customersList,
+    customers: allCustomers,
     kpis: {
       totalCustomers: customersList.length,
       payingCustomers,

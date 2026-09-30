@@ -1,10 +1,12 @@
 import {
   boolean,
   date,
+  index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -101,6 +103,28 @@ export const events = pgTable("events", {
     .notNull()
     .defaultNow(),
 });
+
+/** Which venue(s) an event took place at (drizzle/0030), in order: a wine
+ * walk has several stops. Source for per-venue visit history in admin. */
+export const eventVenues = pgTable(
+  "event_venues",
+  {
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    venueId: uuid("venue_id")
+      .notNull()
+      .references(() => venues.id, { onDelete: "restrict" }),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.eventId, table.venueId] }),
+    venueIdx: index("event_venues_venue_id_idx").on(table.venueId),
+  }),
+);
 
 /** Old public agenda slugs → current event slug (308 redirects). */
 export const eventSlugRedirects = pgTable("event_slug_redirects", {

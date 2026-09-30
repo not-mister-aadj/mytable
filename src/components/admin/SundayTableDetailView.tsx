@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type {
   SundayTableKey,
   SundayTableMemberRow,
@@ -275,6 +275,9 @@ export function SundayTableDetailView({
   customerBasePath,
   location,
   saveLocationAction,
+  venueOptions,
+  linkedVenueId,
+  hasTicketEvent,
   waitlistStats,
   inviteWaitlistAction,
   signupsPaused,
@@ -292,6 +295,10 @@ export function SundayTableDetailView({
     notes: string | null;
   } | null;
   saveLocationAction: (formData: FormData) => Promise<void>;
+  /** Venues in this table's city, for linking the ticket event to a venue. */
+  venueOptions: { id: string; name: string; address: string }[];
+  linkedVenueId: string | null;
+  hasTicketEvent: boolean;
   waitlistStats: { eligible: number; invited: number; total: number };
   inviteWaitlistAction: (
     prevState: InviteWaitlistActionState | null,
@@ -307,6 +314,23 @@ export function SundayTableDetailView({
     formData: FormData,
   ) => Promise<OpenTicketSalesActionState>;
 }) {
+  const [pickedVenueId, setPickedVenueId] = useState(linkedVenueId ?? "");
+  const [venueName, setVenueName] = useState(location?.venueName ?? "");
+  const [address, setAddress] = useState(location?.address ?? "");
+
+  // Picking a venue fills name and address from it; both stay editable. A
+  // longer name that already contains the venue's ("Bar Juni Rotterdam" for
+  // Juni) is kept, since the public page matches on it for photos.
+  function pickVenue(id: string) {
+    setPickedVenueId(id);
+    const venue = venueOptions.find((v) => v.id === id);
+    if (!venue) return;
+    if (!venueName.toLowerCase().includes(venue.name.toLowerCase())) {
+      setVenueName(venue.name);
+    }
+    if (venue.address) setAddress(venue.address);
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -338,12 +362,36 @@ export function SundayTableDetailView({
           de exacte locatie per mail.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {venueOptions.length > 0 ? (
+            <label className="block text-sm text-wine/80 sm:col-span-2">
+              Zaak uit venues
+              <select
+                name="venueId"
+                value={pickedVenueId}
+                onChange={(e) => pickVenue(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-border-subtle bg-white px-3 py-2.5 text-sm text-wine"
+              >
+                <option value="">Vrije tekst (bijv. Locatie volgt)</option>
+                {venueOptions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-wine/50">
+                {hasTicketEvent
+                  ? "Koppelt het ticketevent aan deze zaak, zodat gasten in de bezoekgeschiedenis van de venue verschijnen."
+                  : "Nog geen ticketevent voor deze tafel, dus er wordt nog niets gekoppeld."}
+              </span>
+            </label>
+          ) : null}
           <label className="block text-sm text-wine/80 sm:col-span-2">
             Venue
             <input
               name="venueName"
               required
-              defaultValue={location?.venueName ?? ""}
+              value={venueName}
+              onChange={(e) => setVenueName(e.target.value)}
               className="mt-1.5 w-full rounded-xl border border-border-subtle bg-white px-3 py-2.5 text-sm text-wine"
               placeholder="Restaurantnaam"
             />
@@ -353,7 +401,8 @@ export function SundayTableDetailView({
             <input
               name="address"
               required
-              defaultValue={location?.address ?? ""}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               className="mt-1.5 w-full rounded-xl border border-border-subtle bg-white px-3 py-2.5 text-sm text-wine"
               placeholder="Straat 1, 3011 AA Rotterdam"
             />

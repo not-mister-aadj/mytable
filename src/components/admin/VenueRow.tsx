@@ -35,12 +35,23 @@ function confirmDeleteVenue(venue: Venue) {
   );
 }
 
-export function VenueRow({ venue }: { venue: Venue }) {
+export function VenueRow({
+  venue,
+  guests,
+  returningBuyers,
+}: {
+  venue: Venue;
+  /** Seats on paid, active bookings at this venue (+1s included). */
+  guests: number;
+  /** Buyers with 2+ events at this venue. */
+  returningBuyers: number;
+}) {
   const editHref = adminPath(`/venues/${venue.id}/edit`);
+  const detailHref = adminPath(`/venues/${venue.id}`);
 
   return (
     <article className="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-beige p-4 sm:flex-row sm:items-center sm:gap-6">
-      <Link href={editHref} className="flex min-w-0 flex-1 items-center gap-4">
+      <Link href={detailHref} className="flex min-w-0 flex-1 items-center gap-4">
         <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl">
           <Image
             src={venue.imageUrl ?? "/images/restaurant-interior.jpg"}
@@ -63,6 +74,25 @@ export function VenueRow({ venue }: { venue: Venue }) {
           <p className="mt-1 line-clamp-2 text-sm text-wine/50">
             {venue.descriptionNl}
           </p>
+        </div>
+      </Link>
+
+      <Link
+        href={detailHref}
+        className="flex gap-6 text-sm sm:shrink-0"
+        title="Bezoekgeschiedenis"
+      >
+        <div>
+          <p className="text-xs uppercase tracking-[0.06em] text-wine/50">
+            Gasten
+          </p>
+          <p className="font-serif text-lg text-burgundy">{guests}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.06em] text-wine/50">
+            Terugkerend
+          </p>
+          <p className="font-serif text-lg text-burgundy">{returningBuyers}</p>
         </div>
       </Link>
 

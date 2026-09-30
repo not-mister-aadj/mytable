@@ -15,6 +15,7 @@ import {
   onBookingMoved,
 } from "@/lib/customers/hooks";
 import { parseEventExtras, GIRLS_ONLY_ATMOSPHERE_TAG } from "@/lib/event-extras";
+import { syncEventVenuesFromEvent } from "@/lib/event-venues";
 import {
   formatEventSaveError,
   validateEventForm,
@@ -157,6 +158,7 @@ async function persistNewEvent(formData: FormData) {
       workflowStatus: "draft",
     })
     .returning();
+  await syncEventVenuesFromEvent(row);
   redirect(adminPath(`/events/${row.id}/edit?saved=1`));
 }
 
@@ -192,6 +194,7 @@ async function applyEventUpdate(id: string, formData: FormData) {
     .set({ ...values, slug: nextSlug })
     .where(eq(events.id, id))
     .returning();
+  await syncEventVenuesFromEvent(row);
 
   if (existing.slug !== nextSlug) {
     await recordEventSlugRedirect(db, {
@@ -372,6 +375,7 @@ export async function duplicateEventAction(id: string) {
       publishedAt: null,
     })
     .returning();
+  await syncEventVenuesFromEvent(row);
 
   redirect(adminPath(`/events/${row.id}/edit`));
 }

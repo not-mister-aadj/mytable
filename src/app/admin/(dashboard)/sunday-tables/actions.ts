@@ -9,7 +9,12 @@ import {
 } from "@/lib/sunday-table-shared";
 import { sendSundayTableWaitlistInvites } from "@/lib/email/sendSundayTableWaitlistInviteEmails";
 import { SIGNUPS_PAUSED } from "@/app/admin/(dashboard)/sunday-tables/signups-paused";
-import { openTicketSalesForSundayTable } from "@/lib/sunday-table-ticket-event";
+import {
+  findSundayTableTicketEvent,
+  openTicketSalesForSundayTable,
+} from "@/lib/sunday-table-ticket-event";
+import { replaceEventVenues } from "@/lib/event-venues";
+import { getVenueById } from "@/lib/venues";
 
 export async function saveSundayTableLocationAction(formData: FormData) {
   await requireAdmin();
@@ -17,9 +22,14 @@ export async function saveSundayTableLocationAction(formData: FormData) {
   const city = String(formData.get("city") ?? "").trim();
   const tableDate = String(formData.get("tableDate") ?? "").trim();
   const tableType = String(formData.get("tableType") ?? "").trim();
-  const venueName = String(formData.get("venueName") ?? "").trim();
-  const address = String(formData.get("address") ?? "").trim();
+  let venueName = String(formData.get("venueName") ?? "").trim();
+  let address = String(formData.get("address") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+  // Only sent when the venue picker is shown; "" means free text ("Locatie
+  // volgt"), so the ticket event is not linked to any venue.
+  const pickedVenueId = formData.has("venueId")
+    ? String(formData.get("venueId") ?? "").trim()
+    : null;
 
   if (!city || !/^\d{4}-\d{2}-\d{2}$/.test(tableDate)) {
     throw new Error("Invalid table");
@@ -27,6 +37,16 @@ export async function saveSundayTableLocationAction(formData: FormData) {
   if (tableType !== "girls_only" && tableType !== "mixed") {
     throw new Error("Invalid table type");
   }
+
+  if (pickedVenueId) {
+    const venue = await getVenueById(pickedVenueId);
+    if (!venue) throw new Error("Venue not found");
+    // The form fills these from the venue but they stay editable, so a
+    // longer public name like "Bar Juni Rotterdam" can be kept.
+    venueName ||= venue.name;
+    address ||= venue.address ?? "";
+  }
+
   if (!venueName || !address) {
     throw new Error("Venue and address required");
   }
@@ -39,6 +59,20 @@ export async function saveSundayTableLocationAction(formData: FormData) {
     address,
     notes: notes || null,
   });
+
+  if (pickedVenueId !== null) {
+    const ticketEvent = await findSundayTableTicketEvent({
+      city,
+      tableDate,
+      tableType: tableType as SundayTableType,
+    });
+    if (ticketEvent) {
+      await replaceEventVenues(
+        ticketEvent.id,
+        pickedVenueId ? [pickedVenueId] : [],
+      );
+    }
+  }
 
   const slug = encodeSundayTableSlug({
     city,

@@ -21,6 +21,7 @@ const NAV_ITEM_PATHS = [
   { label: "Types", path: "/experience-types" },
   { label: "Boekingen", path: "/bookings" },
   { label: "Klanten", path: "/customers" },
+  { label: "Wachtlijstantwoorden", path: "/customers/antwoorden" },
   { label: "Analytics", path: "/analytics" },
   { label: "E-mails", path: "/email-preview" },
 ] as const;

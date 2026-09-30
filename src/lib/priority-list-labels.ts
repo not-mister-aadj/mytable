@@ -77,6 +77,28 @@ export const EXPERIENCE_LABELS: Record<string, string> = {
   experienced: "Ervaren",
 };
 
+export const LANGUAGE_LABELS: Record<string, string> = {
+  english: "Engels",
+  dutch: "Nederlands",
+  both: "Beide",
+};
+
+export const SUNDAY_AVAILABILITY_LABELS: Record<string, string> = {
+  both: "Middag en avond",
+  afternoon: "Alleen middag",
+  evening: "Alleen avond",
+  no: "Zondag komt niet uit",
+};
+
+export const ALT_DAY_LABELS: Record<string, string> = {
+  monday: "Maandag",
+  tuesday: "Dinsdag",
+  wednesday: "Woensdag",
+  thursday: "Donderdag",
+  friday: "Vrijdag",
+  saturday: "Zaterdag",
+};
+
 export function labelList(ids: string[], labels: Record<string, string>): string[] {
   return ids.map((id) => labels[id] ?? id);
 }

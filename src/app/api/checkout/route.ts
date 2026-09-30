@@ -55,6 +55,20 @@ function checkRateLimit(key: string, max = 10, windowMs = 60_000): boolean {
   return true;
 }
 
+/** Keeps only known attribution keys with short string values, so the
+ * `checkout_utm` booking event can't be filled with arbitrary client data. */
+function cleanAttribution(
+  raw: unknown,
+): Partial<Record<"utm_source" | "utm_medium" | "utm_campaign" | "utm_content" | "ref", string>> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Partial<Record<"utm_source" | "utm_medium" | "utm_campaign" | "utm_content" | "ref", string>> = {};
+  for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ref"] as const) {
+    const value = (raw as Record<string, unknown>)[key];
+    if (typeof value === "string" && value.trim()) out[key] = value.trim().slice(0, 100);
+  }
+  return out;
+}
+
 export async function POST(request: Request) {
   if (!isDbConfigured() || !isStripeConfigured()) {
     return NextResponse.json(
@@ -87,6 +101,7 @@ export async function POST(request: Request) {
       utm_medium?: string;
       utm_campaign?: string;
       utm_content?: string;
+      ref?: string;
     };
     meta?: {
       fbp?: string;
@@ -297,14 +312,9 @@ export async function POST(request: Request) {
     });
   }
 
-  const utm = body.utm ?? {};
+  const utm = cleanAttribution(body.utm);
   const metaContext = parseMetaTrackingContext(body.meta);
-  if (
-    utm.utm_source ||
-    utm.utm_medium ||
-    utm.utm_campaign ||
-    utm.utm_content
-  ) {
+  if (Object.keys(utm).length > 0) {
     await db.insert(bookingEvents).values({
       bookingId: booking.id,
       type: "checkout_utm",

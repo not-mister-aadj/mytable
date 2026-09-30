@@ -54,6 +54,13 @@ function MetaPixelTracker() {
     trackMetaCompleteRegistration(user);
   }, [user, loading]);
 
+  // Keep UTM tags and the mail recipient code for the checkout, whether or
+  // not the pixel runs: attribution of bookings should not depend on Meta.
+  useEffect(() => {
+    const query = searchParams.toString();
+    persistUtmFromUrl(query ? `?${query}` : "");
+  }, [searchParams]);
+
   useEffect(() => {
     if (!isMetaPixelEnabled() || !pathname) return;
 

@@ -53,11 +53,14 @@ function NavButton({
 export function SundayTableHeroGallery({
   locale,
   images,
+  quality = 90,
 }: {
   locale: Locale;
   /** Override the default girls-only photo pool — used by the general
    * format landing pages, whose hero gallery shows a mixed-gender audience. */
   images?: { src: string; alt: string }[];
+  /** Must be listed in images.qualities in next.config.ts. */
+  quality?: number;
 }) {
   const slides = images ?? getGirlsOnlyHeroSlideshowImages(locale);
   const reduceMotion = useReducedMotion();
@@ -129,7 +132,7 @@ export function SundayTableHeroGallery({
               alt={isActive ? slide.alt : ""}
               fill
               sizes={MAIN_SIZES}
-              quality={90}
+              quality={quality}
               priority={slideIndex === 0}
               loading={slideIndex === 0 ? "eager" : "lazy"}
               className={`object-cover transition-opacity duration-700 ${
@@ -195,6 +198,7 @@ export function SundayTableHeroGallery({
                     alt=""
                     fill
                     sizes="56px"
+                    quality={quality}
                     className="object-cover"
                   />
                 </button>

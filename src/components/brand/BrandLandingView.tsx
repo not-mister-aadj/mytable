@@ -173,7 +173,11 @@ export function BrandLandingView({
             transition={{ duration: 0.75, delay: 0.1, ease }}
             className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none"
           >
-            <SundayTableHeroGallery locale={locale} images={heroImages} />
+            <SundayTableHeroGallery
+              locale={locale}
+              images={heroImages}
+              quality={100}
+            />
           </motion.div>
         </div>
       </section>
@@ -213,7 +217,7 @@ export function BrandLandingView({
                     alt={format.imageAlt}
                     fill
                     sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
-                    quality={90}
+                    quality={100}
                     className="object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </Link>

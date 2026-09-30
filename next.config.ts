@@ -4,11 +4,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    // Next.js 16 defaults to only allowing quality 75. The homepage hero
-    // gallery and format cards use 90 for less visible compression on
-    // detailed photos — without listing it here, that prop is silently
-    // coerced back down to 75.
-    qualities: [75, 90],
+    // Next.js 16 defaults to only allowing quality 75. The landing pages use
+    // 90 and the homepage uses 100 for less visible compression on detailed
+    // photos. A quality not listed here is silently coerced to the closest
+    // allowed value.
+    qualities: [75, 90, 100],
     remotePatterns: [
       {
         protocol: "https",

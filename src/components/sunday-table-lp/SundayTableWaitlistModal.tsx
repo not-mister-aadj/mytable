@@ -184,6 +184,24 @@ function PillRow<T extends string>({
   );
 }
 
+/** A short sideways shake on a field that still needs input. Runs again on
+ * every failed submit, and is skipped for people who prefer less motion. */
+function shakeField(input: HTMLElement | null) {
+  if (!input || typeof input.animate !== "function") return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  input.animate(
+    [
+      { transform: "translateX(0)" },
+      { transform: "translateX(-6px)" },
+      { transform: "translateX(5px)" },
+      { transform: "translateX(-3px)" },
+      { transform: "translateX(2px)" },
+      { transform: "translateX(0)" },
+    ],
+    { duration: 420, easing: "ease-out" },
+  );
+}
+
 export function SundayTableWaitlistModal({
   labels,
   altLabels,
@@ -224,6 +242,8 @@ export function SundayTableWaitlistModal({
   // above the submit button alone went unseen on phones with the keyboard
   // open: people with an empty name gave up instead of filling it in.
   const [fieldError, setFieldError] = useState<"name" | "email" | null>(null);
+  // Bumped on each failed submit so the error message replays its bounce.
+  const [errorAttempt, setErrorAttempt] = useState(0);
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
   /** From the capture response — whether this was a brand-new signup, not a
    * returning one. Threaded through to the completion POST so the welcome
@@ -380,9 +400,11 @@ export function SundayTableWaitlistModal({
   function flagField(field: "name" | "email", message: string) {
     setError(message);
     setFieldError(field);
+    setErrorAttempt((n) => n + 1);
     const input = field === "name" ? nameInputRef.current : emailInputRef.current;
     input?.focus();
     input?.scrollIntoView({ block: "center", behavior: "smooth" });
+    shakeField(input);
   }
 
   async function submitCapture() {
@@ -410,6 +432,7 @@ export function SundayTableWaitlistModal({
     }
     if (effectiveCities.length === 0) {
       setError(labels.errorCity);
+      setErrorAttempt((n) => n + 1);
       reportSignupFailure("missing_city");
       return;
     }
@@ -769,14 +792,15 @@ export function SundayTableWaitlistModal({
                         disabled={isSubmitting}
                         aria-invalid={fieldError === "name" ? true : undefined}
                         aria-describedby={fieldError === "name" ? "waitlist-field-error" : undefined}
-                        className={`mt-1.5 w-full rounded-2xl border bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:ring-2 ${
+                        className={`mt-1.5 w-full rounded-2xl border px-4 py-3 text-sm text-wine outline-none focus:ring-2 ${
                           fieldError === "name"
-                            ? "border-burgundy ring-2 ring-burgundy/20 focus:border-burgundy focus:ring-burgundy/25"
-                            : "border-wine/10 focus:border-burgundy/40 focus:ring-burgundy/15"
+                            ? "border-red-600 bg-red-50 ring-2 ring-red-600/25 focus:border-red-600 focus:ring-red-600/30"
+                            : "border-wine/10 bg-white/80 focus:border-burgundy/40 focus:ring-burgundy/15"
                         }`}
                       />
                       {fieldError === "name" && error ? (
-                        <span id="waitlist-field-error" role="alert" className="mt-1.5 block text-sm font-medium text-burgundy">
+                        <span key={errorAttempt} id="waitlist-field-error" role="alert" className="animate-field-error-bounce mt-1.5 flex items-start gap-1.5 text-sm font-semibold text-red-600">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mt-px shrink-0"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 5a1.25 1.25 0 0 1 1.25 1.25v4.5a1.25 1.25 0 0 1-2.5 0v-4.5A1.25 1.25 0 0 1 12 7Zm0 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" /></svg>
                           {error}
                         </span>
                       ) : null}
@@ -805,14 +829,15 @@ export function SundayTableWaitlistModal({
                         disabled={isSubmitting}
                         aria-invalid={fieldError === "email" ? true : undefined}
                         aria-describedby={fieldError === "email" ? "waitlist-field-error" : undefined}
-                        className={`mt-1.5 w-full rounded-2xl border bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:ring-2 ${
+                        className={`mt-1.5 w-full rounded-2xl border px-4 py-3 text-sm text-wine outline-none focus:ring-2 ${
                           fieldError === "email"
-                            ? "border-burgundy ring-2 ring-burgundy/20 focus:border-burgundy focus:ring-burgundy/25"
-                            : "border-wine/10 focus:border-burgundy/40 focus:ring-burgundy/15"
+                            ? "border-red-600 bg-red-50 ring-2 ring-red-600/25 focus:border-red-600 focus:ring-red-600/30"
+                            : "border-wine/10 bg-white/80 focus:border-burgundy/40 focus:ring-burgundy/15"
                         }`}
                       />
                       {fieldError === "email" && error ? (
-                        <span id="waitlist-field-error" role="alert" className="mt-1.5 block text-sm font-medium text-burgundy">
+                        <span key={errorAttempt} id="waitlist-field-error" role="alert" className="animate-field-error-bounce mt-1.5 flex items-start gap-1.5 text-sm font-semibold text-red-600">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mt-px shrink-0"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 5a1.25 1.25 0 0 1 1.25 1.25v4.5a1.25 1.25 0 0 1-2.5 0v-4.5A1.25 1.25 0 0 1 12 7Zm0 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" /></svg>
                           {error}
                         </span>
                       ) : null}
@@ -904,7 +929,8 @@ export function SundayTableWaitlistModal({
                   </div>
 
                   {error && !fieldError ? (
-                    <p className="mt-3 text-sm text-burgundy" role="alert">
+                    <p key={errorAttempt} className="animate-field-error-bounce mt-3 flex items-start gap-1.5 text-sm font-semibold text-red-600" role="alert">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mt-px shrink-0"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 5a1.25 1.25 0 0 1 1.25 1.25v4.5a1.25 1.25 0 0 1-2.5 0v-4.5A1.25 1.25 0 0 1 12 7Zm0 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" /></svg>
                       {error}
                     </p>
                   ) : null}

@@ -15,7 +15,7 @@ import {
 } from "@/lib/girls-only-city";
 import { getNextSundayTableLocation } from "@/lib/sunday-table-locations";
 import { buildSundayTableAgendaItem } from "@/lib/sunday-table-agenda-item";
-import { hasEnoughSoldToShowSpots } from "@/lib/experience-booking";
+import { shouldShowSpotsCount } from "@/lib/experience-booking";
 import { enrichExperience } from "@/lib/experience-detail";
 import {
   breadcrumbJsonLd,
@@ -82,7 +82,10 @@ export async function GirlsOnlyCityPage({
     sundayTableItem.status === "available" &&
     sundayTableItem.capacity !== undefined &&
     sundayTableItem.spotsSold !== undefined &&
-    hasEnoughSoldToShowSpots(sundayTableItem.spotsSold) &&
+    shouldShowSpotsCount(
+      sundayTableItem.capacity - sundayTableItem.spotsSold,
+      sundayTableItem.spotsSold,
+    ) &&
     sundayTableItem.startsAt
   ) {
     const seatsLeft = Math.max(

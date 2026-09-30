@@ -59,7 +59,7 @@ interface SundayTableEventRevealProps {
   eventId: string;
   spotsLeft: number;
   /** False until enough real tickets have sold. Hides the numeric count in
-   * favor of a neutral "available" badge (see hasEnoughSoldToShowSpots). */
+   * favor of a neutral "available" badge (see shouldShowSpotsCount). */
   showSpotsCount: boolean;
   pricePerSeatEuros: number;
   /** Venue is still being finalized: shows the page but replaces the
@@ -396,8 +396,14 @@ export function SundayTableEventReveal({
                 while sticky; very short screens scroll inside the panel. */}
             <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-6 py-5 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 sm:py-6 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto">
               <p className="font-serif text-3xl text-wine">
-                €{pricePerSeatEuros}{" "}
-                <span className="font-sans text-sm text-wine/60">{perSeatLabel}</span>
+                {comingSoon ? (
+                  locale === "en" ? "Coming soon" : "Binnenkort"
+                ) : (
+                  <>
+                    €{pricePerSeatEuros}{" "}
+                    <span className="font-sans text-sm text-wine/60">{perSeatLabel}</span>
+                  </>
+                )}
               </p>
               <dl className="mt-3 space-y-2 border-t border-wine/10 pt-3 text-sm">
                 <div className="flex items-baseline justify-between gap-4">
@@ -547,8 +553,14 @@ export function SundayTableEventReveal({
           <div className="mx-auto flex max-w-lg items-center justify-between gap-4 px-5 pt-3">
             <div className="min-w-0">
               <p className="font-serif text-xl leading-none text-wine">
-                €{pricePerSeatEuros}{" "}
-                <span className="font-sans text-xs text-wine/55">{perSeatLabel}</span>
+                {comingSoon ? (
+                  locale === "en" ? "Coming soon" : "Binnenkort"
+                ) : (
+                  <>
+                    €{pricePerSeatEuros}{" "}
+                    <span className="font-sans text-xs text-wine/55">{perSeatLabel}</span>
+                  </>
+                )}
               </p>
               <p className="mt-1 truncate text-xs text-wine/60">
                 {/* Weekday and year dropped so it fits next to the button:

@@ -14,7 +14,7 @@ import {
 import {
   formatPerPerson,
   getSpotsLeft,
-  hasEnoughSoldToShowSpots,
+  shouldShowSpotsCount,
 } from "@/lib/experience-booking";
 import {
   formatAlmostFullImageHint,
@@ -110,8 +110,10 @@ export function ExperienceCard({
   const sundayTableBadge = sundayTableBadges.length > 0;
   const dateTimeLine = formatCardDateTimeLine(experience.dateTime, locale);
   const spotsLeft = getSpotsLeft(experience);
-  const priceLabel =
-    experience.price > 0
+  // A table that isn't on sale yet shows "Binnenkort" where the price goes.
+  const priceLabel = isComingSoon
+    ? statusLabels.comingSoon
+    : experience.price > 0
       ? formatPerPerson(experience.price, perPersonFromLabel)
       : null;
   const showUrgencyHint =
@@ -119,7 +121,7 @@ export function ExperienceCard({
     spotsLeft !== null &&
     spotsLeft > 0 &&
     (isAlmostFull || (isAvailable && spotsLeft <= 15)) &&
-    hasEnoughSoldToShowSpots(experience.spotsSold);
+    shouldShowSpotsCount(spotsLeft, experience.spotsSold);
   const urgencyHintText = isAlmostFull
     ? formatAlmostFullImageHint(spotsLeft!, locale)
     : formatSpotsLeftHint(spotsLeft!, locale);
@@ -183,12 +185,6 @@ export function ExperienceCard({
       {!isUnavailable && !showUrgencyHint && !isFemaleOnly && experience.status === "new" ? (
         <span className="absolute left-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-burgundy shadow-sm sm:text-[11px]">
           {statusLabels.new}
-        </span>
-      ) : null}
-
-      {isComingSoon && !isFemaleOnly ? (
-        <span className="absolute left-3 top-3 z-10 rounded-full bg-cream/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-wine/80 shadow-sm sm:text-[11px]">
-          {statusLabels.comingSoon}
         </span>
       ) : null}
 

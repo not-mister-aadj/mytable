@@ -4,7 +4,7 @@ import { sundayTableLocationPath } from "@/i18n/config";
 import type { SundayTableLpCitySlug } from "@/data/sunday-table-lp-cities";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
-import { hasEnoughSoldToShowSpots } from "@/lib/experience-booking";
+import { shouldShowSpotsCount } from "@/lib/experience-booking";
 import { getUpcomingSundayTableLocations } from "@/lib/sunday-table-locations";
 import {
   formatSundayTableCardDate,
@@ -84,7 +84,7 @@ export async function getUpcomingSundayTableDates(
           : seatsLeft === 0
             ? "soldOut"
             : "available",
-        spotsLeft: hasEnoughSoldToShowSpots(event.spotsSold) ? seatsLeft : null,
+        spotsLeft: shouldShowSpotsCount(seatsLeft, event.spotsSold) ? seatsLeft : null,
         href: sundayTableLocationPath(locale, citySlug, location.tableDate),
       };
     }),

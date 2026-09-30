@@ -4,6 +4,11 @@ import { CustomerProfileView } from "@/components/admin/CustomerProfileView";
 import { isDbConfigured } from "@/db/index";
 import { getAdminCustomerProfile } from "@/lib/admin-customers-data";
 import { getCustomerVisits } from "@/lib/venue-visits";
+import {
+  getCustomerSentEmails,
+  getCustomerTablemates,
+  getCustomerWaitlistAnswers,
+} from "@/lib/admin-customer-profile-extras";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 
@@ -28,10 +33,24 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
     notFound();
   }
 
+  const [waitlistAnswers, sentEmails, tablemates] = await Promise.all([
+    getCustomerWaitlistAnswers(profile.id, profile.email),
+    getCustomerSentEmails(profile.id),
+    getCustomerTablemates(profile.id, profile.email),
+  ]);
+
   void captureServerEvent(id, PostHogEvents.customerProfileViewed, {
     paid_bookings_count: profile.paidBookingsCount,
     total_bookings: profile.totalBookings,
   });
 
-  return <CustomerProfileView profile={profile} visits={visits} />;
+  return (
+    <CustomerProfileView
+      profile={profile}
+      visits={visits}
+      waitlistAnswers={waitlistAnswers}
+      sentEmails={sentEmails}
+      tablemates={tablemates}
+    />
+  );
 }

@@ -17,6 +17,16 @@ import {
 import type { AdminOperationalStatus } from "@/lib/admin-bookings-types";
 import type { AdminPaymentStatus } from "@/lib/admin-bookings-types";
 import type { CustomerVisits } from "@/lib/venue-visits";
+import type {
+  CustomerSentEmail,
+  CustomerTablemate,
+  CustomerWaitlistAnswers,
+} from "@/lib/admin-customer-profile-extras";
+import {
+  SentEmailsSection,
+  TablematesSection,
+  WaitlistAnswersSection,
+} from "@/components/admin/CustomerProfileExtras";
 
 function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("nl-NL", {
@@ -67,18 +77,55 @@ function plusOneSummary(totals: CustomerVisits["totals"]): string {
   return `${times} met een +1, samen ${totals.plusOnes} extra ${totals.plusOnes === 1 ? "plek" : "plekken"}${names}.`;
 }
 
+const ACTIVITY_FILTERS = [
+  { id: "all", label: "Alles", types: null },
+  {
+    id: "bookings",
+    label: "Boekingen",
+    types: [
+      "booking_created",
+      "checkout_started",
+      "booking_moved",
+      "booking_cancelled",
+    ],
+  },
+  {
+    id: "payments",
+    label: "Betalingen",
+    types: ["payment_completed", "payment_failed"],
+  },
+  { id: "mails", label: "Mails", types: ["email_sent"] },
+  { id: "waitlist", label: "Wachtlijst", types: ["waitlist_joined"] },
+  { id: "notes", label: "Notities", types: ["note_added"] },
+] as const;
+
+type ActivityFilterId = (typeof ACTIVITY_FILTERS)[number]["id"];
+
 export function CustomerProfileView({
   profile,
   visits,
+  waitlistAnswers,
+  sentEmails,
+  tablemates,
 }: {
   profile: AdminCustomerProfile;
   /** Paid, active bookings as visits, see src/lib/venue-visits.ts. */
   visits: CustomerVisits;
+  waitlistAnswers: CustomerWaitlistAnswers;
+  sentEmails: CustomerSentEmail[];
+  tablemates: CustomerTablemate[];
 }) {
   const router = useRouter();
   const [notes, setNotes] = useState(profile.notes ?? "");
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  const [activityFilter, setActivityFilter] = useState<ActivityFilterId>("all");
+
+  const activeFilterTypes: readonly string[] | null =
+    ACTIVITY_FILTERS.find((f) => f.id === activityFilter)?.types ?? null;
+  const filteredActivities = activeFilterTypes
+    ? profile.activities.filter((a) => activeFilterTypes.includes(a.type))
+    : profile.activities;
 
   function saveNotes() {
     startTransition(async () => {
@@ -201,6 +248,8 @@ export function CustomerProfileView({
         </section>
       </div>
 
+      <WaitlistAnswersSection data={waitlistAnswers} />
+
       <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
           Bezocht
@@ -273,6 +322,8 @@ export function CustomerProfileView({
         )}
       </section>
 
+      <TablematesSection mates={tablemates} />
+
       <section className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
           Boekingen
@@ -328,15 +379,40 @@ export function CustomerProfileView({
         )}
       </section>
 
+      <SentEmailsSection emails={sentEmails} />
+
       <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
           Activiteit
         </h2>
-        {profile.activities.length === 0 ? (
-          <p className="mt-4 text-sm text-wine/60">Nog geen activiteit.</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {ACTIVITY_FILTERS.map((filter) => {
+            const active = filter.id === activityFilter;
+            return (
+              <button
+                key={filter.id}
+                type="button"
+                onClick={() => setActivityFilter(filter.id)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                  active
+                    ? "bg-burgundy text-cream"
+                    : "border border-border-subtle bg-cream text-wine/70 hover:border-burgundy/30 hover:text-burgundy"
+                }`}
+              >
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+        {filteredActivities.length === 0 ? (
+          <p className="mt-4 text-sm text-wine/60">
+            {profile.activities.length === 0
+              ? "Nog geen activiteit."
+              : "Geen activiteit in deze categorie."}
+          </p>
         ) : (
           <ol className="mt-4 space-y-4">
-            {profile.activities.map((activity) => (
+            {filteredActivities.map((activity) => (
               <li
                 key={activity.id}
                 className="relative border-l-2 border-burgundy/20 pl-4"

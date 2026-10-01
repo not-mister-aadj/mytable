@@ -14,6 +14,15 @@ import { trackMetaCompleteRegistration, trackMetaPageView } from "@/lib/analytic
 import { persistUtmFromUrl } from "@/lib/analytics/utm";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 
+/** The "Jouw tafel" quiz moves between its screens with `?stap=` in the URL
+ * (so PostHog shows each screen). That is one page for Meta, not one
+ * PageView per answer, so the step is left out of the dedupe key. */
+function pageViewQuery(params: URLSearchParams): string {
+  const copy = new URLSearchParams(params.toString());
+  copy.delete("stap");
+  return copy.toString();
+}
+
 function MetaPixelTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -37,7 +46,7 @@ function MetaPixelTracker() {
         const pending = pendingRef.current;
         if (pending) {
           pendingRef.current = null;
-          const key = `${pending.pathname}?${pending.query}`;
+          const key = `${pending.pathname}?${pageViewQuery(new URLSearchParams(pending.query))}`;
           if (lastTrackedPathRef.current !== key) {
             lastTrackedPathRef.current = key;
             persistUtmFromUrl(pending.query ? `?${pending.query}` : "");
@@ -65,7 +74,7 @@ function MetaPixelTracker() {
     if (!isMetaPixelEnabled() || !pathname) return;
 
     const query = searchParams.toString();
-    const key = `${pathname}?${query}`;
+    const key = `${pathname}?${pageViewQuery(searchParams)}`;
 
     if (!readyRef.current) {
       pendingRef.current = { pathname, query };

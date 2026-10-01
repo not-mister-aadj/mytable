@@ -37,6 +37,8 @@ function localizePathForLocale(path: string, locale: Locale): string {
   if (locale === "nl" && path === "/terms") return "/algemene-voorwaarden";
   if (locale === "en" && path === "/inloggen") return "/login";
   if (locale === "nl" && path === "/login") return "/inloggen";
+  if (locale === "en" && path === "/jouw-tafel") return "/your-table";
+  if (locale === "nl" && path === "/your-table") return "/jouw-tafel";
   return path;
 }
 

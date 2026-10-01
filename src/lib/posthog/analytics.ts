@@ -154,6 +154,8 @@ export function trackEmailSignupCompleted(props: {
   city: string;
   language: string;
   source_section: AnalyticsSourceSection;
+  /** Which form it came from, on waitlist_signup (e.g. "quiz"). */
+  source?: string;
 }): void {
   capture(PostHogEvents.emailSignupCompleted, {
     email_hash: hashEmailClient(props.email),
@@ -164,7 +166,23 @@ export function trackEmailSignupCompleted(props: {
   capture(PostHogEvents.waitlistSignup, {
     city: props.city,
     locale: props.language,
+    ...(props.source ? { source: props.source } : {}),
   });
+}
+
+/** "Jouw tafel" quiz events. Never pass an email or name in here. */
+export function trackQuizEvent(
+  event:
+    | typeof PostHogEvents.quizStepViewed
+    | typeof PostHogEvents.quizStepCompleted
+    | typeof PostHogEvents.quizEmailSubmitted
+    | typeof PostHogEvents.quizResultShown
+    | typeof PostHogEvents.quizReserveClicked
+    | typeof PostHogEvents.quizCalendarClicked
+    | typeof PostHogEvents.quizShareClicked,
+  props: AnalyticsProperties,
+): void {
+  capture(event, props);
 }
 
 /** Fired when someone answers (or explicitly skips) the waitlist preference questions. */

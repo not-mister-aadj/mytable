@@ -1,15 +1,16 @@
 <!--
-  SUPERSEDED: paste emails/supabase-otp-code.html into "Magic Link" instead
-  (one template for both, used by the /jouw-tafel account screens).
+  Supabase Auth > Email Templates: paste this SAME template into BOTH
+  "Magic Link" and "Confirm signup", in BOTH projects (dev lptiylzvkiodxmupkdbm
+  and prod bwxpzxyzsaecjeqrazxz). New addresses get "Confirm signup", known
+  ones get "Magic Link"; both must show the 6-digit {{ .Token }}.
 
-  Supabase Auth → Email Templates → Magic Link
-  Subject: Je inlogcode: {{ .Token }}
+  Subject: Je code voor MyTable: {{ .Token }}
 
-  Uses {{ .Token }} (OTP) - required by the MyTable login modal.
-  Do not use {{ .ConfirmationURL }} for this flow.
-
-  Note: new / unconfirmed users get the Confirm signup template instead -
-  keep that one in sync (emails/supabase-confirm-signup.html).
+  Used by the account screens behind /jouw-tafel (Aanmelden / Inloggen):
+  the person types this code on the page, they never click a link (that
+  would open a new browser outside Instagram or Facebook). Dutch first with
+  a short English line, because we don't know the language yet when the
+  code goes out. Also set Auth > Providers > Email > "Email OTP Length" to 6.
 -->
 <!DOCTYPE html>
 <html lang="nl">
@@ -17,7 +18,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>Je inlogcode voor MyTable</title>
+    <title>Je code voor MyTable</title>
   </head>
   <body
     style="
@@ -96,18 +97,29 @@
                     color: #600d1e;
                   "
                 >
-                  Je inlogcode
+                  Je code
                 </h1>
                 <p
                   style="
-                    margin: 0 0 28px;
+                    margin: 0 0 6px;
                     font-size: 14px;
                     line-height: 22px;
                     color: #7a6568;
                   "
                 >
-                  Gebruik deze code om in te loggen bij MyTable. De code is kort
-                  geldig en kun je maar één keer gebruiken.
+                  Vul deze code in op de pagina waar je hem hebt aangevraagd. De
+                  code is kort geldig en werkt maar een keer.
+                </p>
+                <p
+                  style="
+                    margin: 0 0 28px;
+                    font-size: 13px;
+                    line-height: 20px;
+                    color: #9a8789;
+                  "
+                >
+                  Enter this code on the page where you asked for it. It is
+                  only valid for a short while and works once.
                 </p>
 
                 <p
@@ -121,7 +133,7 @@
                     text-align: center;
                   "
                 >
-                  Inlogcode
+                  Code
                 </p>
                 <p
                   style="
@@ -147,6 +159,18 @@
                   "
                 >
                   Voor {{ .Email }}
+                </p>
+                <p
+                  style="
+                    margin: 18px 0 0;
+                    text-align: center;
+                    font-size: 12px;
+                    line-height: 18px;
+                    color: #9a8789;
+                  "
+                >
+                  Niet aangevraagd? Dan kun je deze mail negeren.<br />
+                  Didn't ask for this? You can ignore this email.
                 </p>
               </td>
             </tr>

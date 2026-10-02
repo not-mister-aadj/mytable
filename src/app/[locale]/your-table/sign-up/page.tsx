@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  JouwTafelPlaceholderPage,
-  jouwTafelPlaceholderMetadata,
-} from "@/components/jouw-tafel/JouwTafelPage";
+  JouwTafelAuthPage,
+  jouwTafelAuthMetadata,
+  type AccountSearchParams,
+} from "@/components/jouw-tafel/JouwTafelAccountPages";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<AccountSearchParams>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (locale !== "en") return {};
-  return jouwTafelPlaceholderMetadata("en", "signup");
+  return jouwTafelAuthMetadata("en", "signup");
 }
 
 /** English version of /jouw-tafel/aanmelden. */
-export default async function YourTableSignUpRoute({ params }: Props) {
+export default async function YourTableSignUpRoute({ params, searchParams }: Props) {
   const { locale } = await params;
   if (locale !== "en") notFound();
-  return <JouwTafelPlaceholderPage locale="en" kind="signup" />;
+  return <JouwTafelAuthPage locale="en" screen="signup" searchParams={await searchParams} />;
 }

@@ -42,6 +42,13 @@ export const PostHogEvents = {
   landingCtaClicked: "landing_cta_clicked",
   landingSignupPageViewed: "landing_signup_page_viewed",
   landingLoginPageViewed: "landing_login_page_viewed",
+  /** Account screens behind the landing page (sign up / log in). */
+  authScreenViewed: "auth_screen_viewed",
+  authCodeRequested: "auth_code_requested",
+  authCodeVerified: "auth_code_verified",
+  authCodeFailed: "auth_code_failed",
+  authGoogleClicked: "auth_google_clicked",
+  authGoogleHiddenInApp: "auth_google_hidden_in_app",
 } as const;
 
 export type PostHogEventName =

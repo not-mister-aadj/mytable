@@ -179,6 +179,21 @@ export function trackJouwTafelEvent(
   capture(event, props);
 }
 
+/** "Jouw tafel" account screens (sign up / log in). Never pass an email in
+ * here: screen, step and reason only. */
+export function trackJouwTafelAuthEvent(
+  event:
+    | typeof PostHogEvents.authScreenViewed
+    | typeof PostHogEvents.authCodeRequested
+    | typeof PostHogEvents.authCodeVerified
+    | typeof PostHogEvents.authCodeFailed
+    | typeof PostHogEvents.authGoogleClicked
+    | typeof PostHogEvents.authGoogleHiddenInApp,
+  props: AnalyticsProperties & { screen: "signup" | "login" },
+): void {
+  capture(event, props);
+}
+
 /** Fired when someone answers (or explicitly skips) the waitlist preference questions. */
 export function trackSundayTableWaitlistEnriched(props: {
   city: string;

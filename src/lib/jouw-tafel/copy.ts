@@ -1,12 +1,57 @@
-// All "Jouw tafel" copy, Dutch and English: the landing page and the two
-// placeholder pages behind its buttons. House rules: short, calm and warm,
-// no em dashes, no exclamation marks, no emojis. Never name a venue (the
-// wine bar is booked once the tables are known) and never suggest a drink
-// is included. No prices on the landing page for now: they are changing.
+// All "Jouw tafel" copy, Dutch and English: the landing page and the
+// account screens behind its buttons (sign up, log in, welcome). House
+// rules: short, calm and warm, no em dashes, no exclamation marks, no
+// emojis. Never name a venue (the wine bar is booked once the tables are
+// known) and never suggest a drink is included. No prices on the landing
+// page for now: they are changing.
 
 import type { Locale } from "@/i18n/config";
 
 export type FaqItem = { q: string; a: string };
+
+export type AuthCopy = {
+  signUp: { metaTitle: string; title: string; sub: string; switchPrompt: string; switchLink: string };
+  logIn: { metaTitle: string; title: string; sub: string; switchPrompt: string; switchLink: string };
+  google: string;
+  googleFailed: string;
+  or: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  sendCode: string;
+  sending: string;
+  errors: {
+    emailEmpty: string;
+    emailInvalid: string;
+    unknownEmail: string;
+    createAccount: string;
+    rateLimited: string;
+    generic: string;
+  };
+  /** "Door je aan te melden ga je akkoord met de [terms] en het [privacy]." */
+  legal: { before: string; terms: string; between: string; privacy: string; after: string };
+  code: {
+    title: string;
+    body: (email: string) => string;
+    label: string;
+    confirm: string;
+    verifying: string;
+    wrong: string;
+    incomplete: string;
+    noCode: string;
+    resend: string;
+    resendIn: (seconds: number) => string;
+    resent: string;
+    otherEmail: string;
+  };
+  welcome: {
+    metaTitle: string;
+    title: string;
+    created: string;
+    signedIn: string;
+    next: string;
+    back: string;
+  };
+};
 
 export type LandingCopy = {
   meta: { title: string; description: string };
@@ -48,15 +93,9 @@ export type LandingCopy = {
   faq: { eyebrow: string; title: string; items: FaqItem[] };
   closing: { title: string; note: string };
   footer: { terms: string; privacy: string };
-  /** /jouw-tafel/aanmelden and /jouw-tafel/inloggen, until accounts exist. */
-  placeholder: {
-    signUpTitle: string;
-    logInTitle: string;
-    title: string;
-    signUpBody: string;
-    logInBody: string;
-    back: string;
-  };
+  /** Account screens behind "Aanmelden" and "Inloggen", and the welcome
+   * page after them. */
+  auth: AuthCopy;
 };
 
 // ---------------------------------------------------------------------------
@@ -191,13 +230,65 @@ const landingNl: LandingCopy = {
     note: "Aanmelden duurt een minuut. Daarna kies je je zondag.",
   },
   footer: { terms: "Algemene voorwaarden", privacy: "Privacy" },
-  placeholder: {
-    signUpTitle: "Aanmelden | MyTable",
-    logInTitle: "Inloggen | MyTable",
-    title: "Hier wordt nog aan gewerkt",
-    signUpBody: "Binnenkort maak je hier je account aan en kies je je zondag.",
-    logInBody: "Binnenkort log je hier in.",
-    back: "Terug",
+  auth: {
+    signUp: {
+      metaTitle: "Aanmelden | MyTable",
+      title: "Maak je account",
+      sub: "Met je e-mailadres, zonder wachtwoord. Daarna kies je je zondag.",
+      switchPrompt: "Heb je al een account?",
+      switchLink: "Inloggen",
+    },
+    logIn: {
+      metaTitle: "Inloggen | MyTable",
+      title: "Welkom terug",
+      sub: "Log in met je e-mailadres, zonder wachtwoord.",
+      switchPrompt: "Nog geen account?",
+      switchLink: "Maak een account",
+    },
+    google: "Doorgaan met Google",
+    googleFailed: "Inloggen met Google lukte niet. Probeer het opnieuw of gebruik je e-mailadres.",
+    or: "of",
+    emailLabel: "E-mailadres",
+    emailPlaceholder: "naam@voorbeeld.nl",
+    sendCode: "Stuur mij een code",
+    sending: "Code wordt verstuurd",
+    errors: {
+      emailEmpty: "Vul je e-mailadres in.",
+      emailInvalid: "Dit e-mailadres lijkt niet te kloppen. Kijk het nog even na.",
+      unknownEmail: "We kennen dit e-mailadres nog niet.",
+      createAccount: "Maak een account",
+      rateLimited: "Er zijn net een paar codes verstuurd. Wacht even en probeer het dan opnieuw.",
+      generic: "Dat lukte even niet. Probeer het opnieuw.",
+    },
+    legal: {
+      before: "Door je aan te melden ga je akkoord met de ",
+      terms: "algemene voorwaarden",
+      between: " en het ",
+      privacy: "privacybeleid",
+      after: ".",
+    },
+    code: {
+      title: "Check je mail",
+      body: (email) => `We hebben een code van 6 cijfers gestuurd naar ${email}.`,
+      label: "Code van 6 cijfers",
+      confirm: "Bevestig",
+      verifying: "Even controleren",
+      wrong: "Deze code klopt niet of is verlopen. Probeer het opnieuw of vraag een nieuwe code aan.",
+      incomplete: "Vul alle 6 cijfers in.",
+      noCode: "Geen code ontvangen? Kijk ook even in je spam of reclame.",
+      resend: "Stuur opnieuw",
+      resendIn: (seconds) => `Stuur opnieuw (${seconds} s)`,
+      resent: "We hebben je een nieuwe code gestuurd.",
+      otherEmail: "Ander e-mailadres",
+    },
+    welcome: {
+      metaTitle: "Welkom | MyTable",
+      title: "Welkom bij MyTable",
+      created: "Je account is aangemaakt.",
+      signedIn: "Je bent ingelogd.",
+      next: "Binnenkort kies je hier je zondag.",
+      back: "Terug naar de tafels",
+    },
   },
 };
 
@@ -333,13 +424,65 @@ const landingEn: LandingCopy = {
     note: "Signing up takes a minute. Then you choose your Sunday.",
   },
   footer: { terms: "Terms", privacy: "Privacy" },
-  placeholder: {
-    signUpTitle: "Sign up | MyTable",
-    logInTitle: "Log in | MyTable",
-    title: "We're still working on this",
-    signUpBody: "Soon you'll create your account here and choose your Sunday.",
-    logInBody: "Soon you'll log in here.",
-    back: "Back",
+  auth: {
+    signUp: {
+      metaTitle: "Sign up | MyTable",
+      title: "Create your account",
+      sub: "With your email address, no password. Then you choose your Sunday.",
+      switchPrompt: "Already have an account?",
+      switchLink: "Log in",
+    },
+    logIn: {
+      metaTitle: "Log in | MyTable",
+      title: "Welcome back",
+      sub: "Log in with your email address, no password.",
+      switchPrompt: "No account yet?",
+      switchLink: "Create an account",
+    },
+    google: "Continue with Google",
+    googleFailed: "Signing in with Google didn't work. Try again or use your email address.",
+    or: "or",
+    emailLabel: "Email address",
+    emailPlaceholder: "name@example.com",
+    sendCode: "Send me a code",
+    sending: "Sending your code",
+    errors: {
+      emailEmpty: "Fill in your email address.",
+      emailInvalid: "This email address doesn't look right. Please check it.",
+      unknownEmail: "We don't know this email address yet.",
+      createAccount: "Create an account",
+      rateLimited: "A few codes were just sent. Wait a moment and try again.",
+      generic: "That didn't work. Please try again.",
+    },
+    legal: {
+      before: "By signing up you agree to the ",
+      terms: "terms and conditions",
+      between: " and the ",
+      privacy: "privacy policy",
+      after: ".",
+    },
+    code: {
+      title: "Check your email",
+      body: (email) => `We sent a 6-digit code to ${email}.`,
+      label: "6-digit code",
+      confirm: "Confirm",
+      verifying: "Checking",
+      wrong: "This code is incorrect or has expired. Try again or request a new code.",
+      incomplete: "Fill in all 6 digits.",
+      noCode: "No code? Please check your spam or promotions folder too.",
+      resend: "Send again",
+      resendIn: (seconds) => `Send again (${seconds} s)`,
+      resent: "We sent you a new code.",
+      otherEmail: "Different email address",
+    },
+    welcome: {
+      metaTitle: "Welcome | MyTable",
+      title: "Welcome to MyTable",
+      created: "Your account has been created.",
+      signedIn: "You're logged in.",
+      next: "Soon you'll choose your Sunday here.",
+      back: "Back to the tables",
+    },
   },
 };
 

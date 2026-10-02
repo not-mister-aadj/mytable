@@ -150,39 +150,39 @@ const landingNl: LandingCopy = {
     items: [
       {
         q: "Ik ken er niemand. Is dat raar?",
-        a: "Nee. De meeste mensen komen alleen. Je schuift aan en het gesprek begint vanzelf.",
+        a: "Helemaal niet. De meeste gasten komen alleen, dus je bent zeker niet de enige. Iedereen komt voor hetzelfde: een gezellige middag met een goed glas wijn. Het gesprek komt meestal vanzelf op gang.",
       },
       {
         q: "Mag ik iemand meenemen?",
-        a: "Ja. Kies twee plekken, dan zitten jullie samen aan tafel.",
+        a: "Natuurlijk. Neem gerust een vriend of vriendin, je partner of iemand anders mee. Je boekt dan twee plekken en jullie zitten samen aan dezelfde tafel.",
       },
       {
         q: "Zit er drinken bij?",
-        a: "Nee. Wat je drinkt, bestel en betaal je zelf aan tafel. Kies een glas van de kaart, of een van onze aanraders.",
+        a: "Nee, je drankjes zijn niet inbegrepen. Aan tafel bestel je zelf wat je wilt drinken en dat reken je ook zelf af bij de wijnbar. Weet je niet goed wat je moet kiezen? Dan helpen onze wijnaanraders je op weg.",
       },
       {
         q: "Waar is het?",
-        a: "In een wijnbar in jouw stad. We boeken de plek zodra we weten met hoeveel jullie zijn. Een week van tevoren hoor je waar.",
+        a: "Altijd in een goede wijnbar in jouw stad. Welke zaak het wordt, kiezen we zodra we weten met hoeveel jullie zijn, zodat de plek goed bij jullie tafel past. Een week van tevoren krijg je het adres in je mail.",
       },
       {
         q: "Gaat het altijd door?",
-        a: "Vanaf 4 gasten. Een week van tevoren hoor je of je tafel doorgaat. Wordt het niet gehaald, dan krijg je je geld automatisch terug en een andere datum aangeboden.",
+        a: "Een tafel gaat door vanaf 4 gasten. Een week van tevoren laten we je weten of dat gelukt is. Lukt het niet, dan krijg je je geld automatisch terug en stellen we je een andere datum voor.",
       },
       {
         q: "Kan ik mijn datum wijzigen?",
-        a: "Ja, tot 7 dagen van tevoren kies je kosteloos een andere zondag. Daarna boeken we de wijnbar en ligt je plek vast.",
+        a: "Ja. Tot 7 dagen voor je tafel kies je kosteloos een andere zondag: laat het ons weten en we zetten je over. Daarna kan het niet meer, omdat we dan de wijnbar voor jullie tafel reserveren.",
       },
       {
         q: "Wat als ik het niet gezellig vond?",
-        a: "Laat het ons binnen 2 dagen na je tafel weten. Dan is je volgende Sunday Table op ons.",
+        a: "Dat horen we graag van je. Laat het ons binnen 2 dagen na je tafel weten, dan is je volgende Sunday Table op ons. Zo kun je het nog een keer proberen, aan een andere tafel.",
       },
       {
         q: "Is het een datingevent?",
-        a: "Nee. Gewoon een gezellige tafel met goede wijn.",
+        a: "Nee. Sunday Table is een gezellige middag aan tafel, met goede wijn en goede gesprekken. Er zitten mannen en vrouwen aan tafel, en iedereen komt voor de gezelligheid.",
       },
       {
         q: "In welke taal?",
-        a: "Nederlands. Sommige tafels zijn ook open voor Engels; dat zie je bij de datum.",
+        a: "Meestal in het Nederlands. Bij sommige tafels is Engels ook welkom; dat zie je bij de datum staan. Zo weet je van tevoren wat je kunt verwachten.",
       },
     ],
   },
@@ -292,39 +292,39 @@ const landingEn: LandingCopy = {
     items: [
       {
         q: "I won't know anyone. Is that strange?",
-        a: "No. Most people come alone. You take your seat and the conversation starts by itself.",
+        a: "Not at all. Most guests come alone, so you certainly won't be the only one. Everyone comes for the same thing: a convivial afternoon with a good glass of wine. The conversation usually gets going by itself.",
       },
       {
         q: "Can I bring someone?",
-        a: "Yes. Choose two seats and you'll sit at the table together.",
+        a: "Of course. Feel free to bring a friend, your partner or anyone else. You book two seats and you'll sit together at the same table.",
       },
       {
         q: "Are drinks included?",
-        a: "No. Whatever you drink, you order and pay for yourself at the table. Choose a glass from the list, or one of our recommendations.",
+        a: "No, drinks are not included. At the table you order whatever you'd like to drink and you pay for it yourself at the wine bar. Not sure what to choose? Our wine recommendations will help you on your way.",
       },
       {
         q: "Where is it?",
-        a: "In a wine bar in your city. We book the place once we know how many of you there are. You'll hear where a week ahead.",
+        a: "Always in a good wine bar in your city. We choose the place once we know how many of you there are, so it suits your table. You'll get the address by email a week ahead.",
       },
       {
         q: "Does it always go ahead?",
-        a: "From 4 guests. A week before, you hear whether your table is going ahead. If not, you automatically get your money back and we offer you another date.",
+        a: "A table goes ahead from 4 guests. A week ahead we let you know whether that worked out. If it didn't, you automatically get your money back and we suggest another date.",
       },
       {
         q: "Can I change my date?",
-        a: "Yes, up to 7 days before you choose another Sunday at no cost. After that we book the wine bar and your seat is fixed.",
+        a: "Yes. Up to 7 days before your table you can choose another Sunday at no cost: just let us know and we'll move you. After that it's no longer possible, because that's when we reserve the wine bar for your table.",
       },
       {
-        q: "What if I did not enjoy it?",
-        a: "Let us know within 2 days after your table. Then your next Sunday Table is on us.",
+        q: "What if I didn't enjoy it?",
+        a: "We'd like to hear that. Let us know within 2 days after your table and your next Sunday Table is on us. That way you can give it another try, at a different table.",
       },
       {
         q: "Is it a dating event?",
-        a: "No. Simply a convivial table with good wine.",
+        a: "No. Sunday Table is a convivial afternoon at the table, with good wine and good conversation. Men and women sit together, and everyone comes for the company.",
       },
       {
         q: "In which language?",
-        a: "Dutch. Some tables are open to English too; you'll see that by the date.",
+        a: "Mostly Dutch. At some tables English is welcome too; you'll see that next to the date. So you know what to expect beforehand.",
       },
     ],
   },

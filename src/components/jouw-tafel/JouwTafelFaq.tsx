@@ -47,7 +47,7 @@ export function JouwTafelFaq({ items }: { items: FaqItem[] }) {
               }`}
             >
               <div className="overflow-hidden">
-                <p className="pb-5 pr-10 text-[1rem] leading-relaxed text-wine/70">{item.a}</p>
+                <p className="max-w-[38rem] pb-6 pr-6 text-[1.05rem] leading-[1.75] text-wine/85 sm:pr-12">{item.a}</p>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { getDb, isDbConfigured } from "@/db/index";
-import { events } from "@/db/schema";
+import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { bracketFromEventName, type QuizEvent } from "@/lib/jouw-tafel/logic";
@@ -58,6 +58,46 @@ const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events"]
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });
+
+/** People on the waitlist: everyone (distinct emails) and per city (one row
+ * per email and city). Only aggregates leave the server. */
+async function loadWaitlistCounts(): Promise<{ total: number; byCity: Record<string, number> }> {
+  if (!isDbConfigured()) return { total: 0, byCity: {} };
+  const db = getDb();
+  const [totalRow] = await db
+    .select({ n: sql<number>`count(distinct lower(${waitlistSignups.email}))::int` })
+    .from(waitlistSignups);
+  const cityRows = await db
+    .select({ city: waitlistSignups.city, n: sql<number>`count(*)::int` })
+    .from(waitlistSignups)
+    .groupBy(waitlistSignups.city);
+  const byCity: Record<string, number> = {};
+  for (const row of cityRows) if (row.city) byCity[row.city] = row.n;
+  return { total: totalRow?.n ?? 0, byCity };
+}
+
+const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-waitlist-counts"], {
+  revalidate: 3600,
+});
+
+/** The social-proof number under the hero: people from the visitor's city
+ * when known and big enough, otherwise everyone. Rounded down to tens; null
+ * when the number would be too small to say anything (under 20). */
+export async function getWaitlistProof(
+  city: string | null,
+): Promise<{ count: number; city: string | null } | null> {
+  try {
+    const counts = await getCachedWaitlistCounts();
+    const floorTens = (n: number) => Math.floor(n / 10) * 10;
+    const cityCount = city ? counts.byCity[city] ?? 0 : 0;
+    if (city && cityCount >= 20) return { count: floorTens(cityCount), city };
+    if (counts.total >= 20) return { count: floorTens(counts.total), city: null };
+    return null;
+  } catch (error) {
+    console.error("[jouw-tafel] loading waitlist counts failed", error);
+    return null;
+  }
+}
 
 /** Upcoming Sunday Tables for the landing page, with the moment they are
  * judged against (passed to the client, so both render the same list).

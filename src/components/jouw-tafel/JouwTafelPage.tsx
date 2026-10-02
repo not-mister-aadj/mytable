@@ -6,7 +6,7 @@ import { PlaceholderViewTracker } from "@/components/jouw-tafel/PlaceholderViewT
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
 import { jouwTafelPath, type Locale } from "@/i18n/config";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
-import { getJouwTafelEvents } from "@/lib/jouw-tafel/data";
+import { getJouwTafelEvents, getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { requestCity, type JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 
 const NO_INDEX: Metadata["robots"] = {
@@ -43,11 +43,13 @@ export async function JouwTafelPage({
   searchParams: JouwTafelSearchParams;
 }) {
   const [{ events, now }, geoCity] = await Promise.all([getJouwTafelEvents(), requestCity(searchParams)]);
+  const proof = await getWaitlistProof(geoCity);
   return (
     <JouwTafelLanding
       locale={locale}
       events={events}
       geoCity={geoCity}
+      proof={proof}
       now={now}
       preview={searchParams.voorbeeld === "1"}
     />

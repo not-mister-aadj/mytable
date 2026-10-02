@@ -12,7 +12,14 @@ export type LandingCopy = {
   meta: { title: string; description: string };
   signUp: string;
   logIn: string;
-  hero: { title: string; body: string; note: string; imageAlt: string; locationAria: string };
+  hero: {
+    title: string;
+    body: string;
+    note: string;
+    proof: (count: number, city: string | null) => string;
+    imageAlt: string;
+    locationAria: string;
+  };
   herkenning: { title: string; lines: string[]; closing: string };
   howItWorks: {
     eyebrow: string;
@@ -63,8 +70,10 @@ const landingNl: LandingCopy = {
   logIn: "Inloggen",
   hero: {
     title: "Een goede wijnbar. Een gezellige tafel. Jouw zondag.",
-    body: "Elke maand schuif je in jouw stad aan bij een tafel van 4 tot 6 mensen die net zo van een goed glas houden als jij. Wij regelen de tafel en de plek, jij komt.",
+    body: "Elke maand een tafel van 4 tot 6 mensen in een goede wijnbar in jouw stad. Wij regelen alles, jij schuift aan.",
     note: "Aanmelden duurt een minuut. Daarna kies je je zondag.",
+    proof: (count, city) =>
+      city ? `Al ${count}+ mensen uit ${city} staan op de lijst` : `Al ${count}+ mensen staan op de lijst`,
     imageAlt: "Een volle tafel heft het glas tijdens een MyTable wijnmiddag",
     locationAria: "Jouw stad",
   },
@@ -203,8 +212,10 @@ const landingEn: LandingCopy = {
   logIn: "Log in",
   hero: {
     title: "A good wine bar. A convivial table. Your Sunday.",
-    body: "Every month you join a table of 4 to 6 people in your city who enjoy a good glass as much as you do. We arrange the table and the place, you just come.",
+    body: "Every month, a table of 4 to 6 people in a good wine bar in your city. We arrange everything, you take your seat.",
     note: "Signing up takes a minute. Then you choose your Sunday.",
+    proof: (count, city) =>
+      city ? `${count}+ people from ${city} are already on the list` : `${count}+ people are already on the list`,
     imageAlt: "A full table raises a glass during a MyTable wine afternoon",
     locationAria: "Your city",
   },

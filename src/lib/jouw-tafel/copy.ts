@@ -106,7 +106,7 @@ const landingNl: LandingCopy = {
         body: "Om 14:00 neem je plaats. Kies een glas van de kaart, of een van onze aanraders. Je drankjes bestel je zelf.",
       },
     ],
-    reassurance: "Iedereen aan tafel koos er zelf voor om er te zijn.",
+    reassurance: "Het enige wat jij nog hoeft te doen: aanschuiven.",
     imageAlt: "Gesprek en gelach aan tafel, met wijnglazen op tafel",
   },
   tables: {
@@ -150,7 +150,7 @@ const landingNl: LandingCopy = {
     items: [
       {
         q: "Ik ken er niemand. Is dat raar?",
-        a: "Nee. De meeste mensen komen alleen, en iedereen aan tafel koos er zelf voor om er te zijn.",
+        a: "Nee. De meeste mensen komen alleen. Je schuift aan en het gesprek begint vanzelf.",
       },
       {
         q: "Mag ik iemand meenemen?",
@@ -248,7 +248,7 @@ const landingEn: LandingCopy = {
         body: "At 2:00 PM you sit down. Choose a glass from the list, or one of our recommendations. You order your own drinks.",
       },
     ],
-    reassurance: "Everyone at the table chose to be there.",
+    reassurance: "All you need to do is take your seat.",
     imageAlt: "Conversation and laughter at a table with wine glasses",
   },
   tables: {
@@ -292,7 +292,7 @@ const landingEn: LandingCopy = {
     items: [
       {
         q: "I won't know anyone. Is that strange?",
-        a: "No. Most people come alone, and everyone at the table chose to be there.",
+        a: "No. Most people come alone. You take your seat and the conversation starts by itself.",
       },
       {
         q: "Can I bring someone?",

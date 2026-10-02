@@ -13,10 +13,9 @@ import {
   termsPath,
   type Locale,
 } from "@/i18n/config";
-import { formatEuros, getLandingCopy } from "@/lib/jouw-tafel/copy";
+import { getLandingCopy } from "@/lib/jouw-tafel/copy";
 import {
   displayCity,
-  seatPriceCents,
   type QuizCity,
   type QuizEvent,
 } from "@/lib/jouw-tafel/logic";
@@ -48,7 +47,7 @@ export type LandingSection =
   | "zo-werkt-het"
   | "tafels"
   | "aan-tafel"
-  | "geld-terug"
+  | "belofte"
   | "faq"
   | "afsluiter";
 
@@ -138,8 +137,6 @@ export function JouwTafelLanding({
   preview: boolean;
 }) {
   const copy = getLandingCopy(locale);
-  const priceCents = seatPriceCents(events, now);
-  const price = priceCents !== null ? formatEuros(priceCents) : null;
   const city = geoCity ? displayCity(geoCity, locale) : null;
   const signUpHref = jouwTafelSignUpPath(locale);
   const logInHref = jouwTafelLogInPath(locale);
@@ -217,6 +214,7 @@ export function JouwTafelLanding({
   };
 
   const stepIcons = [CalendarIcon, DoorIcon, GlassIcon];
+  const promiseIcons = [CalendarIcon, ShieldIcon, GlassIcon];
 
   return (
     <MotionConfig reducedMotion="user">
@@ -408,24 +406,32 @@ export function JouwTafelLanding({
           </div>
         </section>
 
-        {/* 6. Geld terug */}
-        <section data-landing-section="geld-terug" className="px-4 py-14 sm:px-8 sm:py-20">
-          <Reveal className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] bg-wine px-7 py-10 text-cream sm:px-12 sm:py-14">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_10%_0%,rgba(197,154,91,0.22),transparent_55%)]" />
-            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-gold/50 text-gold">
-                <ShieldIcon className="h-7 w-7" />
-              </span>
-              <div>
-                <h2 className="font-serif text-[1.85rem] font-medium leading-[1.12] tracking-tight text-balance sm:text-[2.3rem]">
-                  {copy.moneyBack.title}
-                </h2>
-                <p className="mt-4 max-w-2xl text-[1rem] leading-relaxed text-cream/75">
-                  {copy.moneyBack.body(price)}
-                </p>
-              </div>
-            </div>
-          </Reveal>
+        {/* 6. Onze belofte: three light promises, same style as "Zo werkt het". */}
+        <section data-landing-section="belofte" className="py-16 sm:py-20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+            <Reveal className="text-center">
+              <p className={eyebrowClass}>{copy.promise.eyebrow}</p>
+              <h2 className={`${h2Class} mt-3`}>{copy.promise.title}</h2>
+            </Reveal>
+            <ul className="mt-10 grid gap-4 sm:grid-cols-3 sm:gap-5">
+              {copy.promise.items.map((item, index) => {
+                const Icon = promiseIcons[index] ?? ShieldIcon;
+                return (
+                  <Reveal key={item.title} delay={index * 0.08} className="h-full">
+                    <li className="flex h-full flex-col rounded-[1.5rem] border border-wine/8 bg-white/70 p-6">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 text-burgundy">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <h3 className="mt-4 font-serif text-[1.35rem] font-medium leading-tight text-wine">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-[0.96rem] leading-relaxed text-wine/70">{item.body}</p>
+                    </li>
+                  </Reveal>
+                );
+              })}
+            </ul>
+          </div>
         </section>
 
         {/* 7. FAQ */}
@@ -435,7 +441,7 @@ export function JouwTafelLanding({
               <p className={eyebrowClass}>{copy.faq.eyebrow}</p>
               <h2 className={`${h2Class} mt-3`}>{copy.faq.title}</h2>
             </Reveal>
-            <JouwTafelFaq items={copy.faq.items(price)} />
+            <JouwTafelFaq items={copy.faq.items} />
           </div>
         </section>
 

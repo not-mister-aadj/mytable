@@ -2,7 +2,7 @@
 // placeholder pages behind its buttons. House rules: short, calm and warm,
 // no em dashes, no exclamation marks, no emojis. Never name a venue (the
 // wine bar is booked once the tables are known) and never suggest a drink
-// is included: the price is the seat.
+// is included. No prices on the landing page for now: they are changing.
 
 import type { Locale } from "@/i18n/config";
 
@@ -34,8 +34,8 @@ export type LandingCopy = {
     empty: (city: string) => string;
   };
   testimonials: { eyebrow: string; title: string; imageAlt: string };
-  moneyBack: { title: string; body: (price: string | null) => string };
-  faq: { eyebrow: string; title: string; items: (price: string | null) => FaqItem[] };
+  promise: { eyebrow: string; title: string; items: Array<{ title: string; body: string }> };
+  faq: { eyebrow: string; title: string; items: FaqItem[] };
   closing: { title: string; note: string };
   footer: { terms: string; privacy: string };
   /** /jouw-tafel/aanmelden and /jouw-tafel/inloggen, until accounts exist. */
@@ -64,7 +64,7 @@ const landingNl: LandingCopy = {
   hero: {
     title: "Een goede wijnbar. Een gezellige tafel. Jouw zondag.",
     body: "Elke maand schuif je in jouw stad aan bij een tafel van 4 tot 6 mensen die net zo van een goed glas houden als jij. Wij regelen de tafel en de plek, jij komt.",
-    note: "Gratis aanmelden. Daarna kies je je zondag.",
+    note: "Aanmelden duurt een minuut. Daarna kies je je zondag.",
     imageAlt: "Een volle tafel heft het glas tijdens een MyTable wijnmiddag",
     locationAria: "Jouw stad",
   },
@@ -114,17 +114,28 @@ const landingNl: LandingCopy = {
     title: "Wat gasten zeggen",
     imageAlt: "Twee gasten lachen aan een tafel vol wijnglazen",
   },
-  moneyBack: {
-    title: "Gaat je tafel niet door? Dan krijg je je geld terug.",
-    body: (price) =>
-      `Een tafel gaat door vanaf 4 gasten. Is dat een week van tevoren niet gehaald, dan krijg je automatisch je volledige ${
-        price ? `€${price}` : "bedrag"
-      } terug, en een andere datum aangeboden.`,
+  promise: {
+    eyebrow: "Onze belofte",
+    title: "Zonder zorgen aanschuiven",
+    items: [
+      {
+        title: "Gratis verzetten",
+        body: "Past de datum toch niet? Tot 7 dagen van tevoren kies je kosteloos een andere zondag.",
+      },
+      {
+        title: "Een week vooraf zekerheid",
+        body: "Dan hoor je waar je zit en dat je tafel doorgaat. Gaat hij niet door, dan krijg je je geld automatisch terug.",
+      },
+      {
+        title: "Niet gezellig? Volgende op ons.",
+        body: "Vond je je tafel niet leuk? Laat het ons binnen 2 dagen weten, dan is je volgende Sunday Table gratis.",
+      },
+    ],
   },
   faq: {
     eyebrow: "Goed om te weten",
     title: "Veelgestelde vragen",
-    items: (price) => [
+    items: [
       {
         q: "Ik ken er niemand. Is dat raar?",
         a: "Nee. De meeste mensen komen alleen, en iedereen aan tafel koos er zelf voor om er te zijn.",
@@ -134,8 +145,8 @@ const landingNl: LandingCopy = {
         a: "Ja. Kies twee plekken, dan zitten jullie samen aan tafel.",
       },
       {
-        q: "Wat kost het?",
-        a: `${price ? `€${price}` : "Een vast bedrag"} voor je plek. Wat je drinkt, bestel en betaal je zelf aan tafel.`,
+        q: "Zit er drinken bij?",
+        a: "Nee. Wat je drinkt, bestel en betaal je zelf aan tafel. Kies een glas van de kaart, of een van onze aanraders.",
       },
       {
         q: "Waar is het?",
@@ -143,7 +154,15 @@ const landingNl: LandingCopy = {
       },
       {
         q: "Gaat het altijd door?",
-        a: "Vanaf 4 gasten. Wordt dat niet gehaald, dan krijg je je geld automatisch terug.",
+        a: "Vanaf 4 gasten. Een week van tevoren hoor je of je tafel doorgaat. Wordt het niet gehaald, dan krijg je je geld automatisch terug en een andere datum aangeboden.",
+      },
+      {
+        q: "Kan ik mijn datum wijzigen?",
+        a: "Ja, tot 7 dagen van tevoren kies je kosteloos een andere zondag. Daarna boeken we de wijnbar en ligt je plek vast.",
+      },
+      {
+        q: "Wat als ik het niet gezellig vond?",
+        a: "Laat het ons binnen 2 dagen na je tafel weten. Dan is je volgende Sunday Table op ons.",
       },
       {
         q: "Is het een datingevent?",
@@ -157,7 +176,7 @@ const landingNl: LandingCopy = {
   },
   closing: {
     title: "Zin in een gezellige zondag?",
-    note: "Gratis aanmelden. Daarna kies je je zondag.",
+    note: "Aanmelden duurt een minuut. Daarna kies je je zondag.",
   },
   footer: { terms: "Algemene voorwaarden", privacy: "Privacy" },
   placeholder: {
@@ -185,7 +204,7 @@ const landingEn: LandingCopy = {
   hero: {
     title: "A good wine bar. A convivial table. Your Sunday.",
     body: "Every month you join a table of 4 to 6 people in your city who enjoy a good glass as much as you do. We arrange the table and the place, you just come.",
-    note: "Signing up is free. Then you choose your Sunday.",
+    note: "Signing up takes a minute. Then you choose your Sunday.",
     imageAlt: "A full table raises a glass during a MyTable wine afternoon",
     locationAria: "Your city",
   },
@@ -235,17 +254,28 @@ const landingEn: LandingCopy = {
     title: "What guests say",
     imageAlt: "Two guests laughing at a table full of wine glasses",
   },
-  moneyBack: {
-    title: "Table not going ahead? You get your money back.",
-    body: (price) =>
-      `A table goes ahead from 4 guests. If that isn't reached a week before, you automatically get your full ${
-        price ? `€${price}` : "amount"
-      } back, and we offer you another date.`,
+  promise: {
+    eyebrow: "Our promise",
+    title: "Join without worries",
+    items: [
+      {
+        title: "Free to reschedule",
+        body: "Date does not suit you after all? Up to 7 days before, you choose another Sunday at no cost.",
+      },
+      {
+        title: "Certainty a week ahead",
+        body: "That is when you hear where you will sit and that your table is going ahead. If it is not, you automatically get your money back.",
+      },
+      {
+        title: "Not your kind of table? The next one is on us.",
+        body: "Did not enjoy your table? Let us know within 2 days and your next Sunday Table is free.",
+      },
+    ],
   },
   faq: {
     eyebrow: "Good to know",
     title: "Questions",
-    items: (price) => [
+    items: [
       {
         q: "I won't know anyone. Is that strange?",
         a: "No. Most people come alone, and everyone at the table chose to be there.",
@@ -255,8 +285,8 @@ const landingEn: LandingCopy = {
         a: "Yes. Choose two seats and you'll sit at the table together.",
       },
       {
-        q: "What does it cost?",
-        a: `${price ? `€${price}` : "A fixed amount"} for your seat. Whatever you drink, you order and pay for yourself at the table.`,
+        q: "Are drinks included?",
+        a: "No. Whatever you drink, you order and pay for yourself at the table. Choose a glass from the list, or one of our recommendations.",
       },
       {
         q: "Where is it?",
@@ -264,7 +294,15 @@ const landingEn: LandingCopy = {
       },
       {
         q: "Does it always go ahead?",
-        a: "From 4 guests. If that isn't reached, you automatically get your money back.",
+        a: "From 4 guests. A week before, you hear whether your table is going ahead. If not, you automatically get your money back and we offer you another date.",
+      },
+      {
+        q: "Can I change my date?",
+        a: "Yes, up to 7 days before you choose another Sunday at no cost. After that we book the wine bar and your seat is fixed.",
+      },
+      {
+        q: "What if I did not enjoy it?",
+        a: "Let us know within 2 days after your table. Then your next Sunday Table is on us.",
       },
       {
         q: "Is it a dating event?",
@@ -278,7 +316,7 @@ const landingEn: LandingCopy = {
   },
   closing: {
     title: "Fancy a convivial Sunday?",
-    note: "Signing up is free. Then you choose your Sunday.",
+    note: "Signing up takes a minute. Then you choose your Sunday.",
   },
   footer: { terms: "Terms", privacy: "Privacy" },
   placeholder: {

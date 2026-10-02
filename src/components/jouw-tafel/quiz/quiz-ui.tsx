@@ -1,24 +1,87 @@
 "use client";
 
 import Image from "next/image";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { CheckIcon } from "@/components/jouw-tafel/icons";
 
 export const primaryButton =
-  "inline-flex min-h-14 w-full items-center justify-center rounded-full bg-burgundy px-8 text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none";
+  "inline-flex min-h-14 w-full items-center justify-center rounded-full bg-burgundy px-8 text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition-[background-color,box-shadow,transform,color] duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:bg-[#cdbfbd] disabled:text-white disabled:shadow-none disabled:active:scale-100";
 
 export const secondaryButton =
-  "inline-flex min-h-14 w-full items-center justify-center rounded-full border border-wine/20 bg-white px-8 text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-wine transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/60";
+  "inline-flex min-h-14 w-full items-center justify-center rounded-full border border-wine/15 bg-white px-8 text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-wine shadow-[0_2px_10px_rgba(43,13,18,0.05)] transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/60";
 
 export const inputClass =
-  "w-full rounded-2xl border bg-white px-4 py-4 text-[1.1rem] text-wine outline-none transition placeholder:text-wine/35 focus:ring-2";
-export const inputOk = "border-wine/15 focus:border-burgundy/40 focus:ring-burgundy/15";
-export const inputBad = "border-red-600 bg-red-50 ring-2 ring-red-600/20 focus:ring-red-600/30";
+  "w-full rounded-2xl border bg-white px-5 py-4 text-[1.15rem] text-wine shadow-[0_2px_10px_rgba(43,13,18,0.04)] outline-none transition placeholder:text-wine/30 focus:ring-4";
+export const inputOk = "border-wine/12 focus:border-burgundy/50 focus:ring-burgundy/10";
+export const inputBad = "border-red-600 bg-red-50 ring-2 ring-red-600/20 focus:ring-red-600/20";
 
+/** Question headline: centered, confident, sans. */
 export const questionTitle =
-  "font-serif text-[1.9rem] font-medium leading-[1.12] tracking-tight text-wine text-balance outline-none sm:text-[2.2rem]";
+  "mx-auto max-w-[22rem] text-center font-sans text-[1.6rem] font-semibold leading-[1.18] tracking-[-0.02em] text-wine text-balance outline-none";
 
-/** One answer. Single-choice shows a round mark, multi-select a square. */
+/** One muted line under a question title. */
+export const questionSub = "mx-auto mt-2.5 max-w-[20rem] text-center text-[0.95rem] leading-snug text-wine/55 text-balance";
+
+/** Small caps label, e.g. above a field or a section. */
+export const smallCaps = "text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy/80";
+
+/** Space between the title block and the answers, like Timeleft. */
+export const answersGap = "mt-8";
+
+const tapSpring = { type: "spring" as const, stiffness: 520, damping: 32 };
+
+/** Fade-up for the n-th answer (30ms apart). */
+export function useStagger(index: number) {
+  const reduce = useReducedMotion();
+  if (reduce) return {};
+  return {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.28, delay: 0.06 + index * 0.03, ease: [0.22, 1, 0.36, 1] as const },
+  };
+}
+
+/** The round radio or rounded checkbox at the right of an answer. */
+export function SelectMark({ selected, multi }: { selected: boolean; multi: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`flex h-[1.4rem] w-[1.4rem] shrink-0 items-center justify-center border-[1.5px] transition-colors duration-200 ${
+        multi ? "rounded-[0.45rem]" : "rounded-full"
+      } ${selected ? "border-burgundy bg-burgundy text-cream" : "border-wine/20 bg-white text-transparent"}`}
+    >
+      {multi ? (
+        <CheckIcon className="h-3.5 w-3.5" />
+      ) : (
+        <span className={`h-2 w-2 rounded-full bg-cream transition-transform duration-200 ${selected ? "scale-100" : "scale-0"}`} />
+      )}
+    </span>
+  );
+}
+
+/** Round tinted badge holding an answer's icon. */
+export function IconBadge({ children, selected, size = "md" }: { children: ReactNode; selected: boolean; size?: "md" | "sm" }) {
+  return (
+    <span
+      aria-hidden
+      className={`flex shrink-0 items-center justify-center rounded-full text-burgundy transition-colors duration-200 ${
+        size === "sm" ? "h-9 w-9" : "h-10 w-10"
+      } ${selected ? "bg-white shadow-[0_2px_8px_rgba(90,15,27,0.12)]" : "bg-[#f5ebe6]"}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+const cardBase =
+  "relative w-full touch-manipulation rounded-2xl border text-left transition-[border-color,background-color,box-shadow,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-40";
+// The selected outline is 1px border + 1px inset ring: 2px, without moving
+// anything.
+const cardIdle = "border-wine/[0.08] bg-white shadow-[0_1px_2px_rgba(43,13,18,0.04),0_6px_18px_rgba(43,13,18,0.04)]";
+const cardSelected = "border-burgundy bg-[#fcf4f2] shadow-[inset_0_0_0_1px_var(--burgundy),0_8px_22px_rgba(90,15,27,0.10)]";
+
+/** One answer: icon left, text, radio (single) or checkbox (multi) right. */
 export function ChoiceButton({
   selected,
   onClick,
@@ -26,8 +89,8 @@ export function ChoiceButton({
   description,
   multi = false,
   disabled = false,
-  compact = false,
-  leading,
+  icon,
+  index = 0,
 }: {
   selected: boolean;
   onClick: () => void;
@@ -35,41 +98,108 @@ export function ChoiceButton({
   description?: string | null;
   multi?: boolean;
   disabled?: boolean;
-  /** Two-column grids: tighter padding, the fill alone shows the choice. */
-  compact?: boolean;
-  leading?: ReactNode;
+  icon?: ReactNode;
+  /** Position in the list, for the staggered entrance. */
+  index?: number;
 }) {
+  const stagger = useStagger(index);
+  const reduce = useReducedMotion();
   return (
-    <button
+    <motion.button
       type="button"
       role={multi ? "checkbox" : "radio"}
       aria-checked={selected}
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-14 w-full touch-manipulation items-center gap-3 rounded-2xl border py-3.5 text-left ${compact ? "px-4" : "px-5"} transition duration-150 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 disabled:opacity-40 ${
-        selected
-          ? "border-burgundy bg-burgundy text-cream shadow-[0_10px_26px_rgba(90,15,27,0.22)]"
-          : "border-wine/12 bg-white text-wine shadow-[0_2px_10px_rgba(43,13,18,0.04)]"
+      {...stagger}
+      whileTap={reduce || disabled ? undefined : { scale: 0.98, transition: tapSpring }}
+      className={`${cardBase} flex min-h-[3.75rem] items-center gap-3.5 py-2.5 pl-3 pr-4 ${selected ? cardSelected : cardIdle} ${
+        icon ? "" : "pl-5"
       }`}
     >
-      {leading}
-      <span className="min-w-0 flex-1">
-        <span className="block text-[1.05rem] font-medium leading-snug">{label}</span>
-        {description ? (
-          <span className={`mt-0.5 block text-sm leading-snug ${selected ? "text-cream/80" : "text-wine/60"}`}>
-            {description}
-          </span>
-        ) : null}
+      {icon ? <IconBadge selected={selected}>{icon}</IconBadge> : null}
+      <span className="min-w-0 flex-1 py-1">
+        <span className="block text-[1rem] font-semibold leading-snug text-wine">{label}</span>
+        {description ? <span className="mt-0.5 block text-[0.85rem] leading-snug text-wine/55">{description}</span> : null}
       </span>
-      <span
-        aria-hidden
-        className={`${compact ? "hidden" : "flex"} h-6 w-6 shrink-0 items-center justify-center border transition ${
-          multi ? "rounded-md" : "rounded-full"
-        } ${selected ? "border-cream bg-cream text-burgundy" : "border-wine/25 bg-transparent text-transparent"}`}
-      >
-        <CheckIcon className="h-4 w-4" />
+      <SelectMark selected={selected} multi={multi} />
+    </motion.button>
+  );
+}
+
+/** Square tile for two-column grids: icon top-left, mark top-right. */
+export function ChoiceTile({
+  selected,
+  onClick,
+  label,
+  icon,
+  multi = true,
+  index = 0,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+  multi?: boolean;
+  index?: number;
+}) {
+  const stagger = useStagger(index);
+  const reduce = useReducedMotion();
+  return (
+    <motion.button
+      type="button"
+      role={multi ? "checkbox" : "radio"}
+      aria-checked={selected}
+      onClick={onClick}
+      {...stagger}
+      whileTap={reduce ? undefined : { scale: 0.98, transition: tapSpring }}
+      className={`${cardBase} flex min-h-[5.6rem] flex-col justify-between gap-2 p-3.5 ${selected ? cardSelected : cardIdle}`}
+    >
+      <span className="flex w-full items-start justify-between">
+        <IconBadge selected={selected} size="sm">
+          {icon}
+        </IconBadge>
+        <SelectMark selected={selected} multi={multi} />
       </span>
-    </button>
+      <span className="block text-[0.95rem] font-semibold leading-tight text-wine">{label}</span>
+    </motion.button>
+  );
+}
+
+/** Photo answer (Timeleft's tiles): a real photo, the label under it. */
+export function PhotoChoice({
+  selected,
+  onClick,
+  label,
+  photo,
+  index = 0,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  photo: string;
+  index?: number;
+}) {
+  const stagger = useStagger(index);
+  const reduce = useReducedMotion();
+  return (
+    <motion.button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onClick}
+      {...stagger}
+      whileTap={reduce ? undefined : { scale: 0.98, transition: tapSpring }}
+      className={`${cardBase} flex flex-col p-2.5 pb-3.5 ${selected ? cardSelected : cardIdle}`}
+    >
+      <span className="relative block aspect-[4/5] w-full overflow-hidden rounded-xl bg-wine/10">
+        <Image src={photo} alt="" fill sizes="(max-width: 480px) 45vw, 210px" className="object-cover" />
+        <span className="absolute right-2 top-2">
+          <SelectMark selected={selected} multi={false} />
+        </span>
+      </span>
+      <span className="mt-3 block px-1 text-[1rem] font-semibold leading-tight text-wine">{label}</span>
+    </motion.button>
   );
 }
 
@@ -104,35 +234,40 @@ export function StickyBar({ children }: { children: ReactNode }) {
       className="fixed inset-x-0 bottom-0 z-20 transition-transform duration-150"
       style={{ transform: inset ? `translateY(-${inset}px)` : undefined }}
     >
-      <div className="bg-gradient-to-t from-cream via-cream to-cream/0 pt-6">
-        <div className="mx-auto w-full max-w-md px-5 pb-[max(1rem,env(safe-area-inset-bottom))]">{children}</div>
+      <div className="bg-gradient-to-t from-cream from-60% to-cream/0 pt-8">
+        <div className="mx-auto w-full max-w-md px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">{children}</div>
       </div>
     </div>
   );
 }
 
-/** Full-bleed photo with one or two lines over it. */
-export function StopCard({
+/** Oval-masked real photo for the "did you know" stops. */
+export function OvalPhoto({
   photo,
-  alt,
-  children,
   priority = false,
+  className = "aspect-[1.5/1] max-h-[34svh]",
 }: {
   photo: string;
-  alt: string;
-  children: ReactNode;
   priority?: boolean;
+  className?: string;
 }) {
+  const reduce = useReducedMotion();
   return (
-    <div className="relative h-[calc(100svh-14.5rem)] min-h-[22rem] w-full overflow-hidden rounded-[1.75rem] bg-wine shadow-[0_24px_60px_rgba(43,13,18,0.18)]">
-      <Image src={photo} alt={alt} fill sizes="(max-width: 480px) 100vw, 448px" className="object-cover" priority={priority} />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#2b0d12]/90 via-[#2b0d12]/35 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 p-6 pb-7">{children}</div>
-    </div>
+    <motion.div
+      initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className={`relative mx-auto w-full ${className}`}
+    >
+      <div className="absolute inset-0 overflow-hidden rounded-[50%] bg-wine/10 shadow-[0_22px_50px_rgba(43,13,18,0.20)]">
+        <Image src={photo} alt="" fill sizes="(max-width: 480px) 100vw, 448px" className="object-cover" priority={priority} />
+      </div>
+      <div aria-hidden className="pointer-events-none absolute -inset-2 rounded-[50%] border border-gold/35" />
+    </motion.div>
   );
 }
 
-/** Loads a photo ahead of time with the same sizes as StopCard. */
+/** Loads a photo ahead of time with the same sizes as OvalPhoto. */
 export function PhotoPreload({ photo }: { photo: string | null }) {
   if (!photo) return null;
   return (
@@ -149,7 +284,7 @@ export function FieldError({ message, attempt }: { message: string; attempt: num
     <p
       key={attempt}
       role="alert"
-      className="animate-field-error-bounce mt-2.5 text-sm font-semibold text-red-600"
+      className="animate-field-error-bounce mt-2.5 text-center text-sm font-semibold text-red-600"
     >
       {message}
     </p>

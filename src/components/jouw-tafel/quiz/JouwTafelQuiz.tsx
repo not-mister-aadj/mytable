@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Logo } from "@/components/Logo";
 import { JouwTafelLogoutButton } from "@/components/jouw-tafel/JouwTafelLogoutButton";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
 import { QuizChoose, type ChooseHandlers } from "@/components/jouw-tafel/quiz/QuizChoose";
@@ -17,6 +16,8 @@ import {
   NameScreen,
   QuizScreenContext,
   STOP_PHOTOS,
+  COMPANION_PHOTOS,
+  SEARCH_MS,
   SearchScreen,
   SingleChoiceScreen,
   StopScreen,
@@ -63,8 +64,6 @@ import {
 
 export type { QuizTestimonial };
 
-/** "We zoeken jouw tafel" before the list. */
-const SEARCH_MS = 1800;
 const SAVE_URL = "/api/auth/member/quiz";
 
 type SaveJob = { state: QuizState; waitlist: boolean };
@@ -175,10 +174,29 @@ class QuizSaver {
 
 // ------------------------------------------------------------------- chrome
 
-function MenuIcon() {
+function MoreIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden>
-      <path d="M4 7h16M4 12h16M4 17h16" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+      <circle cx="5.5" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="18.5" cy="12" r="1.6" />
+    </svg>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[1.1rem] w-[1.1rem]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.3 2.4 3.4 5.2 3.4 8.5s-1.1 6.1-3.4 8.5c-2.3-2.4-3.4-5.2-3.4-8.5S9.7 5.9 12 3.5Z" />
     </svg>
   );
 }
@@ -187,6 +205,7 @@ function QuizHeader({
   locale,
   copy,
   step,
+  chapterFill,
   progress,
   canGoBack,
   onBack,
@@ -197,6 +216,8 @@ function QuizHeader({
   locale: Locale;
   copy: QuizCopy;
   step: QuizStepId;
+  /** How far along each chapter is, 0 to 1. */
+  chapterFill: number[];
   progress: number;
   canGoBack: boolean;
   onBack: () => void;
@@ -207,8 +228,8 @@ function QuizHeader({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   const chapter = chapterOf(step);
-  const chapterIndex = QUIZ_CHAPTERS.indexOf(chapter);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -227,80 +248,94 @@ function QuizHeader({
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-30 bg-cream/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-cream/85">
-      <div className="mx-auto flex h-14 w-full max-w-md items-center gap-1 px-3">
+    <header className="sticky top-0 z-30 bg-cream/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-cream/80">
+      <div className="mx-auto grid h-14 w-full max-w-md grid-cols-[3rem_1fr_3rem] items-center px-2">
         <button
           type="button"
           onClick={onBack}
           aria-label={copy.back}
           tabIndex={canGoBack ? 0 : -1}
           aria-hidden={!canGoBack}
-          className={`flex h-11 w-11 items-center justify-center rounded-full text-wine transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 active:bg-wine/5 ${
+          className={`flex h-11 w-11 items-center justify-center rounded-full text-wine transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 active:scale-95 active:bg-wine/5 ${
             canGoBack ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         >
-          <ArrowLeftIcon className="h-5 w-5" />
+          <ArrowLeftIcon className="h-[1.35rem] w-[1.35rem]" />
         </button>
-        <span className="flex-1">
-          <Logo priority />
-        </span>
-        <Link
-          href={langHref}
-          onClick={onLanguage}
-          aria-label={locale === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
-          className="inline-flex min-h-11 items-center rounded-full px-3 text-xs font-semibold uppercase tracking-wider text-burgundy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
-        >
-          {locale === "nl" ? "EN" : "NL"}
-        </Link>
-        <div ref={menuRef} className="relative">
+        <p className="relative h-5 overflow-hidden text-center text-[0.9rem] font-semibold leading-5 text-wine">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={chapter}
+              initial={reduceMotion ? false : { y: 14, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={reduceMotion ? { opacity: 0 } : { y: -14, opacity: 0 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="block"
+            >
+              {copy.chapters[chapter]}
+            </motion.span>
+          </AnimatePresence>
+        </p>
+        <div ref={menuRef} className="relative justify-self-end">
           <button
             type="button"
             aria-label={copy.menu}
             aria-expanded={menuOpen}
             aria-haspopup="menu"
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-wine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 active:bg-wine/5"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 active:scale-95 active:bg-wine/5"
           >
-            <MenuIcon />
+            <MoreIcon />
           </button>
-          {menuOpen ? (
-            <div
-              role="menu"
-              className="absolute right-0 top-12 z-40 min-w-44 overflow-hidden rounded-2xl border border-wine/10 bg-white py-1 shadow-[0_18px_48px_rgba(43,13,18,0.16)]"
-            >
-              {logout}
-            </div>
-          ) : null}
+          <AnimatePresence>
+            {menuOpen ? (
+              <motion.div
+                role="menu"
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                transition={{ duration: 0.16 }}
+                className="absolute right-1 top-12 z-40 min-w-52 origin-top-right overflow-hidden rounded-2xl border border-wine/10 bg-white py-1 shadow-[0_18px_48px_rgba(43,13,18,0.16)]"
+              >
+                <Link
+                  href={langHref}
+                  onClick={onLanguage}
+                  role="menuitem"
+                  hrefLang={locale === "nl" ? "en" : "nl"}
+                  aria-label={locale === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
+                  className="flex min-h-12 w-full items-center gap-3 px-4 text-[0.95rem] font-medium text-wine active:bg-cream"
+                >
+                  <GlobeIcon />
+                  <span className="flex-1">{locale === "nl" ? "English" : "Nederlands"}</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-wine/40">
+                    {locale === "nl" ? "EN" : "NL"}
+                  </span>
+                </Link>
+                <div className="mx-4 h-px bg-wine/[0.07]" />
+                {logout}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
       </div>
-      <div className="mx-auto w-full max-w-md px-5 pb-3">
-        <ol className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em]">
-          {QUIZ_CHAPTERS.map((c, i) => (
-            <li
-              key={c}
-              aria-current={c === chapter ? "step" : undefined}
-              className={`transition-colors duration-300 ${
-                i === chapterIndex ? "text-burgundy" : i < chapterIndex ? "text-wine/55" : "text-wine/30"
-              }`}
-            >
-              {copy.chapters[c]}
-            </li>
-          ))}
-        </ol>
-        <div
-          className="mt-2 h-1 w-full overflow-hidden rounded-full bg-wine/10"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress * 100)}
-        >
-          <motion.div
-            className="h-full origin-left rounded-full bg-burgundy"
-            initial={false}
-            animate={{ scaleX: Math.max(0.02, progress) }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
+      <div
+        className="mx-auto flex w-full max-w-md gap-1.5 px-5 pb-2.5"
+        role="progressbar"
+        aria-label={copy.chapters[chapter]}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(progress * 100)}
+      >
+        {QUIZ_CHAPTERS.map((c, i) => (
+          <div key={c} className="h-[3px] flex-1 overflow-hidden rounded-full bg-wine/[0.09]">
+            <motion.div
+              className="h-full origin-left rounded-full bg-burgundy"
+              initial={false}
+              animate={{ scaleX: chapterFill[i] ?? 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </div>
+        ))}
       </div>
     </header>
   );
@@ -361,6 +396,17 @@ export function JouwTafelQuiz({
   const steps = useMemo(() => quizSteps(answers), [answers]);
   const position = stepPosition(step, answers);
   const progress = position.total > 1 ? position.index / (position.total - 1) : 0;
+  // One bar per chapter: full behind you, filling where you are.
+  const chapterFill = useMemo(() => {
+    const current = QUIZ_CHAPTERS.indexOf(chapterOf(step));
+    return QUIZ_CHAPTERS.map((c, i) => {
+      if (i < current) return 1;
+      if (i > current) return 0;
+      const inChapter = steps.filter((s) => chapterOf(s) === c);
+      const at = inChapter.indexOf(step);
+      return inChapter.length ? Math.max(0.06, (at + 1) / inChapter.length) : 0;
+    });
+  }, [steps, step]);
 
   // Slide direction: forward slides left, back slides right.
   const [view, setView] = useState<{ step: QuizStepId; dir: 1 | -1 }>({ step, dir: 1 });
@@ -757,6 +803,7 @@ export function JouwTafelQuiz({
             labels={copy.gezelschap.options}
             value={answers.companion}
             toPatch={(v) => ({ companion: v, ...(v === "alone" ? { companionWho: undefined } : {}) })}
+            photos={COMPANION_PHOTOS}
           />
         );
       case "wie":
@@ -846,6 +893,7 @@ export function JouwTafelQuiz({
         locale={locale}
         copy={copy}
         step={step}
+        chapterFill={chapterFill}
         progress={progress}
         canGoBack={previousStep(step, answers) !== null && step !== "zoeken"}
         onBack={goBack}
@@ -859,11 +907,11 @@ export function JouwTafelQuiz({
             locale={locale}
             role="menuitem"
             onBeforeLogout={beforeLogout}
-            className="flex min-h-12 w-full items-center px-4 text-left text-[0.95rem] font-medium text-wine active:bg-cream disabled:opacity-60"
+            className="flex min-h-12 w-full items-center pl-[2.85rem] pr-4 text-left text-[0.95rem] font-medium text-wine active:bg-cream disabled:opacity-60"
           />
         }
       />
-      <main className="relative mx-auto w-full max-w-md overflow-x-clip px-5 pt-5">
+      <main className="relative mx-auto w-full max-w-md overflow-x-clip px-5 pt-2">
         <AnimatePresence mode="popLayout" initial={false} custom={view.dir}>
           <motion.div
             key={step}
@@ -877,7 +925,7 @@ export function JouwTafelQuiz({
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="w-full"
           >
             <QuizScreenContext.Provider value={screenContext}>{renderScreen()}</QuizScreenContext.Provider>

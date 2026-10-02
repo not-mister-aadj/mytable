@@ -30,7 +30,7 @@ export type QuizCopy = {
   next: string;
   skip: string;
   chooseMax: (n: number) => string;
-  welkom: { title: (name: string | null) => string; sub: string; begin: string };
+  welkom: { title: (name: string | null) => string; sub: string; begin: string; rows: [string, string, string] };
   naam: { title: string; label: string; placeholder: string; hint: string; error: string };
   geboortedatum: {
     title: string;
@@ -54,7 +54,12 @@ export type QuizCopy = {
     otherPlaceholder: string;
     otherError: string;
   };
-  stopStad: { count: (n: number, city: string) => string; few: (city: string) => string };
+  stopStad: {
+    count: (n: number, city: string) => string;
+    few: (city: string) => string;
+    /** Under the "{n}+" in the stat card. */
+    statLabel: (city: string) => string;
+  };
   zoekt: { title: string; options: Record<WhyAnswer, string> };
   stopZoekt: Record<WhyAnswer, string>;
   gesprek: { title: string; options: Record<ConversationAnswer, string> };
@@ -129,6 +134,7 @@ const nl: QuizCopy = {
     title: (name) => (name ? `Welkom, ${name}.` : "Welkom."),
     sub: "Nog 2 minuten, dan kies je je zondag.",
     begin: "Begin",
+    rows: ["Een paar vragen over jou", "Wij zoeken jouw tafel", "Gratis verzetten tot 7 dagen vooraf"],
   },
   naam: {
     title: "Hoe mogen we je noemen?",
@@ -165,6 +171,7 @@ const nl: QuizCopy = {
   stopStad: {
     count: (n, city) => `In ${city} staan al ${n}+ mensen op de lijst.`,
     few: (city) => `Je bent niet de enige in ${city}.`,
+    statLabel: (city) => `op de lijst in ${city}`,
   },
   zoekt: {
     title: "Waar heb je zin in?",
@@ -311,6 +318,7 @@ const en: QuizCopy = {
     title: (name) => (name ? `Welcome, ${name}.` : "Welcome."),
     sub: "Two more minutes, then you choose your Sunday.",
     begin: "Start",
+    rows: ["A few questions about you", "We find your table", "Free to move up to 7 days before"],
   },
   naam: {
     title: "What should we call you?",
@@ -347,6 +355,7 @@ const en: QuizCopy = {
   stopStad: {
     count: (n, city) => `${n}+ people in ${city} are already on the list.`,
     few: (city) => `You're not the only one in ${city}.`,
+    statLabel: (city) => `on the list in ${city}`,
   },
   zoekt: {
     title: "What are you in the mood for?",

@@ -1,9 +1,10 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { CheckIcon, PinIcon } from "@/components/jouw-tafel/icons";
+import { CheckIcon, PinIcon, ShieldIcon } from "@/components/jouw-tafel/icons";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { getStoredUtm } from "@/lib/analytics/utm";
 import { formatSpotsLeftHint } from "@/lib/event-display";
@@ -20,7 +21,7 @@ import {
   type ChooseRow,
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
-import { StickyBar, primaryButton, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import { primaryButton, questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 
 const AMSTERDAM = "Europe/Amsterdam";
 
@@ -49,10 +50,30 @@ function startTime(iso: string, locale: Locale): string {
   }).format(new Date(iso));
 }
 
-function spotsText(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): string {
-  if (event.comingSoon) return copy.soonBadge;
+/** "ZO" / "25" / "okt" for the date badge. */
+function dateParts(iso: string, locale: Locale): { weekday: string; day: string; month: string } {
+  const tag = locale === "en" ? "en-GB" : "nl-NL";
+  const parts = new Intl.DateTimeFormat(tag, { timeZone: AMSTERDAM, weekday: "short", day: "numeric", month: "short" })
+    .formatToParts(new Date(iso))
+    .reduce<Record<string, string>>((acc, p) => ({ ...acc, [p.type]: p.value.replace(/\.$/, "") }), {});
+  return { weekday: parts.weekday ?? "", day: parts.day ?? "", month: parts.month ?? "" };
+}
+
+type ChipTone = "wine" | "gold" | "grey";
+
+const CHIP_TONE: Record<ChipTone, string> = {
+  wine: "bg-burgundy/[0.09] text-burgundy",
+  gold: "bg-gold/[0.16] text-[#7d5c2c]",
+  grey: "bg-wine/[0.06] text-wine/55",
+};
+
+/** "Nog maar 3 plekken" (wine), "Plekken vrij" (gold), "Binnenkort" (grey). */
+function spotsChip(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): { text: string; tone: ChipTone } {
+  if (event.comingSoon) return { text: copy.soonBadge, tone: "grey" };
   const left = spotsLeft(event);
-  return shouldShowSpotsCount(left, event.spotsSold) ? formatSpotsLeftHint(left, locale) : copy.spotsOpen;
+  return shouldShowSpotsCount(left, event.spotsSold)
+    ? { text: formatSpotsLeftHint(left, locale), tone: "wine" }
+    : { text: copy.spotsOpen, tone: "gold" };
 }
 
 export type ChooseHandlers = {
@@ -88,6 +109,7 @@ export function QuizChoose({
   handlers: ChooseHandlers;
 }) {
   const k = copy.kies;
+  const reduceMotion = useReducedMotion();
   const city = answers.city ?? "";
   const shownCity = displayCity(city, locale);
   const age = answers.birthDate ? ageFromBirthDate(answers.birthDate, now) : null;
@@ -171,9 +193,11 @@ export function QuizChoose({
         type="button"
         onClick={() => !done && handlers.onNotify(event)}
         aria-pressed={done}
-        className={`inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
-          compact ? "px-0 text-burgundy underline decoration-burgundy/30 underline-offset-4" : "border border-wine/15 bg-white px-4 text-wine"
-        } ${done ? "no-underline text-wine/60" : ""}`}
+        className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+          compact
+            ? "px-0 text-burgundy underline decoration-burgundy/30 underline-offset-4"
+            : "border border-wine/12 bg-white px-3.5 text-[0.82rem] text-wine shadow-[0_1px_4px_rgba(43,13,18,0.05)]"
+        } ${done ? "no-underline text-wine/55" : ""}`}
       >
         {done ? <CheckIcon className="h-4 w-4" /> : null}
         {k.notify}
@@ -181,17 +205,19 @@ export function QuizChoose({
     );
   }
 
-  function openRow(row: ChooseRow) {
+  function openRow(row: ChooseRow, index: number) {
     const event = row.event;
     const isSelected = selectedId === event.id;
+    const chip = spotsChip(event, locale, k);
     return (
-      <li key={event.id}>
-        <div
-          className={`rounded-2xl border transition ${
-            isSelected ? "border-burgundy bg-white shadow-[0_10px_26px_rgba(90,15,27,0.14)]" : "border-wine/12 bg-white"
-          }`}
-        >
-          <button
+      <motion.li
+        key={event.id}
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, delay: reduceMotion ? 0 : 0.06 + index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className={`${rowCard} ${isSelected ? rowSelected : rowIdle}`}>
+          <motion.button
             type="button"
             role="radio"
             aria-checked={isSelected}
@@ -201,132 +227,140 @@ export function QuizChoose({
               setDutchOk(false);
               setError(null);
             }}
-            className="flex min-h-16 w-full touch-manipulation items-center gap-4 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 rounded-2xl"
+            whileTap={reduceMotion ? undefined : { scale: 0.985 }}
+            className="flex w-full touch-manipulation items-center gap-3.5 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
+            <DateBadge iso={event.startsAt} locale={locale} selected={isSelected} />
             <span className="min-w-0 flex-1">
-              <span className="block font-serif text-[1.3rem] font-medium leading-tight text-wine">
-                {shortDate(event.startsAt, locale)}
-                <span className="font-sans text-[0.95rem] font-medium text-wine/60">
-                  {" · "}
-                  {startTime(event.startsAt, locale)}
-                  {" · "}
-                  <span className="font-semibold text-wine/80">{event.bracket}</span>
-                </span>
+              <span className="block text-[1rem] font-semibold leading-tight text-wine">
+                {startTime(event.startsAt, locale)}
+                <span className="px-1.5 text-wine/30">·</span>
+                {event.bracket}
               </span>
-              <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+              <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                <span className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
+                  {chip.text}
+                </span>
                 {row.nearby ? (
-                  <span className="inline-flex items-center gap-1 text-wine/60">
+                  <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
                     <PinIcon className="h-3.5 w-3.5" />
                     {displayCity(event.city, locale)}
                   </span>
                 ) : null}
-                <span className="font-semibold text-burgundy">{spotsText(event, locale, k)}</span>
-                <span className="text-wine/55">{k.perSeat(formatEuros(event.priceCents))}</span>
               </span>
             </span>
-            <span
-              aria-hidden
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition ${
-                isSelected ? "border-burgundy bg-burgundy text-cream" : "border-wine/25 text-transparent"
-              }`}
-            >
-              <CheckIcon className="h-4 w-4" />
+            <span className="shrink-0 whitespace-nowrap text-right text-[0.8rem] font-medium leading-tight text-wine/55">
+              {k.perSeat(formatEuros(event.priceCents))}
             </span>
-          </button>
-          {unsure ? <div className="-mt-2 px-5 pb-3">{notifyButton(event, true)}</div> : null}
+          </motion.button>
+          {unsure ? <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div> : null}
         </div>
-      </li>
+      </motion.li>
     );
   }
 
   function soonRow(row: ChooseRow) {
     const event = row.event;
     return (
-      <li key={event.id} className="flex items-center gap-4 rounded-2xl border border-wine/10 bg-white/70 px-5 py-4">
+      <li key={event.id} className={`${rowCard} ${rowIdle} flex items-start gap-3.5 p-3`}>
+        <DateBadge iso={event.startsAt} locale={locale} selected={false} muted />
         <span className="min-w-0 flex-1">
-          <span className="block font-serif text-[1.2rem] font-medium leading-tight text-wine">
-            {shortDate(event.startsAt, locale)}
-            <span className="font-sans text-[0.9rem] font-medium text-wine/60">
-              {" · "}
-              {event.bracket}
+          <span className="block text-[1rem] font-semibold leading-tight text-wine/80">{event.bracket}</span>
+          <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE.grey}`}>
+              {k.soonBadge}
             </span>
-          </span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-wine/60">
             {row.nearby ? (
-              <span className="inline-flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
                 <PinIcon className="h-3.5 w-3.5" />
                 {displayCity(event.city, locale)}
               </span>
             ) : null}
-            <span className="rounded-full border border-gold/50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/70">
-              {k.soonBadge}
-            </span>
           </span>
+          <span className="mt-2 block">{notifyButton(event)}</span>
         </span>
-        {notifyButton(event)}
       </li>
     );
   }
 
-  const sectionTitle = "text-[11px] font-semibold uppercase tracking-[0.22em] text-gold";
+  function sectionTitle(text: string) {
+    return (
+      <h2 className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
+        <span className="shrink-0">{text}</span>
+        <span aria-hidden className="h-px flex-1 bg-gold/30" />
+      </h2>
+    );
+  }
 
   return (
-    <div className={selected ? "pb-72" : "pb-16"}>
-      <h1 tabIndex={-1} className={questionTitle}>
-        {k.title}
-      </h1>
-      {hasMatch ? (
-        <p className="mt-3 text-[1rem] leading-relaxed text-wine/70">{k.sub(shownCity)}</p>
-      ) : (
-        <p className="mt-3 text-[1.05rem] leading-relaxed text-wine/80">{k.noMatch(shownCity)}</p>
-      )}
+    <div className={selected ? "pb-80" : "pb-16"}>
+      <div className="pt-6">
+        <h1 tabIndex={-1} className={questionTitle}>
+          {k.title}
+        </h1>
+        {hasMatch ? (
+          <p className={questionSub}>{k.sub(shownCity)}</p>
+        ) : (
+          <p className="mx-auto mt-3 max-w-[21rem] text-center text-[1rem] leading-relaxed text-wine/75 text-balance">
+            {k.noMatch(shownCity)}
+          </p>
+        )}
+      </div>
 
       {ownOpen.length > 0 ? (
-        <section className="mt-7">
-          <h2 className={sectionTitle}>{k.inCity(shownCity)}</h2>
-          <ul role="radiogroup" className="mt-3 space-y-3">
-            {ownOpen.map(openRow)}
+        <section className="mt-8">
+          {sectionTitle(k.inCity(shownCity))}
+          <ul role="radiogroup" className="mt-3.5 space-y-3">
+            {ownOpen.map((row, i) => openRow(row, i))}
           </ul>
         </section>
       ) : null}
 
       {nearbyOpen.length > 0 ? (
-        <section className="mt-7">
-          <h2 className={sectionTitle}>{k.nearby}</h2>
-          <ul role="radiogroup" className="mt-3 space-y-3">
-            {nearbyOpen.map(openRow)}
+        <section className="mt-8">
+          {sectionTitle(k.nearby)}
+          <ul role="radiogroup" className="mt-3.5 space-y-3">
+            {nearbyOpen.map((row, i) => openRow(row, ownOpen.length + i))}
           </ul>
         </section>
       ) : null}
 
       {soonRows.length > 0 ? (
-        <section className="mt-7">
-          <h2 className={sectionTitle}>{k.comingSoon}</h2>
-          <ul className="mt-3 space-y-3">{soonRows.map(soonRow)}</ul>
+        <section className="mt-8">
+          {sectionTitle(k.comingSoon)}
+          <ul className="mt-3.5 space-y-3">{soonRows.map(soonRow)}</ul>
         </section>
       ) : null}
 
       {hasMatch ? (
-        <p className="mt-6 flex items-start gap-2 text-sm leading-relaxed text-wine/60">
-          <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+        <p className="mt-6 flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-3 text-[0.88rem] leading-snug text-wine/65">
+          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+            <PinIcon className="h-4 w-4" />
+          </span>
           {k.where}
         </p>
       ) : (
-        <div className="mt-7 space-y-3">
+        <div className="mt-8 space-y-3">
           <button type="button" className={secondaryButton} onClick={handlers.onShare}>
             {k.share}
           </button>
         </div>
       )}
 
-      {unsure ? <p className="mt-6 text-[0.95rem] leading-relaxed text-wine/70">{k.unsure}</p> : null}
+      {unsure ? <p className="mt-6 text-center text-[0.95rem] leading-relaxed text-wine/70">{k.unsure}</p> : null}
 
       {selected ? (
-        <StickyBar>
-          <div className="rounded-[1.5rem] border border-wine/10 bg-white p-4 shadow-[0_-8px_40px_rgba(43,13,18,0.10)]">
+        <div className="fixed inset-x-0 bottom-0 z-20">
+          <motion.div
+            initial={reduceMotion ? false : { y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="mx-auto w-full max-w-md rounded-t-[1.75rem] border border-b-0 border-wine/[0.08] bg-white/90 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_rgba(43,13,18,0.12)] backdrop-blur-xl"
+          >
+            <div aria-hidden className="mx-auto mb-3.5 h-1 w-10 rounded-full bg-wine/15" />
             {dutchOnly && !dutchOk ? (
               <div>
-                <p className="text-[0.95rem] font-medium text-wine">{k.dutchTableNote}</p>
+                <p className="text-center text-[0.95rem] font-medium text-wine">{k.dutchTableNote}</p>
                 <button type="button" className={`${primaryButton} mt-3`} onClick={() => setDutchOk(true)}>
                   {k.dutchFine}
                 </button>
@@ -347,8 +381,8 @@ export function QuizChoose({
                           aria-checked={active}
                           disabled={disabled}
                           onClick={() => setSeats(n)}
-                          className={`min-h-11 rounded-full px-4 text-sm font-semibold transition disabled:opacity-35 ${
-                            active ? "bg-burgundy text-cream shadow" : "text-wine/70"
+                          className={`min-h-10 rounded-full px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 disabled:opacity-35 ${
+                            active ? "bg-white text-burgundy shadow-[0_2px_8px_rgba(43,13,18,0.12)]" : "text-wine/60"
                           }`}
                         >
                           {k.seatOption(n)}
@@ -356,15 +390,18 @@ export function QuizChoose({
                       );
                     })}
                   </div>
-                  <p className="text-right text-[0.95rem] font-semibold text-wine">
+                  <p className="text-right text-[1.05rem] font-bold tracking-tight text-wine">
                     {k.total(formatEuros(selected.event.priceCents * effectiveSeats))}
                   </p>
                 </div>
                 {maxSeats < 2 ? <p className="mt-2 text-xs text-wine/60">{k.onlyOneLeft}</p> : null}
-                <p className="mt-3 text-[0.8rem] leading-snug text-wine/65">{k.guarantee}</p>
+                <p className="mt-3 flex items-start gap-2 text-[0.8rem] leading-snug text-wine/60">
+                  <ShieldIcon className="mt-px h-4 w-4 shrink-0 text-gold" />
+                  {k.guarantee}
+                </p>
                 <button
                   type="button"
-                  className={`${primaryButton} mt-3`}
+                  className={`${primaryButton} mt-3.5`}
                   onClick={() => void reserve()}
                   disabled={loading}
                 >
@@ -377,9 +414,30 @@ export function QuizChoose({
                 ) : null}
               </>
             )}
-          </div>
-        </StickyBar>
+          </motion.div>
+        </div>
       ) : null}
     </div>
+  );
+}
+
+const rowCard = "rounded-2xl border transition-[border-color,background-color,box-shadow] duration-200";
+const rowIdle = "border-wine/[0.08] bg-white shadow-[0_1px_2px_rgba(43,13,18,0.04),0_6px_18px_rgba(43,13,18,0.04)]";
+const rowSelected = "border-burgundy bg-[#fcf4f2] shadow-[inset_0_0_0_1px_var(--burgundy),0_8px_22px_rgba(90,15,27,0.10)]";
+
+/** Weekday, big day number, month: "ZO / 25 / okt". */
+function DateBadge({ iso, locale, selected, muted = false }: { iso: string; locale: Locale; selected: boolean; muted?: boolean }) {
+  const { weekday, day, month } = dateParts(iso, locale);
+  return (
+    <span
+      aria-hidden
+      className={`relative flex h-[4.1rem] w-[3.6rem] shrink-0 flex-col items-center justify-center rounded-xl transition-colors duration-200 ${
+        muted ? "bg-wine/[0.04] text-wine/50" : selected ? "bg-burgundy text-cream" : "bg-[#f5ebe6] text-burgundy"
+      }`}
+    >
+      <span className="text-[0.62rem] font-bold uppercase leading-none tracking-[0.14em] opacity-80">{weekday}</span>
+      <span className="mt-1 text-[1.45rem] font-bold leading-none tabular-nums tracking-tight">{day}</span>
+      <span className="mt-0.5 text-[0.68rem] font-medium leading-none opacity-80">{month}</span>
+    </span>
   );
 }

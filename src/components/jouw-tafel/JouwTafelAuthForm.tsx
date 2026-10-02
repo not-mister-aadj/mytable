@@ -118,6 +118,7 @@ export function JouwTafelAuthForm({
   signUpPath,
   termsHref,
   privacyHref,
+  proofText,
 }: {
   locale: Locale;
   screen: AuthScreen;
@@ -129,6 +130,8 @@ export function JouwTafelAuthForm({
   signUpPath: string;
   termsHref: string;
   privacyHref: string;
+  /** "Al 330+ mensen staan op de lijst", live and rounded down; null when small. */
+  proofText: string | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -550,19 +553,25 @@ export function JouwTafelAuthForm({
         {formMessage ? <InlineError message={formMessage} attempt={errorAttempt} /> : null}
       </form>
 
-      {screen === "signup" ? (
-        <p className="mt-6 text-xs leading-relaxed text-wine/55">
-          {copy.legal.before}
-          <Link href={termsHref} className="underline underline-offset-2 hover:text-wine">
-            {copy.legal.terms}
-          </Link>
-          {copy.legal.between}
-          <Link href={privacyHref} className="underline underline-offset-2 hover:text-wine">
-            {copy.legal.privacy}
-          </Link>
-          {copy.legal.after}
+      {proofText ? (
+        <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs font-medium text-wine/65">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
+          {proofText}
         </p>
       ) : null}
+
+      {/* Groupvibe/Timeleft style: the legal line on both screens. */}
+      <p className="mt-3 text-center text-xs leading-relaxed text-wine/55">
+        {screen === "signup" ? copy.legal.before : copy.legal.beforeLogIn}
+        <Link href={termsHref} className="underline underline-offset-2 hover:text-wine">
+          {copy.legal.terms}
+        </Link>
+        {copy.legal.between}
+        <Link href={privacyHref} className="underline underline-offset-2 hover:text-wine">
+          {copy.legal.privacy}
+        </Link>
+        {copy.legal.after}
+      </p>
 
       <p className="mt-7 border-t border-wine/8 pt-6 text-sm text-wine/70">
         {screenCopy.switchPrompt}{" "}

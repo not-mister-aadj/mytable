@@ -28,7 +28,14 @@ export type AuthCopy = {
     generic: string;
   };
   /** "Door je aan te melden ga je akkoord met de [terms] en het [privacy]." */
-  legal: { before: string; terms: string; between: string; privacy: string; after: string };
+  legal: {
+    before: string;
+    beforeLogIn: string;
+    terms: string;
+    between: string;
+    privacy: string;
+    after: string;
+  };
   code: {
     title: string;
     body: (email: string) => string;
@@ -262,6 +269,7 @@ const landingNl: LandingCopy = {
     },
     legal: {
       before: "Door je aan te melden ga je akkoord met de ",
+      beforeLogIn: "Door in te loggen ga je akkoord met de ",
       terms: "algemene voorwaarden",
       between: " en het ",
       privacy: "privacybeleid",
@@ -456,6 +464,7 @@ const landingEn: LandingCopy = {
     },
     legal: {
       before: "By signing up you agree to the ",
+      beforeLogIn: "By logging in you agree to the ",
       terms: "terms and conditions",
       between: " and the ",
       privacy: "privacy policy",

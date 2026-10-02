@@ -20,6 +20,9 @@ export type LandingCopy = {
     imageAlt: string;
     locationAria: string;
   };
+  /** Lines ordered by the cost per lead of the ad angle they come from
+   * (Sept 2026): weekend angle (NL_07, about 3.60 per lead), wine-list angle
+   * (NL_03, about 4.50), then the untested one. */
   herkenning: { title: string; lines: string[]; closing: string };
   howItWorks: {
     eyebrow: string;
@@ -80,8 +83,8 @@ const landingNl: LandingCopy = {
   herkenning: {
     title: "Herken je jezelf?",
     lines: [
-      "Jij kiest het restaurant op basis van de wijnkaart.",
       "Je zondagmiddag mag best wat gezelliger.",
+      "Jij kiest het restaurant op basis van de wijnkaart.",
       "Je hebt zin in een goed gesprek, zonder dat je eerst iets hoeft te plannen.",
     ],
     closing: "Dan hoor je aan onze tafel.",
@@ -222,8 +225,8 @@ const landingEn: LandingCopy = {
   herkenning: {
     title: "Sound familiar?",
     lines: [
-      "You choose a restaurant by its wine list.",
       "Your Sunday afternoon could be a little cosier.",
+      "You choose a restaurant by its wine list.",
       "You'd like a good conversation, without having to plan anything first.",
     ],
     closing: "Then you belong at our table.",

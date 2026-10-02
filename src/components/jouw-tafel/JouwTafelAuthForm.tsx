@@ -409,6 +409,7 @@ export function JouwTafelAuthForm({
           {copy.code.body(sentTo)}
         </p>
         <form
+          method="post"
           className="mt-7"
           noValidate
           onSubmit={(e) => {
@@ -504,7 +505,7 @@ export function JouwTafelAuthForm({
         </>
       ) : null}
 
-      <form className={googleAllowed ? "mt-5" : "mt-7"} noValidate onSubmit={onSubmitEmail}>
+      <form method="post" className={googleAllowed ? "mt-5" : "mt-7"} noValidate onSubmit={onSubmitEmail}>
         <label htmlFor="jt-auth-email" className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
           {copy.emailLabel}
         </label>

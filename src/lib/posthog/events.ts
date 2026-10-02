@@ -37,14 +37,11 @@ export const PostHogEvents = {
   customerProfileViewed: "customer_profile_viewed",
   customerNoteAdded: "customer_note_added",
   sundayTableWaitlistEnriched: "sunday_table_waitlist_enriched",
-  /** "Jouw tafel" ad quiz (/jouw-tafel). Funnel: quiz_step_viewed by step_index. */
-  quizStepViewed: "quiz_step_viewed",
-  quizStepCompleted: "quiz_step_completed",
-  quizEmailSubmitted: "quiz_email_submitted",
-  quizResultShown: "quiz_result_shown",
-  quizReserveClicked: "quiz_reserve_clicked",
-  quizCalendarClicked: "quiz_calendar_clicked",
-  quizShareClicked: "quiz_share_clicked",
+  /** "Jouw tafel" landing page (/jouw-tafel), variant B of the homepage test. */
+  landingSectionViewed: "landing_section_viewed",
+  landingCtaClicked: "landing_cta_clicked",
+  landingSignupPageViewed: "landing_signup_page_viewed",
+  landingLoginPageViewed: "landing_login_page_viewed",
 } as const;
 
 export type PostHogEventName =
@@ -81,5 +78,4 @@ export type AnalyticsSourceSection =
   | "girls_only_presale"
   | "girls_only_city_priority"
   | "waitlist"
-  | "sunday_table_lp_waitlist"
-  | "jouw_tafel_quiz";
+  | "sunday_table_lp_waitlist";

@@ -1,15 +1,16 @@
-// Run with: npx tsx --test src/lib/jouw-tafel/logic.test.ts
+// Run with: npx tsx --test src/lib/jouw-tafel/*.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  cityCountFloor,
+  bracketFromEventName,
+  cityFromGeo,
+  cityTables,
+  cityTabs,
+  displayCity,
   nearbyCities,
-  outOfTen,
-  pickQuizResult,
-  soloStop,
-  venueWithoutCity,
+  seatPriceCents,
+  supportedCity,
   type QuizEvent,
-  type QuizStats,
 } from "./logic";
 
 const NOW = Date.parse("2026-10-01T12:00:00Z");
@@ -17,14 +18,10 @@ const NOW = Date.parse("2026-10-01T12:00:00Z");
 function event(partial: Partial<QuizEvent> & Pick<QuizEvent, "slug" | "city" | "bracket" | "startsAt">): QuizEvent {
   return {
     id: partial.slug,
-    endsAt: null,
     priceCents: 1000,
     capacity: 12,
     spotsSold: 0,
     comingSoon: false,
-    venueName: null,
-    citySlug: null,
-    dateIso: partial.startsAt.slice(0, 10),
     englishOpen: false,
     ...partial,
   };
@@ -32,57 +29,51 @@ function event(partial: Partial<QuizEvent> & Pick<QuizEvent, "slug" | "city" | "
 
 // The live table list on 1 October 2026.
 const EVENTS: QuizEvent[] = [
+  event({ slug: "rdam-22-nov", city: "Rotterdam", bracket: "35+", startsAt: "2026-11-22T13:00:00Z", comingSoon: true }),
   event({ slug: "rdam-25-okt", city: "Rotterdam", bracket: "35+", startsAt: "2026-10-25T13:00:00Z", spotsSold: 7 }),
   event({ slug: "rdam-1-nov", city: "Rotterdam", bracket: "20-39", startsAt: "2026-11-01T13:00:00Z", capacity: 10, spotsSold: 2 }),
   event({ slug: "dh-8-nov", city: "Den Haag", bracket: "35+", startsAt: "2026-11-08T13:00:00Z", comingSoon: true }),
-  event({ slug: "rdam-22-nov", city: "Rotterdam", bracket: "35+", startsAt: "2026-11-22T13:00:00Z", comingSoon: true }),
   event({ slug: "dh-22-nov", city: "Den Haag", bracket: "20-39", startsAt: "2026-11-22T13:00:00Z", comingSoon: true }),
   event({ slug: "utr-29-nov", city: "Utrecht", bracket: "35+", startsAt: "2026-11-29T13:00:00Z", comingSoon: true }),
 ];
 
-test("Rotterdam 35-44 gets the 25 October table", () => {
-  const r = pickQuizResult(EVENTS, { city: "Rotterdam", age: "35_44", company: "solo" }, NOW);
-  assert.equal(r.variant, "A");
-  assert.equal("event" in r && r.event.slug, "rdam-25-okt");
+function slugs(events: QuizEvent[]): string[] {
+  return events.map((e) => e.slug);
+}
+
+// ---------------------------------------------------------------- geo
+
+test("geo: our four cities, in any spelling Vercel sends", () => {
+  assert.equal(cityFromGeo("Rotterdam", "NL"), "Rotterdam");
+  assert.equal(cityFromGeo("The%20Hague", "NL"), "Den Haag");
+  assert.equal(cityFromGeo("Den%20Haag", "NL"), "Den Haag");
+  assert.equal(cityFromGeo("%27s-Gravenhage", "NL"), "Den Haag");
+  assert.equal(cityFromGeo("utrecht", null), "Utrecht");
+  assert.equal(cityFromGeo("Amsterdam"), "Amsterdam");
 });
 
-test("Rotterdam 25-34 gets the 1 November 20-39 table", () => {
-  const r = pickQuizResult(EVENTS, { city: "Rotterdam", age: "25_34", company: "together" }, NOW);
-  assert.equal(r.variant, "A");
-  assert.equal("event" in r && r.event.slug, "rdam-1-nov");
+test("geo: nearby towns map to the nearest city with tables", () => {
+  assert.equal(cityFromGeo("Schiedam", "NL"), "Rotterdam");
+  assert.equal(cityFromGeo("Delft", "NL"), "Rotterdam");
+  assert.equal(cityFromGeo("Leiden", "NL"), "Den Haag");
+  assert.equal(cityFromGeo("Haarlem", "NL"), "Amsterdam");
+  assert.equal(cityFromGeo("Amersfoort", "NL"), "Utrecht");
 });
 
-test("Den Haag 45+ gets the coming-soon table with Rotterdam as nearby", () => {
-  const r = pickQuizResult(EVENTS, { city: "Den Haag", age: "45_plus", company: "solo" }, NOW);
-  assert.equal(r.variant, "B");
-  assert.equal(r.variant === "B" && r.event.slug, "dh-8-nov");
-  assert.equal(r.variant === "B" && r.nearby?.slug, "rdam-25-okt");
+test("geo: unknown, far away, abroad or missing gives no city", () => {
+  assert.equal(cityFromGeo("Eindhoven", "NL"), null);
+  assert.equal(cityFromGeo("Rotterdam", "BE"), null);
+  assert.equal(cityFromGeo(null, "NL"), null);
+  assert.equal(cityFromGeo("", "NL"), null);
+  assert.equal(cityFromGeo("%E0%A4%A", "NL"), null);
 });
 
-test("Amsterdam 35-44 has nothing yet", () => {
-  assert.equal(pickQuizResult(EVENTS, { city: "Amsterdam", age: "35_44", company: "solo" }, NOW).variant, "C");
-});
-
-test("Delft 35-44 is offered Rotterdam, case-insensitively", () => {
-  const r = pickQuizResult(EVENTS, { city: "delft", age: "35_44", company: "solo" }, NOW);
-  assert.equal(r.variant, "C+");
-  assert.equal("event" in r && r.event.city, "Rotterdam");
-});
-
-test("Eindhoven has nothing", () => {
-  assert.equal(pickQuizResult(EVENTS, { city: "Eindhoven", age: "35_44", company: "solo" }, NOW).variant, "C");
-});
-
-test("35+ is never offered a 20-39 table", () => {
-  const only2039 = EVENTS.filter((e) => e.bracket === "20-39");
-  const r = pickQuizResult(only2039, { city: "Rotterdam", age: "35_44", company: "solo" }, NOW);
-  assert.equal(r.variant, "C");
-});
-
-test("two seats need two spots left", () => {
-  const almostFull = [event({ slug: "x", city: "Rotterdam", bracket: "35+", startsAt: "2026-10-25T13:00:00Z", spotsSold: 11 })];
-  assert.equal(pickQuizResult(almostFull, { city: "Rotterdam", age: "35_44", company: "solo" }, NOW).variant, "A");
-  assert.equal(pickQuizResult(almostFull, { city: "Rotterdam", age: "35_44", company: "together" }, NOW).variant, "C");
+test("supported cities and English display names", () => {
+  assert.equal(supportedCity("den haag"), "Den Haag");
+  assert.equal(supportedCity("Delft"), null);
+  assert.equal(displayCity("Den Haag", "en"), "The Hague");
+  assert.equal(displayCity("Den Haag", "nl"), "Den Haag");
+  assert.equal(displayCity("Rotterdam", "en"), "Rotterdam");
 });
 
 test("nearby map reads both ways", () => {
@@ -92,38 +83,44 @@ test("nearby map reads both ways", () => {
   assert.deepEqual(nearbyCities("Eindhoven"), []);
 });
 
-test("city counts floor to tens and hide under 20", () => {
-  assert.equal(cityCountFloor(116), 110);
-  assert.equal(cityCountFloor(20), 20);
-  assert.equal(cityCountFloor(19), null);
+// ---------------------------------------------------------------- tables
+
+test("age group comes from the event name", () => {
+  assert.equal(bracketFromEventName("Sunday Table · 35+"), "35+");
+  assert.equal(bracketFromEventName("Sunday Table · 20-39"), "20-39");
+  assert.equal(bracketFromEventName("Sunday Table"), null);
 });
 
-test("share wording stays true", () => {
-  assert.deepEqual(outOfTen(61, 100), { tens: 6, nearly: false });
-  assert.deepEqual(outOfTen(59, 100), { tens: 6, nearly: true });
-  assert.deepEqual(outOfTen(103, 170), { tens: 6, nearly: false }); // 60.6%
-  assert.deepEqual(outOfTen(98, 170), { tens: 6, nearly: true }); // 57.6%
-  assert.deepEqual(outOfTen(40, 170), { tens: 2, nearly: false }); // 23.5%
-  assert.equal(outOfTen(5, 10), null);
+test("city tables: soonest first, both age groups, coming soon included", () => {
+  assert.deepEqual(slugs(cityTables(EVENTS, "Rotterdam", NOW)), ["rdam-25-okt", "rdam-1-nov", "rdam-22-nov"]);
+  assert.deepEqual(slugs(cityTables(EVENTS, "den haag", NOW)), ["dh-8-nov", "dh-22-nov"]);
+  assert.deepEqual(cityTables(EVENTS, "Amsterdam", NOW), []);
 });
 
-function seats(total: number, single: number): QuizStats {
-  return {
-    cityCounts: {},
-    why: { base: 0, counts: { discover_places: 0, just_fun: 0, discover_wines: 0, treat: 0, new_city: 0 } },
-    seats: { total, single },
-  };
-}
-
-test("solo stop follows the real share", () => {
-  assert.deepEqual(soloStop(seats(9, 7)), { kind: "almostEveryone" });
-  assert.deepEqual(soloStop(seats(10, 6)), { kind: "most" });
-  assert.deepEqual(soloStop(seats(10, 5)), { kind: "skip" });
-  assert.deepEqual(soloStop(seats(0, 0)), { kind: "skip" });
-  assert.deepEqual(soloStop(seats(40, 33)), { kind: "numeric", tens: 8 });
+test("city tables: past and sold-out tables drop off", () => {
+  const list = [
+    event({ slug: "past", city: "Rotterdam", bracket: "35+", startsAt: "2026-09-27T12:00:00Z" }),
+    event({ slug: "full", city: "Rotterdam", bracket: "35+", startsAt: "2026-10-25T13:00:00Z", spotsSold: 12 }),
+    event({ slug: "open", city: "Rotterdam", bracket: "35+", startsAt: "2026-11-25T13:00:00Z" }),
+  ];
+  assert.deepEqual(slugs(cityTables(list, "Rotterdam", NOW)), ["open"]);
 });
 
-test("venue name drops a trailing city", () => {
-  assert.equal(venueWithoutCity("Bar Juni Rotterdam", "Rotterdam"), "Bar Juni");
-  assert.equal(venueWithoutCity("Juni", "Rotterdam"), "Juni");
+test("city tabs: the visitor's city first and open", () => {
+  assert.deepEqual(cityTabs(EVENTS, "Utrecht", NOW), {
+    cities: ["Utrecht", "Rotterdam", "Den Haag", "Amsterdam"],
+    initial: "Utrecht",
+  });
+});
+
+test("city tabs: without geo, open the first city that has a table", () => {
+  assert.deepEqual(cityTabs(EVENTS, null, NOW).initial, "Rotterdam");
+  assert.deepEqual(cityTabs([], null, NOW).initial, "Rotterdam");
+  const onlyUtrecht = EVENTS.filter((e) => e.city === "Utrecht");
+  assert.deepEqual(cityTabs(onlyUtrecht, null, NOW).initial, "Utrecht");
+});
+
+test("seat price comes from the soonest upcoming table, null without tables", () => {
+  assert.equal(seatPriceCents(EVENTS, NOW), 1000);
+  assert.equal(seatPriceCents([], NOW), null);
 });

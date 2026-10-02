@@ -1,312 +1,303 @@
-// All quiz copy, Dutch and English. House rules: short and calm, no em
-// dashes, no exclamation marks, no emojis. The result is "Jouw tafel", never
-// a "match". Never suggest drinks or food are included: the price is the seat.
+// All "Jouw tafel" copy, Dutch and English: the landing page and the two
+// placeholder pages behind its buttons. House rules: short, calm and warm,
+// no em dashes, no exclamation marks, no emojis. Never name a venue (the
+// wine bar is booked once the tables are known) and never suggest a drink
+// is included: the price is the seat.
 
 import type { Locale } from "@/i18n/config";
-import type { QuizAgeRange, QuizCompany, QuizLanguage, QuizWhy } from "@/lib/jouw-tafel/logic";
 
-export type QuizCopy = {
-  back: string;
-  continue: string;
-  progressAria: string;
-  intro: { title: string; body: string; cta: string };
-  stad: { title: string; other: string; otherPlaceholder: string; otherRequired: string };
-  leeftijd: { title: string; options: Record<QuizAgeRange, string> };
-  stopStad: { withCount: (city: string, n: number) => string; withoutCount: (city: string) => string };
-  zoekt: { title: string; hint: string; options: Record<QuizWhy, string>; required: string };
-  stopZoekt: {
-    withShare: (answer: string, tens: number, nearly: boolean) => string;
-    withoutShare: (answer: string) => string;
-  };
-  gezelschap: { title: string; options: Record<QuizCompany, string> };
-  stopAlleen: {
-    numericTitle: (tens: number) => string;
-    almostEveryoneTitle: string;
-    mostTitle: string;
-    body: string;
-  };
-  taal: { title: string; options: Record<QuizLanguage, string> };
-  gegevens: {
-    title: string;
-    emailLabel: string;
-    emailPlaceholder: string;
-    nameLabel: string;
-    namePlaceholder: string;
-    note: string;
-    submit: string;
-    submitting: string;
-    errorEmailEmpty: string;
-    errorEmailInvalid: string;
-    errorServer: string;
-  };
-  zoeken: { line: (city: string, bracket: string, language: QuizLanguage) => string };
-  result: {
+export type FaqItem = { q: string; a: string };
+
+export type LandingCopy = {
+  meta: { title: string; description: string };
+  signUp: string;
+  logIn: string;
+  hero: { title: string; body: string; note: string; imageAlt: string; locationAria: string };
+  herkenning: { title: string; lines: string[]; closing: string };
+  howItWorks: {
     eyebrow: string;
-    titleA: string;
-    titleB: string;
-    titleCPlus: (city: string) => string;
-    titleC: (city: string) => string;
-    dateTime: (date: string, start: string, end: string | null) => string;
-    venueLine: (venue: string | null, city: string) => string;
-    reserveOne: (price: string) => string;
-    reserveTwo: (price: string) => string;
-    reserveNearby: (city: string, price: string) => string;
-    reserving: string;
-    drinksNote: string;
-    detailsLink: string;
-    nameLabel: string;
-    namePlaceholder: string;
-    nameRequired: string;
-    checkoutError: string;
-    dutchTableNote: string;
-    dutchFine: string;
-    waitForEnglish: string;
-    waitForEnglishBody: (city: string) => string;
-    previewNoCheckout: string;
-    bBody: string;
-    bCalendar: (date: string) => string;
-    bGoogle: string;
-    bNearby: (city: string, date: string) => string;
-    cPlusWait: (city: string) => string;
-    cBodyWithCount: (city: string, n: number) => string;
-    cBodyWithoutCount: string;
-    cShare: string;
-    shareCopied: string;
-    shareTitle: string;
-    shareText: string;
+    title: string;
+    steps: Array<{ title: string; body: string }>;
+    reassurance: string;
+    imageAlt: string;
+  };
+  tables: {
+    eyebrow: string;
+    title: (city: string | null) => string;
+    cityTabsAria: string;
+    comingSoon: string;
+    /** Shown instead of a spot count while the count would say little. */
+    open: string;
+    englishOpen: string;
+    dutchOnly: string | null;
+    where: (city: string) => string;
+    empty: (city: string) => string;
+  };
+  testimonials: { eyebrow: string; title: string; imageAlt: string };
+  moneyBack: { title: string; body: (price: string | null) => string };
+  faq: { eyebrow: string; title: string; items: (price: string | null) => FaqItem[] };
+  closing: { title: string; note: string };
+  footer: { terms: string; privacy: string };
+  /** /jouw-tafel/aanmelden and /jouw-tafel/inloggen, until accounts exist. */
+  placeholder: {
+    signUpTitle: string;
+    logInTitle: string;
+    title: string;
+    signUpBody: string;
+    logInBody: string;
+    back: string;
   };
 };
 
-const nl: QuizCopy = {
-  back: "Terug",
-  continue: "Verder",
-  progressAria: "Voortgang",
-  intro: {
-    title: "Welke Sunday Table past bij jou?",
-    body: "Vijf korte vragen, daarna zie je meteen jouw tafel.",
-    cta: "Begin",
+// ---------------------------------------------------------------------------
+// Dutch
+// ---------------------------------------------------------------------------
+
+const landingNl: LandingCopy = {
+  meta: {
+    title: "Jouw zondag | MyTable",
+    description:
+      "Elke maand schuif je in jouw stad aan bij een tafel van 4 tot 6 mensen in een goede wijnbar.",
   },
-  stad: {
-    title: "In welke stad wil je aanschuiven?",
-    other: "Andere stad",
-    otherPlaceholder: "Welke stad?",
-    otherRequired: "Vul je stad in.",
+  signUp: "Aanmelden",
+  logIn: "Inloggen",
+  hero: {
+    title: "Een goede wijnbar. Een gezellige tafel. Jouw zondag.",
+    body: "Elke maand schuif je in jouw stad aan bij een tafel van 4 tot 6 mensen die net zo van een goed glas houden als jij. Wij regelen de tafel en de plek, jij komt.",
+    note: "Gratis aanmelden. Daarna kies je je zondag.",
+    imageAlt: "Een volle tafel heft het glas tijdens een MyTable wijnmiddag",
+    locationAria: "Jouw stad",
   },
-  leeftijd: {
-    title: "Wat is je leeftijd?",
-    options: { "18_24": "18-24", "25_34": "25-34", "35_44": "35-44", "45_plus": "45+" },
+  herkenning: {
+    title: "Herken je jezelf?",
+    lines: [
+      "Jij kiest het restaurant op basis van de wijnkaart.",
+      "Je zondagmiddag mag best wat gezelliger.",
+      "Je hebt zin in een goed gesprek, zonder dat je eerst iets hoeft te plannen.",
+    ],
+    closing: "Dan hoor je aan onze tafel.",
   },
-  stopStad: {
-    withCount: (city, n) => `In ${city} staan al ${n}+ mensen op de lijst voor Sunday Table.`,
-    withoutCount: (city) => `Je bent niet de enige in ${city} die hierop zit te wachten.`,
+  howItWorks: {
+    eyebrow: "Zo werkt het",
+    title: "Drie stappen naar jouw zondag",
+    steps: [
+      {
+        title: "Kies je zondag.",
+        body: "Elke maand een vaste datum in jouw stad, met een tafel voor jouw leeftijd.",
+      },
+      {
+        title: "Wij kiezen de wijnbar.",
+        body: "Zodra we weten met hoeveel jullie zijn, boeken we een plek die bij jullie tafel past. Een week van tevoren hoor je waar.",
+      },
+      {
+        title: "Schuif aan.",
+        body: "Om 14:00 neem je plaats. Kies een glas van de kaart, of een van onze aanraders. Je drankjes bestel je zelf.",
+      },
+    ],
+    reassurance: "Iedereen aan tafel koos er zelf voor om er te zijn.",
+    imageAlt: "Gesprek en gelach aan tafel, met wijnglazen op tafel",
   },
-  zoekt: {
-    title: "Wat zoek je in een zondag?",
-    hint: "Kies wat bij je past.",
-    options: {
-      discover_places: "Nieuwe plekken ontdekken",
-      just_fun: "Gewoon een leuke zondag",
-      discover_wines: "Nieuwe wijnen proeven",
-      treat: "Mezelf trakteren",
-      new_city: "Nieuw in de stad",
-    },
-    required: "Kies er minstens een.",
-  },
-  stopZoekt: {
-    withShare: (answer, tens, nearly) =>
-      `${answer}. Dat zoekt ${nearly ? "bijna " : ""}${tens} van de 10 mensen op onze lijst ook.`,
-    withoutShare: (answer) => `${answer}. Daar ben je bij ons aan het goede adres.`,
-  },
-  gezelschap: {
-    title: "Kom je alleen of met iemand?",
-    options: { solo: "Alleen", together: "Met iemand" },
-  },
-  stopAlleen: {
-    numericTitle: (tens) => `${tens} van de 10 mensen aan tafel kwamen alleen.`,
-    almostEveryoneTitle: "Bijna iedereen komt alleen.",
-    mostTitle: "De meeste mensen komen alleen.",
-    body: "Aan tafel kennen de meeste mensen elkaar vooraf niet. Je schuift aan en het gesprek begint vanzelf.",
-  },
-  taal: {
-    title: "In welke taal praat je het liefst aan tafel?",
-    options: { dutch: "Nederlands", english: "Engels", both: "Allebei prima" },
-  },
-  gegevens: {
-    title: "Waar mogen we je tafel naartoe sturen?",
-    emailLabel: "E-mailadres",
-    emailPlaceholder: "jij@voorbeeld.nl",
-    nameLabel: "Voornaam (mag leeg blijven)",
-    namePlaceholder: "Je voornaam",
-    note: "Hiermee sta je ook op de wachtlijst. Geen spam.",
-    submit: "Laat mijn tafel zien",
-    submitting: "Even geduld",
-    errorEmailEmpty: "Vul je e-mailadres in.",
-    errorEmailInvalid: "Dit e-mailadres klopt nog niet helemaal.",
-    errorServer: "Er ging iets mis. Probeer het opnieuw.",
-  },
-  zoeken: {
-    line: (city, bracket, language) =>
-      `${city}, ${bracket}, ${
-        language === "dutch" ? "Nederlands" : language === "english" ? "Engels" : "beide talen"
-      } aan tafel. We zoeken jouw tafel...`,
-  },
-  result: {
+  tables: {
     eyebrow: "Sunday Table",
-    titleA: "Jouw tafel",
-    titleB: "Jouw tafel komt eraan",
-    titleCPlus: (city) => `In ${city} is er wel een tafel`,
-    titleC: (city) => `Nog geen tafel in ${city}, maar je bent niet de enige`,
-    dateTime: (date, start, end) => (end ? `${date} · ${start} tot ${end}` : `${date} · ${start}`),
-    venueLine: (venue, city) =>
-      `${venue ? `${venue}, ${city}` : city} · aan tafels van 4 tot 6`,
-    reserveOne: (price) => `Reserveer je plek · €${price}`,
-    reserveTwo: (price) => `Reserveer 2 plekken · €${price}`,
-    reserveNearby: (city, price) => `Reserveer in ${city} · €${price}`,
-    reserving: "Even geduld",
-    drinksNote: "Je drankjes bestel je zelf aan tafel.",
-    detailsLink: "Of bekijk alle details",
-    nameLabel: "Op welke naam reserveren we?",
-    namePlaceholder: "Je voornaam",
-    nameRequired: "Vul je naam in, dan zetten we die op de reservering.",
-    checkoutError: "Er ging iets mis. Probeer het opnieuw.",
-    dutchTableNote: "Deze tafel is Nederlandstalig.",
-    dutchFine: "Nederlands is ook prima",
-    waitForEnglish: "Ik wacht liever op een Engelstalige tafel",
-    waitForEnglishBody: (city) =>
-      `Je staat op de lijst. Zodra er een Engelstalige tafel in ${city} is, hoor je het als eerste.`,
-    previewNoCheckout: "Voorbeeld: reserveren staat hier uit.",
-    bBody:
-      "Je staat op de lijst en hoort het als eerste zodra de tafel opent, voordat we hem ergens anders aankondigen.",
-    bCalendar: (date) => `Zet ${date} in mijn agenda`,
-    bGoogle: "Of zet hem in Google Agenda",
-    bNearby: (city, date) => `Liever niet wachten? In ${city} is er al een tafel op ${date}.`,
-    cPlusWait: (city) => `Ik wacht op een tafel in ${city}`,
-    cBodyWithCount: (city, n) =>
-      `Er staan al ${n}+ mensen uit ${city} op de lijst. Zodra er genoeg zijn, plannen we daar een tafel, en jij hoort het als eerste.`,
-    cBodyWithoutCount:
-      "Zodra er genoeg mensen zijn, plannen we daar een tafel, en jij hoort het als eerste.",
-    cShare: "Deel met iemand die mee zou willen",
-    shareCopied: "Link gekopieerd",
-    shareTitle: "Sunday Table",
-    shareText: "Zin om samen aan te schuiven bij Sunday Table?",
+    title: (city) => (city ? `Eerstvolgende tafels in ${city}` : "Eerstvolgende tafels"),
+    cityTabsAria: "Kies een stad",
+    comingSoon: "Binnenkort",
+    open: "Plekken vrij",
+    englishOpen: "Ook Engels",
+    dutchOnly: null,
+    where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
+    empty: (city) =>
+      `Nog geen tafel in ${city}. Meld je aan, dan hoor je het als eerste zodra er een is.`,
+  },
+  testimonials: {
+    eyebrow: "Aan tafel",
+    title: "Wat gasten zeggen",
+    imageAlt: "Twee gasten lachen aan een tafel vol wijnglazen",
+  },
+  moneyBack: {
+    title: "Gaat je tafel niet door? Dan krijg je je geld terug.",
+    body: (price) =>
+      `Een tafel gaat door vanaf 4 gasten. Is dat een week van tevoren niet gehaald, dan krijg je automatisch je volledige ${
+        price ? `€${price}` : "bedrag"
+      } terug, en een andere datum aangeboden.`,
+  },
+  faq: {
+    eyebrow: "Goed om te weten",
+    title: "Veelgestelde vragen",
+    items: (price) => [
+      {
+        q: "Ik ken er niemand. Is dat raar?",
+        a: "Nee. De meeste mensen komen alleen, en iedereen aan tafel koos er zelf voor om er te zijn.",
+      },
+      {
+        q: "Mag ik iemand meenemen?",
+        a: "Ja. Kies twee plekken, dan zitten jullie samen aan tafel.",
+      },
+      {
+        q: "Wat kost het?",
+        a: `${price ? `€${price}` : "Een vast bedrag"} voor je plek. Wat je drinkt, bestel en betaal je zelf aan tafel.`,
+      },
+      {
+        q: "Waar is het?",
+        a: "In een wijnbar in jouw stad. We boeken de plek zodra we weten met hoeveel jullie zijn. Een week van tevoren hoor je waar.",
+      },
+      {
+        q: "Gaat het altijd door?",
+        a: "Vanaf 4 gasten. Wordt dat niet gehaald, dan krijg je je geld automatisch terug.",
+      },
+      {
+        q: "Is het een datingevent?",
+        a: "Nee. Gewoon een gezellige tafel met goede wijn.",
+      },
+      {
+        q: "In welke taal?",
+        a: "Nederlands. Sommige tafels zijn ook open voor Engels; dat zie je bij de datum.",
+      },
+    ],
+  },
+  closing: {
+    title: "Zin in een gezellige zondag?",
+    note: "Gratis aanmelden. Daarna kies je je zondag.",
+  },
+  footer: { terms: "Algemene voorwaarden", privacy: "Privacy" },
+  placeholder: {
+    signUpTitle: "Aanmelden | MyTable",
+    logInTitle: "Inloggen | MyTable",
+    title: "Hier wordt nog aan gewerkt",
+    signUpBody: "Binnenkort maak je hier je account aan en kies je je zondag.",
+    logInBody: "Binnenkort log je hier in.",
+    back: "Terug",
   },
 };
 
-const en: QuizCopy = {
-  back: "Back",
-  continue: "Continue",
-  progressAria: "Progress",
-  intro: {
-    title: "Which Sunday Table suits you?",
-    body: "Five short questions, then you'll see your table right away.",
-    cta: "Start",
+// ---------------------------------------------------------------------------
+// English
+// ---------------------------------------------------------------------------
+
+const landingEn: LandingCopy = {
+  meta: {
+    title: "Your Sunday | MyTable",
+    description:
+      "Every month, join a table of 4 to 6 people in a good wine bar in your city.",
   },
-  stad: {
-    title: "Which city would you like to join in?",
-    other: "Another city",
-    otherPlaceholder: "Which city?",
-    otherRequired: "Fill in your city.",
+  signUp: "Sign up",
+  logIn: "Log in",
+  hero: {
+    title: "A good wine bar. A convivial table. Your Sunday.",
+    body: "Every month you join a table of 4 to 6 people in your city who enjoy a good glass as much as you do. We arrange the table and the place, you just come.",
+    note: "Signing up is free. Then you choose your Sunday.",
+    imageAlt: "A full table raises a glass during a MyTable wine afternoon",
+    locationAria: "Your city",
   },
-  leeftijd: {
-    title: "How old are you?",
-    options: { "18_24": "18-24", "25_34": "25-34", "35_44": "35-44", "45_plus": "45+" },
+  herkenning: {
+    title: "Sound familiar?",
+    lines: [
+      "You choose a restaurant by its wine list.",
+      "Your Sunday afternoon could be a little cosier.",
+      "You'd like a good conversation, without having to plan anything first.",
+    ],
+    closing: "Then you belong at our table.",
   },
-  stopStad: {
-    withCount: (city, n) => `In ${city}, ${n}+ people are already on the list for Sunday Table.`,
-    withoutCount: (city) => `You're not the only one in ${city} waiting for this.`,
+  howItWorks: {
+    eyebrow: "How it works",
+    title: "Three steps to your Sunday",
+    steps: [
+      {
+        title: "Choose your Sunday.",
+        body: "A fixed date in your city every month, with a table for your age.",
+      },
+      {
+        title: "We choose the wine bar.",
+        body: "Once we know how many of you there are, we book a place that suits your table. You'll hear where a week ahead.",
+      },
+      {
+        title: "Take your seat.",
+        body: "At 2:00 PM you sit down. Choose a glass from the list, or one of our recommendations. You order your own drinks.",
+      },
+    ],
+    reassurance: "Everyone at the table chose to be there.",
+    imageAlt: "Conversation and laughter at a table with wine glasses",
   },
-  zoekt: {
-    title: "What are you looking for in a Sunday?",
-    hint: "Choose what fits you.",
-    options: {
-      discover_places: "Discovering new places",
-      just_fun: "Simply a nice Sunday",
-      discover_wines: "Tasting new wines",
-      treat: "Treating myself",
-      new_city: "New in town",
-    },
-    required: "Choose at least one.",
-  },
-  stopZoekt: {
-    withShare: (answer, tens, nearly) =>
-      `${answer}. ${nearly ? "Nearly " : ""}${tens} in 10 people on our list are looking for that too.`,
-    withoutShare: (answer) => `${answer}. You've come to the right place.`,
-  },
-  gezelschap: {
-    title: "Coming alone or with someone?",
-    options: { solo: "Alone", together: "With someone" },
-  },
-  stopAlleen: {
-    numericTitle: (tens) => `${tens} in 10 people at our tables came alone.`,
-    almostEveryoneTitle: "Almost everyone comes alone.",
-    mostTitle: "Most people come alone.",
-    body: "At the table, most people don't know each other beforehand. You sit down and the conversation starts by itself.",
-  },
-  taal: {
-    title: "Which language do you prefer at the table?",
-    options: { dutch: "Dutch", english: "English", both: "Either is fine" },
-  },
-  gegevens: {
-    title: "Where should we send your table?",
-    emailLabel: "Email",
-    emailPlaceholder: "you@example.com",
-    nameLabel: "First name (optional)",
-    namePlaceholder: "Your first name",
-    note: "This also puts you on the waitlist. No spam.",
-    submit: "Show my table",
-    submitting: "One moment",
-    errorEmailEmpty: "Fill in your email address.",
-    errorEmailInvalid: "This email address isn't quite right yet.",
-    errorServer: "Something went wrong. Please try again.",
-  },
-  zoeken: {
-    line: (city, bracket, language) =>
-      `${city}, ${bracket}, ${
-        language === "dutch" ? "Dutch" : language === "english" ? "English" : "both languages"
-      } at the table. Finding your table...`,
-  },
-  result: {
+  tables: {
     eyebrow: "Sunday Table",
-    titleA: "Your table",
-    titleB: "Your table is coming",
-    titleCPlus: (city) => `There is a table in ${city}`,
-    titleC: (city) => `No table in ${city} yet, but you're not the only one`,
-    dateTime: (date, start, end) => (end ? `${date} · ${start} to ${end}` : `${date} · ${start}`),
-    venueLine: (venue, city) =>
-      `${venue ? `${venue}, ${city}` : city} · at tables of 4 to 6`,
-    reserveOne: (price) => `Reserve your seat · €${price}`,
-    reserveTwo: (price) => `Reserve 2 seats · €${price}`,
-    reserveNearby: (city, price) => `Reserve in ${city} · €${price}`,
-    reserving: "One moment",
-    drinksNote: "You order your own drinks at the table.",
-    detailsLink: "Or see all the details",
-    nameLabel: "Which name should we put the booking under?",
-    namePlaceholder: "Your first name",
-    nameRequired: "Fill in your name so we can put it on the booking.",
-    checkoutError: "Something went wrong. Please try again.",
-    dutchTableNote: "This table is held in Dutch.",
-    dutchFine: "Dutch is fine too",
-    waitForEnglish: "I'd rather wait for an English-speaking table",
-    waitForEnglishBody: (city) =>
-      `You're on the list. As soon as there is an English-speaking table in ${city}, you'll be the first to hear.`,
-    previewNoCheckout: "Preview: booking is switched off here.",
-    bBody:
-      "You're on the list and will be the first to hear when the table opens, before we announce it anywhere else.",
-    bCalendar: (date) => `Add ${date} to my calendar`,
-    bGoogle: "Or add it to Google Calendar",
-    bNearby: (city, date) => `Rather not wait? There's already a table in ${city} on ${date}.`,
-    cPlusWait: (city) => `I'll wait for a table in ${city}`,
-    cBodyWithCount: (city, n) =>
-      `${n}+ people from ${city} are already on the list. Once there are enough, we'll plan a table there, and you'll be the first to hear.`,
-    cBodyWithoutCount:
-      "Once there are enough people, we'll plan a table there, and you'll be the first to hear.",
-    cShare: "Share with someone who'd like to come",
-    shareCopied: "Link copied",
-    shareTitle: "Sunday Table",
-    shareText: "Fancy joining a Sunday Table together?",
+    title: (city) => (city ? `Upcoming tables in ${city}` : "Upcoming tables"),
+    cityTabsAria: "Choose a city",
+    comingSoon: "Coming soon",
+    open: "Seats available",
+    englishOpen: "English welcome",
+    dutchOnly: "In Dutch",
+    where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
+    empty: (city) =>
+      `No table in ${city} yet. Sign up and you'll be the first to hear when there is one.`,
+  },
+  testimonials: {
+    eyebrow: "At the table",
+    title: "What guests say",
+    imageAlt: "Two guests laughing at a table full of wine glasses",
+  },
+  moneyBack: {
+    title: "Table not going ahead? You get your money back.",
+    body: (price) =>
+      `A table goes ahead from 4 guests. If that isn't reached a week before, you automatically get your full ${
+        price ? `€${price}` : "amount"
+      } back, and we offer you another date.`,
+  },
+  faq: {
+    eyebrow: "Good to know",
+    title: "Questions",
+    items: (price) => [
+      {
+        q: "I won't know anyone. Is that strange?",
+        a: "No. Most people come alone, and everyone at the table chose to be there.",
+      },
+      {
+        q: "Can I bring someone?",
+        a: "Yes. Choose two seats and you'll sit at the table together.",
+      },
+      {
+        q: "What does it cost?",
+        a: `${price ? `€${price}` : "A fixed amount"} for your seat. Whatever you drink, you order and pay for yourself at the table.`,
+      },
+      {
+        q: "Where is it?",
+        a: "In a wine bar in your city. We book the place once we know how many of you there are. You'll hear where a week ahead.",
+      },
+      {
+        q: "Does it always go ahead?",
+        a: "From 4 guests. If that isn't reached, you automatically get your money back.",
+      },
+      {
+        q: "Is it a dating event?",
+        a: "No. Simply a convivial table with good wine.",
+      },
+      {
+        q: "In which language?",
+        a: "Dutch. Some tables are open to English too; you'll see that by the date.",
+      },
+    ],
+  },
+  closing: {
+    title: "Fancy a convivial Sunday?",
+    note: "Signing up is free. Then you choose your Sunday.",
+  },
+  footer: { terms: "Terms", privacy: "Privacy" },
+  placeholder: {
+    signUpTitle: "Sign up | MyTable",
+    logInTitle: "Log in | MyTable",
+    title: "We're still working on this",
+    signUpBody: "Soon you'll create your account here and choose your Sunday.",
+    logInBody: "Soon you'll log in here.",
+    back: "Back",
   },
 };
 
-export function getQuizCopy(locale: Locale): QuizCopy {
-  return locale === "en" ? en : nl;
+export function getLandingCopy(locale: Locale): LandingCopy {
+  return locale === "en" ? landingEn : landingNl;
+}
+
+/** 1000 -> "10", 1250 -> "12,50" (Dutch decimal comma on both pages, as
+ * the rest of the site shows euro amounts). */
+export function formatEuros(cents: number): string {
+  const value = cents / 100;
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(".", ",");
 }

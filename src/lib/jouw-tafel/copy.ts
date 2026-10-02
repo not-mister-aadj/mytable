@@ -84,7 +84,7 @@ const landingNl: LandingCopy = {
     title: "Herken je jezelf?",
     lines: [
       "Je zondagmiddag mag best wat gezelliger.",
-      "Jij kiest het restaurant op basis van de wijnkaart.",
+      "Je houdt van een lekker glas wijn.",
       "Je hebt zin in een goed gesprek, zonder dat je eerst iets hoeft te plannen.",
     ],
     closing: "Dan hoor je aan onze tafel.",
@@ -226,7 +226,7 @@ const landingEn: LandingCopy = {
     title: "Sound familiar?",
     lines: [
       "Your Sunday afternoon could be a little cosier.",
-      "You choose a restaurant by its wine list.",
+      "You love a good glass of wine.",
       "You'd like a good conversation, without having to plan anything first.",
     ],
     closing: "Then you belong at our table.",

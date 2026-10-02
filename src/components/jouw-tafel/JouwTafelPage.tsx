@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { JouwTafelLanding } from "@/components/jouw-tafel/JouwTafelLanding";
 import { PlaceholderViewTracker } from "@/components/jouw-tafel/PlaceholderViewTracker";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
@@ -68,10 +69,11 @@ export function JouwTafelPlaceholderPage({
   return (
     <div className="flex min-h-[100svh] flex-col bg-cream text-wine">
       <PlaceholderViewTracker kind={kind} locale={locale} />
-      <header className="flex h-16 items-center justify-center">
+      <header className="flex h-16 items-center justify-between px-5 sm:px-8">
         <Link href={jouwTafelPath(locale)} aria-label="MyTable">
           <Logo priority />
         </Link>
+        <LanguageSwitcher locale={locale} label={locale === "nl" ? "EN" : "NL"} />
       </header>
       <main className="relative flex flex-1 items-center justify-center overflow-hidden px-5 pb-24">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_100%,rgba(197,154,91,0.16),transparent_60%)]" />

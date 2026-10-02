@@ -9,6 +9,7 @@ import {
 } from "@/lib/sentry/critical";
 import {
   jouwTafelSignUpPath,
+  jouwTafelStartPath,
   jouwTafelWelcomePath,
   type Locale,
 } from "@/i18n/config";
@@ -34,13 +35,13 @@ function marketingOrigin(requestOrigin: string, hostname: string): string {
 }
 
 /** Google sign-in from the "Jouw tafel" account screens: they ask to come
- * back to the welcome page, which must not be swapped for the old
- * onboarding funnel (resolvePostAuthPath sends unfinished profiles to the
- * removed /join). */
+ * back to the quiz (or the old welcome page, which forwards to it), which
+ * must not be swapped for the old onboarding funnel (resolvePostAuthPath
+ * sends unfinished profiles to the removed /join). */
 function jouwTafelWelcomeLocale(next: string): Locale | null {
   const path = next.split("?")[0];
-  if (path === jouwTafelWelcomePath("nl")) return "nl";
-  if (path === jouwTafelWelcomePath("en")) return "en";
+  if (path === jouwTafelStartPath("nl") || path === jouwTafelWelcomePath("nl")) return "nl";
+  if (path === jouwTafelStartPath("en") || path === jouwTafelWelcomePath("en")) return "en";
   return null;
 }
 

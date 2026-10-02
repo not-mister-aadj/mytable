@@ -3,7 +3,7 @@
 import type { ExperienceItem } from "@/i18n/types";
 import type { Locale } from "@/i18n/config";
 import type { AgendaTabKey } from "@/i18n/types";
-import { captureClientEvent } from "@/lib/posthog/client";
+import { captureClientEvent, captureClientEventBeacon } from "@/lib/posthog/client";
 import { PostHogEvents, type AnalyticsSourceSection } from "@/lib/posthog/events";
 import {
   buildExperienceProperties,
@@ -197,6 +197,30 @@ export function trackJouwTafelAuthEvent(
 /** Logout from the "Jouw tafel" welcome page. */
 export function trackJouwTafelLogout(props: { locale: string }): void {
   capture(PostHogEvents.authLoggedOut, props);
+}
+
+/** Quiz events (/jouw-tafel/start). Callers pass step ids, answer ids and
+ * counts only: never a name, email, birth date or typed text. */
+export function trackQuizEvent(
+  event:
+    | typeof PostHogEvents.quizStepViewed
+    | typeof PostHogEvents.quizStepCompleted
+    | typeof PostHogEvents.quizBackClicked
+    | typeof PostHogEvents.quizResumed
+    | typeof PostHogEvents.quizCompleted
+    | typeof PostHogEvents.quizChooseViewed
+    | typeof PostHogEvents.quizReserveClicked
+    | typeof PostHogEvents.quizNotifyClicked
+    | typeof PostHogEvents.quizShareClicked
+    | typeof PostHogEvents.quizLogoutClicked,
+  props: AnalyticsProperties,
+): void {
+  capture(event, props);
+}
+
+/** quiz_step_left, on pagehide or when the tab goes to the background. */
+export function trackQuizStepLeft(props: AnalyticsProperties): void {
+  captureClientEventBeacon(PostHogEvents.quizStepLeft, { ...baseContext(), ...props });
 }
 
 /** Fired when someone answers (or explicitly skips) the waitlist preference questions. */

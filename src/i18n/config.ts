@@ -45,6 +45,8 @@ function localizePathForLocale(path: string, locale: Locale): string {
   if (locale === "nl" && path === "/your-table/log-in") return "/jouw-tafel/inloggen";
   if (locale === "en" && path === "/jouw-tafel/welkom") return "/your-table/welcome";
   if (locale === "nl" && path === "/your-table/welcome") return "/jouw-tafel/welkom";
+  if (locale === "en" && path === "/jouw-tafel/start") return "/your-table/start";
+  if (locale === "nl" && path === "/your-table/start") return "/jouw-tafel/start";
   return path;
 }
 
@@ -66,6 +68,11 @@ export function jouwTafelLogInPath(locale: Locale): string {
 /** Welcome page after signing up or logging in from the landing page. */
 export function jouwTafelWelcomePath(locale: Locale): string {
   return locale === "en" ? "/en/your-table/welcome" : "/jouw-tafel/welkom";
+}
+
+/** The quiz after signing up or logging in, ending at "Kies je zondag". */
+export function jouwTafelStartPath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table/start" : "/jouw-tafel/start";
 }
 
 /** Same page in the other locale, preserving path (and optional hash). */

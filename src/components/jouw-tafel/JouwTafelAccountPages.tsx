@@ -6,15 +6,13 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { JouwTafelAuthForm, type AuthScreen } from "@/components/jouw-tafel/JouwTafelAuthForm";
-import { JouwTafelLogoutButton } from "@/components/jouw-tafel/JouwTafelLogoutButton";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { PlaceholderViewTracker } from "@/components/jouw-tafel/PlaceholderViewTracker";
-import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
 import {
   jouwTafelLogInPath,
   jouwTafelPath,
   jouwTafelSignUpPath,
-  jouwTafelWelcomePath,
+  jouwTafelStartPath,
   privacyPath,
   termsPath,
   type Locale,
@@ -22,7 +20,7 @@ import {
 import { getMemberUser } from "@/lib/member-auth";
 import { getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
-import { isGoogleSignInAllowed, isInAppBrowser, isNewAuthUser } from "@/lib/jouw-tafel/auth-logic";
+import { isGoogleSignInAllowed, isInAppBrowser } from "@/lib/jouw-tafel/auth-logic";
 
 export type AccountSearchParams = Record<string, string | string[] | undefined>;
 
@@ -74,7 +72,7 @@ export async function JouwTafelAuthPage({
   searchParams: AccountSearchParams;
 }) {
   // Already signed in: nothing to do here.
-  if (await getMemberUser()) redirect(jouwTafelWelcomePath(locale));
+  if (await getMemberUser()) redirect(jouwTafelStartPath(locale));
 
   const userAgent = (await headers()).get("user-agent");
   const inApp = isInAppBrowser(userAgent);
@@ -93,7 +91,7 @@ export async function JouwTafelAuthPage({
         googleAllowed={googleAllowed}
         inApp={inApp}
         googleError={firstParam(searchParams.fout) === "google"}
-        welcomePath={jouwTafelWelcomePath(locale)}
+        welcomePath={jouwTafelStartPath(locale)}
         switchPath={screen === "signup" ? jouwTafelLogInPath(locale) : jouwTafelSignUpPath(locale)}
         signUpPath={jouwTafelSignUpPath(locale)}
         termsHref={termsPath(locale)}
@@ -104,36 +102,10 @@ export async function JouwTafelAuthPage({
   );
 }
 
-/** /jouw-tafel/welkom (EN /en/your-table/welcome), after either method.
- * The step after this (choosing a Sunday) is built later. */
-export async function JouwTafelWelcomePage({ locale }: { locale: Locale }) {
+/** /jouw-tafel/welkom (EN /en/your-table/welcome): the old welcome page.
+ * Kept so older links and emails work; it goes straight to the quiz, which
+ * opens on "Kies je zondag" once the quiz is done. */
+export async function JouwTafelWelcomePage({ locale }: { locale: Locale }): Promise<never> {
   const user = await getMemberUser();
-  if (!user) redirect(jouwTafelSignUpPath(locale));
-  const copy = getLandingCopy(locale).auth.welcome;
-  const isNew = isNewAuthUser(user.created_at);
-
-  return (
-    <AccountShell locale={locale}>
-      <h1 className="font-serif text-[2rem] font-medium leading-[1.1] tracking-tight text-wine text-balance">
-        {copy.title}
-      </h1>
-      <p className="mt-4 text-[1.02rem] leading-relaxed text-wine/80">{isNew ? copy.created : copy.signedIn}</p>
-      <p className="mt-2 text-[1.02rem] leading-relaxed text-wine/70">{copy.next}</p>
-      <Link
-        href={jouwTafelPath(locale)}
-        className="mt-8 inline-flex min-h-12 items-center justify-center gap-1.5 rounded-full border border-wine/20 px-7 text-xs font-semibold uppercase tracking-[0.16em] text-wine/75 transition hover:border-wine/40 hover:text-wine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/60"
-      >
-        <ArrowLeftIcon className="h-3.5 w-3.5" />
-        {copy.back}
-      </Link>
-      <div>
-        <JouwTafelLogoutButton
-          label={copy.logOut}
-          busyLabel={copy.loggingOut}
-          redirectTo={jouwTafelPath(locale)}
-          locale={locale}
-        />
-      </div>
-    </AccountShell>
-  );
+  return redirect(user ? jouwTafelStartPath(locale) : jouwTafelSignUpPath(locale));
 }

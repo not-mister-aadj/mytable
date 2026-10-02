@@ -64,6 +64,18 @@ export function captureClientEvent(
   posthog.capture(event, properties);
 }
 
+/** For page-exit events (pagehide / tab hidden): sent at once with
+ * sendBeacon, so the browser delivers it even while the page unloads. */
+export function captureClientEventBeacon(
+  event: PostHogEventName | string,
+  properties?: Record<string, string | number | boolean | null | undefined>,
+): void {
+  if (typeof window === "undefined") return;
+  initPostHogClient();
+  if (!initialized) return;
+  posthog.capture(event, properties, { transport: "sendBeacon", send_instantly: true });
+}
+
 export function capturePageView(url: string): void {
   if (typeof window === "undefined") return;
   initPostHogClient();

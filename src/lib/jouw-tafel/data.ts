@@ -112,3 +112,20 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
     throw error;
   }
 }
+
+/** People on the waitlist per city, for the quiz's "In {stad} staan al N+
+ * mensen op de lijst". Rounded down to tens; cities under 20 are left out
+ * (the quiz then says "Je bent niet de enige"). Aggregates only. */
+export async function getWaitlistCityCounts(): Promise<Record<string, number>> {
+  try {
+    const counts = await getCachedWaitlistCounts();
+    const out: Record<string, number> = {};
+    for (const [city, n] of Object.entries(counts.byCity)) {
+      if (n >= 20) out[city] = Math.floor(n / 10) * 10;
+    }
+    return out;
+  } catch (error) {
+    console.error("[jouw-tafel] loading waitlist city counts failed", error);
+    return {};
+  }
+}

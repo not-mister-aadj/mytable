@@ -57,6 +57,8 @@ export type AuthCopy = {
     signedIn: string;
     next: string;
     back: string;
+    logOut: string;
+    loggingOut: string;
   };
 };
 
@@ -296,6 +298,8 @@ const landingNl: LandingCopy = {
       signedIn: "Je bent ingelogd.",
       next: "Binnenkort kies je hier je zondag.",
       back: "Terug naar de tafels",
+      logOut: "Uitloggen",
+      loggingOut: "Bezig met uitloggen",
     },
   },
 };
@@ -491,6 +495,8 @@ const landingEn: LandingCopy = {
       signedIn: "You're logged in.",
       next: "Soon you'll choose your Sunday here.",
       back: "Back to the tables",
+      logOut: "Log out",
+      loggingOut: "Logging out",
     },
   },
 };

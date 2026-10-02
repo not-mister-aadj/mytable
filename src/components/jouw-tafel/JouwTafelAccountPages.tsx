@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { JouwTafelAuthForm, type AuthScreen } from "@/components/jouw-tafel/JouwTafelAuthForm";
+import { JouwTafelLogoutButton } from "@/components/jouw-tafel/JouwTafelLogoutButton";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { PlaceholderViewTracker } from "@/components/jouw-tafel/PlaceholderViewTracker";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
@@ -125,6 +126,14 @@ export async function JouwTafelWelcomePage({ locale }: { locale: Locale }) {
         <ArrowLeftIcon className="h-3.5 w-3.5" />
         {copy.back}
       </Link>
+      <div>
+        <JouwTafelLogoutButton
+          label={copy.logOut}
+          busyLabel={copy.loggingOut}
+          redirectTo={jouwTafelPath(locale)}
+          locale={locale}
+        />
+      </div>
     </AccountShell>
   );
 }

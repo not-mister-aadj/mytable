@@ -194,6 +194,11 @@ export function trackJouwTafelAuthEvent(
   capture(event, props);
 }
 
+/** Logout from the "Jouw tafel" welcome page. */
+export function trackJouwTafelLogout(props: { locale: string }): void {
+  capture(PostHogEvents.authLoggedOut, props);
+}
+
 /** Fired when someone answers (or explicitly skips) the waitlist preference questions. */
 export function trackSundayTableWaitlistEnriched(props: {
   city: string;

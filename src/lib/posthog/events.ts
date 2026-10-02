@@ -49,6 +49,7 @@ export const PostHogEvents = {
   authCodeFailed: "auth_code_failed",
   authGoogleClicked: "auth_google_clicked",
   authGoogleHiddenInApp: "auth_google_hidden_in_app",
+  authLoggedOut: "auth_logged_out",
 } as const;
 
 export type PostHogEventName =

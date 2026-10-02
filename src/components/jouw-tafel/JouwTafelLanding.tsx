@@ -233,64 +233,71 @@ export function JouwTafelLanding({
           </Link>
         </header>
 
-        {/* 1. Hero, Groupvibe style: one big rounded photo with the headline,
-            one line and the single CTA on it; Timeleft's city line on top;
-            honest social proof underneath. */}
-        <section data-landing-section="hero" className="px-3 pt-1 sm:px-6 lg:mx-auto lg:max-w-7xl lg:px-10">
-          <div className="relative isolate flex h-[calc(100svh-7.5rem)] max-h-[720px] min-h-[540px] flex-col justify-end overflow-hidden rounded-[2rem] lg:h-[640px] lg:min-h-0">
-            <Image
-              src={HERO_PHOTO}
-              alt={copy.hero.imageAlt}
-              fill
-              priority
-              quality={90}
-              sizes="(min-width: 1024px) 90vw, 100vw"
-              className="-z-10 object-cover object-[50%_35%]"
-            />
-            <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-[#1e0a0e]/90 via-[#1e0a0e]/45 to-[#1e0a0e]/5" />
-
-            {city ? (
-              <p className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-cream/90 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-burgundy shadow-sm backdrop-blur sm:left-6 sm:top-6">
-                <PinIcon className="h-3.5 w-3.5 text-gold" />
-                <span className="sr-only">{copy.hero.locationAria}: </span>
-                {city}
-              </p>
-            ) : null}
+        {/* 1. Hero. Phone: Groupvibe style, one big rounded photo with the
+            headline, one line and the single CTA on it (zoomed in on the
+            table so the street above drops out). Desktop: Timeleft style,
+            text on the left and the photo on the right, so no face ends up
+            behind the headline. */}
+        <section data-landing-section="hero" className="px-3 pt-1 sm:px-6 lg:mx-auto lg:max-w-7xl lg:px-10 lg:pt-4">
+          <div className="relative isolate flex h-[calc(100svh-7.5rem)] max-h-[720px] min-h-[540px] flex-col justify-end overflow-hidden rounded-[2rem] lg:grid lg:h-[600px] lg:max-h-none lg:min-h-0 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center lg:gap-14 lg:overflow-visible lg:rounded-none">
+            <div className="absolute inset-0 -z-10 overflow-hidden lg:relative lg:inset-auto lg:z-0 lg:order-2 lg:h-full lg:rounded-[2rem]">
+              <Image
+                src={HERO_PHOTO}
+                alt={copy.hero.imageAlt}
+                fill
+                priority
+                quality={90}
+                sizes="(min-width: 1024px) 55vw, 100vw"
+                className="origin-[35%_80%] scale-[1.18] object-cover object-[30%_60%] lg:origin-center lg:scale-100 lg:object-[50%_45%]"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1e0a0e]/90 via-[#1e0a0e]/40 to-transparent lg:hidden" />
+              {city ? (
+                <p className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-cream/90 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-burgundy shadow-sm backdrop-blur sm:left-6 sm:top-6">
+                  <PinIcon className="h-3.5 w-3.5 text-gold" />
+                  <span className="sr-only">{copy.hero.locationAria}: </span>
+                  {city}
+                </p>
+              ) : null}
+            </div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.05, ease }}
-              className="px-6 pb-7 sm:px-10 sm:pb-10 lg:max-w-2xl lg:px-14 lg:pb-14"
+              className="px-6 pb-7 sm:px-10 sm:pb-10 lg:order-1 lg:px-2 lg:pb-0"
             >
-              <h1 className="font-serif text-[2.6rem] font-medium leading-[1.02] tracking-tight text-cream text-balance sm:text-[3.4rem] lg:text-[4rem]">
+              <h1 className="font-serif text-[2.6rem] font-medium leading-[1.02] tracking-tight text-cream text-balance sm:text-[3.4rem] lg:text-[3.6rem] lg:text-wine">
                 {copy.hero.title}
               </h1>
-              <p className="mt-4 max-w-md text-[1.02rem] leading-relaxed text-cream/85 sm:text-[1.1rem]">
+              <p className="mt-4 max-w-md text-[1.02rem] leading-relaxed text-cream/85 sm:text-[1.1rem] lg:text-wine/70">
                 {copy.hero.body}
               </p>
-              <div ref={heroCtaRef} className="mt-6">
+              <div ref={heroCtaRef} className="mt-6 lg:mt-8">
                 <Link
                   href={signUpHref}
-                  className="cta-lift inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-full bg-cream px-8 text-xs font-semibold uppercase tracking-[0.16em] text-burgundy shadow-[0_14px_34px_rgba(0,0,0,0.25)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-wine sm:w-auto"
+                  className="cta-lift inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-full bg-cream px-8 text-xs font-semibold uppercase tracking-[0.16em] text-burgundy shadow-[0_14px_34px_rgba(0,0,0,0.25)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-wine sm:w-auto lg:bg-burgundy lg:text-cream lg:shadow-[0_14px_34px_rgba(90,15,27,0.28)] lg:hover:bg-wine lg:focus-visible:ring-burgundy lg:focus-visible:ring-offset-cream"
                   onClick={() => ctaClicked("hero", "signup")}
                 >
                   {copy.signUp}
                   <span aria-hidden>&rarr;</span>
                 </Link>
               </div>
+              {proof ? (
+                <p className="mt-6 hidden items-center gap-2 text-sm font-medium text-wine/75 lg:flex">
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
+                  {copy.hero.proof(proof.count, proof.city ? displayCity(proof.city as QuizCity, locale) : null)}
+                </p>
+              ) : null}
             </motion.div>
           </div>
 
-          <div className="mt-4 flex flex-col items-center gap-1 text-center sm:flex-row sm:justify-between sm:px-2 sm:text-left">
+          <div className="mt-4 flex flex-col items-center gap-1 text-center lg:hidden">
             {proof ? (
               <p className="flex items-center gap-2 text-sm font-medium text-wine/75">
                 <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
                 {copy.hero.proof(proof.count, proof.city ? displayCity(proof.city as QuizCity, locale) : null)}
               </p>
-            ) : (
-              <span />
-            )}
+            ) : null}
             <p className="text-xs text-wine/50">{copy.hero.note}</p>
           </div>
         </section>

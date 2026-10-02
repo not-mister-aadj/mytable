@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import type { Locale } from "@/i18n/config";
 import { signInWithGoogle } from "@/features/auth/oauth";
 import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
+import { trackMetaCompleteRegistration } from "@/lib/analytics/metaTracking";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getBrowserMemberAuthCallbackUrl } from "@/lib/member-url";
 import { trackJouwTafelAuthEvent } from "@/lib/posthog/analytics";
@@ -308,6 +309,9 @@ export function JouwTafelAuthForm({
     }
     const isNew = isNewAuthUser(data.user.created_at);
     trackJouwTafelAuthEvent(PostHogEvents.authCodeVerified, { screen, is_new_user: isNew, locale });
+    // Meta CompleteRegistration for new code accounts, like Google sign-ups
+    // get in /auth/callback. Same event id per user, so it is never doubled.
+    if (isNew) trackMetaCompleteRegistration(data.user);
     storeEmail(null);
     // Link the account to the CRM customer row (by email). Never blocks
     // the welcome page for more than a moment.

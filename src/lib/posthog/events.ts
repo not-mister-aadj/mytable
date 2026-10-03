@@ -61,6 +61,7 @@ export const PostHogEvents = {
   quizReserveClicked: "quiz_reserve_clicked",
   quizNotifyClicked: "quiz_notify_clicked",
   quizShareClicked: "quiz_share_clicked",
+  quizInfoOpened: "quiz_info_opened",
   quizLogoutClicked: "quiz_logout_clicked",
 } as const;
 

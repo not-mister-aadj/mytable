@@ -132,7 +132,7 @@ export function JouwTafelAuthForm({
   signUpPath: string;
   termsHref: string;
   privacyHref: string;
-  /** "Al 330+ mensen staan op de lijst", live and rounded down; null when small. */
+  /** "Al 330+ mensen hebben zich aangemeld", live and rounded down; null when small. */
   proofText: string | null;
   /** Sign-up: always a clean start (no session, no saved quiz answers). */
   startFresh: boolean;

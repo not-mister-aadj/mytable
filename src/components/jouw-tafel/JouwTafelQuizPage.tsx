@@ -5,7 +5,7 @@ import { JouwTafelQuiz, type QuizTestimonial } from "@/components/jouw-tafel/qui
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { jouwTafelPath, jouwTafelSignUpPath, type Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
-import { getJouwTafelEvents, getWaitlistCityCounts } from "@/lib/jouw-tafel/data";
+import { getJouwTafelEvents, getSignupSubsetCounts, getWaitlistCityCounts } from "@/lib/jouw-tafel/data";
 import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   QUIZ_METADATA_KEY,
@@ -47,10 +47,11 @@ export async function JouwTafelQuizPage({
   const requested = firstParam(searchParams.stap);
   const initialStep = resolveStep(requested, state.answers);
 
-  const [{ events, now }, geoCity, cityCounts] = await Promise.all([
+  const [{ events, now }, geoCity, cityCounts, subsetCounts] = await Promise.all([
     getJouwTafelEvents(),
     requestCity(searchParams),
     getWaitlistCityCounts(),
+    getSignupSubsetCounts(),
   ]);
 
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
@@ -73,6 +74,7 @@ export async function JouwTafelQuizPage({
       events={events}
       now={now}
       cityCounts={cityCounts}
+      subsetCounts={subsetCounts}
       testimonials={testimonials}
       landingPath={jouwTafelPath(locale)}
     />

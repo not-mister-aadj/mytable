@@ -48,24 +48,50 @@ export type QuizCopy = {
   leeftijd: { title: string; options: Record<AgeMattersAnswer, string> };
   stad: {
     title: string;
+    sub: string;
     geoHint: string;
     other: string;
     otherLabel: string;
     otherPlaceholder: string;
     otherError: string;
+    /** Under the place field when nothing on the list matches. */
+    noResults: string;
   };
+  /** "Rotterdam, Den Haag en Zwolle" / "Rotterdam, The Hague and Zwolle". */
+  joinCities: (cities: string[]) => string;
   stopStad: {
+    /** One city: the title. */
+    one: (city: string) => string;
+    /** One city with a sign-up count. */
     count: (n: number, city: string) => string;
-    few: (city: string) => string;
-    /** Under the "{n}+" in the stat card. */
+    /** Under the "{n}+" in the stat card (one city). */
     statLabel: (city: string) => string;
+    /** Two or more cities with a combined count: the title. */
+    multiTitle: string;
+    /** Two or more cities without a count: the title. */
+    multiFallbackTitle: string;
+    /** Two or three cities: the combined (distinct) count, cities named. */
+    countCities: (n: number, cities: string[]) => string;
+    /** Four or more cities: the combined (distinct) count. */
+    countMany: (n: number) => string;
+    /** Always with two or more of our cities. */
+    perCity: string;
+    /** Only towns outside our cities: the title ("and {more} other cities"
+     * with more than one). */
+    otherTitle: (city: string, more: number) => string;
+    /** Only towns outside our cities: the waitlist line (also the card on
+     * the table list). */
+    otherLine: (cities: string) => string;
+    /** Our cities plus towns outside them: the extra line. */
+    mixedLine: (cities: string) => string;
   };
   zoekt: { title: string; options: Record<WhyAnswer, string> };
   stopZoekt: Record<WhyAnswer, string>;
   gesprek: { title: string; options: Record<ConversationAnswer, string> };
   stopGesprek: { known: string; both: string };
   wijn: { title: string; options: Record<WineAnswer, string> };
-  stopWijn: { wine: string; none: string };
+  /** One line per wine answer. */
+  stopWijn: Record<WineAnswer, string>;
   gezelschap: { title: string; options: Record<CompanionAnswer, string> };
   stopAlleen: string;
   wie: { title: string; options: Record<CompanionWhoAnswer, string> };
@@ -114,10 +140,32 @@ export type QuizCopy = {
     dutchTableNote: string;
     dutchFine: string;
     checkoutError: string;
-    where: string;
     selectAria: string;
+    /** Only towns outside our cities: heading above our cities' tables. */
+    ourCities: string;
+    /** Line 1 of a table card. */
+    tableName: string;
+    /** Our chosen cities without a table on the list (joined; n of them). */
+    noSunday: (cities: string, n: number) => string;
+    /** The link under the subtitle, and the sheet's title. */
+    infoLink: string;
+    infoClose: string;
+    /** The sheet's lines; the price line only when there is a price. */
+    infoLines: string[];
+    infoPrice: (price: string, from: boolean) => string;
+    infoLast: string;
   };
 };
+
+/** "a, b en c". */
+function joinNl(items: string[]): string {
+  return items.length <= 1 ? items[0] ?? "" : `${items.slice(0, -1).join(", ")} en ${items[items.length - 1]}`;
+}
+
+/** "a, b and c". */
+function joinEn(items: string[]): string {
+  return items.length <= 1 ? items[0] ?? "" : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
 
 const nl: QuizCopy = {
   metaTitle: "Jouw tafel | MyTable",
@@ -162,16 +210,31 @@ const nl: QuizCopy = {
   },
   stad: {
     title: "In welke stad wil je aanschuiven?",
+    sub: "Kies alle steden waar je zou aanschuiven.",
     geoHint: "Klopt dit?",
     other: "Andere stad",
     otherLabel: "Welke stad?",
     otherPlaceholder: "Bijvoorbeeld Leiden",
-    otherError: "Vul je stad in.",
+    otherError: "Kies een plaats uit de lijst.",
+    noResults: "Geen plaats gevonden.",
   },
+  joinCities: (cities) => joinNl(cities),
   stopStad: {
-    count: (n, city) => `In ${city} staan al ${n}+ mensen op de lijst.`,
-    few: (city) => `Je bent niet de enige in ${city}.`,
-    statLabel: (city) => `op de lijst in ${city}`,
+    one: (city) => `Je bent niet de enige in ${city}.`,
+    count: (n, city) => `In ${city} hebben zich al ${n}+ mensen aangemeld.`,
+    statLabel: (city) => `aangemeld in ${city}`,
+    multiTitle: "Je bent in goed gezelschap.",
+    multiFallbackTitle: "Meer steden, meer zondagen.",
+    countCities: (n, cities) => `In ${joinNl(cities)} hebben zich al ${n}+ mensen aangemeld.`,
+    countMany: (n) => `In de steden die jij koos hebben zich al ${n}+ mensen aangemeld.`,
+    perCity: "Straks zie je per stad welke zondagen er zijn.",
+    otherTitle: (city, more) =>
+      more === 0
+        ? `We komen graag naar ${city}.`
+        : `We komen graag naar ${city} en ${more} ${more === 1 ? "andere stad" : "andere steden"}.`,
+    otherLine: (cities) =>
+      `Je staat op de wachtlijst voor ${cities}. Zodra er genoeg aanmeldingen zijn, plannen we daar een zondag en hoor jij het als eerste.`,
+    mixedLine: (cities) => `${cities} zetten we op de wachtlijst. Je hoort het als we daar starten.`,
   },
   zoekt: {
     title: "Waar heb je zin in?",
@@ -187,7 +250,7 @@ const nl: QuizCopy = {
     places: "Dan zit je goed. We kiezen plekken die de moeite waard zijn.",
     cosy: "Een goed glas, geen planning. Daar is Sunday Table voor.",
     wines: "Aan tafel krijg je onze wijnaanraders van de kaart.",
-    treat: "Een middag die alleen van jou is.",
+    treat: "Een goed glas, goed gezelschap. Je verdient het.",
     new_city: "De leukste manier om een stad te leren kennen.",
   },
   gesprek: {
@@ -203,7 +266,9 @@ const nl: QuizCopy = {
     options: { red: "Rood", white: "Wit", bubbles: "Bubbels", none: "Liever geen alcohol" },
   },
   stopWijn: {
-    wine: "Goede keuze.",
+    red: "Een rode wijn op zondagmiddag. Daar zeggen we geen nee tegen.",
+    white: "Een fris glas wit. Altijd een goed begin van de middag.",
+    bubbles: "Bubbels op zondag. Dan wordt het vast gezellig.",
     none: "Helemaal goed. Je bestelt gewoon wat je lekker vindt.",
   },
   gezelschap: {
@@ -260,7 +325,7 @@ const nl: QuizCopy = {
       other: "Anders",
     },
   },
-  stopReviews: { eyebrow: "Aan tafel", title: "Wat gasten zeggen" },
+  stopReviews: { eyebrow: "Aan tafel", title: "Dit zeggen gasten na hun zondag." },
   klaar: {
     title: "Klaar om aan te schuiven bij 4 tot 6 nieuwe mensen?",
     options: { yes: "Ja, graag", unsure: "Nog niet zeker" },
@@ -271,7 +336,7 @@ const nl: QuizCopy = {
   },
   kies: {
     title: "Kies je zondag",
-    sub: (city) => `Tafels in ${city} en vlakbij, voor jouw leeftijdsgroep.`,
+    sub: (city) => `Tafels in en rond ${city}.`,
     inCity: (city) => `In ${city}`,
     nearby: "Vlakbij",
     comingSoon: "Binnenkort",
@@ -290,7 +355,7 @@ const nl: QuizCopy = {
     notified: "Genoteerd. Je hoort het als eerste.",
     unsure: "Geen haast. Je kunt altijd terugkomen via Inloggen.",
     noMatch: (city) =>
-      `Je staat op de lijst. Zodra er in ${city} een tafel opent, hoor je het als eerste.`,
+      `Je bent aangemeld. Zodra er in ${city} een tafel opent, hoor je het als eerste.`,
     share: "Deel met een vriend",
     shareTitle: "Sunday Table",
     shareText: "Een zondagmiddag aan tafel met nieuwe mensen. Zin om mee te doen?",
@@ -298,8 +363,20 @@ const nl: QuizCopy = {
     dutchTableNote: "Deze tafel is Nederlandstalig.",
     dutchFine: "Nederlands is ook prima",
     checkoutError: "Dat lukte niet. Probeer het nog een keer.",
-    where: "In een wijnbar in de stad. Een week van tevoren hoor je waar.",
     selectAria: "Kies deze tafel",
+    ourCities: "Of schuif aan in een van onze steden",
+    tableName: "Sunday Table",
+    noSunday: (cities, n) =>
+      `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
+    infoLink: "Wat is een Sunday Table?",
+    infoClose: "Sluiten",
+    infoLines: [
+      "Een middag aan tafel met 4 tot 6 mensen in een goede wijnbar in jouw stad.",
+      "Om 14:00 schuif je aan.",
+      "Waar precies, hoor je een week van tevoren.",
+    ],
+    infoPrice: (price, from) => `Je plek kost ${from ? "vanaf " : ""}${price}. Je drankjes bestel en betaal je zelf aan tafel.`,
+    infoLast: "De meeste gasten komen alleen. Kom je met iemand, dan zitten jullie samen.",
   },
 };
 
@@ -346,16 +423,31 @@ const en: QuizCopy = {
   },
   stad: {
     title: "Which city would you like to join a table in?",
+    sub: "Pick every city where you'd join a table.",
     geoHint: "Is this right?",
     other: "Another city",
     otherLabel: "Which city?",
     otherPlaceholder: "For example Leiden",
-    otherError: "Please fill in your city.",
+    otherError: "Pick a place from the list.",
+    noResults: "No place found.",
   },
+  joinCities: (cities) => joinEn(cities),
   stopStad: {
-    count: (n, city) => `${n}+ people in ${city} are already on the list.`,
-    few: (city) => `You're not the only one in ${city}.`,
-    statLabel: (city) => `on the list in ${city}`,
+    one: (city) => `You're not the only one in ${city}.`,
+    count: (n, city) => `${n}+ people in ${city} have already signed up.`,
+    statLabel: (city) => `signed up in ${city}`,
+    multiTitle: "You're in good company.",
+    multiFallbackTitle: "More cities, more Sundays.",
+    countCities: (n, cities) => `${n}+ people in ${joinEn(cities)} have already signed up.`,
+    countMany: (n) => `${n}+ people have already signed up in the cities you picked.`,
+    perCity: "Next, you'll see the Sundays in each city.",
+    otherTitle: (city, more) =>
+      more === 0
+        ? `We'd love to come to ${city}.`
+        : `We'd love to come to ${city} and ${more} other ${more === 1 ? "city" : "cities"}.`,
+    otherLine: (cities) =>
+      `You're on the waitlist for ${cities}. Once enough people sign up, we'll plan a Sunday there and you'll be the first to hear.`,
+    mixedLine: (cities) => `We've put ${cities} on the waitlist. You'll hear from us when we start there.`,
   },
   zoekt: {
     title: "What are you in the mood for?",
@@ -371,7 +463,7 @@ const en: QuizCopy = {
     places: "You're in the right place. We pick places worth the visit.",
     cosy: "A good glass, no planning. That's what Sunday Table is for.",
     wines: "At the table you get our wine picks from the list.",
-    treat: "An afternoon that's all yours.",
+    treat: "A good glass, good company. You've earned it.",
     new_city: "The nicest way to get to know a city.",
   },
   gesprek: {
@@ -387,7 +479,9 @@ const en: QuizCopy = {
     options: { red: "Red", white: "White", bubbles: "Bubbles", none: "I'd rather not drink alcohol" },
   },
   stopWijn: {
-    wine: "Good choice.",
+    red: "A red on a Sunday afternoon. We won't say no to that.",
+    white: "A crisp glass of white. Always a good start to the afternoon.",
+    bubbles: "Bubbles on a Sunday. That's bound to be a good time.",
     none: "Perfectly fine. You simply order what you like.",
   },
   gezelschap: {
@@ -444,7 +538,7 @@ const en: QuizCopy = {
       other: "Other",
     },
   },
-  stopReviews: { eyebrow: "At the table", title: "What guests say" },
+  stopReviews: { eyebrow: "At the table", title: "What guests say after their Sunday." },
   klaar: {
     title: "Ready to join 4 to 6 new people at the table?",
     options: { yes: "Yes, please", unsure: "Not sure yet" },
@@ -455,7 +549,7 @@ const en: QuizCopy = {
   },
   kies: {
     title: "Choose your Sunday",
-    sub: (city) => `Tables in and near ${city}, for your age group.`,
+    sub: (city) => `Tables in and around ${city}.`,
     inCity: (city) => `In ${city}`,
     nearby: "Nearby",
     comingSoon: "Coming soon",
@@ -474,7 +568,7 @@ const en: QuizCopy = {
     notified: "Noted. You'll be the first to hear.",
     unsure: "No rush. You can always come back via Log in.",
     noMatch: (city) =>
-      `You're on the list. As soon as a table opens in ${city}, you'll be the first to hear.`,
+      `You're signed up. As soon as a table opens in ${city}, you'll be the first to hear.`,
     share: "Share with a friend",
     shareTitle: "Sunday Table",
     shareText: "A Sunday afternoon at the table with new people. Want to join?",
@@ -482,8 +576,21 @@ const en: QuizCopy = {
     dutchTableNote: "This table is held in Dutch.",
     dutchFine: "Dutch is fine too",
     checkoutError: "That didn't work. Please try again.",
-    where: "In a wine bar in the city. You'll hear where a week ahead.",
     selectAria: "Choose this table",
+    ourCities: "Or join a table in one of our cities",
+    tableName: "Sunday Table",
+    noSunday: (cities, n) =>
+      `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,
+    infoLink: "What is a Sunday Table?",
+    infoClose: "Close",
+    infoLines: [
+      "An afternoon at a table with 4 to 6 people in a good wine bar in your city.",
+      "You take your seat at 14:00.",
+      "You'll hear exactly where a week before.",
+    ],
+    infoPrice: (price, from) =>
+      `Your seat costs ${from ? "from " : ""}${price}. You order and pay for your own drinks at the table.`,
+    infoLast: "Most guests come alone. If you bring someone, you sit together.",
   },
 };
 

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { QuizEvent } from "./logic";
+import { getQuizCopy } from "./quiz-copy";
 import {
   ageBracket,
   ageFromBirthDate,
@@ -11,18 +12,27 @@ import {
   chapterOf,
   checkoutTableLanguage,
   chooseTables,
+  chooseTablesForAnswers,
+  cityMask,
+  cityStepAnswer,
   defaultSeats,
   dietaryNotes,
   eligibleBrackets,
   firstMissingStep,
   firstNameFromMetadata,
+  infoPrice,
+  kiesCities,
   nextStep,
   parseBirthDate,
   previousStep,
   quizSteps,
   resolveStep,
   sanitizeQuizState,
+  signupCountsBySubset,
   stepPosition,
+  stopCityCount,
+  stopStadContent,
+  stopZoektAnswer,
   tableBrackets,
   waitlistAgeRange,
   type QuizAnswers,
@@ -195,7 +205,7 @@ function rows(input: Parameters<typeof chooseTables>[1]) {
 }
 
 test("chooseTables: 37 who likes their own age sees 35+ only", () => {
-  assert.deepEqual(rows({ city: "Rotterdam", age: 37, ageMatters: "yes" }), [
+  assert.deepEqual(rows({ cities: ["Rotterdam"], age: 37, ageMatters: "yes" }), [
     "rdam-25-okt-35:open",
     "dh-8-nov-35:open:nearby",
     "rdam-22-nov-35:soon",
@@ -203,7 +213,7 @@ test("chooseTables: 37 who likes their own age sees 35+ only", () => {
 });
 
 test("chooseTables: 37 who does not mind sees both groups, 35+ first", () => {
-  assert.deepEqual(rows({ city: "Rotterdam", age: 37, ageMatters: "no" }), [
+  assert.deepEqual(rows({ cities: ["Rotterdam"], age: 37, ageMatters: "no" }), [
     "rdam-25-okt-35:open",
     "rdam-18-okt-20:open",
     "rdam-1-nov-20:open",
@@ -214,26 +224,75 @@ test("chooseTables: 37 who does not mind sees both groups, 35+ first", () => {
 });
 
 test("chooseTables: 28 sees 20-39 only, full and closed tables drop off", () => {
-  const result = chooseTables(EVENTS, { city: "Rotterdam", age: 28, ageMatters: "no" }, NOW);
+  const result = chooseTables(EVENTS, { cities: ["Rotterdam"], age: 28, ageMatters: "no" }, NOW);
   assert.equal(result.hasMatch, true);
-  assert.deepEqual(rows({ city: "Rotterdam", age: 28, ageMatters: "no" }), [
+  assert.deepEqual(rows({ cities: ["Rotterdam"], age: 28, ageMatters: "no" }), [
     "rdam-18-okt-20:open",
     "rdam-1-nov-20:open",
     "dh-22-nov-20:soon:nearby",
   ]);
 });
 
-test("chooseTables: a nearby town finds the hub; no table at all is no match", () => {
-  assert.deepEqual(rows({ city: "Delft", age: 45, ageMatters: "yes" }), [
-    "rdam-25-okt-35:open:nearby",
-    "dh-8-nov-35:open:nearby",
-    "rdam-22-nov-35:soon:nearby",
-  ]);
-  const utrecht = chooseTables(EVENTS, { city: "Utrecht", age: 45, ageMatters: "yes" }, NOW);
+test("chooseTables: a place that is not ours has no tables of its own; no table at all is no match", () => {
+  assert.deepEqual(rows({ cities: ["Delft"], age: 45, ageMatters: "yes" }), []);
+  const utrecht = chooseTables(EVENTS, { cities: ["Utrecht"], age: 45, ageMatters: "yes" }, NOW);
   assert.equal(utrecht.hasMatch, false);
   assert.deepEqual(utrecht.rows.map((r) => r.kind), ["soon"]);
-  const groningen = chooseTables(EVENTS, { city: "Groningen", age: 30, ageMatters: "no" }, NOW);
+  const groningen = chooseTables(EVENTS, { cities: ["Groningen"], age: 30, ageMatters: "no" }, NOW);
   assert.deepEqual(groningen, { rows: [], hasMatch: false });
+});
+
+test("chooseTables: two cities, in the order they were picked", () => {
+  const result = chooseTables(EVENTS, { cities: ["Den Haag", "Rotterdam"], age: 37, ageMatters: "no" }, NOW);
+  assert.equal(result.hasMatch, true);
+  assert.deepEqual(rows({ cities: ["Den Haag", "Rotterdam"], age: 37, ageMatters: "no" }), [
+    "dh-8-nov-35:open",
+    "rdam-25-okt-35:open",
+    "rdam-18-okt-20:open",
+    "rdam-1-nov-20:open",
+    "dh-22-nov-20:soon",
+    "rdam-22-nov-35:soon",
+  ]);
+});
+
+test("chooseTables: nearby means not in any chosen city", () => {
+  assert.deepEqual(rows({ cities: ["Den Haag"], age: 45, ageMatters: "yes" }), [
+    "dh-8-nov-35:open",
+    "rdam-25-okt-35:open:nearby",
+    "rdam-22-nov-35:soon:nearby",
+  ]);
+  // Delft adds nothing: only ours count, Utrecht is not near anything.
+  assert.deepEqual(rows({ cities: ["Utrecht", "Delft"], age: 45, ageMatters: "yes" }), ["utr-29-nov-35:soon"]);
+  // A chosen city is never listed as nearby, even when it is near another.
+  assert.deepEqual(rows({ cities: ["Rotterdam", "Den Haag"], age: 45, ageMatters: "yes" }), [
+    "rdam-25-okt-35:open",
+    "dh-8-nov-35:open",
+    "rdam-22-nov-35:soon",
+  ]);
+});
+
+test("kiesCities: name only chosen cities with tables here; ours without get a line", () => {
+  const input = { age: 45, ageMatters: "yes" as const };
+  // Den Haag has its own table, Utrecht only a coming-soon one, Breda none.
+  const r = chooseTables(EVENTS, { ...input, cities: ["Den Haag", "Utrecht", "Breda", "Zwolle"] }, NOW).rows;
+  assert.deepEqual(kiesCities(["Den Haag", "Utrecht", "Breda", "Zwolle"], r), {
+    named: ["Den Haag", "Utrecht"],
+    noSunday: ["Breda"],
+  });
+  // Rotterdam with a table of its own.
+  const rd = chooseTables(EVENTS, { ...input, cities: ["Rotterdam"] }, NOW).rows;
+  assert.deepEqual(kiesCities(["Rotterdam"], rd), { named: ["Rotterdam"], noSunday: [] });
+  // Only nearby tables: named (tables around it), but no Sunday of its own.
+  const onlyNear = rd.filter((row) => row.event.city === "Rotterdam").map((row) => ({ ...row, nearby: true }));
+  assert.deepEqual(kiesCities(["Den Haag"], onlyNear), { named: ["Den Haag"], noSunday: ["Den Haag"] });
+});
+
+test("infoPrice: the lowest price on the list, 'from' when they differ", () => {
+  const r = chooseTables(EVENTS, { cities: ["Rotterdam"], age: 37, ageMatters: "no" }, NOW).rows;
+  assert.deepEqual(infoPrice(r), { cents: 1000, from: false });
+  const mixed = r.map((row, i) => ({ ...row, event: { ...row.event, priceCents: i === 0 ? 1500 : 1200 } }));
+  assert.deepEqual(infoPrice(mixed), { cents: 1200, from: true });
+  assert.equal(infoPrice([]), null);
 });
 
 // ------------------------------------------------- checkout and waitlist
@@ -270,11 +329,46 @@ test("buildWaitlistPreferences keeps the waitlist modal's shape", () => {
   assert.equal(prefs.heardFrom, "instagram");
 });
 
+test("buildWaitlistPreferences lists every chosen city, primary first", () => {
+  const prefs = buildWaitlistPreferences(
+    { ...DONE_ALONE, city: "Rotterdam", cities: ["Rotterdam", "Den Haag", "Zwolle"] },
+    NOW,
+  );
+  assert.deepEqual(prefs.cities, ["Rotterdam", "Den Haag", "Zwolle"]);
+  // An old state with only `city`.
+  assert.deepEqual(buildWaitlistPreferences({ city: "Utrecht" }, NOW).cities, ["Utrecht"]);
+});
+
+test("the city step is answered with at least one city", () => {
+  const { city: _city, ...noCity } = DONE_ALONE;
+  void _city;
+  assert.equal(firstMissingStep(noCity), "stad");
+  assert.equal(firstMissingStep({ ...noCity, cities: [] }), "stad");
+  assert.equal(firstMissingStep({ ...noCity, cities: ["Zwolle"] }), null);
+  // Old state: `city` alone still counts.
+  assert.equal(firstMissingStep(DONE_ALONE), null);
+});
+
+test("cityStepAnswer: order kept, a place stays its own place", () => {
+  // Delft is never Rotterdam or Den Haag: whoever wants Rotterdam ticks it.
+  assert.deepEqual(cityStepAnswer(["Rotterdam", "Delft"]), { cities: ["Rotterdam", "Delft"], city: "Rotterdam" });
+  assert.deepEqual(cityStepAnswer(["Delft"]), { cities: ["Delft"], city: "Delft" });
+  assert.deepEqual(cityStepAnswer(["Zwolle", "Den Haag", "Rotterdam"]), {
+    cities: ["Zwolle", "Den Haag", "Rotterdam"],
+    city: "Zwolle",
+  });
+  assert.deepEqual(cityStepAnswer(["Den Haag", "den haag"]), { cities: ["Den Haag"], city: "Den Haag" });
+  const empty = cityStepAnswer([]);
+  assert.equal(empty.cities, undefined);
+  assert.equal(empty.city, undefined);
+});
+
 test("analyticsAnswer never carries personal data", () => {
   assert.equal(analyticsAnswer("naam", { name: "Sam" }), "filled");
   assert.equal(analyticsAnswer("geboortedatum", { birthDate: "1990-03-07" }), "filled");
   assert.equal(analyticsAnswer("stad", { city: "Den Haag" }), "Den Haag");
   assert.equal(analyticsAnswer("stad", { city: "Zwolle" }), "other");
+  assert.equal(analyticsAnswer("stad", { city: "Rotterdam", cities: ["Rotterdam", "Den Haag", "Zwolle"] }), "Rotterdam,Den Haag,other");
   assert.equal(analyticsAnswer("dieet", { dietary: ["vegan", "other"], dietaryOther: "pinda" }), "vegan,other");
   assert.equal(analyticsAnswer("dieet", { dietary: [] }), "skipped");
   assert.equal(analyticsAnswer("zoekt", { why: ["wines", "treat"] }), "wines,treat");
@@ -301,6 +395,177 @@ test("sanitizeQuizState drops unknown values", () => {
     notify: ["ok-id"],
   });
   assert.deepEqual(sanitizeQuizState(null), { v: 1, answers: {} });
+});
+
+test("sanitizeQuizState: an old single city becomes a list of one", () => {
+  assert.deepEqual(sanitizeQuizState({ v: 1, answers: { city: " Rotterdam " } }).answers, {
+    city: "Rotterdam",
+    cities: ["Rotterdam"],
+  });
+});
+
+test("sanitizeQuizState: cities are cleaned, deduped, capped, city is the first", () => {
+  const state = sanitizeQuizState({
+    v: 1,
+    answers: { city: "Utrecht", cities: ["  Den   Haag ", "den haag", "Rotterdam", 5, "", "ROTTERDAM", "Zwolle"] },
+  });
+  assert.deepEqual(state.answers, { city: "Den Haag", cities: ["Den Haag", "Rotterdam", "Zwolle"] });
+  const many = sanitizeQuizState({
+    v: 1,
+    answers: { cities: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"] },
+  });
+  assert.equal(many.answers.cities?.length, 8);
+  assert.equal(many.answers.city, "A1");
+  // An empty list falls back to the old city.
+  assert.deepEqual(sanitizeQuizState({ v: 1, answers: { city: "Breda", cities: [] } }).answers.cities, ["Breda"]);
+});
+
+test("stopCityCount: the chosen city with the highest count, never a sum", () => {
+  const counts = { Rotterdam: 120, "Den Haag": 340, Utrecht: 100 };
+  assert.deepEqual(stopCityCount(["Rotterdam"], counts), { city: "Rotterdam", n: 120 });
+  assert.deepEqual(stopCityCount(["Rotterdam", "Den Haag", "Zwolle"], counts), { city: "Den Haag", n: 340 });
+  // Any spelling of our city matches.
+  assert.deepEqual(stopCityCount(["the hague"], counts), { city: "the hague", n: 340 });
+  assert.equal(stopCityCount(["Zwolle", "Breda"], counts), null);
+  assert.equal(stopCityCount([], counts), null);
+});
+
+test("signupCountsBySubset: distinct people per combination of our cities", () => {
+  const rows: { email: string; city: string }[] = [];
+  // 60 only in Rotterdam, 50 only in Den Haag, 40 in both, 30 in Utrecht.
+  for (let i = 0; i < 60; i++) rows.push({ email: `r${i}@x.nl`, city: "Rotterdam" });
+  for (let i = 0; i < 50; i++) rows.push({ email: `d${i}@x.nl`, city: "Den Haag" });
+  for (let i = 0; i < 40; i++) {
+    rows.push({ email: `b${i}@x.nl`, city: "Rotterdam" });
+    rows.push({ email: `B${i}@X.nl`, city: "the hague" });
+  }
+  for (let i = 0; i < 30; i++) rows.push({ email: `u${i}@x.nl`, city: "Utrecht" });
+  rows.push({ email: "z@x.nl", city: "Zwolle" });
+  const counts = signupCountsBySubset(rows);
+  const rd = cityMask(["Rotterdam", "Den Haag"]);
+  assert.equal(rd, 0b11);
+  assert.equal(counts[String(rd)], 150); // 60 + 50 + 40, not 100 + 90
+  assert.equal(counts[String(cityMask(["Rotterdam"]))], 100);
+  assert.equal(counts[String(cityMask(["Den Haag"]))], undefined); // 90, under 100
+  assert.equal(counts[String(cityMask(["Utrecht"]))], undefined); // under 100
+  assert.equal(counts[String(cityMask(["Rotterdam", "Den Haag", "Utrecht"]))], 180);
+  assert.equal(cityMask(["Zwolle"]), 0);
+});
+
+test("stopStadContent: one city, two, three, four or more, under and over 100", () => {
+  const nl = getQuizCopy("nl");
+  const en = getQuizCopy("en");
+  const cityCounts = { Rotterdam: 120 };
+  const rdz = cityMask(["Rotterdam", "Den Haag"]);
+  const many = cityMask(["Rotterdam", "Den Haag", "Utrecht", "Breda"]);
+  const subset = { [String(rdz)]: 150, [String(many)]: 400 };
+
+  assert.deepEqual(stopStadContent(nl, "nl", ["Rotterdam"], cityCounts, subset), {
+    title: "Je bent niet de enige in Rotterdam.",
+    countLine: "In Rotterdam hebben zich al 120+ mensen aangemeld.",
+    perCity: null,
+    waitlistLine: null,
+    stat: { n: 120, label: "aangemeld in Rotterdam" },
+  });
+  assert.deepEqual(stopStadContent(nl, "nl", ["Breda"], cityCounts, subset), {
+    title: "Je bent niet de enige in Breda.",
+    countLine: null,
+    perCity: null,
+    waitlistLine: null,
+    stat: null,
+  });
+
+  const two = stopStadContent(nl, "nl", ["Rotterdam", "Den Haag"], cityCounts, subset);
+  assert.equal(two.title, "Je bent in goed gezelschap.");
+  assert.equal(two.countLine, "In Rotterdam en Den Haag hebben zich al 150+ mensen aangemeld.");
+  assert.equal(two.perCity, "Straks zie je per stad welke zondagen er zijn.");
+  assert.equal(two.stat, null);
+
+  const rdu = cityMask(["Rotterdam", "Den Haag", "Utrecht"]);
+  const three = stopStadContent(en, "en", ["Rotterdam", "Den Haag", "Utrecht"], cityCounts, { ...subset, [String(rdu)]: 210 });
+  assert.equal(three.title, "You're in good company.");
+  assert.equal(three.countLine, "210+ people in Rotterdam, The Hague and Utrecht have already signed up.");
+  assert.equal(three.perCity, "Next, you'll see the Sundays in each city.");
+
+  const four = stopStadContent(nl, "nl", ["Rotterdam", "Den Haag", "Utrecht", "Breda"], cityCounts, subset);
+  assert.equal(four.countLine, "In de steden die jij koos hebben zich al 400+ mensen aangemeld.");
+
+  // Under 100 (not in the counts) or no count at all: the fallback.
+  const under = stopStadContent(nl, "nl", ["Utrecht", "Breda"], cityCounts, subset);
+  assert.deepEqual(under, {
+    title: "Meer steden, meer zondagen.",
+    countLine: null,
+    perCity: "Straks zie je per stad welke zondagen er zijn.",
+    waitlistLine: null,
+    stat: null,
+  });
+  assert.equal(stopStadContent(en, "en", ["Rotterdam", "Den Haag"], {}, {}).title, "More cities, more Sundays.");
+});
+
+test("stopStadContent: only towns outside our cities are a waitlist, never a count", () => {
+  const nl = getQuizCopy("nl");
+  const en = getQuizCopy("en");
+  const counts = { Zwolle: 300 };
+  assert.deepEqual(stopStadContent(nl, "nl", ["Zwolle"], counts, {}), {
+    title: "We komen graag naar Zwolle.",
+    countLine: null,
+    perCity: null,
+    waitlistLine:
+      "Je staat op de wachtlijst voor Zwolle. Zodra er genoeg aanmeldingen zijn, plannen we daar een zondag en hoor jij het als eerste.",
+    stat: null,
+  });
+  const several = stopStadContent(en, "en", ["Zwolle", "Deventer", "Enschede"], counts, {});
+  assert.equal(several.title, "We'd love to come to Zwolle and 2 other cities.");
+  assert.equal(
+    several.waitlistLine,
+    "You're on the waitlist for Zwolle, Deventer and Enschede. Once enough people sign up, we'll plan a Sunday there and you'll be the first to hear.",
+  );
+  assert.equal(stopStadContent(nl, "nl", ["Zwolle", "Deventer"], counts, {}).title, "We komen graag naar Zwolle en 1 andere stad.");
+});
+
+test("stopStadContent: our cities plus other towns", () => {
+  const nl = getQuizCopy("nl");
+  const en = getQuizCopy("en");
+  const cityCounts = { Rotterdam: 120 };
+  const subset = { [String(cityMask(["Rotterdam", "Den Haag"]))]: 150 };
+  // One of our cities, typed town first: title and count follow Rotterdam.
+  assert.deepEqual(stopStadContent(nl, "nl", ["Zwolle", "Rotterdam"], cityCounts, subset), {
+    title: "Je bent niet de enige in Rotterdam.",
+    countLine: "In Rotterdam hebben zich al 120+ mensen aangemeld.",
+    perCity: null,
+    waitlistLine: "Zwolle zetten we op de wachtlijst. Je hoort het als we daar starten.",
+    stat: { n: 120, label: "aangemeld in Rotterdam" },
+  });
+  // Two of our cities: only ours named in the count line.
+  const two = stopStadContent(en, "en", ["Rotterdam", "Den Haag", "Zwolle", "Deventer"], cityCounts, subset);
+  assert.equal(two.title, "You're in good company.");
+  assert.equal(two.countLine, "150+ people in Rotterdam and The Hague have already signed up.");
+  assert.equal(two.perCity, "Next, you'll see the Sundays in each city.");
+  assert.equal(two.waitlistLine, "We've put Zwolle and Deventer on the waitlist. You'll hear from us when we start there.");
+});
+
+test("chooseTablesForAnswers: only a town outside our cities shows our cities' tables", () => {
+  const result = chooseTablesForAnswers(EVENTS, { cities: ["Zwolle"], age: 45, ageMatters: "yes" }, NOW);
+  assert.equal(result.ourCities, true);
+  assert.equal(result.hasMatch, true);
+  assert.deepEqual(
+    result.rows.map((r) => `${r.event.slug}:${r.kind}${r.nearby ? ":nearby" : ""}`),
+    ["rdam-25-okt-35:open:nearby", "dh-8-nov-35:open:nearby", "rdam-22-nov-35:soon:nearby", "utr-29-nov-35:soon:nearby"],
+  );
+  // Only Delft (a place near Rotterdam and Den Haag, but not ours): the
+  // same list of our cities, nothing is selected for her.
+  assert.equal(chooseTablesForAnswers(EVENTS, { cities: ["Delft"], age: 45, ageMatters: "yes" }, NOW).ourCities, true);
+  // Mixed: the usual list for our city.
+  const mixed = chooseTablesForAnswers(EVENTS, { cities: ["Zwolle", "Utrecht"], age: 45, ageMatters: "yes" }, NOW);
+  assert.equal(mixed.ourCities, false);
+  assert.deepEqual(mixed.rows.map((r) => r.event.slug), ["utr-29-nov-35"]);
+});
+
+test("stopZoektAnswer: the chosen option highest in the list, not the first tapped", () => {
+  assert.equal(stopZoektAnswer({ why: ["treat", "places"] }), "places");
+  assert.equal(stopZoektAnswer({ why: ["new_city", "wines"] }), "wines");
+  assert.equal(stopZoektAnswer({ why: ["treat"] }), "treat");
+  assert.equal(stopZoektAnswer({}), "cosy");
 });
 
 test("firstNameFromMetadata", () => {

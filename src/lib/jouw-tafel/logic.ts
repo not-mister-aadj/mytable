@@ -6,8 +6,12 @@ import { cityMatchKey } from "@/lib/waitlist-city";
 
 export type QuizBracket = "20-39" | "35+";
 
-/** The eight largest cities of the Netherlands. Smaller towns around them are
- * covered through NEARBY (Haarlem -> Amsterdam, Arnhem -> Nijmegen, ...). */
+/** A sign-up count is only shown from this many people (landing proof line,
+ * the quiz's city count). Below it there is no number at all. */
+export const SIGNUP_COUNT_MIN = 100;
+
+/** The eight largest cities of the Netherlands. Any other place is its own
+ * place (a waitlist), never counted as one of these. */
 export const QUIZ_CITIES = [
   "Rotterdam",
   "Den Haag",
@@ -35,36 +39,42 @@ export type QuizEvent = {
   englishOpen: boolean;
 };
 
-/** Small, explicit "within about 30 minutes" map. Read both ways. */
-const NEARBY: Record<QuizCity, string[]> = {
-  Rotterdam: [
-    "Den Haag",
-    "Delft",
-    "Schiedam",
-    "Dordrecht",
-    "Capelle aan den IJssel",
-    "Vlaardingen",
-    "Gouda",
-    "Zoetermeer",
-  ],
-  "Den Haag": ["Rotterdam", "Delft", "Leiden", "Zoetermeer", "Rijswijk", "Wassenaar"],
-  Utrecht: ["Amersfoort", "Hilversum", "Nieuwegein", "Zeist", "Houten"],
-  Amsterdam: ["Haarlem", "Amstelveen", "Zaandam", "Almere", "Hoofddorp", "Diemen"],
-  Eindhoven: ["Den Bosch", "'s-Hertogenbosch", "Helmond", "Veldhoven"],
-  Groningen: ["Assen", "Haren"],
-  Breda: ["Tilburg", "Oosterhout", "Etten-Leur", "Roosendaal"],
-  Nijmegen: ["Arnhem", "Wijchen", "Elst", "Den Bosch", "'s-Hertogenbosch"],
+/** Centres of our cities (the woonplaats centroid from PDOK, see
+ * nl-places.json; Den Haag is 's-Gravenhage). */
+export const QUIZ_CITY_COORDS: Record<QuizCity, { lat: number; lon: number }> = {
+  Rotterdam: { lat: 51.922, lon: 4.487 },
+  "Den Haag": { lat: 52.072, lon: 4.293 },
+  Utrecht: { lat: 52.089, lon: 5.095 },
+  Amsterdam: { lat: 52.373, lon: 4.905 },
+  Eindhoven: { lat: 51.45, lon: 5.459 },
+  Groningen: { lat: 53.222, lon: 6.563 },
+  Breda: { lat: 51.58, lon: 4.756 },
+  Nijmegen: { lat: 51.835, lon: 5.833 },
 };
 
-/** Cities within reach of `city`, nearest hub first. Case-insensitive. */
-export function nearbyCities(city: string): string[] {
-  const key = cityMatchKey(city);
-  const out: string[] = [];
-  for (const [hub, list] of Object.entries(NEARBY)) {
-    if (cityMatchKey(hub) === key) out.push(...list);
-    else if (list.some((c) => cityMatchKey(c) === key)) out.push(hub);
-  }
-  return [...new Set(out)].filter((c) => cityMatchKey(c) !== key);
+/** Our cities within this many km of each other count as nearby. */
+export const NEARBY_KM = 30;
+
+/** Great-circle distance in km. */
+export function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLon = rad(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+
+/** Our other cities within NEARBY_KM of one of our cities, nearest first
+ * (Rotterdam <-> Den Haag). Empty for anything that is not ours. */
+export function nearbyCities(city: string): QuizCity[] {
+  const own = supportedCity(city);
+  if (!own) return [];
+  const from = QUIZ_CITY_COORDS[own];
+  return QUIZ_CITIES.filter((c) => c !== own)
+    .map((c) => ({ c, km: haversineKm(from, QUIZ_CITY_COORDS[c]) }))
+    .filter((x) => x.km <= NEARBY_KM)
+    .sort((a, b) => a.km - b.km)
+    .map((x) => x.c);
 }
 
 export function sameCity(a: string, b: string): boolean {
@@ -90,9 +100,9 @@ export function supportedCity(city: string): QuizCity | null {
 
 /**
  * The visitor's city from Vercel's `x-vercel-ip-city` header (URI-encoded,
- * e.g. "The%20Hague"). One of our cities, or the nearest of them for a
- * town in the nearby map ("Delft" -> "Rotterdam"). Null when the header is
- * missing, from outside the Netherlands, or too far from any table.
+ * e.g. "The%20Hague"), only when it is one of our cities (any spelling).
+ * Null when the header is missing, from outside the Netherlands, or any
+ * other place (a town near one of our cities too: no preselect).
  */
 export function cityFromGeo(
   rawCity: string | null | undefined,
@@ -106,13 +116,7 @@ export function cityFromGeo(
   } catch {
     // Malformed encoding: use the raw value.
   }
-  const direct = supportedCity(decoded);
-  if (direct) return direct;
-  for (const hub of nearbyCities(decoded)) {
-    const city = supportedCity(hub);
-    if (city) return city;
-  }
-  return null;
+  return supportedCity(decoded);
 }
 
 /** "Den Haag" reads "The Hague" on the English page. */

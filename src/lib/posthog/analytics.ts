@@ -212,6 +212,7 @@ export function trackQuizEvent(
     | typeof PostHogEvents.quizReserveClicked
     | typeof PostHogEvents.quizNotifyClicked
     | typeof PostHogEvents.quizShareClicked
+    | typeof PostHogEvents.quizInfoOpened
     | typeof PostHogEvents.quizLogoutClicked,
   props: AnalyticsProperties,
 ): void {

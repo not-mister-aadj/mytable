@@ -124,7 +124,7 @@ const landingNl: LandingCopy = {
     body: "Elke maand een tafel van 4 tot 6 mensen in een goede wijnbar in jouw stad. Wij regelen alles, jij schuift aan.",
     note: "Aanmelden duurt een minuut. Daarna kies je je zondag.",
     proof: (count, city) =>
-      city ? `Al ${count}+ mensen uit ${city} staan op de lijst` : `Al ${count}+ mensen staan op de lijst`,
+      city ? `Al ${count}+ mensen uit ${city} hebben zich aangemeld` : `Al ${count}+ mensen hebben zich aangemeld`,
     imageAlt: "Een volle tafel heft het glas tijdens een MyTable wijnmiddag",
     locationAria: "Jouw stad",
   },
@@ -321,7 +321,7 @@ const landingEn: LandingCopy = {
     body: "Every month, a table of 4 to 6 people in a good wine bar in your city. We arrange everything, you take your seat.",
     note: "Signing up takes a minute. Then you choose your Sunday.",
     proof: (count, city) =>
-      city ? `${count}+ people from ${city} are already on the list` : `${count}+ people are already on the list`,
+      city ? `${count}+ people from ${city} have already signed up` : `${count}+ people have already signed up`,
     imageAlt: "A full table raises a glass during a MyTable wine afternoon",
     locationAria: "Your city",
   },

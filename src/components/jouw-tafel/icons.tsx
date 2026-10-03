@@ -82,3 +82,20 @@ export function ArrowLeftIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+export function InfoIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5.5M12 7.6v.1" />
+    </svg>
+  );
+}
+
+export function CloseIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}

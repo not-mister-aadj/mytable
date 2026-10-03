@@ -5,7 +5,12 @@
 // npx tsx --test src/lib/jouw-tafel/*.test.ts
 
 import { isEventClosedForBooking } from "@/lib/event-visibility";
+import { cityMatchKey } from "@/lib/waitlist-city";
+import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
+  QUIZ_CITIES,
+  SIGNUP_COUNT_MIN,
+  displayCity,
   nearbyCities,
   sameCity,
   spotsLeft,
@@ -121,8 +126,14 @@ export type QuizAnswers = {
   /** YYYY-MM-DD, 18 or older. */
   birthDate?: string;
   ageMatters?: AgeMattersAnswer;
-  /** One of our four cities, or what they typed under "Andere stad". */
+  /** The primary city: always cities[0] when cities is set. Kept for
+   * states saved before the city step became multi-select. */
   city?: string;
+  /** Every city where they would join a table, as they picked them, primary
+   * first: our cities and places picked from the list under "Andere stad"
+   * (their label from nl-places.json, a waitlist of its own). At most
+   * CITIES_MAX. */
+  cities?: string[];
   why?: WhyAnswer[];
   conversation?: ConversationAnswer;
   wine?: WineAnswer;
@@ -151,6 +162,38 @@ export type QuizState = {
   notify?: string[];
 };
 
+/** At most this many cities on the city step. */
+export const CITIES_MAX = 8;
+
+/** Their chosen cities, primary first. Reads states from before the city
+ * step became multi-select (only `city`). */
+export function answerCities(a: QuizAnswers): string[] {
+  if (a.cities && a.cities.length > 0) return a.cities;
+  return a.city?.trim() ? [a.city] : [];
+}
+
+/** Cleaned, deduped (case-insensitive) list of cities, at most CITIES_MAX. */
+export function cleanCityList(values: readonly unknown[]): string[] {
+  const out: string[] = [];
+  for (const value of values) {
+    const city = cleanText(value, 60);
+    if (city && !out.some((c) => sameCity(c, city))) out.push(city);
+  }
+  return out.slice(0, CITIES_MAX);
+}
+
+/** The answer patch for the city step: `cities`, with `city` as the first. */
+export function citiesAnswer(values: readonly string[]): Pick<QuizAnswers, "city" | "cities"> {
+  const cities = cleanCityList(values);
+  return cities.length ? { cities, city: cities[0] } : { cities: undefined, city: undefined };
+}
+
+/** The city step's answer: what they picked, in order (our cities and
+ * place labels from the list). */
+export function cityStepAnswer(picked: readonly string[]): Pick<QuizAnswers, "city" | "cities"> {
+  return citiesAnswer(picked);
+}
+
 export function emptyQuizState(): QuizState {
   return { v: QUIZ_VERSION, answers: {} };
 }
@@ -176,7 +219,7 @@ export function isStepAnswered(step: QuizStepId, a: QuizAnswers): boolean {
     case "leeftijd":
       return a.ageMatters !== undefined;
     case "stad":
-      return Boolean(a.city?.trim());
+      return answerCities(a).length >= 1;
     case "zoekt":
       return (a.why?.length ?? 0) > 0;
     case "gesprek":
@@ -378,18 +421,22 @@ export type ChooseRow = {
 };
 
 /**
- * "Kies je zondag": tables in their city for their age group(s) first (their
- * own group first, then by date), then tables in cities within reach, then
- * tables that are coming soon. Full tables and tables closed for booking
- * drop off.
+ * "Kies je zondag": tables in their chosen cities for their age group(s)
+ * first (in the order they chose the cities, then their own group, then by
+ * date), then tables in cities within reach of any chosen city, then tables
+ * that are coming soon (chosen cities, then nearby). Full tables and tables
+ * closed for booking drop off. `cities` is primary first.
  */
 export function chooseTables(
   events: QuizEvent[],
-  input: { city: string; age: number; ageMatters: AgeMattersAnswer | undefined },
+  input: { cities: readonly string[]; age: number; ageMatters: AgeMattersAnswer | undefined },
   now: number = Date.now(),
 ): { rows: ChooseRow[]; hasMatch: boolean } {
+  const chosen = input.cities.filter((c) => c.trim());
   const brackets = tableBrackets(input.age, input.ageMatters);
-  const near = nearbyCities(input.city);
+  const isChosen = (city: string) => chosen.some((c) => sameCity(c, city));
+  const near = [...new Set(chosen.flatMap((c) => nearbyCities(c)))].filter((c) => !isChosen(c));
+  const cityRank = (e: QuizEvent) => chosen.findIndex((c) => sameCity(c, e.city));
   const rank = (e: QuizEvent) => brackets.indexOf(e.bracket);
   const nearRank = (e: QuizEvent) => near.findIndex((c) => sameCity(c, e.city));
   const time = (e: QuizEvent) => new Date(e.startsAt).getTime();
@@ -400,25 +447,219 @@ export function chooseTables(
       time(e) > now &&
       !isEventClosedForBooking(new Date(e.startsAt), new Date(now)),
   );
-  const own = eligible.filter((e) => sameCity(e.city, input.city));
-  const nearby = eligible.filter((e) => !sameCity(e.city, input.city) && nearRank(e) >= 0);
+  const own = eligible.filter((e) => isChosen(e.city));
+  const nearby = eligible.filter((e) => !isChosen(e.city) && nearRank(e) >= 0);
   const isOpen = (e: QuizEvent) => !e.comingSoon && spotsLeft(e) > 0;
 
-  const ownOpen = own.filter(isOpen).sort((a, b) => rank(a) - rank(b) || time(a) - time(b));
+  const ownOpen = own
+    .filter(isOpen)
+    .sort((a, b) => cityRank(a) - cityRank(b) || rank(a) - rank(b) || time(a) - time(b));
   const nearbyOpen = nearby
     .filter(isOpen)
     .sort((a, b) => nearRank(a) - nearRank(b) || time(a) - time(b));
   const soon = [
-    ...own.filter((e) => e.comingSoon).sort((a, b) => time(a) - time(b)),
+    ...own.filter((e) => e.comingSoon).sort((a, b) => cityRank(a) - cityRank(b) || time(a) - time(b)),
     ...nearby.filter((e) => e.comingSoon).sort((a, b) => nearRank(a) - nearRank(b) || time(a) - time(b)),
   ];
 
   const rows: ChooseRow[] = [
     ...ownOpen.map((event) => ({ event, kind: "open" as const, nearby: false })),
     ...nearbyOpen.map((event) => ({ event, kind: "open" as const, nearby: true })),
-    ...soon.map((event) => ({ event, kind: "soon" as const, nearby: !sameCity(event.city, input.city) })),
+    ...soon.map((event) => ({ event, kind: "soon" as const, nearby: !isChosen(event.city) })),
   ];
   return { rows, hasMatch: ownOpen.length + nearbyOpen.length > 0 };
+}
+
+/**
+ * The sign-up count for the "stop-stad" screen: the chosen city with the
+ * highest count (the first one on a tie), never a sum across cities. Our
+ * cities match any spelling. Null when no chosen city has a count
+ * (`counts` only holds cities with SIGNUP_COUNT_MIN or more).
+ */
+export function stopCityCount(
+  cities: readonly string[],
+  counts: Record<string, number>,
+): { city: string; n: number } | null {
+  let best: { city: string; n: number } | null = null;
+  for (const city of cities) {
+    const key = cityMatchKey(supportedCity(city) ?? city);
+    const n = Object.entries(counts).find(([c]) => cityMatchKey(c) === key)?.[1];
+    if (n && (!best || n > best.n)) best = { city, n };
+  }
+  return best;
+}
+
+/** Bit mask of the chosen cities that are ours (bit i = QUIZ_CITIES[i]).
+ * Typed towns that are not ours add nothing. */
+export function cityMask(cities: readonly string[]): number {
+  let mask = 0;
+  for (const city of cities) {
+    const known = supportedCity(city);
+    if (known) mask |= 1 << QUIZ_CITIES.indexOf(known);
+  }
+  return mask;
+}
+
+/**
+ * Distinct sign-ups (by email) for every combination of our cities, keyed
+ * by cityMask: someone signed up in Rotterdam and Den Haag counts once for
+ * "Rotterdam + Den Haag". Rounded down to tens; combinations under `min`
+ * are left out. Only these aggregates leave the server.
+ */
+export function signupCountsBySubset(
+  rows: Iterable<{ email: string; city: string }>,
+  min: number = SIGNUP_COUNT_MIN,
+): Record<string, number> {
+  const perEmail = new Map<string, number>();
+  for (const row of rows) {
+    const bit = cityMask([row.city]);
+    if (!bit) continue;
+    const email = row.email.trim().toLowerCase();
+    perEmail.set(email, (perEmail.get(email) ?? 0) | bit);
+  }
+  const perMask = new Map<number, number>();
+  for (const mask of perEmail.values()) perMask.set(mask, (perMask.get(mask) ?? 0) + 1);
+  const out: Record<string, number> = {};
+  const all = (1 << QUIZ_CITIES.length) - 1;
+  for (let subset = 1; subset <= all; subset++) {
+    let n = 0;
+    for (const [mask, count] of perMask) if (mask & subset) n += count;
+    if (n >= min) out[String(subset)] = Math.floor(n / 10) * 10;
+  }
+  return out;
+}
+
+export type StopStadContent = {
+  title: string;
+  /** The sign-up count line, or null without a count. */
+  countLine: string | null;
+  /** "Straks zie je per stad ...", only with two or more of our cities. */
+  perCity: string | null;
+  /** Towns outside our cities: the waitlist line, or null. */
+  waitlistLine: string | null;
+  /** The "{n}+" card: one of our cities with a count only. */
+  stat: { n: number; label: string } | null;
+};
+
+/** Their chosen cities split into ours (any spelling) and typed towns
+ * outside them, each in the order they were picked. */
+export function splitCities(cities: readonly string[]): { ours: string[]; others: string[] } {
+  const ours: string[] = [];
+  const others: string[] = [];
+  for (const city of cities) (supportedCity(city) ? ours : others).push(city);
+  return { ours, others };
+}
+
+/**
+ * The "stop-stad" screen's text. Title and count follow our chosen cities
+ * only. One of our cities: "Je bent niet de enige in {stad}." plus that
+ * city's count when there is one. Two or more: the combined distinct count
+ * (never a sum per city), with the cities named for two or three and a
+ * general line for four or more, plus "Straks zie je per stad ..."; without
+ * a count a fallback title. Towns outside our cities are a waitlist: only
+ * those chosen gives "We komen graag naar {stad}." and the waitlist line,
+ * never a count; mixed adds a line that they are on the waitlist.
+ * `cityCounts` and `subsetCounts` only hold numbers of SIGNUP_COUNT_MIN or
+ * more.
+ */
+export function stopStadContent(
+  copy: QuizCopy,
+  locale: "nl" | "en",
+  cities: readonly string[],
+  cityCounts: Record<string, number>,
+  subsetCounts: Record<string, number>,
+): StopStadContent {
+  const s = copy.stopStad;
+  const shown = (c: string) => displayCity(supportedCity(c) ?? c, locale);
+  const { ours, others } = splitCities(cities);
+  const othersText = copy.joinCities(others.map(shown));
+
+  if (ours.length === 0 && others.length > 0) {
+    return {
+      title: s.otherTitle(shown(others[0]!), others.length - 1),
+      countLine: null,
+      perCity: null,
+      waitlistLine: s.otherLine(othersText),
+      stat: null,
+    };
+  }
+  const waitlistLine = others.length > 0 ? s.mixedLine(othersText) : null;
+
+  if (ours.length <= 1) {
+    const city = shown(ours[0] ?? "");
+    const best = stopCityCount(ours, cityCounts);
+    return {
+      title: s.one(city),
+      countLine: best ? s.count(best.n, city) : null,
+      perCity: null,
+      waitlistLine,
+      stat: best ? { n: best.n, label: s.statLabel(city) } : null,
+    };
+  }
+  const n = subsetCounts[String(cityMask(ours))];
+  if (!n) return { title: s.multiFallbackTitle, countLine: null, perCity: s.perCity, waitlistLine, stat: null };
+  return {
+    title: s.multiTitle,
+    countLine: ours.length <= 3 ? s.countCities(n, ours.map(shown)) : s.countMany(n),
+    perCity: s.perCity,
+    waitlistLine,
+    stat: null,
+  };
+}
+
+/**
+ * The table list for the "kies" screen. Usually chooseTables for their
+ * cities. Someone who only chose towns outside our cities, with nothing
+ * there or nearby, gets the upcoming tables in all our cities instead
+ * (`ourCities`), every row marked nearby so its city shows.
+ */
+export function chooseTablesForAnswers(
+  events: QuizEvent[],
+  input: { cities: readonly string[]; age: number; ageMatters: AgeMattersAnswer | undefined },
+  now: number = Date.now(),
+): { rows: ChooseRow[]; hasMatch: boolean; ourCities: boolean } {
+  const own = chooseTables(events, input, now);
+  const { ours, others } = splitCities(input.cities);
+  if (ours.length > 0 || others.length === 0 || own.rows.length > 0) return { ...own, ourCities: false };
+  const all = chooseTables(events, { ...input, cities: QUIZ_CITIES }, now);
+  return { rows: all.rows.map((r) => ({ ...r, nearby: true })), hasMatch: all.hasMatch, ourCities: true };
+}
+
+/** The "stop-zoekt" line: the chosen option highest in the list
+ * (WHY_OPTIONS order), not the one tapped first. */
+export function stopZoektAnswer(a: QuizAnswers): WhyAnswer {
+  return WHY_OPTIONS.find((id) => a.why?.includes(id)) ?? "cosy";
+}
+
+/**
+ * Which chosen cities the table list names. `named`: our chosen cities with
+ * a table on the list, in it or nearby (for the subtitle). `noSunday`: our
+ * chosen cities without a table of their own on the list. Places outside
+ * our cities are neither (they have the waitlist line).
+ */
+export function kiesCities(
+  cities: readonly string[],
+  rows: readonly ChooseRow[],
+): { named: string[]; noSunday: string[] } {
+  const named: string[] = [];
+  const noSunday: string[] = [];
+  for (const city of splitCities(cities).ours) {
+    const own = rows.some((r) => !r.nearby && sameCity(r.event.city, city));
+    const near = nearbyCities(city);
+    const nearby = rows.some((r) => r.nearby && near.some((n) => sameCity(n, r.event.city)));
+    if (own || nearby) named.push(city);
+    if (!own) noSunday.push(city);
+  }
+  return { named, noSunday };
+}
+
+/** The seat price for "Wat is een Sunday Table?": the lowest of the tables
+ * on the list, `from` when they differ. Null without tables. */
+export function infoPrice(rows: readonly ChooseRow[]): { cents: number; from: boolean } | null {
+  const prices = rows.map((r) => r.event.priceCents);
+  if (prices.length === 0) return null;
+  const cents = Math.min(...prices);
+  return { cents, from: prices.some((p) => p !== cents) };
 }
 
 /** Seats preselected on the table list: 2 for someone bringing a person. */
@@ -504,7 +745,7 @@ export function buildWaitlistPreferences(
           ? [COMPANY_TO_WAITLIST[a.companionWho]]
           : [],
     tableType: ["mixed"],
-    cities: a.city ? [a.city] : [],
+    cities: answerCities(a),
     regionFlexible: false,
     gender: [],
     ageRange: age !== null ? [waitlistAgeRange(age)] : [],
@@ -542,8 +783,9 @@ export function analyticsAnswer(step: QuizStepId, a: QuizAnswers): string | null
     case "leeftijd":
       return a.ageMatters ?? null;
     case "stad": {
-      if (!a.city) return null;
-      return supportedCity(a.city) ?? "other";
+      const cities = answerCities(a);
+      if (!cities.length) return null;
+      return cities.map((c) => supportedCity(c) ?? "other").join(",");
     }
     case "zoekt":
       return (a.why ?? []).join(",") || null;
@@ -609,7 +851,9 @@ export function sanitizeQuizState(raw: unknown): QuizState {
     name: cleanText(ra.name, 60),
     birthDate,
     ageMatters: pick(ra.ageMatters, AGE_MATTERS_OPTIONS),
-    city: cleanText(ra.city, 60),
+    ...citiesAnswer(
+      cleanCityList(Array.isArray(ra.cities) && ra.cities.length > 0 ? ra.cities : [ra.city]),
+    ),
     why: pickList(ra.why, WHY_OPTIONS, WHY_MAX),
     conversation: pick(ra.conversation, CONVERSATION_OPTIONS),
     wine: pick(ra.wine, WINE_OPTIONS),

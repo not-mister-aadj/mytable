@@ -46,6 +46,7 @@ import {
   WINE_OPTIONS,
   ageBracket,
   analyticsAnswer,
+  answerCities,
   chapterOf,
   hasAnyAnswer,
   isQuizComplete,
@@ -355,6 +356,7 @@ export function JouwTafelQuiz({
   events,
   now,
   cityCounts,
+  subsetCounts,
   testimonials,
   landingPath,
 }: {
@@ -369,8 +371,11 @@ export function JouwTafelQuiz({
   geoCity: QuizCity | null;
   events: QuizEvent[];
   now: number;
-  /** Waitlist size per city, rounded down to tens, 20 and up only. */
+  /** Sign-ups per city, rounded down to tens, SIGNUP_COUNT_MIN and up only. */
   cityCounts: Record<string, number>;
+  /** Distinct sign-ups per combination of our cities (keyed by cityMask),
+   * rounded down to tens, SIGNUP_COUNT_MIN and up only. */
+  subsetCounts: Record<string, number>;
   testimonials: QuizTestimonial[];
   landingPath: string;
 }) {
@@ -559,6 +564,7 @@ export function JouwTafelQuiz({
         ...(from === "geboortedatum" && patch.birthDate
           ? { age_bracket: ageBracketOf(patch.birthDate) }
           : {}),
+        ...(from === "stad" ? { city_count: answerCities(nextAnswers).length } : {}),
       });
       if (justCompleted) {
         trackQuizEvent(PostHogEvents.quizCompleted, {
@@ -705,6 +711,7 @@ export function JouwTafelQuiz({
         );
       },
       onShare: () => void share(),
+      onInfo: () => trackQuizEvent(PostHogEvents.quizInfoOpened, { ...common("kies", answers), step: "kies" }),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [answers, common, copy, locale, save, storageKey],
@@ -878,6 +885,7 @@ export function JouwTafelQuiz({
     accountFirstName,
     geoCity,
     cityCounts,
+    subsetCounts,
     testimonials,
     reduceMotion: Boolean(reduceMotion),
     answerAndNext,

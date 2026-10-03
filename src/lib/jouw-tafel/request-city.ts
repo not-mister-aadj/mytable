@@ -9,7 +9,8 @@ function firstParam(value: string | string[] | undefined): string | null {
 
 /**
  * The visitor's city for the "Jouw tafel" pages, from Vercel's IP geo
- * headers. Reading the headers makes the page render per request; the table
+ * headers: only when it is one of our cities (any spelling), never a town
+ * near one. Reading the headers makes the page render per request; the table
  * data itself stays cached (see getJouwTafelData).
  *
  * Overrides, for checking the page without being in that city:

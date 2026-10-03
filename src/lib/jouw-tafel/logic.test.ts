@@ -43,7 +43,7 @@ function slugs(events: QuizEvent[]): string[] {
 
 // ---------------------------------------------------------------- geo
 
-test("geo: our four cities, in any spelling Vercel sends", () => {
+test("geo: our cities, in any spelling Vercel sends", () => {
   assert.equal(cityFromGeo("Rotterdam", "NL"), "Rotterdam");
   assert.equal(cityFromGeo("The%20Hague", "NL"), "Den Haag");
   assert.equal(cityFromGeo("Den%20Haag", "NL"), "Den Haag");
@@ -52,20 +52,17 @@ test("geo: our four cities, in any spelling Vercel sends", () => {
   assert.equal(cityFromGeo("Amsterdam"), "Amsterdam");
 });
 
-test("geo: nearby towns map to the nearest city with tables", () => {
-  assert.equal(cityFromGeo("Schiedam", "NL"), "Rotterdam");
-  assert.equal(cityFromGeo("Delft", "NL"), "Rotterdam");
-  assert.equal(cityFromGeo("Leiden", "NL"), "Den Haag");
-  assert.equal(cityFromGeo("Haarlem", "NL"), "Amsterdam");
-  assert.equal(cityFromGeo("Amersfoort", "NL"), "Utrecht");
+test("geo: a town near one of our cities gives no preselect", () => {
+  assert.equal(cityFromGeo("Schiedam", "NL"), null);
+  assert.equal(cityFromGeo("Delft", "NL"), null);
+  assert.equal(cityFromGeo("Haarlem", "NL"), null);
 });
 
 test("geo: unknown, far away, abroad or missing gives no city", () => {
   assert.equal(cityFromGeo("Zwolle", "NL"), null);
   assert.equal(cityFromGeo("Eindhoven", "NL"), "Eindhoven");
-  assert.equal(cityFromGeo("Arnhem", "NL"), "Nijmegen");
-  assert.equal(cityFromGeo("Haarlem", "NL"), "Amsterdam");
-  assert.equal(cityFromGeo("Tilburg", "NL"), "Breda");
+  assert.equal(cityFromGeo("Arnhem", "NL"), null);
+  assert.equal(cityFromGeo("Tilburg", "NL"), null);
   assert.equal(cityFromGeo("Rotterdam", "BE"), null);
   assert.equal(cityFromGeo(null, "NL"), null);
   assert.equal(cityFromGeo("", "NL"), null);
@@ -80,12 +77,16 @@ test("supported cities and English display names", () => {
   assert.equal(displayCity("Rotterdam", "en"), "Rotterdam");
 });
 
-test("nearby map reads both ways", () => {
-  assert.ok(nearbyCities("Rotterdam").includes("Den Haag"));
-  assert.ok(nearbyCities("Den Haag").includes("Rotterdam"));
-  assert.deepEqual(nearbyCities("Delft").sort(), ["Den Haag", "Rotterdam"]);
+test("nearby: our cities within 30 km of each other, only ours", () => {
+  // Rotterdam and Den Haag are about 20 km apart; every other pair is
+  // further than 30 km (Utrecht and Amsterdam about 35 km).
+  assert.deepEqual(nearbyCities("Rotterdam"), ["Den Haag"]);
+  assert.deepEqual(nearbyCities("den haag"), ["Rotterdam"]);
+  assert.deepEqual(nearbyCities("Utrecht"), []);
+  assert.deepEqual(nearbyCities("Amsterdam"), []);
+  // A place that is not ours has no nearby cities.
+  assert.deepEqual(nearbyCities("Delft"), []);
   assert.deepEqual(nearbyCities("Zwolle"), []);
-  assert.deepEqual(nearbyCities("Arnhem"), ["Nijmegen"]);
 });
 
 // ---------------------------------------------------------------- tables

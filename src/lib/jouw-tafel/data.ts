@@ -4,7 +4,8 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { bracketFromEventName, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { SIGNUP_COUNT_MIN, bracketFromEventName, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 
 /** Published, upcoming Sunday Tables. Deliberately no venue: the page never
  * names one, because the wine bar is booked once the tables are known. */
@@ -59,30 +60,40 @@ const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events"]
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });
 
-/** People on the waitlist: everyone (distinct emails) and per city (one row
- * per email and city). Only aggregates leave the server. */
+/** Sign-ups: everyone, and per city (our cities under their usual name,
+ * any spelling; other places as stored). Distinct emails. Emails are only
+ * read here; just the counts leave the server. */
 async function loadWaitlistCounts(): Promise<{ total: number; byCity: Record<string, number> }> {
   if (!isDbConfigured()) return { total: 0, byCity: {} };
-  const db = getDb();
-  const [totalRow] = await db
-    .select({ n: sql<number>`count(distinct lower(${waitlistSignups.email}))::int` })
-    .from(waitlistSignups);
-  const cityRows = await db
-    .select({ city: waitlistSignups.city, n: sql<number>`count(*)::int` })
-    .from(waitlistSignups)
-    .groupBy(waitlistSignups.city);
+  const rows = await signupRows();
+  const all = new Set<string>();
+  const perCity = new Map<string, Set<string>>();
+  for (const row of rows) {
+    all.add(row.email);
+    const city = supportedCity(row.city) ?? row.city;
+    if (!perCity.has(city)) perCity.set(city, new Set());
+    perCity.get(city)!.add(row.email);
+  }
   const byCity: Record<string, number> = {};
-  for (const row of cityRows) if (row.city) byCity[row.city] = row.n;
-  return { total: totalRow?.n ?? 0, byCity };
+  for (const [city, emails] of perCity) byCity[city] = emails.size;
+  return { total: all.size, byCity };
 }
 
-const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-waitlist-counts"], {
+/** One row per email and city, emails lowercased. */
+async function signupRows(): Promise<{ email: string; city: string }[]> {
+  return getDb()
+    .selectDistinct({ email: sql<string>`lower(${waitlistSignups.email})`, city: waitlistSignups.city })
+    .from(waitlistSignups);
+}
+
+const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-waitlist-counts-v2"], {
   revalidate: 3600,
 });
 
 /** The social-proof number under the hero: people from the visitor's city
  * when known and big enough, otherwise everyone. Rounded down to tens; null
- * when the number would be too small to say anything (under 20). */
+ * when the number would be too small to say anything (under
+ * SIGNUP_COUNT_MIN). */
 export async function getWaitlistProof(
   city: string | null,
 ): Promise<{ count: number; city: string | null } | null> {
@@ -90,8 +101,8 @@ export async function getWaitlistProof(
     const counts = await getCachedWaitlistCounts();
     const floorTens = (n: number) => Math.floor(n / 10) * 10;
     const cityCount = city ? counts.byCity[city] ?? 0 : 0;
-    if (city && cityCount >= 20) return { count: floorTens(cityCount), city };
-    if (counts.total >= 20) return { count: floorTens(counts.total), city: null };
+    if (city && cityCount >= SIGNUP_COUNT_MIN) return { count: floorTens(cityCount), city };
+    if (counts.total >= SIGNUP_COUNT_MIN) return { count: floorTens(counts.total), city: null };
     return null;
   } catch (error) {
     console.error("[jouw-tafel] loading waitlist counts failed", error);
@@ -113,19 +124,43 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
   }
 }
 
-/** People on the waitlist per city, for the quiz's "In {stad} staan al N+
- * mensen op de lijst". Rounded down to tens; cities under 20 are left out
- * (the quiz then says "Je bent niet de enige"). Aggregates only. */
+/** Sign-ups per city, for the quiz's "In {stad} hebben zich al N+ mensen
+ * aangemeld". Rounded down to tens; cities under SIGNUP_COUNT_MIN are left
+ * out (the quiz then only says "Je bent niet de enige"). Aggregates only. */
 export async function getWaitlistCityCounts(): Promise<Record<string, number>> {
   try {
     const counts = await getCachedWaitlistCounts();
     const out: Record<string, number> = {};
     for (const [city, n] of Object.entries(counts.byCity)) {
-      if (n >= 20) out[city] = Math.floor(n / 10) * 10;
+      if (n >= SIGNUP_COUNT_MIN) out[city] = Math.floor(n / 10) * 10;
     }
     return out;
   } catch (error) {
     console.error("[jouw-tafel] loading waitlist city counts failed", error);
+    return {};
+  }
+}
+
+/** Distinct sign-ups for every combination of our cities (see
+ * signupCountsBySubset). Emails are only read here; just the counts leave. */
+async function loadSubsetCounts(): Promise<Record<string, number>> {
+  if (!isDbConfigured()) return {};
+  return signupCountsBySubset(await signupRows());
+}
+
+const getCachedSubsetCounts = unstable_cache(loadSubsetCounts, ["jouw-tafel-signup-subset-counts-v2"], {
+  revalidate: 3600,
+});
+
+/** For the quiz's "stop-stad" screen with two or more cities: the combined
+ * distinct count per combination of our cities, keyed by cityMask, rounded
+ * down to tens, SIGNUP_COUNT_MIN and up only. Empty on failure (the screen
+ * then shows its fallback). */
+export async function getSignupSubsetCounts(): Promise<Record<string, number>> {
+  try {
+    return await getCachedSubsetCounts();
+  } catch (error) {
+    console.error("[jouw-tafel] loading signup subset counts failed", error);
     return {};
   }
 }

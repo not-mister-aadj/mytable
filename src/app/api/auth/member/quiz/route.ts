@@ -35,8 +35,9 @@ function checkRateLimit(key: string, max = 60, windowMs = 60_000): boolean {
  * - Always: the quiz state goes into the user's metadata (jouw_tafel_quiz),
  *   so the quiz resumes on any device.
  * - waitlist: true (quiz done, or the table list is shown): the answers go
- *   onto the waitlist row for their city. A new row gets Meta's Lead (CAPI),
- *   same as a waitlist modal sign-up; an existing row never fires it again.
+ *   onto a waitlist row for each chosen city. Meta's Lead (CAPI) fires once,
+ *   for the first newly created row, same as a waitlist modal sign-up;
+ *   existing rows never fire it again.
  * - notifyEventId: "Houd me op de hoogte" for that table (event_notify_signups).
  */
 export async function POST(request: Request) {
@@ -80,8 +81,9 @@ export async function POST(request: Request) {
   if (body.waitlist === true || notifyEventId) {
     const result = await upsertQuizWaitlist({ email: user.email, locale, state });
     if (result.ok) {
-      waitlist = { created: result.created };
-      if (result.created) {
+      const lead = result.lead;
+      waitlist = { created: lead !== null };
+      if (lead) {
         const metaContext = parseMetaTrackingContext(body.meta);
         const email = user.email;
         // Kept alive past the response (Vercel freezes the function once it
@@ -89,9 +91,9 @@ export async function POST(request: Request) {
         after(() =>
           sendMetaCapiLead({
             email,
-            city: result.city,
+            city: lead.city,
             source: "waitlist",
-            waitlistId: result.id,
+            waitlistId: lead.id,
             eventSourceUrl: metaContext.eventSourceUrl ?? getSiteUrl(),
             userData: metaUserDataFromRequest(request, metaContext, email),
           }).catch((error: unknown) => {

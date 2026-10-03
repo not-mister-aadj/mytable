@@ -9,7 +9,6 @@ import {
   CalendarSunIcon,
   ClockIcon,
   PinIcon,
-  QuoteIcon,
   SearchIcon,
   TwoPeopleIcon,
   WineGlassIcon,
@@ -33,15 +32,20 @@ import {
   smallCaps,
   useStagger,
 } from "@/components/jouw-tafel/quiz/quiz-ui";
-import { cityMatchKey } from "@/lib/waitlist-city";
 import { QUIZ_CITIES, displayCity, supportedCity, type QuizCity } from "@/lib/jouw-tafel/logic";
+import { buildPlaceIndex, searchPlaces, type Place, type PlaceIndex, type RawPlace } from "@/lib/jouw-tafel/places";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
+  CITIES_MAX,
   DIETARY_OPTIONS,
   FORMAT_OPTIONS,
   WHY_MAX,
   WHY_OPTIONS,
+  answerCities,
+  cityStepAnswer,
   parseBirthDate,
+  stopStadContent,
+  stopZoektAnswer,
   type BirthDateError,
   type DietaryAnswer,
   type FormatAnswer,
@@ -64,10 +68,9 @@ export const STOP_PHOTOS: Partial<Record<QuizStepId, string>> = {
   "stop-stad": "/girls-only/wine-tasting-toast.jpg",
   "stop-zoekt": "/girls-only/wine-tasting-conversation.jpg",
   "stop-gesprek": "/girls-only/table-wine-laughing.jpg",
-  "stop-wijn": "/girls-only/wine-moment.jpg",
+  "stop-wijn": "/girls-only/chefs-table-toast.jpg",
   "stop-alleen": "/girls-only/laughing-bar.jpg",
   "stop-wie": "/girls-only/duo-table.jpg",
-  "stop-reviews": "/girls-only/table-group.jpg",
 };
 
 /** Real photos for the "alone or with someone" tiles. */
@@ -93,6 +96,7 @@ type QuizScreenContextValue = {
   accountFirstName: string;
   geoCity: QuizCity | null;
   cityCounts: Record<string, number>;
+  subsetCounts: Record<string, number>;
   testimonials: QuizTestimonial[];
   reduceMotion: boolean;
   answerAndNext: (patch: Partial<QuizAnswers>, options?: { delay?: number }) => void;
@@ -225,20 +229,32 @@ function Statement({ children }: { children: ReactNode }) {
   );
 }
 
+function StatementSub({ children }: { children: ReactNode }) {
+  const stagger = useStagger(4);
+  return (
+    <motion.p
+      {...stagger}
+      className="mx-auto mt-4 max-w-[21rem] text-center text-[1rem] leading-relaxed text-wine/75 text-balance"
+    >
+      {children}
+    </motion.p>
+  );
+}
+
 export function StopScreen() {
-  const { copy, locale, step, answers, cityCounts, testimonials, continueFrom } = useQuiz();
+  const { copy, locale, step, answers, cityCounts, subsetCounts, testimonials, continueFrom } = useQuiz();
   usePrimaryAction(continueFrom);
   const photo = STOP_PHOTOS[step] ?? "/girls-only/table-group.jpg";
 
   if (step === "stop-reviews") {
     return (
-      <div className="pb-28 pt-4">
-        <OvalPhoto photo={photo} priority className="aspect-[2/1] max-h-[24svh]" />
-        <p className={`${smallCaps} mt-8 text-center !text-gold`}>{copy.stopReviews.eyebrow}</p>
-        <h1 tabIndex={-1} className="mt-1.5 text-center font-serif text-[1.95rem] font-medium leading-tight text-wine outline-none">
+      <div className="flex min-h-[calc(100svh-11rem)] flex-col justify-center pb-28 pt-4">
+        <GuestFaces />
+        <p className={`${smallCaps} mt-5 text-center !text-gold`}>{copy.stopReviews.eyebrow}</p>
+        <h1 tabIndex={-1} className="mx-auto mt-1.5 max-w-[20rem] text-center font-serif text-[1.85rem] font-medium leading-tight text-wine outline-none text-balance">
           {copy.stopReviews.title}
         </h1>
-        <ReviewCarousel testimonials={testimonials} locale={locale} />
+        <ReviewList testimonials={testimonials} locale={locale} />
         <NextBar label={copy.next} onClick={continueFrom} />
       </div>
     );
@@ -246,25 +262,30 @@ export function StopScreen() {
 
   let lines: ReactNode = null;
   let stat: { n: number; label: string } | null = null;
-  const city = answers.city ?? "";
+  let extra: ReactNode = null;
   switch (step) {
     case "stop-stad": {
-      const known = supportedCity(city);
-      const shown = known ? displayCity(known, locale) : city;
-      const key = cityMatchKey(known ?? city);
-      const count = Object.entries(cityCounts).find(([c]) => cityMatchKey(c) === key)?.[1];
-      lines = count ? copy.stopStad.count(count, shown) : copy.stopStad.few(shown);
-      if (count) stat = { n: count, label: copy.stopStad.statLabel(shown) };
+      const content = stopStadContent(copy, locale, answerCities(answers), cityCounts, subsetCounts);
+      lines = content.title;
+      stat = content.stat;
+      const parts = [content.countLine, content.perCity, content.waitlistLine].filter(Boolean);
+      if (parts.length) {
+        extra = parts.map((text, i) => (
+          <span key={i} className={i ? "mt-1 block" : "block"}>
+            {text}
+          </span>
+        ));
+      }
       break;
     }
     case "stop-zoekt":
-      lines = copy.stopZoekt[(answers.why?.[0] ?? "cosy") as WhyAnswer];
+      lines = copy.stopZoekt[stopZoektAnswer(answers)];
       break;
     case "stop-gesprek":
       lines = answers.conversation === "both" ? copy.stopGesprek.both : copy.stopGesprek.known;
       break;
     case "stop-wijn":
-      lines = answers.wine === "none" ? copy.stopWijn.none : copy.stopWijn.wine;
+      lines = copy.stopWijn[answers.wine ?? "red"];
       break;
     case "stop-alleen":
       lines = copy.stopAlleen;
@@ -277,6 +298,7 @@ export function StopScreen() {
     <div className="flex min-h-[calc(100svh-11rem)] flex-col justify-center pb-28 pt-4">
       <OvalPhoto photo={photo} priority />
       <Statement>{lines}</Statement>
+      {extra ? <StatementSub>{extra}</StatementSub> : null}
       {stat ? <StatCard n={stat.n} label={stat.label} /> : null}
       <NextBar label={copy.next} onClick={continueFrom} />
     </div>
@@ -301,53 +323,60 @@ function StatCard({ n, label }: { n: number; label: string }) {
   );
 }
 
-function ReviewCarousel({ testimonials, locale }: { testimonials: QuizTestimonial[]; locale: Locale }) {
-  const scroller = useRef<HTMLUListElement>(null);
-  const [active, setActive] = useState(0);
-  function onScroll() {
-    const el = scroller.current;
-    if (!el || !el.firstElementChild) return;
-    const card = (el.firstElementChild as HTMLElement).offsetWidth + 12;
-    setActive(Math.min(testimonials.length - 1, Math.max(0, Math.round(el.scrollLeft / card))));
-  }
-  if (testimonials.length === 0) return null;
+/** Real table photos for the row of faces on "Wat gasten zeggen" (none of
+ * them on another quiz screen). */
+const GUEST_FACES = [
+  { src: "/girls-only/table-group.jpg", position: "45% 40%" },
+  { src: "/girls-only/wine-moment.jpg", position: "52% 40%" },
+  { src: "/girls-only/wine-tasting-presenter.jpg", position: "8% 30%" },
+];
+
+/** Three small overlapping round photos with a white ring. */
+function GuestFaces() {
+  const stagger = useStagger(0);
   return (
-    <div className="mt-6">
-      <ul
-        ref={scroller}
-        onScroll={onScroll}
-        className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {testimonials.map((t) => (
-          <li
-            key={t.name}
-            className="flex w-[82%] shrink-0 snap-start flex-col rounded-3xl border border-wine/[0.07] bg-white p-5 shadow-[0_1px_2px_rgba(43,13,18,0.04),0_8px_22px_rgba(43,13,18,0.06)]"
-          >
-            <QuoteIcon className="h-6 w-6 text-gold" />
-            <p className="mt-2 flex-1 font-serif text-[1.2rem] leading-snug text-wine">{t.quote}</p>
-            <p className="mt-4 flex items-center gap-2.5 text-sm">
-              <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5ebe6] font-serif text-[1rem] font-semibold text-burgundy">
-                {t.name.charAt(0)}
-              </span>
-              <span>
-                <span className="block font-semibold leading-tight text-wine">{t.name}</span>
-                <span className="block leading-tight text-wine/55">{displayCity(t.city, locale)}</span>
-              </span>
-            </p>
-          </li>
-        ))}
-      </ul>
-      {testimonials.length > 1 ? (
-        <div aria-hidden className="mt-2 flex justify-center gap-1.5">
-          {testimonials.map((t, i) => (
-            <span
-              key={t.name}
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? "w-5 bg-burgundy" : "w-1.5 bg-wine/15"}`}
-            />
-          ))}
-        </div>
-      ) : null}
-    </div>
+    <motion.div {...stagger} aria-hidden className="flex justify-center">
+      {GUEST_FACES.map((face, i) => (
+        <span
+          key={face.src}
+          className={`relative h-12 w-12 overflow-hidden rounded-full bg-wine/10 ring-[3px] ring-white ${i ? "-ml-3" : ""}`}
+        >
+          <Image src={face.src} alt="" fill sizes="48px" className="object-cover" style={{ objectPosition: face.position }} />
+        </span>
+      ))}
+    </motion.div>
+  );
+}
+
+/** The guests' own words, three stacked (the shortest three when there are
+ * more), in their original order. */
+function ReviewList({ testimonials, locale }: { testimonials: QuizTestimonial[]; locale: Locale }) {
+  const shortest = new Set([...testimonials].sort((a, b) => a.quote.length - b.quote.length).slice(0, 3));
+  const shown = testimonials.filter((t) => shortest.has(t));
+  if (shown.length === 0) return null;
+  return (
+    <ul className="mt-6 space-y-3">
+      {shown.map((t, i) => (
+        <ReviewCard key={t.name} index={i} testimonial={t} locale={locale} />
+      ))}
+    </ul>
+  );
+}
+
+function ReviewCard({ testimonial: t, index, locale }: { testimonial: QuizTestimonial; index: number; locale: Locale }) {
+  const stagger = useStagger(index + 3);
+  return (
+    <motion.li
+      {...stagger}
+      className="rounded-2xl border border-wine/[0.07] bg-white/85 px-5 py-4 shadow-[0_1px_2px_rgba(43,13,18,0.04),0_6px_18px_rgba(43,13,18,0.05)]"
+    >
+      <p className="font-serif text-[1.06rem] leading-snug text-wine">{t.quote}</p>
+      <p className="mt-2.5 text-[0.8rem] leading-tight text-wine/55">
+        <span className="font-semibold text-wine/80">{t.name}</span>
+        <span className="px-1.5 text-wine/30">·</span>
+        {displayCity(t.city, locale)}
+      </p>
+    </motion.li>
   );
 }
 
@@ -625,101 +654,260 @@ export function BirthDateScreen() {
   );
 }
 
+/** The place list, loaded once and only when the "Andere stad" field is
+ * used (a separate chunk, about 28 KB gzipped). */
+let placeIndexPromise: Promise<PlaceIndex> | null = null;
+function loadPlaceIndex(): Promise<PlaceIndex> {
+  placeIndexPromise ??= import("@/lib/jouw-tafel/nl-places.json").then((mod) =>
+    buildPlaceIndex((mod.default ?? mod) as unknown as RawPlace[]),
+  );
+  return placeIndexPromise;
+}
+
+/**
+ * "Andere stad": a combobox over the fixed place list. Only a place from the
+ * list can be picked (no free text). Up to 6 suggestions, names that start
+ * with what was typed first. Arrow keys move, Enter picks, Escape closes.
+ */
+function PlaceCombobox({
+  copy,
+  exclude,
+  inputRef,
+  query,
+  onQuery,
+  onPick,
+  error,
+  attempt,
+}: {
+  copy: QuizCopy;
+  exclude: readonly string[];
+  inputRef: RefObject<HTMLInputElement | null>;
+  query: string;
+  onQuery: (value: string) => void;
+  onPick: (place: Place) => void;
+  error: boolean;
+  attempt: number;
+}) {
+  const [index, setIndex] = useState<PlaceIndex | null>(null);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const listId = "jt-quiz-place-list";
+  const results = index && query.trim()
+    ? searchPlaces(index, query, 6 + exclude.length).filter((p) => !exclude.includes(p.label)).slice(0, 6)
+    : [];
+  const expanded = open && results.length > 0;
+
+  function ensureLoaded() {
+    if (!index) void loadPlaceIndex().then(setIndex);
+  }
+
+  function pick(place: Place) {
+    onPick(place);
+    setOpen(false);
+    setActive(0);
+  }
+
+  return (
+    <div className="mt-5">
+      <label htmlFor="jt-quiz-city" className={`${smallCaps} block text-center`}>
+        {copy.stad.otherLabel}
+      </label>
+      <input
+        ref={inputRef}
+        id="jt-quiz-city"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={expanded}
+        aria-controls={listId}
+        aria-activedescendant={expanded ? `${listId}-${active}` : undefined}
+        autoComplete="off"
+        enterKeyHint="done"
+        maxLength={60}
+        value={query}
+        placeholder={copy.stad.otherPlaceholder}
+        onFocus={() => {
+          ensureLoaded();
+          setOpen(true);
+          // Room for the suggestions above the keyboard and the sticky button.
+          requestAnimationFrame(() => inputRef.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
+        }}
+        onBlur={() => setOpen(false)}
+        onChange={(e) => {
+          ensureLoaded();
+          onQuery(e.target.value);
+          setOpen(true);
+          setActive(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown" && results.length) {
+            e.preventDefault();
+            setOpen(true);
+            setActive((i) => (i + 1) % results.length);
+          } else if (e.key === "ArrowUp" && results.length) {
+            e.preventDefault();
+            setOpen(true);
+            setActive((i) => (i - 1 + results.length) % results.length);
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            const place = results[active] ?? results[0];
+            if (expanded && place) pick(place);
+          } else if (e.key === "Escape") {
+            setOpen(false);
+          }
+        }}
+        aria-invalid={error || undefined}
+        className={`${inputClass} mt-2 scroll-mt-24 text-center ${error ? inputBad : inputOk}`}
+      />
+      <div className={open ? "min-h-[20rem]" : ""}>
+        {expanded ? (
+          <ul
+            id={listId}
+            role="listbox"
+            aria-label={copy.stad.otherLabel}
+            className="mt-2 overflow-hidden rounded-2xl border border-wine/[0.08] bg-white shadow-[0_6px_18px_rgba(43,13,18,0.06)]"
+          >
+            {results.map((place, i) => (
+              <li
+                key={place.label}
+                id={`${listId}-${i}`}
+                role="option"
+                aria-selected={i === active}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pick(place)}
+                className={`flex min-h-12 cursor-pointer items-center gap-2.5 px-4 text-[1rem] text-wine ${
+                  i === active ? "bg-burgundy/[0.06]" : ""
+                } ${i ? "border-t border-wine/[0.06]" : ""}`}
+              >
+                <PinIcon className="h-4 w-4 shrink-0 text-wine/40" />
+                {place.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {open && index && query.trim() && results.length === 0 ? (
+          <p aria-live="polite" className="mt-2 text-center text-sm text-wine/60">
+            {copy.stad.noResults}
+          </p>
+        ) : null}
+        {error ? <FieldError message={copy.stad.otherError} attempt={attempt} /> : null}
+      </div>
+    </div>
+  );
+}
+
 export function CityScreen() {
   const { copy, locale, answers, geoCity, answerAndNext } = useQuiz();
-  const knownAnswer = answers.city ? supportedCity(answers.city) : null;
-  const [choice, setChoice] = useState<QuizCity | "other" | null>(answers.city ? knownAnswer ?? "other" : geoCity);
-  const [other, setOther] = useState(answers.city && !knownAnswer ? answers.city : "");
+  const saved = answerCities(answers);
+  // In the order they were picked: our cities and place labels. The visitor's
+  // own city (geo, only when it is one of ours) is ticked to start with.
+  const [picked, setPicked] = useState<string[]>(() =>
+    saved.length ? saved.map((c) => supportedCity(c) ?? c) : geoCity ? [geoCity] : [],
+  );
+  const [otherOpen, setOtherOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const otherRef = useRef<HTMLInputElement>(null);
-  const prefilledFromGeo = !answers.city && geoCity !== null;
+  const prefilledFromGeo = saved.length === 0 && geoCity !== null;
+  const places = picked.filter((c) => !supportedCity(c));
+  const full = picked.length >= CITIES_MAX;
+
+  function toggle(city: string) {
+    setPicked((prev) => (prev.includes(city) ? prev.filter((v) => v !== city) : [...prev, city].slice(0, CITIES_MAX)));
+  }
+
+  function pickPlace(place: Place) {
+    // One of our cities typed in the field ticks that city itself.
+    const city = supportedCity(place.label) ?? place.label;
+    setPicked((prev) => (prev.includes(city) ? prev : [...prev, city].slice(0, CITIES_MAX)));
+    setQuery("");
+    setError(false);
+  }
 
   function confirm() {
-    if (choice === "other") {
-      const city = other.replace(/\s+/g, " ").trim();
-      if (!city) {
-        setError(true);
-        setAttempt((n) => n + 1);
-        otherRef.current?.focus();
-        return;
-      }
-      answerAndNext({ city: supportedCity(city) ?? city });
-    } else if (choice) {
-      answerAndNext({ city: choice });
+    // Typed but not picked from the list: nothing is saved from free text.
+    if (otherOpen && query.trim()) {
+      setError(true);
+      setAttempt((n) => n + 1);
+      otherRef.current?.focus();
+      return;
     }
+    if (picked.length === 0) return;
+    answerAndNext(cityStepAnswer(picked));
   }
-  usePrimaryAction(choice ? confirm : null);
+  usePrimaryAction(picked.length > 0 ? confirm : null);
 
   return (
     <div>
-      <QuestionHead title={copy.stad.title} />
-      <div role="radiogroup" className={`${answersGap} space-y-3`}>
-        {QUIZ_CITIES.map((city, i) => (
-          <div key={city}>
-            {prefilledFromGeo && city === geoCity ? (
-              <p className="mb-1.5 flex items-center gap-1.5 pl-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-                <PinIcon className="h-3.5 w-3.5" />
-                {copy.stad.geoHint}
-              </p>
-            ) : null}
-            <ChoiceButton
-              index={i}
-              selected={choice === city}
-              label={displayCity(city, locale)}
-              icon={optionIcon("stad", city)}
-              onClick={() => {
-                setChoice(city);
-                answerAndNext({ city }, { delay: AUTO_ADVANCE_MS });
-              }}
-            />
-          </div>
+      <QuestionHead title={copy.stad.title} sub={copy.stad.sub} />
+      <div role="group" className={`${answersGap} space-y-3`}>
+        {QUIZ_CITIES.map((city, i) => {
+          const selected = picked.includes(city);
+          return (
+            <div key={city}>
+              {prefilledFromGeo && city === geoCity ? (
+                <p className="mb-1.5 flex items-center gap-1.5 pl-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+                  <PinIcon className="h-3.5 w-3.5" />
+                  {copy.stad.geoHint}
+                </p>
+              ) : null}
+              <ChoiceButton
+                index={i}
+                multi
+                selected={selected}
+                disabled={!selected && full}
+                label={displayCity(city, locale)}
+                icon={optionIcon("stad", city)}
+                onClick={() => toggle(city)}
+              />
+            </div>
+          );
+        })}
+        {places.map((place, i) => (
+          <ChoiceButton
+            key={place}
+            index={QUIZ_CITIES.length + i}
+            multi
+            selected
+            label={place}
+            icon={optionIcon("stad", "other")}
+            onClick={() => toggle(place)}
+          />
         ))}
         <ChoiceButton
-          index={QUIZ_CITIES.length}
-          selected={choice === "other"}
+          index={QUIZ_CITIES.length + places.length}
+          multi
+          selected={otherOpen}
+          disabled={!otherOpen && full}
           label={copy.stad.other}
           icon={optionIcon("stad", "other")}
           onClick={() => {
-            setChoice("other");
-            requestAnimationFrame(() => otherRef.current?.focus());
+            const next = !otherOpen;
+            setOtherOpen(next);
+            setError(false);
+            if (next) requestAnimationFrame(() => otherRef.current?.focus());
+            else setQuery("");
           }}
         />
       </div>
-      {choice === "other" ? (
-        <div className="mt-5">
-          <label htmlFor="jt-quiz-city" className={`${smallCaps} block text-center`}>
-            {copy.stad.otherLabel}
-          </label>
-          <input
-            ref={otherRef}
-            id="jt-quiz-city"
-            type="text"
-            autoComplete="address-level2"
-            enterKeyHint="next"
-            maxLength={60}
-            value={other}
-            placeholder={copy.stad.otherPlaceholder}
-            onChange={(e) => {
-              setOther(e.target.value);
-              if (error) setError(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                confirm();
-              }
-            }}
-            aria-invalid={error || undefined}
-            className={`${inputClass} mt-2 text-center ${error ? inputBad : inputOk}`}
-          />
-          {error ? <FieldError message={copy.stad.otherError} attempt={attempt} /> : null}
-        </div>
+      {otherOpen ? (
+        <PlaceCombobox
+          copy={copy}
+          exclude={picked}
+          inputRef={otherRef}
+          query={query}
+          onQuery={(value) => {
+            setQuery(value);
+            if (error) setError(false);
+          }}
+          onPick={pickPlace}
+          error={error}
+          attempt={attempt}
+        />
       ) : null}
       <div className="h-28" />
-      {choice ? (
-        <NextBar label={copy.next} onClick={confirm} disabled={choice === "other" && !other.trim()} />
-      ) : null}
+      <NextBar label={copy.next} onClick={confirm} disabled={picked.length === 0} />
     </div>
   );
 }

@@ -35,6 +35,8 @@ import { getQuizCopy, type QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   AGE_MATTERS_OPTIONS,
   COMPANION_OPTIONS,
+  GENDER_OPTIONS,
+  TABLE_TYPE_OPTIONS,
   COMPANION_WHO_OPTIONS,
   CONVERSATION_OPTIONS,
   HEARD_FROM_OPTIONS,
@@ -776,6 +778,26 @@ export function JouwTafelQuiz({
             labels={copy.leeftijd.options}
             value={answers.ageMatters}
             toPatch={(v) => ({ ageMatters: v })}
+          />
+        );
+      case "gender":
+        return (
+          <SingleChoiceScreen
+            title={copy.gender.title}
+            options={GENDER_OPTIONS}
+            labels={copy.gender.options}
+            value={answers.gender}
+            toPatch={(v) => ({ gender: v, ...(v !== "female" ? { tableType: undefined } : {}) })}
+          />
+        );
+      case "tafeltype":
+        return (
+          <SingleChoiceScreen
+            title={copy.tafeltype.title}
+            options={TABLE_TYPE_OPTIONS}
+            labels={copy.tafeltype.options}
+            value={answers.tableType}
+            toPatch={(v) => ({ tableType: v })}
           />
         );
       case "stad":

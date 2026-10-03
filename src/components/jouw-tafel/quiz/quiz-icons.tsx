@@ -50,6 +50,45 @@ export const TwoPeopleIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const VenusIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="9" r="5" />
+    <path d="M12 14v7M9 18h6" />
+  </Svg>
+);
+
+export const MarsIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="10" cy="14" r="5" />
+    <path d="M13.6 10.4 19.5 4.5M15 4.5h4.5V9" />
+  </Svg>
+);
+
+export const SparkleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3.5c.6 4.4 2.1 5.9 6.5 6.5-4.4.6-5.9 2.1-6.5 6.5-.6-4.4-2.1-5.9-6.5-6.5 4.4-.6 5.9-2.1 6.5-6.5Z" />
+    <path d="M18.5 16v4M16.5 18h4" />
+  </Svg>
+);
+
+export const LockIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="5.5" y="10.5" width="13" height="9.5" rx="2" />
+    <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+  </Svg>
+);
+
+export const TwoWomenIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8.5" r="2.7" />
+    <path d="M5.3 9.2c-.4 2-.9 3-1.8 3.6M10.7 9.2c.4 2 .9 3 1.8 3.6" />
+    <path d="M3 19.5c.5-2.9 2.5-4.6 5-4.6s4.5 1.7 5 4.6" />
+    <circle cx="16" cy="8.5" r="2.7" />
+    <path d="M13.3 9.2c-.4 2-.9 3-1.8 3.6M18.7 9.2c.4 2 .9 3 1.8 3.6" />
+    <path d="M13.8 15.3c.6-.3 1.4-.4 2.2-.4 2.5 0 4.5 1.7 5 4.6" />
+  </Svg>
+);
+
 export const SameAgeIcon = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="7.5" cy="8.5" r="2.6" />
@@ -368,6 +407,8 @@ type IconComponent = (props: IconProps) => ReactNode;
 
 const STEP_ICONS: Partial<Record<QuizStepId, Record<string, IconComponent>>> = {
   leeftijd: { yes: SameAgeIcon, no: MixedAgeIcon },
+  gender: { female: VenusIcon, male: MarsIcon, other: SparkleIcon, unspecified: LockIcon },
+  tafeltype: { mixed: TwoPeopleIcon, girls_only: TwoWomenIcon, any: CheckCircleIcon },
   zoekt: { places: CompassIcon, cosy: SunIcon, wines: GrapesIcon, treat: GiftIcon, new_city: CityIcon },
   gesprek: { talker: BubbleIcon, listener: EarIcon, both: TwoBubblesIcon },
   wijn: { red: RedWineIcon, white: WhiteWineIcon, bubbles: BubblesIcon, none: WaterGlassIcon },

@@ -6,6 +6,8 @@
 import type { Locale } from "@/i18n/config";
 import type {
   AgeMattersAnswer,
+  GenderAnswer,
+  TableTypeAnswer,
   CompanionAnswer,
   CompanionWhoAnswer,
   ConversationAnswer,
@@ -46,6 +48,8 @@ export type QuizCopy = {
     under18: string;
   };
   leeftijd: { title: string; options: Record<AgeMattersAnswer, string> };
+  gender: { title: string; options: Record<GenderAnswer, string> };
+  tafeltype: { title: string; options: Record<TableTypeAnswer, string> };
   stad: {
     title: string;
     sub: string;
@@ -145,6 +149,8 @@ export type QuizCopy = {
     ourCities: string;
     /** Line 1 of a table card. */
     tableName: string;
+    /** Under the subtitle when she prefers a women-only table. */
+    girlsOnly: string;
     /** Our chosen cities without a table on the list (joined; n of them). */
     noSunday: (cities: string, n: number) => string;
     /** The link under the subtitle, and the sheet's title. */
@@ -207,6 +213,14 @@ const nl: QuizCopy = {
   leeftijd: {
     title: "Zit je graag aan tafel met mensen van ongeveer jouw leeftijd?",
     options: { yes: "Ja, graag", no: "Maakt me niet uit" },
+  },
+  gender: {
+    title: "Hoe identificeer je jezelf?",
+    options: { female: "Vrouw", male: "Man", other: "Anders", unspecified: "Zeg ik liever niet" },
+  },
+  tafeltype: {
+    title: "Aan wat voor tafel schuif je het liefst aan?",
+    options: { mixed: "Gemengd", girls_only: "Alleen vrouwen", any: "Maakt mij niet uit" },
   },
   stad: {
     title: "In welke stad wil je aanschuiven?",
@@ -366,6 +380,7 @@ const nl: QuizCopy = {
     selectAria: "Kies deze tafel",
     ourCities: "Of schuif aan in een van onze steden",
     tableName: "Sunday Table",
+    girlsOnly: "Girls only tafels plannen we zodra er genoeg aanmeldingen zijn. Je hoort het als eerste.",
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
     infoLink: "Wat is een Sunday Table?",
@@ -420,6 +435,14 @@ const en: QuizCopy = {
   leeftijd: {
     title: "Do you like sitting with people around your own age?",
     options: { yes: "Yes, please", no: "I don't mind" },
+  },
+  gender: {
+    title: "How do you identify?",
+    options: { female: "Woman", male: "Man", other: "Other", unspecified: "Prefer not to say" },
+  },
+  tafeltype: {
+    title: "What kind of table would you like to join?",
+    options: { mixed: "Mixed", girls_only: "Women only", any: "I don't mind" },
   },
   stad: {
     title: "Which city would you like to join a table in?",
@@ -579,6 +602,7 @@ const en: QuizCopy = {
     selectAria: "Choose this table",
     ourCities: "Or join a table in one of our cities",
     tableName: "Sunday Table",
+    girlsOnly: "We'll plan women-only tables once enough people sign up. You'll be the first to hear.",
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,
     infoLink: "What is a Sunday Table?",

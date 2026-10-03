@@ -366,6 +366,7 @@ export const privacyEn: LegalDocumentContent = {
                 "Making a reservation: your name, email address, number of seats and optional dietary notes;",
                 "Contact by email: your name, email address and message content;",
                 "Account: your email address, and if you log in with Google also the name linked to your Google account;",
+                "Quiz: your answers, such as your date of birth, gender, table preference, cities and preferences;",
                 "Waitlist or newsletter (if available): your email address and preferred city, if you sign up.",
                 "At events: photos and videos on which guests may appear recognisably, where you give consent when booking.",
               ],

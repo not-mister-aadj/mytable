@@ -30,6 +30,8 @@ export const QUIZ_STEPS = [
   "naam",
   "geboortedatum",
   "leeftijd",
+  "gender",
+  "tafeltype",
   "stad",
   "stop-stad",
   "zoekt",
@@ -79,6 +81,14 @@ export function stepKind(step: QuizStepId): QuizStepKind {
 
 // ------------------------------------------------------------------ answers
 
+/** Same ids as the Sunday Table landing page's gender question. */
+export const GENDER_OPTIONS = ["female", "male", "other", "unspecified"] as const;
+export type GenderAnswer = (typeof GENDER_OPTIONS)[number];
+
+/** Only asked when gender is "female". */
+export const TABLE_TYPE_OPTIONS = ["mixed", "girls_only", "any"] as const;
+export type TableTypeAnswer = (typeof TABLE_TYPE_OPTIONS)[number];
+
 export const WHY_OPTIONS = ["places", "cosy", "wines", "treat", "new_city"] as const;
 export type WhyAnswer = (typeof WHY_OPTIONS)[number];
 export const WHY_MAX = 2;
@@ -126,6 +136,9 @@ export type QuizAnswers = {
   /** YYYY-MM-DD, 18 or older. */
   birthDate?: string;
   ageMatters?: AgeMattersAnswer;
+  gender?: GenderAnswer;
+  /** Only when gender is "female" (cleared otherwise). */
+  tableType?: TableTypeAnswer;
   /** The primary city: always cities[0] when cities is set. Kept for
    * states saved before the city step became multi-select. */
   city?: string;
@@ -201,9 +214,11 @@ export function emptyQuizState(): QuizState {
 // ------------------------------------------------------------------ routing
 
 /** The screens this person sees, in order: "Alleen" gets one stop, "Met
- * iemand" gets "Wie neem je mee?" and its stop instead. */
+ * iemand" gets "Wie neem je mee?" and its stop instead; the table type
+ * question only for women. */
 export function quizSteps(answers: QuizAnswers): QuizStepId[] {
   return QUIZ_STEPS.filter((step) => {
+    if (step === "tafeltype") return answers.gender === "female";
     if (step === "stop-alleen") return answers.companion !== "with";
     if (step === "wie" || step === "stop-wie") return answers.companion === "with";
     return true;
@@ -218,6 +233,10 @@ export function isStepAnswered(step: QuizStepId, a: QuizAnswers): boolean {
       return Boolean(a.birthDate) && ageFromBirthDate(a.birthDate!) !== null;
     case "leeftijd":
       return a.ageMatters !== undefined;
+    case "gender":
+      return a.gender !== undefined;
+    case "tafeltype":
+      return a.tableType !== undefined;
     case "stad":
       return answerCities(a).length >= 1;
     case "zoekt":
@@ -718,6 +737,13 @@ const COMPANY_TO_WAITLIST: Record<CompanionWhoAnswer, string> = {
   colleague: "bring_friends",
 };
 
+/** The waitlist's `tableType`: "any" is both kinds; without the question
+ * (not a woman, or not answered yet) a mixed table. */
+export function waitlistTableType(a: QuizAnswers): string[] {
+  if (a.gender !== "female" || !a.tableType) return ["mixed"];
+  return a.tableType === "any" ? ["mixed", "girls_only"] : [a.tableType];
+}
+
 /**
  * The waitlist row's `preferences`, in the shape the waitlist modal stores
  * (cities, ageRange, why, company, language, tableType, interests, ...) plus
@@ -744,10 +770,10 @@ export function buildWaitlistPreferences(
         : a.companion === "with" && a.companionWho
           ? [COMPANY_TO_WAITLIST[a.companionWho]]
           : [],
-    tableType: ["mixed"],
+    tableType: waitlistTableType(a),
     cities: answerCities(a),
     regionFlexible: false,
-    gender: [],
+    gender: a.gender ? [a.gender] : [],
     ageRange: age !== null ? [waitlistAgeRange(age)] : [],
     vibe: [],
     experience: [],
@@ -782,6 +808,10 @@ export function analyticsAnswer(step: QuizStepId, a: QuizAnswers): string | null
       return a.birthDate ? "filled" : "skipped";
     case "leeftijd":
       return a.ageMatters ?? null;
+    case "gender":
+      return a.gender ?? null;
+    case "tafeltype":
+      return a.tableType ?? null;
     case "stad": {
       const cities = answerCities(a);
       if (!cities.length) return null;
@@ -851,6 +881,8 @@ export function sanitizeQuizState(raw: unknown): QuizState {
     name: cleanText(ra.name, 60),
     birthDate,
     ageMatters: pick(ra.ageMatters, AGE_MATTERS_OPTIONS),
+    gender: pick(ra.gender, GENDER_OPTIONS),
+    tableType: pick(ra.tableType, TABLE_TYPE_OPTIONS),
     ...citiesAnswer(
       cleanCityList(Array.isArray(ra.cities) && ra.cities.length > 0 ? ra.cities : [ra.city]),
     ),
@@ -867,6 +899,7 @@ export function sanitizeQuizState(raw: unknown): QuizState {
     ready: pick(ra.ready, READY_OPTIONS),
   };
   if (answers.why && answers.why.length === 0) delete answers.why;
+  if (answers.gender !== "female") delete answers.tableType;
   for (const key of Object.keys(answers) as Array<keyof QuizAnswers>) {
     if (answers[key] === undefined) delete answers[key];
   }

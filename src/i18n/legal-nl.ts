@@ -366,6 +366,7 @@ export const privacyNl: LegalDocumentContent = {
                 "Reservering plaatsen: je naam, e-mailadres, aantal plaatsen en optioneel dieetwensen;",
                 "Contact per e-mail: je naam, e-mailadres en de inhoud van je bericht;",
                 "Account: je e-mailadres, en als je inlogt met Google ook de naam die bij je Google-account hoort;",
+                "Quiz: je antwoorden, zoals je geboortedatum, gender, tafelvoorkeur, steden en voorkeuren;",
                 "Wachtlijst of nieuwsbrief (indien beschikbaar): je e-mailadres en voorkeursstad, als je je hiervoor aanmeldt.",
                 "Tijdens evenementen: foto's en video's waarop deelnemers (mogelijk herkenbaar) in beeld kunnen zijn, als je daarvoor toestemming geeft bij het boeken.",
               ],

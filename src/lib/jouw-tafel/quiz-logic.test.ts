@@ -93,6 +93,7 @@ const DONE_ALONE: QuizAnswers = {
   name: "Sam",
   birthDate: "1990-03-07",
   ageMatters: "yes",
+  gender: "male",
   city: "Rotterdam",
   why: ["places"],
   conversation: "both",
@@ -116,8 +117,45 @@ test("quizSteps: alone gets one stop, with someone gets 'wie' and its stop", () 
     withSomeone.slice(withSomeone.indexOf("gezelschap"), withSomeone.indexOf("taal") + 1),
     ["gezelschap", "wie", "stop-wie", "taal"],
   );
-  assert.equal(stepPosition("kies", { companion: "alone" }).total, 22);
-  assert.equal(stepPosition("kies", { companion: "with" }).total, 23);
+  assert.equal(stepPosition("kies", { companion: "alone" }).total, 23);
+  assert.equal(stepPosition("kies", { companion: "with" }).total, 24);
+});
+
+test("gender: women get the table type question, everyone else skips it", () => {
+  const woman = quizSteps({ gender: "female" });
+  assert.deepEqual(woman.slice(woman.indexOf("leeftijd"), woman.indexOf("stad") + 1), [
+    "leeftijd",
+    "gender",
+    "tafeltype",
+    "stad",
+  ]);
+  for (const gender of ["male", "other", "unspecified"] as const) {
+    const steps = quizSteps({ gender });
+    assert.ok(!steps.includes("tafeltype"), gender);
+    assert.equal(nextStep("gender", { gender }), "stad");
+  }
+  assert.ok(!quizSteps({}).includes("tafeltype"));
+  assert.equal(nextStep("gender", { gender: "female" }), "tafeltype");
+  assert.equal(previousStep("stad", { gender: "female" }), "tafeltype");
+  assert.equal(previousStep("stad", { gender: "male" }), "gender");
+  assert.equal(chapterOf("gender"), "over_jou");
+  assert.equal(chapterOf("tafeltype"), "over_jou");
+  // Answered or not.
+  assert.equal(firstMissingStep({ ...DONE_ALONE, gender: "female" }), "tafeltype");
+  assert.equal(firstMissingStep({ ...DONE_ALONE, gender: "female", tableType: "any" }), null);
+  assert.equal(stepPosition("kies", { companion: "alone", gender: "female" }).total, 24);
+  assert.equal(analyticsAnswer("gender", { gender: "unspecified" }), "unspecified");
+  assert.equal(analyticsAnswer("tafeltype", { gender: "female", tableType: "girls_only" }), "girls_only");
+});
+
+test("resume: an old finished state without gender asks gender next", () => {
+  const { gender: _gender, ...old } = DONE_ALONE;
+  void _gender;
+  assert.equal(firstMissingStep(old), "gender");
+  assert.equal(resolveStep(null, old), "gender");
+  assert.equal(resolveStep("kies", old), "gender");
+  // The old answers stay.
+  assert.equal(sanitizeQuizState({ v: 1, answers: old }).answers.city, "Rotterdam");
 });
 
 test("nextStep / previousStep follow the branch", () => {
@@ -361,6 +399,32 @@ test("cityStepAnswer: order kept, a place stays its own place", () => {
   const empty = cityStepAnswer([]);
   assert.equal(empty.cities, undefined);
   assert.equal(empty.city, undefined);
+});
+
+test("waitlist preferences: gender as is, table type mapped", () => {
+  const prefs = (a: QuizAnswers) => buildWaitlistPreferences({ ...DONE_ALONE, ...a }, NOW);
+  assert.deepEqual(prefs({ gender: "female", tableType: "mixed" }).tableType, ["mixed"]);
+  assert.deepEqual(prefs({ gender: "female", tableType: "girls_only" }).tableType, ["girls_only"]);
+  assert.deepEqual(prefs({ gender: "female", tableType: "any" }).tableType, ["mixed", "girls_only"]);
+  // Not asked: a mixed table.
+  assert.deepEqual(prefs({ gender: "male" }).tableType, ["mixed"]);
+  assert.deepEqual(prefs({ gender: "female" }).tableType, ["mixed"]);
+  assert.deepEqual(prefs({ gender: "male", tableType: "girls_only" }).tableType, ["mixed"]);
+  assert.deepEqual(prefs({ gender: "unspecified" }).gender, ["unspecified"]);
+  assert.deepEqual(prefs({ gender: "female" }).gender, ["female"]);
+  assert.deepEqual(prefs({ gender: undefined }).gender, []);
+});
+
+test("sanitizeQuizState: gender and table type", () => {
+  assert.deepEqual(sanitizeQuizState({ v: 1, answers: { gender: "female", tableType: "any" } }).answers, {
+    gender: "female",
+    tableType: "any",
+  });
+  // Table type only for women; unknown values dropped.
+  assert.deepEqual(sanitizeQuizState({ v: 1, answers: { gender: "male", tableType: "girls_only" } }).answers, {
+    gender: "male",
+  });
+  assert.deepEqual(sanitizeQuizState({ v: 1, answers: { gender: "robot", tableType: "vip" } }).answers, {});
 });
 
 test("analyticsAnswer never carries personal data", () => {

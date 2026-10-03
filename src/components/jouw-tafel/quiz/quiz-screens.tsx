@@ -79,8 +79,8 @@ export const COMPANION_PHOTOS = {
 /** The welcome collage: three real photos from earlier tables. */
 const WELCOME_PHOTOS = [
   "/girls-only/wine-tasting-toast.jpg",
-  "/girls-only/table-wine-laughing.jpg",
   "/girls-only/connecting.jpg",
+  "/girls-only/table-wine-laughing.jpg",
 ] as const;
 
 export const PHOTO_SIZES = "(max-width: 480px) 100vw, 448px";

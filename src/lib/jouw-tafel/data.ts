@@ -91,20 +91,20 @@ const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-
 });
 
 /**
- * Dev-only preview of the count copy: `?aantal=N` on the landing page, the
- * sign-up and log-in screens and /jouw-tafel/start uses N for every count
- * (landing total, per city, every combination of cities) instead of the
- * database. The usual rounding and the SIGNUP_COUNT_MIN threshold still
- * apply. Ignored completely when NODE_ENV is "production".
- *
- * The quiz redirects to sign-up when you are not logged in, which drops the
- * param: log in first, then open /jouw-tafel/start?aantal=190 directly. It
- * stays in the URL while you move through the quiz.
+ * Dev-only preview of the count copy. Outside production every count
+ * (landing total, per city, every combination of cities) is DEV_COUNT_DEFAULT
+ * instead of the nearly empty dev database, so the copy with a number shows
+ * by default. `?aantal=N` on the landing page, the sign-up and log-in screens
+ * and /jouw-tafel/start uses N instead; `?aantal=0` shows the copy without a
+ * number. The usual rounding and the SIGNUP_COUNT_MIN threshold still apply.
+ * Ignored completely when NODE_ENV is "production".
  */
+const DEV_COUNT_DEFAULT = 190;
+
 export function devCountOverride(value: string | string[] | undefined): number | null {
   if (process.env.NODE_ENV === "production") return null;
   const raw = Array.isArray(value) ? value[0] : value;
-  if (!raw || !/^\d{1,7}$/.test(raw.trim())) return null;
+  if (!raw || !/^\d{1,7}$/.test(raw.trim())) return DEV_COUNT_DEFAULT;
   return Number(raw.trim());
 }
 

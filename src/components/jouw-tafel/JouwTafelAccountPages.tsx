@@ -71,8 +71,11 @@ export async function JouwTafelAuthPage({
   screen: AuthScreen;
   searchParams: AccountSearchParams;
 }) {
-  // Already signed in: nothing to do here.
-  if (await getMemberUser()) redirect(jouwTafelStartPath(locale));
+  // Log in while signed in: go straight on. Sign up always starts fresh: an
+  // existing session is ended in the browser (see startFresh) so a new
+  // account never inherits someone else's name or answers.
+  const signedIn = Boolean(await getMemberUser());
+  if (signedIn && screen === "login") redirect(jouwTafelStartPath(locale));
 
   const userAgent = (await headers()).get("user-agent");
   const inApp = isInAppBrowser(userAgent);
@@ -97,6 +100,8 @@ export async function JouwTafelAuthPage({
         termsHref={termsPath(locale)}
         privacyHref={privacyPath(locale)}
         proofText={proofText}
+        startFresh={screen === "signup"}
+        hadSession={signedIn}
       />
     </AccountShell>
   );

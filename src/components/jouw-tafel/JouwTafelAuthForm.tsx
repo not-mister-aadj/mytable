@@ -119,6 +119,8 @@ export function JouwTafelAuthForm({
   termsHref,
   privacyHref,
   proofText,
+  startFresh,
+  hadSession,
 }: {
   locale: Locale;
   screen: AuthScreen;
@@ -132,6 +134,10 @@ export function JouwTafelAuthForm({
   privacyHref: string;
   /** "Al 330+ mensen staan op de lijst", live and rounded down; null when small. */
   proofText: string | null;
+  /** Sign-up: always a clean start (no session, no saved quiz answers). */
+  startFresh: boolean;
+  /** A session existed when the page was rendered; it is ended on load. */
+  hadSession: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -166,6 +172,20 @@ export function JouwTafelAuthForm({
   const onCodeStepInUrl = searchParams.get(CODE_STEP_PARAM) === CODE_STEP_VALUE;
   const step: "email" | "code" = onCodeStepInUrl && sentTo ? "code" : "email";
 
+  // Sign-up is always a fresh start: end any session in this browser and
+  // forget locally saved quiz answers, so a new account starts empty.
+  useEffect(() => {
+    if (!startFresh) return;
+    try {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("mytable_jt_quiz_")) localStorage.removeItem(key);
+      }
+    } catch {
+      /* storage unavailable: nothing to clear */
+    }
+    if (hadSession) void createSupabaseBrowserClient().auth.signOut({ scope: "local" });
+  }, [startFresh, hadSession]);
+
   // Prefill from the other screen ("Maak een account") or restore the code
   // step after a reload. The address lives in sessionStorage, never the URL.
   useEffect(() => {
@@ -174,6 +194,9 @@ export function JouwTafelAuthForm({
     const frame = requestAnimationFrame(() => {
       const stored = readStoredEmail();
       if (stored) setEmail((current) => current || stored);
+      // One-time hand-over: once prefilled it is forgotten, so a later visit
+      // to sign-up starts empty again.
+      if (stored && !onCodeStepInUrl) storeEmail(null);
       if (onCodeStepInUrl) {
         if (stored && validateAuthEmail(stored) === null) {
           setSentTo(stored);

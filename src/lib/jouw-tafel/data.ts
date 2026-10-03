@@ -4,7 +4,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { SIGNUP_COUNT_MIN, bracketFromEventName, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 
 /** Published, upcoming Sunday Tables. Deliberately no venue: the page never
@@ -90,15 +90,37 @@ const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-
   revalidate: 3600,
 });
 
+/**
+ * Dev-only preview of the count copy: `?aantal=N` on the landing page, the
+ * sign-up and log-in screens and /jouw-tafel/start uses N for every count
+ * (landing total, per city, every combination of cities) instead of the
+ * database. The usual rounding and the SIGNUP_COUNT_MIN threshold still
+ * apply. Ignored completely when NODE_ENV is "production".
+ *
+ * The quiz redirects to sign-up when you are not logged in, which drops the
+ * param: log in first, then open /jouw-tafel/start?aantal=190 directly. It
+ * stays in the URL while you move through the quiz.
+ */
+export function devCountOverride(value: string | string[] | undefined): number | null {
+  if (process.env.NODE_ENV === "production") return null;
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw || !/^\d{1,7}$/.test(raw.trim())) return null;
+  return Number(raw.trim());
+}
+
 /** The social-proof number under the hero: people from the visitor's city
  * when known and big enough, otherwise everyone. Rounded down to tens; null
  * when the number would be too small to say anything (under
  * SIGNUP_COUNT_MIN). */
 export async function getWaitlistProof(
   city: string | null,
+  override: number | null = null,
 ): Promise<{ count: number; city: string | null } | null> {
   try {
-    const counts = await getCachedWaitlistCounts();
+    const counts =
+      override !== null
+        ? { total: override, byCity: city ? { [city]: override } : {} }
+        : await getCachedWaitlistCounts();
     const floorTens = (n: number) => Math.floor(n / 10) * 10;
     const cityCount = city ? counts.byCity[city] ?? 0 : 0;
     if (city && cityCount >= SIGNUP_COUNT_MIN) return { count: floorTens(cityCount), city };
@@ -127,9 +149,12 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
 /** Sign-ups per city, for the quiz's "In {stad} hebben zich al N+ mensen
  * aangemeld". Rounded down to tens; cities under SIGNUP_COUNT_MIN are left
  * out (the quiz then only says "Je bent niet de enige"). Aggregates only. */
-export async function getWaitlistCityCounts(): Promise<Record<string, number>> {
+export async function getWaitlistCityCounts(override: number | null = null): Promise<Record<string, number>> {
   try {
-    const counts = await getCachedWaitlistCounts();
+    const counts =
+      override !== null
+        ? { byCity: Object.fromEntries(QUIZ_CITIES.map((c) => [c, override])) }
+        : await getCachedWaitlistCounts();
     const out: Record<string, number> = {};
     for (const [city, n] of Object.entries(counts.byCity)) {
       if (n >= SIGNUP_COUNT_MIN) out[city] = Math.floor(n / 10) * 10;
@@ -156,8 +181,16 @@ const getCachedSubsetCounts = unstable_cache(loadSubsetCounts, ["jouw-tafel-sign
  * distinct count per combination of our cities, keyed by cityMask, rounded
  * down to tens, SIGNUP_COUNT_MIN and up only. Empty on failure (the screen
  * then shows its fallback). */
-export async function getSignupSubsetCounts(): Promise<Record<string, number>> {
+export async function getSignupSubsetCounts(override: number | null = null): Promise<Record<string, number>> {
   try {
+    if (override !== null) {
+      // Same rounding and threshold as the real counts, for every combination.
+      const out: Record<string, number> = {};
+      if (override >= SIGNUP_COUNT_MIN) {
+        for (let mask = 1; mask < 1 << QUIZ_CITIES.length; mask++) out[String(mask)] = Math.floor(override / 10) * 10;
+      }
+      return out;
+    }
     return await getCachedSubsetCounts();
   } catch (error) {
     console.error("[jouw-tafel] loading signup subset counts failed", error);

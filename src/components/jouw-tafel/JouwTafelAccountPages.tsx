@@ -18,7 +18,7 @@ import {
   type Locale,
 } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
-import { getWaitlistProof } from "@/lib/jouw-tafel/data";
+import { devCountOverride, getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
 import { isGoogleSignInAllowed, isInAppBrowser } from "@/lib/jouw-tafel/auth-logic";
 
@@ -83,7 +83,7 @@ export async function JouwTafelAuthPage({
     flag: process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED,
     userAgent,
   });
-  const proof = await getWaitlistProof(null);
+  const proof = await getWaitlistProof(null, devCountOverride(searchParams.aantal));
   const proofText = proof ? getLandingCopy(locale).hero.proof(proof.count, null) : null;
   return (
     <AccountShell locale={locale}>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { JouwTafelLanding } from "@/components/jouw-tafel/JouwTafelLanding";
 import type { Locale } from "@/i18n/config";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
-import { getJouwTafelEvents, getWaitlistProof } from "@/lib/jouw-tafel/data";
+import { devCountOverride, getJouwTafelEvents, getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { requestCity, type JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 
 export const NO_INDEX: Metadata["robots"] = {
@@ -31,7 +31,7 @@ export async function JouwTafelPage({
   searchParams: JouwTafelSearchParams;
 }) {
   const [{ events, now }, geoCity] = await Promise.all([getJouwTafelEvents(), requestCity(searchParams)]);
-  const proof = await getWaitlistProof(geoCity);
+  const proof = await getWaitlistProof(geoCity, devCountOverride(searchParams.aantal));
   return (
     <JouwTafelLanding
       locale={locale}

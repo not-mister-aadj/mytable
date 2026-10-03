@@ -50,6 +50,7 @@ export const QUIZ_STEPS = [
   "bron",
   "stop-reviews",
   "klaar",
+  "stop-twijfel",
   "zoeken",
   "kies",
 ] as const;
@@ -215,11 +216,12 @@ export function emptyQuizState(): QuizState {
 
 /** The screens this person sees, in order: "Alleen" gets one stop, "Met
  * iemand" gets "Wie neem je mee?" and its stop instead; the table type
- * question only for women. */
+ * question only for women; "Nog niet zeker" gets one more stop. */
 export function quizSteps(answers: QuizAnswers): QuizStepId[] {
   return QUIZ_STEPS.filter((step) => {
     if (step === "tafeltype") return answers.gender === "female";
     if (step === "stop-alleen") return answers.companion !== "with";
+    if (step === "stop-twijfel") return answers.ready === "unsure";
     if (step === "wie" || step === "stop-wie") return answers.companion === "with";
     return true;
   });

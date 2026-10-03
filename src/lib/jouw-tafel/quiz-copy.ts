@@ -98,6 +98,8 @@ export type QuizCopy = {
   stopWijn: Record<WineAnswer, string>;
   gezelschap: { title: string; options: Record<CompanionAnswer, string> };
   stopAlleen: string;
+  /** After "Nog niet zeker". */
+  stopTwijfel: { title: string; line: string };
   wie: { title: string; options: Record<CompanionWhoAnswer, string> };
   stopWie: Record<CompanionWhoAnswer, string>;
   taal: { title: string; options: Record<LanguageAnswer, string> };
@@ -290,6 +292,10 @@ const nl: QuizCopy = {
     options: { alone: "Alleen", with: "Met iemand" },
   },
   stopAlleen: "Bijna iedereen komt alleen. Je schuift aan en het gesprek begint vanzelf.",
+  stopTwijfel: {
+    title: "Iedereen aan tafel is ook nieuw.",
+    line: "De meeste gasten komen alleen, en bijna iedereen wil daarna nog een keer.",
+  },
   wie: {
     title: "Wie neem je mee?",
     options: { friend: "Vriend of vriendin", partner: "Partner", family: "Familie", colleague: "Collega" },
@@ -512,6 +518,10 @@ const en: QuizCopy = {
     options: { alone: "Alone", with: "With someone" },
   },
   stopAlleen: "Almost everyone comes alone. You take a seat and the conversation starts by itself.",
+  stopTwijfel: {
+    title: "Everyone at the table is new too.",
+    line: "Most guests come alone, and almost everyone wants to come back.",
+  },
   wie: {
     title: "Who are you bringing?",
     options: { friend: "A friend", partner: "My partner", family: "Family", colleague: "A colleague" },

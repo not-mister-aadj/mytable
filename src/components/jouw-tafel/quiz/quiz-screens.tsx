@@ -70,6 +70,7 @@ export const STOP_PHOTOS: Partial<Record<QuizStepId, string>> = {
   "stop-gesprek": "/girls-only/table-wine-laughing.jpg",
   "stop-wijn": "/girls-only/chefs-table-toast.jpg",
   "stop-alleen": "/girls-only/laughing-bar.jpg",
+  "stop-twijfel": "/girls-only/hero-poster-light.jpg",
   "stop-wie": "/girls-only/duo-table.jpg",
 };
 
@@ -289,6 +290,10 @@ export function StopScreen() {
       break;
     case "stop-alleen":
       lines = copy.stopAlleen;
+      break;
+    case "stop-twijfel":
+      lines = copy.stopTwijfel.title;
+      extra = copy.stopTwijfel.line;
       break;
     case "stop-wie":
       lines = copy.stopWie[answers.companionWho ?? "friend"];

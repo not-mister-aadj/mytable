@@ -119,6 +119,7 @@ test("quizSteps: alone gets one stop, with someone gets 'wie' and its stop", () 
   );
   assert.equal(stepPosition("kies", { companion: "alone" }).total, 23);
   assert.equal(stepPosition("kies", { companion: "with" }).total, 24);
+  assert.equal(stepPosition("kies", { companion: "alone", ready: "unsure" }).total, 24);
 });
 
 test("gender: women get the table type question, everyone else skips it", () => {
@@ -156,6 +157,24 @@ test("resume: an old finished state without gender asks gender next", () => {
   assert.equal(resolveStep("kies", old), "gender");
   // The old answers stay.
   assert.equal(sanitizeQuizState({ v: 1, answers: old }).answers.city, "Rotterdam");
+});
+
+test("stop-twijfel: only after 'Nog niet zeker'", () => {
+  const unsure = { ...DONE_ALONE, ready: "unsure" as const };
+  assert.ok(quizSteps(unsure).includes("stop-twijfel"));
+  assert.ok(!quizSteps(DONE_ALONE).includes("stop-twijfel"));
+  assert.ok(!quizSteps({}).includes("stop-twijfel"));
+  assert.equal(nextStep("klaar", unsure), "stop-twijfel");
+  assert.equal(nextStep("stop-twijfel", unsure), "zoeken");
+  assert.equal(nextStep("klaar", DONE_ALONE), "zoeken");
+  assert.equal(previousStep("kies", unsure), "stop-twijfel");
+  assert.equal(previousStep("kies", DONE_ALONE), "klaar");
+  assert.equal(chapterOf("stop-twijfel"), "jouw_zondag");
+  assert.equal(stepPosition("stop-twijfel", unsure).index, stepPosition("klaar", unsure).index + 1);
+  assert.equal(stepPosition("kies", unsure).total, stepPosition("kies", DONE_ALONE).total + 1);
+  assert.equal(resolveStep("stop-twijfel", unsure), "stop-twijfel");
+  assert.equal(resolveStep("stop-twijfel", DONE_ALONE), "kies");
+  assert.equal(firstMissingStep(unsure), null);
 });
 
 test("nextStep / previousStep follow the branch", () => {

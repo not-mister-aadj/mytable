@@ -61,7 +61,11 @@ test("geo: nearby towns map to the nearest city with tables", () => {
 });
 
 test("geo: unknown, far away, abroad or missing gives no city", () => {
-  assert.equal(cityFromGeo("Eindhoven", "NL"), null);
+  assert.equal(cityFromGeo("Zwolle", "NL"), null);
+  assert.equal(cityFromGeo("Eindhoven", "NL"), "Eindhoven");
+  assert.equal(cityFromGeo("Arnhem", "NL"), "Nijmegen");
+  assert.equal(cityFromGeo("Haarlem", "NL"), "Amsterdam");
+  assert.equal(cityFromGeo("Tilburg", "NL"), "Breda");
   assert.equal(cityFromGeo("Rotterdam", "BE"), null);
   assert.equal(cityFromGeo(null, "NL"), null);
   assert.equal(cityFromGeo("", "NL"), null);
@@ -80,7 +84,8 @@ test("nearby map reads both ways", () => {
   assert.ok(nearbyCities("Rotterdam").includes("Den Haag"));
   assert.ok(nearbyCities("Den Haag").includes("Rotterdam"));
   assert.deepEqual(nearbyCities("Delft").sort(), ["Den Haag", "Rotterdam"]);
-  assert.deepEqual(nearbyCities("Eindhoven"), []);
+  assert.deepEqual(nearbyCities("Zwolle"), []);
+  assert.deepEqual(nearbyCities("Arnhem"), ["Nijmegen"]);
 });
 
 // ---------------------------------------------------------------- tables
@@ -106,11 +111,17 @@ test("city tables: past and sold-out tables drop off", () => {
   assert.deepEqual(slugs(cityTables(list, "Rotterdam", NOW)), ["open"]);
 });
 
-test("city tabs: the visitor's city first and open", () => {
+test("city tabs: the visitor's city first and open, then only cities with tables", () => {
+  const withTables = ["Rotterdam", "Den Haag", "Utrecht", "Amsterdam"].filter(
+    (c) => cityTables(EVENTS, c, NOW).length > 0,
+  );
   assert.deepEqual(cityTabs(EVENTS, "Utrecht", NOW), {
-    cities: ["Utrecht", "Rotterdam", "Den Haag", "Amsterdam"],
+    cities: ["Utrecht", ...withTables.filter((c) => c !== "Utrecht")],
     initial: "Utrecht",
   });
+  // A visitor from a city without tables still sees their own city first.
+  assert.equal(cityTabs(EVENTS, "Groningen", NOW).cities[0], "Groningen");
+  assert.ok(!cityTabs(EVENTS, null, NOW).cities.includes("Breda"));
 });
 
 test("city tabs: without geo, open the first city that has a table", () => {

@@ -115,15 +115,27 @@ export const termsNl: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Annuleren is niet mogelijk. Wel kun je gratis ruilen naar een andere beschikbare datum tot {{exchangeDeadlineHours}} uur voor de start van het evenement. Stuur hiervoor een e-mail naar {{email}} met je reserveringsgegevens.",
+          text: "Annuleren is niet mogelijk. Wel kun je kosteloos ruilen naar een andere beschikbare datum.",
         },
         {
           type: "p",
-          text: "Na deze deadline is ruilen niet meer mogelijk en is geen restitutie verschuldigd, ongeacht de reden.",
+          text: "Voor Sunday Table kan dat tot 7 dagen (168 uur) voor de start. Daarna reserveren wij de wijnbar op basis van het definitieve aantal gasten en ligt je plek vast.",
         },
         {
           type: "p",
-          text: "Deze deadline geldt omdat wij vooraf definitieve gastenaantallen aan partnerlocaties doorgeven, zodat zij personeelsplanning, inkopen en tafelindeling kunnen regelen.",
+          text: "Voor andere tafels en evenementen kan dat tot {{exchangeDeadlineHours}} uur voor de start.",
+        },
+        {
+          type: "p",
+          text: "Ruilen doe je via {{email}}, of via je account zodra dat mogelijk is. Vermeld daarbij je reserveringscode.",
+        },
+        {
+          type: "p",
+          text: "Na de deadline is ruilen niet meer mogelijk en is geen restitutie verschuldigd, ook niet als je niet komt.",
+        },
+        {
+          type: "p",
+          text: "Voor boekingen die zijn gedaan voordat deze versie van de voorwaarden inging (zie de datum bovenaan), blijft voor Sunday Table de deadline van {{exchangeDeadlineHours}} uur gelden.",
         },
         {
           type: "p",
@@ -132,7 +144,90 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "7. Wijzigingen of annulering door ons",
+      title: "7. Sunday Table: minimum aantal gasten, locatie en tafel",
+      blocks: [
+        {
+          type: "p",
+          text: "Een Sunday Table gaat door vanaf 4 betalende gasten. Uiterlijk 7 dagen voor de start laten wij je per e-mail weten of je tafel doorgaat.",
+        },
+        {
+          type: "p",
+          text: "Gaat de tafel niet door, dan annuleren wij je boeking en betalen wij het volledige bedrag dat je voor je plek hebt betaald automatisch terug, binnen 14 dagen en via de betaalmethode die je gebruikte. Wij bieden je ook een andere datum of een tafel in een stad in de buurt aan.",
+        },
+        {
+          type: "p",
+          text: "Wij kiezen de wijnbar zodra het aantal gasten bekend is. De tafel vindt plaats in een wijnbar in de stad die bij de datum staat. Het adres krijg je uiterlijk 7 dagen voor de start per e-mail.",
+        },
+        {
+          type: "p",
+          text: "De prijs per plek omvat je plek aan tafel en de organisatie. Eten en drinken zijn niet inbegrepen: die bestel en betaal je zelf bij de wijnbar.",
+        },
+        {
+          type: "p",
+          text: "Wij delen tafels in per leeftijdsgroep (zoals 20-39 en 35+) en streven naar een gezellige, gemengde tafel van ongeveer 4 tot 6 personen. Wij kunnen geen exacte leeftijden, man/vrouw-verhouding of groepsgrootte garanderen.",
+        },
+      ],
+    },
+    {
+      title: "8. Niet gezellig? Volgende op ons",
+      blocks: [
+        {
+          type: "p",
+          text: "Vond je je Sunday Table niet gezellig, laat het ons dan binnen 2 dagen na de tafel weten via {{email}}, met je reserveringscode. Je krijgt dan een gratis plek aan een volgende Sunday Table.",
+        },
+        {
+          type: "p",
+          text: "Daarvoor geldt:",
+        },
+        {
+          type: "ul",
+          items: [
+            "je was aanwezig bij de tafel (bij niet komen opdagen geldt deze regeling niet);",
+            "je kunt deze regeling één keer per persoon gebruiken;",
+            "de gratis plek is 6 maanden geldig, voor een Sunday Table naar keuze, zolang er plek is;",
+            "de gratis plek is persoonlijk en kan niet worden ingewisseld voor geld of worden overgedragen.",
+          ],
+        },
+        {
+          type: "p",
+          text: "Bij misbruik mogen wij deze regeling weigeren.",
+        },
+      ],
+    },
+    {
+      title: "9. Niet komen opdagen",
+      blocks: [
+        {
+          type: "p",
+          text: "Kom je niet zonder op tijd te ruilen, dan vervalt je plek zonder terugbetaling. Gebeurt dat herhaaldelijk, dan mogen wij toekomstige boekingen weigeren.",
+        },
+      ],
+    },
+    {
+      title: "10. Aan tafel",
+      blocks: [
+        {
+          type: "p",
+          text: "Onze tafels draaien om een gezellige middag of avond. Daarom vragen wij iedereen:",
+        },
+        {
+          type: "ul",
+          items: [
+            "respectvol te zijn naar andere gasten en het personeel van de zaak;",
+            "geen producten, diensten of investeringen aan te bieden aan tafel;",
+            "niet aan te dringen op persoonlijke of contactgegevens van anderen;",
+            "alleen te komen met de personen voor wie geboekt is;",
+            "met mate te drinken; de zaak mag alcohol weigeren.",
+          ],
+        },
+        {
+          type: "p",
+          text: "Wie zich hier niet aan houdt, kan door ons of door de zaak worden verzocht te vertrekken, zonder terugbetaling, en kan worden uitgesloten van toekomstige tafels.",
+        },
+      ],
+    },
+    {
+      title: "11. Wijzigingen of annulering door ons",
       blocks: [
         {
           type: "p",
@@ -146,10 +241,31 @@ export const termsNl: LegalDocumentContent = {
           type: "p",
           text: "Wanneer de niet-uitvoering wordt veroorzaakt door omstandigheden buiten onze redelijke invloedssfeer, zijn wij niet verder aansprakelijk dan wettelijk verplicht.",
         },
+        {
+          type: "p",
+          text: "Voor Sunday Table geldt daarnaast artikel 7: gaat een tafel niet door wegens te weinig gasten, dan betalen wij altijd het volledige bedrag terug.",
+        },
       ],
     },
     {
-      title: "8. Klachten en support",
+      title: "12. Je account",
+      blocks: [
+        {
+          type: "p",
+          text: "Om te boeken kun je een account aanmaken met je e-mailadres (je logt in met een eenmalige code die wij per e-mail sturen) of met je Google-account.",
+        },
+        {
+          type: "p",
+          text: "Je moet 18 jaar of ouder zijn en je mag per persoon één account hebben. Zorg dat je e-mailadres klopt: je boekingen, de bevestiging van je tafel en het adres sturen wij daarheen.",
+        },
+        {
+          type: "p",
+          text: "Je kunt je account laten verwijderen via {{email}}. Lopende boekingen blijven dan geldig. Gegevens die wij wettelijk moeten bewaren, bijvoorbeeld voor de administratie, bewaren wij volgens ons privacybeleid.",
+        },
+      ],
+    },
+    {
+      title: "13. Klachten en support",
       blocks: [
         {
           type: "p",
@@ -162,7 +278,7 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "9. Aansprakelijkheid",
+      title: "14. Aansprakelijkheid",
       blocks: [
         {
           type: "p",
@@ -176,10 +292,14 @@ export const termsNl: LegalDocumentContent = {
           type: "p",
           text: "Wij zijn niet aansprakelijk voor indirecte of gevolgschade, of voor handelen of nalaten van partnerlocaties, behalve voor zover die schade is veroorzaakt door onze eigen tekortkoming of het niet betrachten van redelijke zorg bij de organisatie van het evenement.",
         },
+        {
+          type: "p",
+          text: "Eten, drinken en service komen van de zaak zelf. Wij kiezen de zaken met zorg, maar zijn niet verantwoordelijk voor wat de zaak serveert of in rekening brengt.",
+        },
       ],
     },
     {
-      title: "10. Privacy",
+      title: "15. Privacy",
       blocks: [
         {
           type: "p",
@@ -188,7 +308,7 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "11. Toepasselijk recht",
+      title: "16. Toepasselijk recht",
       blocks: [
         {
           type: "p",
@@ -197,6 +317,10 @@ export const termsNl: LegalDocumentContent = {
         {
           type: "p",
           text: "Geschillen worden voorgelegd aan de bevoegde rechter volgens het toepasselijke consumentenrecht.",
+        },
+        {
+          type: "p",
+          text: "Herroepingsrecht: een boeking voor een tafel of evenement op een vaste datum is een vrijetijdsactiviteit. Daarvoor geldt wettelijk geen herroepingstermijn van 14 dagen. Je kunt wel ruilen volgens artikel 6.",
         },
       ],
     },
@@ -241,6 +365,8 @@ export const privacyNl: LegalDocumentContent = {
               items: [
                 "Reservering plaatsen: je naam, e-mailadres, aantal plaatsen en optioneel dieetwensen;",
                 "Contact per e-mail: je naam, e-mailadres en de inhoud van je bericht;",
+                "Account: je e-mailadres, en als je inlogt met Google ook de naam die bij je Google-account hoort;",
+                "Quiz: je antwoorden, zoals je geboortedatum, gender, tafelvoorkeur, steden en voorkeuren;",
                 "Wachtlijst of nieuwsbrief (indien beschikbaar): je e-mailadres en voorkeursstad, als je je hiervoor aanmeldt.",
                 "Tijdens evenementen: foto's en video's waarop deelnemers (mogelijk herkenbaar) in beeld kunnen zijn, als je daarvoor toestemming geeft bij het boeken.",
               ],
@@ -266,6 +392,10 @@ export const privacyNl: LegalDocumentContent = {
             {
               type: "p",
               text: "Van Stripe, onze betaaldienstverlener, ontvangen wij de status van je betaling, transactiereferenties, het betaalde bedrag en de valuta. Wij slaan geen kaart- of bankgegevens zelf op.",
+            },
+            {
+              type: "p",
+              text: "Als je inlogt met Google, ontvangen wij van Google je naam, e-mailadres en (indien beschikbaar) profielfoto. Wij krijgen geen toegang tot je Google-wachtwoord of andere gegevens in je Google-account.",
             },
           ],
         },
@@ -389,9 +519,10 @@ export const privacyNl: LegalDocumentContent = {
           items: [
             "Partnerlocaties: beperkte gastinformatie voor de uitvoering van je tafel;",
             "Stripe (betalingen): verwerkt je betaling; wij slaan geen kaart- of bankgegevens op;",
-            "Supabase (database en opslag): slaat boekingsgegevens en media op;",
+            "Supabase (database, opslag en inloggen): slaat boekingsgegevens, accounts en media op;",
             "Vercel (hosting): host onze website;",
-            "Resend (e-mail): verstuurt boekingsbevestigingen namens ons;",
+            "Resend (e-mail): verstuurt boekingsbevestigingen en inlogcodes namens ons;",
+            "Google (inloggen): alleen als je ervoor kiest om in te loggen met je Google-account;",
             "PostHog (productanalytics, EU): pageviews, conversie-events, heatmaps en sessie-opnames om de website te verbeteren; formulierinvoer wordt gemaskeerd;",
             "Apple MapKit (kaarten): toont kaarten op evenementpagina's, indien ingeschakeld.",
           ],
@@ -431,6 +562,7 @@ export const privacyNl: LegalDocumentContent = {
           items: [
             "Bestel- en factuurgegevens bewaren wij ten minste 7 jaar om te voldoen aan fiscale bewaarplichten.",
             "Boekingsgegevens bewaren wij zolang nodig voor de uitvoering van je reservering en eventuele nazorg.",
+            "Accountgegevens bewaren wij zolang je account bestaat. Laat je je account verwijderen, dan verwijderen wij die gegevens binnen 30 dagen, behalve wat wij wettelijk moeten bewaren.",
             "Marketingfoto's en -video's bewaren wij doorgaans maximaal 3 jaar, of korter als je toestemming intrekt en redelijke verwijdering mogelijk is.",
             "Technische loggegevens bewaren wij kort, alleen zolang nodig voor beveiliging en foutopsporing.",
           ],

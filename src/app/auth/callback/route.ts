@@ -7,7 +7,12 @@ import {
   captureCriticalError,
   captureCriticalMessage,
 } from "@/lib/sentry/critical";
-import type { Locale } from "@/i18n/config";
+import {
+  jouwTafelSignUpPath,
+  jouwTafelStartPath,
+  jouwTafelWelcomePath,
+  type Locale,
+} from "@/i18n/config";
 import {
   readOnboardingFromMetadata,
   resolvePostAuthPath,
@@ -29,6 +34,17 @@ function marketingOrigin(requestOrigin: string, hostname: string): string {
   return requestOrigin;
 }
 
+/** Google sign-in from the "Jouw tafel" account screens: they ask to come
+ * back to the quiz (or the old welcome page, which forwards to it), which
+ * must not be swapped for the old onboarding funnel (resolvePostAuthPath
+ * sends unfinished profiles to the removed /join). */
+function jouwTafelWelcomeLocale(next: string): Locale | null {
+  const path = next.split("?")[0];
+  if (path === jouwTafelStartPath("nl") || path === jouwTafelWelcomePath("nl")) return "nl";
+  if (path === jouwTafelStartPath("en") || path === jouwTafelWelcomePath("en")) return "en";
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const hostname =
@@ -39,9 +55,13 @@ export async function GET(request: NextRequest) {
   const nextRaw = searchParams.get("next") ?? "/sunday-table";
   const locale = resolveLocale(nextRaw);
   const next = sanitizeMemberNextPath(nextRaw, locale);
+  const jouwTafelLocale = jouwTafelWelcomeLocale(next);
+  const errorRedirect = jouwTafelLocale
+    ? `${siteOrigin}${jouwTafelSignUpPath(jouwTafelLocale)}?fout=google`
+    : `${siteOrigin}${next}?signin=1&auth=error`;
 
   if (!code) {
-    return NextResponse.redirect(`${siteOrigin}${next}?signin=1&auth=error`);
+    return NextResponse.redirect(errorRedirect);
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -51,7 +71,7 @@ export async function GET(request: NextRequest) {
       flow: "auth",
       step: "member_oauth_callback",
     });
-    return NextResponse.redirect(`${siteOrigin}${next}?signin=1&auth=error`);
+    return NextResponse.redirect(errorRedirect);
   }
 
   const pendingCookies: Array<{
@@ -82,7 +102,7 @@ export async function GET(request: NextRequest) {
         step: "member_oauth_callback",
       },
     );
-    return NextResponse.redirect(`${siteOrigin}${next}?signin=1&auth=error`);
+    return NextResponse.redirect(errorRedirect);
   }
 
   try {
@@ -98,11 +118,13 @@ export async function GET(request: NextRequest) {
   const { completed, prefs } = readOnboardingFromMetadata(
     data.user.user_metadata as Record<string, unknown>,
   );
-  const destination = resolvePostAuthPath(locale, {
-    completed,
-    prefs,
-    intendedNext: next,
-  });
+  const destination = jouwTafelLocale
+    ? next
+    : resolvePostAuthPath(locale, {
+        completed,
+        prefs,
+        intendedNext: next,
+      });
 
   // Funnel signal for Meta (Purchase optimization learns registration → buy).
   try {

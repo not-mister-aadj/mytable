@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/** Accounts aren't open yet — everything here points people back to the waitlist. */
+/** Logging in is not open on this page yet: everything here points people to the home page to sign up. */
 export default async function InloggenComingSoonPage({ params }: Props) {
   const { locale } = await params;
   const isEn = isValidLocale(locale) && locale === "en";
@@ -32,14 +32,14 @@ export default async function InloggenComingSoonPage({ params }: Props) {
         </h1>
         <p className="mt-4 text-[0.95rem] leading-relaxed text-wine/60">
           {isEn
-            ? "Accounts aren't open yet. Join the waitlist instead — we'll email you as soon as there's a table for you."
-            : "Accounts zijn nog niet open. Zet je liever op de wachtlijst, we mailen je zodra er een tafel voor je is."}
+            ? "You can't log in here yet. Sign up instead and we'll email you as soon as there's a table for you."
+            : "Inloggen kan hier nog niet. Meld je liever aan, dan mailen we je zodra er een tafel voor je is."}
         </p>
         <Link
           href={home}
           className="cta-lift cta-lift-burgundy mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition"
         >
-          {isEn ? "Join the waitlist" : "Zet me op de wachtlijst"}
+          {isEn ? "Sign up" : "Meld je aan"}
         </Link>
       </div>
     </main>

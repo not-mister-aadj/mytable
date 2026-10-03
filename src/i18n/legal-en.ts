@@ -115,24 +115,119 @@ export const termsEn: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Cancellation is not possible. You may exchange your booking free of charge to another available date up to {{exchangeDeadlineHours}} hours before the start of the event. Email {{email}} with your reservation details.",
+          text: "Cancelling is not possible. You can, however, exchange your booking for another available date at no cost.",
         },
         {
           type: "p",
-          text: "After this deadline, exchanges are no longer possible and no refund is due, regardless of the reason.",
+          text: "For Sunday Table you can do this up to 7 days (168 hours) before the start. After that we reserve the wine bar based on the final number of guests and your seat is fixed.",
         },
         {
           type: "p",
-          text: "This deadline applies because we confirm final guest numbers with partner venues in advance so they can plan staffing, purchasing and seating.",
+          text: "For other tables and events you can do this up to {{exchangeDeadlineHours}} hours before the start.",
         },
         {
           type: "p",
-          text: "Mandatory consumer rights under applicable law remain unaffected.",
+          text: "To exchange, email {{email}}, or use your account once that is possible. Please include your booking code.",
+        },
+        {
+          type: "p",
+          text: "After the deadline, exchanging is no longer possible and no refund is due, including if you do not attend.",
+        },
+        {
+          type: "p",
+          text: "For bookings made before this version of the terms took effect (see the date at the top), the {{exchangeDeadlineHours}}-hour deadline continues to apply to Sunday Table.",
+        },
+        {
+          type: "p",
+          text: "Mandatory statutory consumer rights remain unaffected.",
         },
       ],
     },
     {
-      title: "7. Changes or cancellation by us",
+      title: "7. Sunday Table: minimum number of guests, venue and table",
+      blocks: [
+        {
+          type: "p",
+          text: "A Sunday Table goes ahead from 4 paying guests. At the latest 7 days before the start, we let you know by email whether your table is going ahead.",
+        },
+        {
+          type: "p",
+          text: "If the table does not go ahead, we cancel your booking and automatically refund the full amount you paid for your seat, within 14 days and to the payment method you used. We also offer you another date or a table in a nearby city.",
+        },
+        {
+          type: "p",
+          text: "We choose the wine bar once the number of guests is known. The table takes place in a wine bar in the city shown with the date. You receive the address by email at the latest 7 days before the start.",
+        },
+        {
+          type: "p",
+          text: "The price per seat covers your seat at the table and the organisation. Food and drinks are not included: you order and pay for them yourself at the wine bar.",
+        },
+        {
+          type: "p",
+          text: "We group tables by age group (such as 20-39 and 35+) and aim for a convivial, mixed table of about 4 to 6 people. We cannot guarantee exact ages, gender ratio or group size.",
+        },
+      ],
+    },
+    {
+      title: "8. Not your kind of table? The next one is on us",
+      blocks: [
+        {
+          type: "p",
+          text: "If you did not enjoy your Sunday Table, let us know within 2 days after the table via {{email}}, with your booking code. You then receive a free seat at a future Sunday Table.",
+        },
+        {
+          type: "p",
+          text: "The following applies:",
+        },
+        {
+          type: "ul",
+          items: [
+            "you attended the table (this does not apply if you did not show up);",
+            "you can use this once per person;",
+            "the free seat is valid for 6 months, for a Sunday Table of your choice, subject to availability;",
+            "the free seat is personal and cannot be exchanged for money or transferred.",
+          ],
+        },
+        {
+          type: "p",
+          text: "We may refuse this in case of abuse.",
+        },
+      ],
+    },
+    {
+      title: "9. Not showing up",
+      blocks: [
+        {
+          type: "p",
+          text: "If you do not attend without exchanging in time, your seat lapses without a refund. If this happens repeatedly, we may refuse future bookings.",
+        },
+      ],
+    },
+    {
+      title: "10. At the table",
+      blocks: [
+        {
+          type: "p",
+          text: "Our tables are about a convivial afternoon or evening. We therefore ask everyone:",
+        },
+        {
+          type: "ul",
+          items: [
+            "to be respectful towards other guests and the venue staff;",
+            "not to offer products, services or investments at the table;",
+            "not to press others for personal or contact details;",
+            "to come only with the people the booking is for;",
+            "to drink in moderation; the venue may refuse to serve alcohol.",
+          ],
+        },
+        {
+          type: "p",
+          text: "Anyone who does not respect this may be asked by us or by the venue to leave, without a refund, and may be excluded from future tables.",
+        },
+      ],
+    },
+    {
+      title: "11. Changes or cancellation by us",
       blocks: [
         {
           type: "p",
@@ -146,10 +241,31 @@ export const termsEn: LegalDocumentContent = {
           type: "p",
           text: "Where non-performance is caused by circumstances beyond our reasonable control, our liability is limited to what the law requires.",
         },
+        {
+          type: "p",
+          text: "For Sunday Table, article 7 also applies: if a table does not go ahead because there are too few guests, we always refund the full amount.",
+        },
       ],
     },
     {
-      title: "8. Complaints and support",
+      title: "12. Your account",
+      blocks: [
+        {
+          type: "p",
+          text: "To book, you can create an account with your email address (you log in with a one-time code we send by email) or with your Google account.",
+        },
+        {
+          type: "p",
+          text: "You must be 18 or older and you may have one account per person. Make sure your email address is correct: we send your bookings, the confirmation of your table and the address there.",
+        },
+        {
+          type: "p",
+          text: "You can have your account deleted via {{email}}. Existing bookings remain valid. Data we are legally required to keep, for example for our accounts, is kept in line with our privacy policy.",
+        },
+      ],
+    },
+    {
+      title: "13. Complaints and support",
       blocks: [
         {
           type: "p",
@@ -162,7 +278,7 @@ export const termsEn: LegalDocumentContent = {
       ],
     },
     {
-      title: "9. Liability",
+      title: "14. Liability",
       blocks: [
         {
           type: "p",
@@ -176,10 +292,14 @@ export const termsEn: LegalDocumentContent = {
           type: "p",
           text: "We are not liable for indirect or consequential damage, or for acts or omissions of partner venues, except where caused by our own failure or failure to exercise reasonable care in organising the event.",
         },
+        {
+          type: "p",
+          text: "Food, drinks and service are provided by the venue itself. We choose venues with care, but we are not responsible for what the venue serves or charges.",
+        },
       ],
     },
     {
-      title: "10. Privacy",
+      title: "15. Privacy",
       blocks: [
         {
           type: "p",
@@ -188,7 +308,7 @@ export const termsEn: LegalDocumentContent = {
       ],
     },
     {
-      title: "11. Governing law",
+      title: "16. Governing law",
       blocks: [
         {
           type: "p",
@@ -197,6 +317,10 @@ export const termsEn: LegalDocumentContent = {
         {
           type: "p",
           text: "Disputes will be submitted to the competent court under applicable consumer law.",
+        },
+        {
+          type: "p",
+          text: "Right of withdrawal: a booking for a table or event on a fixed date is a leisure service. By law, the 14-day withdrawal period does not apply to it. You can exchange your booking under article 6.",
         },
       ],
     },
@@ -241,6 +365,8 @@ export const privacyEn: LegalDocumentContent = {
               items: [
                 "Making a reservation: your name, email address, number of seats and optional dietary notes;",
                 "Contact by email: your name, email address and message content;",
+                "Account: your email address, and if you log in with Google also the name linked to your Google account;",
+                "Quiz: your answers, such as your date of birth, gender, table preference, cities and preferences;",
                 "Waitlist or newsletter (if available): your email address and preferred city, if you sign up.",
                 "At events: photos and videos on which guests may appear recognisably, where you give consent when booking.",
               ],
@@ -266,6 +392,10 @@ export const privacyEn: LegalDocumentContent = {
             {
               type: "p",
               text: "From Stripe, our payment provider, we receive payment status, transaction references, amount paid and currency. We do not store card or bank details ourselves.",
+            },
+            {
+              type: "p",
+              text: "If you log in with Google, we receive your name, email address and (if available) profile picture from Google. We get no access to your Google password or any other data in your Google account.",
             },
           ],
         },
@@ -389,9 +519,10 @@ export const privacyEn: LegalDocumentContent = {
           items: [
             "Partner venues: limited guest information to run your table;",
             "Stripe (payments): processes your payment; we do not store card or bank details;",
-            "Supabase (database and storage): stores booking data and media;",
+            "Supabase (database, storage and login): stores booking data, accounts and media;",
             "Vercel (hosting): hosts our website;",
-            "Resend (email): sends booking confirmations on our behalf;",
+            "Resend (email): sends booking confirmations and login codes on our behalf;",
+            "Google (login): only if you choose to log in with your Google account;",
             "PostHog (product analytics, EU): pageviews, conversion events, heatmaps and session recordings to improve the website; form inputs are masked;",
             "Apple MapKit (maps): shows maps on event pages where enabled.",
           ],
@@ -431,6 +562,7 @@ export const privacyEn: LegalDocumentContent = {
           items: [
             "Order and invoice data: at least 7 years to comply with tax retention rules.",
             "Booking data: as long as needed to fulfil your reservation and any follow-up.",
+            "Account data: as long as your account exists. If you have your account deleted, we delete that data within 30 days, except what we are legally required to keep.",
             "Marketing photos and videos: usually up to 3 years, or shorter if you withdraw consent and removal is reasonably possible.",
             "Technical logs: kept briefly, only as long as needed for security and troubleshooting.",
           ],

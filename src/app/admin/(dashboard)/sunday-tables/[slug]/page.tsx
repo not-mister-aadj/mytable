@@ -19,6 +19,7 @@ import { findSundayTableTicketEvent } from "@/lib/sunday-table-ticket-event";
 import { getUnnotifiedEventSignups } from "@/lib/event-notify-signups";
 import { getAllVenuesForAdmin } from "@/lib/venues";
 import { getEventVenueIds } from "@/lib/event-venues";
+import { isMembersOnly } from "@/lib/membership/logic";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -98,6 +99,7 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
       openTicketSalesAction={openTicketSalesAction}
       ticketEventId={ticketEvent?.id ?? null}
       membersOnlyUntil={ticketEvent?.membersOnlyUntil?.toISOString() ?? null}
+      membersOnlyActive={isMembersOnly(ticketEvent?.membersOnlyUntil ?? null)}
       membersOnlyAction={setMembersOnlyUntilAction}
     />
   );

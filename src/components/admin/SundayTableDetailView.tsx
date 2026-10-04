@@ -260,14 +260,16 @@ function toLocalDateTimeInput(iso: string): string {
 function MembersFirstCard({
   eventId,
   membersOnlyUntil,
+  active,
   action,
 }: {
   eventId: string;
   membersOnlyUntil: string | null;
+  /** Members-only right now (judged on the server). */
+  active: boolean;
   action: (prev: MembersOnlyActionState | null, formData: FormData) => Promise<MembersOnlyActionState>;
 }) {
   const [state, formAction, isPending] = useActionState(action, null);
-  const active = membersOnlyUntil ? new Date(membersOnlyUntil).getTime() > Date.now() : false;
   return (
     <form action={formAction} className="rounded-2xl border border-border-subtle bg-white p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
       <input type="hidden" name="eventId" value={eventId} />
@@ -357,6 +359,7 @@ export function SundayTableDetailView({
   openTicketSalesAction,
   ticketEventId,
   membersOnlyUntil,
+  membersOnlyActive,
   membersOnlyAction,
 }: {
   table: SundayTableKey;
@@ -389,6 +392,7 @@ export function SundayTableDetailView({
   ) => Promise<OpenTicketSalesActionState>;
   ticketEventId: string | null;
   membersOnlyUntil: string | null;
+  membersOnlyActive: boolean;
   membersOnlyAction: (prev: MembersOnlyActionState | null, formData: FormData) => Promise<MembersOnlyActionState>;
 }) {
   const [pickedVenueId, setPickedVenueId] = useState(linkedVenueId ?? "");
@@ -512,7 +516,12 @@ export function SundayTableDetailView({
       ) : null}
 
       {ticketEventId && !comingSoon ? (
-        <MembersFirstCard eventId={ticketEventId} membersOnlyUntil={membersOnlyUntil} action={membersOnlyAction} />
+        <MembersFirstCard
+          eventId={ticketEventId}
+          membersOnlyUntil={membersOnlyUntil}
+          active={membersOnlyActive}
+          action={membersOnlyAction}
+        />
       ) : null}
 
       {signupsPaused ? (

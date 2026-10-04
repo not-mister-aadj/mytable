@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { setAnalyticsConcept } from "@/lib/posthog/client";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as Sentry from "@sentry/nextjs";
 import type { Locale } from "@/i18n/config";
@@ -333,6 +334,12 @@ export function SundayTableWaitlistModal({
       document.body.style.overflow = prev;
     };
   }, [open, onOpenChange]);
+
+  // The waitlist funnel (A/B concept "waitlist"): from opening the modal
+  // on, PostHog events carry that concept.
+  useEffect(() => {
+    if (open) setAnalyticsConcept("waitlist");
+  }, [open]);
 
   // Reset to a fresh capture form each time the modal is reopened.
   useEffect(() => {

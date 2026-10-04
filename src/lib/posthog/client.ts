@@ -54,6 +54,19 @@ export function initPostHogClient(): void {
   initialized = true;
 }
 
+/**
+ * The sign-up concept of the funnel on screen ("waitlist": the old waitlist
+ * funnel, "account": /jouw-tafel), as a PostHog super property so every
+ * event and pageview can be split by concept. Null removes it again.
+ */
+export function setAnalyticsConcept(concept: "waitlist" | "account" | null): void {
+  if (typeof window === "undefined") return;
+  initPostHogClient();
+  if (!initialized) return;
+  if (concept) posthog.register({ concept });
+  else posthog.unregister("concept");
+}
+
 export function captureClientEvent(
   event: PostHogEventName | string,
   properties?: Record<string, string | number | boolean | null | undefined>,

@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import {
+  CONCEPT_FILTER_OPTIONS,
+  ConceptBadge,
+  matchesConceptFilter,
+  type ConceptFilter,
+} from "@/components/admin/ConceptBadge";
 import type {
   AdminCustomerListRow,
   AdminCustomersPageData,
@@ -215,6 +221,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<FilterKey>("all");
   const [buyerFilter, setBuyerFilter] = useState<BuyerFilter>("all");
+  const [conceptFilter, setConceptFilter] = useState<ConceptFilter>("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [ageFilter, setAgeFilter] = useState("all");
@@ -246,6 +253,13 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
         return false;
       }
 
+      if (
+        conceptFilter !== "all" &&
+        (!row.signupConcept || !matchesConceptFilter(conceptFilter, row.signupConcept, row.hasAccount))
+      ) {
+        return false;
+      }
+
       if (buyerFilter === "buyers" && !row.isBuyer) return false;
       if (buyerFilter === "waitlist_only" && row.isBuyer) return false;
 
@@ -272,6 +286,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
     eventTypeFilter,
     statusFilter,
     buyerFilter,
+    conceptFilter,
     fromDate,
     toDate,
     ageFilter,
@@ -303,6 +318,13 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
       key: "buyer",
       label: BUYER_FILTER_LABELS[buyerFilter],
       clear: () => setBuyerFilter("all"),
+    });
+  }
+  if (conceptFilter !== "all") {
+    chips.push({
+      key: "concept",
+      label: `Concept: ${CONCEPT_FILTER_OPTIONS.find((o) => o.value === conceptFilter)?.label ?? conceptFilter}`,
+      clear: () => setConceptFilter("all"),
     });
   }
   if (statusFilter !== "all") {
@@ -368,6 +390,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
   function clearAll() {
     setSearch("");
     setBuyerFilter("all");
+    setConceptFilter("all");
     setStatusFilter("all");
     setCityFilter("all");
     setEventTypeFilter("all");
@@ -451,6 +474,18 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
             <option value="all">Iedereen</option>
             <option value="buyers">Koper</option>
             <option value="waitlist_only">Alleen wachtlijst</option>
+          </select>
+          <select
+            value={conceptFilter}
+            onChange={(e) => setConceptFilter(e.target.value as ConceptFilter)}
+            className={selectClass}
+            aria-label="Filter op concept"
+          >
+            {CONCEPT_FILTER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
           <select
             value={statusFilter}
@@ -648,6 +683,11 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
                       >
                         {row.displayName}
                       </Link>
+                      {row.signupConcept ? (
+                        <span className="ml-2 align-middle">
+                          <ConceptBadge concept={row.signupConcept} hasAccount={row.hasAccount} />
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-5 py-4 text-wine/70">{row.email}</td>
                     <td className="px-5 py-4 text-wine/70">

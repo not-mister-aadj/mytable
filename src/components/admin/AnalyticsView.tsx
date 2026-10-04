@@ -1,3 +1,4 @@
+import type { ConceptStats } from "@/lib/signup-concept";
 import type { AnalyticsSummary } from "@/lib/posthog/admin-stats";
 import {
   getPostHogDashboardEmbedUrl,
@@ -8,6 +9,8 @@ import {
 
 interface AnalyticsViewProps {
   summary: AnalyticsSummary | null;
+  /** A/B sign-ups per concept, from the database (not PostHog). */
+  concepts?: ConceptStats | null;
 }
 
 function StatCard({
@@ -69,7 +72,7 @@ function FunnelStrip({ steps }: { steps: AnalyticsSummary["funnel7d"] }) {
   );
 }
 
-export function AnalyticsView({ summary }: AnalyticsViewProps) {
+export function AnalyticsView({ summary, concepts = null }: AnalyticsViewProps) {
   const embedUrl = getPostHogDashboardEmbedUrl();
   const growthDashboardUrl = getPostHogGrowthDashboardUrl();
   const trackingOn = isPostHogConfigured();
@@ -109,6 +112,24 @@ export function AnalyticsView({ summary }: AnalyticsViewProps) {
           </a>
         ) : null}
       </div>
+
+      {concepts ? (
+        <section className="mb-6">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-[0.08em] text-wine/50">
+            Aanmeldingen per concept (database, nieuwe mensen)
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="Wachtlijst (7d)" value={concepts.last7d.waitlist} />
+            <StatCard label="Account (7d)" value={concepts.last7d.account} />
+            <StatCard label="Wachtlijst totaal" value={concepts.total.waitlist} />
+            <StatCard label="Account totaal" value={concepts.total.account} />
+          </div>
+          <p className="mt-2 text-xs text-wine/55">
+            {concepts.overlap} mensen van de wachtlijst hebben later ook een account gemaakt. In PostHog splits je elk event
+            op de eigenschap concept (waitlist / account).
+          </p>
+        </section>
+      ) : null}
 
       {summary ? (
         <>

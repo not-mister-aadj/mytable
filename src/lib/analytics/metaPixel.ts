@@ -338,6 +338,8 @@ export function lead(params: MetaLeadParams): void {
   const payload = withUtm({
     source: params.source,
     city: params.city,
+    content_name: "waitlist",
+    concept: "waitlist",
   });
   const eventId = params.waitlist_id
     ? metaLeadEventId(params.waitlist_id)
@@ -357,7 +359,7 @@ export function quizLead(input: { userId: string; city: string }): boolean {
   if (hasQuizLeadBeenTracked(input.userId)) return true;
   if (!canTrack()) return false;
   const eventId = metaQuizLeadEventId(input.userId);
-  const payload = withUtm({ source: "quiz", city: input.city });
+  const payload = withUtm({ source: "quiz", city: input.city, content_name: "jouw_tafel", concept: "account" });
   window.fbq!("track", "Lead", payload, { eventID: eventId });
   logMetaEvent("Lead", { ...payload, event_id: eventId });
   markQuizLeadTracked(input.userId);

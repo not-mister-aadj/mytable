@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { waitlistSignups } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
@@ -7,6 +7,11 @@ import { releaseWaitlistWelcomeEmailClaim } from "@/lib/waitlist-data";
 
 /** Only signups from this moment on are eligible, so the people who signed up
  * before this fallback existed are not mailed months later. */
+/** Quiz rows were "waitlist" until they got their own source and received
+ * this mail; "jouw_tafel" keeps that behaviour unchanged for now (the
+ * founder decides on separate flows per concept). */
+const WELCOME_SOURCES = ["waitlist", "jouw_tafel"];
+
 const ELIGIBLE_SINCE = new Date("2026-09-25T15:00:00.000Z");
 
 /** Never look further back than this, even if the cron was down for a while. */
@@ -53,7 +58,7 @@ export async function sendAbandonedWaitlistWelcomeEmails(
   const people = await db
     .select({ email: waitlistSignups.email })
     .from(waitlistSignups)
-    .where(eq(waitlistSignups.source, "waitlist"))
+    .where(inArray(waitlistSignups.source, WELCOME_SOURCES))
     .groupBy(waitlistSignups.email)
     .having(
       sql`min(${waitlistSignups.createdAt}) >= ${since.toISOString()}::timestamptz
@@ -73,7 +78,7 @@ export async function sendAbandonedWaitlistWelcomeEmails(
       .where(
         and(
           eq(waitlistSignups.email, email),
-          eq(waitlistSignups.source, "waitlist"),
+          inArray(waitlistSignups.source, WELCOME_SOURCES),
           sql`not exists (
             select 1 from ${waitlistSignups} as w
             where w.email = ${email} and w.welcome_email_sent_at is not null

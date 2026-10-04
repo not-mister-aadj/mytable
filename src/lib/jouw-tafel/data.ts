@@ -175,7 +175,7 @@ async function loadSubsetCounts(): Promise<Record<string, number>> {
   return signupCountsBySubset(await signupRows());
 }
 
-const getCachedSubsetCounts = unstable_cache(loadSubsetCounts, ["jouw-tafel-signup-subset-counts-v2"], {
+const getCachedSubsetCounts = unstable_cache(loadSubsetCounts, ["jouw-tafel-signup-subset-counts-v3"], {
   revalidate: 3600,
 });
 

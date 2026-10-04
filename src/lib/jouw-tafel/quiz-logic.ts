@@ -145,7 +145,7 @@ export type DietaryAnswer = (typeof DIETARY_OPTIONS)[number];
 export const FORMAT_OPTIONS = ["wine_tasting", "wine_walk", "chefs_special", "sunday_only"] as const;
 export type FormatAnswer = (typeof FORMAT_OPTIONS)[number];
 
-export const HEARD_FROM_OPTIONS = ["instagram", "facebook", "friends", "google", "other"] as const;
+export const HEARD_FROM_OPTIONS = ["instagram", "facebook", "friends", "google", "ai", "meetup", "other"] as const;
 export type HeardFromAnswer = (typeof HEARD_FROM_OPTIONS)[number];
 
 export const READY_OPTIONS = ["yes", "unsure"] as const;
@@ -182,6 +182,8 @@ export type QuizAnswers = {
   /** [] after "Verder" without a choice. */
   formats?: FormatAnswer[];
   heardFrom?: HeardFromAnswer;
+  /** What they typed under "Anders". */
+  heardFromOther?: string;
   ready?: ReadyAnswer;
 };
 
@@ -834,6 +836,7 @@ export function buildWaitlistPreferences(
     dietary: (a.dietary ?? []).filter((d) => d !== "none"),
     dietaryOther: a.dietaryOther?.trim() || "",
     heardFrom: a.heardFrom ?? null,
+    heardFromOther: a.heardFrom === "other" ? a.heardFromOther?.trim() || "" : "",
     futureFormats: formats,
     readyToBook: a.ready ?? null,
     quizVersion: QUIZ_VERSION,
@@ -940,6 +943,7 @@ export function sanitizeQuizState(raw: unknown): QuizState {
     dietaryOther: cleanText(ra.dietaryOther, 120),
     formats: pickList(ra.formats, FORMAT_OPTIONS),
     heardFrom: pick(ra.heardFrom, HEARD_FROM_OPTIONS),
+    heardFromOther: cleanText(ra.heardFromOther, 120),
     ready: pick(ra.ready, READY_OPTIONS),
   };
   if (answers.why && answers.why.length === 0) delete answers.why;

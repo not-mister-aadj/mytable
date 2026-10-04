@@ -429,7 +429,15 @@ const STEP_ICONS: Partial<Record<QuizStepId, Record<string, IconComponent>>> = {
     chefs_special: ChefHatIcon,
     sunday_only: CalendarSunIcon,
   },
-  bron: { instagram: CameraIcon, facebook: ThumbIcon, friends: TwoPeopleIcon, google: SearchIcon, other: DotsIcon },
+  bron: {
+    instagram: CameraIcon,
+    facebook: ThumbIcon,
+    friends: TwoPeopleIcon,
+    google: SearchIcon,
+    ai: SparkleIcon,
+    meetup: PinIcon,
+    other: DotsIcon,
+  },
   klaar: { yes: CheckCircleIcon, unsure: HourglassIcon },
 };
 

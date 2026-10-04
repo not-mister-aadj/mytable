@@ -193,7 +193,7 @@ export function PhotoChoice({
       className={`${cardBase} flex flex-col p-2.5 pb-3.5 ${selected ? cardSelected : cardIdle}`}
     >
       <span className="relative block aspect-[4/5] w-full overflow-hidden rounded-xl bg-wine/10">
-        <Image src={photo} alt="" fill sizes="(max-width: 480px) 45vw, 210px" className="object-cover" />
+        <Image src={photo} alt="" fill sizes="(max-width: 480px) 45vw, 210px" quality={100} className="object-cover" />
         <span className="absolute right-2 top-2">
           <SelectMark selected={selected} multi={false} />
         </span>
@@ -260,7 +260,7 @@ export function OvalPhoto({
       className={`relative mx-auto w-full ${className}`}
     >
       <div className="absolute inset-0 overflow-hidden rounded-[50%] bg-wine/10 shadow-[0_22px_50px_rgba(43,13,18,0.20)]">
-        <Image src={photo} alt="" fill sizes="(max-width: 480px) 100vw, 448px" className="object-cover" priority={priority} />
+        <Image src={photo} alt="" fill sizes="(max-width: 480px) 100vw, 448px" quality={100} className="object-cover" priority={priority} />
       </div>
       <div aria-hidden className="pointer-events-none absolute -inset-2 rounded-[50%] border border-gold/35" />
     </motion.div>
@@ -273,7 +273,7 @@ export function PhotoPreload({ photo }: { photo: string | null }) {
   return (
     <div aria-hidden className="pointer-events-none fixed -left-[9999px] top-0 h-px w-px overflow-hidden opacity-0">
       <div className="relative h-px w-px">
-        <Image src={photo} alt="" fill sizes="(max-width: 480px) 100vw, 448px" loading="eager" />
+        <Image src={photo} alt="" fill sizes="(max-width: 480px) 100vw, 448px" quality={100} loading="eager" />
       </div>
     </div>
   );

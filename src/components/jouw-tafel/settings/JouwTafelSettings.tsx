@@ -134,8 +134,28 @@ function rowValue(step: QuizStepId, a: QuizAnswers, q: QuizCopy, locale: Locale)
   }
 }
 
-function mailto(copy: SettingsCopy): string {
-  return `mailto:${companyLegal.email}?subject=${encodeURIComponent(copy.mailSubject)}`;
+/** Puts our email address on the clipboard. Falls back to a hidden textarea
+ * for in-app browsers without the async clipboard API. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      const ok = document.execCommand("copy");
+      area.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
 }
 
 // ---------------------------------------------------------------- pieces
@@ -264,6 +284,11 @@ export function JouwTafelSettings({
   const quizRef = useRef(quiz);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  async function copyEmail() {
+    const ok = await copyText(companyLegal.email);
+    setToast(ok ? s.emailCopied : s.emailCopyFailed(companyLegal.email));
+  }
   const [mailsOn, setMailsOn] = useState(initialMailsOn);
   const [mailsBusy, setMailsBusy] = useState(false);
   const [showPast, setShowPast] = useState(false);
@@ -527,9 +552,14 @@ export function JouwTafelSettings({
           note={
             <>
               {s.account.lockedNote}{" "}
-              <a href={mailto(s)} className="font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-2">
-                {s.account.lockedLink}
-              </a>
+              <button
+                type="button"
+                onClick={() => void copyEmail()}
+                aria-label={s.account.lockedLink}
+                className="font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-2"
+              >
+                {companyLegal.email}
+              </button>
             </>
           }
         >
@@ -592,7 +622,7 @@ export function JouwTafelSettings({
 
         <Group title={s.groups.help}>
           <LinkRow label={s.help.faq} href={`${jouwTafelPath(locale)}#faq`} />
-          <LinkRow label={s.help.contact} href={mailto(s)} external />
+          <ButtonRow label={s.help.contact} value={companyLegal.email} onClick={() => void copyEmail()} />
           <LinkRow label={s.help.terms} href={termsPath(locale)} />
           <LinkRow label={s.help.privacy} href={privacyPath(locale)} />
         </Group>
@@ -655,9 +685,9 @@ export function JouwTafelSettings({
           </div>
           <p className="mt-5 text-[0.92rem] leading-relaxed text-wine/70">{s.reservations.whereNote}</p>
           <p className="mt-2 text-[0.92rem] leading-relaxed text-wine/70">{s.reservations.change}</p>
-          <a href={mailto(s)} className={`${secondaryButton} mt-5`}>
+          <button type="button" onClick={() => void copyEmail()} className={`${secondaryButton} mt-5`}>
             {s.reservations.changeLink}
-          </a>
+          </button>
         </BottomSheet>
       ) : null}
 

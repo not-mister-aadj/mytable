@@ -70,7 +70,9 @@ export type SettingsCopy = {
     failed: string;
   };
   deletedNotice: string;
-  mailSubject: string;
+  /** Toasts after tapping our email address (it is copied, not opened). */
+  emailCopied: string;
+  emailCopyFailed: (email: string) => string;
 };
 
 const nl: SettingsCopy = {
@@ -97,7 +99,7 @@ const nl: SettingsCopy = {
     seatsLabel: "Plekken",
     whereNote: "Waar precies, hoor je een week van tevoren.",
     change: "Verzetten kan gratis tot 7 dagen vooraf. Verzetten of annuleren? Stuur ons een berichtje.",
-    changeLink: "Stuur een berichtje",
+    changeLink: "Kopieer ons e-mailadres",
   },
   groups: {
     tafel: "Jouw tafel",
@@ -131,8 +133,8 @@ const nl: SettingsCopy = {
     birthDate: "Geboortedatum",
     gender: "Gender",
     locked: "Kan niet aangepast worden",
-    lockedNote: "Klopt dit niet?",
-    lockedLink: "Stuur ons een berichtje.",
+    lockedNote: "Klopt dit niet? Mail ons:",
+    lockedLink: "Kopieer e-mailadres",
     siteLanguage: "Taal van de site",
   },
   help: { faq: "Veelgestelde vragen", contact: "Contact", terms: "Algemene voorwaarden", privacy: "Privacybeleid" },
@@ -151,7 +153,8 @@ const nl: SettingsCopy = {
     failed: "Dat lukte niet. Probeer het nog een keer of stuur ons een berichtje.",
   },
   deletedNotice: "Je account is verwijderd.",
-  mailSubject: "Vraag over mijn account",
+  emailCopied: "E-mailadres gekopieerd",
+  emailCopyFailed: (email) => `Kopiëren lukte niet. Ons adres is ${email}`,
 };
 
 const en: SettingsCopy = {
@@ -178,7 +181,7 @@ const en: SettingsCopy = {
     seatsLabel: "Seats",
     whereNote: "You'll hear exactly where a week before.",
     change: "Rescheduling is free up to 7 days ahead. Want to reschedule or cancel? Send us a message.",
-    changeLink: "Send a message",
+    changeLink: "Copy our email address",
   },
   groups: {
     tafel: "Your table",
@@ -212,8 +215,8 @@ const en: SettingsCopy = {
     birthDate: "Date of birth",
     gender: "Gender",
     locked: "Can't be changed",
-    lockedNote: "Not right?",
-    lockedLink: "Send us a message.",
+    lockedNote: "Not right? Email us:",
+    lockedLink: "Copy email address",
     siteLanguage: "Site language",
   },
   help: { faq: "Frequently asked questions", contact: "Contact", terms: "Terms and conditions", privacy: "Privacy policy" },
@@ -232,7 +235,8 @@ const en: SettingsCopy = {
     failed: "That didn't work. Please try again or send us a message.",
   },
   deletedNotice: "Your account has been deleted.",
-  mailSubject: "Question about my account",
+  emailCopied: "Email address copied",
+  emailCopyFailed: (email) => `Copying didn't work. Our address is ${email}`,
 };
 
 export function getSettingsCopy(locale: Locale): SettingsCopy {

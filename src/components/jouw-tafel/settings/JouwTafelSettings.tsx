@@ -31,7 +31,11 @@ import {
   type QuizStepId,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { getSettingsCopy, type SettingsCopy } from "@/lib/jouw-tafel/settings-copy";
-import { trackLanguageChanged, trackSettingsEvent } from "@/lib/posthog/analytics";
+import { trackLanguageChanged, trackMembershipEvent, trackSettingsEvent } from "@/lib/posthog/analytics";
+import { getMembershipSettingsCopy } from "@/lib/membership/page-copy";
+import { planName } from "@/lib/membership/mail-copy";
+import { formatPlanEuros, lowestMonthlyCents, type MembershipPlanId } from "@/lib/membership/plans";
+import { jouwTafelMembershipPath } from "@/i18n/config";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -42,7 +46,21 @@ export type SettingsBooking = {
   startsAt: string;
   seats: number;
   name: { nl: string; en: string } | null;
+  isMemberSeat: boolean;
+  withPaidGuest: boolean;
+  cancellable: boolean;
 };
+
+/** The membership group at the top (null: not a member, "Word lid"). */
+export type SettingsMembership = {
+  plan: MembershipPlanId;
+  summary:
+    | { kind: "renews"; date: string; cents: number }
+    | { kind: "ends"; date: string }
+    | { kind: "past_due" }
+    | { kind: "none" };
+  blockedUntil: string | null;
+} | null;
 
 const AMSTERDAM = "Europe/Amsterdam";
 const SAVE_URL = "/api/auth/member/quiz";
@@ -212,8 +230,8 @@ function ButtonRow({ label, value, onClick }: { label: string; value?: string | 
   );
 }
 
-function LinkRow({ label, href, external }: { label: string; href: string; external?: boolean }) {
-  const content = <RowContent label={label} />;
+function LinkRow({ label, href, external, value }: { label: string; href: string; external?: boolean; value?: string | null }) {
+  const content = <RowContent label={label} value={value} />;
   return (
     <li>
       {external ? (
@@ -264,6 +282,8 @@ export function JouwTafelSettings({
   mailsOn: initialMailsOn,
   backHref,
   terug,
+  membership = null,
+  bookedNotice = false,
 }: {
   locale: Locale;
   userId: string;
@@ -274,8 +294,12 @@ export function JouwTafelSettings({
   mailsOn: boolean;
   backHref: string;
   terug: QuizStepId | null;
+  membership?: SettingsMembership;
+  /** Back from paying for a guest seat: "Je plek staat vast". */
+  bookedNotice?: boolean;
 }) {
   const s = getSettingsCopy(locale);
+  const ms = getMembershipSettingsCopy(locale);
   const q = getQuizCopy(locale);
   const router = useRouter();
   const pathname = usePathname();
@@ -283,7 +307,7 @@ export function JouwTafelSettings({
   const [quiz, setQuiz] = useState<QuizState>(initialState);
   const quizRef = useRef(quiz);
   const [sheet, setSheet] = useState<Sheet | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(bookedNotice ? ms.bookedToast : null);
 
   async function copyEmail() {
     const ok = await copyText(companyLegal.email);
@@ -302,6 +326,49 @@ export function JouwTafelSettings({
   useEffect(() => {
     trackSettingsEvent(PostHogEvents.settingsOpened, { locale, from_step: terug ?? "none" });
   }, [locale, terug]);
+
+  const [portalBusy, setPortalBusy] = useState(false);
+  async function openPortal() {
+    if (portalBusy) return;
+    setPortalBusy(true);
+    trackMembershipEvent(PostHogEvents.membershipCancelClicked, { locale });
+    try {
+      const res = await fetch("/api/membership/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale }),
+      });
+      const data = (await res.json().catch(() => null)) as { url?: string } | null;
+      if (!res.ok || !data?.url) throw new Error(String(res.status));
+      window.location.assign(data.url);
+    } catch {
+      setToast(ms.portalFailed);
+      setPortalBusy(false);
+    }
+  }
+
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  async function cancelSeat(booking: SettingsBooking) {
+    if (cancelling) return;
+    setCancelling(true);
+    try {
+      const res = await fetch("/api/membership/cancel-seat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: booking.id }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      setSheet(null);
+      setConfirmCancel(false);
+      setToast(ms.cancelSeatDone);
+      router.refresh();
+    } catch {
+      setToast(ms.cancelSeatFailed);
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   useEffect(() => {
     if (!toast) return;
@@ -375,7 +442,7 @@ export function JouwTafelSettings({
         else close();
       },
     };
-  }, [sheet, locale, q, answers, accountFirstName, reduceMotion, s.save, save]);
+  }, [sheet, locale, q, answers, accountFirstName, reduceMotion, s.save, save, setSheet]);
 
   async function toggleMails(on: boolean) {
     setMailsOn(on);
@@ -435,6 +502,7 @@ export function JouwTafelSettings({
           type="button"
           onClick={() => {
             trackSettingsEvent(PostHogEvents.bookingOpened, { upcoming: new Date(b.startsAt).getTime() > Date.now() });
+            setConfirmCancel(false);
             setSheet({ kind: "booking", booking: b });
           }}
           className={`${rowBase} active:bg-cream/70`}
@@ -458,6 +526,7 @@ export function JouwTafelSettings({
             </span>
             <span className="mt-1 block truncate text-[0.8rem] leading-tight text-wine/45">
               {s.reservations.seats(b.seats)} · {b.code}
+              {b.isMemberSeat ? <span className="text-gold"> · {ms.memberSeat}</span> : null}
             </span>
           </span>
           <ChevronIcon />
@@ -505,6 +574,41 @@ export function JouwTafelSettings({
           <h1 className="mt-4 font-serif text-[2rem] font-medium leading-tight text-wine">{name || email}</h1>
           <p className="mt-1 truncate text-[0.92rem] text-wine/55">{email}</p>
         </div>
+
+        <Group title={ms.group} note={membership ? ms.note : undefined}>
+          {membership ? (
+            <>
+              <LinkRow
+                label={ms.plan}
+                value={planName(membership.plan, locale)}
+                href={jouwTafelMembershipPath(locale)}
+              />
+              <li className={`${rowBase} cursor-default`}>
+                <span
+                  className={`text-[0.92rem] leading-snug ${membership.summary.kind === "past_due" ? "font-semibold text-red-700" : "text-wine/70"}`}
+                >
+                  {membership.summary.kind === "renews"
+                    ? ms.renews(longDate(membership.summary.date, locale, false), `€${formatPlanEuros(membership.summary.cents, locale)}`)
+                    : membership.summary.kind === "ends"
+                      ? ms.ends(longDate(membership.summary.date, locale, false))
+                      : membership.summary.kind === "past_due"
+                        ? ms.pastDue
+                        : null}
+                  {membership.blockedUntil ? (
+                    <span className="mt-1 block text-wine/70">{ms.blocked(longDate(membership.blockedUntil, locale, false))}</span>
+                  ) : null}
+                </span>
+              </li>
+              <ButtonRow label={portalBusy ? ms.portalBusy : ms.portal} onClick={() => void openPortal()} />
+            </>
+          ) : (
+            <LinkRow
+              label={ms.join}
+              value={ms.joinValue(`€${formatPlanEuros(lowestMonthlyCents(), locale)}`)}
+              href={jouwTafelMembershipPath(locale)}
+            />
+          )}
+        </Group>
 
         <Group title={s.reservations.title}>
           {bookings.upcoming.length ? (
@@ -683,11 +787,50 @@ export function JouwTafelSettings({
               {sheet.booking.code}
             </p>
           </div>
+          {sheet.booking.isMemberSeat ? (
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-[0.9rem] font-semibold text-burgundy">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
+              {ms.memberSeat}
+            </p>
+          ) : null}
           <p className="mt-5 text-[0.92rem] leading-relaxed text-wine/70">{s.reservations.whereNote}</p>
-          <p className="mt-2 text-[0.92rem] leading-relaxed text-wine/70">{s.reservations.change}</p>
-          <button type="button" onClick={() => void copyEmail()} className={`${secondaryButton} mt-5`}>
-            {s.reservations.changeLink}
-          </button>
+          {sheet.booking.isMemberSeat ? (
+            sheet.booking.cancellable ? (
+              confirmCancel ? (
+                <div className="mt-5 rounded-2xl bg-cream/70 p-4">
+                  <p className="font-serif text-[1.25rem] text-wine">{ms.cancelSeatTitle}</p>
+                  <p className="mt-1 text-[0.9rem] leading-relaxed text-wine/70">{ms.cancelSeatRule}</p>
+                  <button
+                    type="button"
+                    onClick={() => void cancelSeat(sheet.booking)}
+                    disabled={cancelling}
+                    className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-red-700 px-6 text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-white transition active:scale-[0.98] disabled:opacity-60"
+                  >
+                    {cancelling ? ms.cancelSeatBusy : ms.cancelSeatConfirm(sheet.booking.withPaidGuest)}
+                  </button>
+                  <button type="button" onClick={() => setConfirmCancel(false)} className={`${secondaryButton} mt-2 !min-h-12`}>
+                    {ms.cancelSeatKeep}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="mt-2 text-[0.92rem] leading-relaxed text-wine/70">{ms.cancelSeatRule}</p>
+                  <button type="button" onClick={() => setConfirmCancel(true)} className={`${secondaryButton} mt-5`}>
+                    {ms.cancelSeat}
+                  </button>
+                </>
+              )
+            ) : (
+              <p className="mt-2 text-[0.92rem] leading-relaxed text-wine/70">{ms.cancelSeatTooLate}</p>
+            )
+          ) : (
+            <>
+              <p className="mt-2 text-[0.92rem] leading-relaxed text-wine/70">{s.reservations.change}</p>
+              <button type="button" onClick={() => void copyEmail()} className={`${secondaryButton} mt-5`}>
+                {s.reservations.changeLink}
+              </button>
+            </>
+          )}
         </BottomSheet>
       ) : null}
 
@@ -696,6 +839,7 @@ export function JouwTafelSettings({
           <div className="mt-3 space-y-3 text-[0.95rem] leading-relaxed text-wine/75">
             <p>{s.delete.body}</p>
             {firstUpcoming ? <p>{s.delete.booking(longDate(firstUpcoming.startsAt, locale, locale === "en"))}</p> : null}
+            {membership ? <p>{ms.deleteMember}</p> : null}
             <p className="text-wine/55">{s.delete.legal}</p>
           </div>
           {deleteError ? (

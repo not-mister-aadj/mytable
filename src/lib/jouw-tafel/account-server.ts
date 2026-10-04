@@ -13,6 +13,7 @@ import { reservationCode } from "@/lib/booking-display";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { CAMPAIGN_UNSUBSCRIBED_TAG } from "@/lib/email/campaign-mail";
+import { canMemberCancelSeat } from "@/lib/membership/logic";
 
 // Server side of the "Jouw tafel" settings page: reservations, the mail
 // switch and deleting an account. Only ever for the signed-in person's own
@@ -26,6 +27,12 @@ export type MemberBooking = {
   seats: number;
   /** Null for a Sunday Table, else the experience's name (NL, EN). */
   name: { nl: string; en: string } | null;
+  /** A member's booking (own seat included). */
+  isMemberSeat: boolean;
+  /** A paid guest seat comes with it (refunded when cancelled). */
+  withPaidGuest: boolean;
+  /** The member can still cancel it (until 48 hours before). */
+  cancellable: boolean;
 };
 
 /**
@@ -51,6 +58,8 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
       experienceType: events.experienceType,
       nameNl: events.nameNl,
       nameEn: events.nameEn,
+      membershipId: bookings.membershipId,
+      amountCents: bookings.amountCents,
     })
     .from(bookings)
     .innerJoin(events, eq(bookings.eventId, events.id))
@@ -72,6 +81,9 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     startsAt: r.startsAt.toISOString(),
     seats: r.seats,
     name: r.experienceType === "sunday-table" ? null : { nl: r.nameNl, en: r.nameEn },
+    isMemberSeat: Boolean(r.membershipId),
+    withPaidGuest: Boolean(r.membershipId) && r.seats > 1 && r.amountCents > 0,
+    cancellable: Boolean(r.membershipId) && canMemberCancelSeat(r.startsAt, now),
   }));
   return {
     upcoming: all.filter((b) => new Date(b.startsAt).getTime() >= now),

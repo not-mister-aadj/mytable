@@ -97,6 +97,8 @@ export type LandingCopy = {
   };
   testimonials: { eyebrow: string; title: string; imageAlt: string };
   promise: { eyebrow: string; title: string; items: Array<{ title: string; body: string }> };
+  /** Short pointer to the membership page. No prices on the landing page. */
+  membership: { eyebrow: string; title: string; body: string; link: string };
   faq: { eyebrow: string; title: string; items: FaqItem[] };
   closing: { title: string; note: string };
   footer: { terms: string; privacy: string };
@@ -169,6 +171,12 @@ const landingNl: LandingCopy = {
     eyebrow: "Aan tafel",
     title: "Wat gasten zeggen",
     imageAlt: "Twee gasten lachen aan een tafel vol wijnglazen",
+  },
+  membership: {
+    eyebrow: "Lidmaatschap",
+    title: "Vaker aanschuiven?",
+    body: "Als lid schuif je aan bij elke Sunday Table in jouw steden. En je boekt eerder dan anderen.",
+    link: "Bekijk het lidmaatschap",
   },
   promise: {
     eyebrow: "Onze belofte",
@@ -364,6 +372,12 @@ const landingEn: LandingCopy = {
     eyebrow: "At the table",
     title: "What guests say",
     imageAlt: "Two guests laughing at a table full of wine glasses",
+  },
+  membership: {
+    eyebrow: "Membership",
+    title: "Want to join more often?",
+    body: "As a member you join every Sunday Table in your cities. And you book before everyone else.",
+    link: "See the membership",
   },
   promise: {
     eyebrow: "Our promise",

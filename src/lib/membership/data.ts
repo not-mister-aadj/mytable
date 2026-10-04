@@ -5,9 +5,10 @@ import { memberships, type Membership } from "@/db/schema";
 import {
   isMembershipStatus,
   membershipStatusFromStripe,
+  membershipSummary,
   type MembershipSnapshot,
 } from "@/lib/membership/logic";
-import { isMembershipPlanId, type MembershipPlanId } from "@/lib/membership/plans";
+import { isMembershipPlanId, nextChargeCents, type MembershipPlanId } from "@/lib/membership/plans";
 import {
   stripeCustomerId,
   subscriptionCancellation,
@@ -246,4 +247,34 @@ export async function endMembershipsForDeletedAccount(userId: string): Promise<v
       .set({ userId: null, status: "canceled", updatedAt: new Date() })
       .where(eq(memberships.id, row.id));
   }
+}
+
+/** The settings page's membership group (dates as ISO strings), or null
+ * when there is no running membership ("Word lid"). */
+export function settingsMembership(row: Membership | null, now: number = Date.now()): {
+  plan: MembershipPlanId;
+  summary:
+    | { kind: "renews"; date: string; cents: number }
+    | { kind: "ends"; date: string }
+    | { kind: "past_due" }
+    | { kind: "none" };
+  blockedUntil: string | null;
+} | null {
+  const snapshot = membershipSnapshot(row);
+  if (!snapshot || snapshot.status === "canceled") return null;
+  const summary = membershipSummary(snapshot, nextChargeCents(snapshot.plan), now);
+  if (summary.kind === "none") return null;
+  return {
+    plan: snapshot.plan,
+    summary:
+      summary.kind === "renews"
+        ? { kind: "renews", date: summary.date.toISOString(), cents: summary.cents }
+        : summary.kind === "ends"
+          ? { kind: "ends", date: summary.date.toISOString() }
+          : summary,
+    blockedUntil:
+      snapshot.bookingBlockedUntil && snapshot.bookingBlockedUntil.getTime() > now
+        ? snapshot.bookingBlockedUntil.toISOString()
+        : null,
+  };
 }

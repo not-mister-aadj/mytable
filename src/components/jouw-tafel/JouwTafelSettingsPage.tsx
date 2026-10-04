@@ -13,6 +13,8 @@ import {
 } from "@/lib/jouw-tafel/quiz-logic";
 import type { JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 import { getSettingsCopy } from "@/lib/jouw-tafel/settings-copy";
+import { getMembershipForUser, settingsMembership } from "@/lib/membership/data";
+import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
 
 export function jouwTafelSettingsMetadata(locale: Locale): Metadata {
   return { title: getSettingsCopy(locale).metaTitle, robots: NO_INDEX };
@@ -39,13 +41,24 @@ export async function JouwTafelSettingsPage({
   const terug = isQuizStepId(terugRaw) ? terugRaw : null;
   const backHref = `${jouwTafelStartPath(locale)}${terug ? `?stap=${terug}` : ""}`;
 
-  const [bookings, mailsOn] = await Promise.all([
+  // Back from paying for a member's guest seat: make sure it is booked even
+  // when the webhook is slower than the browser.
+  const sessionId = Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id;
+  const bookedNotice = searchParams.geboekt === "1";
+  if (bookedNotice && sessionId?.startsWith("cs_")) {
+    await tryFulfillCheckoutSessionSafe(sessionId, { deferEmail: true, deferSideEffects: true });
+  }
+
+  const [bookings, mailsOn, membershipRow] = await Promise.all([
     getMemberBookings(user.email).catch((error: unknown) => {
       console.error("[jouw-tafel settings] loading bookings failed:", error);
       return { upcoming: [], past: [] };
     }),
     getTableMailsOn(user.email).catch(() => true),
+    getMembershipForUser(user.id).catch(() => null),
   ]);
+
+  const membership = settingsMembership(membershipRow);
 
   return (
     <JouwTafelSettings
@@ -58,6 +71,8 @@ export async function JouwTafelSettingsPage({
       mailsOn={mailsOn}
       backHref={backHref}
       terug={terug}
+      membership={membership}
+      bookedNotice={bookedNotice}
     />
   );
 }

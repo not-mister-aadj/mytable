@@ -597,7 +597,7 @@ export function QuizChoose({
                     }
                   />
                 ) : (
-                  <div role="radiogroup" aria-label={mk.planPickerLabel} className="mt-3.5 space-y-2">
+                  <div role="radiogroup" aria-label={mk.planPickerLabel} className="mt-3 space-y-2">
                     <ChoiceCard
                       selected={effectiveChoice === "single"}
                       disabled={selectedEarly}
@@ -612,7 +612,7 @@ export function QuizChoose({
                     <ChoiceCard
                       selected={effectiveChoice === "member"}
                       title={mk.memberTitle}
-                      sub={selectedEarly ? mk.earlyLine : null}
+                      sub={null}
                       right={mk.memberFrom(`€${formatPlanEuros(lowestMonthlyCents(), locale)}`)}
                       onSelect={() => {
                         setChoice("member");
@@ -621,7 +621,7 @@ export function QuizChoose({
                       }}
                     />
                     {effectiveChoice === "member" ? (
-                      <div className="rounded-2xl bg-cream/80 px-3 py-3">
+                      <div className="rounded-2xl bg-cream/80 px-3 py-2.5">
                         <div role="radiogroup" aria-label={mk.planPickerLabel} className="grid grid-cols-3 gap-1 rounded-full bg-white p-1">
                           {MEMBERSHIP_PLAN_IDS.map((id) => (
                             <button
@@ -775,7 +775,7 @@ function ChoiceCard({
       aria-label={`${title}, ${right}`}
       disabled={disabled}
       onClick={onSelect}
-      className={`flex min-h-[3.4rem] w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 disabled:cursor-not-allowed disabled:opacity-60 ${
+      className={`flex min-h-[3.1rem] w-full items-center gap-3 rounded-2xl border px-4 py-2 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 disabled:cursor-not-allowed disabled:opacity-60 ${
         selected ? rowSelected : "border-wine/[0.1] bg-white"
       }`}
     >

@@ -536,7 +536,7 @@ export function JouwTafelSettings({
             </span>
             <span className="mt-1 block truncate text-[0.8rem] leading-tight text-wine/45">
               {s.reservations.seats(b.seats)} · {b.code}
-              {b.isMemberSeat ? <span className="text-gold"> · {ms.memberSeat}</span> : null}
+              {b.isMemberSeat ? <span className="text-gold"> · {ms.memberSeatShort}</span> : null}
             </span>
           </span>
           <ChevronIcon />

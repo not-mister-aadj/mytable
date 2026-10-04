@@ -344,7 +344,6 @@ export type MembershipKiesCopy = {
   booked: string;
   bookedLink: string;
   earlyLabel: (date: string) => string;
-  earlyLine: string;
   blocked: (date: string) => string;
   pastDue: string;
   settingsLink: string;
@@ -370,7 +369,6 @@ export function getMembershipKiesCopy(locale: Locale): MembershipKiesCopy {
       booked: "Your seat is booked. The confirmation is in your email.",
       bookedLink: "See your reservations",
       earlyLabel: (date) => `Members are booking now, you can from ${date}`,
-      earlyLine: "Members book 48 hours earlier.",
       blocked: (date) => `You can book again from ${date}.`,
       pastDue: "Your last membership payment did not go through. Update your payment details in your settings.",
       settingsLink: "Settings",
@@ -394,7 +392,6 @@ export function getMembershipKiesCopy(locale: Locale): MembershipKiesCopy {
     booked: "Je plek staat vast. De bevestiging staat in je mail.",
     bookedLink: "Bekijk je reserveringen",
     earlyLabel: (date) => `Leden boeken nu, jij vanaf ${date}`,
-    earlyLine: "Leden boeken 48 uur eerder.",
     blocked: (date) => `Je kunt weer boeken vanaf ${date}.`,
     pastDue: "Je laatste betaling voor je lidmaatschap is niet gelukt. Werk je betaalgegevens bij in je instellingen.",
     settingsLink: "Instellingen",
@@ -418,6 +415,7 @@ export type MembershipSettingsCopy = {
   portalFailed: string;
   note: string;
   memberSeat: string;
+  memberSeatShort: string;
   cancelSeat: string;
   cancelSeatBusy: string;
   cancelSeatConfirm: (withGuest: boolean) => string;
@@ -449,6 +447,7 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
       portalFailed: "That did not work. Please try again.",
       note: "Cancelling takes effect at the end of the period you paid for.",
       memberSeat: "Included in your membership",
+      memberSeatShort: "Included",
       cancelSeat: "Cancel my seat",
       cancelSeatBusy: "Cancelling",
       cancelSeatConfirm: (withGuest) =>
@@ -478,6 +477,7 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
     portalFailed: "Dat lukte niet. Probeer het nog een keer.",
     note: "Opzeggen gaat in aan het einde van de periode die je hebt betaald.",
     memberSeat: "Inbegrepen in je lidmaatschap",
+    memberSeatShort: "Inbegrepen",
     cancelSeat: "Plek afzeggen",
     cancelSeatBusy: "Afzeggen",
     cancelSeatConfirm: (withGuest) =>

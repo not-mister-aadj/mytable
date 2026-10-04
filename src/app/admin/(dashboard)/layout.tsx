@@ -16,7 +16,7 @@ const NAV_ITEM_PATHS = [
   // Sunday Social lives on its own route (different data model: invite-based,
   // no direct price/capacity) but is a tab inside this same section, one tap
   // from the sidebar. See FormatTabs.tsx.
-  { label: "Tafels", path: "/events", matchAlsoPaths: ["/sunday-tables"] },
+  { label: "Tafels", path: "/events", matchAlsoPaths: ["/sunday-tables", "/jouw-tafel"] },
   { label: "Venues", path: "/venues" },
   { label: "Types", path: "/experience-types" },
   { label: "Boekingen", path: "/bookings" },

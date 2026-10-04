@@ -9,12 +9,13 @@ export function FormatTabs({
   active,
   hostname,
 }: {
-  active: "experiences" | "sunday-table";
+  active: "experiences" | "sunday-table" | "jouw-tafel";
   hostname?: string;
 }) {
   const tabs = [
     { key: "experiences" as const, label: "Experiences", href: adminPath("/events", hostname) },
     { key: "sunday-table" as const, label: "Sunday Social", href: adminPath("/sunday-tables", hostname) },
+    { key: "jouw-tafel" as const, label: "Sunday Table", href: adminPath("/jouw-tafel", hostname) },
   ];
 
   return (

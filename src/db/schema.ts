@@ -98,6 +98,10 @@ export const events = pgTable("events", {
   /** Members book first: only members can book until this moment
    * (drizzle/0031). Null = open to everyone. */
   membersOnlyUntil: timestamp("members_only_until", { withTimezone: true }),
+  /** The "Jouw tafel" series (and its date) this table was made for
+   * (drizzle/0033). Null for anything made by hand. */
+  seriesId: uuid("series_id").references(() => jouwTafelSeries.id, { onDelete: "set null" }),
+  seriesDate: date("series_date"),
   extras: jsonb("extras").$type<Record<string, unknown>>().default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -516,6 +520,47 @@ export const accountWelcomeEmails = pgTable("account_welcome_emails", {
   variant: text("variant").notNull(),
   sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** "Jouw tafel" Sunday Table series: a table in `city` every
+ * `intervalWeeks` from `firstDate`, created ahead by a daily cron
+ * (drizzle/0033). */
+export const jouwTafelSeries = pgTable("jouw_tafel_series", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  city: text("city").notNull().unique(),
+  firstDate: date("first_date").notNull(),
+  intervalWeeks: integer("interval_weeks").notNull().default(4),
+  /** Amsterdam local time, "HH:MM". */
+  startTime: text("start_time").notNull().default("14:00"),
+  defaultCapacity: integer("default_capacity").notNull().default(12),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** No series tables from `startsOn` to `endsOn` (both included). */
+export const jouwTafelPauses = pgTable("jouw_tafel_pauses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  startsOn: date("starts_on").notNull(),
+  endsOn: date("ends_on").notNull(),
+  label: text("label"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Series dates an admin removed: never created again. */
+export const jouwTafelSeriesSkips = pgTable(
+  "jouw_tafel_series_skips",
+  {
+    seriesId: uuid("series_id")
+      .notNull()
+      .references(() => jouwTafelSeries.id, { onDelete: "cascade" }),
+    tableDate: date("table_date").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({ pk: primaryKey({ columns: [table.seriesId, table.tableDate] }) }),
+);
+
+export type JouwTafelSeries = typeof jouwTafelSeries.$inferSelect;
+export type JouwTafelPause = typeof jouwTafelPauses.$inferSelect;
 
 export const affiliateCodes = pgTable("affiliate_codes", {
   id: uuid("id").primaryKey().defaultRandom(),

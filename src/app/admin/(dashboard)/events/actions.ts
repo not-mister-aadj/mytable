@@ -31,6 +31,7 @@ import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
 import { transferBooking } from "@/lib/booking-transfer";
 import { redirect } from "next/navigation";
 import { isSharedTableType } from "@/lib/event-concepts";
+import { recordSeriesSkip } from "@/lib/jouw-tafel/series-server";
 
 export type EventFormState = {
   city: string;
@@ -329,6 +330,11 @@ export async function deleteEventAction(id: string) {
     await db.delete(bookings).where(eq(bookings.eventId, id));
   }
 
+  // A "Jouw tafel" series date that is deleted stays gone: the daily
+  // series run never makes it again.
+  if (event.seriesId && event.seriesDate) {
+    await recordSeriesSkip(event.seriesId, event.seriesDate);
+  }
   await db.delete(events).where(eq(events.id, id));
   if (event.workflowStatus === "published") {
     revalidateEventPaths(event);

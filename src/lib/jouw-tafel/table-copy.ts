@@ -51,6 +51,7 @@ const nl: TableCopy = {
       "Je reserveert je plek.",
       "Een week van tevoren hoor je in welke wijnbar je aanschuift.",
       `Om ${time} schuif je aan bij 4 tot 6 mensen.`,
+      "Vaak zitten er meer tafels in dezelfde wijnbar. Zo ontmoet je nog meer mensen.",
     ],
   },
   expect: {
@@ -60,6 +61,7 @@ const nl: TableCopy = {
       "Een tafel met mensen die net als jij zin hebben in een gezellige zondag.",
       "Je bestelt zelf wat je wilt drinken en eten van de kaart. Een dag van tevoren mailen we onze aanraders.",
       "Reken op twee tot drie uur. Of langer, als het klikt.",
+      "Soms blijft een tafel daarna nog samen eten.",
     ],
   },
   good: {
@@ -107,6 +109,7 @@ const en: TableCopy = {
       "You reserve your seat.",
       "A week before, you hear which wine bar you are joining.",
       `At ${time} you join 4 to 6 people at the table.`,
+      "There are often more tables in the same wine bar, so you meet even more people.",
     ],
   },
   expect: {
@@ -116,6 +119,7 @@ const en: TableCopy = {
       "A table with people who, like you, are in the mood for a cosy Sunday.",
       "You order your own drinks and food from the menu. The day before, we email our own picks.",
       "Plan for two to three hours. Or longer, if it clicks.",
+      "Some tables stay on for dinner together afterwards.",
     ],
   },
   good: {

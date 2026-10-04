@@ -80,7 +80,7 @@ export function JouwTafelTables({
       <div
         role="group"
         aria-label={copy.cityTabsAria}
-        className="-mx-5 mt-7 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:justify-center sm:px-0"
+        className="-mx-5 mt-7 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:justify-center sm:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {cities.map((c) => {
           const selected = c === city;
@@ -124,7 +124,7 @@ export function JouwTafelTables({
                 return (
                   <li key={event.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
                     <div className="min-w-0 flex-1">
-                      <p className="font-serif text-[1.35rem] font-medium leading-tight text-wine">
+                      <p className="whitespace-nowrap font-serif text-[1.35rem] font-medium leading-tight text-wine">
                         {shortDate(event.startsAt, locale)}
                       </p>
                       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-wine/60">
@@ -141,7 +141,7 @@ export function JouwTafelTables({
                       {/* A visitor here is not a member yet: a table in the
                           members' days opens for them later too. */}
                       {event.comingSoon || isMembersOnly(event.membersOnlyUntil ?? null, now) ? (
-                        <span className="inline-flex rounded-full border border-gold/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/70">
+                        <span className="block max-w-[10rem] text-[0.85rem] font-medium leading-snug text-wine/60">
                           {event.membersOnlyUntil ?? event.opensAt
                             ? copy.opensFrom(openFromDay((event.membersOnlyUntil ?? event.opensAt)!, locale))
                             : copy.comingSoon}

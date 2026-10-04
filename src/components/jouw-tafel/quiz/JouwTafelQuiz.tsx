@@ -297,6 +297,7 @@ export function JouwTafelQuiz({
   testimonials,
   landingPath,
   membership = null,
+  booked = {},
 }: {
   locale: Locale;
   /** localStorage key for this account's copy of the answers. */
@@ -319,6 +320,8 @@ export function JouwTafelQuiz({
   landingPath: string;
   /** The person's running membership (null when not a member). */
   membership?: ClientMembership | null;
+  /** Tables this person already has a seat at: event id to seats. */
+  booked?: Record<string, number>;
 }) {
   const copy = getQuizCopy(locale);
   const router = useRouter();
@@ -710,6 +713,7 @@ export function JouwTafelQuiz({
             notified={notified}
             handlers={chooseHandlers}
             membership={membership}
+            booked={booked}
             tablePath={(slug) => jouwTafelTablePath(locale, slug)}
           />
         );

@@ -69,7 +69,7 @@ export default async function AdminJouwTafelPage() {
       <div>
         <h1 className="font-serif text-3xl text-burgundy">Sunday Table</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          De tafels van Jouw tafel (/jouw-tafel). Elke nacht maakt het systeem de data van elke reeks tot 8 weken
+          De tafels van Jouw tafel (/jouw-tafel). Elke nacht maakt het systeem de data van elke reeks tot 10 weken
           vooruit aan, meteen boekbaar tot de maximale capaciteit. De zaak koppel je voor je eigen planning; gasten
           horen hem later. Deze tafels staan nooit in de agenda.
         </p>

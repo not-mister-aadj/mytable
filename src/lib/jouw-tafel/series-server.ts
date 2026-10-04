@@ -19,7 +19,7 @@ import { resolveUniqueEventSlug } from "@/lib/event-slug.server";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { DEFAULT_EVENT_IMAGE } from "@/lib/image-settings";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
-import { SERIES_WARN_DAYS, addDays, seriesDates, seriesWindow } from "@/lib/jouw-tafel/series-logic";
+import { SERIES_WARN_DAYS, addDays, datesToCreate, seriesWindow } from "@/lib/jouw-tafel/series-logic";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 
 /** How long a series table lasts, for its end time. */
@@ -64,7 +64,7 @@ export async function generateSeriesTables(now = new Date()): Promise<{ created:
   let created = 0;
   for (const series of allSeries) {
     const skipped = new Set(skips.filter((s) => s.seriesId === series.id).map((s) => s.tableDate));
-    for (const date of seriesDates(series, window, pauses, skipped)) {
+    for (const date of datesToCreate(series, window, pauses, skipped)) {
       if (have.has(`${series.id}|${date}`)) continue;
       const startsAt = seriesStartsAt(date, series.startTime);
       if (startsAt.getTime() <= now.getTime()) continue;

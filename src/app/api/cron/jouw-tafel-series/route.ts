@@ -4,7 +4,7 @@ import { generateSeriesTables } from "@/lib/jouw-tafel/series-server";
 
 /**
  * Daily (vercel.json): creates the "Jouw tafel" Sunday Tables of every
- * active series up to 8 weeks ahead, as "Binnenkort". Idempotent: a run
+ * active series up to 8 weeks ahead, bookable straight away. Idempotent: a run
  * twice in a row creates nothing twice.
  */
 export async function GET(request: Request) {

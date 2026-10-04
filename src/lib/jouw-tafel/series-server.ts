@@ -40,8 +40,8 @@ async function loadPauses(): Promise<JouwTafelPause[]> {
 
 /**
  * Creates every missing table of every active series from today up to the
- * horizon (SERIES_HORIZON_DAYS). New tables are published as "Binnenkort":
- * visible in /jouw-tafel, not bookable until an admin opens them. Never
+ * horizon (SERIES_HORIZON_DAYS), published and bookable straight away (a
+ * Sunday Table never waits for a venue: guests hear it later). Never
  * touches a table that exists, and never brings back a date an admin
  * removed. Safe to run twice at once (unique series + date).
  */
@@ -87,7 +87,7 @@ export async function generateSeriesTables(now = new Date()): Promise<{ created:
           publishedAt: now,
           seriesId: series.id,
           seriesDate: date,
-          extras: { comingSoon: true },
+          extras: {},
         })
         .onConflictDoNothing()
         .returning({ id: events.id });
@@ -148,7 +148,7 @@ export type SeriesTableRow = {
   membersOnlyUntil: string | null;
   venueId: string | null;
   venueName: string | null;
-  /** Still "Binnenkort" or without a venue, and close. */
+  /** Close and still without a venue (for our own planning). */
   needsAttention: boolean;
 };
 
@@ -203,7 +203,7 @@ export async function loadSeriesAdminData(now = new Date()): Promise<SeriesAdmin
       membersOnlyUntil: r.membersOnlyUntil?.toISOString() ?? null,
       venueId,
       venueName: venueId ? venueName.get(venueId) ?? null : null,
-      needsAttention: date <= warnBefore && (comingSoon || !venueId),
+      needsAttention: date <= warnBefore && !venueId,
     };
   });
   return { series, pauses, tables, venues: venueRows };

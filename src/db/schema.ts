@@ -531,7 +531,7 @@ export const jouwTafelSeries = pgTable("jouw_tafel_series", {
   intervalWeeks: integer("interval_weeks").notNull().default(4),
   /** Amsterdam local time, "HH:MM". */
   startTime: text("start_time").notNull().default("14:00"),
-  defaultCapacity: integer("default_capacity").notNull().default(12),
+  defaultCapacity: integer("default_capacity").notNull().default(20),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

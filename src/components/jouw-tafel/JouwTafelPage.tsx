@@ -3,6 +3,7 @@ import { JouwTafelLanding } from "@/components/jouw-tafel/JouwTafelLanding";
 import type { Locale } from "@/i18n/config";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
 import { devCountOverride, getJouwTafelEvents, getWaitlistProof } from "@/lib/jouw-tafel/data";
+import { getSettingsCopy } from "@/lib/jouw-tafel/settings-copy";
 import { requestCity, type JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 
 export const NO_INDEX: Metadata["robots"] = {
@@ -40,6 +41,7 @@ export async function JouwTafelPage({
       proof={proof}
       now={now}
       preview={searchParams.voorbeeld === "1"}
+      notice={searchParams.verwijderd === "1" ? getSettingsCopy(locale).deletedNotice : null}
     />
   );
 }

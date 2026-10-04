@@ -138,6 +138,7 @@ export function JouwTafelLanding({
   proof,
   now,
   preview,
+  notice = null,
 }: {
   locale: Locale;
   events: QuizEvent[];
@@ -148,6 +149,8 @@ export function JouwTafelLanding({
   now: number;
   /** ?voorbeeld=1: no PostHog events, for checking the page. */
   preview: boolean;
+  /** A short line at the top, e.g. after deleting an account. */
+  notice?: string | null;
 }) {
   const copy = getLandingCopy(locale);
   const city = geoCity ? displayCity(geoCity, locale) : null;
@@ -260,6 +263,15 @@ export function JouwTafelLanding({
             </Link>
           </div>
         </header>
+
+        {notice ? (
+          <p
+            role="status"
+            className="mx-5 mb-2 rounded-2xl bg-white px-4 py-3 text-center text-[0.92rem] font-medium text-wine shadow-[0_6px_18px_rgba(43,13,18,0.06)] sm:mx-auto sm:max-w-md"
+          >
+            {notice}
+          </p>
+        ) : null}
 
         {/* 1. Hero. Phone: Groupvibe style, one big rounded photo with the
             headline, one line and the single CTA on it (zoomed in on the
@@ -555,6 +567,7 @@ export function JouwTafelLanding({
 
         {/* 7. FAQ */}
         <section
+          id="faq"
           data-landing-section="faq"
           className="border-t border-wine/8 bg-white py-16 sm:py-20"
         >

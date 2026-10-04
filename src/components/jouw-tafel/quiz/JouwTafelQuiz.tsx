@@ -1,52 +1,32 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { JouwTafelLogoutButton } from "@/components/jouw-tafel/JouwTafelLogoutButton";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
 import { QuizChoose, type ChooseHandlers } from "@/components/jouw-tafel/quiz/QuizChoose";
 import { PhotoPreload } from "@/components/jouw-tafel/quiz/quiz-ui";
 import {
-  BirthDateScreen,
-  CityScreen,
-  DietScreen,
-  FormatsScreen,
-  NameScreen,
+  QuizQuestion,
   QuizScreenContext,
   STOP_PHOTOS,
-  COMPANION_PHOTOS,
   SEARCH_MS,
   SearchScreen,
-  SingleChoiceScreen,
   StopScreen,
   WelcomeScreen,
-  WhyScreen,
   type QuizTestimonial,
 } from "@/components/jouw-tafel/quiz/quiz-screens";
-import { switchLocalePath, type Locale } from "@/i18n/config";
-import { saveMemberLocalePreference } from "@/features/auth/save-onboarding";
+import { jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { trackMetaQuizLead } from "@/lib/analytics/metaTracking";
-import { trackLanguageChanged, trackQuizEvent, trackQuizStepLeft } from "@/lib/posthog/analytics";
+import { trackQuizEvent, trackQuizStepLeft } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
 import type { QuizCity, QuizEvent } from "@/lib/jouw-tafel/logic";
 import { getQuizCopy, type QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
-  AGE_MATTERS_OPTIONS,
-  COMPANION_OPTIONS,
-  GENDER_OPTIONS,
-  TABLE_TYPE_OPTIONS,
-  COMPANION_WHO_OPTIONS,
-  CONVERSATION_OPTIONS,
-  HEARD_FROM_OPTIONS,
-  LANGUAGE_OPTIONS,
   QUIZ_CHAPTERS,
   QUIZ_STEPS,
   QUIZ_VERSION,
-  READY_OPTIONS,
-  WINE_OPTIONS,
   ageBracket,
   analyticsAnswer,
   answerCities,
@@ -178,46 +158,55 @@ class QuizSaver {
 
 // ------------------------------------------------------------------- chrome
 
-function MoreIcon() {
+function PersonIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-      <circle cx="5.5" cy="12" r="1.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="18.5" cy="12" r="1.6" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" aria-hidden>
+      <circle cx="12" cy="8.5" r="3.4" />
+      <path d="M5.5 19.5c.7-3.6 3.3-5.6 6.5-5.6s5.8 2 6.5 5.6" />
     </svg>
   );
 }
 
-function GlobeIcon() {
+/** Round avatar with the first initial (a person when there is no name):
+ * opens the settings page. */
+export function AvatarButton({
+  name,
+  label,
+  href,
+  onOpen,
+}: {
+  name: string;
+  label: string;
+  href: string;
+  onOpen: () => void;
+}) {
+  const initial = name.trim().charAt(0).toLocaleUpperCase("nl-NL");
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[1.1rem] w-[1.1rem]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.6}
-      strokeLinecap="round"
-      aria-hidden
+    <a
+      href={href}
+      onClick={(event) => {
+        event.preventDefault();
+        onOpen();
+      }}
+      aria-label={label}
+      className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
     >
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M3.5 12h17M12 3.5c2.3 2.4 3.4 5.2 3.4 8.5s-1.1 6.1-3.4 8.5c-2.3-2.4-3.4-5.2-3.4-8.5S9.7 5.9 12 3.5Z" />
-    </svg>
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy/[0.1] text-[0.95rem] font-semibold text-burgundy ring-1 ring-burgundy/15 transition active:scale-95">
+        {initial || <PersonIcon />}
+      </span>
+    </a>
   );
 }
 
 function QuizHeader({
-  locale,
   copy,
   step,
   chapterFill,
   progress,
   canGoBack,
   onBack,
-  langHref,
-  onLanguage,
-  logout,
+  avatar,
 }: {
-  locale: Locale;
   copy: QuizCopy;
   step: QuizStepId;
   /** How far along each chapter is, 0 to 1. */
@@ -225,31 +214,11 @@ function QuizHeader({
   progress: number;
   canGoBack: boolean;
   onBack: () => void;
-  langHref: string;
-  onLanguage: (event: React.MouseEvent<HTMLAnchorElement>) => void;
-  /** The "Uitloggen" menu item. */
-  logout: ReactNode;
+  /** The avatar at the top right (to settings). */
+  avatar: ReactNode;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const chapter = chapterOf(step);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const close = (event: PointerEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
-    };
-    window.addEventListener("pointerdown", close);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("pointerdown", close);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [menuOpen]);
 
   return (
     <header className="sticky top-0 z-30 bg-cream/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-cream/80">
@@ -280,47 +249,7 @@ function QuizHeader({
             </motion.span>
           </AnimatePresence>
         </p>
-        <div ref={menuRef} className="relative justify-self-end">
-          <button
-            type="button"
-            aria-label={copy.menu}
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 active:scale-95 active:bg-wine/5"
-          >
-            <MoreIcon />
-          </button>
-          <AnimatePresence>
-            {menuOpen ? (
-              <motion.div
-                role="menu"
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: -4 }}
-                transition={{ duration: 0.16 }}
-                className="absolute right-1 top-12 z-40 min-w-52 origin-top-right overflow-hidden rounded-2xl border border-wine/10 bg-white py-1 shadow-[0_18px_48px_rgba(43,13,18,0.16)]"
-              >
-                <Link
-                  href={langHref}
-                  onClick={onLanguage}
-                  role="menuitem"
-                  hrefLang={locale === "nl" ? "en" : "nl"}
-                  aria-label={locale === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
-                  className="flex min-h-12 w-full items-center gap-3 px-4 text-[0.95rem] font-medium text-wine active:bg-cream"
-                >
-                  <GlobeIcon />
-                  <span className="flex-1">{locale === "nl" ? "English" : "Nederlands"}</span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-wine/40">
-                    {locale === "nl" ? "EN" : "NL"}
-                  </span>
-                </Link>
-                <div className="mx-4 h-px bg-wine/[0.07]" />
-                {logout}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
+        <div className="justify-self-end">{avatar}</div>
       </div>
       {/* No progress bar on the list of tables: the quiz is done there. */}
       {step === "kies" ? null : (
@@ -390,7 +319,6 @@ export function JouwTafelQuiz({
 }) {
   const copy = getQuizCopy(locale);
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
   const [saver] = useState(() => new QuizSaver(locale));
@@ -662,26 +590,15 @@ export function JouwTafelQuiz({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // ------------------------------------------------------------ language, log out
+  // ------------------------------------------------------------ settings
 
-  const langHref = useMemo(() => {
-    const base = switchLocalePath(pathname, locale);
-    return `${base}?stap=${step}`;
-  }, [pathname, locale, step]);
-
-  async function onLanguage(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault();
-    const nextLocale: Locale = locale === "nl" ? "en" : "nl";
-    trackLanguageChanged({ from_language: locale, to_language: nextLocale, page_path: pathname });
-    void saveMemberLocalePreference(nextLocale);
+  /** Settings (language, preferences, log out). Pending saves go first;
+   * `terug` brings the back arrow to this same step. */
+  const settingsHref = `${jouwTafelSettingsPath(locale)}?terug=${step}`;
+  const openSettings = useCallback(async () => {
     await settle();
-    router.push(langHref);
-  }
-
-  const beforeLogout = useCallback(async () => {
-    trackQuizEvent(PostHogEvents.quizLogoutClicked, common(step, answers));
-    await settle();
-  }, [common, step, answers, settle]);
+    router.push(settingsHref);
+  }, [settle, router, settingsHref]);
 
   // ------------------------------------------------------------ toast
 
@@ -724,9 +641,10 @@ export function JouwTafelQuiz({
       },
       onShare: () => void share(),
       onInfo: () => trackQuizEvent(PostHogEvents.quizInfoOpened, { ...common("kies", answers), step: "kies" }),
+      onSettings: () => void openSettings(),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [answers, common, copy, locale, save, storageKey],
+    [answers, common, copy, locale, save, storageKey, openSettings],
   );
 
   async function share() {
@@ -773,122 +691,10 @@ export function JouwTafelQuiz({
 
   function renderScreen(): ReactNode {
     if (stepKind(step) === "stop") return <StopScreen />;
+    if (stepKind(step) === "question") return <QuizQuestion step={step} />;
     switch (step) {
       case "welkom":
         return <WelcomeScreen />;
-      case "naam":
-        return <NameScreen />;
-      case "geboortedatum":
-        return <BirthDateScreen />;
-      case "leeftijd":
-        return (
-          <SingleChoiceScreen
-            title={copy.leeftijd.title}
-            options={AGE_MATTERS_OPTIONS}
-            labels={copy.leeftijd.options}
-            value={answers.ageMatters}
-            toPatch={(v) => ({ ageMatters: v })}
-          />
-        );
-      case "gender":
-        return (
-          <SingleChoiceScreen
-            title={copy.gender.title}
-            options={GENDER_OPTIONS}
-            labels={copy.gender.options}
-            value={answers.gender}
-            toPatch={(v) => ({ gender: v, ...(v !== "female" ? { tableType: undefined } : {}) })}
-          />
-        );
-      case "tafeltype":
-        return (
-          <SingleChoiceScreen
-            title={copy.tafeltype.title}
-            options={TABLE_TYPE_OPTIONS}
-            labels={copy.tafeltype.options}
-            value={answers.tableType}
-            toPatch={(v) => ({ tableType: v })}
-          />
-        );
-      case "stad":
-        return <CityScreen />;
-      case "zoekt":
-        return <WhyScreen />;
-      case "gesprek":
-        return (
-          <SingleChoiceScreen
-            title={copy.gesprek.title}
-            options={CONVERSATION_OPTIONS}
-            labels={copy.gesprek.options}
-            value={answers.conversation}
-            toPatch={(v) => ({ conversation: v })}
-          />
-        );
-      case "wijn":
-        return (
-          <SingleChoiceScreen
-            title={copy.wijn.title}
-            options={WINE_OPTIONS}
-            labels={copy.wijn.options}
-            value={answers.wine}
-            toPatch={(v) => ({ wine: v })}
-          />
-        );
-      case "gezelschap":
-        return (
-          <SingleChoiceScreen
-            title={copy.gezelschap.title}
-            options={COMPANION_OPTIONS}
-            labels={copy.gezelschap.options}
-            value={answers.companion}
-            toPatch={(v) => ({ companion: v, ...(v === "alone" ? { companionWho: undefined } : {}) })}
-            photos={COMPANION_PHOTOS}
-          />
-        );
-      case "wie":
-        return (
-          <SingleChoiceScreen
-            title={copy.wie.title}
-            options={COMPANION_WHO_OPTIONS}
-            labels={copy.wie.options}
-            value={answers.companionWho}
-            toPatch={(v) => ({ companionWho: v })}
-          />
-        );
-      case "taal":
-        return (
-          <SingleChoiceScreen
-            title={copy.taal.title}
-            options={LANGUAGE_OPTIONS}
-            labels={copy.taal.options}
-            value={answers.language}
-            toPatch={(v) => ({ language: v })}
-          />
-        );
-      case "dieet":
-        return <DietScreen />;
-      case "formats":
-        return <FormatsScreen />;
-      case "bron":
-        return (
-          <SingleChoiceScreen
-            title={copy.bron.title}
-            options={HEARD_FROM_OPTIONS}
-            labels={copy.bron.options}
-            value={answers.heardFrom}
-            toPatch={(v) => ({ heardFrom: v })}
-          />
-        );
-      case "klaar":
-        return (
-          <SingleChoiceScreen
-            title={copy.klaar.title}
-            options={READY_OPTIONS}
-            labels={copy.klaar.options}
-            value={answers.ready}
-            toPatch={(v) => ({ ready: v })}
-          />
-        );
       case "zoeken":
         return <SearchScreen />;
       case "kies":
@@ -902,6 +708,7 @@ export function JouwTafelQuiz({
             email={email}
             notified={notified}
             handlers={chooseHandlers}
+            settingsHref={settingsHref}
           />
         );
       default:
@@ -930,24 +737,18 @@ export function JouwTafelQuiz({
   return (
     <div className="min-h-[100svh] bg-cream text-wine">
       <QuizHeader
-        locale={locale}
         copy={copy}
         step={step}
         chapterFill={chapterFill}
         progress={progress}
         canGoBack={previousStep(step, answers) !== null && step !== "zoeken"}
         onBack={goBack}
-        langHref={langHref}
-        onLanguage={(e) => void onLanguage(e)}
-        logout={
-          <JouwTafelLogoutButton
-            label={copy.logOut}
-            busyLabel={copy.loggingOut}
-            redirectTo={landingPath}
-            locale={locale}
-            role="menuitem"
-            onBeforeLogout={beforeLogout}
-            className="flex min-h-12 w-full items-center pl-[2.85rem] pr-4 text-left text-[0.95rem] font-medium text-wine active:bg-cream disabled:opacity-60"
+        avatar={
+          <AvatarButton
+            name={answers.name ?? accountFirstName}
+            label={copy.settings}
+            href={settingsHref}
+            onOpen={() => void openSettings()}
           />
         }
       />
@@ -971,17 +772,6 @@ export function JouwTafelQuiz({
             <QuizScreenContext.Provider value={screenContext}>{renderScreen()}</QuizScreenContext.Provider>
           </motion.div>
         </AnimatePresence>
-        {step === "kies" ? (
-          <div className="flex justify-center pb-8">
-            <JouwTafelLogoutButton
-              label={copy.logOut}
-              busyLabel={copy.loggingOut}
-              redirectTo={landingPath}
-              locale={locale}
-              onBeforeLogout={beforeLogout}
-            />
-          </div>
-        ) : null}
       </main>
       <PhotoPreload photo={nextPhoto} />
       <AnimatePresence>

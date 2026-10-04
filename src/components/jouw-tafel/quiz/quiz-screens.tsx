@@ -36,8 +36,18 @@ import { QUIZ_CITIES, displayCity, supportedCity, type QuizCity } from "@/lib/jo
 import { buildPlaceIndex, searchPlaces, type Place, type PlaceIndex, type RawPlace } from "@/lib/jouw-tafel/places";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
+  AGE_MATTERS_OPTIONS,
   CITIES_MAX,
+  COMPANION_OPTIONS,
+  COMPANION_WHO_OPTIONS,
+  CONVERSATION_OPTIONS,
   DIETARY_OPTIONS,
+  GENDER_OPTIONS,
+  HEARD_FROM_OPTIONS,
+  LANGUAGE_OPTIONS,
+  READY_OPTIONS,
+  TABLE_TYPE_OPTIONS,
+  WINE_OPTIONS,
   FORMAT_OPTIONS,
   WHY_MAX,
   WHY_OPTIONS,
@@ -103,7 +113,15 @@ type QuizScreenContextValue = {
   answerAndNext: (patch: Partial<QuizAnswers>, options?: { delay?: number }) => void;
   continueFrom: () => void;
   primaryActionRef: RefObject<(() => void) | null>;
+  /** "sheet": a question inside the settings page's bottom sheet (compact
+   * title, the button inside the sheet labelled `submitLabel`, no room
+   * kept for the sticky bar). */
+  variant?: "quiz" | "sheet";
+  submitLabel?: string;
 };
+
+/** Id of a question's title inside a sheet (for aria-labelledby). */
+export const SHEET_TITLE_ID = "jt-sheet-question-title";
 
 export const QuizScreenContext = createContext<QuizScreenContextValue | null>(null);
 
@@ -126,6 +144,16 @@ function usePrimaryAction(action: (() => void) | null) {
 }
 
 function NextBar({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
+  const { variant, submitLabel } = useQuiz();
+  if (variant === "sheet") {
+    return (
+      <div className="sticky bottom-[calc(-1*max(1.5rem,env(safe-area-inset-bottom)))] -mx-5 -mb-[max(1.5rem,env(safe-area-inset-bottom))] mt-6 bg-gradient-to-t from-cream from-75% to-cream/0 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
+        <button type="button" className={primaryButton} onClick={onClick} disabled={disabled}>
+          {submitLabel ?? label}
+        </button>
+      </div>
+    );
+  }
   return (
     <StickyBar>
       <button type="button" className={primaryButton} onClick={onClick} disabled={disabled}>
@@ -137,6 +165,17 @@ function NextBar({ label, onClick, disabled }: { label: string; onClick: () => v
 
 /** Title (and optional muted line) at the top of a question. */
 function QuestionHead({ title, sub }: { title: string; sub?: ReactNode }) {
+  const { variant } = useQuiz();
+  if (variant === "sheet") {
+    return (
+      <div className="pt-1">
+        <h2 id={SHEET_TITLE_ID} className="pr-14 pt-1 font-sans text-[1.3rem] font-semibold leading-snug tracking-[-0.01em] text-wine text-balance">
+          {title}
+        </h2>
+        {sub ? <p className="mt-1.5 text-[0.92rem] leading-snug text-wine/55">{sub}</p> : null}
+      </div>
+    );
+  }
   return (
     <div className="pt-6">
       <h1 tabIndex={-1} className={questionTitle}>
@@ -404,7 +443,9 @@ export function SingleChoiceScreen<T extends string>({
   /** Real photos per answer: shown as photo tiles instead of rows. */
   photos?: Record<T, string>;
 }) {
-  const { answerAndNext, step } = useQuiz();
+  const { answerAndNext, step, variant } = useQuiz();
+  const tail = variant === "sheet" ? "" : "pb-24";
+  const gap = variant === "sheet" ? "mt-5" : answersGap;
   const [picked, setPicked] = useState<T | undefined>(value);
   usePrimaryAction(picked ? () => answerAndNext(toPatch(picked)) : null);
   const choose = (id: T) => {
@@ -415,7 +456,7 @@ export function SingleChoiceScreen<T extends string>({
     <>
       <QuestionHead title={title} />
       {photos ? (
-        <div role="radiogroup" className={`${answersGap} grid grid-cols-2 gap-3 pb-24`}>
+        <div role="radiogroup" className={`${gap} grid grid-cols-2 gap-3 ${tail}`}>
           {options.map((id, i) => (
             <PhotoChoice
               key={id}
@@ -428,7 +469,7 @@ export function SingleChoiceScreen<T extends string>({
           ))}
         </div>
       ) : (
-        <div role="radiogroup" className={`${answersGap} space-y-3 pb-24`}>
+        <div role="radiogroup" className={`${gap} space-y-3 ${tail}`}>
           {options.map((id, i) => (
             <ChoiceButton
               key={id}
@@ -446,7 +487,8 @@ export function SingleChoiceScreen<T extends string>({
 }
 
 export function NameScreen() {
-  const { copy, answers, accountFirstName, answerAndNext } = useQuiz();
+  const { copy, answers, accountFirstName, answerAndNext, variant } = useQuiz();
+  const sheet = variant === "sheet";
   const [value, setValue] = useState(answers.name ?? accountFirstName ?? "");
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -466,7 +508,7 @@ export function NameScreen() {
   return (
     <div>
       <QuestionHead title={copy.naam.title} sub={copy.naam.hint} />
-      <label htmlFor="jt-quiz-name" className={`${smallCaps} ${answersGap} block text-center`}>
+      <label htmlFor="jt-quiz-name" className={`${smallCaps} ${sheet ? "mt-5" : answersGap} block text-center`}>
         {copy.naam.label}
       </label>
       <input
@@ -802,7 +844,8 @@ function PlaceCombobox({
 }
 
 export function CityScreen() {
-  const { copy, locale, answers, geoCity, answerAndNext } = useQuiz();
+  const { copy, locale, answers, geoCity, answerAndNext, variant } = useQuiz();
+  const sheet = variant === "sheet";
   const saved = answerCities(answers);
   // In the order they were picked: our cities and place labels. The visitor's
   // own city (geo, only when it is one of ours) is ticked to start with.
@@ -846,7 +889,7 @@ export function CityScreen() {
   return (
     <div>
       <QuestionHead title={copy.stad.title} sub={copy.stad.sub} />
-      <div role="group" className={`${answersGap} space-y-3`}>
+      <div role="group" className={`${sheet ? "mt-5" : answersGap} space-y-3`}>
         {QUIZ_CITIES.map((city, i) => {
           const selected = picked.includes(city);
           return (
@@ -911,21 +954,22 @@ export function CityScreen() {
           attempt={attempt}
         />
       ) : null}
-      <div className="h-28" />
+      {sheet ? null : <div className="h-28" />}
       <NextBar label={copy.next} onClick={confirm} disabled={picked.length === 0} />
     </div>
   );
 }
 
 export function WhyScreen() {
-  const { copy, answers, answerAndNext } = useQuiz();
+  const { copy, answers, answerAndNext, variant } = useQuiz();
+  const sheet = variant === "sheet";
   const [picked, setPicked] = useState<WhyAnswer[]>(answers.why ?? []);
   const submit = () => answerAndNext({ why: picked });
   usePrimaryAction(picked.length ? submit : null);
   return (
     <>
       <QuestionHead title={copy.zoekt.title} sub={copy.chooseMax(WHY_MAX)} />
-      <div role="group" className={`${answersGap} space-y-3 pb-28`}>
+      <div role="group" className={`${sheet ? "mt-5" : answersGap} space-y-3 ${sheet ? "" : "pb-28"}`}>
         {WHY_OPTIONS.map((id, i) => {
           const selected = picked.includes(id);
           return (
@@ -950,7 +994,8 @@ export function WhyScreen() {
 }
 
 export function DietScreen() {
-  const { copy, answers, answerAndNext } = useQuiz();
+  const { copy, answers, answerAndNext, variant } = useQuiz();
+  const sheet = variant === "sheet";
   const [picked, setPicked] = useState<DietaryAnswer[]>(answers.dietary ?? []);
   const [other, setOther] = useState(answers.dietaryOther ?? "");
   const otherRef = useRef<HTMLInputElement>(null);
@@ -973,7 +1018,7 @@ export function DietScreen() {
   return (
     <>
       <QuestionHead title={copy.dieet.title} sub={copy.dieet.note} />
-      <div role="group" className={`${answersGap} grid grid-cols-2 gap-3`}>
+      <div role="group" className={`${sheet ? "mt-5" : answersGap} grid grid-cols-2 gap-3`}>
         {tiles.map((id, i) => (
           <ChoiceTile
             key={id}
@@ -1019,14 +1064,15 @@ export function DietScreen() {
           />
         </div>
       ) : null}
-      <div className="h-28" />
+      {sheet ? null : <div className="h-28" />}
       <NextBar label={picked.length ? copy.next : copy.skip} onClick={submit} />
     </>
   );
 }
 
 export function FormatsScreen() {
-  const { copy, answers, answerAndNext } = useQuiz();
+  const { copy, answers, answerAndNext, variant } = useQuiz();
+  const sheet = variant === "sheet";
   const [picked, setPicked] = useState<FormatAnswer[]>(answers.formats ?? []);
   const submit = () => answerAndNext({ formats: picked });
   usePrimaryAction(submit);
@@ -1040,7 +1086,7 @@ export function FormatsScreen() {
   return (
     <>
       <QuestionHead title={copy.formats.title} sub={copy.formats.note} />
-      <div role="group" className={`${answersGap} space-y-3 pb-28`}>
+      <div role="group" className={`${sheet ? "mt-5" : answersGap} space-y-3 ${sheet ? "" : "pb-28"}`}>
         {FORMAT_OPTIONS.map((id, i) => (
           <ChoiceButton
             key={id}
@@ -1125,4 +1171,129 @@ export function SearchScreen() {
       </ul>
     </div>
   );
+}
+
+// ---------------------------------------------------------------- one question
+
+/** The screen for one question, as in the quiz. The settings page shows the
+ * same component in a sheet (QuizScreenContext variant "sheet"). */
+export function QuizQuestion({ step }: { step: QuizStepId }) {
+  const { copy, answers } = useQuiz();
+  switch (step) {
+    case "naam":
+      return <NameScreen />;
+    case "geboortedatum":
+      return <BirthDateScreen />;
+    case "leeftijd":
+      return (
+        <SingleChoiceScreen
+          title={copy.leeftijd.title}
+          options={AGE_MATTERS_OPTIONS}
+          labels={copy.leeftijd.options}
+          value={answers.ageMatters}
+          toPatch={(v) => ({ ageMatters: v })}
+        />
+      );
+    case "gender":
+      return (
+        <SingleChoiceScreen
+          title={copy.gender.title}
+          options={GENDER_OPTIONS}
+          labels={copy.gender.options}
+          value={answers.gender}
+          toPatch={(v) => ({ gender: v, ...(v !== "female" ? { tableType: undefined } : {}) })}
+        />
+      );
+    case "tafeltype":
+      return (
+        <SingleChoiceScreen
+          title={copy.tafeltype.title}
+          options={TABLE_TYPE_OPTIONS}
+          labels={copy.tafeltype.options}
+          value={answers.tableType}
+          toPatch={(v) => ({ tableType: v })}
+        />
+      );
+    case "stad":
+      return <CityScreen />;
+    case "zoekt":
+      return <WhyScreen />;
+    case "gesprek":
+      return (
+        <SingleChoiceScreen
+          title={copy.gesprek.title}
+          options={CONVERSATION_OPTIONS}
+          labels={copy.gesprek.options}
+          value={answers.conversation}
+          toPatch={(v) => ({ conversation: v })}
+        />
+      );
+    case "wijn":
+      return (
+        <SingleChoiceScreen
+          title={copy.wijn.title}
+          options={WINE_OPTIONS}
+          labels={copy.wijn.options}
+          value={answers.wine}
+          toPatch={(v) => ({ wine: v })}
+        />
+      );
+    case "gezelschap":
+      return (
+        <SingleChoiceScreen
+          title={copy.gezelschap.title}
+          options={COMPANION_OPTIONS}
+          labels={copy.gezelschap.options}
+          value={answers.companion}
+          toPatch={(v) => ({ companion: v, ...(v === "alone" ? { companionWho: undefined } : {}) })}
+          photos={COMPANION_PHOTOS}
+        />
+      );
+    case "wie":
+      return (
+        <SingleChoiceScreen
+          title={copy.wie.title}
+          options={COMPANION_WHO_OPTIONS}
+          labels={copy.wie.options}
+          value={answers.companionWho}
+          toPatch={(v) => ({ companionWho: v })}
+        />
+      );
+    case "taal":
+      return (
+        <SingleChoiceScreen
+          title={copy.taal.title}
+          options={LANGUAGE_OPTIONS}
+          labels={copy.taal.options}
+          value={answers.language}
+          toPatch={(v) => ({ language: v })}
+        />
+      );
+    case "dieet":
+      return <DietScreen />;
+    case "formats":
+      return <FormatsScreen />;
+    case "bron":
+      return (
+        <SingleChoiceScreen
+          title={copy.bron.title}
+          options={HEARD_FROM_OPTIONS}
+          labels={copy.bron.options}
+          value={answers.heardFrom}
+          toPatch={(v) => ({ heardFrom: v })}
+        />
+      );
+    case "klaar":
+      return (
+        <SingleChoiceScreen
+          title={copy.klaar.title}
+          options={READY_OPTIONS}
+          labels={copy.klaar.options}
+          value={answers.ready}
+          toPatch={(v) => ({ ready: v })}
+        />
+      );
+    default:
+      return null;
+  }
 }

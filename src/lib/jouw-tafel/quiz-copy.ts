@@ -26,9 +26,8 @@ export type QuizCopy = {
   chapters: Record<QuizChapter, string>;
   duration: string;
   back: string;
-  menu: string;
-  logOut: string;
-  loggingOut: string;
+  /** The avatar at the top right. */
+  settings: string;
   next: string;
   skip: string;
   chooseMax: (n: number) => string;
@@ -159,6 +158,8 @@ export type QuizCopy = {
     infoLines: string[];
     infoPrice: (price: string, from: boolean) => string;
     infoLast: string;
+    /** Link under the list to the settings page. */
+    changePreferences: string;
   };
 };
 
@@ -177,9 +178,7 @@ const nl: QuizCopy = {
   chapters: { over_jou: "Over jou", aan_tafel: "Aan tafel", jouw_zondag: "Jouw zondag" },
   duration: "± 2 minuten",
   back: "Terug",
-  menu: "Menu",
-  logOut: "Uitloggen",
-  loggingOut: "Uitloggen...",
+  settings: "Instellingen",
   next: "Verder",
   skip: "Overslaan",
   chooseMax: (n) => `Kies er maximaal ${n}`,
@@ -349,7 +348,7 @@ const nl: QuizCopy = {
   },
   zoeken: {
     title: "We zoeken jouw tafel",
-    items: ["Jouw stad", "Jouw leeftijdsgroep", "Jouw tafel"],
+    items: ["Jouw stad", "Jouw voorkeuren", "Jouw tafel"],
   },
   kies: {
     title: "Kies je zondag",
@@ -392,6 +391,7 @@ const nl: QuizCopy = {
     ],
     infoPrice: (price, from) => `Je plek kost ${from ? "vanaf " : ""}${price}. Je drankjes bestel en betaal je zelf aan tafel.`,
     infoLast: "De meeste gasten komen alleen. Kom je met iemand, dan zitten jullie samen.",
+    changePreferences: "Voorkeuren aanpassen",
   },
 };
 
@@ -400,9 +400,7 @@ const en: QuizCopy = {
   chapters: { over_jou: "About you", aan_tafel: "At the table", jouw_zondag: "Your Sunday" },
   duration: "About 2 minutes",
   back: "Back",
-  menu: "Menu",
-  logOut: "Log out",
-  loggingOut: "Logging out...",
+  settings: "Settings",
   next: "Continue",
   skip: "Skip",
   chooseMax: (n) => `Choose up to ${n}`,
@@ -572,7 +570,7 @@ const en: QuizCopy = {
   },
   zoeken: {
     title: "Finding your table",
-    items: ["Your city", "Your age group", "Your table"],
+    items: ["Your city", "Your preferences", "Your table"],
   },
   kies: {
     title: "Choose your Sunday",
@@ -616,6 +614,7 @@ const en: QuizCopy = {
     infoPrice: (price, from) =>
       `Your seat costs ${from ? "from " : ""}${price}. You order and pay for your own drinks at the table.`,
     infoLast: "Most guests come alone. If you bring someone, you sit together.",
+    changePreferences: "Change preferences",
   },
 };
 

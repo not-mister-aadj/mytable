@@ -4,7 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { CheckIcon, CloseIcon, InfoIcon, PinIcon, ShieldIcon } from "@/components/jouw-tafel/icons";
+import { CheckIcon, InfoIcon, PinIcon, ShieldIcon } from "@/components/jouw-tafel/icons";
+import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { getStoredUtm } from "@/lib/analytics/utm";
 import { formatSpotsLeftHint } from "@/lib/event-display";
@@ -87,6 +88,8 @@ export type ChooseHandlers = {
   onShare: () => void;
   /** "Wat is een Sunday Table?" opened. */
   onInfo: () => void;
+  /** "Voorkeuren aanpassen": to the settings page. */
+  onSettings: () => void;
 };
 
 /**
@@ -103,6 +106,7 @@ export function QuizChoose({
   email,
   notified,
   handlers,
+  settingsHref,
 }: {
   locale: Locale;
   copy: QuizCopy;
@@ -113,6 +117,8 @@ export function QuizChoose({
   /** Event ids (and "city" for the city as a whole) they asked to hear about. */
   notified: Set<string>;
   handlers: ChooseHandlers;
+  /** The settings page (the link's href; navigation goes through the handler). */
+  settingsHref: string;
 }) {
   const k = copy.kies;
   const reduceMotion = useReducedMotion();
@@ -387,7 +393,20 @@ export function QuizChoose({
         </div>
       )}
 
-      {unsure ? <p className="mt-6 text-center text-[0.95rem] leading-relaxed text-wine/70">{k.unsure}</p> : null}
+      <div className="mt-8 flex justify-center">
+        <a
+          href={settingsHref}
+          onClick={(event) => {
+            event.preventDefault();
+            handlers.onSettings();
+          }}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-[0.92rem] font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+        >
+          {k.changePreferences}
+        </a>
+      </div>
+
+      {unsure ? <p className="mt-4 text-center text-[0.95rem] leading-relaxed text-wine/70">{k.unsure}</p> : null}
 
       {infoOpen ? (
         <InfoSheet
@@ -398,10 +417,7 @@ export function QuizChoose({
             ...(price ? [k.infoPrice(`€${formatEuros(price.cents)}`, price.from)] : []),
             k.infoLast,
           ]}
-          onClose={() => {
-            setInfoOpen(false);
-            infoTrigger.current?.focus();
-          }}
+          onClose={() => setInfoOpen(false)}
         />
       ) : null}
 
@@ -488,12 +504,7 @@ function DateBadge({ iso, locale, selected, muted = false }: { iso: string; loca
   );
 }
 
-/**
- * "Wat is een Sunday Table?": a bottom sheet in the style of the reserve
- * panel. A modal dialog: focus moves in and stays in (Tab wraps), Escape or
- * the close button or the backdrop closes it, the page behind does not
- * scroll.
- */
+/** "Wat is een Sunday Table?" in the shared bottom sheet. */
 function InfoSheet({
   title,
   closeLabel,
@@ -505,88 +516,16 @@ function InfoSheet({
   lines: string[];
   onClose: () => void;
 }) {
-  const reduceMotion = useReducedMotion();
-  const panel = useRef<HTMLDivElement>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    closeButton.current?.focus();
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab" || !panel.current) return;
-      const focusable = [...panel.current.querySelectorAll<HTMLElement>("button, a[href], [tabindex]:not([tabindex='-1'])")];
-      if (focusable.length === 0) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      } else if (!panel.current.contains(document.activeElement)) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-    };
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-40">
-      <motion.div
-        aria-hidden
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="absolute inset-0 bg-wine/30"
-        onClick={onClose}
-      />
-      <div className="absolute inset-x-0 bottom-0">
-        <motion.div
-          ref={panel}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="jt-quiz-info-title"
-          initial={reduceMotion ? false : { y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-h-[85svh] w-full max-w-md overflow-y-auto rounded-t-[1.75rem] border border-b-0 border-wine/[0.08] bg-white px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_rgba(43,13,18,0.12)]"
-        >
-          <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-wine/15" />
-          <div className="flex items-start justify-between gap-3">
-            <h2 id="jt-quiz-info-title" className="pt-1 font-serif text-[1.55rem] font-medium leading-tight text-wine">
-              {title}
-            </h2>
-            <button
-              ref={closeButton}
-              type="button"
-              onClick={onClose}
-              aria-label={closeLabel}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cream text-wine transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
-            >
-              <CloseIcon className="h-5 w-5" />
-            </button>
-          </div>
-          <ul className="mt-4 space-y-3">
-            {lines.map((line) => (
-              <li key={line} className="flex gap-3 text-[1rem] leading-relaxed text-wine/80">
-                <span aria-hidden className="mt-[0.6rem] h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-                {line}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      </div>
-    </div>
+    <BottomSheet labelledBy="jt-quiz-info-title" title={title} closeLabel={closeLabel} onClose={onClose}>
+      <ul className="mt-4 space-y-3">
+        {lines.map((line) => (
+          <li key={line} className="flex gap-3 text-[1rem] leading-relaxed text-wine/80">
+            <span aria-hidden className="mt-[0.6rem] h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+            {line}
+          </li>
+        ))}
+      </ul>
+    </BottomSheet>
   );
 }

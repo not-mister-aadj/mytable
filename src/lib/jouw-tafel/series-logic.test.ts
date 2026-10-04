@@ -44,8 +44,8 @@ test("skipped dates and inactive series give no tables", () => {
   assert.deepEqual(seriesDates({ ...ROTTERDAM, active: false }, window), []);
 });
 
-test("the cron window is today plus 8 weeks", () => {
-  assert.deepEqual(seriesWindow("2026-10-04"), { from: "2026-10-04", to: "2026-11-29" });
+test("the cron window is today plus 10 weeks", () => {
+  assert.deepEqual(seriesWindow("2026-10-04"), { from: "2026-10-04", to: "2026-12-13" });
   assert.ok(isPaused("2026-12-27", BREAK));
   assert.ok(!isPaused("2027-01-17", BREAK));
 });

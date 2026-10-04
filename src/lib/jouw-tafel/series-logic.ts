@@ -4,8 +4,10 @@
  * "YYYY-MM-DD" (Amsterdam calendar days) throughout.
  */
 
-/** How far ahead tables are created: two rounds of a 4-week rhythm. */
-export const SERIES_HORIZON_DAYS = 56;
+/** How far ahead tables are created: 10 weeks, so every city always has
+ * its next two dates (JOUW_TAFEL_DATES_PER_CITY), also when a series starts
+ * a few weeks from now. */
+export const SERIES_HORIZON_DAYS = 70;
 
 /** A table still "Binnenkort" this close to its date gets flagged in admin. */
 export const SERIES_WARN_DAYS = 21;

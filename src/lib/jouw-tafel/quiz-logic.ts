@@ -709,7 +709,8 @@ export function infoPrice(rows: readonly ChooseRow[]): { cents: number; from: bo
 /** The settings rows for answers, in their groups. Same branches as the
  * quiz: "Soort tafel" only for women, "Wie" only with someone. */
 export const SETTINGS_GROUPS = {
-  tafel: ["stad", "leeftijd", "gender", "tafeltype", "taal", "gezelschap", "wie"],
+  // Gender is shown under Account, locked: it is answered once in the quiz.
+  tafel: ["stad", "leeftijd", "tafeltype", "taal", "gezelschap", "wie"],
   zondag: ["zoekt", "wijn", "gesprek", "dieet"],
   binnenkort: ["formats"],
 } as const satisfies Record<string, readonly QuizStepId[]>;

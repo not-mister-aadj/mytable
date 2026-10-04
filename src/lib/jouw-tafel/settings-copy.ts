@@ -49,6 +49,7 @@ export type SettingsCopy = {
     name: string;
     email: string;
     birthDate: string;
+    gender: string;
     locked: string;
     lockedNote: string;
     lockedLink: string;
@@ -128,6 +129,7 @@ const nl: SettingsCopy = {
     name: "Voornaam",
     email: "E-mailadres",
     birthDate: "Geboortedatum",
+    gender: "Gender",
     locked: "Kan niet aangepast worden",
     lockedNote: "Klopt dit niet?",
     lockedLink: "Stuur ons een berichtje.",
@@ -208,6 +210,7 @@ const en: SettingsCopy = {
     name: "First name",
     email: "Email address",
     birthDate: "Date of birth",
+    gender: "Gender",
     locked: "Can't be changed",
     lockedNote: "Not right?",
     lockedLink: "Send us a message.",

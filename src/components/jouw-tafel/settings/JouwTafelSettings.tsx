@@ -545,6 +545,13 @@ export function JouwTafelSettings({
             />
           </li>
           <li className={`${rowBase} cursor-default`}>
+            <RowContent
+              label={s.account.gender}
+              value={rowValue("gender", answers, q, locale) ?? s.notSet}
+              trailing={<LockIcon />}
+            />
+          </li>
+          <li className={`${rowBase} cursor-default`}>
             <span className="text-[0.98rem] font-medium text-wine">{s.account.siteLanguage}</span>
             <div role="radiogroup" aria-label={s.account.siteLanguage} className="ml-auto flex rounded-full bg-cream p-1">
               {(["nl", "en"] as const).map((l) => {

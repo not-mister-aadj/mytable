@@ -102,6 +102,8 @@ export const events = pgTable("events", {
    * (drizzle/0033). Null for anything made by hand. */
   seriesId: uuid("series_id").references(() => jouwTafelSeries.id, { onDelete: "set null" }),
   seriesDate: date("series_date"),
+  /** When the groups at this table were made final (drizzle/0036). */
+  groupsFinalAt: timestamp("groups_final_at", { withTimezone: true }),
   extras: jsonb("extras").$type<Record<string, unknown>>().default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -243,6 +245,8 @@ export const bookings = pgTable("bookings", {
   introRequestSentAt: timestamp("intro_request_sent_at", { withTimezone: true }),
   /** Set on a member's booking (own seat free, guest at member price);
    * drizzle/0031. */
+  /** The group at the table this booking sits in (drizzle/0036). */
+  groupId: uuid("group_id").references(() => eventGroups.id, { onDelete: "set null" }),
   membershipId: uuid("membership_id").references(() => memberships.id, {
     onDelete: "set null",
   }),
@@ -559,6 +563,21 @@ export const jouwTafelSeriesSkips = pgTable(
   (table) => ({ pk: primaryKey({ columns: [table.seriesId, table.tableDate] }) }),
 );
 
+/** A group at a venue of a "Jouw tafel" Sunday Table ("Juni, groep 2"),
+ * drizzle/0036. Bookings point at it with group_id. */
+export const eventGroups = pgTable("event_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  venueId: uuid("venue_id")
+    .notNull()
+    .references(() => venues.id, { onDelete: "restrict" }),
+  number: integer("number").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type EventGroup = typeof eventGroups.$inferSelect;
 export type JouwTafelSeries = typeof jouwTafelSeries.$inferSelect;
 export type JouwTafelPause = typeof jouwTafelPauses.$inferSelect;
 

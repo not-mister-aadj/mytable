@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { FormatTabs } from "@/components/admin/FormatTabs";
 import { isDbConfigured } from "@/db/index";
 import { jouwTafelTablePath } from "@/i18n/config";
 import { requireAdmin } from "@/lib/admin-auth";
-import { resolveHostname } from "@/lib/admin-url";
+import { adminPath, resolveHostname } from "@/lib/admin-url";
 import { QUIZ_CITIES } from "@/lib/jouw-tafel/logic";
 import { SERIES_WARN_DAYS } from "@/lib/jouw-tafel/series-logic";
 import { loadSeriesAdminData, type SeriesTableRow } from "@/lib/jouw-tafel/series-server";
@@ -147,25 +148,16 @@ export default async function AdminJouwTafelPage() {
                             className={`${field} w-20`}
                             aria-label={`Maximale capaciteit ${t.city} ${t.date}`}
                           />
-                          <select
-                            name="venueId"
-                            defaultValue={t.venueId ?? ""}
-                            className={`${field} max-w-[14rem]`}
-                            aria-label={`Zaak ${t.city} ${t.date}`}
-                          >
-                            <option value="">Nog geen zaak</option>
-                            {data.venues
-                              .filter((v) => v.city === t.city || v.id === t.venueId)
-                              .map((v) => (
-                                <option key={v.id} value={v.id}>
-                                  {v.name}
-                                </option>
-                              ))}
-                          </select>
                           <button type="submit" className={button}>
                             Opslaan
                           </button>
                         </form>
+                        <span className="text-xs text-wine/60">
+                          {t.venueNames.length > 0 ? t.venueNames.join(", ") : "Nog geen zaak"}
+                        </span>
+                        <Link href={adminPath(`/jouw-tafel/${t.id}`, hostname)} className={ghostButton}>
+                          Indelen
+                        </Link>
                         {t.spotsSold === 0 ? (
                           <form action={removeTableAction}>
                             <input type="hidden" name="id" value={t.id} />
@@ -181,7 +173,7 @@ export default async function AdminJouwTafelPage() {
               </tbody>
             </table>
             <p className="mt-3 text-xs text-wine/50">
-              Alleen zaken uit dezelfde stad staan in de lijst; voeg nieuwe toe onder Venues.
+              Zaken en groepjes regel je per tafel via Indelen, of via de Kalender.
             </p>
           </div>
         )}

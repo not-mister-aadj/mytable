@@ -300,6 +300,7 @@ export interface Dictionary {
       blog: string;
       myAccount: string;
       logIn: string;
+      myTable: string;
       signUp: string;
       navAria: string;
       waitlistCta: string;

@@ -18,6 +18,7 @@ export const nl: Dictionary = {
       blog: "Blog",
       myAccount: "My account",
       logIn: "Inloggen",
+      myTable: "Mijn tafel",
       signUp: "Aanmelden",
       navAria: "Hoofdnavigatie",
       waitlistCta: "Zet me op de wachtlijst",

@@ -70,11 +70,11 @@ export function guestSeatCents(id: MembershipPlanId): number {
   return MEMBERSHIP_PLANS[id].monthlyCents;
 }
 
-/** What a plan's first period saves against paying monthly ("1m") for
- * the same months: 4 x 12,99 - 36 = 15,96. Zero for "1m" itself. */
-export function planSavingsCents(id: MembershipPlanId): number {
+/** What a plan's first period saves against buying a single seat every
+ * month for as long (one Sunday Table per month): 4 x 15 - 36 = 24. */
+export function planSavingsCents(id: MembershipPlanId, singleSeatCents: number): number {
   const plan = MEMBERSHIP_PLANS[id];
-  return Math.max(0, MEMBERSHIP_PLANS["1m"].monthlyCents * plan.initialMonths - plan.initialCents);
+  return Math.max(0, singleSeatCents * plan.initialMonths - plan.initialCents);
 }
 
 /** The lowest monthly amount of all plans ("vanaf €8,25 per maand"). */

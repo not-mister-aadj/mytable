@@ -15,10 +15,9 @@ test("a member: own seat free, only a guest pays", () => {
   assert.equal(memberReserveTodayCents({ kind: "included", plan: "12m", seats: 2 }), 825);
 });
 
-test("plan savings: the first period against paying monthly for as long", () => {
-  assert.equal(planSavingsCents("1m"), 0);
-  assert.equal(planSavingsCents("4m"), 4 * 1299 - 3600);
-  assert.equal(planSavingsCents("4m"), 1596);
-  assert.equal(planSavingsCents("12m"), 12 * 1299 - 9900);
-  assert.equal(planSavingsCents("12m"), 5688);
+test("plan savings: the first period against a single seat every month", () => {
+  assert.equal(planSavingsCents("1m", 1500), 201);
+  assert.equal(planSavingsCents("4m", 1500), 2400);
+  assert.equal(planSavingsCents("12m", 1500), 8100);
+  assert.equal(planSavingsCents("4m", 800), 0);
 });

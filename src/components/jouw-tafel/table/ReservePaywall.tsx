@@ -139,7 +139,7 @@ export function ReservePaywall({
         {MEMBERSHIP_PLAN_IDS.map((id, i) => {
           const p = MEMBERSHIP_PLANS[id];
           const on = plan === id;
-          const savings = planSavingsCents(id);
+          const savings = planSavingsCents(id, JOUW_TAFEL_SEAT_PRICE_CENTS);
           return (
             <motion.button
               key={id}
@@ -183,6 +183,8 @@ export function ReservePaywall({
           );
         })}
       </div>
+
+      <p className="mt-2 text-[0.72rem] leading-snug text-wine/45">{r.saveNote(euros(JOUW_TAFEL_SEAT_PRICE_CENTS))}</p>
 
       {/* Guest */}
       <button

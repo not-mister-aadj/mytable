@@ -504,6 +504,8 @@ export type MembershipReserveCopy = {
   chooseTitle: string;
   planLabel: (id: MembershipPlanId) => string;
   save: (price: string) => string;
+  /** Under the plans: what "Bespaar" is measured against. */
+  saveNote: (single: string) => string;
   perMonth: string;
   total: (price: string) => string;
   guestQuestion: string;
@@ -533,6 +535,7 @@ export function getMembershipReserveCopy(locale: Locale): MembershipReserveCopy 
       chooseTitle: "Choose what suits you",
       planLabel: (id) => (id === "1m" ? "1 month" : id === "4m" ? "4 months" : "1 year"),
       save: (price) => `Save ${price}`,
+      saveNote: (single) => `Savings compared with a single seat of ${single}, one Sunday a month.`,
       perMonth: "per month",
       total: (price) => `${price} total`,
       guestQuestion: "Bringing someone?",
@@ -559,6 +562,7 @@ export function getMembershipReserveCopy(locale: Locale): MembershipReserveCopy 
     chooseTitle: "Kies wat bij je past",
     planLabel: (id) => (id === "1m" ? "1 maand" : id === "4m" ? "4 maanden" : "1 jaar"),
     save: (price) => `Bespaar ${price}`,
+    saveNote: (single) => `Besparing ten opzichte van een losse plek van ${single}, bij één zondag per maand.`,
     perMonth: "per maand",
     total: (price) => `${price} totaal`,
     guestQuestion: "Neem je iemand mee?",

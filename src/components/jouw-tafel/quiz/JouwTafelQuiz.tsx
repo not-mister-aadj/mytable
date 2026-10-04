@@ -641,7 +641,6 @@ export function JouwTafelQuiz({
       },
       onShare: () => void share(),
       onInfo: () => trackQuizEvent(PostHogEvents.quizInfoOpened, { ...common("kies", answers), step: "kies" }),
-      onSettings: () => void openSettings(),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [answers, common, copy, locale, save, storageKey, openSettings],
@@ -708,7 +707,6 @@ export function JouwTafelQuiz({
             email={email}
             notified={notified}
             handlers={chooseHandlers}
-            settingsHref={settingsHref}
           />
         );
       default:

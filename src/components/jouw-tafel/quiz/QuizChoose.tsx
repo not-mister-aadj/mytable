@@ -88,8 +88,6 @@ export type ChooseHandlers = {
   onShare: () => void;
   /** "Wat is een Sunday Table?" opened. */
   onInfo: () => void;
-  /** "Voorkeuren aanpassen": to the settings page. */
-  onSettings: () => void;
 };
 
 /**
@@ -106,7 +104,6 @@ export function QuizChoose({
   email,
   notified,
   handlers,
-  settingsHref,
 }: {
   locale: Locale;
   copy: QuizCopy;
@@ -117,8 +114,6 @@ export function QuizChoose({
   /** Event ids (and "city" for the city as a whole) they asked to hear about. */
   notified: Set<string>;
   handlers: ChooseHandlers;
-  /** The settings page (the link's href; navigation goes through the handler). */
-  settingsHref: string;
 }) {
   const k = copy.kies;
   const reduceMotion = useReducedMotion();
@@ -392,21 +387,6 @@ export function QuizChoose({
           </button>
         </div>
       )}
-
-      <div className="mt-8 flex justify-center">
-        <a
-          href={settingsHref}
-          onClick={(event) => {
-            event.preventDefault();
-            handlers.onSettings();
-          }}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-[0.92rem] font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
-        >
-          {k.changePreferences}
-        </a>
-      </div>
-
-      {unsure ? <p className="mt-4 text-center text-[0.95rem] leading-relaxed text-wine/70">{k.unsure}</p> : null}
 
       {infoOpen ? (
         <InfoSheet

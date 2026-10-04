@@ -136,7 +136,6 @@ export type QuizCopy = {
     guarantee: string;
     notify: string;
     notified: string;
-    unsure: string;
     noMatch: (city: string) => string;
     share: string;
     shareTitle: string;
@@ -159,7 +158,6 @@ export type QuizCopy = {
     infoPrice: (price: string, from: boolean) => string;
     infoLast: string;
     /** Link under the list to the settings page. */
-    changePreferences: string;
   };
 };
 
@@ -369,7 +367,6 @@ const nl: QuizCopy = {
       "Gratis verzetten tot 7 dagen vooraf. Gaat de tafel niet door, dan krijg je je geld automatisch terug.",
     notify: "Houd me op de hoogte",
     notified: "Genoteerd. Je hoort het als eerste.",
-    unsure: "Geen haast. Je kunt altijd terugkomen via Inloggen.",
     noMatch: (city) =>
       `Je bent aangemeld. Zodra er in ${city} een tafel opent, hoor je het als eerste.`,
     share: "Deel met een vriend",
@@ -391,7 +388,6 @@ const nl: QuizCopy = {
     ],
     infoPrice: (price, from) => `Je plek kost ${from ? "vanaf " : ""}${price}. Je drankjes bestel en betaal je zelf aan tafel.`,
     infoLast: "De meeste gasten komen alleen. Kom je met iemand, dan zitten jullie samen.",
-    changePreferences: "Voorkeuren aanpassen",
   },
 };
 
@@ -591,7 +587,6 @@ const en: QuizCopy = {
       "Free to move up to 7 days before. If the table doesn't go ahead, you get your money back automatically.",
     notify: "Keep me posted",
     notified: "Noted. You'll be the first to hear.",
-    unsure: "No rush. You can always come back via Log in.",
     noMatch: (city) =>
       `You're signed up. As soon as a table opens in ${city}, you'll be the first to hear.`,
     share: "Share with a friend",
@@ -614,7 +609,6 @@ const en: QuizCopy = {
     infoPrice: (price, from) =>
       `Your seat costs ${from ? "from " : ""}${price}. You order and pay for your own drinks at the table.`,
     infoLast: "Most guests come alone. If you bring someone, you sit together.",
-    changePreferences: "Change preferences",
   },
 };
 

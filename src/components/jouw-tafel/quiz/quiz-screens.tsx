@@ -205,7 +205,9 @@ function WelcomeCollage() {
             transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.05 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
             className="relative aspect-[3/4] w-full overflow-hidden rounded-[1.25rem] border-[3px] border-white bg-wine/10 shadow-[0_16px_36px_rgba(43,13,18,0.18)]"
           >
-            <Image src={f.photo} alt="" fill sizes="160px" className="object-cover" priority />
+            {/* The photos are landscape in a portrait frame, so object-cover
+                draws them about twice the frame's width: size for that. */}
+            <Image src={f.photo} alt="" fill sizes="340px" quality={90} className="object-cover" priority />
           </motion.div>
         </div>
       ))}

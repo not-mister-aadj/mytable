@@ -309,10 +309,10 @@ export function JouwTafelQuiz({
   geoCity: QuizCity | null;
   events: QuizEvent[];
   now: number;
-  /** Sign-ups per city, rounded down to tens, SIGNUP_COUNT_MIN and up only. */
+  /** Sign-ups per city, rounded up to hundreds, SIGNUP_COUNT_MIN and up only. */
   cityCounts: Record<string, number>;
   /** Distinct sign-ups per combination of our cities (keyed by cityMask),
-   * rounded down to tens, SIGNUP_COUNT_MIN and up only. */
+   * rounded up to hundreds, SIGNUP_COUNT_MIN and up only. */
   subsetCounts: Record<string, number>;
   testimonials: QuizTestimonial[];
   landingPath: string;

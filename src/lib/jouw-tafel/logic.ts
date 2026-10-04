@@ -10,6 +10,12 @@ export type QuizBracket = "20-39" | "35+";
  * the quiz's city count). Below it there is no number at all. */
 export const SIGNUP_COUNT_MIN = 100;
 
+/** How a sign-up count is shown: always rounded up to the next hundred
+ * (210 people reads "300+"). */
+export function roundSignupCount(n: number): number {
+  return Math.ceil(n / 100) * 100;
+}
+
 /** The eight largest cities of the Netherlands. Any other place is its own
  * place (a waitlist), never counted as one of these. */
 export const QUIZ_CITIES = [

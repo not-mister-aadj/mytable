@@ -12,6 +12,7 @@ import {
   SIGNUP_COUNT_MIN,
   displayCity,
   nearbyCities,
+  roundSignupCount,
   sameCity,
   spotsLeft,
   supportedCity,
@@ -545,7 +546,7 @@ export function cityMask(cities: readonly string[]): number {
 /**
  * Distinct sign-ups (by email) for every combination of our cities, keyed
  * by cityMask: someone signed up in Rotterdam and Den Haag counts once for
- * "Rotterdam + Den Haag". Rounded down to tens; combinations under `min`
+ * "Rotterdam + Den Haag". Rounded up to hundreds; combinations under `min`
  * are left out. Only these aggregates leave the server.
  */
 export function signupCountsBySubset(
@@ -566,7 +567,7 @@ export function signupCountsBySubset(
   for (let subset = 1; subset <= all; subset++) {
     let n = 0;
     for (const [mask, count] of perMask) if (mask & subset) n += count;
-    if (n >= min) out[String(subset)] = Math.floor(n / 10) * 10;
+    if (n >= min) out[String(subset)] = roundSignupCount(n);
   }
   return out;
 }

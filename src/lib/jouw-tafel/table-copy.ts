@@ -18,6 +18,8 @@ export type TableCopy = {
   bookedCta: string;
   expect: { title: string; items: string[] };
   good: { title: string; items: string[] };
+  /** "Nog twijfels?": the questions at the bottom of the table page. */
+  faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
   cta: {
     reserve: string;
     notify: string;
@@ -77,6 +79,60 @@ const nl: TableCopy = {
       "Je drankjes betaal je zelf aan tafel.",
     ],
   },
+  faq: {
+    eyebrow: "Vragen",
+    title: "Nog twijfels? Hier zijn de antwoorden",
+    items: [
+      {
+        q: "Wat is Sunday Table?",
+        a: "Een tafel van 4 tot 6 mensen die je nog niet kent, in een goede wijnbar in jouw stad. Je boekt een plek, schuift aan en ontdekt samen een nieuwe plek. Wij geven onze eigen wijnaanraders mee.",
+      },
+      {
+        q: "Voor wie is deze tafel?",
+        a: "Voor wie houdt van een goed glas en een goed gesprek. Je hoeft niemand mee te nemen: de meeste gasten komen alleen.",
+      },
+      {
+        q: "Wat kost het?",
+        a: "€15 voor je plek aan tafel, of inbegrepen als je lid bent. Drankjes en bites bestel en betaal je zelf aan tafel, van de kaart van de wijnbar.",
+      },
+      {
+        q: "Hoe groot is een tafel?",
+        a: "4 tot 6 mensen. Vaak zitten er meer tafels in dezelfde wijnbar.",
+      },
+      {
+        q: "Waar is het?",
+        a: "Altijd in een goede wijnbar in jouw stad. Zodra we weten met hoeveel jullie zijn, kiezen we de plek. Een week van tevoren hoor je waar.",
+      },
+      {
+        q: "Wanneer kan ik boeken?",
+        a: "Vanaf ongeveer 4 weken van tevoren. Bij de tafel zie je vanaf welke dag.",
+      },
+      {
+        q: "Wat is Ladies only?",
+        a: "Kies je bij Kies je zondag voor Ladies only, dan zetten we je aan een tafel met alleen vrouwen. Heb je aangevinkt dat een mixed table ook goed is, dan schuif je aan bij een mixed table als het een keer niet lukt.",
+      },
+      {
+        q: "Moet ik allergieën of dieetwensen doorgeven?",
+        a: "Nee, dat hoeft niet vooraf. Je bestelt zelf van de kaart, dus je kiest wat bij je past.",
+      },
+      {
+        q: "Hoe lang duurt het?",
+        a: "Reken op 2 tot 3 uur. Soms blijft een tafel daarna nog samen eten. Wil je eerder weg? Dat kan gewoon.",
+      },
+      {
+        q: "Gaat het altijd door?",
+        a: "Een tafel gaat door vanaf 4 gasten. Lukt dat niet, dan krijg je je geld automatisch terug en stellen we je een andere datum voor.",
+      },
+      {
+        q: "Kan ik mijn datum wijzigen?",
+        a: "Ja. Tot 7 dagen voor je tafel kies je kosteloos een andere zondag. Daarna kan het niet meer, omdat we dan de wijnbar reserveren.",
+      },
+      {
+        q: "Wat als het niet klikt?",
+        a: "Laat het ons binnen 2 dagen na je tafel weten, dan is je volgende Sunday Table op ons. Zo kun je het nog een keer proberen, aan een andere tafel.",
+      },
+    ],
+  },
   cta: {
     reserve: "Reserveer je plek",
     notify: "Houd me op de hoogte",
@@ -134,6 +190,60 @@ const en: TableCopy = {
       "Free to move up to 7 days before.",
       "A table goes ahead from 4 guests. If not, you get your money back.",
       "You pay for your own drinks at the table.",
+    ],
+  },
+  faq: {
+    eyebrow: "Questions",
+    title: "Still on the fence? Here are the answers",
+    items: [
+      {
+        q: "What is Sunday Table?",
+        a: "A table of 4 to 6 people you have not met yet, in a good wine bar in your city. You book a seat, join the table and discover a new place together. We add our own wine picks.",
+      },
+      {
+        q: "Who is this table for?",
+        a: "For anyone who enjoys a good glass and a good conversation. No need to bring anyone: most guests come alone.",
+      },
+      {
+        q: "What does it cost?",
+        a: "€15 for your seat at the table, or included if you are a member. Drinks and bites you order and pay yourself at the table, from the wine bar's menu.",
+      },
+      {
+        q: "How big is a table?",
+        a: "4 to 6 people. There are often more tables in the same wine bar.",
+      },
+      {
+        q: "Where is it?",
+        a: "Always in a good wine bar in your city. Once we know how many of you there are, we choose the place. A week before, you hear where.",
+      },
+      {
+        q: "When can I book?",
+        a: "From about 4 weeks before. The table shows from which day.",
+      },
+      {
+        q: "What is Ladies only?",
+        a: "Choose Ladies only on Choose your Sunday and we seat you at a table with women only. If you ticked that a mixed table is fine too, you join a mixed table when it does not work out.",
+      },
+      {
+        q: "Do I need to share allergies or dietary needs?",
+        a: "No need beforehand. You order from the menu yourself, so you pick what suits you.",
+      },
+      {
+        q: "How long does it last?",
+        a: "Plan for 2 to 3 hours. Some tables stay on for dinner together afterwards. Want to leave earlier? That is fine.",
+      },
+      {
+        q: "Does it always go ahead?",
+        a: "A table goes ahead from 4 guests. If it does not, you get your money back automatically and we suggest another date.",
+      },
+      {
+        q: "Can I change my date?",
+        a: "Yes. Up to 7 days before your table you can pick another Sunday at no cost. After that it is no longer possible, because we book the wine bar then.",
+      },
+      {
+        q: "What if it does not click?",
+        a: "Let us know within 2 days after your table and your next Sunday Table is on us. So you can try again, at another table.",
+      },
     ],
   },
   cta: {

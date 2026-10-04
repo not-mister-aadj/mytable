@@ -54,6 +54,32 @@ export function TableHeader({ href, label, title }: { href: string; label: strin
   );
 }
 
+/** "Nog twijfels?": the same questions block as the Sunday Social pages. */
+function TableFaq({ faq }: { faq: { eyebrow: string; title: string; items: { q: string; a: string }[] } }) {
+  return (
+    <section className="mt-12">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{faq.eyebrow}</p>
+      <h2 className="mt-3 font-serif text-[1.6rem] font-medium leading-tight tracking-tight text-wine">{faq.title}</h2>
+      <div className="mt-6 divide-y divide-wine/10 rounded-[1.5rem] border border-wine/10 bg-white/70 px-5 shadow-[0_20px_50px_rgba(43,13,18,0.06)]">
+        {faq.items.map((item) => (
+          <details key={item.q} className="group py-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-serif text-[1.1rem] font-medium leading-snug tracking-tight text-wine [&::-webkit-details-marker]:hidden">
+              {item.q}
+              <span
+                aria-hidden
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-wine/8 text-base leading-none text-wine/60 transition-transform duration-200 group-open:rotate-45"
+              >
+                +
+              </span>
+            </summary>
+            <p className="mt-2 text-[0.95rem] leading-relaxed text-wine/65">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ListSection({ title, items, numbered = false }: { title: string; items: string[]; numbered?: boolean }) {
   return (
     <section className="mt-9">
@@ -137,6 +163,7 @@ export function JouwTafelTable({
         <ListSection title={t.how.title} items={t.how.steps(time)} numbered />
         <ListSection title={t.expect.title} items={t.expect.items} />
         <ListSection title={t.good.title} items={t.good.items} />
+        <TableFaq faq={t.faq} />
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-wine/10 bg-cream/95 backdrop-blur-md">

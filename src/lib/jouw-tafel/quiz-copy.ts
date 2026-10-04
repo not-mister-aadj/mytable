@@ -133,7 +133,8 @@ export type QuizCopy = {
     total: (price: string) => string;
     reserve: string;
     reserving: string;
-    guarantee: string;
+    /** Short promises under the Reserveer button. */
+    guarantees: string[];
     notify: string;
     notified: string;
     noMatch: (city: string) => string;
@@ -363,8 +364,11 @@ const nl: QuizCopy = {
     total: (price) => `Totaal €${price}`,
     reserve: "Reserveer",
     reserving: "Even geduld...",
-    guarantee:
-      "Gratis verzetten tot 7 dagen vooraf. Gaat de tafel niet door, dan krijg je je geld automatisch terug.",
+    guarantees: [
+      "Gratis verzetten tot 7 dagen vooraf",
+      "7 dagen vooraf weet je of je tafel doorgaat",
+      "Gaat hij niet door, dan krijg je je geld terug",
+    ],
     notify: "Houd me op de hoogte",
     notified: "Genoteerd. Je hoort het als eerste.",
     noMatch: (city) =>
@@ -583,8 +587,11 @@ const en: QuizCopy = {
     total: (price) => `Total €${price}`,
     reserve: "Reserve",
     reserving: "One moment...",
-    guarantee:
-      "Free to move up to 7 days before. If the table doesn't go ahead, you get your money back automatically.",
+    guarantees: [
+      "Free to move up to 7 days before",
+      "7 days before, you'll know if your table goes ahead",
+      "If it doesn't, you get your money back",
+    ],
     notify: "Keep me posted",
     notified: "Noted. You'll be the first to hear.",
     noMatch: (city) =>

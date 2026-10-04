@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { CheckIcon, InfoIcon, PinIcon, ShieldIcon } from "@/components/jouw-tafel/icons";
+import { CheckIcon, InfoIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { getStoredUtm } from "@/lib/analytics/utm";
@@ -438,10 +438,6 @@ export function QuizChoose({
                   </p>
                 </div>
                 {maxSeats < 2 ? <p className="mt-2 text-xs text-wine/60">{k.onlyOneLeft}</p> : null}
-                <p className="mt-3 flex items-start gap-2 text-[0.8rem] leading-snug text-wine/60">
-                  <ShieldIcon className="mt-px h-4 w-4 shrink-0 text-gold" />
-                  {k.guarantee}
-                </p>
                 <button
                   type="button"
                   className={`${primaryButton} mt-3.5`}
@@ -455,6 +451,14 @@ export function QuizChoose({
                     {error}
                   </p>
                 ) : null}
+                <ul className="mx-auto mt-3 w-fit space-y-1 text-[0.8rem] leading-snug text-wine/60">
+                  {k.guarantees.map((line) => (
+                    <li key={line} className="flex items-center gap-1.5">
+                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-gold" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
             </>
           </motion.div>
         </div>

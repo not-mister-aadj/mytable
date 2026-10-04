@@ -14,6 +14,7 @@ import {
   metaLeadEventId,
   metaPurchaseEventId,
   metaQuizLeadEventId,
+  metaSubscribeEventId,
 } from "@/lib/analytics/metaIds";
 import {
   enrichmentToUserData,
@@ -166,6 +167,38 @@ export async function sendMetaCapiQuizLead(input: {
       input.userData,
     ),
     customData: { source: "quiz", city: input.city },
+  });
+}
+
+/** A started membership (server side of subscribe in metaPixel.ts), same
+ * event id per subscription so Meta deduplicates it with the browser Pixel.
+ * Value is the first payment of the plan. */
+export async function sendMetaCapiSubscribe(input: {
+  subscriptionId: string;
+  email: string;
+  plan: string;
+  valueCents: number;
+  locale: Locale;
+  userData?: MetaCapiUserData;
+}): Promise<boolean> {
+  const enrichment = await loadCustomerMetaEnrichment(input.email);
+  const path = input.locale === "en" ? "/en/your-table/membership" : "/jouw-tafel/lid";
+  return sendMetaCapiEvent({
+    eventName: "Subscribe",
+    eventId: metaSubscribeEventId(input.subscriptionId),
+    eventSourceUrl: `${getSiteUrl()}${path}`,
+    userData: mergeMetaCapiUserData(
+      { email: input.email, country: "nl" },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
+    customData: {
+      value: input.valueCents / 100,
+      currency: "EUR",
+      content_name: `membership_${input.plan}`,
+      content_type: "product",
+      plan: input.plan,
+    },
   });
 }
 

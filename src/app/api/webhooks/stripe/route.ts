@@ -9,6 +9,12 @@ import { getStripe } from "@/lib/stripe";
 import { fulfillPaidCheckoutSession } from "@/lib/stripe/fulfill-checkout";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import {
+  fulfillMembershipCheckout,
+  invoiceSubscriptionId,
+  isMembershipCheckout,
+  syncMembershipSubscription,
+} from "@/lib/membership/fulfill";
+import {
   captureCriticalError,
   captureCriticalMessage,
 } from "@/lib/sentry/critical";
@@ -42,6 +48,12 @@ export async function POST(request: Request) {
   }
 
   const db = getDb();
+
+  // Sunday Table membership (subscription mode Checkout, subscription and
+  // invoice events). A failure answers 500 so Stripe retries; everything in
+  // there is idempotent.
+  const membershipResponse = await handleMembershipEvent(event);
+  if (membershipResponse) return membershipResponse;
 
   if (
     event.type === "checkout.session.completed" ||
@@ -170,4 +182,72 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+const SUBSCRIPTION_EVENTS = new Set([
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+]);
+
+const INVOICE_EVENTS = new Set(["invoice.paid", "invoice.payment_failed"]);
+
+async function handleMembershipEvent(
+  event: import("stripe").Stripe.Event,
+): Promise<NextResponse | null> {
+  try {
+    if (event.type.startsWith("checkout.session.")) {
+      const session = event.data.object as import("stripe").Stripe.Checkout.Session;
+      if (!isMembershipCheckout(session)) return null;
+      if (
+        event.type === "checkout.session.completed" ||
+        event.type === "checkout.session.async_payment_succeeded"
+      ) {
+        const result = await fulfillMembershipCheckout(session);
+        if (!result.ok && result.reason !== "not_paid") {
+          captureCriticalMessage(`Membership fulfil skipped: ${result.reason}`, {
+            flow: "payment",
+            step: "membership_fulfill",
+            tags: { session_id: session.id, stripe_event: event.type },
+          });
+        }
+      } else if (
+        event.type === "checkout.session.expired" ||
+        event.type === "checkout.session.async_payment_failed"
+      ) {
+        const bookingId = session.metadata?.member_booking_id;
+        if (bookingId) {
+          await getDb()
+            .update(bookings)
+            .set({ paymentStatus: "failed" })
+            .where(and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "pending")));
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
+
+    if (SUBSCRIPTION_EVENTS.has(event.type)) {
+      const sub = event.data.object as import("stripe").Stripe.Subscription;
+      if (sub.metadata?.kind !== "membership") return null;
+      await syncMembershipSubscription(sub.id);
+      return NextResponse.json({ received: true });
+    }
+
+    if (INVOICE_EVENTS.has(event.type)) {
+      const invoice = event.data.object as import("stripe").Stripe.Invoice;
+      const subscriptionId = invoiceSubscriptionId(invoice);
+      if (!subscriptionId) return null;
+      await syncMembershipSubscription(subscriptionId);
+      return NextResponse.json({ received: true });
+    }
+  } catch (err) {
+    console.error("[stripe webhook] membership", err);
+    captureCriticalError(err, {
+      flow: "payment",
+      step: "membership_webhook",
+      tags: { stripe_event: event.type, event_id: event.id },
+    });
+    return NextResponse.json({ error: "membership handling failed" }, { status: 500 });
+  }
+  return null;
 }

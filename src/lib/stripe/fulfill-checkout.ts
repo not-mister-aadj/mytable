@@ -197,6 +197,15 @@ export async function fulfillPaidCheckoutSession(
   session: Stripe.Checkout.Session,
   options?: FulfillCheckoutOptions,
 ): Promise<FulfillCheckoutResult> {
+  // A membership Checkout (subscription mode) has its own fulfilment; this
+  // path is reached from the pending-checkout sync and the return page.
+  if (session.metadata?.kind === "membership") {
+    const { fulfillMembershipCheckout } = await import("@/lib/membership/fulfill");
+    const result = await fulfillMembershipCheckout(session);
+    if (result.ok) return "fulfilled";
+    return result.reason === "not_paid" ? "not_paid" : "missing_metadata";
+  }
+
   const bookingId = session.metadata?.booking_id;
   const eventId = session.metadata?.event_id;
 

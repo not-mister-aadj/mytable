@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRef, useState, type KeyboardEvent } from "react";
-import { CheckIcon } from "@/components/jouw-tafel/icons";
 import { primaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 import { tableDate, tableTime } from "@/components/jouw-tafel/table/JouwTafelTable";
 import { Guarantees, PriceRow, SeatPicker, euros } from "@/components/jouw-tafel/table/JouwTafelReserve";
@@ -30,15 +29,6 @@ function ArrowRight({ className = "h-4 w-4" }: { className?: string }) {
     <svg viewBox="0 0 24 24" aria-hidden className={className} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
-  );
-}
-
-/** Gold round badge with a check, for the benefit rows. */
-function CheckBadge() {
-  return (
-    <span aria-hidden className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/[0.18] text-[#8a6430] ring-1 ring-gold/30">
-      <CheckIcon className="h-3 w-3" />
-    </span>
   );
 }
 
@@ -142,16 +132,6 @@ export function ReservePaywall({
       {proofCount !== null ? (
         <p className="mt-3 text-center text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-gold">{r.proof(proofCount)}</p>
       ) : null}
-
-      {/* What you get */}
-      <ul className="mt-4 space-y-2">
-        {r.benefits(city).map((line) => (
-          <li key={line} className="flex items-center gap-2.5 text-[0.88rem] leading-snug text-wine/85">
-            <CheckBadge />
-            {line}
-          </li>
-        ))}
-      </ul>
 
       {/* Plans */}
       <h2 className="mt-6 font-serif text-[1.45rem] font-medium leading-tight tracking-tight text-wine">{r.chooseTitle}</h2>

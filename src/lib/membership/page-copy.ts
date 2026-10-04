@@ -501,7 +501,6 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
 
 export type MembershipReserveCopy = {
   proof: (count: number) => string;
-  benefits: (city: string) => [string, string, string];
   chooseTitle: string;
   planLabel: (id: MembershipPlanId) => string;
   save: (price: string) => string;
@@ -531,11 +530,6 @@ export function getMembershipReserveCopy(locale: Locale): MembershipReserveCopy 
   if (locale === "en") {
     return {
       proof: (count) => `${count}+ people already signed up`,
-      benefits: (city) => [
-        `Cosy Sunday afternoons at the table in ${city}`,
-        "Just book and show up, we take care of the rest",
-        "Bring someone along at the member price",
-      ],
       chooseTitle: "Choose what suits you",
       planLabel: (id) => (id === "1m" ? "1 month" : id === "4m" ? "4 months" : "1 year"),
       save: (price) => `Save ${price}`,
@@ -562,11 +556,6 @@ export function getMembershipReserveCopy(locale: Locale): MembershipReserveCopy 
   }
   return {
     proof: (count) => `Al ${count}+ mensen aangemeld`,
-    benefits: (city) => [
-      `Gezellige zondagmiddagen aan tafel in ${city}`,
-      "Gewoon reserveren en aanschuiven, wij regelen de rest",
-      "Neem iemand mee voor de ledenprijs",
-    ],
     chooseTitle: "Kies wat bij je past",
     planLabel: (id) => (id === "1m" ? "1 maand" : id === "4m" ? "4 maanden" : "1 jaar"),
     save: (price) => `Bespaar ${price}`,

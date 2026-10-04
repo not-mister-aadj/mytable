@@ -19,7 +19,7 @@ import {
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
-import type { ClientMembership } from "@/lib/membership/logic";
+import { fromClientMembership, memberBookingDecision, type ClientMembership } from "@/lib/membership/logic";
 import { earlyBlocked, earlyChip } from "@/lib/membership/early-label";
 import { trackMembershipEvent } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
@@ -60,12 +60,19 @@ const CHIP_TONE: Record<ChipTone, string> = {
 };
 
 /** "Nog maar 3 plekken" (wine), "Plekken vrij" (gold), "Binnenkort" (grey). */
-export function spotsChip(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): { text: string; tone: ChipTone } {
+export function spotsChip(
+  event: QuizEvent,
+  locale: Locale,
+  copy: QuizCopy["kies"],
+  asMember = false,
+): { text: string; tone: ChipTone } {
   if (event.comingSoon) {
-    // Not bookable yet: say from when (members can book from that day).
-    if (event.opensAt) {
-      const { day, month } = dateParts(event.opensAt, locale);
-      return { text: copy.opensFrom(`${day} ${month}`), tone: "grey" };
+    // Not bookable yet: the day this person can book (members 2 days
+    // before everyone else).
+    const from = asMember ? event.opensAt : event.membersOnlyUntil ?? event.opensAt;
+    if (from) {
+      const { weekday, day, month } = dateParts(from, locale);
+      return { text: copy.opensFrom(`${locale === "en" ? weekday : weekday.toLocaleLowerCase("nl-NL")} ${day} ${month}`), tone: "grey" };
     }
     return { text: copy.soonBadge, tone: "grey" };
   }
@@ -154,7 +161,7 @@ export function QuizChoose({
     handlers.onViewed({ tables_shown: rows.length, has_match: hasMatch });
   }, [handlers, rows.length, hasMatch]);
 
-  // early_access_blocked_view: once per table shown as "Leden boeken nu".
+  // early_access_blocked_view: once per table shown as not bookable yet for a non-member.
   const earlySeen = useRef(new Set<string>());
   useEffect(() => {
     for (const row of openRows) {
@@ -195,7 +202,9 @@ export function QuizChoose({
   function tableCard(row: ChooseRow, index: number) {
     const event = row.event;
     const soon = event.comingSoon;
-    const chip = earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k);
+    const asMember =
+      memberBookingDecision(fromClientMembership(membership), new Date(event.startsAt), now).kind === "included";
+    const chip = earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember);
     return (
       <motion.li
         key={event.id}

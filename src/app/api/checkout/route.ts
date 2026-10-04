@@ -297,8 +297,8 @@ export async function POST(request: Request) {
         until: membersOnlyUntil?.toISOString() ?? null,
         error:
           locale === "en"
-            ? `Members are booking now, you can from ${openFromLabel(membersOnlyUntil!, locale)}.`
-            : `Leden boeken nu, jij vanaf ${openFromLabel(membersOnlyUntil!, locale)}.`,
+            ? `You can book this table from ${openFromLabel(membersOnlyUntil!, locale)}.`
+            : `Je kunt deze tafel boeken vanaf ${openFromLabel(membersOnlyUntil!, locale)}.`,
       },
       { status: 409 },
     );

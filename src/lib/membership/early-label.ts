@@ -1,4 +1,5 @@
-// "Leden boeken nu, jij vanaf ..." for tables in the members' 48 hours.
+// "Te boeken vanaf ..." for a non-member during the members' 48 hours: only
+// what applies to the person looking, never what members can do.
 // Pure and usable on the server and the client.
 
 import type { QuizEvent } from "@/lib/jouw-tafel/logic";
@@ -29,6 +30,11 @@ export function openFrom(iso: string, locale: Locale): string {
   return `${date} ${time}`;
 }
 
+/** "di 6 okt" / "Tue 6 Oct": the day only, for a short chip. */
+export function openFromDay(iso: string, locale: Locale): string {
+  return openFrom(iso, locale).split(" ").slice(0, 3).join(" ");
+}
+
 /** Members-only right now, and this person cannot book it yet. */
 export function earlyBlocked(event: QuizEvent, membership: ClientMembership | null, now: number): boolean {
   if (event.comingSoon || !isMembersOnly(event.membersOnlyUntil ?? null, now)) return false;
@@ -43,5 +49,5 @@ export function earlyChip(
   now: number,
 ): { text: string; tone: "gold" } | null {
   if (!earlyBlocked(event, membership, now) || !event.membersOnlyUntil) return null;
-  return { text: getMembershipKiesCopy(locale).earlyLabel(openFrom(event.membersOnlyUntil, locale)), tone: "gold" };
+  return { text: getMembershipKiesCopy(locale).earlyLabel(openFromDay(event.membersOnlyUntil, locale)), tone: "gold" };
 }

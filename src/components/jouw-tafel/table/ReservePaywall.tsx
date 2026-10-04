@@ -9,7 +9,7 @@ import type { Locale } from "@/i18n/config";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS, displayCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { getTableCopy } from "@/lib/jouw-tafel/table-copy";
 import { maxSeats, singleTotalCents } from "@/lib/jouw-tafel/table-logic";
-import { openFrom } from "@/lib/membership/early-label";
+import { openFromDay } from "@/lib/membership/early-label";
 import { getMembershipKiesCopy, getMembershipReserveCopy } from "@/lib/membership/page-copy";
 import {
   DEFAULT_MEMBERSHIP_PLAN,
@@ -257,7 +257,7 @@ export function ReservePaywall({
               {r.singleTitle(euros(JOUW_TAFEL_SEAT_PRICE_CENTS))}
             </span>
             <span className="mt-0.5 block text-[0.85rem] text-wine/55">
-              {early && event.membersOnlyUntil ? mk.earlyLabel(openFrom(event.membersOnlyUntil, locale)) : r.singleLine(date, time)}
+              {early && event.membersOnlyUntil ? mk.earlyLabel(openFromDay(event.membersOnlyUntil, locale)) : r.singleLine(date, time)}
             </span>
           </span>
           {early ? null : (

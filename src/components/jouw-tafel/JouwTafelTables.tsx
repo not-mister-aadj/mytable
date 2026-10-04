@@ -16,17 +16,12 @@ import {
 } from "@/lib/jouw-tafel/logic";
 import { ease } from "@/lib/motion";
 import { PinIcon } from "@/components/jouw-tafel/icons";
+import { openFromDay } from "@/lib/membership/early-label";
+import { isMembersOnly } from "@/lib/membership/logic";
 
 const AMSTERDAM = "Europe/Amsterdam";
 
 /** "Zo 25 okt" / "Sun 25 Oct". */
-/** "4 okt" / "4 Oct": when a table opens for booking. */
-function dayMonth(iso: string, locale: Locale): string {
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { timeZone: AMSTERDAM, day: "numeric", month: "short" })
-    .format(new Date(iso))
-    .replace(/\.$/, "");
-}
-
 function shortDate(iso: string, locale: Locale): string {
   const parts = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
     timeZone: AMSTERDAM,
@@ -143,9 +138,13 @@ export function JouwTafelTables({
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      {event.comingSoon ? (
+                      {/* A visitor here is not a member yet: a table in the
+                          members' days opens for them later too. */}
+                      {event.comingSoon || isMembersOnly(event.membersOnlyUntil ?? null, now) ? (
                         <span className="inline-flex rounded-full border border-gold/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/70">
-                          {event.opensAt ? copy.opensFrom(dayMonth(event.opensAt, locale)) : copy.comingSoon}
+                          {event.membersOnlyUntil ?? event.opensAt
+                            ? copy.opensFrom(openFromDay((event.membersOnlyUntil ?? event.opensAt)!, locale))
+                            : copy.comingSoon}
                         </span>
                       ) : (
                         <span className="text-sm font-semibold text-burgundy">

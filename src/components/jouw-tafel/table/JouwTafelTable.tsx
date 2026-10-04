@@ -97,7 +97,7 @@ export function JouwTafelTable({
   kiesHref: string;
   reserveHref: string;
   cta?: ReactNode;
-  /** Replaces the spots chip (the membership's "Leden boeken nu"). */
+  /** Replaces the spots chip (a non-member's "Te boeken vanaf ..."). */
   chip?: { text: string; tone: keyof typeof CHIP_TONE };
 }) {
   const t = getTableCopy(locale);

@@ -214,9 +214,11 @@ export async function POST(request: Request) {
 
   // The date page only offers a ticket for "English" on tables that can seat
   // English speakers. Guard it here too, so nobody who only speaks English
-  // ends up at a Dutch-speaking table.
+  // ends up at a Dutch-speaking table. Not for the jouw-tafel funnel: there
+  // everyone can always book, and tables are matched by hand afterwards.
   if (
     isSundayTable &&
+    body.source !== JOUW_TAFEL_CHECKOUT_SOURCE &&
     !isEnglishOpenForSundayTable(event.id) &&
     tableLanguagePreference === "prefer_english"
   ) {

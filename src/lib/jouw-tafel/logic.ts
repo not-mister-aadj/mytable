@@ -3,6 +3,7 @@
 // server side lives in ./data.ts.
 
 import { cityMatchKey } from "@/lib/waitlist-city";
+import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
 
 export type QuizBracket = "20-39" | "35+";
 
@@ -47,7 +48,63 @@ export type QuizEvent = {
   englishOpen: boolean;
   /** Members book first: everyone else from this moment (ISO), or null. */
   membersOnlyUntil?: string | null;
+  /** When booking opens (for members first), ISO; shown on a table that is
+   * not bookable yet. */
+  opensAt?: string | null;
 };
+
+/** Members can book a Sunday Table this many days before its date;
+ * everyone else EARLY_ACCESS_HOURS later. With a 4-week rhythm per city
+ * the next date opens for members the day the previous one takes place,
+ * so there is always a table to book. */
+export const JOUW_TAFEL_MEMBERS_OPEN_DAYS = 28;
+
+/** A city shows at most this many upcoming dates. */
+export const JOUW_TAFEL_DATES_PER_CITY = 2;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** When members, and then everyone, can book a Sunday Table. */
+export function jouwTafelBookingWindow(startsAt: Date | string): { membersFrom: Date; everyoneFrom: Date } {
+  const start = typeof startsAt === "string" ? Date.parse(startsAt) : startsAt.getTime();
+  const membersFrom = start - JOUW_TAFEL_MEMBERS_OPEN_DAYS * DAY_MS;
+  return { membersFrom: new Date(membersFrom), everyoneFrom: new Date(membersFrom + EARLY_ACCESS_HOURS * 60 * 60 * 1000) };
+}
+
+/**
+ * A table as the client sees it at `now`: not bookable ("comingSoon")
+ * before members can book, members only until everyone can (an admin's
+ * later members_only_until wins), and when it opens.
+ */
+export function withBookingWindow<T extends { startsAt: string; comingSoon: boolean; membersOnlyUntil?: string | null }>(
+  event: T,
+  now: number = Date.now(),
+): T & { opensAt: string } {
+  const { membersFrom, everyoneFrom } = jouwTafelBookingWindow(event.startsAt);
+  const stored = event.membersOnlyUntil ? Date.parse(event.membersOnlyUntil) : 0;
+  return {
+    ...event,
+    comingSoon: event.comingSoon || now < membersFrom.getTime(),
+    membersOnlyUntil: new Date(Math.max(stored, everyoneFrom.getTime())).toISOString(),
+    opensAt: membersFrom.toISOString(),
+  };
+}
+
+/** The next JOUW_TAFEL_DATES_PER_CITY dates of each city (by start). */
+export function nextDatesPerCity<T extends { city: string; startsAt: string }>(
+  events: readonly T[],
+  perCity: number = JOUW_TAFEL_DATES_PER_CITY,
+): T[] {
+  const seen = new Map<string, number>();
+  return [...events]
+    .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))
+    .filter((e) => {
+      const key = cityMatchKey(e.city);
+      const n = seen.get(key) ?? 0;
+      seen.set(key, n + 1);
+      return n < perCity;
+    });
+}
 
 /** Centres of our cities (the woonplaats centroid from PDOK, see
  * nl-places.json; Den Haag is 's-Gravenhage). */

@@ -60,7 +60,7 @@ function openFromLabel(date: Date, locale: Locale): string {
     minute: "2-digit",
   }).format(date);
 }
-import { JOUW_TAFEL_CHECKOUT_SOURCE, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_CHECKOUT_SOURCE, jouwTafelBookingWindow, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -235,6 +235,26 @@ export async function POST(request: Request) {
     );
   }
 
+  // A Sunday Table opens for members 4 weeks before its date and for
+  // everyone 2 days later (an admin's later members_only_until wins).
+  const bookingWindow = isJouwTafel ? jouwTafelBookingWindow(event.startsAt) : null;
+  if (bookingWindow && Date.now() < bookingWindow.membersFrom.getTime()) {
+    return NextResponse.json(
+      {
+        code: "not_open",
+        until: bookingWindow.membersFrom.toISOString(),
+        error:
+          locale === "en"
+            ? `You can book this table from ${openFromLabel(bookingWindow.membersFrom, locale)}.`
+            : `Je kunt deze tafel boeken vanaf ${openFromLabel(bookingWindow.membersFrom, locale)}.`,
+      },
+      { status: 409 },
+    );
+  }
+  const membersOnlyUntil = bookingWindow
+    ? new Date(Math.max(event.membersOnlyUntil?.getTime() ?? 0, bookingWindow.everyoneFrom.getTime()))
+    : event.membersOnlyUntil;
+
   // Members (Sunday Table): own seat included, a guest at the member price,
   // and they book first. Everyone else waits until members_only_until.
   let memberDecision: MemberBookingDecision = { kind: "non_member" };
@@ -270,15 +290,15 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   }
-  if (isJouwTafel && !earlyAccessAllows(memberDecision, event.membersOnlyUntil)) {
+  if (isJouwTafel && !earlyAccessAllows(memberDecision, membersOnlyUntil)) {
     return NextResponse.json(
       {
         code: "members_only",
-        until: event.membersOnlyUntil?.toISOString() ?? null,
+        until: membersOnlyUntil?.toISOString() ?? null,
         error:
           locale === "en"
-            ? `Members are booking now, you can from ${openFromLabel(event.membersOnlyUntil!, locale)}.`
-            : `Leden boeken nu, jij vanaf ${openFromLabel(event.membersOnlyUntil!, locale)}.`,
+            ? `Members are booking now, you can from ${openFromLabel(membersOnlyUntil!, locale)}.`
+            : `Leden boeken nu, jij vanaf ${openFromLabel(membersOnlyUntil!, locale)}.`,
       },
       { status: 409 },
     );

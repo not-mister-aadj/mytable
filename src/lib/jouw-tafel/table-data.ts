@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, bracketFromEventName, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, bracketFromEventName, withBookingWindow, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 /** One published Sunday Table for the table page, as the client gets it
@@ -16,7 +16,7 @@ export async function getFunnelTable(slug: string): Promise<QuizEvent | null> {
     .limit(1);
   if (!row) return null;
   const bracket = bracketFromEventName(row.nameNl);
-  return {
+  return withBookingWindow({
     id: row.id,
     slug: row.slug,
     city: row.city,
@@ -28,7 +28,7 @@ export async function getFunnelTable(slug: string): Promise<QuizEvent | null> {
     comingSoon: Boolean(row.extras?.comingSoon),
     englishOpen: isEnglishOpenForSundayTable(row.id),
     membersOnlyUntil: row.membersOnlyUntil?.toISOString() ?? null,
-  };
+  });
 }
 
 /** Request time for the table pages (outside render, for the purity rule). */

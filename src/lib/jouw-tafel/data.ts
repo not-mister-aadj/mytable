@@ -4,7 +4,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
@@ -140,7 +140,12 @@ export async function getWaitlistProof(
  * "no tables" when there are. */
 export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: number }> {
   try {
-    return { events: await getCachedEvents(), now: Date.now() };
+    // The booking window depends on the moment, so it is applied after the
+    // cache: members from 4 weeks before, everyone 2 days later, and only
+    // the next two dates of each city.
+    const now = Date.now();
+    const events = nextDatesPerCity(await getCachedEvents()).map((e) => withBookingWindow(e, now));
+    return { events, now };
   } catch (error) {
     console.error("[jouw-tafel] loading events failed", error);
     if (process.env.NEXT_PHASE === "phase-production-build") return { events: [], now: Date.now() };

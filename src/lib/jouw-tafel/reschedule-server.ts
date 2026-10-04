@@ -10,6 +10,7 @@ import {
   type RescheduleCandidate,
 } from "@/lib/jouw-tafel/reschedule-logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
+import { jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
 export type RescheduleOption =
   | { state: "available"; targetEventId: string; targetStartsAt: string }
@@ -35,7 +36,8 @@ function toCandidate(e: Event): RescheduleCandidate {
     spotsSold: e.spotsSold,
     workflowStatus: e.workflowStatus,
     experienceType: e.experienceType,
-    comingSoon: Boolean(e.extras?.comingSoon),
+    // Only a table that is open for booking (at least for members).
+    comingSoon: Boolean(e.extras?.comingSoon) || Date.now() < jouwTafelBookingWindow(e.startsAt).membersFrom.getTime(),
   };
 }
 

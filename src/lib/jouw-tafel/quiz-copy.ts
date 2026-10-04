@@ -126,6 +126,8 @@ export type QuizCopy = {
     comingSoon: string;
     spotsOpen: string;
     soonBadge: string;
+    /** "Vanaf 4 okt": a table that opens for booking later. */
+    opensFrom: (date: string) => string;
     /** Short promises on the reserve step. */
     guarantees: string[];
     notify: string;
@@ -352,6 +354,7 @@ const nl: QuizCopy = {
     comingSoon: "Binnenkort",
     spotsOpen: "Plekken vrij",
     soonBadge: "Binnenkort",
+    opensFrom: (date) => `Vanaf ${date}`,
     guarantees: [
       "Gratis verzetten tot 7 dagen vooraf",
       "7 dagen vooraf weet je of je tafel doorgaat",
@@ -570,6 +573,7 @@ const en: QuizCopy = {
     comingSoon: "Coming soon",
     spotsOpen: "Seats available",
     soonBadge: "Coming soon",
+    opensFrom: (date) => `From ${date}`,
     guarantees: [
       "Free to move up to 7 days before",
       "7 days before, you'll know if your table goes ahead",

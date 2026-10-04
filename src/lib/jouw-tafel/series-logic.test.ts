@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { addDays, isIsoDate, isPaused, seriesDates, seriesWindow, weekday } from "./series-logic";
+import { addDays, datesToCreate, isIsoDate, isPaused, seriesDates, seriesWindow, weekday } from "./series-logic";
 
 const BREAK = [{ startsOn: "2026-12-20", endsOn: "2027-01-10" }];
 const ROTTERDAM = { firstDate: "2026-11-01", intervalWeeks: 4, active: true };
@@ -48,4 +48,13 @@ test("the cron window is today plus 10 weeks", () => {
   assert.deepEqual(seriesWindow("2026-10-04"), { from: "2026-10-04", to: "2026-12-13" });
   assert.ok(isPaused("2026-12-27", BREAK));
   assert.ok(!isPaused("2027-01-17", BREAK));
+});
+
+test("datesToCreate: always the next two dates, also past a break", () => {
+  const window = seriesWindow("2026-10-04");
+  const utrecht = { firstDate: "2026-11-22", intervalWeeks: 4, active: true };
+  assert.deepEqual(datesToCreate(utrecht, window, BREAK), ["2026-11-22", "2027-01-17"]);
+  const denHaag = { firstDate: "2026-11-08", intervalWeeks: 4, active: true };
+  assert.deepEqual(datesToCreate(denHaag, window, BREAK), ["2026-11-08", "2026-12-06"]);
+  assert.deepEqual(datesToCreate({ ...denHaag, active: false }, window, BREAK), []);
 });

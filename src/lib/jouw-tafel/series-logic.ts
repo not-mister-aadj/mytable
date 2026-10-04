@@ -81,6 +81,29 @@ export function seriesWindow(today: string, horizonDays = SERIES_HORIZON_DAYS): 
   return { from: today, to: addDays(today, horizonDays) };
 }
 
+/** How many upcoming dates every series always has (the dates shown per
+ * city), however far a pause pushes them. */
+export const SERIES_MIN_UPCOMING = 2;
+
+/**
+ * The dates the cron makes for a series: every date within the window,
+ * and at least its next SERIES_MIN_UPCOMING dates even past the window (a
+ * break or a later start would otherwise leave a city with one date).
+ */
+export function datesToCreate(
+  series: SeriesRhythm,
+  window: { from: string; to: string },
+  pauses: readonly SeriesPause[] = [],
+  skipped: ReadonlySet<string> = new Set(),
+  minUpcoming: number = SERIES_MIN_UPCOMING,
+): string[] {
+  const inWindow = seriesDates(series, window, pauses, skipped);
+  if (inWindow.length >= minUpcoming) return inWindow;
+  // Look up to a year ahead for the missing ones.
+  const ahead = seriesDates(series, { from: window.from, to: addDays(window.from, 365) }, pauses, skipped);
+  return ahead.slice(0, Math.max(minUpcoming, inWindow.length));
+}
+
 /** "14:00" style, 00:00 to 23:59. */
 export function isStartTime(value: string): boolean {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);

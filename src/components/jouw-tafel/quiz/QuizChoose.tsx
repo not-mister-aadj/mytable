@@ -7,11 +7,12 @@ import { CheckIcon, InfoIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { formatSpotsLeftHint } from "@/lib/event-display";
 import { shouldShowSpotsCount } from "@/lib/experience-booking";
-import { displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { QUIZ_CITIES, displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   ageFromBirthDate,
   answerCities,
+  citiesAnswer,
   chooseTablesForAnswers,
   splitCities,
   kiesCities,
@@ -84,6 +85,99 @@ export function spotsChip(
 
 export { CHIP_TONE };
 
+/** On top of "Kies je zondag": which cities to see, and for women whether
+ * they would like a mixed table or ladies only (a wish for the seating, the
+ * tables stay the same). Every change is saved like a quiz answer. */
+function ChooseFilters({
+  answers,
+  copy,
+  locale,
+  onAnswers,
+}: {
+  answers: QuizAnswers;
+  copy: QuizCopy["kies"]["filters"];
+  locale: Locale;
+  onAnswers: (patch: Partial<QuizAnswers>) => void;
+}) {
+  const chosen = answerCities(answers);
+  const isChosen = (city: string) => chosen.some((c) => sameCity(c, city));
+  // Their own cities first (also a place outside our list), then ours.
+  const cities = [...chosen, ...QUIZ_CITIES.filter((c) => !isChosen(c))];
+  const ladies = answers.tableType === "girls_only";
+  function toggle(city: string) {
+    const next = isChosen(city) ? chosen.filter((c) => !sameCity(c, city)) : [...chosen, city];
+    if (next.length > 0) onAnswers(citiesAnswer(next));
+  }
+  const chipOn = ladies ? "border-rose-deep bg-rose-deep text-cream" : "border-burgundy bg-burgundy text-cream";
+  return (
+    <div className="mt-5">
+      {answers.gender === "female" ? (
+        <>
+          <div
+            role="radiogroup"
+            aria-label={copy.tableAria}
+            className={`grid grid-cols-2 rounded-full p-1 transition-colors ${ladies ? "bg-rose/15" : "bg-wine/[0.06]"}`}
+          >
+            {(["mixed", "girls_only"] as const).map((kind) => {
+              const on = kind === "girls_only" ? ladies : !ladies;
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => onAnswers(kind === "girls_only" ? { tableType: "girls_only" } : { tableType: "mixed", mixedFallback: undefined })}
+                  className={`min-h-10 rounded-full text-[0.9rem] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                    on
+                      ? `bg-white shadow-[0_2px_8px_rgba(43,13,18,0.10)] ${ladies ? "text-rose-deep" : "text-wine"}`
+                      : "text-wine/60"
+                  }`}
+                >
+                  {kind === "girls_only" ? copy.ladies : copy.mixed}
+                </button>
+              );
+            })}
+          </div>
+          {ladies ? (
+            <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 text-[0.85rem] text-wine/75">
+              <input
+                type="checkbox"
+                checked={Boolean(answers.mixedFallback)}
+                onChange={(e) => onAnswers({ mixedFallback: e.target.checked })}
+                className="h-[18px] w-[18px] rounded accent-[#7a3d4a]"
+              />
+              {copy.mixedFallback}
+            </label>
+          ) : null}
+        </>
+      ) : null}
+      <div
+        role="group"
+        aria-label={copy.citiesAria}
+        className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {cities.map((city) => {
+          const on = isChosen(city);
+          return (
+            <button
+              key={city}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggle(city)}
+              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[0.9rem] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                on ? chipOn : "border-wine/15 bg-white text-wine/75"
+              }`}
+            >
+              {on ? <CheckIcon className="h-3.5 w-3.5" /> : null}
+              {displayCity(city, locale)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export type ChooseHandlers = {
   onViewed: (props: { tables_shown: number; has_match: boolean }) => void;
   /** A table card tapped: goes to the table page (also for "Binnenkort"). */
@@ -110,6 +204,7 @@ export function QuizChoose({
   tablePath,
   membership = null,
   booked = {},
+  onAnswers,
 }: {
   locale: Locale;
   copy: QuizCopy;
@@ -123,6 +218,8 @@ export function QuizChoose({
   tablePath: (slug: string) => string;
   /** Tables this person already has a seat at: event id to seats. */
   booked?: Record<string, number>;
+  /** Saves a change from the filters on top (cities, kind of table). */
+  onAnswers?: (patch: Partial<QuizAnswers>) => void;
   /** Their running membership, null when not a member. */
   membership?: ClientMembership | null;
 }) {
@@ -256,11 +353,14 @@ export function QuizChoose({
     );
   }
 
+  const ladies = answers.gender === "female" && answers.tableType === "girls_only";
   function sectionTitle(text: string) {
     return (
-      <h2 className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
+      <h2
+        className={`flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] ${ladies ? "text-rose" : "text-gold"}`}
+      >
         <span className="shrink-0">{text}</span>
-        <span aria-hidden className="h-px flex-1 bg-gold/30" />
+        <span aria-hidden className={`h-px flex-1 ${ladies ? "bg-rose/30" : "bg-gold/30"}`} />
       </h2>
     );
   }
@@ -301,6 +401,7 @@ export function QuizChoose({
             {k.infoLink}
           </button>
         </div>
+        {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
       </div>
 
       {citySections.map((section) => {

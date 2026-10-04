@@ -162,6 +162,9 @@ export type QuizAnswers = {
   gender?: GenderAnswer;
   /** Only when gender is "female" (cleared otherwise). */
   tableType?: TableTypeAnswer;
+  /** With "girls_only": a mixed table is fine when girls only does not
+   * work out (set on "Kies je zondag", off until ticked). */
+  mixedFallback?: boolean;
   /** The primary city: always cities[0] when cities is set. Kept for
    * states saved before the city step became multi-select. */
   city?: string;
@@ -784,6 +787,14 @@ const COMPANY_TO_WAITLIST: Record<CompanionWhoAnswer, string> = {
   colleague: "bring_friends",
 };
 
+/** A guest's girls-only wish, for seating: null when none (men, mixed,
+ * "maakt niet uit"), "strict" for girls only, "mixed_ok" when a mixed
+ * table is fine if girls only does not work out. */
+export function girlsOnlyWish(a: QuizAnswers): "strict" | "mixed_ok" | null {
+  if (a.gender !== "female" || a.tableType !== "girls_only") return null;
+  return a.mixedFallback ? "mixed_ok" : "strict";
+}
+
 /** The waitlist's `tableType`: "any" is both kinds; without the question
  * (not a woman, or not answered yet) a mixed table. */
 export function waitlistTableType(a: QuizAnswers): string[] {
@@ -818,6 +829,7 @@ export function buildWaitlistPreferences(
           ? [COMPANY_TO_WAITLIST[a.companionWho]]
           : [],
     tableType: waitlistTableType(a),
+    mixedFallback: a.tableType === "girls_only" ? Boolean(a.mixedFallback) : null,
     cities: answerCities(a),
     regionFlexible: false,
     gender: a.gender ? [a.gender] : [],
@@ -931,6 +943,7 @@ export function sanitizeQuizState(raw: unknown): QuizState {
     ageMatters: pick(ra.ageMatters, AGE_MATTERS_OPTIONS),
     gender: pick(ra.gender, GENDER_OPTIONS),
     tableType: pick(ra.tableType, TABLE_TYPE_OPTIONS),
+    mixedFallback: typeof ra.mixedFallback === "boolean" ? ra.mixedFallback : undefined,
     ...citiesAnswer(
       cleanCityList(Array.isArray(ra.cities) && ra.cities.length > 0 ? ra.cities : [ra.city]),
     ),
@@ -949,6 +962,7 @@ export function sanitizeQuizState(raw: unknown): QuizState {
   };
   if (answers.why && answers.why.length === 0) delete answers.why;
   if (answers.gender !== "female") delete answers.tableType;
+  if (answers.tableType !== "girls_only") delete answers.mixedFallback;
   for (const key of Object.keys(answers) as Array<keyof QuizAnswers>) {
     if (answers[key] === undefined) delete answers[key];
   }

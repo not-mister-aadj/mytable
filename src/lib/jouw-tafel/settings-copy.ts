@@ -146,7 +146,7 @@ const nl: SettingsCopy = {
     body: "Je account en al je antwoorden en voorkeuren worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
     booking: (date) =>
       `Je reservering op ${date} blijft staan. Wil je die annuleren of verzetten, stuur ons dan een berichtje.`,
-    legal: "Boekingen en betalingen bewaren we omdat dat wettelijk moet.",
+    legal: "Sommige gegevens, zoals je boekingen en betalingen, bewaren we zolang de wet dat voorschrijft.",
     confirm: "Account verwijderen",
     busy: "Even geduld...",
     cancel: "Annuleren",
@@ -228,7 +228,7 @@ const en: SettingsCopy = {
     body: "Your account and all your answers and preferences will be deleted. This can't be undone.",
     booking: (date) =>
       `Your reservation on ${date} stays as it is. If you want to cancel or reschedule it, send us a message.`,
-    legal: "We keep bookings and payments because the law requires it.",
+    legal: "Some details, such as your bookings and payments, are kept for as long as the law requires.",
     confirm: "Delete account",
     busy: "One moment...",
     cancel: "Cancel",

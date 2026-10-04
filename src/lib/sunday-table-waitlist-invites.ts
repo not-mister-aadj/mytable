@@ -6,6 +6,7 @@ import {
 } from "@/db/schema";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import type { SundayTableKey } from "@/lib/sunday-table-shared";
+import { unsubscribedEmails } from "@/lib/jouw-tafel/account-server";
 
 export type WaitlistInviteCandidate = {
   waitlistId: string;
@@ -163,7 +164,11 @@ export async function getWaitlistInviteCandidates(
     .where(eq(waitlistSignups.city, key.city))
     .orderBy(waitlistSignups.createdAt);
 
+  // People who switched "Mail me over nieuwe tafels" off (or were tagged
+  // "afgemeld" by the team) never get an invite.
+  const optedOut = await unsubscribedEmails();
   const candidates = rows
+    .filter((row) => !optedOut.has(row.email.trim().toLowerCase()))
     .map((row) => ({
       waitlistId: row.id,
       email: row.email,

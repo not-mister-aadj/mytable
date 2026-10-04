@@ -13,6 +13,7 @@ import {
   metaInitiateCheckoutEventId,
   metaLeadEventId,
   metaPurchaseEventId,
+  metaQuizLeadEventId,
 } from "@/lib/analytics/metaIds";
 import {
   enrichmentToUserData,
@@ -138,10 +139,36 @@ export async function sendMetaCapiLead(input: {
       enrichmentToUserData(enrichment),
       input.userData,
     ),
+    // content_name/concept tell the two sign-up concepts apart (A/B).
     customData: {
       source: input.source,
       city: input.city,
+      content_name: "waitlist",
+      concept: "waitlist",
     },
+  });
+}
+
+/** The quiz's Lead (server side of quizLead in metaPixel.ts), same event id
+ * per account so Meta deduplicates it with the browser Pixel. */
+export async function sendMetaCapiQuizLead(input: {
+  email: string;
+  userId: string;
+  city: string;
+  eventSourceUrl: string;
+  userData?: MetaCapiUserData;
+}): Promise<boolean> {
+  const enrichment = await loadCustomerMetaEnrichment(input.email);
+  return sendMetaCapiEvent({
+    eventName: "Lead",
+    eventId: metaQuizLeadEventId(input.userId),
+    eventSourceUrl: input.eventSourceUrl,
+    userData: mergeMetaCapiUserData(
+      { email: input.email, city: input.city, country: "nl" },
+      enrichmentToUserData(enrichment),
+      input.userData,
+    ),
+    customData: { source: "quiz", city: input.city, content_name: "jouw_tafel", concept: "account" },
   });
 }
 

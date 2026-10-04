@@ -3,6 +3,9 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { adminPath } from "@/lib/admin-url";
 import { bookings, events, waitlistSignups } from "@/db/schema";
+import { ConceptBadge } from "@/components/admin/ConceptBadge";
+import { conceptStats } from "@/lib/signup-concept";
+import { loadPersonConcepts } from "@/lib/signup-concept-data";
 import { getDb, isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { formatDateTime } from "@/lib/event-display";
@@ -57,14 +60,12 @@ export default async function AdminDashboardPage() {
     .orderBy(events.startsAt)
     .limit(5);
 
-  const [waitlistTotal] = await db
-    .select({ count: sql<number>`count(distinct ${waitlistSignups.email})::int` })
-    .from(waitlistSignups);
-
-  const [waitlistThisWeek] = await db
-    .select({ count: sql<number>`count(distinct ${waitlistSignups.email})::int` })
-    .from(waitlistSignups)
-    .where(gte(waitlistSignups.createdAt, weekAgo));
+  // A/B: old waitlist funnel vs /jouw-tafel account, per person by first
+  // touch (see src/lib/signup-concept.ts).
+  const people = await loadPersonConcepts();
+  const conceptCounts = conceptStats(people.values(), now, 14);
+  const signupTotal = conceptCounts.total.waitlist + conceptCounts.total.account;
+  const signupWeek = conceptCounts.last7d.waitlist + conceptCounts.last7d.account;
 
   const recentWaitlist = await db
     .select({
@@ -84,13 +85,15 @@ export default async function AdminDashboardPage() {
       <h1 className="font-serif text-3xl text-burgundy">Dashboard</h1>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
-          label="Wachtlijst totaal"
-          value={String(waitlistTotal?.count ?? 0)}
+          label="Aanmeldingen totaal"
+          value={String(signupTotal)}
+          sub={`Wachtlijst ${conceptCounts.total.waitlist} · Account ${conceptCounts.total.account}`}
           href={priorityListHref}
         />
         <Stat
-          label="Wachtlijst (7 dagen)"
-          value={String(waitlistThisWeek?.count ?? 0)}
+          label="Aanmeldingen (7 dagen)"
+          value={String(signupWeek)}
+          sub={`Wachtlijst ${conceptCounts.last7d.waitlist} · Account ${conceptCounts.last7d.account}`}
           href={priorityListHref}
         />
         <Stat
@@ -126,9 +129,15 @@ export default async function AdminDashboardPage() {
                 key={`${row.email}-${row.city}`}
                 className="flex flex-col gap-1 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
               >
-                <span>
+                <span className="flex flex-wrap items-center gap-2">
                   {row.name ?? row.email}
                   <span className="text-wine/60"> · {row.city}</span>
+                  {people.get(row.email.toLowerCase()) ? (
+                    <ConceptBadge
+                      concept={people.get(row.email.toLowerCase())!.concept}
+                      hasAccount={people.get(row.email.toLowerCase())!.hasAccount}
+                    />
+                  ) : null}
                 </span>
                 <span className="text-wine/50">
                   {new Intl.DateTimeFormat("nl-NL", {
@@ -142,6 +151,39 @@ export default async function AdminDashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-medium text-burgundy">
+          Aanmeldingen per concept{" "}
+          <span className="text-sm font-normal text-wine/50">
+            (laatste 14 dagen, nieuwe mensen; {conceptCounts.overlap} van de wachtlijst hebben ook een account)
+          </span>
+        </h2>
+        <div className="mt-4 overflow-x-auto rounded-2xl border border-border-subtle bg-beige">
+          <table className="w-full min-w-[320px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-border-subtle text-xs uppercase tracking-[0.06em] text-wine/50">
+                <th className="px-4 py-2.5 font-medium">Dag</th>
+                <th className="px-4 py-2.5 text-right font-medium">Wachtlijst</th>
+                <th className="px-4 py-2.5 text-right font-medium">Account</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle">
+              {conceptCounts.perDay.map((d) => (
+                <tr key={d.day}>
+                  <td className="px-4 py-2 text-wine/75">
+                    {new Intl.DateTimeFormat("nl-NL", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(
+                      new Date(`${d.day}T12:00:00Z`),
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-right tabular-nums text-wine">{d.waitlist}</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-wine">{d.account}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="mt-10">
@@ -210,16 +252,19 @@ export default async function AdminDashboardPage() {
 function Stat({
   label,
   value,
+  sub,
   href,
 }: {
   label: string;
   value: string;
+  sub?: string;
   href?: string;
 }) {
   const content = (
     <>
       <p className="text-sm text-wine/60">{label}</p>
       <p className="mt-1 font-serif text-2xl text-burgundy">{value}</p>
+      {sub ? <p className="mt-1 text-xs text-wine/55">{sub}</p> : null}
     </>
   );
 

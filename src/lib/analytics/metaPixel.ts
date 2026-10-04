@@ -17,6 +17,7 @@ import {
   metaInitiateCheckoutEventId,
   metaLeadEventId,
   metaCompleteRegistrationEventId,
+  metaQuizLeadEventId,
   metaPurchaseEventId,
 } from "@/lib/analytics/metaIds";
 import { getStoredUtm, type UtmParams } from "@/lib/analytics/utm";
@@ -78,6 +79,7 @@ export type MetaLeadParams = {
 
 const PURCHASE_STORAGE_PREFIX = "mytable_meta_purchase_";
 const REGISTRATION_STORAGE_PREFIX = "mytable_meta_registration_";
+const QUIZ_LEAD_STORAGE_PREFIX = "mytable_meta_quiz_lead_";
 
 /** Only treat accounts created in this window as new registrations. */
 const NEW_USER_WINDOW_MS = 15 * 60 * 1000;
@@ -336,6 +338,8 @@ export function lead(params: MetaLeadParams): void {
   const payload = withUtm({
     source: params.source,
     city: params.city,
+    content_name: "waitlist",
+    concept: "waitlist",
   });
   const eventId = params.waitlist_id
     ? metaLeadEventId(params.waitlist_id)
@@ -343,6 +347,40 @@ export function lead(params: MetaLeadParams): void {
 
   window.fbq!("track", "Lead", payload, { eventID: eventId });
   logMetaEvent("Lead", { ...payload, event_id: eventId });
+}
+
+/**
+ * The quiz's Lead: once per account, when the quiz is completed. Same event
+ * id as the CAPI Lead the quiz route sends (metaQuizLeadEventId), so Meta
+ * deduplicates. Guarded in storage like CompleteRegistration.
+ */
+export function quizLead(input: { userId: string; city: string }): boolean {
+  initMetaPixel();
+  if (hasQuizLeadBeenTracked(input.userId)) return true;
+  if (!canTrack()) return false;
+  const eventId = metaQuizLeadEventId(input.userId);
+  const payload = withUtm({ source: "quiz", city: input.city, content_name: "jouw_tafel", concept: "account" });
+  window.fbq!("track", "Lead", payload, { eventID: eventId });
+  logMetaEvent("Lead", { ...payload, event_id: eventId });
+  markQuizLeadTracked(input.userId);
+  return true;
+}
+
+function hasQuizLeadBeenTracked(userId: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(QUIZ_LEAD_STORAGE_PREFIX + userId) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markQuizLeadTracked(userId: string): void {
+  try {
+    localStorage.setItem(QUIZ_LEAD_STORAGE_PREFIX + userId, "1");
+  } catch {
+    // ignore
+  }
 }
 
 /**

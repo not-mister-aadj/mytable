@@ -5,7 +5,8 @@ import { Button } from "./Button";
 type Props = {
   href: string;
   label: string;
-  helperText: string;
+  /** Short line above the button; leave out for a button on its own. */
+  helperText?: string;
   variant?: "primary" | "secondary";
 };
 
@@ -23,15 +24,17 @@ export function CTASection({
         marginBottom: emailSpacing.cardGap,
       }}
     >
-      <Text
-        style={{
-          ...emailType.bodySmall,
-          textAlign: "center",
-          margin: "0 0 16px",
-        }}
-      >
-        {helperText}
-      </Text>
+      {helperText ? (
+        <Text
+          style={{
+            ...emailType.bodySmall,
+            textAlign: "center",
+            margin: "0 0 16px",
+          }}
+        >
+          {helperText}
+        </Text>
+      ) : null}
       <Button href={href} variant={variant}>
         {label}
       </Button>

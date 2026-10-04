@@ -23,6 +23,7 @@ import {
 } from "@/lib/customers/list-answers";
 import { syncPendingCheckoutsIfStale } from "@/lib/stripe/sync-pending-checkouts";
 import type { CustomerStatusKey } from "@/lib/customers/types";
+import { personConcepts, type SignupConcept } from "@/lib/signup-concept";
 
 export type AdminCustomerListRow = {
   id: string;
@@ -48,6 +49,10 @@ export type AdminCustomerListRow = {
   tags: string[];
   status: CustomerStatusKey;
   statusLabel: string;
+  /** A/B concept of their sign-up (first touch), null without one. */
+  signupConcept: SignupConcept | null;
+  /** Has an account (also a waitlist person who later did the quiz). */
+  hasAccount: boolean;
 } & CustomerWaitlistAnswers;
 
 export type AdminCustomersKpi = {
@@ -120,7 +125,7 @@ export type AdminCustomerProfile = {
 function mapCustomerRow(
   row: typeof customers.$inferSelect,
   answers: CustomerWaitlistAnswers & { waitlistCity: string | null },
-): AdminCustomerListRow {
+): Omit<AdminCustomerListRow, "signupConcept" | "hasAccount"> {
   const status = resolveCustomerStatus({
     paidBookingsCount: row.paidBookingsCount,
     totalBookings: row.totalBookings,
@@ -172,6 +177,8 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
       email: waitlistSignups.email,
       city: waitlistSignups.city,
       preferences: waitlistSignups.preferences,
+      source: waitlistSignups.source,
+      createdAt: waitlistSignups.createdAt,
     })
     .from(waitlistSignups)
     .orderBy(desc(waitlistSignups.createdAt));
@@ -196,10 +203,15 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
       signupsByCustomer.get(row.id) ??
       signupsByEmail.get(row.emailNormalized) ??
       [];
-    return mapCustomerRow(row, {
-      ...pickCustomerWaitlistAnswers(signups.map((s) => s.preferences)),
-      waitlistCity: signups[0]?.city ?? null,
-    });
+    const concept = [...personConcepts(signups.map((s) => ({ ...s, email: row.emailNormalized }))).values()][0];
+    return {
+      ...mapCustomerRow(row, {
+        ...pickCustomerWaitlistAnswers(signups.map((s) => s.preferences)),
+        waitlistCity: signups[0]?.city ?? null,
+      }),
+      signupConcept: concept?.concept ?? null,
+      hasAccount: concept?.hasAccount ?? false,
+    };
   });
 
   // KPI cards keep counting buyers only, as before.

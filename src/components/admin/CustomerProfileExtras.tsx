@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConceptBadge } from "@/components/admin/ConceptBadge";
 import type {
   CustomerSentEmail,
   CustomerTablemate,
@@ -44,7 +45,10 @@ export function WaitlistAnswersSection({
   return (
     <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <SectionTitle>Wachtlijstantwoorden</SectionTitle>
+        <span className="flex items-center gap-2">
+          <SectionTitle>Wachtlijstantwoorden</SectionTitle>
+          {data.concept ? <ConceptBadge concept={data.concept} hasAccount={data.hasAccount} /> : null}
+        </span>
         <Link
           href={adminPath("/customers/antwoorden")}
           className="text-xs text-wine/55 transition hover:text-burgundy hover:underline"

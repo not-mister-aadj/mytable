@@ -1,9 +1,23 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { waitlistSignups } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { sendSundayTableWaitlistWelcomeEmail } from "@/lib/email/sendSundayTableWaitlistEmails";
 import { releaseWaitlistWelcomeEmailClaim } from "@/lib/waitlist-data";
+
+/** The old waitlist funnel only. Account people ("jouw_tafel" rows, or a
+ * waitlist row marked has_account) get their own welcome instead
+ * (send-account-welcome-emails.ts), never this one with its WhatsApp groups. */
+const WELCOME_SOURCES = ["waitlist"];
+
+/** True when this email has an account through the quiz (any row). */
+function hasAccountSql(email: unknown) {
+  return sql`exists (
+    select 1 from ${waitlistSignups} as acc
+    where acc.email = ${email}
+      and (acc.source = 'jouw_tafel' or coalesce((acc.preferences ->> 'has_account')::boolean, false))
+  )`;
+}
 
 /** Only signups from this moment on are eligible, so the people who signed up
  * before this fallback existed are not mailed months later. */
@@ -53,12 +67,13 @@ export async function sendAbandonedWaitlistWelcomeEmails(
   const people = await db
     .select({ email: waitlistSignups.email })
     .from(waitlistSignups)
-    .where(eq(waitlistSignups.source, "waitlist"))
+    .where(inArray(waitlistSignups.source, WELCOME_SOURCES))
     .groupBy(waitlistSignups.email)
     .having(
       sql`min(${waitlistSignups.createdAt}) >= ${since.toISOString()}::timestamptz
         and min(${waitlistSignups.createdAt}) <= ${before.toISOString()}::timestamptz
-        and not bool_or(${waitlistSignups.welcomeEmailSentAt} is not null)`,
+        and not bool_or(${waitlistSignups.welcomeEmailSentAt} is not null)
+        and not ${hasAccountSql(waitlistSignups.email)}`,
     );
 
   const results: AbandonedWelcomeResult[] = [];
@@ -73,11 +88,12 @@ export async function sendAbandonedWaitlistWelcomeEmails(
       .where(
         and(
           eq(waitlistSignups.email, email),
-          eq(waitlistSignups.source, "waitlist"),
+          inArray(waitlistSignups.source, WELCOME_SOURCES),
           sql`not exists (
             select 1 from ${waitlistSignups} as w
             where w.email = ${email} and w.welcome_email_sent_at is not null
           )`,
+          sql`not ${hasAccountSql(email)}`,
         ),
       )
       .returning({

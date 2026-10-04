@@ -30,6 +30,14 @@ export default async function EmailPreviewIndexPage() {
         </li>
         <li>
           <Link
+            href={adminPath("/email-preview/account-welcome")}
+            className="font-medium text-burgundy underline-offset-2 hover:underline"
+          >
+            Welkom account (Jouw tafel, variant A en B)
+          </Link>
+        </li>
+        <li>
+          <Link
             href={adminPath("/email-preview/sunday-table-confirmation")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >

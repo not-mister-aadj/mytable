@@ -40,6 +40,7 @@ import {
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import { captureCriticalError } from "@/lib/sentry/critical";
 import type { Locale } from "@/i18n/config";
+import { JOUW_TAFEL_CHECKOUT_SOURCE, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
@@ -96,6 +97,9 @@ export async function POST(request: Request) {
     affiliateCode?: string;
     referralCode?: string;
     fromSundayTable?: boolean;
+    /** "jouw-tafel" from the funnel: its own seat price (see
+     * resolveSeatPriceCents). Anything else: the event's price. */
+    source?: string;
     utm?: {
       utm_source?: string;
       utm_medium?: string;
@@ -190,9 +194,11 @@ export async function POST(request: Request) {
 
   // The date page only offers a ticket for "English" on tables that can seat
   // English speakers. Guard it here too, so nobody who only speaks English
-  // ends up at a Dutch-speaking table.
+  // ends up at a Dutch-speaking table. Not for the jouw-tafel funnel: there
+  // everyone can always book, and tables are matched by hand afterwards.
   if (
     isSundayTable &&
+    body.source !== JOUW_TAFEL_CHECKOUT_SOURCE &&
     !isEnglishOpenForSundayTable(event.id) &&
     tableLanguagePreference === "prefer_english"
   ) {
@@ -223,7 +229,11 @@ export async function POST(request: Request) {
   if (isSundayTable) {
     const requestedSeats = Math.max(1, Number(body.seats) || 1);
     seats = resolveSundayTableSeats(requestedSeats, spotsLeft);
-    perSeatCents = event.priceCents;
+    perSeatCents = resolveSeatPriceCents({
+      source: body.source,
+      eventPriceCents: event.priceCents,
+      isSundayTable,
+    });
     amountCents = seats !== null ? perSeatCents * seats : 0;
   } else {
     const requestedSeats = Math.max(
@@ -289,6 +299,14 @@ export async function POST(request: Request) {
       locale,
     },
   });
+
+  if (body.source === JOUW_TAFEL_CHECKOUT_SOURCE && isSundayTable) {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: "checkout_source",
+      payload: { source: JOUW_TAFEL_CHECKOUT_SOURCE, perSeatCents },
+    });
+  }
 
   if (typeof body.joinPriorityList === "boolean") {
     await db.insert(bookingEvents).values({
@@ -384,6 +402,7 @@ export async function POST(request: Request) {
         pricing_tier: requestedTier,
         affiliate_code: booking.affiliateCode ?? "",
         from_sunday_table: booking.fromSundayTable ? "1" : "0",
+        source: body.source === JOUW_TAFEL_CHECKOUT_SOURCE && isSundayTable ? JOUW_TAFEL_CHECKOUT_SOURCE : "site",
       },
       success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,

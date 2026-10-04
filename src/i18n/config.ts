@@ -37,7 +37,64 @@ function localizePathForLocale(path: string, locale: Locale): string {
   if (locale === "nl" && path === "/terms") return "/algemene-voorwaarden";
   if (locale === "en" && path === "/inloggen") return "/login";
   if (locale === "nl" && path === "/login") return "/inloggen";
+  if (locale === "en" && path === "/jouw-tafel") return "/your-table";
+  if (locale === "nl" && path === "/your-table") return "/jouw-tafel";
+  if (locale === "en" && path === "/jouw-tafel/aanmelden") return "/your-table/sign-up";
+  if (locale === "nl" && path === "/your-table/sign-up") return "/jouw-tafel/aanmelden";
+  if (locale === "en" && path === "/jouw-tafel/inloggen") return "/your-table/log-in";
+  if (locale === "nl" && path === "/your-table/log-in") return "/jouw-tafel/inloggen";
+  if (locale === "en" && path === "/jouw-tafel/welkom") return "/your-table/welcome";
+  if (locale === "nl" && path === "/your-table/welcome") return "/jouw-tafel/welkom";
+  if (locale === "en" && path === "/jouw-tafel/start") return "/your-table/start";
+  if (locale === "nl" && path === "/your-table/start") return "/jouw-tafel/start";
+  if (locale === "en" && path === "/jouw-tafel/instellingen") return "/your-table/settings";
+  if (locale === "nl" && path === "/your-table/settings") return "/jouw-tafel/instellingen";
+  // Table page and its reserve step: /jouw-tafel/tafel/{slug}[/reserveren].
+  const nlTable = /^\/jouw-tafel\/tafel\/([^/]+)(\/reserveren)?$/.exec(path);
+  if (locale === "en" && nlTable) return `/your-table/table/${nlTable[1]}${nlTable[2] ? "/reserve" : ""}`;
+  const enTable = /^\/your-table\/table\/([^/]+)(\/reserve)?$/.exec(path);
+  if (locale === "nl" && enTable) return `/jouw-tafel/tafel/${enTable[1]}${enTable[2] ? "/reserveren" : ""}`;
   return path;
+}
+
+/** "Jouw tafel" ad landing page (variant B of the homepage test). */
+export function jouwTafelPath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table" : "/jouw-tafel";
+}
+
+/** Sign-up step behind the landing page's "Aanmelden" button. */
+export function jouwTafelSignUpPath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table/sign-up" : "/jouw-tafel/aanmelden";
+}
+
+/** Log-in step behind the landing page's "Inloggen" link. */
+export function jouwTafelLogInPath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table/log-in" : "/jouw-tafel/inloggen";
+}
+
+/** Welcome page after signing up or logging in from the landing page. */
+export function jouwTafelWelcomePath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table/welcome" : "/jouw-tafel/welkom";
+}
+
+/** The quiz after signing up or logging in, ending at "Kies je zondag". */
+export function jouwTafelStartPath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table/start" : "/jouw-tafel/start";
+}
+
+/** Settings for "Jouw tafel" members: preferences, reservations, account. */
+export function jouwTafelSettingsPath(locale: Locale): string {
+  return locale === "en" ? "/en/your-table/settings" : "/jouw-tafel/instellingen";
+}
+
+/** The table page after "Kies je zondag" (no prices; reserve from here). */
+export function jouwTafelTablePath(locale: Locale, slug: string): string {
+  return locale === "en" ? `/en/your-table/table/${slug}` : `/jouw-tafel/tafel/${slug}`;
+}
+
+/** The reserve step of a table (seats, price, to payment). */
+export function jouwTafelReservePath(locale: Locale, slug: string): string {
+  return locale === "en" ? `/en/your-table/table/${slug}/reserve` : `/jouw-tafel/tafel/${slug}/reserveren`;
 }
 
 /** Same page in the other locale, preserving path (and optional hash). */

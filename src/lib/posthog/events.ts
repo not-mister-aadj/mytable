@@ -1,4 +1,4 @@
-/** PostHog event names — snake_case, keep in sync across client + server. */
+/** PostHog event names: snake_case, keep in sync across client + server. */
 export const PostHogEvents = {
   pageViewed: "page_viewed",
   agendaViewed: "agenda_viewed",
@@ -14,7 +14,7 @@ export const PostHogEvents = {
   cityFilterChanged: "city_filter_changed",
   eventTypeFilterChanged: "event_type_filter_changed",
   emailSignupCompleted: "email_signup_completed",
-  /** @deprecated use paymentCompleted — kept for admin HogQL during migration */
+  /** @deprecated use paymentCompleted, kept for admin HogQL during migration */
   bookingPaid: "booking_paid",
   /** @deprecated use eventDetailViewed */
   eventPageViewed: "event_page_viewed",
@@ -37,6 +37,47 @@ export const PostHogEvents = {
   customerProfileViewed: "customer_profile_viewed",
   customerNoteAdded: "customer_note_added",
   sundayTableWaitlistEnriched: "sunday_table_waitlist_enriched",
+  /** "Jouw tafel" landing page (/jouw-tafel), variant B of the homepage test. */
+  landingSectionViewed: "landing_section_viewed",
+  landingCtaClicked: "landing_cta_clicked",
+  landingSignupPageViewed: "landing_signup_page_viewed",
+  landingLoginPageViewed: "landing_login_page_viewed",
+  /** Account screens behind the landing page (sign up / log in). */
+  authScreenViewed: "auth_screen_viewed",
+  authCodeRequested: "auth_code_requested",
+  authCodeVerified: "auth_code_verified",
+  authCodeFailed: "auth_code_failed",
+  authGoogleClicked: "auth_google_clicked",
+  authGoogleHiddenInApp: "auth_google_hidden_in_app",
+  authLoggedOut: "auth_logged_out",
+  /** Quiz after signing up (/jouw-tafel/start). No personal data, ever. */
+  quizStepViewed: "quiz_step_viewed",
+  quizStepCompleted: "quiz_step_completed",
+  quizStepLeft: "quiz_step_left",
+  quizBackClicked: "quiz_back_clicked",
+  quizResumed: "quiz_resumed",
+  quizCompleted: "quiz_completed",
+  quizChooseViewed: "quiz_choose_viewed",
+  quizReserveClicked: "quiz_reserve_clicked",
+  quizNotifyClicked: "quiz_notify_clicked",
+  quizShareClicked: "quiz_share_clicked",
+  quizInfoOpened: "quiz_info_opened",
+  /** Settings page for members (/jouw-tafel/instellingen). No personal data. */
+  settingsOpened: "settings_opened",
+  settingChanged: "setting_changed",
+  notificationsToggled: "notifications_toggled",
+  bookingOpened: "booking_opened",
+  accountDeleted: "account_deleted",
+  quizLogoutClicked: "quiz_logout_clicked",
+  /** A customer moved their own seat to the next Sunday (days_before only). */
+  bookingRescheduled: "booking_rescheduled",
+  /** Kies -> table page -> reserve step. No personal data. */
+  tableOpened: "table_opened",
+  tablePageViewed: "table_page_viewed",
+  tableReserveClicked: "table_reserve_clicked",
+  reserveStepViewed: "reserve_step_viewed",
+  reserveOptionSelected: "reserve_option_selected",
+  reserveCheckoutClicked: "reserve_checkout_clicked",
 } as const;
 
 export type PostHogEventName =

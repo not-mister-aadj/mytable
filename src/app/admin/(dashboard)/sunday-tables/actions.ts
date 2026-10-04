@@ -12,7 +12,9 @@ import { SIGNUPS_PAUSED } from "@/app/admin/(dashboard)/sunday-tables/signups-pa
 import {
   findSundayTableTicketEvent,
   openTicketSalesForSundayTable,
+  setSundayTableMembersOnlyUntil,
 } from "@/lib/sunday-table-ticket-event";
+import { parseEventDateTimeLocal } from "@/lib/event-datetime-local";
 import { replaceEventVenues } from "@/lib/event-venues";
 import { getVenueById } from "@/lib/venues";
 
@@ -216,5 +218,38 @@ export async function openTicketSalesAction(
       sent: 0,
       failed: 0,
     };
+  }
+}
+
+export type MembersOnlyActionState = { error: string | null; saved: boolean };
+
+/** "Leden eerst": until when only members can book this table. Empty or
+ * "open now" makes it bookable for everyone straight away. */
+export async function setMembersOnlyUntilAction(
+  _prev: MembersOnlyActionState | null,
+  formData: FormData,
+): Promise<MembersOnlyActionState> {
+  await requireAdmin();
+  const eventId = String(formData.get("eventId") ?? "").trim();
+  const raw = String(formData.get("membersOnlyUntil") ?? "").trim();
+  const openNow = formData.get("openNow") === "1";
+  if (!/^[0-9a-f-]{36}$/i.test(eventId)) return { error: "Ongeldige tafel.", saved: false };
+  // "Open now" (or empty) stores the current time, not null, so the
+  // automatic 48 hours never come back for this table.
+  let until: Date = new Date();
+  if (!openNow && raw) {
+    try {
+      until = parseEventDateTimeLocal(raw);
+    } catch {
+      return { error: "Ongeldige datum.", saved: false };
+    }
+  }
+  try {
+    await setSundayTableMembersOnlyUntil(eventId, until);
+    revalidatePath("/admin/sunday-tables");
+    return { error: null, saved: true };
+  } catch (error) {
+    console.error("[sunday-tables] members only save failed", error);
+    return { error: "Opslaan mislukt.", saved: false };
   }
 }

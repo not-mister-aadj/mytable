@@ -5,6 +5,8 @@ import type { SundayTableKey } from "@/lib/sunday-table-shared";
 import { parseAmsterdamDateIso } from "@/lib/sunday-wine-table";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { sendEventTicketsOpenEmails } from "@/lib/email/sendEventTicketsOpenEmails";
+import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
+import { isMembersOnly } from "@/lib/membership/logic";
 
 /** The ticketed events row backing one Sunday Table cohort, if any. */
 export async function findSundayTableTicketEvent(
@@ -53,8 +55,20 @@ export async function openTicketSalesForSundayTable(
     .update(events)
     .set({ extras: nextExtras })
     .where(eq(events.id, event.id));
+  await applyMembersOnlyDefault(event.id);
 
   revalidateEventPaths(event);
+
+  // Members book the first 48 hours. The "notify me" list hears when the
+  // table opens for them (the hourly membership cron), not now.
+  const [fresh] = await db
+    .select({ membersOnlyUntil: events.membersOnlyUntil })
+    .from(events)
+    .where(eq(events.id, event.id))
+    .limit(1);
+  if (isMembersOnly(fresh?.membersOnlyUntil ?? null)) {
+    return { ok: true, sent: 0, failed: 0 };
+  }
 
   const { sent, failed } = await sendEventTicketsOpenEmails({
     eventId: event.id,
@@ -65,4 +79,16 @@ export async function openTicketSalesForSundayTable(
   });
 
   return { ok: true, sent, failed };
+}
+
+/** Admin: until when only members can book this Sunday Table (null =
+ * open to everyone now). */
+export async function setSundayTableMembersOnlyUntil(eventId: string, until: Date | null): Promise<void> {
+  const db = getDb();
+  const [row] = await db
+    .update(events)
+    .set({ membersOnlyUntil: until, updatedAt: new Date() })
+    .where(and(eq(events.id, eventId), eq(events.experienceType, "sunday-table")))
+    .returning();
+  if (row) revalidateEventPaths(row);
 }

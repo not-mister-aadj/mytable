@@ -85,6 +85,13 @@ export async function getEventTicketsData(
     destinationEvents.map((event) => [event.id, event]),
   );
 
+  const [current] = await db
+    .select({ startsAt: events.startsAt })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+  const eventStarted = current ? current.startsAt.getTime() <= Date.now() : false;
+
   const targetRows = await db
     .select({
       id: events.id,
@@ -120,6 +127,10 @@ export async function getEventTicketsData(
         lifecycleStatus: b.lifecycleStatus,
         transferredAt: b.transferredAt?.toISOString() ?? null,
         transferredBy: b.transferredBy,
+        isMember: Boolean(b.membershipId),
+        amountLabel: formatMoney(b.amountCents, b.currency, "nl"),
+        noShowAt: b.noShowAt?.toISOString() ?? null,
+        eventStarted,
         intro: {
           conversationStyle: b.introConversationStyle,
           askMeAbout: b.introAskMeAbout,

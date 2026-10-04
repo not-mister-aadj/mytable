@@ -221,3 +221,29 @@ export async function claimCancelEmail(id: string, endsAt: Date): Promise<boolea
     .returning({ id: memberships.id });
   return rows.length > 0;
 }
+
+/**
+ * Account deletion: a running membership ends right away in Stripe (no
+ * further payments; the current period is not refunded) and the rows are
+ * unlinked from the deleted account. The rows themselves stay, like
+ * bookings, for the administration.
+ */
+export async function endMembershipsForDeletedAccount(userId: string): Promise<void> {
+  if (!isDbConfigured()) return;
+  const db = getDb();
+  const rows = await db.select().from(memberships).where(eq(memberships.userId, userId));
+  const { getStripe, isStripeConfigured } = await import("@/lib/stripe");
+  for (const row of rows) {
+    if (row.status !== "canceled" && row.stripeSubscriptionId && isStripeConfigured()) {
+      const stripe = getStripe();
+      if (row.stripeScheduleId) {
+        await stripe.subscriptionSchedules.release(row.stripeScheduleId).catch(() => undefined);
+      }
+      await stripe.subscriptions.cancel(row.stripeSubscriptionId, { prorate: false });
+    }
+    await db
+      .update(memberships)
+      .set({ userId: null, status: "canceled", updatedAt: new Date() })
+      .where(eq(memberships.id, row.id));
+  }
+}

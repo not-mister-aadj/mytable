@@ -6,6 +6,7 @@ import {
   saveSundayTableLocationAction,
   inviteWaitlistForSundayTableAction,
   openTicketSalesAction,
+  setMembersOnlyUntilAction,
 } from "@/app/admin/(dashboard)/sunday-tables/actions";
 import { SIGNUPS_PAUSED } from "@/app/admin/(dashboard)/sunday-tables/signups-paused";
 import {
@@ -95,6 +96,9 @@ export default async function AdminSundayTableDetailPage({ params }: Props) {
       comingSoon={comingSoon}
       notifySignupCount={notifySignupCount}
       openTicketSalesAction={openTicketSalesAction}
+      ticketEventId={ticketEvent?.id ?? null}
+      membersOnlyUntil={ticketEvent?.membersOnlyUntil?.toISOString() ?? null}
+      membersOnlyAction={setMembersOnlyUntilAction}
     />
   );
 }

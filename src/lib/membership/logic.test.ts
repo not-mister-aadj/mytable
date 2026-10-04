@@ -5,6 +5,8 @@ import {
   addOneMonth,
   canMemberCancelSeat,
   defaultMembersOnlyUntil,
+  fromClientMembership,
+  toClientMembership,
   earlyAccessAllows,
   isActiveMember,
   isMembersOnly,
@@ -249,4 +251,12 @@ test("settings line: next payment, end date or payment problem", () => {
   assert.deepEqual(membershipSummary(member({ currentPeriodEnd: end, cancelAtPeriodEnd: true }), 900, NOW), { kind: "ends", date: end });
   assert.deepEqual(membershipSummary(member({ status: "past_due" }), 900, NOW), { kind: "past_due" });
   assert.deepEqual(membershipSummary(null, 900, NOW), { kind: "none" });
+});
+
+test("a membership survives the trip to the browser", () => {
+  const m = member({ bookingBlockedUntil: new Date(NOW + DAY), cancelAtPeriodEnd: true });
+  const back = fromClientMembership(toClientMembership(m));
+  const starts = new Date(NOW + 2 * DAY);
+  assert.deepEqual(memberBookingDecision(back, starts, NOW), memberBookingDecision(m, starts, NOW));
+  assert.equal(toClientMembership(member({ status: "canceled" })), null);
 });

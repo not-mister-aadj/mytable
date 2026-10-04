@@ -27,6 +27,25 @@ import {
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { primaryButton, questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import Link from "next/link";
+import {
+  fromClientMembership,
+  isMembersOnly,
+  memberBookingDecision,
+  type ClientMembership,
+  type MemberBookingDecision,
+} from "@/lib/membership/logic";
+import {
+  DEFAULT_MEMBERSHIP_PLAN,
+  MEMBERSHIP_PLAN_IDS,
+  formatPlanEuros,
+  guestSeatCents,
+  lowestMonthlyCents,
+  type MembershipPlanId,
+} from "@/lib/membership/plans";
+import { getMembershipKiesCopy, getMembershipPageCopy } from "@/lib/membership/page-copy";
+import { trackMembershipEvent } from "@/lib/posthog/analytics";
+import { PostHogEvents } from "@/lib/posthog/events";
 
 const AMSTERDAM = "Europe/Amsterdam";
 
@@ -53,6 +72,11 @@ function startTime(iso: string, locale: Locale): string {
     hour: locale === "en" ? "numeric" : "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));
+}
+
+/** "Do 8 okt 14:00" / "Thu 8 Oct 2:00 PM": when a table opens for everyone. */
+function openFrom(iso: string, locale: Locale): string {
+  return `${shortDate(iso, locale)} ${startTime(iso, locale)}`;
 }
 
 /** "ZO" / "25" / "okt" for the date badge. */
@@ -104,6 +128,8 @@ export function QuizChoose({
   email,
   notified,
   handlers,
+  membership = null,
+  settingsHref,
 }: {
   locale: Locale;
   copy: QuizCopy;
@@ -114,8 +140,20 @@ export function QuizChoose({
   /** Event ids (and "city" for the city as a whole) they asked to hear about. */
   notified: Set<string>;
   handlers: ChooseHandlers;
+  /** Their running membership, null when not a member. */
+  membership?: ClientMembership | null;
+  settingsHref: string;
 }) {
   const k = copy.kies;
+  const mk = getMembershipKiesCopy(locale);
+  const planCopy = getMembershipPageCopy(locale).plans;
+  const snapshot = useMemo(() => fromClientMembership(membership), [membership]);
+  /** How this person books a given table (member, blocked, or not). */
+  const decisionFor = (event: QuizEvent): MemberBookingDecision =>
+    memberBookingDecision(snapshot, new Date(event.startsAt), now);
+  /** Members-only right now, and this person cannot book it yet. */
+  const earlyBlocked = (event: QuizEvent): boolean =>
+    isMembersOnly(event.membersOnlyUntil ?? null, now) && decisionFor(event).kind !== "included";
   const reduceMotion = useReducedMotion();
   const cities = answerCities(answers);
   // Towns outside our cities are a waitlist; headings and the no-match line
@@ -153,6 +191,9 @@ export function QuizChoose({
   const [seats, setSeats] = useState<1 | 2>(defaultSeats(answers));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [choice, setChoice] = useState<"single" | "member">("single");
+  const [plan, setPlan] = useState<MembershipPlanId>(DEFAULT_MEMBERSHIP_PLAN);
+  const [booked, setBooked] = useState<string | null>(null);
 
   const maxSeats = selected ? Math.min(2, spotsLeft(selected.event)) : 2;
   const effectiveSeats: 1 | 2 = maxSeats < 2 ? 1 : seats;
@@ -164,8 +205,63 @@ export function QuizChoose({
     handlers.onViewed({ tables_shown: rows.length, has_match: hasMatch });
   }, [handlers, rows.length, hasMatch]);
 
+  // early_access_blocked_view: once per table shown as "Leden boeken nu".
+  const earlySeen = useRef(new Set<string>());
+  useEffect(() => {
+    for (const row of openRows) {
+      if (!earlyBlocked(row.event) || earlySeen.current.has(row.event.id)) continue;
+      earlySeen.current.add(row.event.id);
+      trackMembershipEvent(PostHogEvents.earlyAccessBlockedView, { event_slug: row.event.slug, member: Boolean(membership) });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openRows.length, membership]);
+
+  const selectedDecision: MemberBookingDecision = selected ? decisionFor(selected.event) : { kind: "non_member" };
+  const selectedEarly = selected ? earlyBlocked(selected.event) : false;
+  const isMemberSeat = selectedDecision.kind === "included";
+  // During the members' 48 hours only "Word lid" is possible for others.
+  const effectiveChoice: "single" | "member" = selectedEarly ? "member" : choice;
+
+  async function becomeMember() {
+    if (!selected || loading) return;
+    const event = selected.event;
+    trackMembershipEvent(PostHogEvents.membershipCheckoutStarted, { plan, source: "kies", seats: effectiveSeats });
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/membership/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan,
+          locale,
+          source: "kies",
+          table: {
+            eventId: event.id,
+            seats: effectiveSeats,
+            name: answers.name ?? "",
+            dietaryNotes: dietaryNotes(answers) || undefined,
+            tableLanguagePreference: checkoutTableLanguage(answers.language),
+          },
+          meta: { ...getMetaBrowserCookies(), eventSourceUrl: getMetaEventSourceUrl() },
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!res.ok || !data?.url) {
+        setError(data?.error ?? k.checkoutError);
+        setLoading(false);
+        return;
+      }
+      window.location.assign(data.url);
+    } catch {
+      setError(k.checkoutError);
+      setLoading(false);
+    }
+  }
+
   async function reserve() {
     if (!selected || loading) return;
+    if (!isMemberSeat && effectiveChoice === "member") return becomeMember();
     const event = selected.event;
     handlers.onReserve({ event_slug: event.slug, seats: effectiveSeats, nearby: selected.nearby });
     setLoading(true);
@@ -188,7 +284,15 @@ export function QuizChoose({
           meta: { ...getMetaBrowserCookies(), eventSourceUrl: getMetaEventSourceUrl() },
         }),
       });
-      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+      const data = (await res.json().catch(() => null)) as
+        | { url?: string; error?: string; booked?: boolean; code?: string }
+        | null;
+      if (res.ok && data?.booked) {
+        // A member's own seat: booked straight away, no payment.
+        setBooked(data.code ?? "");
+        setLoading(false);
+        return;
+      }
       if (!res.ok || !data?.url) {
         setError(data?.error ?? k.checkoutError);
         Sentry.withScope((scope) => {
@@ -229,7 +333,11 @@ export function QuizChoose({
   function openRow(row: ChooseRow, index: number) {
     const event = row.event;
     const isSelected = selectedId === event.id;
-    const chip = spotsChip(event, locale, k);
+    const early = earlyBlocked(event);
+    const chip = early
+      ? { text: mk.earlyLabel(openFrom(event.membersOnlyUntil!, locale)), tone: "gold" as ChipTone }
+      : spotsChip(event, locale, k);
+    const included = decisionFor(event).kind === "included";
     return (
       <motion.li
         key={event.id}
@@ -246,6 +354,7 @@ export function QuizChoose({
             onClick={() => {
               setSelectedId(event.id);
               setError(null);
+              setBooked(null);
             }}
             whileTap={reduceMotion ? undefined : { scale: 0.985 }}
             className="flex w-full touch-manipulation items-center gap-3.5 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
@@ -267,10 +376,10 @@ export function QuizChoose({
               </span>
             </span>
             <span className="shrink-0 whitespace-nowrap text-right text-[0.8rem] font-medium leading-tight text-wine/55">
-              {k.perSeat(formatEuros(event.priceCents))}
+              {included ? mk.includedShort : k.perSeat(formatEuros(event.priceCents))}
             </span>
           </motion.button>
-          {unsure ? <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div> : null}
+          {unsure || early ? <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div> : null}
         </div>
       </motion.li>
     );
@@ -309,7 +418,7 @@ export function QuizChoose({
   }
 
   return (
-    <div className={selected ? "pb-80" : "pb-16"}>
+    <div className={selected ? (isMemberSeat ? "pb-80" : "pb-[30rem]") : "pb-16"}>
       <div className="pt-6">
         <h1 tabIndex={-1} className={questionTitle}>
           {k.title}
@@ -407,10 +516,33 @@ export function QuizChoose({
             initial={reduceMotion ? false : { y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto w-full max-w-md rounded-t-[1.75rem] border border-b-0 border-wine/[0.08] bg-white/90 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_rgba(43,13,18,0.12)] backdrop-blur-xl"
+            className="mx-auto max-h-[82svh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-[1.75rem] border border-b-0 border-wine/[0.08] bg-white/90 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_rgba(43,13,18,0.12)] backdrop-blur-xl"
           >
             <div aria-hidden className="mx-auto mb-3.5 h-1 w-10 rounded-full bg-wine/15" />
-            <>
+            {booked !== null ? (
+              <div role="status" className="py-2 text-center">
+                <span aria-hidden className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-burgundy text-cream">
+                  <CheckIcon className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-[1rem] font-semibold leading-snug text-wine">{mk.booked}</p>
+                {booked ? <p className="mt-1 text-sm tracking-[0.06em] text-wine/55">{booked}</p> : null}
+                <Link href={settingsHref} className={`${secondaryButton} mt-4`}>
+                  {mk.bookedLink}
+                </Link>
+              </div>
+            ) : selectedDecision.kind === "blocked" || selectedDecision.kind === "past_due" ? (
+              <div className="py-1 text-center">
+                <p className="text-[0.98rem] leading-snug text-wine/80">
+                  {selectedDecision.kind === "blocked"
+                    ? mk.blocked(openFrom(selectedDecision.until.toISOString(), locale))
+                    : mk.pastDue}
+                </p>
+                <Link href={settingsHref} className={`${secondaryButton} mt-4`}>
+                  {mk.settingsLink}
+                </Link>
+              </div>
+            ) : (
+              <>
                 <div className="flex items-center justify-between gap-3">
                   <div role="radiogroup" aria-label={k.seats} className="flex rounded-full bg-cream p-1">
                     {([1, 2] as const).map((n) => {
@@ -434,32 +566,132 @@ export function QuizChoose({
                     })}
                   </div>
                   <p className="text-right text-[1.05rem] font-bold tracking-tight text-wine">
-                    {k.total(formatEuros(selected.event.priceCents * effectiveSeats))}
+                    {isMemberSeat && snapshot
+                      ? effectiveSeats === 1
+                        ? mk.includedShort
+                        : k.total(formatPlanEuros(guestSeatCents(snapshot.plan), locale))
+                      : effectiveChoice === "single"
+                        ? k.total(formatEuros(selected.event.priceCents * effectiveSeats))
+                        : null}
                   </p>
                 </div>
                 {maxSeats < 2 ? <p className="mt-2 text-xs text-wine/60">{k.onlyOneLeft}</p> : null}
+
+                {isMemberSeat && snapshot ? (
+                  <MemberLines
+                    included={mk.included}
+                    guest={
+                      effectiveSeats === 2
+                        ? {
+                            label: mk.guest,
+                            was: `€${formatEuros(selected.event.priceCents)}`,
+                            now: `€${formatPlanEuros(guestSeatCents(snapshot.plan), locale)}`,
+                            tag: mk.memberPrice,
+                          }
+                        : null
+                    }
+                  />
+                ) : (
+                  <div role="radiogroup" aria-label={mk.planPickerLabel} className="mt-3.5 space-y-2">
+                    <ChoiceCard
+                      selected={effectiveChoice === "single"}
+                      disabled={selectedEarly}
+                      title={mk.singleTitle}
+                      sub={selectedEarly ? mk.earlyLabel(openFrom(selected.event.membersOnlyUntil!, locale)) : null}
+                      right={`€${formatEuros(selected.event.priceCents)}`}
+                      onSelect={() => setChoice("single")}
+                    />
+                    <ChoiceCard
+                      selected={effectiveChoice === "member"}
+                      title={mk.memberTitle}
+                      sub={selectedEarly ? mk.earlyLine : null}
+                      right={mk.memberFrom(`€${formatPlanEuros(lowestMonthlyCents(), locale)}`)}
+                      onSelect={() => {
+                        setChoice("member");
+                        trackMembershipEvent(PostHogEvents.membershipPlanSelected, { plan, source: "kies" });
+                      }}
+                    />
+                    {effectiveChoice === "member" ? (
+                      <div className="rounded-2xl bg-cream/80 px-3 py-3">
+                        <div role="radiogroup" aria-label={mk.planPickerLabel} className="grid grid-cols-3 gap-1 rounded-full bg-white p-1">
+                          {MEMBERSHIP_PLAN_IDS.map((id) => (
+                            <button
+                              key={id}
+                              type="button"
+                              role="radio"
+                              aria-checked={plan === id}
+                              onClick={() => {
+                                setPlan(id);
+                                trackMembershipEvent(PostHogEvents.membershipPlanSelected, { plan: id, source: "kies" });
+                              }}
+                              className={`min-h-9 rounded-full px-2 text-[0.8rem] font-semibold transition-[background-color,color] duration-200 ${
+                                plan === id ? "bg-burgundy text-cream" : "text-wine/65"
+                              }`}
+                            >
+                              {mk.planShort(id)}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="mt-2.5 px-1 text-[0.82rem] leading-snug text-wine/70">
+                          <span className="font-semibold text-wine">
+                            {planCopy.plan(plan).price} {planCopy.plan(plan).priceUnit}.
+                          </span>{" "}
+                          {planCopy.plan(plan).line}.
+                        </p>
+                        <MemberLines
+                          included={mk.memberSummary(planCopy.plan(plan).name)}
+                          guest={
+                            effectiveSeats === 2
+                              ? {
+                                  label: mk.guest,
+                                  was: `€${formatEuros(selected.event.priceCents)}`,
+                                  now: `€${formatPlanEuros(guestSeatCents(plan), locale)}`,
+                                  tag: mk.memberPrice,
+                                }
+                              : null
+                          }
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
                 <button
                   type="button"
                   className={`${primaryButton} mt-3.5`}
                   onClick={() => void reserve()}
                   disabled={loading}
                 >
-                  {loading ? k.reserving : k.reserve}
+                  {loading
+                    ? effectiveChoice === "member" && !isMemberSeat
+                      ? mk.becomeMemberBusy
+                      : k.reserving
+                    : isMemberSeat
+                      ? effectiveSeats === 1
+                        ? mk.bookIncluded
+                        : k.reserve
+                      : effectiveChoice === "member"
+                        ? mk.becomeMember
+                        : k.reserve}
                 </button>
                 {error ? (
                   <p role="alert" className="mt-2 text-center text-sm font-semibold text-red-600">
                     {error}
                   </p>
                 ) : null}
-                <ul className="mx-auto mt-3 w-fit space-y-1 text-[0.8rem] leading-snug text-wine/60">
-                  {k.guarantees.map((line) => (
-                    <li key={line} className="flex items-center gap-1.5">
-                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-gold" />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-            </>
+                {selectedEarly ? <div className="mt-2 flex justify-center">{notifyButton(selected.event, true)}</div> : null}
+                {!isMemberSeat && effectiveChoice === "single" ? (
+                  <ul className="mx-auto mt-3 w-fit space-y-1 text-[0.8rem] leading-snug text-wine/60">
+                    {k.guarantees.map((line) => (
+                      <li key={line} className="flex items-center gap-1.5">
+                        <CheckIcon className="h-3.5 w-3.5 shrink-0 text-gold" />
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            )}
           </motion.div>
         </div>
       ) : null}
@@ -511,5 +743,76 @@ function InfoSheet({
         ))}
       </ul>
     </BottomSheet>
+  );
+}
+
+/** "Losse plek €15" / "Word lid vanaf €8,25 per maand" in the sheet. */
+function ChoiceCard({
+  selected,
+  disabled = false,
+  title,
+  sub,
+  right,
+  onSelect,
+}: {
+  selected: boolean;
+  disabled?: boolean;
+  title: string;
+  sub: string | null;
+  right: string;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      disabled={disabled}
+      onClick={onSelect}
+      className={`flex min-h-[3.4rem] w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 disabled:cursor-not-allowed disabled:opacity-60 ${
+        selected ? rowSelected : "border-wine/[0.1] bg-white"
+      }`}
+    >
+      <span
+        aria-hidden
+        className={`flex h-[1.3rem] w-[1.3rem] shrink-0 items-center justify-center rounded-full border-[1.5px] ${
+          selected ? "border-burgundy bg-burgundy" : "border-wine/20 bg-white"
+        }`}
+      >
+        <span className={`h-2 w-2 rounded-full bg-cream transition-transform ${selected ? "scale-100" : "scale-0"}`} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[0.98rem] font-semibold leading-tight text-wine">{title}</span>
+        {sub ? <span className="mt-0.5 block text-[0.78rem] leading-snug text-wine/55">{sub}</span> : null}
+      </span>
+      <span className="shrink-0 text-right text-[0.88rem] font-semibold text-burgundy">{right}</span>
+    </button>
+  );
+}
+
+/** "Inbegrepen in je lidmaatschap" and "Gast: €15 €9 (ledenprijs)". */
+function MemberLines({
+  included,
+  guest,
+}: {
+  included: string;
+  guest: { label: string; was: string; now: string; tag: string } | null;
+}) {
+  return (
+    <ul className="mt-2.5 space-y-1 px-1 text-[0.85rem] leading-snug text-wine/75">
+      <li className="flex items-start gap-1.5">
+        <CheckIcon className="mt-[0.15rem] h-3.5 w-3.5 shrink-0 text-gold" />
+        <span>{included}</span>
+      </li>
+      {guest ? (
+        <li className="flex items-start gap-1.5">
+          <CheckIcon className="mt-[0.15rem] h-3.5 w-3.5 shrink-0 text-gold" />
+          <span>
+            {guest.label}: <s className="text-wine/45">{guest.was}</s>{" "}
+            <span className="font-semibold text-burgundy">{guest.now}</span> ({guest.tag})
+          </span>
+        </li>
+      ) : null}
+    </ul>
   );
 }

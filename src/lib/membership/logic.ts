@@ -205,3 +205,39 @@ export function membershipSummary(m: MembershipSnapshot | null, nextCents: numbe
   if (m.cancelAtPeriodEnd) return m.currentPeriodEnd.getTime() > now ? { kind: "ends", date: m.currentPeriodEnd } : { kind: "none" };
   return { kind: "renews", date: m.currentPeriodEnd, cents: nextCents };
 }
+
+// ---------------------------------------------------------------- client
+
+/** A membership as the browser gets it (dates as ISO strings). */
+export type ClientMembership = {
+  plan: MembershipPlanId;
+  status: MembershipStatus;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  bookingBlockedUntil: string | null;
+};
+
+export function toClientMembership(m: MembershipSnapshot | null): ClientMembership | null {
+  if (!m || m.status === "canceled") return null;
+  return {
+    plan: m.plan,
+    status: m.status,
+    currentPeriodEnd: m.currentPeriodEnd?.toISOString() ?? null,
+    cancelAtPeriodEnd: m.cancelAtPeriodEnd,
+    bookingBlockedUntil: m.bookingBlockedUntil?.toISOString() ?? null,
+  };
+}
+
+export function fromClientMembership(m: ClientMembership | null): MembershipSnapshot | null {
+  if (!m) return null;
+  return {
+    plan: m.plan,
+    status: m.status,
+    currentPeriodEnd: m.currentPeriodEnd ? new Date(m.currentPeriodEnd) : null,
+    initialPeriodEnd: null,
+    cancelAtPeriodEnd: m.cancelAtPeriodEnd,
+    bookingBlockedUntil: m.bookingBlockedUntil ? new Date(m.bookingBlockedUntil) : null,
+    noShowCount: 0,
+    reminderSentAt: null,
+  };
+}

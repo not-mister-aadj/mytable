@@ -322,25 +322,28 @@ function QuizHeader({
           </AnimatePresence>
         </div>
       </div>
-      <div
-        className="mx-auto flex w-full max-w-md gap-1.5 px-5 pb-2.5"
-        role="progressbar"
-        aria-label={copy.chapters[chapter]}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(progress * 100)}
-      >
-        {QUIZ_CHAPTERS.map((c, i) => (
-          <div key={c} className="h-[3px] flex-1 overflow-hidden rounded-full bg-wine/[0.09]">
-            <motion.div
-              className="h-full origin-left rounded-full bg-burgundy"
-              initial={false}
-              animate={{ scaleX: chapterFill[i] ?? 0 }}
-              transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
-        ))}
-      </div>
+      {/* No progress bar on the list of tables: the quiz is done there. */}
+      {step === "kies" ? null : (
+        <div
+          className="mx-auto flex w-full max-w-md gap-1.5 px-5 pb-2.5"
+          role="progressbar"
+          aria-label={copy.chapters[chapter]}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+        >
+          {QUIZ_CHAPTERS.map((c, i) => (
+            <div key={c} className="h-[3px] flex-1 overflow-hidden rounded-full bg-wine/[0.09]">
+              <motion.div
+                className="h-full origin-left rounded-full bg-burgundy"
+                initial={false}
+                animate={{ scaleX: chapterFill[i] ?? 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </header>
   );
 }

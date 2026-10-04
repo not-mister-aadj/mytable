@@ -121,6 +121,7 @@ export async function fulfillMembershipCheckout(session: Stripe.Checkout.Session
       plan: membership.plan,
       source: session.metadata?.source ?? null,
       with_table: Boolean(bookingId),
+      concept: "account",
     });
   }
 

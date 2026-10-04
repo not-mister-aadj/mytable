@@ -4,7 +4,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 
 /** Published, upcoming Sunday Tables. Deliberately no venue: the page never
@@ -112,7 +112,7 @@ export function devCountOverride(value: string | string[] | undefined): number |
 }
 
 /** The social-proof number under the hero: people from the visitor's city
- * when known and big enough, otherwise everyone. Rounded down to tens; null
+ * when known and big enough, otherwise everyone. Rounded up to hundreds; null
  * when the number would be too small to say anything (under
  * SIGNUP_COUNT_MIN). */
 export async function getWaitlistProof(
@@ -124,10 +124,9 @@ export async function getWaitlistProof(
       override !== null
         ? { total: override, byCity: city ? { [city]: override } : {} }
         : await getCachedWaitlistCounts();
-    const floorTens = (n: number) => Math.floor(n / 10) * 10;
     const cityCount = city ? counts.byCity[city] ?? 0 : 0;
-    if (city && cityCount >= SIGNUP_COUNT_MIN) return { count: floorTens(cityCount), city };
-    if (counts.total >= SIGNUP_COUNT_MIN) return { count: floorTens(counts.total), city: null };
+    if (city && cityCount >= SIGNUP_COUNT_MIN) return { count: roundSignupCount(cityCount), city };
+    if (counts.total >= SIGNUP_COUNT_MIN) return { count: roundSignupCount(counts.total), city: null };
     return null;
   } catch (error) {
     console.error("[jouw-tafel] loading waitlist counts failed", error);
@@ -150,7 +149,7 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
 }
 
 /** Sign-ups per city, for the quiz's "In {stad} hebben zich al N+ mensen
- * aangemeld". Rounded down to tens; cities under SIGNUP_COUNT_MIN are left
+ * aangemeld". Rounded up to hundreds; cities under SIGNUP_COUNT_MIN are left
  * out (the quiz then only says "Je bent niet de enige"). Aggregates only. */
 export async function getWaitlistCityCounts(override: number | null = null): Promise<Record<string, number>> {
   try {
@@ -160,7 +159,7 @@ export async function getWaitlistCityCounts(override: number | null = null): Pro
         : await getCachedWaitlistCounts();
     const out: Record<string, number> = {};
     for (const [city, n] of Object.entries(counts.byCity)) {
-      if (n >= SIGNUP_COUNT_MIN) out[city] = Math.floor(n / 10) * 10;
+      if (n >= SIGNUP_COUNT_MIN) out[city] = roundSignupCount(n);
     }
     return out;
   } catch (error) {
@@ -182,7 +181,7 @@ const getCachedSubsetCounts = unstable_cache(loadSubsetCounts, ["jouw-tafel-sign
 
 /** For the quiz's "stop-stad" screen with two or more cities: the combined
  * distinct count per combination of our cities, keyed by cityMask, rounded
- * down to tens, SIGNUP_COUNT_MIN and up only. Empty on failure (the screen
+ * up to hundreds, SIGNUP_COUNT_MIN and up only. Empty on failure (the screen
  * then shows its fallback). */
 export async function getSignupSubsetCounts(override: number | null = null): Promise<Record<string, number>> {
   try {
@@ -190,7 +189,7 @@ export async function getSignupSubsetCounts(override: number | null = null): Pro
       // Same rounding and threshold as the real counts, for every combination.
       const out: Record<string, number> = {};
       if (override >= SIGNUP_COUNT_MIN) {
-        for (let mask = 1; mask < 1 << QUIZ_CITIES.length; mask++) out[String(mask)] = Math.floor(override / 10) * 10;
+        for (let mask = 1; mask < 1 << QUIZ_CITIES.length; mask++) out[String(mask)] = roundSignupCount(override);
       }
       return out;
     }

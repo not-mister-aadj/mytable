@@ -521,11 +521,11 @@ test("signupCountsBySubset: distinct people per combination of our cities", () =
   const counts = signupCountsBySubset(rows);
   const rd = cityMask(["Rotterdam", "Den Haag"]);
   assert.equal(rd, 0b11);
-  assert.equal(counts[String(rd)], 150); // 60 + 50 + 40, not 100 + 90
+  assert.equal(counts[String(rd)], 200); // 60 + 50 + 40 = 150, not 100 + 90
   assert.equal(counts[String(cityMask(["Rotterdam"]))], 100);
   assert.equal(counts[String(cityMask(["Den Haag"]))], undefined); // 90, under 100
   assert.equal(counts[String(cityMask(["Utrecht"]))], undefined); // under 100
-  assert.equal(counts[String(cityMask(["Rotterdam", "Den Haag", "Utrecht"]))], 180);
+  assert.equal(counts[String(cityMask(["Rotterdam", "Den Haag", "Utrecht"]))], 200); // 180
   assert.equal(cityMask(["Zwolle"]), 0);
 });
 

@@ -11,7 +11,7 @@ export type FaqItem = { q: string; a: string };
 
 export type AuthCopy = {
   signUp: { metaTitle: string; title: string; sub: string; switchPrompt: string; switchLink: string };
-  logIn: { metaTitle: string; title: string; sub: string; switchPrompt: string; switchLink: string };
+  logIn: { metaTitle: string; title: string; sub?: string; switchPrompt: string; switchLink: string };
   google: string;
   googleFailed: string;
   or: string;
@@ -254,7 +254,6 @@ const landingNl: LandingCopy = {
     logIn: {
       metaTitle: "Inloggen | MyTable",
       title: "Welkom terug",
-      sub: "Log in met je e-mailadres, zonder wachtwoord.",
       switchPrompt: "Nog geen account?",
       switchLink: "Maak een account",
     },
@@ -455,7 +454,6 @@ const landingEn: LandingCopy = {
     logIn: {
       metaTitle: "Log in | MyTable",
       title: "Welcome back",
-      sub: "Log in with your email address, no password.",
       switchPrompt: "No account yet?",
       switchLink: "Create an account",
     },

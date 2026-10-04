@@ -132,7 +132,7 @@ export function JouwTafelAuthForm({
   signUpPath: string;
   termsHref: string;
   privacyHref: string;
-  /** "Al 330+ mensen hebben zich aangemeld", live and rounded down; null when small. */
+  /** "Al 300+ mensen hebben zich aangemeld", live and rounded up to hundreds; null when small. */
   proofText: string | null;
   /** Sign-up: always a clean start (no session, no saved quiz answers). */
   startFresh: boolean;
@@ -507,7 +507,9 @@ export function JouwTafelAuthForm({
       <h1 className="font-serif text-[2rem] font-medium leading-[1.1] tracking-tight text-wine text-balance">
         {screenCopy.title}
       </h1>
-      <p className="mt-3 text-[1.02rem] leading-relaxed text-wine/70">{screenCopy.sub}</p>
+      {screenCopy.sub ? (
+        <p className="mt-3 text-[1.02rem] leading-relaxed text-wine/70">{screenCopy.sub}</p>
+      ) : null}
 
       {googleAllowed ? (
         <>

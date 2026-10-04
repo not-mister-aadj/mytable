@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { waitlistSignups } from "@/db/schema";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
@@ -23,6 +23,33 @@ export type QuizWaitlistResult =
     }
   | { ok: false; error: string };
 
+/** The waitlist row name for one chosen city (as upsertQuizWaitlist uses). */
+function waitlistCityName(raw: string): string {
+  return supportedCity(raw) ?? placeLabel(raw) ?? normalizeWaitlistCity(raw);
+}
+
+/**
+ * Settings: deletes this person's waitlist rows for cities they removed
+ * (unlike the quiz, which never deletes rows). A city still in `keep`
+ * (another spelling of it) stays.
+ */
+export async function removeQuizWaitlistCities(input: {
+  email: string;
+  removed: readonly string[];
+  keep: readonly string[];
+}): Promise<number> {
+  if (!isDbConfigured() || input.removed.length === 0) return 0;
+  const email = input.email.trim().toLowerCase();
+  const keep = new Set(input.keep.map((c) => cityMatchKey(waitlistCityName(c))));
+  const names = [...new Set(input.removed.map(waitlistCityName))].filter((c) => c && !keep.has(cityMatchKey(c)));
+  if (names.length === 0) return 0;
+  const deleted = await getDb()
+    .delete(waitlistSignups)
+    .where(and(eq(waitlistSignups.email, email), inArray(waitlistSignups.city, names)))
+    .returning({ id: waitlistSignups.id });
+  return deleted.length;
+}
+
 /**
  * Their chosen cities as waitlist city names, primary first, deduped: our
  * city in its usual spelling, else the place's name from the list (a
@@ -31,7 +58,7 @@ export type QuizWaitlistResult =
 function waitlistCities(state: QuizState): string[] {
   const cities: string[] = [];
   for (const raw of answerCities(state.answers)) {
-    const city = supportedCity(raw) ?? placeLabel(raw) ?? normalizeWaitlistCity(raw);
+    const city = waitlistCityName(raw);
     if (city && !cities.some((c) => cityMatchKey(c) === cityMatchKey(city))) cities.push(city);
   }
   return cities;

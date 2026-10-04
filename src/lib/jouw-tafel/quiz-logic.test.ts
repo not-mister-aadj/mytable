@@ -13,6 +13,7 @@ import {
   checkoutTableLanguage,
   chooseTables,
   chooseTablesForAnswers,
+  cityChanges,
   cityMask,
   cityStepAnswer,
   defaultSeats,
@@ -28,6 +29,7 @@ import {
   quizSteps,
   resolveStep,
   sanitizeQuizState,
+  settingsRowVisible,
   shouldSendQuizLead,
   signupCountsBySubset,
   stepPosition,
@@ -662,6 +664,25 @@ test("shouldSendQuizLead: once per account, right after completing", () => {
   assert.equal(shouldSendQuizLead({ v: 1, answers: DONE_ALONE }, {}, NOW), false);
   assert.equal(shouldSendQuizLead({ ...done, completedAt: NOW - 2 * 86_400_000 }, {}, NOW), false);
   assert.equal(shouldSendQuizLead({ ...done, answers: { ...DONE_ALONE, ready: undefined } }, {}, NOW), false);
+});
+
+test("settings: city changes become waitlist rows to add and remove", () => {
+  assert.deepEqual(cityChanges(["Rotterdam", "Den Haag"], ["den haag", "Utrecht"]), {
+    added: ["Utrecht"],
+    removed: ["Rotterdam"],
+  });
+  assert.deepEqual(cityChanges(["Zwolle"], ["Zwolle"]), { added: [], removed: [] });
+  assert.deepEqual(cityChanges([], ["Delft"]), { added: ["Delft"], removed: [] });
+  assert.deepEqual(cityChanges(["Delft", "Rotterdam"], []), { added: [], removed: ["Delft", "Rotterdam"] });
+});
+
+test("settings: table type only for women, 'wie' only with someone", () => {
+  assert.equal(settingsRowVisible("tafeltype", { gender: "female" }), true);
+  assert.equal(settingsRowVisible("tafeltype", { gender: "male" }), false);
+  assert.equal(settingsRowVisible("tafeltype", {}), false);
+  assert.equal(settingsRowVisible("wie", { companion: "with" }), true);
+  assert.equal(settingsRowVisible("wie", { companion: "alone" }), false);
+  assert.equal(settingsRowVisible("stad", {}), true);
 });
 
 test("firstNameFromMetadata", () => {

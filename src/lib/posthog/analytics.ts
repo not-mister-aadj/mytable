@@ -219,6 +219,19 @@ export function trackQuizEvent(
   capture(event, props);
 }
 
+/** Settings page events: field names, booleans and counts only. */
+export function trackSettingsEvent(
+  event:
+    | typeof PostHogEvents.settingsOpened
+    | typeof PostHogEvents.settingChanged
+    | typeof PostHogEvents.notificationsToggled
+    | typeof PostHogEvents.bookingOpened
+    | typeof PostHogEvents.accountDeleted,
+  props: AnalyticsProperties,
+): void {
+  capture(event, props);
+}
+
 /** quiz_step_left, on pagehide or when the tab goes to the background. */
 export function trackQuizStepLeft(props: AnalyticsProperties): void {
   captureClientEventBeacon(PostHogEvents.quizStepLeft, { ...baseContext(), ...props });

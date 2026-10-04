@@ -12,10 +12,11 @@ import {
   QUIZ_LEAD_SENT_KEY,
   QUIZ_METADATA_KEY,
   answerCities,
+  cityChanges,
   sanitizeQuizState,
   shouldSendQuizLead,
 } from "@/lib/jouw-tafel/quiz-logic";
-import { upsertQuizWaitlist } from "@/lib/jouw-tafel/quiz-server";
+import { removeQuizWaitlistCities, upsertQuizWaitlist } from "@/lib/jouw-tafel/quiz-server";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -63,6 +64,9 @@ export async function POST(request: Request) {
     locale?: string;
     waitlist?: boolean;
     notifyEventId?: string;
+    /** "settings": a change from the settings page (no Meta Lead; removed
+     * cities lose their waitlist row). */
+    origin?: string;
     meta?: unknown;
   };
   try {
@@ -79,7 +83,9 @@ export async function POST(request: Request) {
     state.notify = [...(state.notify ?? []), notifyEventId].slice(-20);
   }
 
-  const sendLead = shouldSendQuizLead(state, user.user_metadata);
+  const fromSettings = body.origin === "settings";
+  const before = sanitizeQuizState((user.user_metadata ?? {})[QUIZ_METADATA_KEY]);
+  const sendLead = !fromSettings && shouldSendQuizLead(state, user.user_metadata);
   const supabase = await createSupabaseServerClient();
   const { error: metaError } = await supabase.auth.updateUser({
     data: {
@@ -99,6 +105,15 @@ export async function POST(request: Request) {
       waitlist = { created: result.lead !== null };
     } else if (result.error !== "no_city") {
       console.error("[jouw-tafel quiz] waitlist upsert failed:", result.error);
+    }
+  }
+
+  if (fromSettings) {
+    const { removed } = cityChanges(answerCities(before.answers), answerCities(state.answers));
+    try {
+      await removeQuizWaitlistCities({ email: user.email, removed, keep: answerCities(state.answers) });
+    } catch (error) {
+      console.error("[jouw-tafel quiz] removing waitlist cities failed:", error);
     }
   }
 

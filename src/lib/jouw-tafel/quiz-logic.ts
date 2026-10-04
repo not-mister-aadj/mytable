@@ -704,6 +704,34 @@ export function infoPrice(rows: readonly ChooseRow[]): { cents: number; from: bo
   return { cents, from: prices.some((p) => p !== cents) };
 }
 
+// ---------------------------------------------------------------- settings
+
+/** The settings rows for answers, in their groups. Same branches as the
+ * quiz: "Soort tafel" only for women, "Wie" only with someone. */
+export const SETTINGS_GROUPS = {
+  tafel: ["stad", "leeftijd", "gender", "tafeltype", "taal", "gezelschap", "wie"],
+  zondag: ["zoekt", "wijn", "gesprek", "dieet"],
+  binnenkort: ["formats"],
+} as const satisfies Record<string, readonly QuizStepId[]>;
+
+export function settingsRowVisible(step: QuizStepId, a: QuizAnswers): boolean {
+  if (step === "tafeltype") return a.gender === "female";
+  if (step === "wie") return a.companion === "with";
+  return true;
+}
+
+/** Cities added and removed between two answers (any spelling counts as
+ * the same city). Settings deletes the waitlist row of a removed city. */
+export function cityChanges(
+  before: readonly string[],
+  after: readonly string[],
+): { added: string[]; removed: string[] } {
+  return {
+    added: after.filter((c) => !before.some((b) => sameCity(b, c))),
+    removed: before.filter((b) => !after.some((c) => sameCity(b, c))),
+  };
+}
+
 /** Seats preselected on the table list: 2 for someone bringing a person. */
 export function defaultSeats(a: QuizAnswers): 1 | 2 {
   return a.companion === "with" ? 2 : 1;

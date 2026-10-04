@@ -62,6 +62,12 @@ export const PostHogEvents = {
   quizNotifyClicked: "quiz_notify_clicked",
   quizShareClicked: "quiz_share_clicked",
   quizInfoOpened: "quiz_info_opened",
+  /** Settings page for members (/jouw-tafel/instellingen). No personal data. */
+  settingsOpened: "settings_opened",
+  settingChanged: "setting_changed",
+  notificationsToggled: "notifications_toggled",
+  bookingOpened: "booking_opened",
+  accountDeleted: "account_deleted",
   quizLogoutClicked: "quiz_logout_clicked",
 } as const;
 

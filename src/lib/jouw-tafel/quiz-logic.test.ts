@@ -21,7 +21,6 @@ import {
   eligibleBrackets,
   firstMissingStep,
   firstNameFromMetadata,
-  infoPrice,
   kiesCities,
   nextStep,
   parseBirthDate,
@@ -345,14 +344,6 @@ test("kiesCities: name only chosen cities with tables here; ours without get a l
   // Only nearby tables: named (tables around it), but no Sunday of its own.
   const onlyNear = rd.filter((row) => row.event.city === "Rotterdam").map((row) => ({ ...row, nearby: true }));
   assert.deepEqual(kiesCities(["Den Haag"], onlyNear), { named: ["Den Haag"], noSunday: ["Den Haag"] });
-});
-
-test("infoPrice: the lowest price on the list, 'from' when they differ", () => {
-  const r = chooseTables(EVENTS, { cities: ["Rotterdam"], age: 37, ageMatters: "no" }, NOW).rows;
-  assert.deepEqual(infoPrice(r), { cents: 1000, from: false });
-  const mixed = r.map((row, i) => ({ ...row, event: { ...row.event, priceCents: i === 0 ? 1500 : 1200 } }));
-  assert.deepEqual(infoPrice(mixed), { cents: 1200, from: true });
-  assert.equal(infoPrice([]), null);
 });
 
 // ------------------------------------------------- checkout and waitlist

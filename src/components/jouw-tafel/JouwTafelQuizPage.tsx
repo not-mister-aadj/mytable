@@ -64,7 +64,6 @@ export async function JouwTafelQuizPage({
   return (
     <JouwTafelQuiz
       locale={locale}
-      email={user.email}
       userId={user.id}
       storageKey={`mytable_jt_quiz_${user.id}`}
       initialState={state}

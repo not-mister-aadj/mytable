@@ -695,15 +695,6 @@ export function kiesCities(
   return { named, noSunday };
 }
 
-/** The seat price for "Wat is een Sunday Table?": the lowest of the tables
- * on the list, `from` when they differ. Null without tables. */
-export function infoPrice(rows: readonly ChooseRow[]): { cents: number; from: boolean } | null {
-  const prices = rows.map((r) => r.event.priceCents);
-  if (prices.length === 0) return null;
-  const cents = Math.min(...prices);
-  return { cents, from: prices.some((p) => p !== cents) };
-}
-
 // ---------------------------------------------------------------- settings
 
 /** The settings rows for answers, in their groups. Same branches as the
@@ -733,7 +724,7 @@ export function cityChanges(
   };
 }
 
-/** Seats preselected on the table list: 2 for someone bringing a person. */
+/** Seats preselected on the reserve step: 2 for someone bringing a person. */
 export function defaultSeats(a: QuizAnswers): 1 | 2 {
   return a.companion === "with" ? 2 : 1;
 }

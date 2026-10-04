@@ -1,50 +1,26 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { CheckIcon, InfoIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
-import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
-import { getStoredUtm } from "@/lib/analytics/utm";
 import { formatSpotsLeftHint } from "@/lib/event-display";
 import { shouldShowSpotsCount } from "@/lib/experience-booking";
-import { formatEuros } from "@/lib/jouw-tafel/copy";
-import { JOUW_TAFEL_CHECKOUT_SOURCE, displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   ageFromBirthDate,
   answerCities,
-  checkoutTableLanguage,
   chooseTablesForAnswers,
   splitCities,
-  defaultSeats,
-  dietaryNotes,
-  infoPrice,
   kiesCities,
   type ChooseRow,
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
-import { primaryButton, questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import { questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 
 const AMSTERDAM = "Europe/Amsterdam";
-
-/** "Zo 25 okt" / "Sun 25 Oct". */
-function shortDate(iso: string, locale: Locale): string {
-  const tag = locale === "en" ? "en-GB" : "nl-NL";
-  const parts = new Intl.DateTimeFormat(tag, {
-    timeZone: AMSTERDAM,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  })
-    .formatToParts(new Date(iso))
-    .filter((p) => p.type === "weekday" || p.type === "day" || p.type === "month")
-    .map((p) => p.value.replace(/\.$/, ""));
-  const text = parts.join(" ");
-  return text.charAt(0).toLocaleUpperCase(tag) + text.slice(1);
-}
 
 /** "14:00" / "2:00 PM". */
 function startTime(iso: string, locale: Locale): string {
@@ -64,6 +40,13 @@ function dateParts(iso: string, locale: Locale): { weekday: string; day: string;
   return { weekday: parts.weekday ?? "", day: parts.day ?? "", month: parts.month ?? "" };
 }
 
+/** "Zo 25 okt" for the aria label. */
+function shortDate(iso: string, locale: Locale): string {
+  const { weekday, day, month } = dateParts(iso, locale);
+  const text = `${weekday} ${day} ${month}`;
+  return text.charAt(0).toLocaleUpperCase() + text.slice(1);
+}
+
 type ChipTone = "wine" | "gold" | "grey";
 
 const CHIP_TONE: Record<ChipTone, string> = {
@@ -73,7 +56,7 @@ const CHIP_TONE: Record<ChipTone, string> = {
 };
 
 /** "Nog maar 3 plekken" (wine), "Plekken vrij" (gold), "Binnenkort" (grey). */
-function spotsChip(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): { text: string; tone: ChipTone } {
+export function spotsChip(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): { text: string; tone: ChipTone } {
   if (event.comingSoon) return { text: copy.soonBadge, tone: "grey" };
   const left = spotsLeft(event);
   return shouldShowSpotsCount(left, event.spotsSold)
@@ -81,9 +64,12 @@ function spotsChip(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): { 
     : { text: copy.spotsOpen, tone: "gold" };
 }
 
+export { CHIP_TONE };
+
 export type ChooseHandlers = {
   onViewed: (props: { tables_shown: number; has_match: boolean }) => void;
-  onReserve: (props: { event_slug: string; seats: number; nearby: boolean }) => void;
+  /** A table card tapped: goes to the table page (also for "Binnenkort"). */
+  onOpen: (props: { event_slug: string; nearby: boolean; coming_soon: boolean }) => void;
   onNotify: (event: QuizEvent | null) => void;
   onShare: () => void;
   /** "Wat is een Sunday Table?" opened. */
@@ -92,8 +78,8 @@ export type ChooseHandlers = {
 
 /**
  * "Kies je zondag": the live list for this person (their city and age
- * group first, then nearby, then coming soon), seats 1 or 2, and
- * "Reserveer" straight into Stripe Checkout. Never a venue.
+ * group first, then nearby, then coming soon). No prices here: a card opens
+ * the table page, where she reserves. Never a venue.
  */
 export function QuizChoose({
   locale,
@@ -101,19 +87,20 @@ export function QuizChoose({
   answers,
   events,
   now,
-  email,
   notified,
   handlers,
+  tablePath,
 }: {
   locale: Locale;
   copy: QuizCopy;
   answers: QuizAnswers;
   events: QuizEvent[];
   now: number;
-  email: string;
   /** Event ids (and "city" for the city as a whole) they asked to hear about. */
   notified: Set<string>;
   handlers: ChooseHandlers;
+  /** The table page for an event slug. */
+  tablePath: (slug: string) => string;
 }) {
   const k = copy.kies;
   const reduceMotion = useReducedMotion();
@@ -135,7 +122,6 @@ export function QuizChoose({
   // line under the list.
   const { named, noSunday } = kiesCities(cities, rows);
   const shownCities = copy.joinCities((named.length ? named : ours).map((c) => displayCity(c, locale)));
-  const price = infoPrice(rows);
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
   const openRows = rows.filter((r) => r.kind === "open");
@@ -148,15 +134,6 @@ export function QuizChoose({
   const soonRows = rows.filter((r) => r.kind === "soon");
   const unsure = answers.ready === "unsure";
 
-  const [selectedId, setSelectedId] = useState<string | null>(openRows[0]?.event.id ?? null);
-  const selected = openRows.find((r) => r.event.id === selectedId) ?? null;
-  const [seats, setSeats] = useState<1 | 2>(defaultSeats(answers));
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const maxSeats = selected ? Math.min(2, spotsLeft(selected.event)) : 2;
-  const effectiveSeats: 1 | 2 = maxSeats < 2 ? 1 : seats;
-
   const viewedRef = useRef(false);
   useEffect(() => {
     if (viewedRef.current) return;
@@ -164,48 +141,9 @@ export function QuizChoose({
     handlers.onViewed({ tables_shown: rows.length, has_match: hasMatch });
   }, [handlers, rows.length, hasMatch]);
 
-  async function reserve() {
-    if (!selected || loading) return;
-    const event = selected.event;
-    handlers.onReserve({ event_slug: event.slug, seats: effectiveSeats, nearby: selected.nearby });
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventId: event.id,
-          // The server charges the funnel's seat price for this source.
-          source: JOUW_TAFEL_CHECKOUT_SOURCE,
-          email,
-          name: answers.name ?? "",
-          seats: effectiveSeats,
-          locale,
-          // Everyone can book any table; the language preference goes along
-          // and tables are matched by hand afterwards.
-          tableLanguagePreference: checkoutTableLanguage(answers.language),
-          dietaryNotes: dietaryNotes(answers) || undefined,
-          utm: getStoredUtm(),
-          meta: { ...getMetaBrowserCookies(), eventSourceUrl: getMetaEventSourceUrl() },
-        }),
-      });
-      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
-      if (!res.ok || !data?.url) {
-        setError(data?.error ?? k.checkoutError);
-        Sentry.withScope((scope) => {
-          scope.setTag("flow", "jouw_tafel_quiz_checkout");
-          scope.setExtras({ status: res.status, error: data?.error });
-          Sentry.captureMessage("Quiz checkout failed", "warning");
-        });
-        setLoading(false);
-        return;
-      }
-      window.location.assign(data.url);
-    } catch {
-      setError(k.checkoutError);
-      setLoading(false);
-    }
+  function open(row: ChooseRow) {
+    handlers.onOpen({ event_slug: row.event.slug, nearby: row.nearby, coming_soon: row.event.comingSoon });
+    window.location.assign(tablePath(row.event.slug));
   }
 
   function notifyButton(event: QuizEvent | null, compact = false) {
@@ -214,7 +152,10 @@ export function QuizChoose({
     return (
       <button
         type="button"
-        onClick={() => !done && handlers.onNotify(event)}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!done) handlers.onNotify(event);
+        }}
         aria-pressed={done}
         className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
           compact
@@ -228,9 +169,9 @@ export function QuizChoose({
     );
   }
 
-  function openRow(row: ChooseRow, index: number) {
+  function tableCard(row: ChooseRow, index: number) {
     const event = row.event;
-    const isSelected = selectedId === event.id;
+    const soon = event.comingSoon;
     const chip = spotsChip(event, locale, k);
     return (
       <motion.li
@@ -239,28 +180,25 @@ export function QuizChoose({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, delay: reduceMotion ? 0 : 0.06 + index * 0.04, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className={`${rowCard} ${isSelected ? rowSelected : rowIdle}`}>
+        <div className={`${rowCard} ${rowIdle}`}>
           <motion.button
             type="button"
-            role="radio"
-            aria-checked={isSelected}
             aria-label={`${k.selectAria}: ${shortDate(event.startsAt, locale)}`}
-            onClick={() => {
-              setSelectedId(event.id);
-              setError(null);
-            }}
+            onClick={() => open(row)}
             whileTap={reduceMotion ? undefined : { scale: 0.985 }}
             className="flex w-full touch-manipulation items-center gap-3.5 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
-            <DateBadge iso={event.startsAt} locale={locale} selected={isSelected} />
+            <DateBadge iso={event.startsAt} locale={locale} muted={soon} />
             <span className="min-w-0 flex-1">
-              <span className="block text-[1rem] font-semibold leading-tight text-wine">{k.tableName}</span>
+              <span className={`block text-[1rem] font-semibold leading-tight ${soon ? "text-wine/80" : "text-wine"}`}>
+                {k.tableName}
+              </span>
               <span className="mt-0.5 block text-[0.9rem] leading-tight text-wine/70">{startTime(event.startsAt, locale)}</span>
               <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 <span className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
                   {chip.text}
                 </span>
-                {row.nearby ? (
+                {row.nearby || soon ? (
                   <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
                     <PinIcon className="h-3.5 w-3.5" />
                     {displayCity(event.city, locale)}
@@ -268,36 +206,17 @@ export function QuizChoose({
                 ) : null}
               </span>
             </span>
-            <span className="shrink-0 whitespace-nowrap text-right text-[0.8rem] font-medium leading-tight text-wine/55">
-              {k.perSeat(formatEuros(event.priceCents))}
-            </span>
+            <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-wine/30" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="m9 6 6 6-6 6" />
+            </svg>
           </motion.button>
-          {unsure ? <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div> : null}
+          {soon ? (
+            <div className="-mt-1 px-4 pb-3 pl-[5.3rem]">{notifyButton(event)}</div>
+          ) : unsure ? (
+            <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div>
+          ) : null}
         </div>
       </motion.li>
-    );
-  }
-
-  function soonRow(row: ChooseRow) {
-    const event = row.event;
-    return (
-      <li key={event.id} className={`${rowCard} ${rowIdle} flex items-start gap-3.5 p-3`}>
-        <DateBadge iso={event.startsAt} locale={locale} selected={false} muted />
-        <span className="min-w-0 flex-1">
-          <span className="block text-[1rem] font-semibold leading-tight text-wine/80">{k.tableName}</span>
-          <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <span className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE.grey}`}>
-              {k.soonBadge}
-            </span>
-            {/* "Binnenkort" mixes cities, so the city always shows here. */}
-            <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
-              <PinIcon className="h-3.5 w-3.5" />
-              {displayCity(event.city, locale)}
-            </span>
-          </span>
-          <span className="mt-2 block">{notifyButton(event)}</span>
-        </span>
-      </li>
     );
   }
 
@@ -311,7 +230,7 @@ export function QuizChoose({
   }
 
   return (
-    <div className={selected ? "pb-80" : "pb-16"}>
+    <div className="pb-16">
       <div className="pt-6">
         <h1 tabIndex={-1} className={questionTitle}>
           {k.title}
@@ -353,9 +272,7 @@ export function QuizChoose({
         return (
           <section key={section.city} className="mt-8">
             {sectionTitle(k.inCity(displayCity(section.city, locale)))}
-            <ul role="radiogroup" className="mt-3.5 space-y-3">
-              {section.rows.map((row, i) => openRow(row, offset + i))}
-            </ul>
+            <ul className="mt-3.5 space-y-3">{section.rows.map((row, i) => tableCard(row, offset + i))}</ul>
           </section>
         );
       })}
@@ -363,16 +280,14 @@ export function QuizChoose({
       {nearbyOpen.length > 0 ? (
         <section className="mt-8">
           {sectionTitle(ourCities ? k.ourCities : k.nearby)}
-          <ul role="radiogroup" className="mt-3.5 space-y-3">
-            {nearbyOpen.map((row, i) => openRow(row, ownOpen.length + i))}
-          </ul>
+          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownOpen.length + i))}</ul>
         </section>
       ) : null}
 
       {soonRows.length > 0 ? (
         <section className="mt-8">
           {sectionTitle(k.comingSoon)}
-          <ul className="mt-3.5 space-y-3">{soonRows.map(soonRow)}</ul>
+          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, openRows.length + i))}</ul>
         </section>
       ) : null}
 
@@ -394,76 +309,9 @@ export function QuizChoose({
         <InfoSheet
           title={k.infoLink}
           closeLabel={k.infoClose}
-          lines={[
-            ...k.infoLines,
-            ...(price ? [k.infoPrice(`€${formatEuros(price.cents)}`, price.from)] : []),
-            k.infoLast,
-          ]}
+          lines={[...k.infoLines, k.infoLast]}
           onClose={() => setInfoOpen(false)}
         />
-      ) : null}
-
-      {selected ? (
-        <div className="fixed inset-x-0 bottom-0 z-20">
-          <motion.div
-            initial={reduceMotion ? false : { y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto w-full max-w-md rounded-t-[1.75rem] border border-b-0 border-wine/[0.08] bg-white/90 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_rgba(43,13,18,0.12)] backdrop-blur-xl"
-          >
-            <div aria-hidden className="mx-auto mb-3.5 h-1 w-10 rounded-full bg-wine/15" />
-            <>
-                <div className="flex items-center justify-between gap-3">
-                  <div role="radiogroup" aria-label={k.seats} className="flex rounded-full bg-cream p-1">
-                    {([1, 2] as const).map((n) => {
-                      const active = effectiveSeats === n;
-                      const disabled = n > maxSeats;
-                      return (
-                        <button
-                          key={n}
-                          type="button"
-                          role="radio"
-                          aria-checked={active}
-                          disabled={disabled}
-                          onClick={() => setSeats(n)}
-                          className={`min-h-10 rounded-full px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 disabled:opacity-35 ${
-                            active ? "bg-white text-burgundy shadow-[0_2px_8px_rgba(43,13,18,0.12)]" : "text-wine/60"
-                          }`}
-                        >
-                          {k.seatOption(n)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-right text-[1.05rem] font-bold tracking-tight text-wine">
-                    {k.total(formatEuros(selected.event.priceCents * effectiveSeats))}
-                  </p>
-                </div>
-                {maxSeats < 2 ? <p className="mt-2 text-xs text-wine/60">{k.onlyOneLeft}</p> : null}
-                <button
-                  type="button"
-                  className={`${primaryButton} mt-3.5`}
-                  onClick={() => void reserve()}
-                  disabled={loading}
-                >
-                  {loading ? k.reserving : k.reserve}
-                </button>
-                {error ? (
-                  <p role="alert" className="mt-2 text-center text-sm font-semibold text-red-600">
-                    {error}
-                  </p>
-                ) : null}
-                <ul className="mx-auto mt-3 w-fit space-y-1 text-[0.8rem] leading-snug text-wine/60">
-                  {k.guarantees.map((line) => (
-                    <li key={line} className="flex items-center gap-1.5">
-                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-gold" />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-            </>
-          </motion.div>
-        </div>
       ) : null}
     </div>
   );
@@ -471,16 +319,15 @@ export function QuizChoose({
 
 const rowCard = "rounded-2xl border transition-[border-color,background-color,box-shadow] duration-200";
 const rowIdle = "border-wine/[0.08] bg-white shadow-[0_1px_2px_rgba(43,13,18,0.04),0_6px_18px_rgba(43,13,18,0.04)]";
-const rowSelected = "border-burgundy bg-[#fcf4f2] shadow-[inset_0_0_0_1px_var(--burgundy),0_8px_22px_rgba(90,15,27,0.10)]";
 
 /** Weekday, big day number, month: "ZO / 25 / okt". */
-function DateBadge({ iso, locale, selected, muted = false }: { iso: string; locale: Locale; selected: boolean; muted?: boolean }) {
+function DateBadge({ iso, locale, muted = false }: { iso: string; locale: Locale; muted?: boolean }) {
   const { weekday, day, month } = dateParts(iso, locale);
   return (
     <span
       aria-hidden
-      className={`relative flex h-[4.1rem] w-[3.6rem] shrink-0 flex-col items-center justify-center rounded-xl transition-colors duration-200 ${
-        muted ? "bg-wine/[0.04] text-wine/50" : selected ? "bg-burgundy text-cream" : "bg-[#f5ebe6] text-burgundy"
+      className={`relative flex h-[4.1rem] w-[3.6rem] shrink-0 flex-col items-center justify-center rounded-xl ${
+        muted ? "bg-wine/[0.04] text-wine/50" : "bg-[#f5ebe6] text-burgundy"
       }`}
     >
       <span className="text-[0.62rem] font-bold uppercase leading-none tracking-[0.14em] opacity-80">{weekday}</span>

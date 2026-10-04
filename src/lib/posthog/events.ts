@@ -71,6 +71,13 @@ export const PostHogEvents = {
   quizLogoutClicked: "quiz_logout_clicked",
   /** A customer moved their own seat to the next Sunday (days_before only). */
   bookingRescheduled: "booking_rescheduled",
+  /** Kies -> table page -> reserve step. No personal data. */
+  tableOpened: "table_opened",
+  tablePageViewed: "table_page_viewed",
+  tableReserveClicked: "table_reserve_clicked",
+  reserveStepViewed: "reserve_step_viewed",
+  reserveOptionSelected: "reserve_option_selected",
+  reserveCheckoutClicked: "reserve_checkout_clicked",
 } as const;
 
 export type PostHogEventName =

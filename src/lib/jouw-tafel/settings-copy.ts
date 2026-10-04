@@ -31,7 +31,7 @@ export type SettingsCopy = {
     /** Self-service "verzetten" to the next Sunday (single seats). */
     reschedule: {
       button: string;
-      confirm: (date: string, city: string) => string;
+      confirm: (date: string, city: string, time: string) => string;
       confirmButton: string;
       cancelButton: string;
       busy: string;
@@ -116,7 +116,7 @@ const nl: SettingsCopy = {
     changeLink: "Kopieer ons e-mailadres",
     reschedule: {
       button: "Verzetten naar de volgende zondag",
-      confirm: (date, city) => `Je reservering gaat naar ${date} in ${city}, om 14:00.`,
+      confirm: (date, city, time) => `Je reservering gaat naar ${date} in ${city}, om ${time}.`,
       confirmButton: "Verzetten",
       cancelButton: "Annuleren",
       busy: "Verzetten",
@@ -211,7 +211,7 @@ const en: SettingsCopy = {
     changeLink: "Copy our email address",
     reschedule: {
       button: "Move to the next Sunday",
-      confirm: (date, city) => `Your booking moves to ${date} in ${city}, at 2:00 PM.`,
+      confirm: (date, city, time) => `Your booking moves to ${date} in ${city}, at ${time}.`,
       confirmButton: "Move",
       cancelButton: "Cancel",
       busy: "Moving",

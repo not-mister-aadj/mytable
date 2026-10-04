@@ -496,3 +496,76 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
     deleteMember: "Je lidmaatschap stopt dan meteen en we schrijven daarna niets meer af.",
   };
 }
+
+// ---------------------------------------------------------------- reserve step
+
+export type MembershipReserveCopy = {
+  chooseTitle: string;
+  member: { title: string; lines: [string, string]; from: (price: string) => string };
+  single: { title: string; line: string };
+  planLabel: string;
+  planOption: (id: MembershipPlanId) => { name: string; price: string };
+  membershipRow: (id: MembershipPlanId) => string;
+  yourSeat: string;
+  included: string;
+  guest: string;
+  memberPrice: string;
+  today: string;
+  bookIncluded: string;
+  pay: string;
+  busy: string;
+};
+
+export function getMembershipReserveCopy(locale: Locale): MembershipReserveCopy {
+  const plan = (id: MembershipPlanId) => MEMBERSHIP_PLANS[id];
+  if (locale === "en") {
+    return {
+      chooseTitle: "Choose how you join",
+      member: {
+        title: "Become a member",
+        lines: ["This Sunday included", "Then every Sunday Table, and book 48 hours earlier"],
+        from: (price) => `from ${price} p/m`,
+      },
+      single: { title: "Single seat", line: "Only this Sunday" },
+      planLabel: "Membership",
+      planOption: (id) =>
+        id === "1m"
+          ? { name: "1 month", price: eur(plan(id).monthlyCents, locale) }
+          : { name: id === "4m" ? "4 months" : "1 year", price: `${eur(plan(id).monthlyCents, locale)} p/m` },
+      membershipRow: (id) =>
+        id === "1m" ? "Membership, first month" : id === "4m" ? "Membership, first 4 months" : "Membership, first year",
+      yourSeat: "Your seat",
+      included: "Included",
+      guest: "Guest",
+      memberPrice: "member price",
+      today: "To pay today",
+      bookIncluded: "Reserve, included",
+      pay: "Go to payment",
+      busy: "One moment",
+    };
+  }
+  return {
+    chooseTitle: "Kies hoe je aanschuift",
+    member: {
+      title: "Word lid",
+      lines: ["Deze zondag inbegrepen", "Daarna elke Sunday Table, en 48 uur eerder boeken"],
+      from: (price) => `vanaf ${price} p/m`,
+    },
+    single: { title: "Losse plek", line: "Alleen deze zondag" },
+    planLabel: "Lidmaatschap",
+    planOption: (id) =>
+      id === "1m"
+        ? { name: "1 maand", price: eur(plan(id).monthlyCents, locale) }
+        : { name: id === "4m" ? "4 maanden" : "1 jaar", price: `${eur(plan(id).monthlyCents, locale)} p/m` },
+    membershipRow: (id) =>
+      id === "1m" ? "Lidmaatschap, eerste maand" : id === "4m" ? "Lidmaatschap, eerste 4 maanden" : "Lidmaatschap, eerste jaar",
+    yourSeat: "Jouw plek",
+    included: "Inbegrepen",
+    guest: "Gast",
+    memberPrice: "ledenprijs",
+    today: "Vandaag te betalen",
+    bookIncluded: "Reserveer, inbegrepen",
+    pay: "Naar betalen",
+    busy: "Even geduld",
+  };
+}

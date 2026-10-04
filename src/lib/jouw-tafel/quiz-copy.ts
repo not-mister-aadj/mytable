@@ -126,14 +126,7 @@ export type QuizCopy = {
     comingSoon: string;
     spotsOpen: string;
     soonBadge: string;
-    perSeat: (price: string) => string;
-    seats: string;
-    seatOption: (n: 1 | 2) => string;
-    onlyOneLeft: string;
-    total: (price: string) => string;
-    reserve: string;
-    reserving: string;
-    /** Short promises under the Reserveer button. */
+    /** Short promises on the reserve step. */
     guarantees: string[];
     notify: string;
     notified: string;
@@ -142,7 +135,6 @@ export type QuizCopy = {
     shareTitle: string;
     shareText: string;
     shareCopied: string;
-    checkoutError: string;
     selectAria: string;
     /** Only towns outside our cities: heading above our cities' tables. */
     ourCities: string;
@@ -154,9 +146,8 @@ export type QuizCopy = {
     /** The link under the subtitle, and the sheet's title. */
     infoLink: string;
     infoClose: string;
-    /** The sheet's lines; the price line only when there is a price. */
+    /** The sheet's lines (no price: that is on the reserve step). */
     infoLines: string[];
-    infoPrice: (price: string, from: boolean) => string;
     infoLast: string;
     /** Link under the list to the settings page. */
   };
@@ -357,13 +348,6 @@ const nl: QuizCopy = {
     comingSoon: "Binnenkort",
     spotsOpen: "Plekken vrij",
     soonBadge: "Binnenkort",
-    perSeat: (price) => `€${price} per plek`,
-    seats: "Plekken",
-    seatOption: (n) => (n === 1 ? "1 plek" : "2 plekken"),
-    onlyOneLeft: "Nog 1 plek aan deze tafel.",
-    total: (price) => `Totaal €${price}`,
-    reserve: "Reserveer",
-    reserving: "Even geduld...",
     guarantees: [
       "Gratis verzetten tot 7 dagen vooraf",
       "7 dagen vooraf weet je of je tafel doorgaat",
@@ -377,7 +361,6 @@ const nl: QuizCopy = {
     shareTitle: "Sunday Table",
     shareText: "Een zondagmiddag aan tafel met nieuwe mensen. Zin om mee te doen?",
     shareCopied: "Link gekopieerd.",
-    checkoutError: "Dat lukte niet. Probeer het nog een keer.",
     selectAria: "Kies deze tafel",
     ourCities: "Of schuif aan in een van onze steden",
     tableName: "Sunday Table",
@@ -390,7 +373,6 @@ const nl: QuizCopy = {
       "Om 14:00 schuif je aan.",
       "Waar precies, hoor je een week van tevoren.",
     ],
-    infoPrice: (price, from) => `Je plek kost ${from ? "vanaf " : ""}${price}. Je drankjes bestel en betaal je zelf aan tafel.`,
     infoLast: "De meeste gasten komen alleen. Kom je met iemand, dan zitten jullie samen.",
   },
 };
@@ -580,13 +562,6 @@ const en: QuizCopy = {
     comingSoon: "Coming soon",
     spotsOpen: "Seats available",
     soonBadge: "Coming soon",
-    perSeat: (price) => `€${price} per seat`,
-    seats: "Seats",
-    seatOption: (n) => (n === 1 ? "1 seat" : "2 seats"),
-    onlyOneLeft: "Only 1 seat left at this table.",
-    total: (price) => `Total €${price}`,
-    reserve: "Reserve",
-    reserving: "One moment...",
     guarantees: [
       "Free to move up to 7 days before",
       "7 days before, you'll know if your table goes ahead",
@@ -600,7 +575,6 @@ const en: QuizCopy = {
     shareTitle: "Sunday Table",
     shareText: "A Sunday afternoon at the table with new people. Want to join?",
     shareCopied: "Link copied.",
-    checkoutError: "That didn't work. Please try again.",
     selectAria: "Choose this table",
     ourCities: "Or join a table in one of our cities",
     tableName: "Sunday Table",
@@ -613,8 +587,6 @@ const en: QuizCopy = {
       "You take your seat at 14:00.",
       "You'll hear exactly where a week before.",
     ],
-    infoPrice: (price, from) =>
-      `Your seat costs ${from ? "from " : ""}${price}. You order and pay for your own drinks at the table.`,
     infoLast: "Most guests come alone. If you bring someone, you sit together.",
   },
 };

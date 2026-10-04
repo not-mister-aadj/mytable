@@ -51,6 +51,11 @@ function localizePathForLocale(path: string, locale: Locale): string {
   if (locale === "nl" && path === "/your-table/settings") return "/jouw-tafel/instellingen";
   if (locale === "en" && path === "/jouw-tafel/lid") return "/your-table/membership";
   if (locale === "nl" && path === "/your-table/membership") return "/jouw-tafel/lid";
+  // Table page and its reserve step: /jouw-tafel/tafel/{slug}[/reserveren].
+  const nlTable = /^\/jouw-tafel\/tafel\/([^/]+)(\/reserveren)?$/.exec(path);
+  if (locale === "en" && nlTable) return `/your-table/table/${nlTable[1]}${nlTable[2] ? "/reserve" : ""}`;
+  const enTable = /^\/your-table\/table\/([^/]+)(\/reserve)?$/.exec(path);
+  if (locale === "nl" && enTable) return `/jouw-tafel/tafel/${enTable[1]}${enTable[2] ? "/reserveren" : ""}`;
   return path;
 }
 
@@ -92,6 +97,16 @@ export function jouwTafelMembershipPath(locale: Locale): string {
 /** "Kies je zondag": the last quiz screen with the list of tables. */
 export function jouwTafelKiesPath(locale: Locale): string {
   return `${jouwTafelStartPath(locale)}?stap=kies`;
+}
+
+/** The table page after "Kies je zondag" (no prices; reserve from here). */
+export function jouwTafelTablePath(locale: Locale, slug: string): string {
+  return locale === "en" ? `/en/your-table/table/${slug}` : `/jouw-tafel/tafel/${slug}`;
+}
+
+/** The reserve step of a table (seats, price, to payment). */
+export function jouwTafelReservePath(locale: Locale, slug: string): string {
+  return locale === "en" ? `/en/your-table/table/${slug}/reserve` : `/jouw-tafel/tafel/${slug}/reserveren`;
 }
 
 /** Same page in the other locale, preserving path (and optional hash). */

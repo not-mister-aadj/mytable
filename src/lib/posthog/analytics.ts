@@ -248,6 +248,20 @@ export function trackMembershipEvent(
   capture(event, props);
 }
 
+/** The table page and the reserve step after "Kies je zondag". */
+export function trackTableEvent(
+  event:
+    | typeof PostHogEvents.tableOpened
+    | typeof PostHogEvents.tablePageViewed
+    | typeof PostHogEvents.tableReserveClicked
+    | typeof PostHogEvents.reserveStepViewed
+    | typeof PostHogEvents.reserveOptionSelected
+    | typeof PostHogEvents.reserveCheckoutClicked,
+  props: AnalyticsProperties,
+): void {
+  capture(event, props);
+}
+
 /** quiz_step_left, on pagehide or when the tab goes to the background. */
 export function trackQuizStepLeft(props: AnalyticsProperties): void {
   captureClientEventBeacon(PostHogEvents.quizStepLeft, { ...baseContext(), ...props });

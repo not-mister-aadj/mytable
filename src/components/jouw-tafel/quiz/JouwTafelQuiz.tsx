@@ -16,10 +16,10 @@ import {
   WelcomeScreen,
   type QuizTestimonial,
 } from "@/components/jouw-tafel/quiz/quiz-screens";
-import { jouwTafelSettingsPath, type Locale } from "@/i18n/config";
+import { jouwTafelSettingsPath, jouwTafelTablePath, type Locale } from "@/i18n/config";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { trackMetaQuizLead } from "@/lib/analytics/metaTracking";
-import { trackQuizEvent, trackQuizStepLeft } from "@/lib/posthog/analytics";
+import { trackQuizEvent, trackQuizStepLeft, trackTableEvent } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
 import type { QuizCity, QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { ClientMembership } from "@/lib/membership/logic";
@@ -282,7 +282,6 @@ function QuizHeader({
 
 export function JouwTafelQuiz({
   locale,
-  email,
   userId,
   storageKey,
   initialState,
@@ -299,7 +298,6 @@ export function JouwTafelQuiz({
   membership = null,
 }: {
   locale: Locale;
-  email: string;
   /** localStorage key for this account's copy of the answers. */
   storageKey: string;
   /** For the quiz's Meta Lead event id (one per account). */
@@ -620,7 +618,7 @@ export function JouwTafelQuiz({
   const chooseHandlers: ChooseHandlers = useMemo(
     () => ({
       onViewed: (props) => trackQuizEvent(PostHogEvents.quizChooseViewed, { ...common("kies", answers), ...props }),
-      onReserve: (props) => trackQuizEvent(PostHogEvents.quizReserveClicked, { ...common("kies", answers), ...props }),
+      onOpen: (props) => trackTableEvent(PostHogEvents.tableOpened, { ...common("kies", answers), ...props }),
       onNotify: (event) => {
         trackQuizEvent(PostHogEvents.quizNotifyClicked, {
           ...common("kies", answers),
@@ -708,11 +706,10 @@ export function JouwTafelQuiz({
             answers={answers}
             events={events}
             now={now}
-            email={email}
             notified={notified}
             handlers={chooseHandlers}
             membership={membership}
-            settingsHref={settingsHref}
+            tablePath={(slug) => jouwTafelTablePath(locale, slug)}
           />
         );
       default:

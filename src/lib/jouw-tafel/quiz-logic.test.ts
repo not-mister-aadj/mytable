@@ -12,6 +12,7 @@ import {
   chapterOf,
   checkoutTableLanguage,
   chooseTables,
+  girlsOnlyWish,
   chooseTablesForAnswers,
   cityChanges,
   cityMask,
@@ -692,4 +693,13 @@ test("firstNameFromMetadata", () => {
   assert.equal(firstNameFromMetadata({ full_name: "Joris van Dam" }), "Joris");
   assert.equal(firstNameFromMetadata({ name: "someone@example.com" }), "");
   assert.equal(firstNameFromMetadata({}), "");
+});
+
+test("girls-only wish: only for women who chose it, with the mixed fallback", () => {
+  assert.equal(girlsOnlyWish({ gender: "female", tableType: "girls_only" }), "strict");
+  assert.equal(girlsOnlyWish({ gender: "female", tableType: "girls_only", mixedFallback: true }), "mixed_ok");
+  assert.equal(girlsOnlyWish({ gender: "female", tableType: "mixed" }), null);
+  assert.equal(girlsOnlyWish({ gender: "male", tableType: "girls_only" }), null);
+  const state = sanitizeQuizState({ v: 1, answers: { gender: "female", tableType: "mixed", mixedFallback: true } });
+  assert.equal(state.answers.mixedFallback, undefined);
 });

@@ -207,6 +207,7 @@ function QuizHeader({
   canGoBack,
   onBack,
   avatar,
+  ladies = false,
 }: {
   copy: QuizCopy;
   step: QuizStepId;
@@ -218,12 +219,18 @@ function QuizHeader({
   /** The avatar at the top right (to settings), only on the table list:
    * during the quiz nothing should pull people away from it. */
   avatar: ReactNode;
+  /** "Ladies only" on the table list: the header takes the rose glow. */
+  ladies?: boolean;
 }) {
   const reduceMotion = useReducedMotion();
   const chapter = chapterOf(step);
 
   return (
-    <header className="sticky top-0 z-30 bg-cream/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-cream/80">
+    <header
+      className={`sticky top-0 z-30 pt-[env(safe-area-inset-top)] backdrop-blur transition-colors duration-500 ${
+        ladies ? "bg-[#f6e6e8]/90" : "bg-cream/95 supports-[backdrop-filter]:bg-cream/80"
+      }`}
+    >
       <div className="mx-auto grid h-14 w-full max-w-md grid-cols-[3rem_1fr_3rem] items-center px-2">
         <button
           type="button"
@@ -528,6 +535,24 @@ export function JouwTafelQuiz({
     advancing.current = false;
   }, [step]);
 
+  /** A change from the filters on "Kies je zondag" (cities, mixed or
+   * ladies only): saved like an answer, also onto the waitlist rows. */
+  const updateAnswers = useCallback(
+    (patch: Partial<QuizAnswers>) => {
+      const current = quizRef.current;
+      const nextAnswers: QuizAnswers = { ...current.answers, ...patch };
+      for (const key of Object.keys(nextAnswers) as Array<keyof QuizAnswers>) {
+        if (nextAnswers[key] === undefined) delete nextAnswers[key];
+      }
+      const next: QuizState = { ...current, answers: nextAnswers, updatedAt: Date.now() };
+      quizRef.current = next;
+      setQuiz(next);
+      writeLocal(storageKey, next);
+      save(next, Boolean(next.completedAt));
+    },
+    [save, storageKey],
+  );
+
   /** After a question: commit and go on (single choice waits a beat so the
    * selected answer is seen). */
   const answerAndNext = useCallback(
@@ -714,6 +739,7 @@ export function JouwTafelQuiz({
             handlers={chooseHandlers}
             membership={membership}
             booked={booked}
+            onAnswers={updateAnswers}
             tablePath={(slug) => jouwTafelTablePath(locale, slug)}
           />
         );
@@ -739,10 +765,23 @@ export function JouwTafelQuiz({
   };
 
   const slide = reduceMotion ? 0 : 36;
+  // Ladies only on the table list: the whole page takes a soft rose glow.
+  const ladiesGlow = step === "kies" && answers.gender === "female" && answers.tableType === "girls_only";
 
   return (
-    <div className="min-h-[100svh] bg-cream text-wine">
+    <div
+      className={`min-h-[100svh] text-wine transition-[background] duration-500 ${ladiesGlow ? "" : "bg-cream"}`}
+      style={
+        ladiesGlow
+          ? {
+              background:
+                "radial-gradient(120% 55% at 50% 0%, rgba(214,150,166,0.38), transparent 60%), radial-gradient(90% 50% at 100% 100%, rgba(214,150,166,0.22), transparent 70%), #f8eeee",
+            }
+          : undefined
+      }
+    >
       <QuizHeader
+        ladies={ladiesGlow}
         copy={copy}
         step={step}
         chapterFill={chapterFill}

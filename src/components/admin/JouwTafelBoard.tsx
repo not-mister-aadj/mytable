@@ -113,6 +113,13 @@ export function JouwTafelBoard({
           {g.name}
           {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.seats - 1}</span> : null}
         </p>
+        {g.ladies ? (
+          <p className="mt-1">
+            <span className="rounded-full bg-rose/20 px-2 py-0.5 text-[11px] font-semibold text-rose-deep">
+              {g.ladies === "mixed_ok" ? "Ladies only · mixed mag" : "Ladies only"}
+            </span>
+          </p>
+        ) : null}
         <p className="mt-1 flex flex-wrap gap-1 text-[11px] text-wine/60">
           <span className="rounded-full bg-cream px-2 py-0.5">{g.member ? "Lid" : "Ticket"}</span>
           {g.firstTime ? <span className="rounded-full bg-cream px-2 py-0.5">Eerste keer</span> : null}
@@ -140,6 +147,7 @@ export function JouwTafelBoard({
   function column(id: string, title: string, seats: number, extra?: React.ReactNode, showTarget = true) {
     const warning = id === UNASSIGNED ? null : groupWarning(seats);
     const guests = byGroup(id === UNASSIGNED ? null : id);
+    const ladies = guests.filter((g) => g.ladies).length;
     return (
       <div
         key={id}
@@ -157,6 +165,7 @@ export function JouwTafelBoard({
           {showTarget ? ` / ${GROUP_TARGET}` : ""} {seats === 1 ? "persoon" : "personen"}
           {warning === "too_big" ? " · te groot" : warning === "too_small" ? " · te klein" : ""}
         </p>
+        {ladies > 0 ? <p className="text-xs font-semibold text-rose-deep">{ladies} ladies only</p> : null}
         <ul className="mt-3 flex min-h-16 flex-col gap-2">{guests.map(guestCard)}</ul>
       </div>
     );

@@ -3,7 +3,7 @@ import { getDb } from "@/db/index";
 import { eventGroups, eventVenues, events, jouwTafelPauses, venues } from "@/db/schema";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
-import { QUIZ_METADATA_KEY, ageFromBirthDate, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
+import { QUIZ_METADATA_KEY, ageFromBirthDate, girlsOnlyWish, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { calendarState, monthGrid, type CalendarState } from "@/lib/jouw-tafel/groups-logic";
 import { seriesStartsAt } from "@/lib/jouw-tafel/series-server";
 import { bookingOpensOverride, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
@@ -95,6 +95,9 @@ export type BoardGuest = {
   age: number | null;
   language: string | null;
   dietary: string | null;
+  /** Ladies only: "strict", or "mixed_ok" when a mixed table is fine if it
+   * does not work out; null without the wish. */
+  ladies: "strict" | "mixed_ok" | null;
   groupId: string | null;
 };
 
@@ -191,6 +194,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       age: age,
       language: answers.language ?? g.table_language_preference ?? null,
       dietary: g.dietary_notes?.trim() || null,
+      ladies: girlsOnlyWish(answers),
       groupId: g.group_id,
     };
   });

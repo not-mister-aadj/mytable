@@ -144,6 +144,8 @@ export type QuizCopy = {
     tableName: string;
     /** On a table this person already has a seat at. */
     booked: (seats: number) => string;
+    /** The filters on top: cities and, for women, mixed or ladies only. */
+    filters: { citiesAria: string; tableAria: string; mixed: string; ladies: string; mixedFallback: string };
     /** Under the subtitle when she prefers a women-only table. */
     /** Our chosen cities without a table on the list (joined; n of them). */
     noSunday: (cities: string, n: number) => string;
@@ -212,7 +214,7 @@ const nl: QuizCopy = {
   },
   tafeltype: {
     title: "Aan wat voor tafel schuif je het liefst aan?",
-    options: { mixed: "Gemengd", girls_only: "Alleen vrouwen", any: "Maakt mij niet uit" },
+    options: { mixed: "Mixed table", girls_only: "Ladies only", any: "Maakt mij niet uit" },
   },
   stad: {
     title: "In welke stad wil je aanschuiven?",
@@ -374,6 +376,13 @@ const nl: QuizCopy = {
     ourCities: "Of schuif aan in een van onze steden",
     tableName: "Sunday Table",
     booked: (seats) => (seats > 1 ? `Je bent erbij · ${seats} plekken` : "Je bent erbij"),
+    filters: {
+      citiesAria: "Steden",
+      tableAria: "Soort tafel",
+      mixed: "Mixed table",
+      ladies: "Ladies only",
+      mixedFallback: "Een mixed table als het niet lukt",
+    },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
     infoLink: "Wat is een Sunday Table?",
@@ -432,7 +441,7 @@ const en: QuizCopy = {
   },
   tafeltype: {
     title: "What kind of table would you like to join?",
-    options: { mixed: "Mixed", girls_only: "Women only", any: "I don't mind" },
+    options: { mixed: "Mixed table", girls_only: "Ladies only", any: "I don't mind" },
   },
   stad: {
     title: "Which city would you like to join a table in?",
@@ -594,6 +603,13 @@ const en: QuizCopy = {
     ourCities: "Or join a table in one of our cities",
     tableName: "Sunday Table",
     booked: (seats) => (seats > 1 ? `You're going · ${seats} seats` : "You're going"),
+    filters: {
+      citiesAria: "Cities",
+      tableAria: "Kind of table",
+      mixed: "Mixed table",
+      ladies: "Ladies only",
+      mixedFallback: "A mixed table if it doesn't work out",
+    },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,
     infoLink: "What is a Sunday Table?",

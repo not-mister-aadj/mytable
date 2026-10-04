@@ -132,7 +132,6 @@ export function QuizChoose({
     .filter((s) => s.rows.length > 0);
   const nearbyOpen = openRows.filter((r) => r.nearby);
   const soonRows = rows.filter((r) => r.kind === "soon");
-  const unsure = answers.ready === "unsure";
 
   const viewedRef = useRef(false);
   useEffect(() => {
@@ -212,8 +211,6 @@ export function QuizChoose({
           </motion.button>
           {soon ? (
             <div className="-mt-1 px-4 pb-3 pl-[5.3rem]">{notifyButton(event)}</div>
-          ) : unsure ? (
-            <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div>
           ) : null}
         </div>
       </motion.li>

@@ -164,7 +164,7 @@ const landingNl: LandingCopy = {
     title: (city) => (city ? `Eerstvolgende tafels in ${city}` : "Eerstvolgende tafels"),
     cityTabsAria: "Kies een stad",
     comingSoon: "Binnenkort",
-    opensFrom: (date) => `Vanaf ${date}`,
+    opensFrom: (date) => `Te boeken vanaf ${date}`,
     open: "Plekken vrij",
     where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
     empty: (city) =>
@@ -365,7 +365,7 @@ const landingEn: LandingCopy = {
     title: (city) => (city ? `Upcoming tables in ${city}` : "Upcoming tables"),
     cityTabsAria: "Choose a city",
     comingSoon: "Coming soon",
-    opensFrom: (date) => `From ${date}`,
+    opensFrom: (date) => `Bookable from ${date}`,
     open: "Seats available",
     where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
     empty: (city) =>

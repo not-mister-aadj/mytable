@@ -27,7 +27,7 @@ export function inferPageType(pathname: string): AnalyticsPageType {
     return "failed";
   }
   if (path === "/join" || path.startsWith("/join/")) return "join";
-  if (path === "/sunday-table" || path.startsWith("/sunday-table/")) {
+  if (path === "/sunday-social" || path.startsWith("/sunday-social/")) {
     return "sunday_table";
   }
   if (path === "/girls-only" || path.startsWith("/girls-only/")) {

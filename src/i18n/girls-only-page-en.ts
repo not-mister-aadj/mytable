@@ -5,7 +5,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   socialPromise:
     "Meet the people you’ll make plans with. We arrange the table.",
   meta: {
-    title: "MyTable · Tell us what you’re looking for | Sunday Table or culinary experiences",
+    title: "MyTable · Tell us what you’re looking for | Sunday Social or culinary experiences",
     description:
       "Looking to meet people on a Sunday afternoon, or ready for Wine Walks and dinners? Choose your path - we’ll show what fits.",
   },
@@ -23,7 +23,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     imageAlt:
       "People enjoying wine together at a lively MyTable table",
     scarcityTemplate: "{count} spots left for {city} on {date}",
-    featuredInHeroLabel: "Next Sunday Table",
+    featuredInHeroLabel: "Next Sunday Social",
   },
   intent: {
     brand: "MyTable",
@@ -34,19 +34,19 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       id: "meet",
       title: "Meet new people",
       description:
-        "Sunday afternoon Sunday Table - solo welcome, real introductions, then make plans.",
-      detailEyebrow: "Sunday Table · Community",
+        "Sunday afternoon Sunday Social - solo welcome, real introductions, then make plans.",
+      detailEyebrow: "Sunday Social · Community",
       detailTitle: "Join the table",
       detailBody:
-        "Monthly Sunday afternoons with new faces. Membership means early access to Sunday Tables and 10% off every culinary experience.",
+        "Monthly Sunday afternoons with new faces. Membership means early access to Sunday Socials and 10% off every culinary experience.",
       perks: [
-        "Sunday Tables to meet new people",
+        "Sunday Socials to meet new people",
         "10% off Wine Walks, tastings and dinners",
         "First to hear when seats open",
         "Solo welcome - we arrange table and introductions",
       ],
       primaryCta: "Join community + 10% waitlist",
-      secondaryCta: "How Sunday Table works",
+      secondaryCta: "How Sunday Social works",
     },
     culinary: {
       id: "culinary",
@@ -76,24 +76,24 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     title: "Frequently asked questions",
     items: [
       {
-        question: "What’s the difference between Sunday Table and culinary experiences?",
+        question: "What’s the difference between Sunday Social and culinary experiences?",
         answer:
-          "Sunday Table is our Sunday-afternoon community: meet new people. Culinary experiences (Wine Walks, tastings, dinners) live on the agenda - book with friends, someone you met, or solo. On the homepage you choose which path fits first.",
+          "Sunday Social is our Sunday-afternoon community: meet new people. Culinary experiences (Wine Walks, tastings, dinners) live on the agenda - book with friends, someone you met, or solo. On the homepage you choose which path fits first.",
       },
       {
         question: "What does membership / the 10% discount mean?",
         answer:
-          "If you join via the community path, you’re listed for Sunday Tables and early access. Membership includes 10% off culinary experiences. The discount appears once membership is active; until then we keep you on the waitlist.",
+          "If you join via the community path, you’re listed for Sunday Socials and early access. Membership includes 10% off culinary experiences. The discount appears once membership is active; until then we keep you on the waitlist.",
       },
       {
-        question: "What is a Sunday Table?",
+        question: "What is a Sunday Social?",
         answer:
           "Every month. New people. Then culinary experiences.",
       },
       {
         question: "Can I come alone?",
         answer:
-          "Yes - that’s the point of Sunday Table. Many guests arrive solo. We arrange the table, host and introductions. Later you book premium experiences with people you met here, or with your own friends.",
+          "Yes - that’s the point of Sunday Social. Many guests arrive solo. We arrange the table, host and introductions. Later you book premium experiences with people you met here, or with your own friends.",
       },
       {
         question: "Is this dating or networking?",
@@ -108,7 +108,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       {
         question: "How do premium experiences fit in?",
         answer:
-          "After Sunday Table you plan a Wine Walk, tasting or dinner together. Book with friends, someone you met at the table, or individually. Groups are welcome and make tables fill faster.",
+          "After Sunday Social you plan a Wine Walk, tasting or dinner together. Book with friends, someone you met at the table, or individually. Groups are welcome and make tables fill faster.",
       },
       {
         question: "Can I book with friends or a group?",
@@ -116,7 +116,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
           "Absolutely. On premium experiences choose the two of you, a group, or a full table. Tickets in one booking sit together.",
       },
       {
-        question: "When are Sunday Tables?",
+        question: "When are Sunday Socials?",
         answer:
           "Once a month on a Sunday, usually in the afternoon. Exact dates are on the agenda and your table card.",
       },
@@ -143,7 +143,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     ],
   },
   headerNav: {
-    tables: "Sunday Tables",
+    tables: "Sunday Socials",
     howItWorks: "How it works",
     priorityList: "Waitlist",
     testimonials: "What guests say",
@@ -156,7 +156,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     subtitle:
       "Community on Sunday, or straight to the culinary agenda. We never sell you the wrong thing.",
     highlights: [
-      "Path 1: Sunday Table → new people → membership with 10% off",
+      "Path 1: Sunday Social → new people → membership with 10% off",
       "Path 2: Wine Walks, tastings and dinners on the agenda",
       "You choose what you’re looking for in one click",
       "We only show what fits after that",
@@ -171,7 +171,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
       {
         title: "Come solo - nobody sits alone",
         description:
-          "Sunday Table is built to meet new people. We arrange the table, host and introductions.",
+          "Sunday Social is built to meet new people. We arrange the table, host and introductions.",
       },
       {
         title: "Then continue together",
@@ -191,22 +191,22 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     ],
   },
   events: {
-    title: "Choose your Sunday Table",
+    title: "Choose your Sunday Social",
     subtitle:
       "One moment per city. Pick your date, check availability and plan your table.",
     empty:
-      "New Sunday Tables are added regularly. Check back soon or join the waitlist.",
+      "New Sunday Socials are added regularly. Check back soon or join the waitlist.",
     viewAll: "View all",
   },
   sundayTable: {
-    eyebrow: "Sunday Table",
+    eyebrow: "Sunday Social",
     title: "Meet the people you’ll make plans with.",
     body: "Join a welcoming table, every month on a Sunday. Come solo, meet new people and discover who you want to share your next experience with.",
   },
   premium: {
     eyebrow: "Next: culinary experiences",
     title: "Bring your table together again.",
-    body: "After Sunday Table, book a Wine Walk, tasting or dinner - with people you met here, or with your own group.",
+    body: "After Sunday Social, book a Wine Walk, tasting or dinner - with people you met here, or with your own group.",
     cta: "Browse culinary experiences",
   },
   nextTable: {
@@ -221,7 +221,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
   presaleSignup: {
     title: "Join the waitlist",
     subtitle:
-      "Sunday Tables and premium experiences sell out fast. Sign up and hear first when spots open in your city.",
+      "Sunday Socials and premium experiences sell out fast. Sign up and hear first when spots open in your city.",
     nameLabel: "Name",
     namePlaceholder: "Your first name",
     citiesLabel: "Where do you want a table?",
@@ -243,7 +243,7 @@ export const girlsOnlyPageEn: GirlsOnlyPageLabels = {
     title: "Hi, I’m Elif",
     paragraphs: [
       "I’ve always been the one connecting people. Organising gatherings, bringing groups together, making sure everyone feels at ease.",
-      "MyTable is where good taste and good company meet. Sunday Table helps you meet new people. Then you book the experiences that matter - together.",
+      "MyTable is where good taste and good company meet. Sunday Social helps you meet new people. Then you book the experiences that matter - together.",
       "Not a dating platform, not a networking night. Just tasting, laughing and making plans around the table.",
       "On the right is Siraadj, my boyfriend. He handles the tech and the camera work.",
     ],

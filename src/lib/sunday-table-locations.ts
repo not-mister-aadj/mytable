@@ -56,7 +56,7 @@ export async function getSundayTableLocation(
   return row ? mapRow(row) : null;
 }
 
-/** Nearest upcoming Sunday Table (today or later), optionally scoped to one city. */
+/** Nearest upcoming Sunday Social (today or later), optionally scoped to one city. */
 export async function getNextSundayTableLocation(
   city?: string,
 ): Promise<SundayTableLocation | null> {
@@ -76,7 +76,7 @@ export async function getNextSundayTableLocation(
   return row ? mapRow(row) : null;
 }
 
-/** All upcoming Sunday Tables (today or later), soonest first, optionally scoped to one city. */
+/** All upcoming Sunday Socials (today or later), soonest first, optionally scoped to one city. */
 export async function getUpcomingSundayTableLocations(
   city?: string,
 ): Promise<SundayTableLocation[]> {

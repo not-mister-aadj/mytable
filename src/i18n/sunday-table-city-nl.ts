@@ -2,7 +2,7 @@ import type { SundayTableCityLabels } from "@/i18n/sunday-table-city.types";
 
 export const sundayTableCityNl: SundayTableCityLabels = {
   hero: {
-    eyebrow: "Sunday Table · {city}",
+    eyebrow: "Sunday Social · {city}",
     headline: "Eén zondagmiddag, een tafel vol nieuwe mensen in {city}.",
     line: "Je schuift aan bij 4 tot 6 mensen die je nog niet kent, op een van de leukste plekken van de stad. De meeste mensen komen alleen.",
     facts: ["€10 per plek", "Zondag 14:00", "4 tot 6 per tafel", "Elke maand"],
@@ -37,7 +37,7 @@ export const sundayTableCityNl: SundayTableCityLabels = {
   },
   dates: {
     eyebrow: "Data",
-    title: "Alle Sunday Tables in {city}",
+    title: "Alle Sunday Socials in {city}",
     body: "Kies de tafel die bij je leeftijd past. Per tafel 4 tot 6 mensen.",
     ageLabel: "{bracket} jaar",
     mixedLabel: "Gemengd",
@@ -51,12 +51,12 @@ export const sundayTableCityNl: SundayTableCityLabels = {
     missingBody: "Zet je op de wachtlijst. Zodra er een nieuwe tafel in {city} opent, hoor je het als eerste.",
     waitlistCta: "Zet me op de wachtlijst",
     emptyTitle: "Nieuwe data volgen snel",
-    emptyBody: "Er staat nu geen Sunday Table in {city} gepland. Zet je op de wachtlijst, dan hoor je het als eerste.",
+    emptyBody: "Er staat nu geen Sunday Social in {city} gepland. Zet je op de wachtlijst, dan hoor je het als eerste.",
   },
   what: {
-    eyebrow: "Wat is Sunday Table",
+    eyebrow: "Wat is Sunday Social",
     title: "Nieuwe mensen leren kennen, zonder het zelf te organiseren",
-    body: "Sunday Table is een vaste zondagmiddag voor iedereen in {city} die nieuwe mensen wil ontmoeten. Geen datingavond en geen netwerkborrel. Gewoon aan tafel met nieuwe mensen, op een plek die wij voor je uitkiezen.",
+    body: "Sunday Social is een vaste zondagmiddag voor iedereen in {city} die nieuwe mensen wil ontmoeten. Geen datingavond en geen netwerkborrel. Gewoon aan tafel met nieuwe mensen, op een plek die wij voor je uitkiezen.",
     items: [
       {
         title: "Nieuwe mensen",
@@ -102,7 +102,7 @@ export const sundayTableCityNl: SundayTableCityLabels = {
       },
       {
         question: "Kan ik annuleren of verplaatsen?",
-        answer: "Annuleren kan niet. Tot 48 uur van tevoren verplaats je gratis naar een andere Sunday Table. Mail ons daarvoor op info@mytable.club.",
+        answer: "Annuleren kan niet. Tot 48 uur van tevoren verplaats je gratis naar een andere Sunday Social. Mail ons daarvoor op info@mytable.club.",
       },
       {
         question: "Wat als het niet klikt?",
@@ -115,7 +115,7 @@ export const sundayTableCityNl: SundayTableCityLabels = {
     ],
   },
   final: {
-    title: "Klaar voor je eerste Sunday Table in {city}?",
+    title: "Klaar voor je eerste Sunday Social in {city}?",
     body: "Kies je zondag, schuif aan en kijk wie er tegenover je zit.",
     datesCta: "Bekijk alle data",
   },

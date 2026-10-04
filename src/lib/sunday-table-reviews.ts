@@ -12,7 +12,7 @@ export type ReviewAccess =
     }
   | { ok: false; reason: "invalid_token" | "not_found" | "not_eligible" | "db" };
 
-/** Confirmed past Sunday Table signup matching a review token. */
+/** Confirmed past Sunday Social signup matching a review token. */
 export async function resolveSundayTableReviewAccess(
   token: string,
 ): Promise<ReviewAccess> {

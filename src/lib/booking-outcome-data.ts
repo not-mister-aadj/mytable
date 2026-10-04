@@ -16,10 +16,11 @@ import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
 import { images } from "@/data/images";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { experiencePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
+import { experiencePath, jouwTafelTablePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
+import { isJouwTafelType } from "@/lib/event-concepts";
 
 export type BookingGalleryItem = {
   url: string;
@@ -29,7 +30,7 @@ export type BookingGalleryItem = {
 export type BookingOutcomeSummary = {
   eventName: string;
   eventSlug: string;
-  /** Where the primary CTA links to: the Sunday Table reveal page for that
+  /** Where the primary CTA links to: the Sunday Social reveal page for that
    * experience type (its `events` row has no real detail page of its own),
    * the generic experience page for everything else. */
   eventHref: string;
@@ -107,13 +108,14 @@ async function resolveEventGallery(
 }
 
 /**
- * Sunday Table's ticketing `events` row has no real detail page of its own
+ * Sunday Social's ticketing `events` row has no real detail page of its own
  * (the generic /agenda/[slug] template renders the wrong experience-type
- * copy for it). Its actual reveal page lives at /sunday-table/[city]/[date],
+ * copy for it). Its actual reveal page lives at /sunday-social/[city]/[date],
  * keyed by the separate sunday_table_locations table. Mirrors the same
  * resolution used for the confirmation email (src/lib/email/build-email-props.ts).
  */
 async function resolveEventHref(row: Event, locale: Locale): Promise<string> {
+  if (isJouwTafelType(row.experienceType)) return jouwTafelTablePath(locale, row.slug);
   if (row.experienceType === "sunday-table") {
     const citySlug = sundayTableLpSlugFromCity(row.city);
     if (citySlug) {

@@ -1,5 +1,5 @@
-/** Copy for the Sunday Table city landing pages (/sunday-table/rotterdam,
- * /sunday-table/den-haag). "{city}" is filled in with fillCity(). */
+/** Copy for the Sunday Social city landing pages (/sunday-social/rotterdam,
+ * /sunday-social/den-haag). "{city}" is filled in with fillCity(). */
 export type SundayTableCityLabels = {
   hero: {
     eyebrow: string;

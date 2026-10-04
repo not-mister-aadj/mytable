@@ -1,6 +1,6 @@
 "use client";
 
-/** Shared primary CTA button used across the landing pages (Sunday Table,
+/** Shared primary CTA button used across the landing pages (Sunday Social,
  * the format pages, and the homepage). Button-only — every real call site
  * opens the waitlist modal via onClick, none link out directly. */
 export function PrimaryCta({

@@ -71,11 +71,11 @@ export function siteNavigationJsonLd(locale: Locale): JsonLd {
   const items =
     locale === "en"
       ? [
-          { name: "Sunday Table", path: localePath("en") },
+          { name: "Sunday Social", path: localePath("en") },
           { name: "Experiences", path: agendaPath("en") },
         ]
       : [
-          { name: "Sunday Table", path: localePath("nl") },
+          { name: "Sunday Social", path: localePath("nl") },
           { name: "Ervaringen", path: agendaPath("nl") },
         ];
 

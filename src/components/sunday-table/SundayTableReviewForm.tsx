@@ -17,8 +17,8 @@ const copy = {
   nl: {
     greeting: (name: string | null, city: string) =>
       name
-        ? `${name}, hoe was Sunday Table in ${city}?`
-        : `Hoe was Sunday Table in ${city}?`,
+        ? `${name}, hoe was Sunday Social in ${city}?`
+        : `Hoe was Sunday Social in ${city}?`,
     lead: "Eén tik. Jouw gevoel helpt ons de tafels warmer te maken.",
     starsHint: "Tik op een ster",
     continue: "Verder",
@@ -49,8 +49,8 @@ const copy = {
   en: {
     greeting: (name: string | null, city: string) =>
       name
-        ? `${name}, how was Sunday Table in ${city}?`
-        : `How was Sunday Table in ${city}?`,
+        ? `${name}, how was Sunday Social in ${city}?`
+        : `How was Sunday Social in ${city}?`,
     lead: "One tap. Your feeling helps us make the tables warmer.",
     starsHint: "Tap a star",
     continue: "Continue",
@@ -212,7 +212,7 @@ export function SundayTableReviewForm({
       {step === "stars" ? (
         <div className="relative text-center">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-rose-deep/80">
-            Sunday Table
+            Sunday Social
           </p>
           <h1 className="mt-4 font-serif text-[2.15rem] leading-[1.15] text-burgundy sm:text-5xl">
             {t.greeting(firstName, city)}

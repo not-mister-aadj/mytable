@@ -67,9 +67,9 @@ export async function replaceEventVenues(
 
 /**
  * Sync after an admin event editor save. An event without any real venue in
- * the editor (Sunday Table ticket events, tastings that lean on the
+ * the editor (Sunday Social ticket events, tastings that lean on the
  * experience type's default venues) keeps the links it already has, since
- * those were set on the Sunday Table page or confirmed by hand.
+ * those were set on the Sunday Social page or confirmed by hand.
  */
 export async function syncEventVenuesFromEvent(event: {
   id: string;

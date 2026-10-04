@@ -30,6 +30,8 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
 import { transferBooking } from "@/lib/booking-transfer";
 import { redirect } from "next/navigation";
+import { isSharedTableType } from "@/lib/event-concepts";
+import { recordSeriesSkip } from "@/lib/jouw-tafel/series-server";
 
 export type EventFormState = {
   city: string;
@@ -167,13 +169,18 @@ async function applyEventUpdate(id: string, formData: FormData) {
   const values = toEventValues(form);
   const db = getDb();
   const [existing] = await db
-    .select({ slug: events.slug, extras: events.extras })
+    .select({ slug: events.slug, extras: events.extras, experienceType: events.experienceType })
     .from(events)
     .where(eq(events.id, id))
     .limit(1);
   if (!existing) {
     throw new Error("Event niet gevonden");
   }
+  // The form only knows the agenda formats: a Sunday Social or Sunday Table
+  // edited here keeps its own type instead of turning into a wine tasting.
+  const experienceType: string = isSharedTableType(existing.experienceType)
+    ? existing.experienceType
+    : values.experienceType;
 
   const nextSlug = await resolveUniqueEventSlug(
     db,
@@ -187,7 +194,7 @@ async function applyEventUpdate(id: string, formData: FormData) {
 
   const [row] = await db
     .update(events)
-    .set({ ...values, slug: nextSlug })
+    .set({ ...values, experienceType, slug: nextSlug })
     .where(eq(events.id, id))
     .returning();
   await syncEventVenuesFromEvent(row);
@@ -323,6 +330,11 @@ export async function deleteEventAction(id: string) {
     await db.delete(bookings).where(eq(bookings.eventId, id));
   }
 
+  // A "Jouw tafel" series date that is deleted stays gone: the daily
+  // series run never makes it again.
+  if (event.seriesId && event.seriesDate) {
+    await recordSeriesSkip(event.seriesId, event.seriesDate);
+  }
   await db.delete(events).where(eq(events.id, id));
   if (event.workflowStatus === "published") {
     revalidateEventPaths(event);

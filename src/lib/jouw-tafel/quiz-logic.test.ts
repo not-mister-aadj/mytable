@@ -263,6 +263,17 @@ function rows(input: Parameters<typeof chooseTables>[1]) {
   return chooseTables(EVENTS, input, NOW).rows.map((r) => `${r.event.slug}:${r.kind}${r.nearby ? ":nearby" : ""}`);
 }
 
+test("chooseTables: a table without an age group is for everyone, first", () => {
+  const forAll = event({ slug: "rdam-1-nov", city: "Rotterdam", bracket: null, startsAt: "2026-11-01T13:00:00Z" });
+  for (const input of [
+    { cities: ["Rotterdam"], age: 24, ageMatters: "yes" as const },
+    { cities: ["Rotterdam"], age: 52, ageMatters: "yes" as const },
+  ]) {
+    const slugs = chooseTables([forAll, ...EVENTS], input, NOW).rows.map((r) => r.event.slug);
+    assert.equal(slugs[0], "rdam-1-nov");
+  }
+});
+
 test("chooseTables: 37 who likes their own age sees 35+ only", () => {
   assert.deepEqual(rows({ cities: ["Rotterdam"], age: 37, ageMatters: "yes" }), [
     "rdam-25-okt-35:open",

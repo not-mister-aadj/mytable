@@ -44,7 +44,7 @@ type Props = {
   params: Promise<{ locale: string; city: string }>;
 };
 
-/** Cities with a full Sunday Table landing page get that page; every other
+/** Cities with a full Sunday Social landing page get that page; every other
  * city gets the lighter city SEO page. */
 function seoOnlyCity(citySlug: string) {
   return sundayTableLpCityFromSlug(citySlug) ? undefined : getGirlsOnlyCity(citySlug);
@@ -134,7 +134,7 @@ export default async function SundayTableLpCityPage({ params }: Props) {
           faqPageJsonLd(faqItems, pageUrl),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
-            { name: "Sunday Table", path: sundayTableLpPath(locale) },
+            { name: "Sunday Social", path: sundayTableLpPath(locale) },
             { name: cityName, path: sundayTableLpCityPath(locale, city.slug) },
           ]),
         ]}

@@ -160,8 +160,8 @@ export const sundayTableWaitlistNl: SundayTableLpLabels["waitlist"] = {
 
 export const sundayTableLpNl: SundayTableLpLabels = {
   meta: {
-    title: "Nieuwe mensen ontmoeten aan tafel · Sunday Table",
-    titleCity: "Nieuwe mensen ontmoeten in {city} · Sunday Table",
+    title: "Nieuwe mensen ontmoeten aan tafel · Sunday Social",
+    titleCity: "Nieuwe mensen ontmoeten in {city} · Sunday Social",
     description:
       "Schuif op zondagmiddag aan bij 4 tot 6 nieuwe mensen op een van de leukste plekken van de stad. €10 om aan te schuiven, je bestelt zelf.",
     descriptionCity:
@@ -170,14 +170,14 @@ export const sundayTableLpNl: SundayTableLpLabels = {
   brand: "MyTable",
   socialProof: "Live in Rotterdam, Den Haag en Utrecht. Meer volgen gauw.",
   headline: "Een sociaal leven zonder dat je het zelf hoeft te plannen",
-  line: "Sunday Table geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van de stad. Geen datingagenda. Alleen komen is normaal.",
+  line: "Sunday Social geeft je elke maand een tafel met nieuwe mensen, in de leukste culinaire plekken van de stad. Geen datingagenda. Alleen komen is normaal.",
   cta: "Zet me op de wachtlijst",
   ctaHint: "Gratis. Geen spam.",
   secondaryCta: "Wat je krijgt",
   how: {
     eyebrow: "Zo werkt het",
     title: "Voor nieuwe smaken én nieuwe gezichten",
-    body: "Sunday Table is waar je nieuwe mensen ontmoet en de leukste culinaire plekken van de stad ontdekt. Je schuift aan bij een tafel van 4 tot 6 mensen, en soms staan er meerdere van deze tafels bij dezelfde venue. Met je nieuwe tafelgenoten boek je daarna wine walks, proeverijen en diners.",
+    body: "Sunday Social is waar je nieuwe mensen ontmoet en de leukste culinaire plekken van de stad ontdekt. Je schuift aan bij een tafel van 4 tot 6 mensen, en soms staan er meerdere van deze tafels bij dezelfde venue. Met je nieuwe tafelgenoten boek je daarna wine walks, proeverijen en diners.",
     steps: [
       {
         title: "Zet je op de lijst",
@@ -226,11 +226,11 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     comingSoonCities: "Amsterdam · Eindhoven · Groningen",
   },
   final: {
-    title: "Klaar voor je eerste Sunday Table?",
+    title: "Klaar voor je eerste Sunday Social?",
     body: "We mailen je zodra er een tafel vormt in jouw stad.",
     cta: "Zet me op de wachtlijst",
     earlyNote:
-      "We zijn nog klein en persoonlijk. Jouw tafel helpt bepalen hoe Sunday Table verder groeit.",
+      "We zijn nog klein en persoonlijk. Jouw tafel helpt bepalen hoe Sunday Social verder groeit.",
   },
   faq: {
     eyebrow: "Vragen",
@@ -239,7 +239,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       {
         question: "Wat als ik niemand tof vind aan tafel?",
         answer:
-          "Kans is klein. Maar mocht het toch niet klikken: laat het ons binnen 48 uur na je eerste Sunday Table weten, dan lossen we het samen op.",
+          "Kans is klein. Maar mocht het toch niet klikken: laat het ons binnen 48 uur na je eerste Sunday Social weten, dan lossen we het samen op.",
       },
       {
         question: "Moet ik solo komen?",
@@ -254,7 +254,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
       {
         question: "Is dit alleen voor vrouwen?",
         answer:
-          "Nee. Je kiest zelf: girls only of gemengd. Beide zijn Sunday Table, nieuwe mensen, echte gesprekken.",
+          "Nee. Je kiest zelf: girls only of gemengd. Beide zijn Sunday Social, nieuwe mensen, echte gesprekken.",
       },
       {
         question: "Hoe lang duurt het voor ik iets hoor?",

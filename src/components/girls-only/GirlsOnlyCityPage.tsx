@@ -28,8 +28,8 @@ import { buildPageMetadata } from "@/lib/seo/metadata";
 import { absoluteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
 
-/** SEO city page ("Sunday Table in Utrecht") for cities without their own
- * Sunday Table landing page. Served at /sunday-table/[city]. */
+/** SEO city page ("Sunday Social in Utrecht") for cities without their own
+ * Sunday Social landing page. Served at /sunday-social/[city]. */
 export function girlsOnlyCityMetadata(
   city: GirlsOnlyCityDefinition,
   locale: Locale,
@@ -61,7 +61,7 @@ export async function GirlsOnlyCityPage({
     6,
   );
 
-  // The real, ticketed Sunday Table for this city (if one is scheduled),
+  // The real, ticketed Sunday Social for this city (if one is scheduled),
   // same data the agenda page and reveal page use.
   const nextLocation = await getNextSundayTableLocation(city.cityName);
   const sundayTableItem = nextLocation

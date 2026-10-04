@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid date" }, { status: 400 });
   }
 
-  const filename = `mytable-sunday-table-${date}.ics`;
+  const filename = `mytable-sunday-social-${date}.ics`;
   return new NextResponse(ics, {
     status: 200,
     headers: {

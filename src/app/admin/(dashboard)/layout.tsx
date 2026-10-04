@@ -6,17 +6,17 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 // Ordered by what actually matters right now: the waitlist is the business
-// today, Tafels (incl. the Sunday Table tab) is how it turns into real
+// today, Tafels (incl. the Sunday Social tab) is how it turns into real
 // tables, the rest supports the still-live /agenda catalog and booking flow.
 const NAV_ITEM_PATHS = [
   { label: "Dashboard", path: "/", exact: true },
   { label: "Wachtlijst", path: "/priority-list" },
   // The venue side of the business: which wine bars we mailed, what came back.
   { label: "Outreach", path: "/outreach" },
-  // Sunday Table lives on its own route (different data model — invite-based,
+  // Sunday Social lives on its own route (different data model: invite-based,
   // no direct price/capacity) but is a tab inside this same section, one tap
   // from the sidebar. See FormatTabs.tsx.
-  { label: "Tafels", path: "/events", matchAlsoPaths: ["/sunday-tables"] },
+  { label: "Tafels", path: "/events", matchAlsoPaths: ["/sunday-tables", "/jouw-tafel"] },
   { label: "Venues", path: "/venues" },
   { label: "Types", path: "/experience-types" },
   { label: "Boekingen", path: "/bookings" },

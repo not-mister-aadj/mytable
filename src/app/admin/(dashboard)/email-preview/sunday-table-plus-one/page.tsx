@@ -31,7 +31,7 @@ export default async function SundayTablePlusOneEmailPreviewPage() {
     <div>
       <div className="mb-6">
         <h1 className="font-serif text-2xl text-burgundy">
-          E-mail preview · Sunday Table +1
+          E-mail preview · Sunday Social +1
         </h1>
       </div>
 

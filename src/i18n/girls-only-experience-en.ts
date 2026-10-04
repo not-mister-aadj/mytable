@@ -156,7 +156,7 @@ export const girlsOnlyExperienceLabelsEn = {
   pillSoloTogether: "Plan your table",
   socialTitle: "Good plans deserve a table.",
   socialSubtitle:
-    "Bring your friends, invite someone from Sunday Table, or join individually. We arrange the wine, food and experience.",
+    "Bring your friends, invite someone from Sunday Social, or join individually. We arrange the wine, food and experience.",
   finalCtaHeadline: "Ready for your next Sunday afternoon wine & bites?",
   finalCtaSubheadline:
     "Four wines, paired bites, and good company. No date polls, no hassle.",

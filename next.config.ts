@@ -63,17 +63,38 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    // City pages moved from /girls-only to /sunday-table. The slug pattern
+    // City pages moved from /girls-only to /sunday-social. The slug pattern
     // only matches plain slugs, so the /girls-only/*.jpg images keep working.
     return [
       {
         source: "/girls-only/:city([a-z-]+)",
-        destination: "/sunday-table/:city",
+        destination: "/sunday-social/:city",
         permanent: true,
       },
       {
         source: "/:locale(en|nl)/girls-only/:city([a-z-]+)",
-        destination: "/:locale/sunday-table/:city",
+        destination: "/:locale/sunday-social/:city",
+        permanent: true,
+      },
+      // The agenda concept was renamed from Sunday Table to Sunday Social.
+      {
+        source: "/sunday-table",
+        destination: "/sunday-social",
+        permanent: true,
+      },
+      {
+        source: "/sunday-table/:path*",
+        destination: "/sunday-social/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:locale(en|nl)/sunday-table",
+        destination: "/:locale/sunday-social",
+        permanent: true,
+      },
+      {
+        source: "/:locale(en|nl)/sunday-table/:path*",
+        destination: "/:locale/sunday-social/:path*",
         permanent: true,
       },
     ];

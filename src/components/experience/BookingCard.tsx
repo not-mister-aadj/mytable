@@ -49,7 +49,7 @@ interface BookingCardProps {
   fitViewport?: boolean;
   /** e.g. "Altijd op zondag · Middag" */
   scheduleNote?: string;
-  /** Booked via post-Sunday Table group CTA. */
+  /** Booked via post-Sunday Social group CTA. */
   fromSundayTable?: boolean;
   /** Optional ambassador code from URL. */
   affiliateCode?: string | null;

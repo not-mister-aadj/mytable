@@ -23,7 +23,7 @@ export type BookingConfirmationEmailProps = {
   venueName?: string;
   startLocation?: string;
   dietaryNotes?: string;
-  /** Sunday Table already reveals its venue at booking time, unlike other
+  /** Sunday Social already reveals its venue at booking time, unlike other
    * formats, so several copy blocks below read differently because of that. */
   isSundayTable?: boolean;
   /** A member's booking: the own seat is included in the membership. */

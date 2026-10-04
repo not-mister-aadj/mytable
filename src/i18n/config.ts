@@ -153,16 +153,16 @@ export function joinPath(locale: Locale): string {
   return locale === "en" ? "/en/join" : "/join";
 }
 
-/** Public Sunday Table marketing landing. */
+/** Public Sunday Social marketing landing. */
 export function sundayTableLpPath(locale: Locale): string {
-  return locale === "en" ? "/en/sunday-table" : "/sunday-table";
+  return locale === "en" ? "/en/sunday-social" : "/sunday-social";
 }
 
 export function sundayTableLpCityPath(locale: Locale, citySlug: string): string {
   return `${sundayTableLpPath(locale)}/${citySlug}`;
 }
 
-/** Public reveal page for one Sunday Table date (city + venue). */
+/** Public reveal page for one Sunday Social date (city + venue). */
 export function sundayTableLocationPath(
   locale: Locale,
   citySlug: string,
@@ -201,7 +201,7 @@ export function chefsSpecialLpCityPath(locale: Locale, citySlug: string): string
   return `${chefsSpecialLpPath(locale)}/${citySlug}`;
 }
 
-/** City SEO page. Lives under /sunday-table since the tables stopped being
+/** City SEO page. Lives under /sunday-social since the tables stopped being
  * girls-only; old /girls-only/[city] URLs redirect here (next.config.ts). */
 export function girlsOnlyCityPath(locale: Locale, citySlug: string): string {
   return sundayTableLpCityPath(locale, citySlug);
@@ -234,7 +234,7 @@ export function accountPath(locale: Locale): string {
   return locale === "en" ? "/en/account" : "/account";
 }
 
-/** Token-gated Sunday Table review form (no login required). */
+/** Token-gated Sunday Social review form (no login required). */
 export function sundayTableReviewPath(locale: Locale, token: string): string {
   const encoded = encodeURIComponent(token);
   return locale === "en" ? `/en/review/${encoded}` : `/review/${encoded}`;

@@ -110,7 +110,7 @@ export function ExperiencePageContent({
   const mobileBookingRef = useRef<HTMLDivElement>(null);
   const desktopBookingRef = useRef<HTMLDivElement>(null);
   const scheduleNote = `${mood.dayOfWeek} · ${mood.partOfDay}`;
-  // Culinary experiences are never girls-only (Clubmember Sunday Tables only).
+  // Culinary experiences are never girls-only (Clubmember Sunday Socials only).
   const isFemaleOnly = false;
   const includedItems = withVenueRestaurantCount(
     page.includedItems,

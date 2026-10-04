@@ -91,7 +91,7 @@ function useOverflowEdges(ref: RefObject<HTMLElement | null>) {
   return edges;
 }
 
-/** Fever-style tab bar for a Sunday Table date page: jumps to each section,
+/** Fever-style tab bar for a Sunday Social date page: jumps to each section,
  * underlines the one you are reading, and has a button that copies the
  * page link so it can be pasted anywhere. Sticks under the site header.
  * On phones it spans the full width flush under the header, without the

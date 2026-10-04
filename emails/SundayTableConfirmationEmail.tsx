@@ -58,8 +58,8 @@ export function SundayTableConfirmationEmail({
     <EmailLayout
       preview={
         nl
-          ? `Je Sunday Table in ${city} staat klaar.`
-          : `Your Sunday Table in ${city} is confirmed.`
+          ? `Je Sunday Social in ${city} staat klaar.`
+          : `Your Sunday Social in ${city} is confirmed.`
       }
     >
       <EmailHero
@@ -67,8 +67,8 @@ export function SundayTableConfirmationEmail({
         headline={nl ? "Je plek is van jou" : "Your seat is secured"}
         body={
           nl
-            ? "Je Sunday Table staat bevestigd. Zet hem meteen in je agenda. Wij zorgen voor de tafel, jij komt opdagen."
-            : "Your Sunday Table is confirmed. Add it to your calendar now. We set the table. You show up."
+            ? "Je Sunday Social staat bevestigd. Zet hem meteen in je agenda. Wij zorgen voor de tafel, jij komt opdagen."
+            : "Your Sunday Social is confirmed. Add it to your calendar now. We set the table. You show up."
         }
         warmLine={
           nl
@@ -79,7 +79,7 @@ export function SundayTableConfirmationEmail({
 
       <EmailCard>
         <Text style={emailType.sectionLabel}>
-          {nl ? "Jouw Sunday Table" : "Your Sunday Table"}
+          {nl ? "Jouw Sunday Social" : "Your Sunday Social"}
         </Text>
         <Text
           style={{
@@ -90,7 +90,7 @@ export function SundayTableConfirmationEmail({
             margin: "0 0 6px",
           }}
         >
-          Sunday Table
+          Sunday Social
         </Text>
         <CityRow city={city} />
 
@@ -152,8 +152,8 @@ export function SundayTableConfirmationEmail({
       <CTASection
         helperText={
           nl
-            ? "Zet Sunday Table meteen in je agenda."
-            : "Add Sunday Table to your calendar now."
+            ? "Zet Sunday Social meteen in je agenda."
+            : "Add Sunday Social to your calendar now."
         }
         href={calendarUrl}
         label={nl ? "Zet in je agenda →" : "Add to calendar →"}

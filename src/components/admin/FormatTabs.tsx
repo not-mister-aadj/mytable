@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { adminPath } from "@/lib/admin-url";
 
-/** Tabs inside the unified "Tafels" section — Sunday Table lives on a
+/** Tabs inside the unified "Tafels" section. Sunday Social lives on a
  * different data model (invite-based, location revealed later, no direct
  * price/capacity like a bookable experience), so it stays its own route.
  * This just makes it feel like one section, one tap from the sidebar. */
@@ -9,12 +9,13 @@ export function FormatTabs({
   active,
   hostname,
 }: {
-  active: "experiences" | "sunday-table";
+  active: "experiences" | "sunday-table" | "jouw-tafel";
   hostname?: string;
 }) {
   const tabs = [
     { key: "experiences" as const, label: "Experiences", href: adminPath("/events", hostname) },
-    { key: "sunday-table" as const, label: "Sunday Table", href: adminPath("/sunday-tables", hostname) },
+    { key: "sunday-table" as const, label: "Sunday Social", href: adminPath("/sunday-tables", hostname) },
+    { key: "jouw-tafel" as const, label: "Sunday Table", href: adminPath("/jouw-tafel", hostname) },
   ];
 
   return (

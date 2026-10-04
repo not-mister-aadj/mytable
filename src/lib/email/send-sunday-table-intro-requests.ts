@@ -25,7 +25,7 @@ function introPath(locale: "nl" | "en"): string {
 }
 
 /**
- * Emails the "introduce yourself" questions, once, to Sunday Table guests who
+ * Emails the "introduce yourself" questions, once, to Sunday Social guests who
  * paid at least 15 minutes ago, have not answered on the confirmation page,
  * and whose table is still ahead.
  */

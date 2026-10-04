@@ -133,12 +133,12 @@ async function main() {
     },
     {
       label: "sunday-table-review",
-      subject: `Hoe was Sunday Table in ${sampleSundayTableReviewProps.city}?`,
+      subject: `Hoe was Sunday Social in ${sampleSundayTableReviewProps.city}?`,
       element: SundayTableReviewEmail(sampleSundayTableReviewProps),
     },
     {
       label: "sunday-table-invite",
-      subject: "Nodig iemand uit voor Sunday Table",
+      subject: "Nodig iemand uit voor Sunday Social",
       element: SundayTableInviteEmail({
         locale: "nl",
         firstName: "Sophie",

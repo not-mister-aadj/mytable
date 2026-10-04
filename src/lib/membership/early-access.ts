@@ -15,7 +15,7 @@ export async function applyMembersOnlyDefault(eventId: string): Promise<void> {
     SET members_only_until = now() + make_interval(hours => ${EARLY_ACCESS_HOURS}), updated_at = now()
     WHERE e.id = ${eventId}
       AND e.members_only_until IS NULL
-      AND e.experience_type = 'sunday-table'
+      AND e.experience_type = 'jouw-tafel'
       AND e.workflow_status = 'published'
       AND coalesce((e.extras ->> 'comingSoon')::boolean, false) = false
       AND e.starts_at > now()

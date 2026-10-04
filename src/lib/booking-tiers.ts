@@ -171,8 +171,9 @@ export function getLowestTierPerPersonEuros(): number {
 }
 
 /**
- * Sunday Table seats strangers at one shared table, so bookings don't use
- * the "bring your own party" tier system above (min 2 seats). A guest books
+ * Sunday Social and Sunday Table seat strangers at one shared table, so
+ * bookings don't use the "bring your own party" tier system above (min 2
+ * seats). A guest books
  * for themselves, optionally plus one.
  */
 export const SUNDAY_TABLE_MIN_SEATS = 1;

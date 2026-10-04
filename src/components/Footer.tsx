@@ -35,7 +35,7 @@ export function Footer({
   const cities = showSeoLinks ? listGirlsOnlyCities() : [];
 
   const formats = [
-    { href: sundayTableLpPath(locale), label: "Sunday Table" },
+    { href: sundayTableLpPath(locale), label: "Sunday Social" },
     { href: wineTastingLpPath(locale), label: isEn ? "Wine Tasting" : "Wijnproeverij" },
     { href: wineWalkLpPath(locale), label: isEn ? "Wine Walk" : "Wijnwalk" },
     { href: chefsSpecialLpPath(locale), label: "Chef's Table" },

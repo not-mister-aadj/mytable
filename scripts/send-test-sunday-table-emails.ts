@@ -77,12 +77,12 @@ async function main() {
     element: SundayTableConfirmationEmail(sampleSundayTableConfirmationProps),
     ics: ics
       ? {
-          filename: "mytable-sunday-table-2026-08-02.ics",
+          filename: "mytable-sunday-social-2026-08-02.ics",
           content: ics,
         }
       : null,
   });
-  console.log("OK: Sunday Table confirmation", { id: confirmId, to });
+  console.log("OK: Sunday Social confirmation", { id: confirmId, to });
 
   const cancelId = await sendOne({
     subject: sundayTableCancelSubject(
@@ -91,7 +91,7 @@ async function main() {
     ),
     element: SundayTableCancelEmail(sampleSundayTableCancelProps),
   });
-  console.log("OK: Sunday Table cancel", { id: cancelId, to });
+  console.log("OK: Sunday Social cancel", { id: cancelId, to });
 }
 
 main().catch((err) => {

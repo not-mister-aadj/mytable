@@ -419,7 +419,7 @@ export function SundayTableDetailView({
           href={listHref}
           className="text-sm font-medium text-burgundy hover:underline"
         >
-          ← Sunday Tables
+          ← Sunday Socials
         </Link>
         <h1 className="mt-3 font-serif text-3xl text-burgundy sm:text-4xl">
           {table.city}

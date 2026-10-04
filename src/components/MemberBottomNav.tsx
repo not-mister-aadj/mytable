@@ -9,9 +9,9 @@ import type { Dictionary } from "@/i18n/types";
 
 type NavLabels = Dictionary["header"]["nav"];
 
-/** /sunday-table/[city]/[date] reveal pages — not part of the Sunday Table
+/** /sunday-social/[city]/[date] reveal pages are not part of the Sunday Social
  * product nav section, since guests reach them from the Agenda grid too. */
-const SUNDAY_TABLE_EVENT_PATH = /^\/sunday-table\/[^/]+\/\d{4}-\d{2}-\d{2}$/;
+const SUNDAY_TABLE_EVENT_PATH = /^\/sunday-social\/[^/]+\/\d{4}-\d{2}-\d{2}$/;
 
 /** Signed-out nav — the only nav the site has now that sign-in is paused
  * (see AuthProviders.tsx). Member nav/bottom-nav were removed along with
@@ -21,9 +21,9 @@ export function publicNavItems(locale: Locale, _nav: NavLabels) {
   return [
     {
       href: sundayTableLpPath(locale),
-      label: "Sunday Table",
+      label: "Sunday Social",
       match: (path: string) =>
-        (path === "/sunday-table" || path.startsWith("/sunday-table/")) &&
+        (path === "/sunday-social" || path.startsWith("/sunday-social/")) &&
         !SUNDAY_TABLE_EVENT_PATH.test(path),
     },
     {

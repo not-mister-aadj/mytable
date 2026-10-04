@@ -1,5 +1,5 @@
 /**
- * Creates a past confirmed Sunday Table signup (if needed), signs a real
+ * Creates a past confirmed Sunday Social signup (if needed), signs a real
  * review token, and emails a link to the live review page.
  *
  * Usage:
@@ -160,7 +160,7 @@ async function main() {
     from: getEmailFrom(),
     replyTo: getEmailReplyTo(),
     to,
-    subject: `Hoe was Sunday Table in ${city}?`,
+    subject: `Hoe was Sunday Social in ${city}?`,
     html,
     text,
   });

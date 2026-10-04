@@ -34,12 +34,12 @@ export const blogUiNl: BlogUiLabels = {
   breadcrumbBlog: "Blog",
   finalCtaTitle: "Liever meteen een tafel boeken?",
   finalCtaBody:
-    "Bekijk open tafels in de agenda, of kies Sunday Table als je nieuwe mensen wilt leren kennen.",
+    "Bekijk open tafels in de agenda, of kies Sunday Social als je nieuwe mensen wilt leren kennen.",
   finalCtaButton: "Bekijk beschikbare tafels",
   emptyCategory: "Nog geen artikelen in deze categorie.",
   keepReading: "Verder lezen op MyTable",
   tocLabel: "In dit artikel",
-  sidebarCtaEyebrow: "Sunday Table",
+  sidebarCtaEyebrow: "Sunday Social",
   sidebarCtaTitle: "Liever meteen aanschuiven?",
   sidebarCtaBody:
     "Boek een wijnproeverij bij MyTable: vier wijnen, bites en een tafelmix die klopt.",
@@ -60,12 +60,12 @@ export const blogUiEn: BlogUiLabels = {
   breadcrumbBlog: "Blog",
   finalCtaTitle: "Rather book a table now?",
   finalCtaBody:
-    "See open tables on the agenda, or choose Sunday Table if you want to meet new people.",
+    "See open tables on the agenda, or choose Sunday Social if you want to meet new people.",
   finalCtaButton: "See available tables",
   emptyCategory: "No articles in this category yet.",
   keepReading: "Keep exploring on MyTable",
   tocLabel: "In this article",
-  sidebarCtaEyebrow: "Sunday Table",
+  sidebarCtaEyebrow: "Sunday Social",
   sidebarCtaTitle: "Rather take a seat now?",
   sidebarCtaBody:
     "Book a MyTable wine tasting: four wines, bites and a table mix that works.",

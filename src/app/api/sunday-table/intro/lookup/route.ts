@@ -19,7 +19,7 @@ function checkRateLimit(key: string, max = 5, windowMs = 10 * 60_000): boolean {
 /** For the manual version of the "meet your table" form: once a guest has
  * typed their booking number and email, returns what they saved before so
  * the form can show it. Same check as saving (number and email must match
- * one paid Sunday Table booking), with the same tight limit on attempts. */
+ * one paid Sunday Social booking), with the same tight limit on attempts. */
 export async function POST(request: Request) {
   if (!isDbConfigured()) {
     return NextResponse.json({ error: "Unavailable" }, { status: 503 });

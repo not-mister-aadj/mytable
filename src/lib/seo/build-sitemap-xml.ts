@@ -119,7 +119,7 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
       lastmod: now,
       images: [absoluteUrl("/girls-only/hero-poster.jpg")],
     }),
-    // Sunday Table cities are covered by their Sunday Table landing pages
+    // Sunday Social cities are covered by their Sunday Social landing pages
     // below, which share the same URL.
     ...listGirlsOnlyCities()
       .filter((city) => !sundayTableLpCityFromSlug(city.slug))

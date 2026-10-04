@@ -26,7 +26,7 @@ export default async function SundayTableIntroRequestEmailPreviewPage() {
           Onderwerp: {sundayTableIntroRequestSubject("zondag 25 oktober", "nl")}
         </p>
         <p className="mt-1 text-sm text-wine/60">
-          Gaat ongeveer 15 minuten na een Sunday Table-boeking uit, alleen als de
+          Gaat ongeveer 15 minuten na een Sunday Social-boeking uit, alleen als de
           vragen op de bevestigingspagina niet zijn ingevuld.
         </p>
       </div>

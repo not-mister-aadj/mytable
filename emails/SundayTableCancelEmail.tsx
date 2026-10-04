@@ -44,8 +44,8 @@ export function SundayTableCancelEmail({
     <EmailLayout
       preview={
         nl
-          ? `Je Sunday Table in ${city} is geannuleerd.`
-          : `Your Sunday Table in ${city} was cancelled.`
+          ? `Je Sunday Social in ${city} is geannuleerd.`
+          : `Your Sunday Social in ${city} was cancelled.`
       }
       showTagline={false}
     >
@@ -54,15 +54,15 @@ export function SundayTableCancelEmail({
         headline={nl ? "Plek vrijgegeven" : "Seat released"}
         body={
           nl
-            ? "Je RSVP voor Sunday Table is geannuleerd. Je plek is weer vrij voor iemand anders."
-            : "Your Sunday Table RSVP was cancelled. Your seat is free again for someone else."
+            ? "Je RSVP voor Sunday Social is geannuleerd. Je plek is weer vrij voor iemand anders."
+            : "Your Sunday Social RSVP was cancelled. Your seat is free again for someone else."
         }
       />
 
       <BookingSummaryCard
         title={nl ? "Geannuleerde tafel" : "Cancelled table"}
         muted
-        eventName="Sunday Table"
+        eventName="Sunday Social"
         city={city}
         rows={[
           { label: nl ? "Datum" : "Date", value: date },
@@ -90,7 +90,7 @@ export function SundayTableCancelEmail({
             : "Join the waitlist again whenever you're ready."
         }
         href={sundayTableUrl}
-        label={nl ? "Naar Sunday Table →" : "Open Sunday Table →"}
+        label={nl ? "Naar Sunday Social →" : "Open Sunday Social →"}
       />
     </EmailLayout>
   );

@@ -19,7 +19,7 @@ export default async function SundayTableLocationEmailPreviewPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl text-burgundy">
-            E-mail preview · Sunday Table locatie
+            E-mail preview · Sunday Social locatie
           </h1>
           <p className="mt-1 text-sm text-wine/60">Onderwerp: {subject}</p>
         </div>

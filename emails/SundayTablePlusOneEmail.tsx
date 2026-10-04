@@ -54,11 +54,11 @@ export function SundayTablePlusOneEmail({
       preview={
         added
           ? nl
-            ? `+1 toegevoegd voor Sunday Table in ${city}.`
-            : `+1 added for Sunday Table in ${city}.`
+            ? `+1 toegevoegd voor Sunday Social in ${city}.`
+            : `+1 added for Sunday Social in ${city}.`
           : nl
-            ? `+1 verwijderd voor Sunday Table in ${city}.`
-            : `+1 removed for Sunday Table in ${city}.`
+            ? `+1 verwijderd voor Sunday Social in ${city}.`
+            : `+1 removed for Sunday Social in ${city}.`
       }
       showTagline={false}
     >
@@ -79,14 +79,14 @@ export function SundayTablePlusOneEmail({
               ? "Je neemt iemand mee. Die tweede plek telt mee aan tafel, zonder extra kosten. Kan diegene toch niet? Meld de +1 dan op tijd af, zodat iemand anders die stoel kan claimen."
               : "You are bringing someone. That second seat counts at the table, at no extra cost. If they cannot make it after all, please remove the +1 in time so someone else can take that seat."
             : nl
-              ? "Je +1 is verwijderd. Je Sunday Table-RSVP blijft staan voor jou alleen."
-              : "Your +1 was removed. Your Sunday Table RSVP stays for you alone."
+              ? "Je +1 is verwijderd. Je Sunday Social-RSVP blijft staan voor jou alleen."
+              : "Your +1 was removed. Your Sunday Social RSVP stays for you alone."
         }
       />
 
       <BookingSummaryCard
-        title={nl ? "Jouw Sunday Table" : "Your Sunday Table"}
-        eventName="Sunday Table"
+        title={nl ? "Jouw Sunday Social" : "Your Sunday Social"}
+        eventName="Sunday Social"
         city={city}
         rows={[
           { label: nl ? "Datum" : "Date", value: date },

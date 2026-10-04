@@ -8,8 +8,8 @@ export type TableLanguagePreference =
 export const DEFAULT_TABLE_LANGUAGE_PREFERENCE: TableLanguagePreference =
   "both_fine";
 
-/** Sunday Tables where English speakers can buy a ticket, by event id. On
- * every other Sunday Table, picking "English" on the date page offers a
+/** Sunday Socials where English speakers can buy a ticket, by event id. On
+ * every other Sunday Social, picking "English" on the date page offers a
  * "notify me" sign-up instead of a ticket, and checkout refuses English-only
  * bookings, so nobody who only speaks English ends up at a Dutch table.
  * Add an event here once it can seat an English-speaking table. */

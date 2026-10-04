@@ -156,7 +156,7 @@ export const girlsOnlyExperienceLabelsNl = {
   pillSoloTogether: "Plan je tafel",
   socialTitle: "Goede plannen beginnen rond de tafel.",
   socialSubtitle:
-    "Neem je vriendinnen mee, nodig iemand van je Sunday Table uit of schuif individueel aan. Wij regelen de wijn, het eten en de ervaring.",
+    "Neem je vriendinnen mee, nodig iemand van je Sunday Social uit of schuif individueel aan. Wij regelen de wijn, het eten en de ervaring.",
   finalCtaHeadline: "Klaar voor je volgende zondagmiddag wijnspijs?",
   finalCtaSubheadline:
     "Vier wijnen, gepaarde bites en gezelligheid. Zonder datumprikkers, zonder gedoe.",

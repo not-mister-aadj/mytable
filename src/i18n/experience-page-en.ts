@@ -220,7 +220,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Will I sit with strangers?",
           answer:
-            "No. You book tickets for yourself or your party. Matching with new people happens only via Sunday Table, not on this experience.",
+            "No. You book tickets for yourself or your party. Matching with new people happens only via Sunday Social, not on this experience.",
         },
         {
           question: "Can I share dietary requirements?",
@@ -307,7 +307,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I book alone?",
           answer:
-            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You follow the route with your own party; we do not match you with other guests. Want to meet new culinary friends instead? That happens at Sunday Table.",
+            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You follow the route with your own party; we do not match you with other guests. Want to meet new culinary friends instead? That happens at Sunday Social.",
         },
         {
           question: "Do I have to walk a lot?",
@@ -410,7 +410,7 @@ export const experiencePageEn: ExperiencePageLabels = {
         {
           question: "Can I book alone?",
           answer:
-            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You sit with the people you bring, not with strangers. Want to meet new culinary friends instead? That happens at Sunday Table.",
+            "Bookings start at 2 tickets. Coming solo? Bring someone along or book with a friend. You sit with the people you bring, not with strangers. Want to meet new culinary friends instead? That happens at Sunday Social.",
         },
         {
           question: "When are the Chef's Tables?",

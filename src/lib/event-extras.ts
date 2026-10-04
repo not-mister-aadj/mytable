@@ -17,7 +17,7 @@ import {
 export const GIRLS_ONLY_ATMOSPHERE_TAG = "Girls only";
 export const PREMIUM_ATMOSPHERE_TAG = "Premium";
 
-/** Strip girls-only wording from culinary/agenda copy (Sunday Table keeps that language). */
+/** Strip girls-only wording from culinary/agenda copy (Sunday Social keeps that language). */
 export function stripGirlsOnlyCulinaryCopy(
   text: string | null | undefined,
 ): string {

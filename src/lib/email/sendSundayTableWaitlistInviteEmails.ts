@@ -25,7 +25,7 @@ function priceHintForLocale(locale: Locale): string {
 }
 
 /**
- * Manually triggered from the admin Sunday Table detail page — invites the
+ * Manually triggered from the admin Sunday Social detail page: invites the
  * oldest not-yet-invited waitlist candidates for one cohort (city + date +
  * table type) to claim a paid seat. Never automated; staff decide when a
  * cohort has enough matching interest to open.

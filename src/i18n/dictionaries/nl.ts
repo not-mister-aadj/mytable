@@ -11,7 +11,7 @@ export const nl: Dictionary = {
   },
   header: {
     nav: {
-      girlsOnly: "Sunday Table",
+      girlsOnly: "Sunday Social",
       calendar: "Agenda",
       account: "Account",
       experiences: "Agenda",
@@ -81,7 +81,7 @@ export const nl: Dictionary = {
       cta: "Zet je op de wachtlijst",
     },
     sundayTableGroup: {
-      title: "Boek met je Sunday Table",
+      title: "Boek met je Sunday Social",
       body: "Kies een Wine Walk of Food Walk in jouw stad.",
     },
     browse: {
@@ -117,9 +117,9 @@ export const nl: Dictionary = {
     },
     empty: {
       title: "Geen beschikbare ervaringen",
-      text: "Er staan nu geen open tafels voor dit filter. Bekijk Sunday Table of kom later terug voor nieuwe data.",
+      text: "Er staan nu geen open tafels voor dit filter. Bekijk Sunday Social of kom later terug voor nieuwe data.",
       showAllCities: "Alle ervaringen tonen",
-      communityCta: "Naar Sunday Table",
+      communityCta: "Naar Sunday Social",
     },
     status: {
       available: "Beschikbaar",
@@ -237,7 +237,7 @@ export const nl: Dictionary = {
     emailLabel: "E-mail",
     emailPlaceholder: "Je e-mailadres",
     cityLabel: "Stad",
-    cta: "Naar Sunday Table",
+    cta: "Naar Sunday Social",
     success:
       "Bedankt. Je staat op de lijst. We nemen contact op zodra de volgende tafel in jouw stad opent.",
     error: "Aanmelden mislukt. Probeer het later opnieuw.",
@@ -245,8 +245,8 @@ export const nl: Dictionary = {
     emptyAgenda: {
       title: "Word lid van de MyTable Club",
       subtitle:
-        "Via Sunday Table hoor je als eerste wanneer er nieuwe tafels openen in jouw stad.",
-      cta: "Naar Sunday Table",
+        "Via Sunday Social hoor je als eerste wanneer er nieuwe tafels openen in jouw stad.",
+      cta: "Naar Sunday Social",
     },
   },
   faq: {
@@ -255,12 +255,12 @@ export const nl: Dictionary = {
       {
         question: "Wat is MyTable?",
         answer:
-          "Culinaire evenementen in partnerrestaurants: wijnproeverijen en meer. Je boekt tickets voor jezelf of je gezelschap en komt met je eigen party. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid. Nieuwe mensen ontmoeten doe je via Sunday Table.",
+          "Culinaire evenementen in partnerrestaurants: wijnproeverijen en meer. Je boekt tickets voor jezelf of je gezelschap en komt met je eigen party. Wij regelen alles rond de tafel; jij komt voor goede wijn, chef's specials en gezelligheid. Nieuwe mensen ontmoeten doe je via Sunday Social.",
       },
       {
         question: "Kom ik bij onbekenden aan tafel?",
         answer:
-          "Nee. Op de agenda boek je je eigen plekken: solo of met vrienden. Matching met nieuwe mensen gebeurt alleen via Sunday Table.",
+          "Nee. Op de agenda boek je je eigen plekken: solo of met vrienden. Matching met nieuwe mensen gebeurt alleen via Sunday Social.",
       },
       {
         question: "Wanneer zijn de events?",
@@ -332,7 +332,7 @@ export const nl: Dictionary = {
       contact: "Contact",
       terms: "Algemene voorwaarden",
       privacy: "Privacy",
-      girlsOnly: "Sunday Table",
+      girlsOnly: "Sunday Social",
     },
     legal: {
       eyebrow: "Juridisch",

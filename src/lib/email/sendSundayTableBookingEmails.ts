@@ -82,7 +82,7 @@ async function sendRendered(input: {
   ics?: { filename: string; content: string } | null;
 }): Promise<EmailSendResult> {
   if (!isEmailConfigured()) {
-    console.warn("[email] RESEND_API_KEY missing, skip Sunday Table email");
+    console.warn("[email] RESEND_API_KEY missing, skip Sunday Social email");
     return { ok: false, error: "Email not configured" };
   }
 
@@ -117,7 +117,7 @@ async function sendRendered(input: {
   });
 
   if (error) {
-    console.error("[email] Sunday Table send failed", error);
+    console.error("[email] Sunday Social send failed", error);
     return { ok: false, error: error.message };
   }
 
@@ -206,7 +206,7 @@ export async function sendSundayTableConfirmationEmail(
     element: SundayTableConfirmationEmail(props),
     ics: ics
       ? {
-          filename: `mytable-sunday-table-${dateIso}.ics`,
+          filename: `mytable-sunday-social-${dateIso}.ics`,
           content: ics,
         }
       : null,
@@ -262,13 +262,13 @@ export function voidSundayTableConfirmationEmail(
   row: SundayTableSignup,
 ): void {
   void sendSundayTableConfirmationEmail(row).catch((err) => {
-    console.error("[email] Sunday Table confirmation", err);
+    console.error("[email] Sunday Social confirmation", err);
   });
 }
 
 export function voidSundayTableCancelEmail(row: SundayTableSignup): void {
   void sendSundayTableCancelEmail(row).catch((err) => {
-    console.error("[email] Sunday Table cancel", err);
+    console.error("[email] Sunday Social cancel", err);
   });
 }
 
@@ -277,6 +277,6 @@ export function voidSundayTablePlusOneEmail(
   action: "added" | "removed",
 ): void {
   void sendSundayTablePlusOneEmail(row, action).catch((err) => {
-    console.error("[email] Sunday Table +1", err);
+    console.error("[email] Sunday Social +1", err);
   });
 }

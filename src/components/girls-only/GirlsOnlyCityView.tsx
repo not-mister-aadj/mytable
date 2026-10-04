@@ -35,7 +35,7 @@ interface GirlsOnlyCityViewProps {
   events: EnrichedExperience[];
   hasBookable: boolean;
   agendaHref: string;
-  /** Next Sunday Table scarcity line for this city. */
+  /** Next Sunday Social scarcity line for this city. */
   sundayScarcity?: {
     seatsLeft: number;
     dateLabel: string;
@@ -53,7 +53,7 @@ export function GirlsOnlyCityView({
 }: GirlsOnlyCityViewProps) {
   const hasEvents = events.length > 0;
   // /join was removed with the old sign-up flow (see SIGNUPS_PAUSED). Route
-  // to that city's own Sunday Table page when one exists, else the general
+  // to that city's own Sunday Social page when one exists, else the general
   // waitlist page, so this is never a dead link.
   const sundayTableCitySlug = sundayTableLpSlugFromCity(city.cityName);
   const quizHref = sundayTableCitySlug

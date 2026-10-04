@@ -81,13 +81,13 @@ export function SundayTablesAdminView({
       <FormatTabs active="sunday-table" />
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-wine/45">
-          Sunday Table
+          Sunday Social
         </p>
         <h1 className="mt-2 font-serif text-3xl text-burgundy sm:text-4xl">
-          Sunday Tables
+          Sunday Socials
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Overzicht van aankomende Sunday Tables per stad en type. Klik op een
+          Overzicht van aankomende Sunday Socials per stad en type. Klik op een
           rij om de aanmeldingen voor die tafel te zien.
         </p>
       </div>

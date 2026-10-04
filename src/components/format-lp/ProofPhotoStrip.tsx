@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 /** Shared marquee photo strip used in the "proof" section of the landing
- * pages (Sunday Table and the format pages). */
+ * pages (Sunday Social and the format pages). */
 export function ProofPhotoStrip({
   images,
   reduceMotion,

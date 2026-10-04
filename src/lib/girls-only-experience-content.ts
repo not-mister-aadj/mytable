@@ -25,7 +25,7 @@ type GirlsOnlyExperienceRef = Pick<
 >;
 
 export function isGirlsOnlyExperience(_experience: GirlsOnlyExperienceRef): boolean {
-  // Culinary/agenda experiences are never girls-only; only Clubmember Sunday Tables can be.
+  // Culinary/agenda experiences are never girls-only; only Clubmember Sunday Socials can be.
   return false;
 }
 

@@ -17,7 +17,7 @@ const styleOptions = [
 
 const textStyle = { margin: "0 0 14px", fontSize: 16, color: "#2b0d12", lineHeight: 1.5 };
 
-/** Sent once, about 15 minutes after a Sunday Table booking, to guests who
+/** Sent once, about 15 minutes after a Sunday Social booking, to guests who
  * skipped the questions on the confirmation page. The reason to answer: the
  * answers decide who they are seated with. One click on a button already
  * counts as an answer and opens the rest of the questions. */

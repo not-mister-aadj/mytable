@@ -35,7 +35,7 @@ export function SundayTableWaitlistWelcomeEmail({
   // WhatsApp groups are Rotterdam-specific communities — only offer them
   // when Rotterdam is one of the cities this signup is for.
   const showWhatsapp = cities.some((c) => c.trim().toLowerCase() === "rotterdam");
-  // Women get both groups, since the Sunday Tables on sale are mixed.
+  // Women get both groups, since the Sunday Socials on sale are mixed.
   // Everyone else only gets the mixed group chat.
   const showGirlsOnly = showWhatsapp && (gender === "female" || gender === undefined);
   const showMixed = showWhatsapp;
@@ -47,8 +47,8 @@ export function SundayTableWaitlistWelcomeEmail({
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12" }}>
         {nl
-          ? `Je staat op de wachtlijst voor Sunday Table in ${cityLabel}.`
-          : `You're on the Sunday Table waitlist for ${cityLabel}.`}
+          ? `Je staat op de wachtlijst voor Sunday Social in ${cityLabel}.`
+          : `You're on the Sunday Social waitlist for ${cityLabel}.`}
       </p>
       <p
         style={{

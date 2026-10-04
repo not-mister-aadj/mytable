@@ -49,7 +49,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/sunday-table-confirmation")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Sunday Table bevestiging
+            Sunday Social bevestiging
           </Link>
         </li>
         <li>
@@ -57,7 +57,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/sunday-table-cancel")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Sunday Table annulering
+            Sunday Social annulering
           </Link>
         </li>
         <li>
@@ -65,7 +65,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/sunday-table-plus-one")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Sunday Table +1 toevoegen / verwijderen
+            Sunday Social +1 toevoegen / verwijderen
           </Link>
         </li>
         <li>
@@ -73,7 +73,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/sunday-table-location")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Sunday Table locatie (24u)
+            Sunday Social locatie (24u)
           </Link>
         </li>
         <li>
@@ -81,7 +81,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/sunday-table-review")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Sunday Table review (dag 1)
+            Sunday Social review (dag 1)
           </Link>
         </li>
         <li>
@@ -89,7 +89,7 @@ export default async function EmailPreviewIndexPage() {
             href={adminPath("/email-preview/sunday-table-intro-request")}
             className="font-medium text-burgundy underline-offset-2 hover:underline"
           >
-            Sunday Table meet your table (herinnering na 15 min)
+            Sunday Social meet your table (herinnering na 15 min)
           </Link>
         </li>
         <li>

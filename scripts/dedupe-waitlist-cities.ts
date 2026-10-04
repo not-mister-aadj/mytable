@@ -13,7 +13,7 @@
  *     iemand er alsnog een tweede), anders de oudste;
  *   - de behouden rij krijgt de genormaliseerde stadsnaam, en de rijkste
  *     voorkeuren, naam en customer-koppeling uit de groep;
- *   - groepen waarvan een rij aan een Sunday Table-uitnodiging hangt worden
+ *   - groepen waarvan een rij aan een Sunday Social-uitnodiging hangt worden
  *     overgeslagen en apart gemeld, omdat verwijderen die uitnodiging zou
  *     meenemen. Die los je met de hand op.
  */

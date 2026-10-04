@@ -537,7 +537,7 @@ const WINE_LABELS: Record<string, string> = {
   bubbles: "Bubbels",
 };
 
-/** Sunday Table "meet your table" answers per guest, for writing the
+/** Sunday Social "meet your table" answers per guest, for writing the
  * introduction email, the seating plan and the place cards. */
 function MeetYourTable({ tickets }: { tickets: EventTicketRow[] }) {
   if (tickets.length === 0) return null;

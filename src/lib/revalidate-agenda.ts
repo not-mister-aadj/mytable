@@ -5,7 +5,7 @@ import { sundayTableLocationPath } from "@/i18n/config";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
 
-/** Sunday Table's reveal page (/sunday-table/[city]/[date]) shows a live
+/** Sunday Social's reveal page (/sunday-social/[city]/[date]) shows a live
  * "spots left" chip, but isn't covered by the generic /agenda paths below,
  * so a fresh purchase or admin edit wouldn't show up there until the
  * page's own 60s ISR window happened to pass. */
@@ -21,7 +21,7 @@ function sundayTablePaths(event: Pick<Event, "experienceType" | "city" | "starts
 }
 
 /** Pass the full event row (not just its slug) whenever it's on hand, so
- * Sunday Table editions also revalidate their own reveal page. */
+ * Sunday Social editions also revalidate their own reveal page. */
 export function revalidateEventPaths(
   event: string | Pick<Event, "slug" | "experienceType" | "city" | "startsAt">,
 ) {

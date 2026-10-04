@@ -49,8 +49,8 @@ export function SundayTableWaitlistInviteEmail({
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12" }}>
         {nl
-          ? `Er vormt zich een ${tableTypeLabel} Sunday Table in ${city}, op ${dateLabel} om ${timeLabel}.`
-          : `A ${tableTypeLabel} Sunday Table is forming in ${city}, on ${dateLabel} at ${timeLabel}.`}
+          ? `Er vormt zich een ${tableTypeLabel} Sunday Social in ${city}, op ${dateLabel} om ${timeLabel}.`
+          : `A ${tableTypeLabel} Sunday Social is forming in ${city}, on ${dateLabel} at ${timeLabel}.`}
       </p>
       <p
         style={{

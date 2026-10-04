@@ -293,7 +293,7 @@ export function trackSundayTableCtaClicked(props: {
   capture(PostHogEvents.sundayTableCtaClicked, props);
 }
 
-/** Someone picked "English" on a Sunday Table date page while those tables
+/** Someone picked "English" on a Sunday Social date page while those tables
  * are still Dutch-only: `selected` when they pick it, `notify` when they
  * leave their details for the first English-speaking table. */
 export function trackSundayTableEnglishRequested(props: {

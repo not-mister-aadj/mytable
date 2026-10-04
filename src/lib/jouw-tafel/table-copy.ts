@@ -61,6 +61,7 @@ const nl: TableCopy = {
       "Een tafel met mensen die net als jij zin hebben in een gezellige zondag.",
       "Je bestelt zelf wat je wilt drinken en eten van de kaart. Een dag van tevoren mailen we onze aanraders.",
       "Reken op twee tot drie uur. Of langer, als het klikt.",
+      "Soms blijft een tafel daarna nog samen eten.",
     ],
   },
   good: {
@@ -118,6 +119,7 @@ const en: TableCopy = {
       "A table with people who, like you, are in the mood for a cosy Sunday.",
       "You order your own drinks and food from the menu. The day before, we email our own picks.",
       "Plan for two to three hours. Or longer, if it clicks.",
+      "Some tables stay on for dinner together afterwards.",
     ],
   },
   good: {

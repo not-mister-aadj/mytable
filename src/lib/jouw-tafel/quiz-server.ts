@@ -17,8 +17,8 @@ export type QuizWaitlistResult =
       ok: true;
       /** One row per chosen city, primary first. */
       rows: QuizWaitlistRow[];
-      /** The first newly created row (in their city order): the one Meta's
-       * Lead is sent for. Null when every row already existed. */
+      /** The first newly created row (in their city order), null when every
+       * row already existed. (Meta's Lead is per account, see the route.) */
       lead: QuizWaitlistRow | null;
     }
   | { ok: false; error: string };
@@ -43,8 +43,7 @@ function waitlistCities(state: QuizState): string[] {
  * `preferences` shape plus the quiz's own keys, with `cities` listing every
  * chosen city. An existing row keeps any older answers the quiz does not ask
  * (merged, not replaced). A new row is linked to the customer and logged the
- * same way a waitlist modal sign-up is (onWaitlistJoined). The caller fires
- * Meta's Lead once, for `lead` only.
+ * same way a waitlist modal sign-up is (onWaitlistJoined).
  */
 export async function upsertQuizWaitlist(input: {
   email: string;

@@ -10,6 +10,7 @@ import {
   lead,
   pageView,
   purchase,
+  quizLead,
   viewContent,
 } from "@/lib/analytics/metaPixel";
 import type { User } from "@supabase/supabase-js";
@@ -134,6 +135,11 @@ export function trackMetaLead(input: {
     city: input.city,
     waitlist_id: input.waitlistId,
   });
+}
+
+/** The quiz's Lead, once per account, when the quiz is completed. */
+export function trackMetaQuizLead(input: { userId: string; city: string }): void {
+  quizLead(input);
 }
 
 /** New account only — funnel signal that registration precedes Purchase. */

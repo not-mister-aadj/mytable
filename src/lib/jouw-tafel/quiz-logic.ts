@@ -24,6 +24,27 @@ export const QUIZ_VERSION = 1;
 /** Key in the Supabase user's metadata that holds the quiz state. */
 export const QUIZ_METADATA_KEY = "jouw_tafel_quiz";
 
+/** Key in the user's metadata set when the quiz's Meta Lead (CAPI) went out. */
+export const QUIZ_LEAD_SENT_KEY = "jouw_tafel_lead_sent_at";
+
+/** A completion this old is not "just completed" (an old state saved again). */
+const LEAD_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether this save should send the quiz's CAPI Lead: the quiz is completed,
+ * recently (the save that first carries completedAt, or a retry of it), and
+ * no Lead went out for this account yet.
+ */
+export function shouldSendQuizLead(
+  state: QuizState,
+  meta: Record<string, unknown> | null | undefined,
+  now: number = Date.now(),
+): boolean {
+  if (meta?.[QUIZ_LEAD_SENT_KEY]) return false;
+  if (!state.completedAt || !isQuizComplete(state.answers)) return false;
+  return now - state.completedAt < LEAD_WINDOW_MS && state.completedAt <= now + 60_000;
+}
+
 /** Every screen, in order. Branches are filtered out by quizSteps(). */
 export const QUIZ_STEPS = [
   "welkom",

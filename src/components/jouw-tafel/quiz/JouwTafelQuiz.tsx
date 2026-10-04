@@ -28,6 +28,7 @@ import {
 import { switchLocalePath, type Locale } from "@/i18n/config";
 import { saveMemberLocalePreference } from "@/features/auth/save-onboarding";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
+import { trackMetaQuizLead } from "@/lib/analytics/metaTracking";
 import { trackLanguageChanged, trackQuizEvent, trackQuizStepLeft } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
 import type { QuizCity, QuizEvent } from "@/lib/jouw-tafel/logic";
@@ -349,6 +350,7 @@ function QuizHeader({
 export function JouwTafelQuiz({
   locale,
   email,
+  userId,
   storageKey,
   initialState,
   initialStep,
@@ -366,6 +368,8 @@ export function JouwTafelQuiz({
   email: string;
   /** localStorage key for this account's copy of the answers. */
   storageKey: string;
+  /** For the quiz's Meta Lead event id (one per account). */
+  userId: string;
   initialState: QuizState;
   initialStep: QuizStepId;
   requestedStep: string | null;
@@ -569,6 +573,9 @@ export function JouwTafelQuiz({
         ...(from === "stad" ? { city_count: answerCities(nextAnswers).length } : {}),
       });
       if (justCompleted) {
+        // The funnel's Meta Lead, once per account; the server sends the
+        // CAPI twin with the same event id on this save.
+        trackMetaQuizLead({ userId, city: answerCities(nextAnswers)[0] ?? "" });
         trackQuizEvent(PostHogEvents.quizCompleted, {
           ...common(from, nextAnswers),
           duration_s: Math.round((t - startedAt) / 1000),
@@ -576,7 +583,7 @@ export function JouwTafelQuiz({
       }
       return next;
     },
-    [common, save, storageKey],
+    [common, save, storageKey, userId],
   );
 
   const advancing = useRef(false);

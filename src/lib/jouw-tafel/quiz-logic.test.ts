@@ -28,6 +28,7 @@ import {
   quizSteps,
   resolveStep,
   sanitizeQuizState,
+  shouldSendQuizLead,
   signupCountsBySubset,
   stepPosition,
   stopCityCount,
@@ -649,6 +650,18 @@ test("stopZoektAnswer: the chosen option highest in the list, not the first tapp
   assert.equal(stopZoektAnswer({ why: ["new_city", "wines"] }), "wines");
   assert.equal(stopZoektAnswer({ why: ["treat"] }), "treat");
   assert.equal(stopZoektAnswer({}), "cosy");
+});
+
+test("shouldSendQuizLead: once per account, right after completing", () => {
+  const done = { v: 1 as const, answers: DONE_ALONE, completedAt: NOW - 5000 };
+  assert.equal(shouldSendQuizLead(done, {}, NOW), true);
+  assert.equal(shouldSendQuizLead(done, null, NOW), true);
+  // Already sent (another device, a retry).
+  assert.equal(shouldSendQuizLead(done, { jouw_tafel_lead_sent_at: "2026-10-01T12:00:00Z" }, NOW), false);
+  // Not completed, or an old completion saved again.
+  assert.equal(shouldSendQuizLead({ v: 1, answers: DONE_ALONE }, {}, NOW), false);
+  assert.equal(shouldSendQuizLead({ ...done, completedAt: NOW - 2 * 86_400_000 }, {}, NOW), false);
+  assert.equal(shouldSendQuizLead({ ...done, answers: { ...DONE_ALONE, ready: undefined } }, {}, NOW), false);
 });
 
 test("firstNameFromMetadata", () => {

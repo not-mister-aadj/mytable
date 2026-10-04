@@ -27,6 +27,7 @@ export async function getFunnelTable(slug: string): Promise<QuizEvent | null> {
     spotsSold: row.spotsSold,
     comingSoon: Boolean(row.extras?.comingSoon),
     englishOpen: isEnglishOpenForSundayTable(row.id),
+    membersOnlyUntil: row.membersOnlyUntil?.toISOString() ?? null,
   };
 }
 

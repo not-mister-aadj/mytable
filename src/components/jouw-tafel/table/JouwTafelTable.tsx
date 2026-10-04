@@ -88,6 +88,7 @@ export function JouwTafelTable({
   kiesHref,
   reserveHref,
   cta,
+  chip: chipOverride,
 }: {
   locale: Locale;
   event: QuizEvent;
@@ -96,11 +97,13 @@ export function JouwTafelTable({
   kiesHref: string;
   reserveHref: string;
   cta?: ReactNode;
+  /** Replaces the spots chip (the membership's "Leden boeken nu"). */
+  chip?: { text: string; tone: keyof typeof CHIP_TONE };
 }) {
   const t = getTableCopy(locale);
   const k = getQuizCopy(locale).kies;
   const reduceMotion = useReducedMotion();
-  const chip = spotsChip(event, locale, k);
+  const chip = chipOverride ?? spotsChip(event, locale, k);
   const time = tableTime(event.startsAt, locale);
   const city = displayCity(event.city, locale);
 

@@ -3,6 +3,7 @@ import type { BookingConfirmationEmailProps } from "@/emails/BookingConfirmation
 import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
 import { getSiteUrl } from "@/lib/admin-url";
 import { formatMoney, reservationCode } from "@/lib/booking-display";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS } from "@/lib/jouw-tafel/logic";
 import { experiencePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
 import { formatEmailDate, formatEmailTime } from "@/lib/email/format-email-dates";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
@@ -69,6 +70,7 @@ export async function buildBookingConfirmationEmailProps(
     ? await buildSundayTableEmailContext(event, locale)
     : null;
 
+  const member = memberEmailProps(booking, event, locale);
   return {
     locale,
     customerName: booking.customerName ?? undefined,
@@ -78,13 +80,49 @@ export async function buildBookingConfirmationEmailProps(
     date: formatEmailDate(startsAt, locale),
     time: formatEmailTime(startsAt, endsAt, locale),
     seats: booking.seats,
-    totalPaid: formatMoney(booking.amountCents, booking.currency, locale),
+    totalPaid: member.totalPaid ?? formatMoney(booking.amountCents, booking.currency, locale),
     bookingCode: reservationCode(booking.id),
     eventUrl: sundayTableContext?.eventUrl ?? buildEventUrl(event, locale),
     venueName: sundayTableContext?.venueName ?? venue?.name,
     startLocation: sundayTableContext?.startLocation ?? venue?.address ?? undefined,
     dietaryNotes: booking.dietaryNotes ?? undefined,
     isSundayTable,
+    memberIncluded: member.memberIncluded,
+    memberGuest: member.memberGuest,
+  };
+}
+
+/** A member's booking: own seat included, a guest at the member price
+ * (shown against the normal seat price). */
+function memberEmailProps(
+  booking: Booking,
+  event: Event,
+  locale: Locale,
+): Partial<Pick<BookingConfirmationEmailProps, "memberIncluded" | "memberGuest" | "totalPaid">> {
+  if (!booking.membershipId) return {};
+  const guestSeats = Math.max(0, booking.seats - 1);
+  const guestEach = guestSeats > 0 ? Math.round(booking.amountCents / guestSeats) : 0;
+  return {
+    memberIncluded: true,
+    totalPaid:
+      booking.amountCents > 0
+        ? formatMoney(booking.amountCents, booking.currency, locale)
+        : locale === "en"
+          ? "Included"
+          : "Inbegrepen",
+    memberGuest:
+      guestSeats > 0
+        ? {
+            // Members book through the "Jouw tafel" funnel, whose single
+            // seat price is its own (not events.price_cents).
+            was: formatMoney(
+              event.experienceType === "sunday-table" ? JOUW_TAFEL_SEAT_PRICE_CENTS : event.priceCents,
+              booking.currency,
+              locale,
+            ),
+            now: formatMoney(guestEach, booking.currency, locale),
+          }
+        : undefined,
   };
 }
 

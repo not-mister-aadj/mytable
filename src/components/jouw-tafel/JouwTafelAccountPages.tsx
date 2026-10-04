@@ -10,6 +10,7 @@ import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { PlaceholderViewTracker } from "@/components/jouw-tafel/PlaceholderViewTracker";
 import {
   jouwTafelLogInPath,
+  jouwTafelMembershipPath,
   jouwTafelPath,
   jouwTafelSignUpPath,
   jouwTafelStartPath,
@@ -21,6 +22,7 @@ import { getMemberUser } from "@/lib/member-auth";
 import { devCountOverride, getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
 import { isGoogleSignInAllowed, isInAppBrowser } from "@/lib/jouw-tafel/auth-logic";
+import { isMembershipPlanId } from "@/lib/membership/plans";
 
 export type AccountSearchParams = Record<string, string | string[] | undefined>;
 
@@ -74,8 +76,18 @@ export async function JouwTafelAuthPage({
   // Log in while signed in: go straight on. Sign up always starts fresh: an
   // existing session is ended in the browser (see startFresh) so a new
   // account never inherits someone else's name or answers.
+  // ?naar=lid&plan=4m: started from "Word lid" on the membership page, so
+  // the way back is that page with the plan still chosen.
+  const toMembership = firstParam(searchParams.naar) === "lid";
+  const planParam = firstParam(searchParams.plan);
+  const plan = isMembershipPlanId(planParam) ? planParam : null;
+  const nextPath = toMembership
+    ? `${jouwTafelMembershipPath(locale)}${plan ? `?plan=${plan}` : ""}`
+    : jouwTafelStartPath(locale);
+  const carry = toMembership ? `?naar=lid${plan ? `&plan=${plan}` : ""}` : "";
+
   const signedIn = Boolean(await getMemberUser());
-  if (signedIn && screen === "login") redirect(jouwTafelStartPath(locale));
+  if (signedIn && screen === "login") redirect(nextPath);
 
   const userAgent = (await headers()).get("user-agent");
   const inApp = isInAppBrowser(userAgent);
@@ -94,9 +106,9 @@ export async function JouwTafelAuthPage({
         googleAllowed={googleAllowed}
         inApp={inApp}
         googleError={firstParam(searchParams.fout) === "google"}
-        welcomePath={jouwTafelStartPath(locale)}
-        switchPath={screen === "signup" ? jouwTafelLogInPath(locale) : jouwTafelSignUpPath(locale)}
-        signUpPath={jouwTafelSignUpPath(locale)}
+        welcomePath={nextPath}
+        switchPath={`${screen === "signup" ? jouwTafelLogInPath(locale) : jouwTafelSignUpPath(locale)}${carry}`}
+        signUpPath={`${jouwTafelSignUpPath(locale)}${carry}`}
         termsHref={termsPath(locale)}
         privacyHref={privacyPath(locale)}
         proofText={proofText}

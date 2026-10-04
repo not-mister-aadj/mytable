@@ -3,6 +3,9 @@ import { CTASection } from "./components/CTASection";
 import { EmailHero } from "./components/EmailHero";
 import { EmailLayout } from "./components/EmailLayout";
 import { InfoList } from "./components/InfoList";
+import { EmailCard } from "./components/EmailCard";
+import { Text } from "@react-email/components";
+import { emailBrand, emailType } from "./brand";
 
 export type BookingConfirmationEmailProps = {
   locale?: "nl" | "en";
@@ -23,6 +26,10 @@ export type BookingConfirmationEmailProps = {
   /** Sunday Table already reveals its venue at booking time, unlike other
    * formats, so several copy blocks below read differently because of that. */
   isSundayTable?: boolean;
+  /** A member's booking: the own seat is included in the membership. */
+  memberIncluded?: boolean;
+  /** The guest's member price against the normal seat price. */
+  memberGuest?: { was: string; now: string };
 };
 
 export function BookingConfirmationEmail({
@@ -41,6 +48,8 @@ export function BookingConfirmationEmail({
   startLocation,
   dietaryNotes,
   isSundayTable = false,
+  memberIncluded = false,
+  memberGuest,
 }: BookingConfirmationEmailProps) {
   const en = locale === "en";
   const greeting = customerName
@@ -122,6 +131,33 @@ export function BookingConfirmationEmail({
         dietaryNotes={trimmedDietary}
         locale={locale}
       />
+
+      {memberIncluded ? (
+        <EmailCard>
+          <Text style={emailType.sectionLabel}>{en ? "Your membership" : "Je lidmaatschap"}</Text>
+          <Text style={{ ...emailType.value, fontSize: "15px", margin: "0 0 6px" }}>
+            {en ? "Included in your membership" : "Inbegrepen in je lidmaatschap"}
+          </Text>
+          {memberGuest ? (
+            <Text style={{ ...emailType.body, margin: 0 }}>
+              {en ? "Guest: " : "Gast: "}
+              <span style={{ textDecoration: "line-through", color: emailBrand.mutedText }}>{memberGuest.was}</span>{" "}
+              <strong style={{ color: emailBrand.burgundy }}>{memberGuest.now}</strong>{" "}
+              {en ? "(member price)" : "(ledenprijs)"}
+            </Text>
+          ) : null}
+          <Text style={{ ...emailType.bodySmall, margin: "8px 0 0" }}>
+            {en
+              ? "Can't make it? Cancel your seat in your settings up to 48 hours before."
+              : "Kun je toch niet? Zeg je plek uiterlijk 48 uur van tevoren af in je instellingen."}
+            {memberGuest
+              ? en
+                ? " Your guest's seat is cancelled with it and is not refunded."
+                : " De plek van je gast vervalt dan ook en wordt niet terugbetaald."
+              : ""}
+          </Text>
+        </EmailCard>
+      ) : null}
 
       <InfoList
         items={[

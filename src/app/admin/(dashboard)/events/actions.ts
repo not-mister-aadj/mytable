@@ -27,6 +27,7 @@ import {
   isValidExperienceType,
 } from "@/lib/experience-types";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
 import { transferBooking } from "@/lib/booking-transfer";
 import { redirect } from "next/navigation";
 
@@ -166,7 +167,7 @@ async function applyEventUpdate(id: string, formData: FormData) {
   const values = toEventValues(form);
   const db = getDb();
   const [existing] = await db
-    .select({ slug: events.slug })
+    .select({ slug: events.slug, extras: events.extras })
     .from(events)
     .where(eq(events.id, id))
     .limit(1);
@@ -201,6 +202,10 @@ async function applyEventUpdate(id: string, formData: FormData) {
   }
 
   if (row.workflowStatus === "published") {
+    // Out of "binnenkort" now: members get the first 48 hours.
+    if (existing.extras?.comingSoon && !row.extras?.comingSoon) {
+      await applyMembersOnlyDefault(row.id);
+    }
     revalidateEventPaths(row);
   }
   return row;
@@ -231,7 +236,10 @@ export async function saveAndPublishEventAction(id: string, formData: FormData) 
     })
     .where(eq(events.id, id))
     .returning();
-  if (published) revalidateEventPaths(published);
+  if (published) {
+    await applyMembersOnlyDefault(published.id);
+    revalidateEventPaths(published);
+  }
   redirect(adminPath(`/events/${id}/edit?published=1`));
 }
 
@@ -274,7 +282,10 @@ export async function publishEventAction(id: string) {
     })
     .where(eq(events.id, id))
     .returning();
-  if (row) revalidateEventPaths(row);
+  if (row) {
+    await applyMembersOnlyDefault(row.id);
+    revalidateEventPaths(row);
+  }
   redirect(adminPath(`/events/${id}/edit?published=1`));
 }
 
@@ -376,6 +387,33 @@ export async function duplicateEventAction(id: string) {
 }
 
 export type BookingActionResult = { error: string | null };
+
+/** Admin "Niet gekomen" on a booking (and its undo). For a member: first
+ * time a warning mail, later a month without booking (see markNoShow). */
+export async function markBookingNoShowAction(
+  bookingId: string,
+  undo = false,
+): Promise<BookingActionResult & { notice?: string }> {
+  const { user } = await requireAdmin();
+  if (!isDbConfigured()) return { error: "Database niet geconfigureerd" };
+  try {
+    const { markNoShow, undoNoShow } = await import("@/lib/membership/no-show");
+    if (undo) {
+      const result = await undoNoShow({ bookingId, by: user.email ?? "admin" });
+      return { error: result.ok ? null : (result.error ?? "Terugdraaien mislukt") };
+    }
+    const result = await markNoShow({ bookingId, by: user.email ?? "admin" });
+    if (!result.ok) return { error: result.error };
+    const notice = !result.outcome
+      ? "Gemarkeerd als niet gekomen."
+      : result.outcome.kind === "warning"
+        ? `Lid: eerste keer, waarschuwingsmail ${result.mailed ? "verstuurd" : "NIET verstuurd"}.`
+        : `Lid: kan een maand niet boeken, mail ${result.mailed ? "verstuurd" : "NIET verstuurd"}.`;
+    return { error: null, notice };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Markeren mislukt" };
+  }
+}
 
 export type TransferBookingResult = BookingActionResult;
 

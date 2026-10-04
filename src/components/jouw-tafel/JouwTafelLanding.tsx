@@ -15,6 +15,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import {
   jouwTafelLogInPath,
+  jouwTafelMembershipPath,
   jouwTafelSignUpPath,
   privacyPath,
   termsPath,
@@ -55,6 +56,7 @@ export type LandingSection =
   | "tafels"
   | "aan-tafel"
   | "belofte"
+  | "lidmaatschap"
   | "faq"
   | "afsluiter";
 
@@ -563,6 +565,26 @@ export function JouwTafelLanding({
               })}
             </ul>
           </div>
+        </section>
+
+        {/* 6b. Vaker aanschuiven? A pointer to the membership page, no prices. */}
+        <section data-landing-section="lidmaatschap" className="px-5 pb-16 sm:pb-20">
+          <Reveal className="mx-auto max-w-2xl">
+            <div className="relative overflow-hidden rounded-[1.75rem] bg-burgundy px-6 py-9 text-center text-cream shadow-[0_18px_44px_rgba(90,15,27,0.22)] sm:px-10">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(197,154,91,0.28),transparent_65%)]" />
+              <p className="relative text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">{copy.membership.eyebrow}</p>
+              <h2 className="relative mt-3 font-serif text-[1.9rem] font-medium leading-tight text-balance">{copy.membership.title}</h2>
+              <p className="relative mx-auto mt-3 max-w-md text-[1rem] leading-relaxed text-cream/80">{copy.membership.body}</p>
+              <Link
+                href={jouwTafelMembershipPath(locale)}
+                onClick={() => track(PostHogEvents.landingCtaClicked, { location: "membership", cta: "membership" })}
+                className="relative mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-cream px-7 text-xs font-semibold uppercase tracking-[0.16em] text-burgundy transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-burgundy"
+              >
+                {copy.membership.link}
+                <span aria-hidden>&rarr;</span>
+              </Link>
+            </div>
+          </Reveal>
         </section>
 
         {/* 7. FAQ */}

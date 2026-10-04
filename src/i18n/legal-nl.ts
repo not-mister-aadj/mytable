@@ -115,7 +115,7 @@ export const termsNl: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Annuleren is niet mogelijk. Wel kun je kosteloos ruilen naar een andere beschikbare datum.",
+          text: "Annuleren is niet mogelijk. Wel kun je kosteloos ruilen naar een andere beschikbare datum. Voor plekken die bij een lidmaatschap zijn inbegrepen, geldt artikel 13.",
         },
         {
           type: "p",
@@ -199,7 +199,7 @@ export const termsNl: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Kom je niet zonder op tijd te ruilen, dan vervalt je plek zonder terugbetaling. Gebeurt dat herhaaldelijk, dan mogen wij toekomstige boekingen weigeren.",
+          text: "Kom je niet zonder op tijd te ruilen, dan vervalt je plek zonder terugbetaling. Gebeurt dat herhaaldelijk, dan mogen wij toekomstige boekingen weigeren. Voor leden geldt artikel 13.6.",
         },
       ],
     },
@@ -265,7 +265,84 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "13. Klachten en support",
+      title: "13. Lidmaatschap",
+      blocks: [
+        {
+          type: "p",
+          text: "Naast losse plekken bieden wij een lidmaatschap voor Sunday Table aan. Dit artikel geldt voor leden. De rest van deze voorwaarden geldt ook voor leden, tenzij dit artikel iets anders zegt.",
+        },
+        {
+          type: "p",
+          text: "13.1 Lidmaatschappen en prijzen. Je kiest uit:",
+        },
+        {
+          type: "ul",
+          items: [
+            "1 maand: €12,99 per maand;",
+            "4 maanden: €36 voor de eerste 4 maanden, daarna €9 per maand;",
+            "1 jaar: €99 voor het eerste jaar, daarna €8,25 per maand.",
+          ],
+        },
+        {
+          type: "p",
+          text: "Prijzen zijn inclusief btw. Je betaalt per periode vooraf, via de betaalmethoden die bij het afrekenen worden getoond. De volgende betalingen schrijven wij automatisch af via onze betaaldienstverlener Stripe.",
+        },
+        {
+          type: "p",
+          text: "13.2 Looptijd en verlenging. Je lidmaatschap start zodra wij je eerste betaling hebben ontvangen. Na je eerste periode (1 maand, 4 maanden of 1 jaar) loopt het lidmaatschap automatisch door voor onbepaalde tijd, per maand, tegen het maandbedrag van je lidmaatschap. Vanaf dan kun je per maand opzeggen. Uiterlijk 7 dagen voordat een eerste periode van 4 maanden of 1 jaar afloopt, sturen wij je een herinnering per e-mail.",
+        },
+        {
+          type: "p",
+          text: "13.3 Opzeggen. Je zegt op in je instellingen op onze website (Betaalgegevens en opzeggen), of via {{email}}. Je opzegging gaat in aan het einde van de periode die je al hebt betaald, met een opzegtermijn van ten hoogste een maand. Tijdens je eerste periode is dat het einde van die eerste periode. Daarna schrijven wij niets meer af. Je krijgt een bevestiging per e-mail. Voor de periode die je al hebt betaald, krijg je geen geld terug, behalve volgens 13.10.",
+        },
+        {
+          type: "p",
+          text: "13.4 Wat inbegrepen is. Als lid:",
+        },
+        {
+          type: "ul",
+          items: [
+            "boek je zonder extra kosten een plek aan elke Sunday Table in de steden waar wij tafels organiseren, zolang er plek is en zolang je op de dag van de tafel lid bent;",
+            "boek je een nieuwe tafel 48 uur eerder dan niet-leden;",
+            "kun je per tafel één gast meenemen. Je gast betaalt dan als prijs voor de plek het maandbedrag van je lidmaatschap (de ledenprijs).",
+          ],
+        },
+        {
+          type: "p",
+          text: "Eten en drinken zijn niet inbegrepen: die bestel en betaal je zelf aan tafel. De plekken aan een tafel zijn beperkt. Een lidmaatschap geeft geen garantie op een plek aan een bepaalde tafel.",
+        },
+        {
+          type: "p",
+          text: "13.5 Je plek afzeggen. Als lid kun je je plek tot 48 uur voor de start kosteloos afzeggen in je instellingen, zodat iemand anders kan aanschuiven. Heb je een gast meegeboekt, dan zeg je beide plekken af. Wat je voor de plek van je gast hebt betaald, krijg je niet terug. Daarna is afzeggen niet meer mogelijk. Artikel 6 (ruilen) geldt niet voor plekken die bij je lidmaatschap zijn inbegrepen.",
+        },
+        {
+          type: "p",
+          text: "13.6 Niet komen opdagen. Kom je niet zonder op tijd af te zeggen, dan sturen wij je de eerste keer een waarschuwing per e-mail. Gebeurt het daarna opnieuw, dan kun je na elke keer een maand lang geen tafels boeken. Je lidmaatschap en je betalingen lopen in die maand gewoon door. Wij laten je per e-mail weten vanaf wanneer je weer kunt boeken.",
+        },
+        {
+          type: "p",
+          text: "13.7 Tafel gaat niet door. Leden tellen mee voor het minimum aantal gasten uit artikel 7. Gaat een tafel toch niet door, dan hoor je dat uiterlijk 7 dagen van tevoren en kies je een andere zondag. Je plek blijft inbegrepen. Heeft je gast betaald, dan betalen wij dat bedrag terug.",
+        },
+        {
+          type: "p",
+          text: "13.8 Betaling mislukt. Lukt een betaling niet, dan proberen wij het via Stripe opnieuw en vragen wij je om je betaalgegevens bij te werken. Zolang een betaling openstaat, kun je geen nieuwe tafels boeken. Blijft de betaling uit, dan mogen wij je lidmaatschap beëindigen.",
+        },
+        {
+          type: "p",
+          text: "13.9 Prijswijzigingen. Wij mogen de prijzen van het lidmaatschap wijzigen. Een wijziging laten wij je ten minste 30 dagen van tevoren per e-mail weten. Een periode die je al hebt betaald, verandert niet in prijs. Ben je het niet eens met een prijsverhoging, dan kun je opzeggen voordat die ingaat.",
+        },
+        {
+          type: "p",
+          text: "13.10 Herroepingsrecht. Een lidmaatschap sluit je online af. Je hebt dan 14 dagen bedenktijd, gerekend vanaf de dag dat je lid wordt. Je hoeft daarvoor geen reden te geven. Omdat je lidmaatschap direct start en je meteen tafels kunt boeken, vraag je ons bij het afrekenen uitdrukkelijk om direct te beginnen. Herroep je binnen die 14 dagen, dan betalen wij je terug wat je hebt betaald, min een bedrag dat in verhouding staat tot de periode waarin je lid was tot het moment dat je herroept. Herroepen doe je via {{email}}. Wij betalen binnen 14 dagen terug, via de betaalmethode die je gebruikte.",
+        },
+        {
+          type: "p",
+          text: "13.11 Account verwijderen. Laat je je account verwijderen terwijl je lid bent, dan stopt je lidmaatschap meteen en schrijven wij daarna niets meer af. Voor de lopende periode krijg je dan geen geld terug, behalve volgens 13.10.",
+        },
+      ],
+    },
+    {
+      title: "14. Klachten en support",
       blocks: [
         {
           type: "p",
@@ -278,7 +355,7 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "14. Aansprakelijkheid",
+      title: "15. Aansprakelijkheid",
       blocks: [
         {
           type: "p",
@@ -299,7 +376,7 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "15. Privacy",
+      title: "16. Privacy",
       blocks: [
         {
           type: "p",
@@ -308,7 +385,7 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "16. Toepasselijk recht",
+      title: "17. Toepasselijk recht",
       blocks: [
         {
           type: "p",
@@ -320,7 +397,7 @@ export const termsNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Herroepingsrecht: een boeking voor een tafel of evenement op een vaste datum is een vrijetijdsactiviteit. Daarvoor geldt wettelijk geen herroepingstermijn van 14 dagen. Je kunt wel ruilen volgens artikel 6.",
+          text: "Herroepingsrecht: een boeking voor een tafel of evenement op een vaste datum is een vrijetijdsactiviteit. Daarvoor geldt wettelijk geen herroepingstermijn van 14 dagen. Je kunt wel ruilen volgens artikel 6. Voor een lidmaatschap geldt wel een bedenktijd van 14 dagen, zie artikel 13.10.",
         },
       ],
     },
@@ -367,6 +444,7 @@ export const privacyNl: LegalDocumentContent = {
                 "Contact per e-mail: je naam, e-mailadres en de inhoud van je bericht;",
                 "Account: je e-mailadres, en als je inlogt met Google ook de naam die bij je Google-account hoort;",
                 "Quiz: je antwoorden, zoals je geboortedatum, gender, tafelvoorkeur, steden en voorkeuren;",
+                "Lidmaatschap: je gekozen lidmaatschap, de start en het einde ervan, of je hebt opgezegd, je reserveringen als lid en of je een tafel hebt gemist zonder af te zeggen;",
                 "Wachtlijst of nieuwsbrief (indien beschikbaar): je e-mailadres en voorkeursstad, als je je hiervoor aanmeldt.",
                 "Tijdens evenementen: foto's en video's waarop deelnemers (mogelijk herkenbaar) in beeld kunnen zijn, als je daarvoor toestemming geeft bij het boeken.",
               ],
@@ -395,6 +473,10 @@ export const privacyNl: LegalDocumentContent = {
             },
             {
               type: "p",
+              text: "Ben je lid, dan ontvangen wij van Stripe ook de status van je abonnement, de periodes en de betalingen. Stripe bewaart je betaalmethode (bijvoorbeeld je pas of een machtiging voor automatische incasso) om de volgende betalingen af te schrijven. Wij slaan die gegevens niet zelf op.",
+            },
+            {
+              type: "p",
               text: "Als je inlogt met Google, ontvangen wij van Google je naam, e-mailadres en (indien beschikbaar) profielfoto. Wij krijgen geen toegang tot je Google-wachtwoord of andere gegevens in je Google-account.",
             },
           ],
@@ -420,6 +502,19 @@ export const privacyNl: LegalDocumentContent = {
             {
               type: "p",
               text: "Wij gebruiken je naam, e-mailadres en boekingsgegevens om je reservering te verwerken, je bevestiging te sturen en je te informeren over praktische details.",
+            },
+            {
+              type: "p",
+              text: "Grondslag: uitvoering van een overeenkomst.",
+            },
+          ],
+        },
+        {
+          title: "Om je lidmaatschap uit te voeren",
+          blocks: [
+            {
+              type: "p",
+              text: "Wij gebruiken je e-mailadres, je lidmaatschap en je betaalstatus om je lidmaatschap te beheren: de betalingen, de herinnering voordat je eerste periode afloopt, de bevestiging als je opzegt, je reserveringen als lid en de afspraak over niet komen opdagen.",
             },
             {
               type: "p",
@@ -518,7 +613,7 @@ export const privacyNl: LegalDocumentContent = {
           type: "ul",
           items: [
             "Partnerlocaties: beperkte gastinformatie voor de uitvoering van je tafel;",
-            "Stripe (betalingen): verwerkt je betaling; wij slaan geen kaart- of bankgegevens op;",
+            "Stripe (betalingen en abonnementen): verwerkt je betalingen en, als je lid bent, je terugkerende betalingen en je betaalmethode; wij slaan geen kaart- of bankgegevens op;",
             "Supabase (database, opslag en inloggen): slaat boekingsgegevens, accounts en media op;",
             "Vercel (hosting): host onze website;",
             "Resend (e-mail): verstuurt boekingsbevestigingen en inlogcodes namens ons;",
@@ -562,6 +657,7 @@ export const privacyNl: LegalDocumentContent = {
           items: [
             "Bestel- en factuurgegevens bewaren wij ten minste 7 jaar om te voldoen aan fiscale bewaarplichten.",
             "Boekingsgegevens bewaren wij zolang nodig voor de uitvoering van je reservering en eventuele nazorg.",
+            "Lidmaatschapsgegevens bewaren wij zolang je lid bent, en daarna zolang nodig voor de administratie (betaal- en factuurgegevens ten minste 7 jaar).",
             "Accountgegevens bewaren wij zolang je account bestaat. Laat je je account verwijderen, dan verwijderen wij die gegevens binnen 30 dagen, behalve wat wij wettelijk moeten bewaren.",
             "Marketingfoto's en -video's bewaren wij doorgaans maximaal 3 jaar, of korter als je toestemming intrekt en redelijke verwijdering mogelijk is.",
             "Technische loggegevens bewaren wij kort, alleen zolang nodig voor beveiliging en foutopsporing.",

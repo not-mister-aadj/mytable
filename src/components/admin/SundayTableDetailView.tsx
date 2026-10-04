@@ -9,6 +9,7 @@ import type {
 } from "@/lib/sunday-table-shared";
 import type {
   InviteWaitlistActionState,
+  MembersOnlyActionState,
   OpenTicketSalesActionState,
 } from "@/app/admin/(dashboard)/sunday-tables/actions";
 
@@ -242,6 +243,78 @@ function OpenTicketSalesCard({
   );
 }
 
+function toLocalDateTimeInput(iso: string): string {
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
+  return parts.replace(" ", "T");
+}
+
+/** "Leden eerst": members book a new table 48 hours before everyone else.
+ * Shows until when, and lets the founder change it or open it now. */
+function MembersFirstCard({
+  eventId,
+  membersOnlyUntil,
+  active,
+  action,
+}: {
+  eventId: string;
+  membersOnlyUntil: string | null;
+  /** Members-only right now (judged on the server). */
+  active: boolean;
+  action: (prev: MembersOnlyActionState | null, formData: FormData) => Promise<MembersOnlyActionState>;
+}) {
+  const [state, formAction, isPending] = useActionState(action, null);
+  return (
+    <form action={formAction} className="rounded-2xl border border-border-subtle bg-white p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
+      <input type="hidden" name="eventId" value={eventId} />
+      <h2 className="font-serif text-xl text-burgundy">Leden eerst</h2>
+      <p className="mt-1 text-sm text-wine/60">
+        {active
+          ? `Nu kunnen alleen leden boeken, tot ${formatSignedUpAt(membersOnlyUntil!)}. Daarna iedereen.`
+          : "Deze tafel is voor iedereen te boeken."}{" "}
+        Bij het openen van een nieuwe tafel krijgen leden automatisch 48 uur voorrang.
+      </p>
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="text-sm">
+          <span className="font-medium text-wine">Alleen leden tot</span>
+          <input
+            type="datetime-local"
+            name="membersOnlyUntil"
+            defaultValue={membersOnlyUntil ? toLocalDateTimeInput(membersOnlyUntil) : ""}
+            className="mt-1.5 block rounded-xl border border-border-subtle bg-cream px-4 py-2.5"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-xs font-semibold uppercase tracking-[0.12em] text-cream disabled:opacity-40"
+        >
+          Opslaan
+        </button>
+        {active ? (
+          <button
+            type="submit"
+            name="openNow"
+            value="1"
+            disabled={isPending}
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-subtle bg-cream px-5 text-xs font-semibold uppercase tracking-[0.12em] text-wine disabled:opacity-40"
+          >
+            Nu voor iedereen openen
+          </button>
+        ) : null}
+      </div>
+      {state?.error ? <p className="mt-3 text-sm text-red-700">{state.error}</p> : null}
+      {state?.saved ? <p className="mt-3 text-sm text-wine/70">Opgeslagen.</p> : null}
+    </form>
+  );
+}
+
 function InvitePausedNotice({
   waitlistStats,
 }: {
@@ -284,6 +357,10 @@ export function SundayTableDetailView({
   comingSoon,
   notifySignupCount,
   openTicketSalesAction,
+  ticketEventId,
+  membersOnlyUntil,
+  membersOnlyActive,
+  membersOnlyAction,
 }: {
   table: SundayTableKey;
   members: SundayTableMemberRow[];
@@ -313,6 +390,10 @@ export function SundayTableDetailView({
     prevState: OpenTicketSalesActionState | null,
     formData: FormData,
   ) => Promise<OpenTicketSalesActionState>;
+  ticketEventId: string | null;
+  membersOnlyUntil: string | null;
+  membersOnlyActive: boolean;
+  membersOnlyAction: (prev: MembersOnlyActionState | null, formData: FormData) => Promise<MembersOnlyActionState>;
 }) {
   const [pickedVenueId, setPickedVenueId] = useState(linkedVenueId ?? "");
   const [venueName, setVenueName] = useState(location?.venueName ?? "");
@@ -431,6 +512,15 @@ export function SundayTableDetailView({
           venueName={location?.venueName ?? ""}
           notifySignupCount={notifySignupCount}
           openTicketSalesAction={openTicketSalesAction}
+        />
+      ) : null}
+
+      {ticketEventId && !comingSoon ? (
+        <MembersFirstCard
+          eventId={ticketEventId}
+          membersOnlyUntil={membersOnlyUntil}
+          active={membersOnlyActive}
+          action={membersOnlyAction}
         />
       ) : null}
 

@@ -99,3 +99,24 @@ export function CloseIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+export function ClockIcon({ className = "h-6 w-6" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </svg>
+  );
+}
+
+/** Two glasses: you and your guest. */
+export function TwoGlassesIcon({ className = "h-6 w-6" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M3.5 4h6l-.4 4.3a2.6 2.6 0 0 1-2.6 2.4 2.6 2.6 0 0 1-2.6-2.4L3.5 4Z" />
+      <path d="M6.5 10.7V18M4.5 18.5h4" />
+      <path d="M14.5 4h6l-.4 4.3a2.6 2.6 0 0 1-2.6 2.4 2.6 2.6 0 0 1-2.6-2.4L14.5 4Z" />
+      <path d="M17.5 10.7V18M15.5 18.5h4" />
+    </svg>
+  );
+}

@@ -14,6 +14,8 @@ import {
   sanitizeQuizState,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { requestCity, type JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
+import { getMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
+import { toClientMembership } from "@/lib/membership/logic";
 
 /** Same three guests as on the landing page. */
 const TESTIMONIAL_NAMES = ["Carmen", "Mark", "Sophie"];
@@ -47,11 +49,15 @@ export async function JouwTafelQuizPage({
   const requested = firstParam(searchParams.stap);
   const initialStep = resolveStep(requested, state.answers);
 
-  const [{ events, now }, geoCity, cityCounts, subsetCounts] = await Promise.all([
+  const [{ events, now }, geoCity, cityCounts, subsetCounts, membership] = await Promise.all([
     getJouwTafelEvents(),
     requestCity(searchParams),
     getWaitlistCityCounts(devCountOverride(searchParams.aantal)),
     getSignupSubsetCounts(devCountOverride(searchParams.aantal)),
+    getMembershipForUser(user.id).catch((error: unknown) => {
+      console.error("[jouw-tafel quiz] loading membership failed", error);
+      return null;
+    }),
   ]);
 
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
@@ -77,6 +83,7 @@ export async function JouwTafelQuizPage({
       subsetCounts={subsetCounts}
       testimonials={testimonials}
       landingPath={jouwTafelPath(locale)}
+      membership={toClientMembership(membershipSnapshot(membership))}
     />
   );
 }

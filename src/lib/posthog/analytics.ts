@@ -232,6 +232,22 @@ export function trackSettingsEvent(
   capture(event, props);
 }
 
+/** Sunday Table membership events (page, plan picker, checkout, settings,
+ * the early-access label on "Kies je zondag"). No personal data. */
+export function trackMembershipEvent(
+  event:
+    | typeof PostHogEvents.membershipPageViewed
+    | typeof PostHogEvents.membershipPlanSelected
+    | typeof PostHogEvents.membershipCheckoutStarted
+    | typeof PostHogEvents.membershipStarted
+    | typeof PostHogEvents.membershipCancelClicked
+    | typeof PostHogEvents.memberSeatCancelled
+    | typeof PostHogEvents.earlyAccessBlockedView,
+  props: AnalyticsProperties,
+): void {
+  capture(event, props);
+}
+
 /** The table page and the reserve step after "Kies je zondag". */
 export function trackTableEvent(
   event:
@@ -240,7 +256,8 @@ export function trackTableEvent(
     | typeof PostHogEvents.tableReserveClicked
     | typeof PostHogEvents.reserveStepViewed
     | typeof PostHogEvents.reserveOptionSelected
-    | typeof PostHogEvents.reserveCheckoutClicked,
+    | typeof PostHogEvents.reserveCheckoutClicked
+    | typeof PostHogEvents.reserveGuestToggled,
   props: AnalyticsProperties,
 ): void {
   capture(event, props);

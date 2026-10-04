@@ -14,6 +14,8 @@ import {
   metaLeadEventId,
   metaPurchaseEventId,
   metaQuizLeadEventId,
+  metaMembershipPurchaseEventId,
+  metaSubscribeEventId,
 } from "@/lib/analytics/metaIds";
 import {
   enrichmentToUserData,
@@ -170,6 +172,50 @@ export async function sendMetaCapiQuizLead(input: {
     ),
     customData: { source: "quiz", city: input.city, content_name: "jouw_tafel", concept: "account" },
   });
+}
+
+/** A started membership (server side of subscribe in metaPixel.ts), same
+ * event id per subscription so Meta deduplicates it with the browser Pixel.
+ * Value is the first payment of the plan. */
+export async function sendMetaCapiSubscribe(input: {
+  subscriptionId: string;
+  email: string;
+  plan: string;
+  valueCents: number;
+  locale: Locale;
+  userData?: MetaCapiUserData;
+}): Promise<boolean> {
+  const enrichment = await loadCustomerMetaEnrichment(input.email);
+  const path = input.locale === "en" ? "/en/your-table/membership" : "/jouw-tafel/lid";
+  const userData = mergeMetaCapiUserData(
+    { email: input.email, country: "nl" },
+    enrichmentToUserData(enrichment),
+    input.userData,
+  );
+  const customData = {
+    value: input.valueCents / 100,
+    currency: "EUR",
+    content_name: `membership_${input.plan}`,
+    content_type: "product",
+    plan: input.plan,
+  };
+  const subscribed = await sendMetaCapiEvent({
+    eventName: "Subscribe",
+    eventId: metaSubscribeEventId(input.subscriptionId),
+    eventSourceUrl: `${getSiteUrl()}${path}`,
+    userData,
+    customData,
+  });
+  // Also a Purchase with the same value, so Purchase-optimised ad sets
+  // count membership sales. Same id as the browser's Purchase.
+  const purchased = await sendMetaCapiEvent({
+    eventName: "Purchase",
+    eventId: metaMembershipPurchaseEventId(input.subscriptionId),
+    eventSourceUrl: `${getSiteUrl()}${path}`,
+    userData,
+    customData,
+  });
+  return subscribed && purchased;
 }
 
 /** Fallback when the Stripe webhook is delayed or missed — deduped via booking_events. */

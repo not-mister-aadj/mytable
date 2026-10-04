@@ -19,6 +19,14 @@ export type EventTicketRow = {
   lifecycleStatus: "active" | "transferred" | "removed";
   transferredAt: string | null;
   transferredBy: string | null;
+  /** A member's booking (own seat included, a guest at the member price). */
+  isMember: boolean;
+  /** What was paid, e.g. "€ 0,00" for a member's own seat. */
+  amountLabel: string;
+  /** Admin "Niet gekomen". */
+  noShowAt: string | null;
+  /** The table has started, so "Niet gekomen" can be marked. */
+  eventStarted: boolean;
   /** "Meet your table" answers (Sunday Table only). */
   intro: {
     conversationStyle: string | null;

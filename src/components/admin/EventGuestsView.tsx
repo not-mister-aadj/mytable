@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import {
+  markBookingNoShowAction,
   removeBookingFromEventAction,
   resendBookingConfirmationAction,
   transferBookingToEventAction,
@@ -111,6 +112,29 @@ function TicketIcon() {
       <path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z" />
       <path d="M13 6v12" />
     </svg>
+  );
+}
+
+/** "Lid" on a member's booking (own seat free, guest at member price) and
+ * "Niet gekomen" once marked. */
+function MemberBadges({ ticket }: { ticket: EventTicketRow }) {
+  if (!ticket.isMember && !ticket.noShowAt) return null;
+  return (
+    <span className="mt-1.5 flex flex-wrap gap-1.5">
+      {ticket.isMember ? (
+        <span
+          title={`Lid: eigen plek inbegrepen, betaald ${ticket.amountLabel}`}
+          className="inline-flex rounded-full bg-gold/15 px-2.5 py-1 text-xs font-semibold text-[#7d5c2c] ring-1 ring-inset ring-gold/30"
+        >
+          Lid · {ticket.amountLabel}
+        </span>
+      ) : null}
+      {ticket.noShowAt ? (
+        <span className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-900 ring-1 ring-inset ring-red-200">
+          Niet gekomen
+        </span>
+      ) : null}
+    </span>
   );
 }
 
@@ -244,6 +268,31 @@ function GuestActions({
     });
   }
 
+  function handleNoShow() {
+    const undo = Boolean(ticket.noShowAt);
+    const name = guestLabel(ticket);
+    const confirmed = confirm(
+      undo
+        ? `"Niet gekomen" terugdraaien voor ${name}? Een mail die al is verstuurd, blijft verstuurd.`
+        : ticket.isMember
+          ? `${name} markeren als niet gekomen?
+
+Dit is een lid: de eerste keer krijgt ze een vriendelijke waarschuwing, daarna kan ze een maand niet boeken (het lidmaatschap loopt door). Ze krijgt daar een mail over.`
+          : `${name} markeren als niet gekomen?`,
+    );
+    if (!confirmed) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await markBookingNoShowAction(ticket.id, undo);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      if (result.notice) alert(result.notice);
+      onChanged();
+    });
+  }
+
   function handleRemove() {
     const name = guestLabel(ticket);
     const confirmed = confirm(
@@ -320,6 +369,16 @@ function GuestActions({
       >
         Mail opnieuw
       </button>
+      {ticket.eventStarted ? (
+        <button
+          type="button"
+          onClick={handleNoShow}
+          disabled={isPending}
+          className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm font-medium text-wine/75 transition hover:border-burgundy/25 hover:bg-beige disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {ticket.noShowAt ? "Toch gekomen" : "Niet gekomen"}
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={handleRemove}
@@ -379,7 +438,10 @@ function GuestCard({
             </p>
           </div>
         </div>
-        <TicketStatusBadge ticket={ticket} />
+        <div className="flex flex-col items-end">
+          <TicketStatusBadge ticket={ticket} />
+          <MemberBadges ticket={ticket} />
+        </div>
       </div>
 
       <GuestNotes ticket={ticket} />
@@ -447,6 +509,7 @@ function GuestTableRow({
       </td>
       <td className="px-5 py-4">
         <TicketStatusBadge ticket={ticket} />
+        <MemberBadges ticket={ticket} />
         {isTransferred ? <TransferDestinationBlock ticket={ticket} /> : null}
       </td>
       <td className="px-5 py-4">

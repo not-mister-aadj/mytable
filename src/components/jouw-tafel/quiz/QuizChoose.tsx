@@ -19,6 +19,10 @@ import {
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import type { ClientMembership } from "@/lib/membership/logic";
+import { earlyBlocked, earlyChip } from "@/lib/membership/early-label";
+import { trackMembershipEvent } from "@/lib/posthog/analytics";
+import { PostHogEvents } from "@/lib/posthog/events";
 
 const AMSTERDAM = "Europe/Amsterdam";
 
@@ -90,6 +94,7 @@ export function QuizChoose({
   notified,
   handlers,
   tablePath,
+  membership = null,
 }: {
   locale: Locale;
   copy: QuizCopy;
@@ -101,6 +106,8 @@ export function QuizChoose({
   handlers: ChooseHandlers;
   /** The table page for an event slug. */
   tablePath: (slug: string) => string;
+  /** Their running membership, null when not a member. */
+  membership?: ClientMembership | null;
 }) {
   const k = copy.kies;
   const reduceMotion = useReducedMotion();
@@ -140,6 +147,16 @@ export function QuizChoose({
     handlers.onViewed({ tables_shown: rows.length, has_match: hasMatch });
   }, [handlers, rows.length, hasMatch]);
 
+  // early_access_blocked_view: once per table shown as "Leden boeken nu".
+  const earlySeen = useRef(new Set<string>());
+  useEffect(() => {
+    for (const row of openRows) {
+      if (!earlyBlocked(row.event, membership, now) || earlySeen.current.has(row.event.id)) continue;
+      earlySeen.current.add(row.event.id);
+      trackMembershipEvent(PostHogEvents.earlyAccessBlockedView, { event_slug: row.event.slug, member: Boolean(membership) });
+    }
+  }, [openRows, membership, now]);
+
   function open(row: ChooseRow) {
     handlers.onOpen({ event_slug: row.event.slug, nearby: row.nearby, coming_soon: row.event.comingSoon });
     window.location.assign(tablePath(row.event.slug));
@@ -171,7 +188,7 @@ export function QuizChoose({
   function tableCard(row: ChooseRow, index: number) {
     const event = row.event;
     const soon = event.comingSoon;
-    const chip = spotsChip(event, locale, k);
+    const chip = earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k);
     return (
       <motion.li
         key={event.id}

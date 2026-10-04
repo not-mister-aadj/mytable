@@ -69,6 +69,14 @@ export const PostHogEvents = {
   bookingOpened: "booking_opened",
   accountDeleted: "account_deleted",
   quizLogoutClicked: "quiz_logout_clicked",
+  /** Sunday Table membership. No personal data in the properties. */
+  membershipPageViewed: "membership_page_viewed",
+  membershipPlanSelected: "membership_plan_selected",
+  membershipCheckoutStarted: "membership_checkout_started",
+  membershipStarted: "membership_started",
+  membershipCancelClicked: "membership_cancel_clicked",
+  memberSeatCancelled: "member_seat_cancelled",
+  earlyAccessBlockedView: "early_access_blocked_view",
   /** A customer moved their own seat to the next Sunday (days_before only). */
   bookingRescheduled: "booking_rescheduled",
   /** Kies -> table page -> reserve step. No personal data. */
@@ -78,6 +86,7 @@ export const PostHogEvents = {
   reserveStepViewed: "reserve_step_viewed",
   reserveOptionSelected: "reserve_option_selected",
   reserveCheckoutClicked: "reserve_checkout_clicked",
+  reserveGuestToggled: "reserve_guest_toggled",
 } as const;
 
 export type PostHogEventName =

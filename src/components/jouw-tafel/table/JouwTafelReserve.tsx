@@ -168,16 +168,19 @@ export function ReserveFrame({
   locale: Locale;
   tableHref: string;
   children: ReactNode;
-  bar: ReactNode;
+  /** Sticky bottom bar; left out when the page has its own buttons. */
+  bar?: ReactNode;
 }) {
   const t = getTableCopy(locale);
   return (
-    <div className="min-h-[100svh] bg-cream pb-44 text-wine">
+    <div className={`min-h-[100svh] bg-cream text-wine ${bar ? "pb-44" : "pb-16"}`}>
       <TableHeader href={tableHref} label={t.back} title={t.reserve.title} />
       <main className="mx-auto w-full max-w-md px-5 pt-2">{children}</main>
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-wine/10 bg-cream/95 backdrop-blur-md">
-        <div className="mx-auto w-full max-w-md px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">{bar}</div>
-      </div>
+      {bar ? (
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-wine/10 bg-cream/95 backdrop-blur-md">
+          <div className="mx-auto w-full max-w-md px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">{bar}</div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -23,3 +23,17 @@ export function metaCompleteRegistrationEventId(userId: string): string {
 export function metaViewContentEventId(eventId: string): string {
   return `viewcontent_${eventId}`;
 }
+
+/** A started membership (Meta's standard Subscribe): the browser Pixel on
+ * the return page and CAPI from the webhook send the same id per
+ * subscription, so Meta deduplicates them. */
+export function metaSubscribeEventId(subscriptionId: string): string {
+  return `subscribe_${subscriptionId}`;
+}
+
+/** The Purchase sent alongside a started membership, so ad sets that
+ * optimise for Purchase see membership sales too. Own id, deduplicated
+ * between Pixel and CAPI like Subscribe. */
+export function metaMembershipPurchaseEventId(subscriptionId: string): string {
+  return `purchase_sub_${subscriptionId}`;
+}

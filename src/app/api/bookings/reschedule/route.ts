@@ -30,6 +30,8 @@ export async function POST(request: Request) {
     bookingId: body.bookingId,
     email: user.email,
     expectedTargetEventId: expected,
+    // Members cancel their seat instead (until 48 hours before).
+    isExcluded: (booking) => Boolean(booking.membershipId),
   });
   if (!result.ok) return NextResponse.json({ code: result.code, city: result.city ?? null }, { status: result.status });
   if (!result.alreadyMoved) {

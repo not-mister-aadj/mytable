@@ -37,6 +37,8 @@ export type QuizEvent = {
   spotsSold: number;
   comingSoon: boolean;
   englishOpen: boolean;
+  /** Members book first: everyone else from this moment (ISO), or null. */
+  membersOnlyUntil?: string | null;
 };
 
 /** Centres of our cities (the woonplaats centroid from PDOK, see

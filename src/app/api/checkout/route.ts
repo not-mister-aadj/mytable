@@ -40,6 +40,26 @@ import {
 import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import { captureCriticalError } from "@/lib/sentry/critical";
 import type { Locale } from "@/i18n/config";
+import { getMemberUser } from "@/lib/member-auth";
+import { getRunningMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
+import {
+  earlyAccessAllows,
+  memberBookingDecision,
+  type MemberBookingDecision,
+} from "@/lib/membership/logic";
+import { bookAsMember } from "@/lib/membership/member-checkout";
+
+/** "zondag 25 oktober 14:00" for the early-access message. */
+function openFromLabel(date: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
+    timeZone: "Europe/Amsterdam",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 import { JOUW_TAFEL_CHECKOUT_SOURCE, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -211,6 +231,97 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
+  }
+
+  // Members (Sunday Table): own seat included, a guest at the member price,
+  // and they book first. Everyone else waits until members_only_until.
+  let memberDecision: MemberBookingDecision = { kind: "non_member" };
+  let runningMembership: Awaited<ReturnType<typeof getRunningMembershipForUser>> = null;
+  const signedInUser = isSundayTable ? await getMemberUser() : null;
+  if (signedInUser?.email) {
+    runningMembership = await getRunningMembershipForUser(signedInUser.id);
+    memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
+  }
+
+  if (isSundayTable && memberDecision.kind === "blocked") {
+    return NextResponse.json(
+      {
+        code: "member_blocked",
+        until: memberDecision.until.toISOString(),
+        error:
+          locale === "en"
+            ? `You can book again from ${openFromLabel(memberDecision.until, locale)}.`
+            : `Je kunt weer boeken vanaf ${openFromLabel(memberDecision.until, locale)}.`,
+      },
+      { status: 409 },
+    );
+  }
+  if (isSundayTable && memberDecision.kind === "past_due") {
+    return NextResponse.json(
+      {
+        code: "member_past_due",
+        error:
+          locale === "en"
+            ? "Your last membership payment did not go through. Update your payment details in your settings first."
+            : "Je laatste betaling voor je lidmaatschap is niet gelukt. Werk eerst je betaalgegevens bij in je instellingen.",
+      },
+      { status: 409 },
+    );
+  }
+  if (isSundayTable && !earlyAccessAllows(memberDecision, event.membersOnlyUntil)) {
+    return NextResponse.json(
+      {
+        code: "members_only",
+        until: event.membersOnlyUntil?.toISOString() ?? null,
+        error:
+          locale === "en"
+            ? `Members are booking now, you can from ${openFromLabel(event.membersOnlyUntil!, locale)}.`
+            : `Leden boeken nu, jij vanaf ${openFromLabel(event.membersOnlyUntil!, locale)}.`,
+      },
+      { status: 409 },
+    );
+  }
+
+  if (isSundayTable && memberDecision.kind === "included" && runningMembership && signedInUser?.email) {
+    const memberSeats = resolveSundayTableSeats(Math.max(1, Number(body.seats) || 1), event.capacity - event.spotsSold);
+    if (memberSeats === null) {
+      return NextResponse.json(
+        { error: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over." },
+        { status: 409 },
+      );
+    }
+    try {
+      const result = await bookAsMember({
+        event,
+        membership: runningMembership,
+        email: signedInUser.email.trim().toLowerCase(),
+        name: customerName,
+        seats: memberSeats === 2 ? 2 : 1,
+        locale,
+        dietaryNotes: body.dietaryNotes?.trim() || null,
+        tableLanguagePreference,
+      });
+      if (result.kind === "booked") {
+        return NextResponse.json({ booked: true, bookingId: result.bookingId, code: result.code });
+      }
+      if (result.kind === "checkout") {
+        return NextResponse.json({ url: result.url, bookingId: result.bookingId });
+      }
+      const messages = {
+        already_booked: locale === "en" ? "You already have a seat at this table." : "Je hebt al een plek aan deze tafel.",
+        full: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over.",
+        checkout_failed: locale === "en" ? "Checkout failed." : "Checkout mislukt.",
+      };
+      return NextResponse.json({ code: result.code, error: messages[result.code] }, { status: result.status });
+    } catch (error) {
+      console.error("[checkout] member booking failed", error);
+      captureCriticalError(error, {
+        flow: "payment",
+        step: "member_booking",
+        tags: { event_id: event.id, membership_id: runningMembership.id },
+      });
+      return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });
+    }
   }
 
   const requestedTier = isBookingTier(body.pricingTier)

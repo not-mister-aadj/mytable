@@ -95,6 +95,8 @@ export async function transferBooking(input: {
         tableLanguagePreference: booking.tableLanguagePreference,
         adminNotes: booking.adminNotes,
         confirmationEmailSentAt: booking.confirmationEmailSentAt,
+        // A member's booking stays a member's booking on the new date.
+        membershipId: booking.membershipId,
         lifecycleStatus: "active",
         transferredFromBookingId: booking.id,
         transferredAt,

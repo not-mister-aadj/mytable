@@ -11,6 +11,7 @@ import {
   pageView,
   purchase,
   quizLead,
+  subscribe,
   viewContent,
 } from "@/lib/analytics/metaPixel";
 import type { User } from "@supabase/supabase-js";
@@ -135,6 +136,11 @@ export function trackMetaLead(input: {
     city: input.city,
     waitlist_id: input.waitlistId,
   });
+}
+
+/** A started membership (Meta Subscribe), once per subscription. */
+export function trackMetaSubscribe(input: { subscriptionId: string; plan: string; value: number }): void {
+  subscribe({ ...input, currency: "EUR" });
 }
 
 /** The quiz's Lead, once per account, when the quiz is completed. */

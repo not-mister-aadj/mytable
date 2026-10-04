@@ -22,6 +22,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
       capacity: events.capacity,
       spotsSold: events.spotsSold,
       extras: events.extras,
+      membersOnlyUntil: events.membersOnlyUntil,
     })
     .from(events)
     .where(
@@ -49,6 +50,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
       spotsSold: row.spotsSold,
       comingSoon: Boolean(row.extras?.comingSoon),
       englishOpen: isEnglishOpenForSundayTable(row.id),
+      membersOnlyUntil: row.membersOnlyUntil?.toISOString() ?? null,
     });
   }
   return out;
@@ -56,7 +58,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
 
 /** Short cache, dropped with the agenda whenever a purchase or admin edit
  * revalidates PUBLISHED_EVENTS_CACHE_TAG. */
-const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events"], {
+const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v2"], {
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });

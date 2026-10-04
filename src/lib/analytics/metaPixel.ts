@@ -18,6 +18,8 @@ import {
   metaLeadEventId,
   metaCompleteRegistrationEventId,
   metaQuizLeadEventId,
+  metaMembershipPurchaseEventId,
+  metaSubscribeEventId,
   metaPurchaseEventId,
 } from "@/lib/analytics/metaIds";
 import { getStoredUtm, type UtmParams } from "@/lib/analytics/utm";
@@ -80,6 +82,7 @@ export type MetaLeadParams = {
 const PURCHASE_STORAGE_PREFIX = "mytable_meta_purchase_";
 const REGISTRATION_STORAGE_PREFIX = "mytable_meta_registration_";
 const QUIZ_LEAD_STORAGE_PREFIX = "mytable_meta_quiz_lead_";
+const SUBSCRIBE_STORAGE_PREFIX = "mytable_meta_subscribe_";
 
 /** Only treat accounts created in this window as new registrations. */
 const NEW_USER_WINDOW_MS = 15 * 60 * 1000;
@@ -381,6 +384,45 @@ function markQuizLeadTracked(userId: string): void {
   } catch {
     // ignore
   }
+}
+
+/**
+ * A started membership: Meta's standard Subscribe, on the return page.
+ * Same event id as the CAPI Subscribe the webhook sends
+ * (metaSubscribeEventId), so Meta deduplicates. Guarded in storage so a
+ * reload does not send it twice.
+ */
+export function subscribe(input: { subscriptionId: string; plan: string; value: number; currency: string }): boolean {
+  initMetaPixel();
+  const key = SUBSCRIBE_STORAGE_PREFIX + input.subscriptionId;
+  try {
+    if (localStorage.getItem(key) === "1") return true;
+  } catch {
+    // ignore
+  }
+  if (!canTrack()) return false;
+  const eventId = metaSubscribeEventId(input.subscriptionId);
+  const payload = withUtm({
+    value: input.value,
+    currency: input.currency,
+    predicted_ltv: input.value,
+    content_name: `membership_${input.plan}`,
+    plan: input.plan,
+  });
+  window.fbq!("track", "Subscribe", payload, { eventID: eventId });
+  logMetaEvent("Subscribe", { ...payload, event_id: eventId });
+  // Also a Purchase with the same value, so Purchase-optimised ad sets
+  // count membership sales.
+  const purchaseId = metaMembershipPurchaseEventId(input.subscriptionId);
+  const purchasePayload = { ...payload, content_type: "product" };
+  window.fbq!("track", "Purchase", purchasePayload, { eventID: purchaseId });
+  logMetaEvent("Purchase", { ...purchasePayload, event_id: purchaseId });
+  try {
+    localStorage.setItem(key, "1");
+  } catch {
+    // ignore
+  }
+  return true;
 }
 
 /**

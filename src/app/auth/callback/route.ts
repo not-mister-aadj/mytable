@@ -9,6 +9,7 @@ import {
 } from "@/lib/sentry/critical";
 import {
   jouwTafelSignUpPath,
+  jouwTafelMembershipPath,
   jouwTafelStartPath,
   jouwTafelWelcomePath,
   type Locale,
@@ -40,8 +41,8 @@ function marketingOrigin(requestOrigin: string, hostname: string): string {
  * sends unfinished profiles to the removed /join). */
 function jouwTafelWelcomeLocale(next: string): Locale | null {
   const path = next.split("?")[0];
-  if (path === jouwTafelStartPath("nl") || path === jouwTafelWelcomePath("nl")) return "nl";
-  if (path === jouwTafelStartPath("en") || path === jouwTafelWelcomePath("en")) return "en";
+  if (path === jouwTafelStartPath("nl") || path === jouwTafelWelcomePath("nl") || path === jouwTafelMembershipPath("nl")) return "nl";
+  if (path === jouwTafelStartPath("en") || path === jouwTafelWelcomePath("en") || path === jouwTafelMembershipPath("en")) return "en";
   return null;
 }
 

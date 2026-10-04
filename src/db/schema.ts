@@ -95,6 +95,9 @@ export const events = pgTable("events", {
   categoryNl: text("category_nl").notNull().default("PROEVERIJ"),
   categoryEn: text("category_en").notNull().default("TASTING"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
+  /** Members book first: only members can book until this moment
+   * (drizzle/0031). Null = open to everyone. */
+  membersOnlyUntil: timestamp("members_only_until", { withTimezone: true }),
   extras: jsonb("extras").$type<Record<string, unknown>>().default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -234,10 +237,61 @@ export const bookings = pgTable("bookings", {
   introShareConsent: boolean("intro_share_consent").notNull().default(false),
   introAnsweredAt: timestamp("intro_answered_at", { withTimezone: true }),
   introRequestSentAt: timestamp("intro_request_sent_at", { withTimezone: true }),
+  /** Set on a member's booking (own seat free, guest at member price);
+   * drizzle/0031. */
+  membershipId: uuid("membership_id").references(() => memberships.id, {
+    onDelete: "set null",
+  }),
+  /** Admin "Niet gekomen" (drizzle/0031). */
+  noShowAt: timestamp("no_show_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+export type MembershipRowStatus = "active" | "past_due" | "canceled";
+
+/** Sunday Table membership (drizzle/0031): one Stripe subscription. */
+export const memberships = pgTable(
+  "memberships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id"),
+    email: text("email").notNull(),
+    customerId: uuid("customer_id").references(() => customers.id, {
+      onDelete: "set null",
+    }),
+    /** "1m" | "4m" | "12m" */
+    plan: text("plan").notNull(),
+    status: text("status").$type<MembershipRowStatus>().notNull().default("active"),
+    locale: text("locale").notNull().default("nl"),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    stripeScheduleId: text("stripe_schedule_id"),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
+    initialPeriodEnd: timestamp("initial_period_end", { withTimezone: true }),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    noShowCount: integer("no_show_count").notNull().default(0),
+    noShowWarnedAt: timestamp("no_show_warned_at", { withTimezone: true }),
+    bookingBlockedUntil: timestamp("booking_blocked_until", { withTimezone: true }),
+    welcomeEmailSentAt: timestamp("welcome_email_sent_at", { withTimezone: true }),
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+    cancelEmailSentFor: timestamp("cancel_email_sent_for", { withTimezone: true }),
+    metaSubscribeSentAt: timestamp("meta_subscribe_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    subscriptionUnique: uniqueIndex("memberships_stripe_subscription_unique").on(
+      table.stripeSubscriptionId,
+    ),
+  }),
+);
 
 export const bookingEvents = pgTable("booking_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -659,6 +713,7 @@ export type Venue = typeof venues.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventSlugRedirect = typeof eventSlugRedirects.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
+export type Membership = typeof memberships.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type SundayTableSignup = typeof sundayTableSignups.$inferSelect;
 export type SundayTableWaitlistInvite =

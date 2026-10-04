@@ -22,6 +22,7 @@ import { trackMetaQuizLead } from "@/lib/analytics/metaTracking";
 import { trackQuizEvent, trackQuizStepLeft, trackTableEvent } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
 import type { QuizCity, QuizEvent } from "@/lib/jouw-tafel/logic";
+import type { ClientMembership } from "@/lib/membership/logic";
 import { getQuizCopy, type QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   QUIZ_CHAPTERS,
@@ -294,6 +295,7 @@ export function JouwTafelQuiz({
   subsetCounts,
   testimonials,
   landingPath,
+  membership = null,
 }: {
   locale: Locale;
   /** localStorage key for this account's copy of the answers. */
@@ -314,6 +316,8 @@ export function JouwTafelQuiz({
   subsetCounts: Record<string, number>;
   testimonials: QuizTestimonial[];
   landingPath: string;
+  /** The person's running membership (null when not a member). */
+  membership?: ClientMembership | null;
 }) {
   const copy = getQuizCopy(locale);
   const router = useRouter();
@@ -704,6 +708,7 @@ export function JouwTafelQuiz({
             now={now}
             notified={notified}
             handlers={chooseHandlers}
+            membership={membership}
             tablePath={(slug) => jouwTafelTablePath(locale, slug)}
           />
         );

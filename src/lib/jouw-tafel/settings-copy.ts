@@ -143,7 +143,7 @@ const nl: SettingsCopy = {
   deleteAccount: "Account verwijderen",
   delete: {
     title: "Account verwijderen?",
-    body: "Je account, je antwoorden en je plek op de wachtlijst worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    body: "Je account en al je antwoorden en voorkeuren worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
     booking: (date) =>
       `Je reservering op ${date} blijft staan. Wil je die annuleren of verzetten, stuur ons dan een berichtje.`,
     legal: "Boekingen en betalingen bewaren we omdat dat wettelijk moet.",
@@ -225,7 +225,7 @@ const en: SettingsCopy = {
   deleteAccount: "Delete account",
   delete: {
     title: "Delete your account?",
-    body: "Your account, your answers and your place on the waitlist will be deleted. This can't be undone.",
+    body: "Your account and all your answers and preferences will be deleted. This can't be undone.",
     booking: (date) =>
       `Your reservation on ${date} stays as it is. If you want to cancel or reschedule it, send us a message.`,
     legal: "We keep bookings and payments because the law requires it.",

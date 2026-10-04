@@ -3,7 +3,7 @@
 // (filters + expandable detail) and the Excel export, so both always agree.
 
 export const FORMAT_LABELS: Record<string, string> = {
-  sunday_table: "Sunday Table",
+  sunday_table: "Sunday Social",
   wine_tasting: "Wijnproeverij",
   wine_walk: "Wijnwalk",
   chefs_special: "Chef's Table",

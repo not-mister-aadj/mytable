@@ -227,7 +227,7 @@ export function amsterdamDateIso(date: Date): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-/** Parse YYYY-MM-DD as a Sunday Table instant (14:00 Europe/Amsterdam). */
+/** Parse YYYY-MM-DD as a Sunday Social instant (14:00 Europe/Amsterdam). */
 export function parseAmsterdamDateIso(iso: string): Date | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
   if (!m) return null;
@@ -240,7 +240,7 @@ export function parseAmsterdamDateIso(iso: string): Date | null {
 
 /**
  * RSVP closes Friday 16:00 Europe/Amsterdam, two calendar days before the
- * Sunday Table.
+ * Sunday Social.
  */
 export function sundayTableRsvpDeadline(tableSunday: Date): Date {
   const { year, month, day } = amsterdamParts(tableSunday);

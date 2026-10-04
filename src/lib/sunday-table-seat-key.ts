@@ -1,6 +1,6 @@
-/** Client-safe Sunday Table seat helpers (no DB imports). */
+/** Client-safe Sunday Social seat helpers (no DB imports). */
 
-/** Default seats per Sunday Table (city + date + type). */
+/** Default seats per Sunday Social (city + date + type). */
 export const SUNDAY_TABLE_DEFAULT_CAPACITY = 10;
 
 export function seatStatsKey(

@@ -46,8 +46,8 @@ export function WomenWelcomeEmail({
         }}
       >
         {nl
-          ? "Leuk dat je erbij bent. We hosten girls-only Sunday Tables op zondagmiddag: nieuwe vriendinnen, wijn en goed gezelschap. Geen dating vibe."
-          : "Glad you are here. We host girls-only Sunday Tables on Sunday afternoons: new friends, wine and great company. No dating vibe."}
+          ? "Leuk dat je erbij bent. We hosten girls-only Sunday Socials op zondagmiddag: nieuwe vriendinnen, wijn en goed gezelschap. Geen dating vibe."
+          : "Glad you are here. We host girls-only Sunday Socials on Sunday afternoons: new friends, wine and great company. No dating vibe."}
       </p>
       <p
         style={{
@@ -66,7 +66,7 @@ export function WomenWelcomeEmail({
       </Button>
       <p style={{ margin: "20px 0 0", fontSize: 13, color: "#8a6a72" }}>
         <a href={sundayTableUrl} style={{ color: "#8a6a72" }}>
-          {nl ? "Of bekijk Sunday Table op de site" : "Or view Sunday Table on the site"}
+          {nl ? "Of bekijk Sunday Social op de site" : "Or view Sunday Social on the site"}
         </a>
       </p>
     </EmailLayout>

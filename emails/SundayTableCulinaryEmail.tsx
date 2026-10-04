@@ -30,8 +30,8 @@ export function SundayTableCulinaryEmail({
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12" }}>
         {nl
-          ? `Na je Sunday Table in ${city}: plan een Wine Walk of Food Walk met mensen van je tafel.`
-          : `After your Sunday Table in ${city}: book a Wine Walk or Food Walk with people from your table.`}
+          ? `Na je Sunday Social in ${city}: plan een Wine Walk of Food Walk met mensen van je tafel.`
+          : `After your Sunday Social in ${city}: book a Wine Walk or Food Walk with people from your table.`}
       </p>
       <p
         style={{

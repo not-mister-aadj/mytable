@@ -26,8 +26,8 @@ async function sendOne(locale: "nl" | "en") {
 
   const sundayTableUrl =
     locale === "en"
-      ? "https://www.mytable.club/en/sunday-table"
-      : "https://www.mytable.club/sunday-table";
+      ? "https://www.mytable.club/en/sunday-social"
+      : "https://www.mytable.club/sunday-social";
 
   const { html, text } = await renderEmailForDelivery(
     WomenWelcomeEmail({

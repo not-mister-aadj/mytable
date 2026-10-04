@@ -8,14 +8,14 @@ export default async function SundayTableReviewEmailPreviewPage() {
   const html = await render(
     SundayTableReviewEmail(sampleSundayTableReviewProps),
   );
-  const subject = `Hoe was Sunday Table in ${sampleSundayTableReviewProps.city}?`;
+  const subject = `Hoe was Sunday Social in ${sampleSundayTableReviewProps.city}?`;
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl text-burgundy">
-            E-mail preview · Sunday Table review (dag 1)
+            E-mail preview · Sunday Social review (dag 1)
           </h1>
           <p className="mt-1 text-sm text-wine/60">Onderwerp: {subject}</p>
         </div>

@@ -63,14 +63,14 @@ const OFFER_POINTS_EN: [string, string, string] = [
 
 function localNl(city: string, region: string): GirlsOnlyCityLocalCopy {
   return {
-    body: `Sunday Table in ${city} (${region}). Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.`,
+    body: `Sunday Social in ${city} (${region}). Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.`,
     points: OFFER_POINTS_NL,
   };
 }
 
 function localEn(city: string, region: string): GirlsOnlyCityLocalCopy {
   return {
-    body: `Sunday Table in ${city} (${region}). Every month. New people. Then culinary experiences.`,
+    body: `Sunday Social in ${city} (${region}). Every month. New people. Then culinary experiences.`,
     points: OFFER_POINTS_EN,
   };
 }

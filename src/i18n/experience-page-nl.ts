@@ -219,7 +219,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Zit ik met onbekenden?",
           answer:
-            "Nee. Je boekt tickets voor jezelf of je gezelschap. Matching met nieuwe mensen gebeurt alleen via Sunday Table, niet op deze ervaring.",
+            "Nee. Je boekt tickets voor jezelf of je gezelschap. Matching met nieuwe mensen gebeurt alleen via Sunday Social, niet op deze ervaring.",
         },
         {
           question: "Kan ik dieetwensen doorgeven?",
@@ -306,7 +306,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik alleen boeken?",
           answer:
-            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij Sunday Table.",
+            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je volgt de route met je eigen gezelschap; wij matchen je niet met andere gasten. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij Sunday Social.",
         },
         {
           question: "Moet ik veel wandelen?",
@@ -409,7 +409,7 @@ export const experiencePageNl: ExperiencePageLabels = {
         {
           question: "Kan ik alleen boeken?",
           answer:
-            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je zit met wie je meeneemt, niet met onbekenden. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij Sunday Table.",
+            "Een boeking is vanaf 2 tickets. Kom je graag solo, neem dan iemand mee of boek samen met een vriend(in). Je zit met wie je meeneemt, niet met onbekenden. Wil je juist nieuwe culinaire vrienden maken? Dat kan bij Sunday Social.",
         },
         {
           question: "Wanneer zijn de Chef's Tables?",

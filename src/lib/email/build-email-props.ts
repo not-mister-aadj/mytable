@@ -24,7 +24,7 @@ function buildEventUrl(event: Event, locale: Locale): string {
 }
 
 /**
- * Sunday Table's ticketing `events` row has no `venueId`. The venue lives in
+ * Sunday Social's ticketing `events` row has no `venueId`. The venue lives in
  * the older `sunday_table_locations` table, and the row's own URL points at
  * the generic experience page instead of its real reveal page. Resolve both
  * from there so the confirmation email shows the actual venue and links

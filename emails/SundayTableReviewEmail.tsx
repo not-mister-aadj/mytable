@@ -27,8 +27,8 @@ export function SundayTableReviewEmail({
     <EmailLayout
       preview={
         nl
-          ? `Hoe was Sunday Table in ${city}?`
-          : `How was Sunday Table in ${city}?`
+          ? `Hoe was Sunday Social in ${city}?`
+          : `How was Sunday Social in ${city}?`
       }
     >
       <p style={{ margin: "0 0 16px", fontSize: 16, color: "#2b0d12" }}>
@@ -43,8 +43,8 @@ export function SundayTableReviewEmail({
         }}
       >
         {nl
-          ? `Je Sunday Table in ${city} was gisteren. Nog nagenietend? Wij ook, en we zijn benieuwd hoe het voelde.`
-          : `Your Sunday Table in ${city} was yesterday. Still glowing from it? So are we, and we would love to know how it felt.`}
+          ? `Je Sunday Social in ${city} was gisteren. Nog nagenietend? Wij ook, en we zijn benieuwd hoe het voelde.`
+          : `Your Sunday Social in ${city} was yesterday. Still glowing from it? So are we, and we would love to know how it felt.`}
       </p>
       <p
         style={{

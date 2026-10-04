@@ -22,47 +22,47 @@ function buildCityPageNl(
 
   return {
     meta: {
-      title: `Nieuwe mensen ontmoeten in ${name} · Sunday Table`,
+      title: `Nieuwe mensen ontmoeten in ${name} · Sunday Social`,
       description: `Schuif op zondagmiddag aan bij 4 tot 6 nieuwe mensen in ${name}. Zet je op de wachtlijst en hoor als eerste wanneer de eerste tafel in ${name} opengaat.`,
     },
     breadcrumbHome: "Home",
-    breadcrumbGirlsOnly: "Sunday Table",
+    breadcrumbGirlsOnly: "Sunday Social",
     hero: {
       regionLabel: city.regionNl,
-      headline: `Sunday Table in ${name}`,
+      headline: `Sunday Social in ${name}`,
       subheadline:
         "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
       trustBullets: ["Solo welkom", "Matching", "Daarna culinaire plannen"],
       ctaBook: "Claim je plek",
-      ctaPriority: "Naar Sunday Table",
-      imageAlt: `Sunday Table in ${name}`,
+      ctaPriority: "Naar Sunday Social",
+      imageAlt: `Sunday Social in ${name}`,
       seatsLeft: "{count} plekken over · {city} · {date}",
     },
     events: {
       eyebrow: "Agenda",
       title: `Tafels in ${name}`,
-      subtitle: `Volgende Sunday Table in ${name}.`,
+      subtitle: `Volgende Sunday Social in ${name}.`,
       emptyTitle: `Elke maand in ${name}`,
       emptyBody: "Claim je plek. Wij matchen je aan tafel.",
-      emptyCta: "Naar Sunday Table",
+      emptyCta: "Naar Sunday Social",
       viewAll: "Alle zondagen",
     },
     priority: {
-      eyebrow: "Sunday Table",
+      eyebrow: "Sunday Social",
       title: `${name}`,
       subtitle: "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
       nameLabel: "Voornaam",
       namePlaceholder: "Je voornaam",
       emailLabel: "E-mail",
       emailPlaceholder: "jij@email.nl",
-      cta: "Naar Sunday Table",
+      cta: "Naar Sunday Social",
       success: "Je staat erop.",
       error: "Aanmelden mislukte. Probeer later opnieuw.",
-      privacyNote: "Alleen updates over Sunday Table.",
+      privacyNote: "Alleen updates over Sunday Social.",
     },
     included: {
       eyebrow: "Het aanbod",
-      title: `Sunday Table in ${name}`,
+      title: `Sunday Social in ${name}`,
       subtitle: "Elke maand. Nieuwe mensen. Culinaire plannen.",
       items: [
         {
@@ -85,7 +85,7 @@ function buildCityPageNl(
     },
     local: {
       eyebrow: name,
-      title: `Sunday Table in ${name}`,
+      title: `Sunday Social in ${name}`,
       body: city.localNl.body,
       points: [...city.localNl.points],
     },
@@ -111,7 +111,7 @@ function buildCityPageNl(
       title: `FAQ · ${name}`,
       items: [
         {
-          question: `Wat is Sunday Table in ${name}?`,
+          question: `Wat is Sunday Social in ${name}?`,
           answer:
             "Elke maand. Nieuwe mensen. Daarna culinaire ervaringen.",
         },
@@ -144,10 +144,10 @@ function buildCityPageNl(
       nationalCta: "Alle steden",
     },
     finalCta: {
-      title: `Sunday Table in ${name}`,
+      title: `Sunday Social in ${name}`,
       subtitle: "Elke maand. Nieuwe mensen. Culinaire plannen.",
       ctaBook: "Claim je plek",
-      ctaPriority: "Naar Sunday Table",
+      ctaPriority: "Naar Sunday Social",
     },
     status: sharedStatus,
     femaleOnlyBadge: "Girls only",

@@ -91,7 +91,7 @@ const FORMAT_OPTIONS: Array<{
 }> = [
   {
     id: "sunday_table",
-    label: { nl: "Sunday Table", en: "Sunday Table" },
+    label: { nl: "Sunday Social", en: "Sunday Social" },
     subtitle: {
       nl: "Ontmoet nieuwe mensen aan tafel, elke maand",
       en: "Meet new people at the table, every month",

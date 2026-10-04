@@ -11,7 +11,7 @@ export const en: Dictionary = {
   },
   header: {
     nav: {
-      girlsOnly: "Sunday Table",
+      girlsOnly: "Sunday Social",
       calendar: "Agenda",
       account: "Account",
       experiences: "Agenda",
@@ -81,7 +81,7 @@ export const en: Dictionary = {
       cta: "Join the waitlist",
     },
     sundayTableGroup: {
-      title: "Book with your Sunday Table",
+      title: "Book with your Sunday Social",
       body: "Pick a Wine Walk or Food Walk in your city.",
     },
     browse: {
@@ -117,9 +117,9 @@ export const en: Dictionary = {
     },
     empty: {
       title: "No experiences available",
-      text: "There are no open tables for this filter right now. Check Sunday Table or come back later for new dates.",
+      text: "There are no open tables for this filter right now. Check Sunday Social or come back later for new dates.",
       showAllCities: "Show all experiences",
-      communityCta: "Go to Sunday Table",
+      communityCta: "Go to Sunday Social",
     },
     status: {
       available: "Available",
@@ -237,7 +237,7 @@ export const en: Dictionary = {
     emailLabel: "Email",
     emailPlaceholder: "Your email",
     cityLabel: "City",
-    cta: "Go to Sunday Table",
+    cta: "Go to Sunday Social",
     success:
       "Thank you. You're on the list. We'll be in touch when the next table opens in your city.",
     error: "Sign-up failed. Please try again later.",
@@ -245,8 +245,8 @@ export const en: Dictionary = {
     emptyAgenda: {
       title: "Join the MyTable Club",
       subtitle:
-        "Via Sunday Table you hear first when new tables open in your city.",
-      cta: "Go to Sunday Table",
+        "Via Sunday Social you hear first when new tables open in your city.",
+      cta: "Go to Sunday Social",
     },
   },
   faq: {
@@ -255,12 +255,12 @@ export const en: Dictionary = {
       {
         question: "What is MyTable?",
         answer:
-          "Culinary events at partner restaurants: wine tastings and more. You book tickets for yourself or your party and bring your own group. We handle everything around the table; you come for good wine, chef's specials, and good company. Meeting new people happens through Sunday Table.",
+          "Culinary events at partner restaurants: wine tastings and more. You book tickets for yourself or your party and bring your own group. We handle everything around the table; you come for good wine, chef's specials, and good company. Meeting new people happens through Sunday Social.",
       },
       {
         question: "Will I sit with strangers?",
         answer:
-          "No. On the agenda you book your own seats: solo or with friends. Matching with new people only happens through Sunday Table.",
+          "No. On the agenda you book your own seats: solo or with friends. Matching with new people only happens through Sunday Social.",
       },
       {
         question: "When are the events?",
@@ -332,7 +332,7 @@ export const en: Dictionary = {
       contact: "Contact",
       terms: "Terms and conditions",
       privacy: "Privacy",
-      girlsOnly: "Sunday Table",
+      girlsOnly: "Sunday Social",
     },
     legal: {
       eyebrow: "Legal",

@@ -96,7 +96,7 @@ export function SundayTableCityView({
   nextTables,
 }: {
   locale: Locale;
-  /** Shared Sunday Table copy: the waitlist modal and the testimonial block. */
+  /** Shared Sunday Social copy: the waitlist modal and the testimonial block. */
   lpLabels: SundayTableLpLabels;
   labels: SundayTableCityLabels;
   headerDict: Dictionary["header"];

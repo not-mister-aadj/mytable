@@ -8,7 +8,7 @@ import { sendEventTicketsOpenEmails } from "@/lib/email/sendEventTicketsOpenEmai
 import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
 import { isMembersOnly } from "@/lib/membership/logic";
 
-/** The ticketed events row backing one Sunday Table cohort, if any. */
+/** The ticketed events row backing one Sunday Social cohort, if any. */
 export async function findSundayTableTicketEvent(
   key: SundayTableKey,
 ): Promise<Event | null> {
@@ -81,7 +81,7 @@ export async function openTicketSalesForSundayTable(
   return { ok: true, sent, failed };
 }
 
-/** Admin: until when only members can book this Sunday Table (null =
+/** Admin: until when only members can book this Sunday Social (null =
  * open to everyone now). */
 export async function setSundayTableMembersOnlyUntil(eventId: string, until: Date | null): Promise<void> {
   const db = getDb();

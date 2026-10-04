@@ -29,7 +29,7 @@ export function NextSundayTableCard({
     >
       <span>
         <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-wine/50">
-          {locale === "en" ? "Next Sunday Table" : "Eerstvolgende Sunday Table"}
+          {locale === "en" ? "Next Sunday Social" : "Eerstvolgende Sunday Social"}
         </span>
         <span className="mt-1 block font-serif text-lg text-wine">
           {formatSundayTableCardDateTime(

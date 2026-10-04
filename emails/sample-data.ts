@@ -60,7 +60,7 @@ export const sampleSundayTableCancelProps: SundayTableCancelEmailProps = {
   date: "zondag 2 augustus 2026",
   time: "14:00",
   tableType: "girls_only",
-  sundayTableUrl: "https://mytable.club/sunday-table",
+  sundayTableUrl: "https://mytable.club/sunday-social",
 };
 
 export const sampleSundayTablePlusOneAddedProps: SundayTablePlusOneEmailProps = {

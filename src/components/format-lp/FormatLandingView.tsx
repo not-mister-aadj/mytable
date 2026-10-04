@@ -31,7 +31,7 @@ import { ease } from "@/lib/motion";
 /** Shared landing page for the single-experience formats (wine tasting, wine
  * walk, chef's special) — a lighter sibling of SundayTableLpView, kept as a
  * separate component rather than a shared base to avoid any regression risk
- * to the already-live, tested Sunday Table funnel. */
+ * to the already-live, tested Sunday Social funnel. */
 export function FormatLandingView({
   locale,
   labels,

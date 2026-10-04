@@ -47,7 +47,7 @@ function cardCategoryLine(experience: ExperienceItem, tags: string[]): string {
   return experience.category;
 }
 
-/** "Sunday Table · 20-39" -> "20-39 jaar". Several Sunday Table editions can
+/** "Sunday Social · 20-39" -> "20-39 jaar". Several Sunday Social editions can
  * run side by side with only their age bracket differing, and that bracket
  * is easy to miss in the small category caption (and a bare "35+" doesn't
  * read as an age on its own), so it also gets its own spelled-out badge in
@@ -96,11 +96,11 @@ export function ExperienceCard({
   const hasCardImage = Boolean(cardSrc);
   const headline = experience.city;
   const ageBracket = sundayTableBracket(experience, locale);
-  const isSundayTable = experience.category === "Sunday Table";
+  const isSundayTable = experience.category === "Sunday Social";
   // The age bracket already has its own badge, so the caption drops it.
   const categoryLine =
     isSundayTable && ageBracket
-      ? "Sunday Table"
+      ? "Sunday Social"
       : cardCategoryLine(experience, visibleTags);
   const sundayTableBadges: string[] = isSundayTable
     ? [ageBracket, locale === "en" ? "Mixed" : "Gemengd"].filter(

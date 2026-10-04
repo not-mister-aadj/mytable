@@ -313,7 +313,7 @@ export function PriorityListView({
             Wachtlijst
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-            Iedereen op de wachtlijst: via de Sunday Table-pagina, de formatpagina's,
+            Iedereen op de wachtlijst: via de Sunday Social-pagina, de formatpagina's,
             of het opt-in vinkje bij een girls-only boeking. Klik een rij open voor
             gender, leeftijd, motivatie en voorkeuren.
           </p>

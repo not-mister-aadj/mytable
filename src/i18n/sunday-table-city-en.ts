@@ -2,7 +2,7 @@ import type { SundayTableCityLabels } from "@/i18n/sunday-table-city.types";
 
 export const sundayTableCityEn: SundayTableCityLabels = {
   hero: {
-    eyebrow: "Sunday Table · {city}",
+    eyebrow: "Sunday Social · {city}",
     headline: "One Sunday afternoon, a table full of new people in {city}.",
     line: "You join 4 to 6 people you don't know yet, at one of the city's best spots. Most people come on their own.",
     facts: ["€10 per seat", "Sunday 2:00 PM", "4 to 6 per table", "Every month"],
@@ -37,7 +37,7 @@ export const sundayTableCityEn: SundayTableCityLabels = {
   },
   dates: {
     eyebrow: "Dates",
-    title: "Every Sunday Table in {city}",
+    title: "Every Sunday Social in {city}",
     body: "Pick the table that fits your age. 4 to 6 people per table.",
     ageLabel: "{bracket} yrs",
     mixedLabel: "Mixed",
@@ -51,12 +51,12 @@ export const sundayTableCityEn: SundayTableCityLabels = {
     missingBody: "Join the waitlist. As soon as a new table opens in {city}, you'll be the first to know.",
     waitlistCta: "Join the waitlist",
     emptyTitle: "New dates coming soon",
-    emptyBody: "There's no Sunday Table planned in {city} right now. Join the waitlist and you'll be the first to know.",
+    emptyBody: "There's no Sunday Social planned in {city} right now. Join the waitlist and you'll be the first to know.",
   },
   what: {
-    eyebrow: "What is Sunday Table",
+    eyebrow: "What is Sunday Social",
     title: "Meet new people without organizing it yourself",
-    body: "Sunday Table is a fixed Sunday afternoon for anyone in {city} who wants to meet new people. Not a dating event, not a networking drink. Just a table with new people, at a place we pick for you.",
+    body: "Sunday Social is a fixed Sunday afternoon for anyone in {city} who wants to meet new people. Not a dating event, not a networking drink. Just a table with new people, at a place we pick for you.",
     items: [
       {
         title: "New people",
@@ -102,7 +102,7 @@ export const sundayTableCityEn: SundayTableCityLabels = {
       },
       {
         question: "Can I cancel or reschedule?",
-        answer: "Cancelling isn't possible. Up to 48 hours in advance you can move to another Sunday Table for free. Email us at info@mytable.club.",
+        answer: "Cancelling isn't possible. Up to 48 hours in advance you can move to another Sunday Social for free. Email us at info@mytable.club.",
       },
       {
         question: "What if it doesn't click?",
@@ -115,7 +115,7 @@ export const sundayTableCityEn: SundayTableCityLabels = {
     ],
   },
   final: {
-    title: "Ready for your first Sunday Table in {city}?",
+    title: "Ready for your first Sunday Social in {city}?",
     body: "Pick your Sunday, take a seat and see who's sitting across from you.",
     datesCta: "See all dates",
   },

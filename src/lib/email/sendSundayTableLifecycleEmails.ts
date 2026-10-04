@@ -83,7 +83,7 @@ async function markPastConfirmedAsAttended(): Promise<number> {
   return updated.length;
 }
 
-/** Day 1 after Sunday Table: ask for a review. */
+/** Day 1 after Sunday Social: ask for a review. */
 export async function sendSundayTableReviewEmails(): Promise<number> {
   if (!isDbConfigured() || !isEmailConfigured()) return 0;
   await markPastConfirmedAsAttended();
@@ -116,8 +116,8 @@ export async function sendSundayTableReviewEmails(): Promise<number> {
         to: row.email,
         subject:
           locale === "en"
-            ? `How was Sunday Table in ${row.city}?`
-            : `Hoe was Sunday Table in ${row.city}?`,
+            ? `How was Sunday Social in ${row.city}?`
+            : `Hoe was Sunday Social in ${row.city}?`,
         element: SundayTableReviewEmail({
           locale,
           firstName: row.name?.split(" ")[0],
@@ -139,7 +139,7 @@ export async function sendSundayTableReviewEmails(): Promise<number> {
   return sent;
 }
 
-/** Day 2 after Sunday Table: used to send a referral-link invite email.
+/** Day 2 after Sunday Social: used to send a referral-link invite email.
  * The referral system was removed (unused, 0 rows ever) — this email's
  * whole point was sharing that link, so it's now a no-op rather than a
  * hollowed-out email with nothing to share. Kept as a function (returning
@@ -197,7 +197,7 @@ export async function sendSundayTableCulinaryEmails(): Promise<number> {
 }
 
 /**
- * Day before Sunday Table (~24h): send exact venue when admin set a location.
+ * Day before Sunday Social (~24h): send exact venue when admin set a location.
  * Cron runs daily morning; targets tomorrow's confirmed RSVPs.
  */
 export async function sendSundayTableLocationEmails(): Promise<number> {

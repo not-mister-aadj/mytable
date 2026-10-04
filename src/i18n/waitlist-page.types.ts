@@ -40,7 +40,7 @@ export type WaitlistExperienceId = "curious" | "experienced";
  * the rest of the waitlist questionnaire itself is shown in. */
 export type WaitlistLanguageId = "english" | "dutch" | "both";
 
-/** Whether Sunday (the Sunday Table's day) actually works for them. */
+/** Whether Sunday (the Sunday Social's day) actually works for them. */
 export type WaitlistSundayAvailabilityId =
   | "afternoon"
   | "evening"

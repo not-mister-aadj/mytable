@@ -27,7 +27,7 @@ export type EventTicketRow = {
   noShowAt: string | null;
   /** The table has started, so "Niet gekomen" can be marked. */
   eventStarted: boolean;
-  /** "Meet your table" answers (Sunday Table only). */
+  /** "Meet your table" answers (Sunday Social only). */
   intro: {
     conversationStyle: string | null;
     askMeAbout: string | null;

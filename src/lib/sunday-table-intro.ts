@@ -4,7 +4,7 @@ import { getDb } from "@/db/index";
 import { bookings, events } from "@/db/schema";
 import { reservationCode } from "@/lib/booking-display";
 
-/** "Meet your table": the short introduction a Sunday Table guest fills in
+/** "Meet your table": the short introduction a Sunday Social guest fills in
  * right after payment, or later via the reminder email. */
 
 export const INTRO_WINES = ["red", "white", "bubbles"] as const;
@@ -135,7 +135,7 @@ const introColumns = {
   introAnsweredAt: bookings.introAnsweredAt,
 };
 
-/** A paid Sunday Table booking, found by id or by Stripe checkout session. */
+/** A paid Sunday Social booking, found by id or by Stripe checkout session. */
 export async function findSundayTableIntroBooking(
   by: { bookingId: string } | { checkoutSessionId: string },
 ): Promise<IntroBooking | null> {

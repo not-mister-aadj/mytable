@@ -12,7 +12,7 @@ import {
   parseAmsterdamDateIso,
 } from "@/lib/sunday-wine-table";
 
-/** Manually curated per-venue card photo until Sunday Table locations get
+/** Manually curated per-venue card photo until Sunday Social locations get
  * their own image field. Other venues (including "Locatie volgt") use the
  * photo set on the event in admin, then a wine-themed default. */
 export function agendaImageForVenue(
@@ -25,7 +25,7 @@ export function agendaImageForVenue(
   return eventImageUrl?.trim() || images.wineGlasses;
 }
 
-/** The ticketed event's own name ("Sunday Table · 20-39") and live
+/** The ticketed event's own name ("Sunday Social · 20-39") and live
  * capacity/spotsSold, if one exists for this location yet. Without these,
  * getSpotsLeft() (src/lib/experience-booking.ts) falls back to a hardcoded
  * 12 for any "available" item, so the agenda card never reflected real
@@ -75,10 +75,10 @@ async function ticketedEventInfo(
   };
 }
 
-/** Builds the same card/list item for a Sunday Table location used on the
- * agenda page, reused wherever else a real Sunday Table needs to appear
+/** Builds the same card/list item for a Sunday Social location used on the
+ * agenda page, reused wherever else a real Sunday Social needs to appear
  * alongside the generic experience catalog (e.g. the girls-only city
- * pages). Returns null when the location's city isn't a live Sunday Table
+ * pages). Returns null when the location's city isn't a live Sunday Social
  * city or its date can't be parsed. */
 export async function buildSundayTableAgendaItem(
   location: SundayTableLocation,
@@ -98,8 +98,8 @@ export async function buildSundayTableAgendaItem(
   return {
     id: `sunday-table-${location.city}-${location.tableDate}`,
     city: location.city,
-    experienceName: ticketed?.name ?? "Sunday Table",
-    category: "Sunday Table",
+    experienceName: ticketed?.name ?? "Sunday Social",
+    category: "Sunday Social",
     dateTime: formatSundayTableCardDateTime(startsAt, locale),
     startsAt: startsAt.toISOString(),
     price: ticketed ? ticketed.priceCents / 100 : 0,

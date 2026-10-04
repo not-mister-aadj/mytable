@@ -5,7 +5,7 @@ import type { Locale } from "@/i18n/config";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 
-/** Keep open Sunday Table signup locales aligned with account language. */
+/** Keep open Sunday Social signup locales aligned with account language. */
 export async function fanOutMemberEmailLocale(
   email: string,
   locale: Locale,

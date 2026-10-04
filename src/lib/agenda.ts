@@ -15,10 +15,10 @@ export function filterAgendaByCity(
   return items.filter((item) => item.city === city);
 }
 
-/** "Sunday Table · 20-39" -> "20-39". Only Sunday Tables carry an age
+/** "Sunday Social · 20-39" -> "20-39". Only Sunday Socials carry an age
  * bracket, as the last part of their event name. */
 export function agendaAgeBracket(item: ExperienceItem): string | null {
-  if (item.category !== "Sunday Table") return null;
+  if (item.category !== "Sunday Social") return null;
   const parts = item.experienceName.split("·").map((part) => part.trim());
   return parts.length > 1 ? parts[parts.length - 1] || null : null;
 }

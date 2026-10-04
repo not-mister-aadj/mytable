@@ -123,7 +123,7 @@ function ChoiceRow<T extends string>({
   );
 }
 
-/** "Meet your table" questions for a Sunday Table guest. Shown right after
+/** "Meet your table" questions for a Sunday Social guest. Shown right after
  * payment (identified by the checkout session) and on the page the reminder
  * email links to (identified by a signed token). When the link does not
  * identify a booking, the guest fills in their booking number and email. */

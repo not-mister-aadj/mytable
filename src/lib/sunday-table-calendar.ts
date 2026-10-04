@@ -6,7 +6,7 @@ import {
   parseAmsterdamDateIso,
 } from "@/lib/sunday-wine-table";
 
-/** Sunday Table runs 14:00–17:00 Europe/Amsterdam. */
+/** Sunday Social runs 14:00–17:00 Europe/Amsterdam. */
 export const SUNDAY_TABLE_DURATION_HOURS = 3;
 
 export type SundayTableCalendarInput = {
@@ -87,15 +87,15 @@ export function buildSundayTableCalendarCopy(input: SundayTableCalendarInput): {
       : nl
         ? "Gemengd"
         : "Mixed";
-  const title = `MyTable Sunday Table · ${input.city}`;
+  const title = `MyTable Sunday Social · ${input.city}`;
   const description = nl
     ? [
-        `Sunday Table in ${input.city} (${tableLabel}).`,
+        `Sunday Social in ${input.city} (${tableLabel}).`,
         "14:00-17:00. Drankjes en hapjes op locatie.",
         "Exacte locatie krijg je 24 uur van tevoren per mail.",
       ].join("\n")
     : [
-        `Sunday Table in ${input.city} (${tableLabel}).`,
+        `Sunday Social in ${input.city} (${tableLabel}).`,
         "2:00-5:00 PM. Drinks and bites on location.",
         "You’ll get the exact location by email 24 hours beforehand.",
       ].join("\n");
@@ -119,7 +119,7 @@ export function buildSundayTableIcs(input: SundayTableCalendarInput): string | n
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//MyTable//Sunday Table//NL",
+    "PRODID:-//MyTable//Sunday Social//NL",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
@@ -140,7 +140,7 @@ export function buildSundayTableIcs(input: SundayTableCalendarInput): string | n
   return `${lines.map(foldIcsLine).join("\r\n")}\r\n`;
 }
 
-/** Absolute URL that downloads the .ics for this Sunday Table. */
+/** Absolute URL that downloads the .ics for this Sunday Social. */
 export function sundayTableCalendarDownloadUrl(
   input: SundayTableCalendarInput,
 ): string {

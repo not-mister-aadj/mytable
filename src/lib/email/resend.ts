@@ -21,7 +21,7 @@ export function getBookingConfirmationBcc(): string[] {
   return [address];
 }
 
-/** Alias for Sunday Table / lifecycle sends. */
+/** Alias for Sunday Social / lifecycle sends. */
 export function getTransactionalEmailBcc(): string[] {
   return getBookingConfirmationBcc();
 }

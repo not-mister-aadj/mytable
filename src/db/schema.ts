@@ -225,7 +225,7 @@ export const bookings = pgTable("bookings", {
   transferredFromBookingId: uuid("transferred_from_booking_id"),
   transferredAt: timestamp("transferred_at", { withTimezone: true }),
   transferredBy: text("transferred_by"),
-  /** "Meet your table" answers, Sunday Table only (drizzle/0027). */
+  /** "Meet your table" answers, Sunday Social only (drizzle/0027). */
   introAskMeAbout: text("intro_ask_me_about"),
   introFavoriteSpot: text("intro_favorite_spot"),
   introWine: text("intro_wine"),

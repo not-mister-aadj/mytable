@@ -47,7 +47,7 @@ interface HeroImage {
   position?: string;
 }
 
-/** Manually curated per-venue photos until Sunday Table locations get their
+/** Manually curated per-venue photos until Sunday Social locations get their
  * own image field. Other venues (including "Locatie volgt") show the photo
  * set on the event in admin, then a neutral stock photo. */
 function buildVenueHeroImages(
@@ -113,8 +113,8 @@ function venueAbout(
       eyebrow: en ? "About the venue" : "Over de locatie",
       name: "Juni",
       body: en
-        ? "Juni is Rotterdam's first wine and cheese bar, started by Puck and Nienke, who met working at restaurant OX. The cheese counter is full of Dutch cheeses from small makers, next to wines from France, Italy and Spain. A small, warm place with around 25 seats. Normally it's walk-in only. For Sunday Table, we keep a table for you."
-        : "Juni is de eerste wijn- en kaasbar van Rotterdam, opgezet door Puck en Nienke, die elkaar leerden kennen bij restaurant OX. In de kaasvitrine liggen vooral Nederlandse kazen van kleine makers, met wijnen uit Frankrijk, Italië en Spanje ernaast. Een kleine, warme zaak met zo'n 25 plekken. Normaal loop je hier gewoon binnen. Voor Sunday Table houden we een tafel voor je vrij.",
+        ? "Juni is Rotterdam's first wine and cheese bar, started by Puck and Nienke, who met working at restaurant OX. The cheese counter is full of Dutch cheeses from small makers, next to wines from France, Italy and Spain. A small, warm place with around 25 seats. Normally it's walk-in only. For Sunday Social, we keep a table for you."
+        : "Juni is de eerste wijn- en kaasbar van Rotterdam, opgezet door Puck en Nienke, die elkaar leerden kennen bij restaurant OX. In de kaasvitrine liggen vooral Nederlandse kazen van kleine makers, met wijnen uit Frankrijk, Italië en Spanje ernaast. Een kleine, warme zaak met zo'n 25 plekken. Normaal loop je hier gewoon binnen. Voor Sunday Social houden we een tafel voor je vrij.",
       facts: [
         { label: en ? "Address" : "Adres", value: address, href: mapsHref },
         {
@@ -167,8 +167,8 @@ async function loadTicketEvent(cityName: string, startsAt: Date) {
   return row ?? null;
 }
 
-/** "Sunday Table · 20-39" -> "20-39", so the bracket can be shown on its own
- * without repeating "Sunday Table" everywhere it's used on the page. */
+/** "Sunday Social · 20-39" -> "20-39", so the bracket can be shown on its own
+ * without repeating "Sunday Social" everywhere it's used on the page. */
 function ageBracketFromEventName(name: string): string | null {
   const parts = name.split("·").map((part) => part.trim());
   return parts.length > 1 ? parts[parts.length - 1] : null;
@@ -205,18 +205,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dateLabel = formatSundayTableDate(table, locale as Locale);
   const title = comingSoon
     ? locale === "en"
-      ? `Sunday Table${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
-      : `Sunday Table${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
+      ? `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
+      : `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
     : locale === "en"
-      ? `Sunday Table${bracketSuffix} · ${dateLabel} at ${location.venueName} | MyTable`
-      : `Sunday Table${bracketSuffix} · ${dateLabel} bij ${location.venueName} | MyTable`;
+      ? `Sunday Social${bracketSuffix} · ${dateLabel} at ${location.venueName} | MyTable`
+      : `Sunday Social${bracketSuffix} · ${dateLabel} bij ${location.venueName} | MyTable`;
   const description = comingSoon
     ? locale === "en"
-      ? `Sunday Table is coming to ${city.name} on ${dateLabel}. Venue announced soon.`
-      : `Sunday Table komt naar ${city.name} op ${dateLabel}. Locatie volgt binnenkort.`
+      ? `Sunday Social is coming to ${city.name} on ${dateLabel}. Venue announced soon.`
+      : `Sunday Social komt naar ${city.name} op ${dateLabel}. Locatie volgt binnenkort.`
     : locale === "en"
-      ? `Join Sunday Table in ${city.name} on ${dateLabel}, at ${location.venueName}.`
-      : `Schuif aan bij Sunday Table in ${city.name} op ${dateLabel}, bij ${location.venueName}.`;
+      ? `Join Sunday Social in ${city.name} on ${dateLabel}, at ${location.venueName}.`
+      : `Schuif aan bij Sunday Social in ${city.name} op ${dateLabel}, bij ${location.venueName}.`;
   return { title, description };
 }
 
@@ -368,7 +368,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   const copy =
     locale === "en"
       ? {
-          eyebrow: `Sunday Table · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
+          eyebrow: `Sunday Social · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           introLead: "Good wine tastes better in good company.",
           intro:
             "MyTable is a wine club for people who love a good glass and a good conversation. We pick the wine bar and reserve several tables there. You join one of those tables, with four to six easygoing people your own age.",
@@ -409,7 +409,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           },
           shareLabel: "Share",
           shareCopiedLabel: "Link copied",
-          shareTitle: `Sunday Table · ${dateLabel} at ${location.venueName}`,
+          shareTitle: `Sunday Social · ${dateLabel} at ${location.venueName}`,
           statsEyebrow: "Why people come to MyTable",
           statsTitle: "Sound familiar? Here's what we see across all our events",
           stats: [
@@ -422,7 +422,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           faqTitle: "Still on the fence? Here are the answers",
           faqItems: [
             {
-              question: "What is Sunday Table?",
+              question: "What is Sunday Social?",
               answer:
                 "One table full of new faces, at one of the best spots in the city. You book a seat, sit down with people you don't know yet, and discover a new place together. Along the way, we share our own wine and food pairing picks.",
             },
@@ -454,12 +454,12 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Can I cancel or reschedule?",
               answer:
-                "Cancelling isn't possible. You can reschedule to a different Sunday Table edition for free up to 48 hours in advance. Email us at info@mytable.club to arrange it.",
+                "Cancelling isn't possible. You can reschedule to a different Sunday Social edition for free up to 48 hours in advance. Email us at info@mytable.club to arrange it.",
             },
           ],
         }
       : {
-          eyebrow: `Sunday Table · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
+          eyebrow: `Sunday Social · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           introLead: "Goede wijn smaakt beter in goed gezelschap.",
           intro:
             "MyTable is een wijnclub voor mensen die houden van een mooi glas en een goed gesprek. Wij kiezen de wijnbar en reserveren er meerdere tafels. Jij schuift aan bij een van die tafels, met vier tot zes gezellige mensen van je leeftijd.",
@@ -503,7 +503,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           },
           shareLabel: "Delen",
           shareCopiedLabel: "Link gekopieerd",
-          shareTitle: `Sunday Table · ${dateLabel} bij ${location.venueName}`,
+          shareTitle: `Sunday Social · ${dateLabel} bij ${location.venueName}`,
           statsEyebrow: "Waarom mensen bij MyTable komen",
           statsTitle: "Herkenbaar? Dit blijkt uit de data van al onze events",
           stats: [
@@ -516,7 +516,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           faqTitle: "Nog twijfels? Hier zijn de antwoorden",
           faqItems: [
             {
-              question: "Wat is Sunday Table?",
+              question: "Wat is Sunday Social?",
               answer:
                 "Eén tafel vol nieuwe gezichten, bij een van de leukste plekken van de stad. Je boekt een plek, schuift aan met mensen die je nog niet kent, en ontdekt samen een nieuwe plek. Onderweg geven wij onze eigen wijnspijs-aanraders mee.",
             },
@@ -548,7 +548,7 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Kan ik annuleren of verplaatsen?",
               answer:
-                "Annuleren is niet mogelijk. Wel kun je tot 48 uur van tevoren gratis verplaatsen naar een andere Sunday Table editie. Mail ons daarvoor op info@mytable.club.",
+                "Annuleren is niet mogelijk. Wel kun je tot 48 uur van tevoren gratis verplaatsen naar een andere Sunday Social editie. Mail ons daarvoor op info@mytable.club.",
             },
           ],
         };
@@ -560,7 +560,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           organizationJsonLd(),
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
-            { name: "Sunday Table", path: sundayTableLpPath(locale) },
+            { name: "Sunday Social", path: sundayTableLpPath(locale) },
             { name: city.name, path: sundayTableLpCityPath(locale, city.slug) },
             { name: capitalizedDate, path: sundayTableLocationPath(locale, city.slug, date) },
           ]),

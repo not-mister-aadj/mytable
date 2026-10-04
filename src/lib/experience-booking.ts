@@ -52,7 +52,7 @@ export const SPOTS_URGENCY_THRESHOLD = 15;
 
 /** A freshly published large event starts at (near-)full capacity, so a
  * count like "48 spots left" looks unimpressive. Show the number once 10 are
- * sold, or once 10 or fewer are left: for a small table like Sunday Table
+ * sold, or once 10 or fewer are left: for a small table like Sunday Social
  * (12 seats) that is right after the first sales. Catalog items with no
  * tracked spotsSold fall through unchanged, since there's nothing to gate on. */
 export const SPOTS_VISIBLE_FROM_SOLD = 10;

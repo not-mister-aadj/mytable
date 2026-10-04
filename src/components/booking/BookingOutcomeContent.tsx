@@ -24,7 +24,7 @@ interface BookingOutcomeContentProps {
   locale: Locale;
   summary: BookingOutcomeSummary | null;
   timedOut?: boolean;
-  /** Rendered right under the booking summary card, e.g. the Sunday Table
+  /** Rendered right under the booking summary card, e.g. the Sunday Social
    * "meet your table" questions. */
   afterSummary?: React.ReactNode;
 }

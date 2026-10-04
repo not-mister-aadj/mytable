@@ -29,9 +29,9 @@ export function sundayTableConfirmationSubject(
   locale: "nl" | "en" = "nl",
 ): string {
   if (locale === "en") {
-    return `Sunday Table confirmed: ${city.trim()} · ${date.trim()}`;
+    return `Sunday Social confirmed: ${city.trim()} · ${date.trim()}`;
   }
-  return `Sunday Table bevestigd: ${city.trim()} · ${date.trim()}`;
+  return `Sunday Social bevestigd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTableCancelSubject(
@@ -40,9 +40,9 @@ export function sundayTableCancelSubject(
   locale: "nl" | "en" = "nl",
 ): string {
   if (locale === "en") {
-    return `Sunday Table cancelled: ${city.trim()} · ${date.trim()}`;
+    return `Sunday Social cancelled: ${city.trim()} · ${date.trim()}`;
   }
-  return `Sunday Table geannuleerd: ${city.trim()} · ${date.trim()}`;
+  return `Sunday Social geannuleerd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTableLocationSubject(
@@ -51,9 +51,9 @@ export function sundayTableLocationSubject(
   locale: "nl" | "en" = "nl",
 ): string {
   if (locale === "en") {
-    return `Sunday Table location: ${city.trim()} · ${date.trim()}`;
+    return `Sunday Social location: ${city.trim()} · ${date.trim()}`;
   }
-  return `Locatie Sunday Table: ${city.trim()} · ${date.trim()}`;
+  return `Locatie Sunday Social: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTablePlusOneAddedSubject(
@@ -62,9 +62,9 @@ export function sundayTablePlusOneAddedSubject(
   locale: "nl" | "en" = "nl",
 ): string {
   if (locale === "en") {
-    return `Sunday Table +1 added: ${city.trim()} · ${date.trim()}`;
+    return `Sunday Social +1 added: ${city.trim()} · ${date.trim()}`;
   }
-  return `Sunday Table +1 toegevoegd: ${city.trim()} · ${date.trim()}`;
+  return `Sunday Social +1 toegevoegd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function sundayTablePlusOneRemovedSubject(
@@ -73,9 +73,9 @@ export function sundayTablePlusOneRemovedSubject(
   locale: "nl" | "en" = "nl",
 ): string {
   if (locale === "en") {
-    return `Sunday Table +1 removed: ${city.trim()} · ${date.trim()}`;
+    return `Sunday Social +1 removed: ${city.trim()} · ${date.trim()}`;
   }
-  return `Sunday Table +1 verwijderd: ${city.trim()} · ${date.trim()}`;
+  return `Sunday Social +1 verwijderd: ${city.trim()} · ${date.trim()}`;
 }
 
 export function womenWelcomeSubject(locale: "nl" | "en" = "nl"): string {
@@ -128,9 +128,9 @@ export function sundayTableTicketsOpenSubject(
   locale: "nl" | "en" = "nl",
 ): string {
   if (locale === "en") {
-    return `Tickets are open: Sunday Table ${city.trim()} · ${date.trim()}`;
+    return `Tickets are open: Sunday Social ${city.trim()} · ${date.trim()}`;
   }
-  return `Aanmelden is open: Sunday Table ${city.trim()} · ${date.trim()}`;
+  return `Aanmelden is open: Sunday Social ${city.trim()} · ${date.trim()}`;
 }
 
 /** Extra signal for clients that group on custom entity refs. */

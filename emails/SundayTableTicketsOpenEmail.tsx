@@ -24,8 +24,8 @@ export function SundayTableTicketsOpenEmail({
     <EmailLayout
       preview={
         nl
-          ? `Aanmelden is open: Sunday Table ${city}`
-          : `Registration is open: Sunday Table ${city}`
+          ? `Aanmelden is open: Sunday Social ${city}`
+          : `Registration is open: Sunday Social ${city}`
       }
     >
       <p style={{ margin: "0 0 16px", fontSize: 16, color: "#2b0d12" }}>
@@ -33,8 +33,8 @@ export function SundayTableTicketsOpenEmail({
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12" }}>
         {nl
-          ? `De locatie voor Sunday Table in ${city} op ${dateLabel} staat vast: ${venueName}. Je kan nu een plek boeken.`
-          : `The venue for Sunday Table in ${city} on ${dateLabel} is confirmed: ${venueName}. You can book a seat now.`}
+          ? `De locatie voor Sunday Social in ${city} op ${dateLabel} staat vast: ${venueName}. Je kan nu een plek boeken.`
+          : `The venue for Sunday Social in ${city} on ${dateLabel} is confirmed: ${venueName}. You can book a seat now.`}
       </p>
       <p
         style={{

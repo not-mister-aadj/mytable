@@ -233,13 +233,13 @@ export function CustomerCampaignPanel({
           <div className="space-y-4">
             <Field
               label="Campagnenaam"
-              hint="Verplicht. Komt in utm_campaign en de r-code van elke link, bijv. sunday-table-oktober."
+              hint="Verplicht. Komt in utm_campaign en de r-code van elke link, bijv. sunday-social-oktober."
             >
               <input
                 value={content.campaign}
                 onChange={(e) => update("campaign", e.target.value)}
                 className={inputClass}
-                placeholder="sunday-table-oktober"
+                placeholder="sunday-social-oktober"
               />
             </Field>
             <Field label="Onderwerp">

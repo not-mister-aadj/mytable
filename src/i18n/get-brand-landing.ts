@@ -19,7 +19,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
       formats: [
         {
           key: "sunday_table",
-          name: "Sunday Table",
+          name: "Sunday Social",
           line: "Meet new people and discover the city's best tables.",
           cta: "put me on the waitlist",
           imageAlt: "A lively, crowded evening full of new faces meeting each other",
@@ -72,7 +72,7 @@ export function getBrandLandingLabels(locale: Locale): BrandLandingLabels {
     formats: [
       {
         key: "sunday_table",
-        name: "Sunday Table",
+        name: "Sunday Social",
         line: "Ontmoet nieuwe mensen en ontdek de leukste tafels van de stad.",
         cta: "zet me op de wachtlijst",
         imageAlt: "Een drukke, levendige avond vol nieuwe gezichten die elkaar ontmoeten",

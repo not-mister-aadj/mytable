@@ -1,5 +1,5 @@
 // Two sign-up concepts run side by side (the founder's A/B test):
-// - "waitlist": the old waitlist funnel (/api/waitlist, the Sunday Table
+// - "waitlist": the old waitlist funnel (/api/waitlist, the Sunday Social
 //   landing and its questionnaire);
 // - "account": the new account funnel (/jouw-tafel, email-code account,
 //   quiz, "Kies je zondag").

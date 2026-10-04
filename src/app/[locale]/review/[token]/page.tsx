@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
-  title: "Sunday Table review | MyTable",
+  title: "Sunday Social review | MyTable",
 };
 
 type Props = {
@@ -44,7 +44,7 @@ export default async function SundayTableReviewPage({ params }: Props) {
           />
           <div className="relative mx-auto max-w-lg px-5 py-20 text-center">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-rose-deep/80">
-              Sunday Table
+              Sunday Social
             </p>
             <h1 className="mt-4 font-serif text-4xl text-burgundy sm:text-5xl">
               {locale === "en"

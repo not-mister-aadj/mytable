@@ -19,7 +19,7 @@ export default async function SundayTableConfirmationEmailPreviewPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl text-burgundy">
-            E-mail preview · Sunday Table bevestiging
+            E-mail preview · Sunday Social bevestiging
           </h1>
           <p className="mt-1 text-sm text-wine/60">Onderwerp: {subject}</p>
         </div>

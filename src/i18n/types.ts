@@ -277,7 +277,7 @@ export interface ExperienceItem {
   customFaq?: ExperienceFaqItem[];
   galleryImages?: string[];
   galleryImageSettings?: ImageSettings[];
-  /** Overrides the default /agenda/[slug] link (e.g. Sunday Table reveal pages). */
+  /** Overrides the default /agenda/[slug] link (e.g. Sunday Social reveal pages). */
   externalHref?: string;
 }
 
@@ -341,7 +341,7 @@ export interface Dictionary {
       secondaryLabel?: string;
       secondaryHref?: string;
     };
-    /** Cross-sell to Sunday Table / meet path */
+    /** Cross-sell to Sunday Social / meet path */
     crossFeed?: {
       eyebrow: string;
       title: string;
@@ -349,7 +349,7 @@ export interface Dictionary {
       benefits: string[];
       cta: string;
     };
-    /** Banner when arriving from post-Sunday Table culinary CTA */
+    /** Banner when arriving from post-Sunday Social culinary CTA */
     sundayTableGroup?: {
       title: string;
       body: string;

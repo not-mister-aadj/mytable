@@ -52,8 +52,8 @@ export function SundayTableLocationEmail({
     <EmailLayout
       preview={
         nl
-          ? `Je locatie voor Sunday Table in ${city}`
-          : `Your Sunday Table location in ${city}`
+          ? `Je locatie voor Sunday Social in ${city}`
+          : `Your Sunday Social location in ${city}`
       }
     >
       <EmailHero
@@ -61,8 +61,8 @@ export function SundayTableLocationEmail({
         headline={nl ? "Morgen zien we je" : "See you tomorrow"}
         body={
           nl
-            ? "Hier is de exacte locatie voor je Sunday Table. Zet hem in je agenda als je dat nog niet deed."
-            : "Here’s the exact location for your Sunday Table. Add it to your calendar if you haven’t already."
+            ? "Hier is de exacte locatie voor je Sunday Social. Zet hem in je agenda als je dat nog niet deed."
+            : "Here’s the exact location for your Sunday Social. Add it to your calendar if you haven’t already."
         }
         warmLine={
           nl
@@ -73,7 +73,7 @@ export function SundayTableLocationEmail({
 
       <EmailCard>
         <Text style={emailType.sectionLabel}>
-          {nl ? "Jouw Sunday Table" : "Your Sunday Table"}
+          {nl ? "Jouw Sunday Social" : "Your Sunday Social"}
         </Text>
         <Text
           style={{
@@ -119,8 +119,8 @@ export function SundayTableLocationEmail({
       <CTASection
         helperText={
           nl
-            ? "Handig voor onderweg: zet Sunday Table in je agenda."
-            : "Handy on the go: add Sunday Table to your calendar."
+            ? "Handig voor onderweg: zet Sunday Social in je agenda."
+            : "Handy on the go: add Sunday Social to your calendar."
         }
         href={calendarUrl}
         label={nl ? "Zet in je agenda →" : "Add to calendar →"}

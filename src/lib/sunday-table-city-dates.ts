@@ -16,7 +16,7 @@ export type SundayTableCityDate = {
   /** "Zondag 25 oktober" */
   dateLabel: string;
   venueName: string;
-  /** "35+" or "20-39", taken from the event name ("Sunday Table · 35+"). */
+  /** "35+" or "20-39", taken from the event name ("Sunday Social · 35+"). */
   ageBracket: string | null;
   priceEuros: number;
   status: "available" | "soldOut" | "comingSoon";
@@ -30,7 +30,7 @@ function ageBracketFromEventName(name: string): string | null {
   return parts.length > 1 ? parts[parts.length - 1] : null;
 }
 
-/** Every upcoming Sunday Table in one city that has a published ticketed
+/** Every upcoming Sunday Social in one city that has a published ticketed
  * event, soonest first. Locations without an event are skipped, since their
  * date page would 404. */
 export async function getUpcomingSundayTableDates(

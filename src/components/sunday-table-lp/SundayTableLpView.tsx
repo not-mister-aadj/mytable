@@ -39,7 +39,7 @@ export function SundayTableLpView({
   labels: SundayTableLpLabels;
   headerDict: Dictionary["header"];
   footerDict: Dictionary["footer"];
-  /** Nearest upcoming Sunday Table with a revealed venue, if there is one. */
+  /** Nearest upcoming Sunday Social with a revealed venue, if there is one. */
   nextLocation?: {
     tableDate: string;
     venueName: string;

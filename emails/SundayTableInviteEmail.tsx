@@ -32,8 +32,8 @@ export function SundayTableInviteEmail({
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 16, color: "#2b0d12" }}>
         {nl
-          ? `Je Sunday Table in ${city} was afgelopen zondag. Nodig iemand uit voor de volgende eerste zondag.`
-          : `Your Sunday Table in ${city} was this past Sunday. Invite someone to the next first Sunday.`}
+          ? `Je Sunday Social in ${city} was afgelopen zondag. Nodig iemand uit voor de volgende eerste zondag.`
+          : `Your Sunday Social in ${city} was this past Sunday. Invite someone to the next first Sunday.`}
       </p>
       <p
         style={{

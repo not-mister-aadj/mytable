@@ -160,8 +160,8 @@ export const sundayTableWaitlistEn: SundayTableLpLabels["waitlist"] = {
 
 export const sundayTableLpEn: SundayTableLpLabels = {
   meta: {
-    title: "Meet new people at the table · Sunday Table",
-    titleCity: "Meet new people in {city} · Sunday Table",
+    title: "Meet new people at the table · Sunday Social",
+    titleCity: "Meet new people in {city} · Sunday Social",
     description:
       "Join 4 to 6 new people on a Sunday afternoon at one of the city's best spots. €10 to take a seat, you order what you like.",
     descriptionCity:
@@ -170,14 +170,14 @@ export const sundayTableLpEn: SundayTableLpLabels = {
   brand: "MyTable",
   socialProof: "Live in Rotterdam, The Hague and Utrecht. More coming soon.",
   headline: "A social life you don't have to plan",
-  line: "Sunday Table gives you a table of new people every month, at the city's best culinary spots. No dating agenda. Coming solo is normal.",
+  line: "Sunday Social gives you a table of new people every month, at the city's best culinary spots. No dating agenda. Coming solo is normal.",
   cta: "Join the waitlist",
   ctaHint: "Free. No spam.",
   secondaryCta: "What you get",
   how: {
     eyebrow: "How it works",
     title: "For new flavors and new faces",
-    body: "Sunday Table is where you meet new people and discover the city's best culinary spots. You join a table of 4 to 6 people, and some venues run several of these tables at once. With your new tablemates you then book wine walks, tastings and dinners.",
+    body: "Sunday Social is where you meet new people and discover the city's best culinary spots. You join a table of 4 to 6 people, and some venues run several of these tables at once. With your new tablemates you then book wine walks, tastings and dinners.",
     steps: [
       {
         title: "Join the waitlist",
@@ -226,11 +226,11 @@ export const sundayTableLpEn: SundayTableLpLabels = {
     comingSoonCities: "Amsterdam · Eindhoven · Groningen",
   },
   final: {
-    title: "Ready for your first Sunday Table?",
+    title: "Ready for your first Sunday Social?",
     body: "We'll email you once a table forms in your city.",
     cta: "Join the waitlist",
     earlyNote:
-      "We're still small and personal. Your table helps shape how Sunday Table grows from here.",
+      "We're still small and personal. Your table helps shape how Sunday Social grows from here.",
   },
   faq: {
     eyebrow: "Questions",
@@ -239,7 +239,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       {
         question: "What if I don't click with anyone at the table?",
         answer:
-          "Unlikely. But if it doesn't click, let us know within 48 hours of your first Sunday Table and we'll make it right.",
+          "Unlikely. But if it doesn't click, let us know within 48 hours of your first Sunday Social and we'll make it right.",
       },
       {
         question: "Do I have to come alone?",
@@ -254,7 +254,7 @@ export const sundayTableLpEn: SundayTableLpLabels = {
       {
         question: "Is this only for women?",
         answer:
-          "No. You choose: girls only or mixed. Both are Sunday Table, new people, real conversation.",
+          "No. You choose: girls only or mixed. Both are Sunday Social, new people, real conversation.",
       },
       {
         question: "How long until I hear back?",

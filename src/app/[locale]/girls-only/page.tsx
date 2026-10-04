@@ -5,7 +5,7 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
-/** Legacy hub URL → Sunday Table. City pages moved to /sunday-table/[city]. */
+/** Legacy hub URL → Sunday Social. City pages moved to /sunday-social/[city]. */
 export default async function GirlsOnlyHubRedirect({ params }: Props) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();

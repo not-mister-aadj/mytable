@@ -82,6 +82,13 @@ export function womenWelcomeSubject(locale: "nl" | "en" = "nl"): string {
   return locale === "en" ? "Welcome to MyTable" : "Welkom bij MyTable";
 }
 
+/** Welcome for "Jouw tafel" accounts. */
+export function jouwTafelWelcomeSubject(firstName: string | null | undefined, locale: "nl" | "en" = "nl"): string {
+  const name = firstName?.trim();
+  if (locale === "en") return name ? `Welcome to the table, ${name}` : "Welcome to the table";
+  return name ? `Welkom aan tafel, ${name}` : "Welkom aan tafel";
+}
+
 export function sundayTableWaitlistWelcomeSubject(
   cities: string[],
   locale: "nl" | "en" = "nl",

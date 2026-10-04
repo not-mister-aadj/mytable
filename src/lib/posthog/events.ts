@@ -86,6 +86,7 @@ export const PostHogEvents = {
   reserveStepViewed: "reserve_step_viewed",
   reserveOptionSelected: "reserve_option_selected",
   reserveCheckoutClicked: "reserve_checkout_clicked",
+  reserveGuestToggled: "reserve_guest_toggled",
 } as const;
 
 export type PostHogEventName =

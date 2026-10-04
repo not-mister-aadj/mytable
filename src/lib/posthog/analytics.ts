@@ -256,7 +256,8 @@ export function trackTableEvent(
     | typeof PostHogEvents.tableReserveClicked
     | typeof PostHogEvents.reserveStepViewed
     | typeof PostHogEvents.reserveOptionSelected
-    | typeof PostHogEvents.reserveCheckoutClicked,
+    | typeof PostHogEvents.reserveCheckoutClicked
+    | typeof PostHogEvents.reserveGuestToggled,
   props: AnalyticsProperties,
 ): void {
   capture(event, props);

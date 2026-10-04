@@ -15,6 +15,7 @@ import {
 import { getMemberUser } from "@/lib/member-auth";
 import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { getTableCopy } from "@/lib/jouw-tafel/table-copy";
+import { getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { getFunnelTable, tableNow } from "@/lib/jouw-tafel/table-data";
 import { tableState } from "@/lib/jouw-tafel/table-logic";
 import { getMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
@@ -104,7 +105,11 @@ export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; s
   if (tableState(event, now) !== "open") redirect(jouwTafelTablePath(locale, slug));
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const { answers } = sanitizeQuizState(meta[QUIZ_METADATA_KEY]);
-  const { membership, access } = await reserveAccess(user.id, event, now);
+  const [{ membership, access }, proof] = await Promise.all([
+    reserveAccess(user.id, event, now),
+    // The real number only (no dev override): shown from SIGNUP_COUNT_MIN up.
+    getWaitlistProof(null),
+  ]);
   return (
     <JouwTafelMemberReserve
       locale={locale}
@@ -114,6 +119,7 @@ export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; s
       settingsHref={jouwTafelSettingsPath(locale)}
       access={access}
       membership={membership}
+      proofCount={proof?.count ?? null}
     />
   );
 }

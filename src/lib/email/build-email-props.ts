@@ -3,6 +3,7 @@ import type { BookingConfirmationEmailProps } from "@/emails/BookingConfirmation
 import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
 import { getSiteUrl } from "@/lib/admin-url";
 import { formatMoney, reservationCode } from "@/lib/booking-display";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS } from "@/lib/jouw-tafel/logic";
 import { experiencePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
 import { formatEmailDate, formatEmailTime } from "@/lib/email/format-email-dates";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
@@ -112,7 +113,13 @@ function memberEmailProps(
     memberGuest:
       guestSeats > 0
         ? {
-            was: formatMoney(event.priceCents, booking.currency, locale),
+            // Members book through the "Jouw tafel" funnel, whose single
+            // seat price is its own (not events.price_cents).
+            was: formatMoney(
+              event.experienceType === "sunday-table" ? JOUW_TAFEL_SEAT_PRICE_CENTS : event.priceCents,
+              booking.currency,
+              locale,
+            ),
             now: formatMoney(guestEach, booking.currency, locale),
           }
         : undefined,

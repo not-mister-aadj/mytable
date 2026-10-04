@@ -11,7 +11,7 @@ import { getStoredUtm } from "@/lib/analytics/utm";
 import { formatSpotsLeftHint } from "@/lib/event-display";
 import { shouldShowSpotsCount } from "@/lib/experience-booking";
 import { formatEuros } from "@/lib/jouw-tafel/copy";
-import { displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_CHECKOUT_SOURCE, displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   ageFromBirthDate,
@@ -274,6 +274,8 @@ export function QuizChoose({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventId: event.id,
+          // The server charges the funnel's seat price for this source.
+          source: JOUW_TAFEL_CHECKOUT_SOURCE,
           email,
           name: answers.name ?? "",
           seats: effectiveSeats,

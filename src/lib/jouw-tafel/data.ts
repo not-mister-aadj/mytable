@@ -4,7 +4,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 
 /** Published, upcoming Sunday Tables. Deliberately no venue: the page never
@@ -19,7 +19,6 @@ async function loadEvents(): Promise<QuizEvent[]> {
       city: events.city,
       nameNl: events.nameNl,
       startsAt: events.startsAt,
-      priceCents: events.priceCents,
       capacity: events.capacity,
       spotsSold: events.spotsSold,
       extras: events.extras,
@@ -44,7 +43,9 @@ async function loadEvents(): Promise<QuizEvent[]> {
       city: row.city,
       bracket,
       startsAt: row.startsAt.toISOString(),
-      priceCents: row.priceCents,
+      // The funnel's own seat price, not events.price_cents (see
+      // JOUW_TAFEL_SEAT_PRICE_CENTS): cards, sheet total and info line.
+      priceCents: JOUW_TAFEL_SEAT_PRICE_CENTS,
       capacity: row.capacity,
       spotsSold: row.spotsSold,
       comingSoon: Boolean(row.extras?.comingSoon),

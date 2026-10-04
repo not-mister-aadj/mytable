@@ -69,6 +69,8 @@ export const PostHogEvents = {
   bookingOpened: "booking_opened",
   accountDeleted: "account_deleted",
   quizLogoutClicked: "quiz_logout_clicked",
+  /** A customer moved their own seat to the next Sunday (days_before only). */
+  bookingRescheduled: "booking_rescheduled",
 } as const;
 
 export type PostHogEventName =

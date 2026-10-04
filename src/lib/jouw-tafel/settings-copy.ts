@@ -28,6 +28,20 @@ export type SettingsCopy = {
     whereNote: string;
     change: string;
     changeLink: string;
+    /** Self-service "verzetten" to the next Sunday (single seats). */
+    reschedule: {
+      button: string;
+      confirm: (date: string, city: string) => string;
+      confirmButton: string;
+      cancelButton: string;
+      busy: string;
+      tooLate: string;
+      none: (city: string) => string;
+      done: (date: string) => string;
+      failed: string;
+      changed: string;
+      questions: string;
+    };
   };
   groups: { tafel: string; zondag: string; binnenkort: string; notifications: string; account: string; help: string };
   rows: {
@@ -100,6 +114,19 @@ const nl: SettingsCopy = {
     whereNote: "Waar precies, hoor je een week van tevoren.",
     change: "Verzetten kan gratis tot 7 dagen vooraf. Verzetten of annuleren? Stuur ons een berichtje.",
     changeLink: "Kopieer ons e-mailadres",
+    reschedule: {
+      button: "Verzetten naar de volgende zondag",
+      confirm: (date, city) => `Je reservering gaat naar ${date} in ${city}, om 14:00.`,
+      confirmButton: "Verzetten",
+      cancelButton: "Annuleren",
+      busy: "Verzetten",
+      tooLate: "Verzetten kan tot 7 dagen vooraf.",
+      none: (city) => `Er is nog geen volgende zondag in ${city}. Mail ons, dan zoeken we samen een oplossing.`,
+      done: (date) => `Verzet naar ${date}.`,
+      failed: "Verzetten lukte niet. Probeer het nog een keer.",
+      changed: "De volgende zondag is net veranderd. Kijk nog een keer.",
+      questions: "Vragen over je reservering? Stuur ons een berichtje.",
+    },
   },
   groups: {
     tafel: "Jouw tafel",
@@ -182,6 +209,19 @@ const en: SettingsCopy = {
     whereNote: "You'll hear exactly where a week before.",
     change: "Rescheduling is free up to 7 days ahead. Want to reschedule or cancel? Send us a message.",
     changeLink: "Copy our email address",
+    reschedule: {
+      button: "Move to the next Sunday",
+      confirm: (date, city) => `Your booking moves to ${date} in ${city}, at 2:00 PM.`,
+      confirmButton: "Move",
+      cancelButton: "Cancel",
+      busy: "Moving",
+      tooLate: "Moving is possible up to 7 days before.",
+      none: (city) => `There is no next Sunday in ${city} yet. Email us and we will find a solution together.`,
+      done: (date) => `Moved to ${date}.`,
+      failed: "Moving did not work. Please try again.",
+      changed: "The next Sunday just changed. Please take another look.",
+      questions: "Questions about your booking? Send us a message.",
+    },
   },
   groups: {
     tafel: "Your table",

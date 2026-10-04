@@ -13,6 +13,7 @@ import { reservationCode } from "@/lib/booking-display";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { CAMPAIGN_UNSUBSCRIBED_TAG } from "@/lib/email/campaign-mail";
+import { loadRescheduleCandidates, rescheduleOption, type RescheduleOption } from "@/lib/jouw-tafel/reschedule-server";
 
 // Server side of the "Jouw tafel" settings page: reservations, the mail
 // switch and deleting an account. Only ever for the signed-in person's own
@@ -26,6 +27,9 @@ export type MemberBooking = {
   seats: number;
   /** Null for a Sunday Table, else the experience's name (NL, EN). */
   name: { nl: string; en: string } | null;
+  /** "Verzetten naar de volgende zondag" for an upcoming Sunday Table seat;
+   * null when it does not apply. */
+  reschedule: RescheduleOption | null;
 };
 
 /**
@@ -51,6 +55,7 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
       experienceType: events.experienceType,
       nameNl: events.nameNl,
       nameEn: events.nameEn,
+      eventId: events.id,
     })
     .from(bookings)
     .innerJoin(events, eq(bookings.eventId, events.id))
@@ -65,6 +70,9 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     )
     .orderBy(events.startsAt);
   const now = Date.now();
+  const candidates = rows.some((r) => r.experienceType === "sunday-table" && r.startsAt.getTime() >= now)
+    ? await loadRescheduleCandidates()
+    : [];
   const all = rows.map((r) => ({
     id: r.id,
     code: reservationCode(r.id),
@@ -72,6 +80,10 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     startsAt: r.startsAt.toISOString(),
     seats: r.seats,
     name: r.experienceType === "sunday-table" ? null : { nl: r.nameNl, en: r.nameEn },
+    reschedule:
+      r.experienceType === "sunday-table" && r.startsAt.getTime() >= now
+        ? rescheduleOption({ id: r.eventId, city: r.city, nameNl: r.nameNl, startsAt: r.startsAt }, r.seats, candidates, now)
+        : null,
   }));
   return {
     upcoming: all.filter((b) => new Date(b.startsAt).getTime() >= now),

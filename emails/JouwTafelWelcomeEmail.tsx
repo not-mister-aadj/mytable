@@ -50,7 +50,6 @@ export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kies
         <CTASection
           href={settingsUrl}
           label={en ? "View your account →" : "Bekijk je account →"}
-          helperText={en ? "Your cities and preferences, all in one place." : "Je steden en voorkeuren, alles op één plek."}
         />
       )}
 

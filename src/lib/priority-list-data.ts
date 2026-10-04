@@ -3,6 +3,7 @@ import { customers, waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { recalculateCustomerStats } from "@/lib/customers/stats";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
+import { personConcepts, type SignupConcept } from "@/lib/signup-concept";
 
 export type PriorityListSignupRow = {
   email: string;
@@ -11,6 +12,10 @@ export type PriorityListSignupRow = {
   locale: string;
   preferences: WaitlistPreferences | null;
   createdAt: string;
+  /** A/B concept by first touch: old waitlist funnel or /jouw-tafel account. */
+  concept: SignupConcept;
+  /** Has an account (also a waitlist person who later did the quiz). */
+  hasAccount: boolean;
 };
 
 function asPreferences(
@@ -131,6 +136,7 @@ export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]>
       locale: waitlistSignups.locale,
       name: waitlistSignups.name,
       preferences: waitlistSignups.preferences,
+      source: waitlistSignups.source,
       customerFirstName: customers.firstName,
       createdAt: waitlistSignups.createdAt,
     })
@@ -138,6 +144,7 @@ export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]>
     .leftJoin(customers, eq(waitlistSignups.customerId, customers.id))
     .orderBy(desc(waitlistSignups.createdAt));
 
+  const concepts = personConcepts(rows);
   const grouped = new Map<string, PriorityListSignupRow>();
 
   for (const row of rows) {
@@ -154,6 +161,8 @@ export async function getPriorityListSignups(): Promise<PriorityListSignupRow[]>
         locale: row.locale,
         preferences,
         createdAt: row.createdAt.toISOString(),
+        concept: concepts.get(email)?.concept ?? "waitlist",
+        hasAccount: concepts.get(email)?.hasAccount ?? false,
       });
       continue;
     }

@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  CONCEPT_FILTER_OPTIONS,
+  ConceptBadge,
+  matchesConceptFilter,
+  type ConceptFilter,
+} from "@/components/admin/ConceptBadge";
 import { useRouter } from "next/navigation";
 import { adminPath } from "@/lib/admin-url";
 import { removePriorityListSignupAction } from "@/app/admin/(dashboard)/priority-list/actions";
@@ -188,6 +194,7 @@ export function PriorityListView({
   const router = useRouter();
   const [signups, setSignups] = useState(initialSignups);
   const [cityFilter, setCityFilter] = useState("all");
+  const [conceptFilter, setConceptFilter] = useState<ConceptFilter>("all");
   const [formatFilter, setFormatFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [prefFilters, setPrefFilters] =
@@ -224,6 +231,7 @@ export function PriorityListView({
     const q = search.trim().toLowerCase();
     return signups.filter((row) => {
       if (cityFilter !== "all" && !row.cities.includes(cityFilter)) return false;
+      if (!matchesConceptFilter(conceptFilter, row.concept, row.hasAccount)) return false;
       if (
         formatFilter !== "all" &&
         !(row.preferences?.interests ?? []).includes(formatFilter as never)
@@ -242,7 +250,7 @@ export function PriorityListView({
         row.cities.some((city) => city.toLowerCase().includes(q))
       );
     });
-  }, [signups, cityFilter, formatFilter, prefFilters, search]);
+  }, [signups, cityFilter, conceptFilter, formatFilter, prefFilters, search]);
 
   const totalCitySelections = useMemo(
     () => filtered.reduce((sum, row) => sum + row.cities.length, 0),
@@ -256,12 +264,14 @@ export function PriorityListView({
 
   const hasAnyFilter =
     cityFilter !== "all" ||
+    conceptFilter !== "all" ||
     formatFilter !== "all" ||
     activePrefFilterCount > 0 ||
     search.trim().length > 0;
 
   function resetFilters() {
     setCityFilter("all");
+    setConceptFilter("all");
     setFormatFilter("all");
     setPrefFilters(EMPTY_PREF_FILTERS);
     setSearch("");
@@ -361,6 +371,18 @@ export function PriorityListView({
             className="w-full max-w-md rounded-full border border-border-subtle bg-cream px-4 py-2.5 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
           />
           <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={conceptFilter}
+              onChange={(e) => setConceptFilter(e.target.value as ConceptFilter)}
+              className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
+              aria-label="Filter op concept"
+            >
+              {CONCEPT_FILTER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
             <select
               value={formatFilter}
               onChange={(e) => setFormatFilter(e.target.value)}
@@ -510,6 +532,7 @@ export function PriorityListView({
                               <span className="w-4" aria-hidden />
                             )}
                             {row.name ?? <span className="text-wine/35">-</span>}
+                            <ConceptBadge concept={row.concept} hasAccount={row.hasAccount} />
                           </span>
                         </td>
                         <td className="px-5 py-4 text-wine/80">{row.email}</td>

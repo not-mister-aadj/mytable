@@ -1,4 +1,5 @@
 import type { PriorityListSignupRow } from "@/lib/priority-list-data";
+import { SIGNUP_CONCEPT_LABEL } from "@/lib/signup-concept";
 import {
   FORMAT_LABELS,
   GENDER_LABELS,
@@ -23,6 +24,7 @@ export function priorityListRowsToExcelCsv(rows: PriorityListSignupRow[]): strin
     "Naam",
     "E-mail",
     "Steden",
+    "Concept",
     "Taal",
     "Formats",
     "Gender",
@@ -47,6 +49,7 @@ export function priorityListRowsToExcelCsv(rows: PriorityListSignupRow[]): strin
         row.name ?? "",
         row.email,
         row.cities.join(", "),
+        `${SIGNUP_CONCEPT_LABEL[row.concept]}${row.concept === "waitlist" && row.hasAccount ? " + account" : ""}`,
         row.locale.toUpperCase(),
         labelList(prefs?.interests ?? [], FORMAT_LABELS).join(", "),
         labelList(prefs?.gender ?? [], GENDER_LABELS).join(", "),

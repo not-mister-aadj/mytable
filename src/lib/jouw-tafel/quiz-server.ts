@@ -9,6 +9,7 @@ import { cityMatchKey, normalizeWaitlistCity } from "@/lib/waitlist-city";
 import { answerCities, buildWaitlistPreferences, type QuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { placeLabel } from "@/lib/jouw-tafel/places-server";
 import { supportedCity } from "@/lib/jouw-tafel/logic";
+import { HAS_ACCOUNT_PREFERENCE, JOUW_TAFEL_SIGNUP_SOURCE } from "@/lib/signup-concept";
 
 export type QuizWaitlistRow = { id: string; created: boolean; city: string };
 
@@ -110,14 +111,17 @@ async function upsertCityRow(input: {
     .from(waitlistSignups)
     .where(and(eq(waitlistSignups.email, email), eq(waitlistSignups.city, city)))
     .limit(1);
-  const preferences = { ...(existing?.preferences ?? {}), ...input.quizPreferences };
+  // has_account marks the overlap on an old-funnel row (which keeps its
+  // own source: first touch wins).
+  const preferences = { ...(existing?.preferences ?? {}), ...input.quizPreferences, [HAS_ACCOUNT_PREFERENCE]: true };
 
   const result = await createWaitlistSignup({
     email,
     city,
     locale,
     name,
-    source: "waitlist",
+    // Rows the quiz creates belong to the account concept.
+    source: JOUW_TAFEL_SIGNUP_SOURCE,
     preferences: preferences as unknown as WaitlistPreferences,
   });
   if (!result.ok) return result;

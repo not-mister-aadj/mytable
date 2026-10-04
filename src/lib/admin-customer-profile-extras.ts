@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { personConcepts, type SignupConcept } from "@/lib/signup-concept";
 import { getDb } from "@/db/index";
 import {
   bookings,
@@ -32,6 +33,9 @@ export type CustomerWaitlistAnswers = {
   /** Latest non-empty questionnaire, null when never filled in. */
   answers: WaitlistAnswers | null;
   answeredAt: string | null;
+  /** A/B concept of their first sign-up, null without one. */
+  concept: SignupConcept | null;
+  hasAccount: boolean;
 };
 
 /** Waitlist rows linked by customer id, or by email for older rows. */
@@ -67,7 +71,19 @@ export async function getCustomerWaitlistAnswers(
     }
   }
 
+  const person = [
+    ...personConcepts(
+      rows.map((row) => ({
+        email,
+        source: row.source,
+        preferences: row.preferences as Record<string, unknown> | null,
+        createdAt: row.createdAt,
+      })),
+    ).values(),
+  ][0];
   return {
+    concept: person?.concept ?? null,
+    hasAccount: person?.hasAccount ?? false,
     signups: rows.map((row) => ({
       city: row.city,
       source: row.source,

@@ -9,7 +9,8 @@ export async function createWaitlistSignup(input: {
   city: string;
   locale: string;
   name?: string;
-  source?: "waitlist";
+  /** "jouw_tafel" for rows the quiz creates (the account concept). */
+  source?: "waitlist" | "newsletter" | "jouw_tafel";
   preferences?: WaitlistPreferences | null;
 }): Promise<
   { ok: true; id: string; created: boolean } | { ok: false; error: string }
@@ -51,7 +52,7 @@ export async function createWaitlistSignup(input: {
     }
 
     const [existing] = await db
-      .select({ id: waitlistSignups.id })
+      .select({ id: waitlistSignups.id, source: waitlistSignups.source })
       .from(waitlistSignups)
       .where(
         and(
@@ -71,7 +72,10 @@ export async function createWaitlistSignup(input: {
         .set({
           ...(name ? { name } : {}),
           ...(preferences ? { preferences } : {}),
-          ...(source ? { source } : {}),
+          // First touch wins between the two concepts: the quiz never
+          // relabels an old-funnel row, and the old funnel never relabels
+          // a row the quiz created.
+          ...(source && source !== "jouw_tafel" && existing.source !== "jouw_tafel" ? { source } : {}),
         })
         .where(eq(waitlistSignups.id, existing.id));
     }

@@ -140,9 +140,12 @@ export async function sendMetaCapiLead(input: {
       enrichmentToUserData(enrichment),
       input.userData,
     ),
+    // content_name/concept tell the two sign-up concepts apart (A/B).
     customData: {
       source: input.source,
       city: input.city,
+      content_name: "waitlist",
+      concept: "waitlist",
     },
   });
 }
@@ -166,7 +169,7 @@ export async function sendMetaCapiQuizLead(input: {
       enrichmentToUserData(enrichment),
       input.userData,
     ),
-    customData: { source: "quiz", city: input.city },
+    customData: { source: "quiz", city: input.city, content_name: "jouw_tafel", concept: "account" },
   });
 }
 

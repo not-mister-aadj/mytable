@@ -65,11 +65,11 @@ const nl: TableCopy = {
   good: {
     title: "Goed om te weten",
     items: [
+      "We stellen de tafels samen op basis van ieders voorkeuren.",
       "De meeste gasten komen alleen.",
       "Gratis verzetten tot 7 dagen vooraf.",
       "Een tafel gaat door vanaf 4 gasten. Zo niet, dan krijg je je geld terug.",
       "Je drankjes betaal je zelf aan tafel.",
-      "Vanaf 18 jaar.",
     ],
   },
   cta: {
@@ -121,11 +121,11 @@ const en: TableCopy = {
   good: {
     title: "Good to know",
     items: [
+      "We put the tables together based on everyone's preferences.",
       "Most guests come alone.",
       "Free to move up to 7 days before.",
       "A table goes ahead from 4 guests. If not, you get your money back.",
       "You pay for your own drinks at the table.",
-      "18 and over.",
     ],
   },
   cta: {

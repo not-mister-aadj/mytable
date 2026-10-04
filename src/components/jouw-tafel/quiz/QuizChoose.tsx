@@ -286,12 +286,11 @@ export function QuizChoose({
             <span className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE.grey}`}>
               {k.soonBadge}
             </span>
-            {row.nearby ? (
-              <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
-                <PinIcon className="h-3.5 w-3.5" />
-                {displayCity(event.city, locale)}
-              </span>
-            ) : null}
+            {/* "Binnenkort" mixes cities, so the city always shows here. */}
+            <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
+              <PinIcon className="h-3.5 w-3.5" />
+              {displayCity(event.city, locale)}
+            </span>
           </span>
           <span className="mt-2 block">{notifyButton(event)}</span>
         </span>

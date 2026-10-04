@@ -10,6 +10,7 @@ import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
   resolveSeatPriceCents,
   jouwTafelBookingWindow,
+  bookingOpensOverride,
   withBookingWindow,
   nextDatesPerCity,
   nearbyCities,
@@ -181,4 +182,14 @@ test("nextDatesPerCity keeps the next two dates of each city", () => {
     "Den Haag 2026-11-08",
     "rotterdam 2026-11-29",
   ]);
+});
+
+test("an admin's exception opens a table for everyone at once", () => {
+  const table = { startsAt: "2026-11-22T13:00:00Z", comingSoon: false, membersOnlyUntil: null, bookingOpensAt: "2026-10-04T19:00:00.000Z" };
+  const now = Date.parse("2026-10-04T20:00:00Z");
+  const seen = withBookingWindow(table, now);
+  assert.equal(seen.comingSoon, false);
+  assert.equal(seen.membersOnlyUntil, "2026-10-04T19:00:00.000Z");
+  assert.ok(Date.parse(seen.membersOnlyUntil) <= now);
+  assert.equal(bookingOpensOverride({ bookingOpensAt: "nonsense" }), null);
 });

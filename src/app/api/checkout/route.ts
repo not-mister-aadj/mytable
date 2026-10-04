@@ -60,7 +60,7 @@ function openFromLabel(date: Date, locale: Locale): string {
     minute: "2-digit",
   }).format(date);
 }
-import { JOUW_TAFEL_CHECKOUT_SOURCE, jouwTafelBookingWindow, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_CHECKOUT_SOURCE, bookingOpensOverride, jouwTafelBookingWindow, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -237,7 +237,7 @@ export async function POST(request: Request) {
 
   // A Sunday Table opens for members 4 weeks before its date and for
   // everyone 2 days later (an admin's later members_only_until wins).
-  const bookingWindow = isJouwTafel ? jouwTafelBookingWindow(event.startsAt) : null;
+  const bookingWindow = isJouwTafel ? jouwTafelBookingWindow(event.startsAt, bookingOpensOverride(event.extras)) : null;
   if (bookingWindow && Date.now() < bookingWindow.membersFrom.getTime()) {
     return NextResponse.json(
       {

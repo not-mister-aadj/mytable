@@ -4,7 +4,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, bookingOpensOverride, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
@@ -51,6 +51,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
       comingSoon: Boolean(row.extras?.comingSoon),
       englishOpen: isEnglishOpenForSundayTable(row.id),
       membersOnlyUntil: row.membersOnlyUntil?.toISOString() ?? null,
+      bookingOpensAt: bookingOpensOverride(row.extras),
     });
   }
   return out;

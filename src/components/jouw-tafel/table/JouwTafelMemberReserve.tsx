@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckIcon } from "@/components/jouw-tafel/icons";
-import { openFrom } from "@/components/jouw-tafel/quiz/QuizChoose";
+import { openFrom } from "@/lib/membership/early-label";
 import { secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 import {
   Guarantees,
@@ -415,5 +415,28 @@ export function JouwTafelMemberReserve({
           own seat follows the membership terms instead. */}
       {chosen === "single" ? <Guarantees locale={locale} /> : null}
     </ReserveFrame>
+  );
+}
+
+/** The table page's bottom bar for a blocked or past-due member. */
+export function MemberStateCta({
+  locale,
+  access,
+  settingsHref,
+}: {
+  locale: Locale;
+  access: Extract<ReserveAccess, { kind: "blocked" } | { kind: "past_due" }>;
+  settingsHref: string;
+}) {
+  const mk = getMembershipKiesCopy(locale);
+  return (
+    <div className="text-center">
+      <p role="status" className="mb-2.5 text-[0.9rem] leading-snug text-wine/75">
+        {access.kind === "blocked" ? mk.blocked(openFrom(access.until, locale)) : mk.pastDue}
+      </p>
+      <Link href={settingsHref} className={secondaryButton}>
+        {mk.settingsLink}
+      </Link>
+    </div>
   );
 }

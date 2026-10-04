@@ -19,8 +19,8 @@ import {
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
-import { fromClientMembership, isMembersOnly, memberBookingDecision, type ClientMembership } from "@/lib/membership/logic";
-import { getMembershipKiesCopy } from "@/lib/membership/page-copy";
+import type { ClientMembership } from "@/lib/membership/logic";
+import { earlyBlocked, earlyChip } from "@/lib/membership/early-label";
 import { trackMembershipEvent } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
 
@@ -33,34 +33,6 @@ function startTime(iso: string, locale: Locale): string {
     hour: locale === "en" ? "numeric" : "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));
-}
-
-/** "Do 8 okt 14:00" / "Thu 8 Oct 2:00 PM": when a table opens for everyone. */
-export function openFrom(iso: string, locale: Locale): string {
-  const date = shortDate(iso, locale);
-  // Mid-sentence in Dutch: "jij vanaf ma 5 okt 17:05".
-  return `${locale === "nl" ? date.charAt(0).toLocaleLowerCase("nl-NL") + date.slice(1) : date} ${startTime(iso, locale)}`;
-}
-
-/** Members-only right now, and this person cannot book it yet. */
-export function earlyBlocked(event: QuizEvent, membership: ClientMembership | null, now: number): boolean {
-  if (!isMembersOnly(event.membersOnlyUntil ?? null, now)) return false;
-  return memberBookingDecision(fromClientMembership(membership), new Date(event.startsAt), now).kind !== "included";
-}
-
-/** The card chip: "Leden boeken nu, jij vanaf ..." during the members'
- * 48 hours (for everyone who cannot book yet), else the spots chip. */
-export function tableChip(
-  event: QuizEvent,
-  locale: Locale,
-  copy: QuizCopy["kies"],
-  membership: ClientMembership | null,
-  now: number,
-): { text: string; tone: ChipTone } {
-  if (!event.comingSoon && earlyBlocked(event, membership, now)) {
-    return { text: getMembershipKiesCopy(locale).earlyLabel(openFrom(event.membersOnlyUntil!, locale)), tone: "gold" };
-  }
-  return spotsChip(event, locale, copy);
 }
 
 /** "ZO" / "25" / "okt" for the date badge. */
@@ -217,7 +189,7 @@ export function QuizChoose({
   function tableCard(row: ChooseRow, index: number) {
     const event = row.event;
     const soon = event.comingSoon;
-    const chip = tableChip(event, locale, k, membership, now);
+    const chip = earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k);
     return (
       <motion.li
         key={event.id}

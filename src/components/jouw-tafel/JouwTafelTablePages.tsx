@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
-import Link from "next/link";
-import { openFrom, tableChip } from "@/components/jouw-tafel/quiz/QuizChoose";
-import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
-import { secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
-import { JouwTafelMemberReserve, type ReserveAccess } from "@/components/jouw-tafel/table/JouwTafelMemberReserve";
+import { earlyChip } from "@/lib/membership/early-label";
+import { JouwTafelMemberReserve, MemberStateCta, type ReserveAccess } from "@/components/jouw-tafel/table/JouwTafelMemberReserve";
 import { JouwTafelTable } from "@/components/jouw-tafel/table/JouwTafelTable";
 import {
   jouwTafelReservePath,
@@ -28,7 +25,6 @@ import {
   toClientMembership,
   type ClientMembership,
 } from "@/lib/membership/logic";
-import { getMembershipKiesCopy } from "@/lib/membership/page-copy";
 import type { QuizEvent } from "@/lib/jouw-tafel/logic";
 
 export function jouwTafelTableMetadata(locale: Locale): Metadata {
@@ -80,18 +76,10 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
   const now = tableNow();
   const state = tableState(event, now);
   const { membership, access } = await reserveAccess(user.id, event, now);
-  const mk = getMembershipKiesCopy(locale);
   // A blocked or past-due member sees why, instead of the reserve button.
   const memberState =
     state === "open" && (access.kind === "blocked" || access.kind === "past_due") ? (
-      <div className="text-center">
-        <p role="status" className="mb-2.5 text-[0.9rem] leading-snug text-wine/75">
-          {access.kind === "blocked" ? mk.blocked(openFrom(access.until, locale)) : mk.pastDue}
-        </p>
-        <Link href={jouwTafelSettingsPath(locale)} className={secondaryButton}>
-          {mk.settingsLink}
-        </Link>
-      </div>
+      <MemberStateCta locale={locale} access={access} settingsHref={jouwTafelSettingsPath(locale)} />
     ) : undefined;
   return (
     <JouwTafelTable
@@ -101,7 +89,7 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
       email={user.email}
       kiesHref={kiesHref(locale)}
       reserveHref={jouwTafelReservePath(locale, slug)}
-      chip={tableChip(event, locale, getQuizCopy(locale).kies, membership, now)}
+      chip={earlyChip(event, locale, membership, now) ?? undefined}
       cta={memberState}
     />
   );

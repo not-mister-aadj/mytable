@@ -830,7 +830,11 @@ function RescheduleBlock({
   return (
     <div className="mt-5 rounded-2xl bg-cream/70 p-4">
       <p className="text-[0.95rem] leading-relaxed text-wine">
-        {copy.confirm(longDate(option.targetStartsAt, locale, false), displayCity(booking.city, locale))}
+        {copy.confirm(
+          longDate(option.targetStartsAt, locale, false),
+          displayCity(booking.city, locale),
+          clockTime(option.targetStartsAt, locale),
+        )}
       </p>
       <button type="button" onClick={onConfirm} disabled={moving} className={`${primaryButton} mt-4 !min-h-12`}>
         {moving ? copy.busy : copy.confirmButton}

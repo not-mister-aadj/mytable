@@ -143,8 +143,6 @@ export type QuizCopy = {
     shareTitle: string;
     shareText: string;
     shareCopied: string;
-    dutchTableNote: string;
-    dutchFine: string;
     checkoutError: string;
     selectAria: string;
     /** Only towns outside our cities: heading above our cities' tables. */
@@ -380,8 +378,6 @@ const nl: QuizCopy = {
     shareTitle: "Sunday Table",
     shareText: "Een zondagmiddag aan tafel met nieuwe mensen. Zin om mee te doen?",
     shareCopied: "Link gekopieerd.",
-    dutchTableNote: "Deze tafel is Nederlandstalig.",
-    dutchFine: "Nederlands is ook prima",
     checkoutError: "Dat lukte niet. Probeer het nog een keer.",
     selectAria: "Kies deze tafel",
     ourCities: "Of schuif aan in een van onze steden",
@@ -606,8 +602,6 @@ const en: QuizCopy = {
     shareTitle: "Sunday Table",
     shareText: "A Sunday afternoon at the table with new people. Want to join?",
     shareCopied: "Link copied.",
-    dutchTableNote: "This table is held in Dutch.",
-    dutchFine: "Dutch is fine too",
     checkoutError: "That didn't work. Please try again.",
     selectAria: "Choose this table",
     ourCities: "Or join a table in one of our cities",

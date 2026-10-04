@@ -150,13 +150,11 @@ export function QuizChoose({
   const [selectedId, setSelectedId] = useState<string | null>(openRows[0]?.event.id ?? null);
   const selected = openRows.find((r) => r.event.id === selectedId) ?? null;
   const [seats, setSeats] = useState<1 | 2>(defaultSeats(answers));
-  const [dutchOk, setDutchOk] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const maxSeats = selected ? Math.min(2, spotsLeft(selected.event)) : 2;
   const effectiveSeats: 1 | 2 = maxSeats < 2 ? 1 : seats;
-  const dutchOnly = Boolean(selected) && answers.language === "english" && !selected!.event.englishOpen;
 
   const viewedRef = useRef(false);
   useEffect(() => {
@@ -181,8 +179,9 @@ export function QuizChoose({
           name: answers.name ?? "",
           seats: effectiveSeats,
           locale,
-          // Said English but accepted a Dutch table: either is fine then.
-          tableLanguagePreference: dutchOnly ? "both_fine" : checkoutTableLanguage(answers.language),
+          // Everyone can book any table; the language preference goes along
+          // and tables are matched by hand afterwards.
+          tableLanguagePreference: checkoutTableLanguage(answers.language),
           dietaryNotes: dietaryNotes(answers) || undefined,
           utm: getStoredUtm(),
           meta: { ...getMetaBrowserCookies(), eventSourceUrl: getMetaEventSourceUrl() },
@@ -245,7 +244,6 @@ export function QuizChoose({
             aria-label={`${k.selectAria}: ${shortDate(event.startsAt, locale)}`}
             onClick={() => {
               setSelectedId(event.id);
-              setDutchOk(false);
               setError(null);
             }}
             whileTap={reduceMotion ? undefined : { scale: 0.985 }}
@@ -422,16 +420,7 @@ export function QuizChoose({
             className="mx-auto w-full max-w-md rounded-t-[1.75rem] border border-b-0 border-wine/[0.08] bg-white/90 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_40px_rgba(43,13,18,0.12)] backdrop-blur-xl"
           >
             <div aria-hidden className="mx-auto mb-3.5 h-1 w-10 rounded-full bg-wine/15" />
-            {dutchOnly && !dutchOk ? (
-              <div>
-                <p className="text-center text-[0.95rem] font-medium text-wine">{k.dutchTableNote}</p>
-                <button type="button" className={`${primaryButton} mt-3`} onClick={() => setDutchOk(true)}>
-                  {k.dutchFine}
-                </button>
-                <div className="mt-2 flex justify-center">{notifyButton(selected.event, true)}</div>
-              </div>
-            ) : (
-              <>
+            <>
                 <div className="flex items-center justify-between gap-3">
                   <div role="radiogroup" aria-label={k.seats} className="flex rounded-full bg-cream p-1">
                     {([1, 2] as const).map((n) => {
@@ -476,8 +465,7 @@ export function QuizChoose({
                     {error}
                   </p>
                 ) : null}
-              </>
-            )}
+            </>
           </motion.div>
         </div>
       ) : null}

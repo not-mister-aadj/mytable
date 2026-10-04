@@ -51,6 +51,7 @@ const nl: TableCopy = {
       "Je reserveert je plek.",
       "Een week van tevoren hoor je in welke wijnbar je aanschuift.",
       `Om ${time} schuif je aan bij 4 tot 6 mensen.`,
+      "Vaak zitten er meer tafels in dezelfde wijnbar. Zo ontmoet je nog meer mensen.",
     ],
   },
   expect: {
@@ -107,6 +108,7 @@ const en: TableCopy = {
       "You reserve your seat.",
       "A week before, you hear which wine bar you are joining.",
       `At ${time} you join 4 to 6 people at the table.`,
+      "There are often more tables in the same wine bar, so you meet even more people.",
     ],
   },
   expect: {

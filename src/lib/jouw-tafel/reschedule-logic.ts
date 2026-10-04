@@ -3,6 +3,7 @@
 
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { bracketFromEventName, sameCity } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 /** Moving is free up to this many days before the start (terms art. 6). */
 export const RESCHEDULE_CUTOFF_DAYS = 7;
@@ -34,8 +35,8 @@ export type RescheduleCandidate = {
 /**
  * The table a booking moves to: the next published, bookable Sunday Table
  * after the current one, in the same city, with the same age bracket
- * ("· 20-39" / "· 35+"), with room for all its seats. Null when there is
- * none (no bracket fallback).
+ * ("· 20-39" / "· 35+", or both without one: a table for everyone), with
+ * room for all its seats. Null when there is none.
  */
 export function pickRescheduleTarget(
   source: { id: string; city: string; nameNl: string; startsAt: Date },
@@ -44,12 +45,11 @@ export function pickRescheduleTarget(
   now: number = Date.now(),
 ): RescheduleCandidate | null {
   const bracket = bracketFromEventName(source.nameNl);
-  if (!bracket) return null;
   const options = candidates
     .filter(
       (e) =>
         e.id !== source.id &&
-        e.experienceType === "sunday-table" &&
+        e.experienceType === JOUW_TAFEL_TYPE &&
         e.workflowStatus === "published" &&
         !e.comingSoon &&
         sameCity(e.city, source.city) &&

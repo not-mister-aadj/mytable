@@ -15,6 +15,7 @@ import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { CAMPAIGN_UNSUBSCRIBED_TAG } from "@/lib/email/campaign-mail";
 import { canMemberCancelSeat } from "@/lib/membership/logic";
 import { loadRescheduleCandidates, rescheduleOption, type RescheduleOption } from "@/lib/jouw-tafel/reschedule-server";
+import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 // Server side of the "Jouw tafel" settings page: reservations, the mail
 // switch and deleting an account. Only ever for the signed-in person's own
@@ -79,7 +80,7 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     )
     .orderBy(events.startsAt);
   const now = Date.now();
-  const candidates = rows.some((r) => r.experienceType === "sunday-table" && r.startsAt.getTime() >= now)
+  const candidates = rows.some((r) => r.experienceType === JOUW_TAFEL_TYPE && r.startsAt.getTime() >= now)
     ? await loadRescheduleCandidates()
     : [];
   const all = rows.map((r) => ({
@@ -88,12 +89,12 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     city: r.city,
     startsAt: r.startsAt.toISOString(),
     seats: r.seats,
-    name: r.experienceType === "sunday-table" ? null : { nl: r.nameNl, en: r.nameEn },
+    name: r.experienceType === JOUW_TAFEL_TYPE ? null : { nl: r.nameNl, en: r.nameEn },
     isMemberSeat: Boolean(r.membershipId),
     withPaidGuest: Boolean(r.membershipId) && r.seats > 1 && r.amountCents > 0,
     cancellable: Boolean(r.membershipId) && canMemberCancelSeat(r.startsAt, now),
     reschedule:
-      r.experienceType === "sunday-table" && r.startsAt.getTime() >= now && !r.membershipId
+      r.experienceType === JOUW_TAFEL_TYPE && r.startsAt.getTime() >= now && !r.membershipId
         ? rescheduleOption({ id: r.eventId, city: r.city, nameNl: r.nameNl, startsAt: r.startsAt }, r.seats, candidates, now)
         : null,
   }));

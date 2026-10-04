@@ -36,7 +36,9 @@ export type QuizEvent = {
   id: string;
   slug: string;
   city: string;
-  bracket: QuizBracket;
+  /** The age group from the name ("· 20-39" / "· 35+"), or null for one
+   * table for everyone (people are matched to the table afterwards). */
+  bracket: QuizBracket | null;
   startsAt: string;
   priceCents: number;
   capacity: number;
@@ -61,13 +63,9 @@ export const QUIZ_CITY_COORDS: Record<QuizCity, { lat: number; lon: number }> = 
 };
 
 /**
- * The price of one seat at a Sunday Table booked through the "Jouw tafel"
- * funnel (/jouw-tafel, the quiz and "Kies je zondag"): €15. It differs on
- * purpose from events.price_cents, which the rest of the site keeps using
- * (the /agenda cards, the older Sunday Table pages and their booking flow).
- * Founder's decision; booking the same table via /agenda at the event price
- * is accepted. The server only charges this when the checkout request says
- * it comes from the funnel (see resolveSeatPriceCents).
+ * The price of one seat at a "Jouw tafel" Sunday Table: €15, whatever
+ * events.price_cents says. Sunday Social (the agenda concept) keeps charging
+ * its event's own price. See resolveSeatPriceCents.
  */
 export const JOUW_TAFEL_SEAT_PRICE_CENTS = 1500;
 
@@ -75,17 +73,12 @@ export const JOUW_TAFEL_SEAT_PRICE_CENTS = 1500;
 export const JOUW_TAFEL_CHECKOUT_SOURCE = "jouw-tafel";
 
 /**
- * The per-seat price /api/checkout charges: the funnel price for a Sunday
- * Table booked from the funnel, otherwise exactly the event's own price.
- * Decided on the server from the source; never a client-sent amount.
+ * The per-seat price /api/checkout charges: €15 for a "Jouw tafel" Sunday
+ * Table, otherwise exactly the event's own price. Decided on the server from
+ * the event's type; never a client-sent amount.
  */
-export function resolveSeatPriceCents(input: {
-  source: unknown;
-  eventPriceCents: number;
-  isSundayTable: boolean;
-}): number {
-  if (input.isSundayTable && input.source === JOUW_TAFEL_CHECKOUT_SOURCE) return JOUW_TAFEL_SEAT_PRICE_CENTS;
-  return input.eventPriceCents;
+export function resolveSeatPriceCents(input: { eventPriceCents: number; isJouwTafel: boolean }): number {
+  return input.isJouwTafel ? JOUW_TAFEL_SEAT_PRICE_CENTS : input.eventPriceCents;
 }
 
 /** Our cities within this many km of each other count as nearby. */

@@ -482,13 +482,14 @@ export function chooseTables(
   const isChosen = (city: string) => chosen.some((c) => sameCity(c, city));
   const near = [...new Set(chosen.flatMap((c) => nearbyCities(c)))].filter((c) => !isChosen(c));
   const cityRank = (e: QuizEvent) => chosen.findIndex((c) => sameCity(c, e.city));
-  const rank = (e: QuizEvent) => brackets.indexOf(e.bracket);
+  // A table without an age group is for everyone, and ranks first.
+  const rank = (e: QuizEvent) => (e.bracket === null ? -1 : brackets.indexOf(e.bracket));
   const nearRank = (e: QuizEvent) => near.findIndex((c) => sameCity(c, e.city));
   const time = (e: QuizEvent) => new Date(e.startsAt).getTime();
 
   const eligible = events.filter(
     (e) =>
-      brackets.includes(e.bracket) &&
+      (e.bracket === null || brackets.includes(e.bracket)) &&
       time(e) > now &&
       !isEventClosedForBooking(new Date(e.startsAt), new Date(now)),
   );

@@ -9,6 +9,7 @@ import {
   pickRescheduleTarget,
   type RescheduleCandidate,
 } from "@/lib/jouw-tafel/reschedule-logic";
+import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 export type RescheduleOption =
   | { state: "available"; targetEventId: string; targetStartsAt: string }
@@ -20,7 +21,7 @@ export async function loadRescheduleCandidates(): Promise<RescheduleCandidate[]>
   const rows = await getDb()
     .select()
     .from(events)
-    .where(and(eq(events.experienceType, "sunday-table"), eq(events.workflowStatus, "published"), gt(events.startsAt, new Date())));
+    .where(and(eq(events.experienceType, JOUW_TAFEL_TYPE), eq(events.workflowStatus, "published"), gt(events.startsAt, new Date())));
   return rows.map(toCandidate);
 }
 
@@ -117,7 +118,7 @@ export async function rescheduleOwnBooking(input: {
     return (await alreadyMoved()) ?? { ok: false, status: 409, code: "not_movable" };
   }
   if (
-    row.event.experienceType !== "sunday-table" ||
+    row.event.experienceType !== JOUW_TAFEL_TYPE ||
     row.booking.paymentStatus !== "paid" ||
     row.booking.lifecycleStatus !== "active" ||
     input.isExcluded?.(row.booking)

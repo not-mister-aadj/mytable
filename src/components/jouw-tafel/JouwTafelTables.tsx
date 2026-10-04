@@ -127,8 +127,12 @@ export function JouwTafelTables({
                       </p>
                       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-wine/60">
                         <span>{startTime(event.startsAt, locale)}</span>
-                        <span aria-hidden>·</span>
-                        <span className="font-semibold text-wine/80">{event.bracket}</span>
+                        {event.bracket ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="font-semibold text-wine/80">{event.bracket}</span>
+                          </>
+                        ) : null}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">

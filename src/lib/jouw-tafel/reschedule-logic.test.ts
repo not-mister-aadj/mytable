@@ -10,7 +10,7 @@ const source = { id: "src", city: "Rotterdam", nameNl: "Sunday Table · 35+", st
 function ev(id: string, partial: Partial<RescheduleCandidate> = {}): RescheduleCandidate {
   return {
     id, city: "Rotterdam", nameNl: "Sunday Table · 35+", startsAt: new Date("2026-11-01T13:00:00Z"),
-    capacity: 12, spotsSold: 0, workflowStatus: "published", experienceType: "sunday-table", comingSoon: false, ...partial,
+    capacity: 12, spotsSold: 0, workflowStatus: "published", experienceType: "jouw-tafel", comingSoon: false, ...partial,
   };
 }
 

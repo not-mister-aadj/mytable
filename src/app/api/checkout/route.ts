@@ -61,6 +61,7 @@ function openFromLabel(date: Date, locale: Locale): string {
   }).format(date);
 }
 import { JOUW_TAFEL_CHECKOUT_SOURCE, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
+import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
@@ -207,18 +208,19 @@ export async function POST(request: Request) {
     );
   }
 
-  // Sunday Table seats strangers at one shared table (max 2 tickets, no
-  // "bring your own party" minimum). Everything else keeps the existing
-  // tier system (min 2, own-table bookings).
-  const isSundayTable = event.experienceType === "sunday-table";
+  // Sunday Social and the "Jouw tafel" Sunday Table seat strangers at one
+  // shared table (max 2 tickets, no "bring your own party" minimum).
+  // Everything else keeps the existing tier system (min 2, own-table
+  // bookings). Memberships and the €15 seat belong to Sunday Table only.
+  const isSundayTable = isSharedTableType(event.experienceType);
+  const isJouwTafel = isJouwTafelType(event.experienceType);
 
   // The date page only offers a ticket for "English" on tables that can seat
   // English speakers. Guard it here too, so nobody who only speaks English
   // ends up at a Dutch-speaking table. Not for the jouw-tafel funnel: there
   // everyone can always book, and tables are matched by hand afterwards.
   if (
-    isSundayTable &&
-    body.source !== JOUW_TAFEL_CHECKOUT_SOURCE &&
+    isSundaySocialType(event.experienceType) &&
     !isEnglishOpenForSundayTable(event.id) &&
     tableLanguagePreference === "prefer_english"
   ) {
@@ -237,13 +239,13 @@ export async function POST(request: Request) {
   // and they book first. Everyone else waits until members_only_until.
   let memberDecision: MemberBookingDecision = { kind: "non_member" };
   let runningMembership: Awaited<ReturnType<typeof getRunningMembershipForUser>> = null;
-  const signedInUser = isSundayTable ? await getMemberUser() : null;
+  const signedInUser = isJouwTafel ? await getMemberUser() : null;
   if (signedInUser?.email) {
     runningMembership = await getRunningMembershipForUser(signedInUser.id);
     memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
   }
 
-  if (isSundayTable && memberDecision.kind === "blocked") {
+  if (isJouwTafel && memberDecision.kind === "blocked") {
     return NextResponse.json(
       {
         code: "member_blocked",
@@ -256,7 +258,7 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   }
-  if (isSundayTable && memberDecision.kind === "past_due") {
+  if (isJouwTafel && memberDecision.kind === "past_due") {
     return NextResponse.json(
       {
         code: "member_past_due",
@@ -268,7 +270,7 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   }
-  if (isSundayTable && !earlyAccessAllows(memberDecision, event.membersOnlyUntil)) {
+  if (isJouwTafel && !earlyAccessAllows(memberDecision, event.membersOnlyUntil)) {
     return NextResponse.json(
       {
         code: "members_only",
@@ -282,7 +284,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (isSundayTable && memberDecision.kind === "included" && runningMembership && signedInUser?.email) {
+  if (isJouwTafel && memberDecision.kind === "included" && runningMembership && signedInUser?.email) {
     const memberSeats = resolveSundayTableSeats(Math.max(1, Number(body.seats) || 1), event.capacity - event.spotsSold);
     if (memberSeats === null) {
       return NextResponse.json(
@@ -341,9 +343,8 @@ export async function POST(request: Request) {
     const requestedSeats = Math.max(1, Number(body.seats) || 1);
     seats = resolveSundayTableSeats(requestedSeats, spotsLeft);
     perSeatCents = resolveSeatPriceCents({
-      source: body.source,
       eventPriceCents: event.priceCents,
-      isSundayTable,
+      isJouwTafel,
     });
     amountCents = seats !== null ? perSeatCents * seats : 0;
   } else {
@@ -411,7 +412,7 @@ export async function POST(request: Request) {
     },
   });
 
-  if (body.source === JOUW_TAFEL_CHECKOUT_SOURCE && isSundayTable) {
+  if (isJouwTafel) {
     await db.insert(bookingEvents).values({
       bookingId: booking.id,
       type: "checkout_source",
@@ -513,7 +514,7 @@ export async function POST(request: Request) {
         pricing_tier: requestedTier,
         affiliate_code: booking.affiliateCode ?? "",
         from_sunday_table: booking.fromSundayTable ? "1" : "0",
-        source: body.source === JOUW_TAFEL_CHECKOUT_SOURCE && isSundayTable ? JOUW_TAFEL_CHECKOUT_SOURCE : "site",
+        source: isJouwTafel ? JOUW_TAFEL_CHECKOUT_SOURCE : "site",
       },
       success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,

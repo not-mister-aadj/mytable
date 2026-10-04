@@ -6,6 +6,7 @@ import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
+import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 /** Published, upcoming Sunday Tables. Deliberately no venue: the page never
  * names one, because the wine bar is booked once the tables are known. */
@@ -27,7 +28,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
     .from(events)
     .where(
       and(
-        eq(events.experienceType, "sunday-table"),
+        eq(events.experienceType, JOUW_TAFEL_TYPE),
         eq(events.workflowStatus, "published"),
         gt(events.startsAt, new Date()),
       ),
@@ -36,7 +37,6 @@ async function loadEvents(): Promise<QuizEvent[]> {
   const out: QuizEvent[] = [];
   for (const row of rows) {
     const bracket = bracketFromEventName(row.nameNl);
-    if (!bracket) continue;
     out.push({
       id: row.id,
       slug: row.slug,

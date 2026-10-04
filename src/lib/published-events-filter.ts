@@ -1,15 +1,12 @@
-import { and, eq, gt, gte, ne, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, ne, notInArray, or, sql } from "drizzle-orm";
 import { events } from "@/db/schema";
 import { BOOKING_CLOSE_HOURS, AGENDA_RETENTION_DAYS } from "@/lib/event-visibility";
+import { JOUW_TAFEL_TYPE, SHARED_TABLE_TYPES } from "@/lib/event-concepts";
 
-/**
- * Sunday Table already gets its own card (built from sunday_table_locations,
- * pointing at its dedicated reveal page) on the agenda and landing grids —
- * so its own `events` row, used only for ticketing, is excluded here to
- * avoid showing the same table twice.
- */
+/** Sunday Social has its own agenda cards (from its locations), and a "Jouw
+ * tafel" Sunday Table never shows in the agenda at all. */
 function excludeSundayTable() {
-  return ne(events.experienceType, "sunday-table");
+  return notInArray(events.experienceType, [...SHARED_TABLE_TYPES]);
 }
 
 /** Published events open for booking and shown on the landing page. */
@@ -29,9 +26,11 @@ export function publishedLandingEventsWhere(now = new Date()) {
   );
 }
 
-/** Any published event — used for direct /agenda/[slug] links (bookmarks, admin preview). */
+/** Any published event for direct /agenda/[slug] links (bookmarks, admin
+ * preview), except a "Jouw tafel" Sunday Table: that one only lives in
+ * /jouw-tafel. */
 export function publishedEventDetailWhere() {
-  return eq(events.workflowStatus, "published");
+  return and(eq(events.workflowStatus, "published"), ne(events.experienceType, JOUW_TAFEL_TYPE));
 }
 
 /** Published events on the agenda page (incl. closed, up to AGENDA_RETENTION_DAYS after start). */

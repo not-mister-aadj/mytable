@@ -7,6 +7,7 @@ import { claimMembershipFlag, releaseMembershipFlag } from "@/lib/membership/dat
 import { sendMembershipReminderEmail, sendOpenForEveryoneEmail } from "@/lib/membership/mails";
 import { syncMembershipSubscription } from "@/lib/membership/fulfill";
 import { captureCriticalError } from "@/lib/sentry/critical";
+import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -83,7 +84,7 @@ export async function sendEarlyAccessOpenMails(now = new Date()): Promise<{ sent
     .from(events)
     .where(
       and(
-        eq(events.experienceType, "sunday-table"),
+        eq(events.experienceType, JOUW_TAFEL_TYPE),
         eq(events.workflowStatus, "published"),
         lte(events.membersOnlyUntil, now),
         gt(events.membersOnlyUntil, new Date(now.getTime() - DAY_MS)),

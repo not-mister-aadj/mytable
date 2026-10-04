@@ -13,6 +13,7 @@ import { planPriceIds } from "@/lib/membership/stripe";
 import { memberBookingAmountCents } from "@/lib/membership/logic";
 import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
+import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 export type MembershipCheckoutSource = "page" | "kies";
 
@@ -38,7 +39,7 @@ export type MembershipCheckoutResult =
 
 /** Why a Sunday Table cannot be booked right now (shared with /api/checkout). */
 export function sundayTableUnavailable(event: Event | undefined, seats: number, now = new Date()): "table_unavailable" | "table_full" | null {
-  if (!event || event.workflowStatus !== "published" || event.experienceType !== "sunday-table") return "table_unavailable";
+  if (!event || event.workflowStatus !== "published" || event.experienceType !== JOUW_TAFEL_TYPE) return "table_unavailable";
   if (event.extras?.comingSoon) return "table_unavailable";
   if (isEventClosedForBooking(event.startsAt, now)) return "table_unavailable";
   if (event.capacity - event.spotsSold < seats) return "table_full";

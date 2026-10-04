@@ -16,10 +16,11 @@ import { imageUrlKey } from "@/lib/image-url-key";
 import type { ImageSettings } from "@/lib/image-settings";
 import { images } from "@/data/images";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { experiencePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
+import { experiencePath, jouwTafelTablePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
+import { isJouwTafelType } from "@/lib/event-concepts";
 
 export type BookingGalleryItem = {
   url: string;
@@ -114,6 +115,7 @@ async function resolveEventGallery(
  * resolution used for the confirmation email (src/lib/email/build-email-props.ts).
  */
 async function resolveEventHref(row: Event, locale: Locale): Promise<string> {
+  if (isJouwTafelType(row.experienceType)) return jouwTafelTablePath(locale, row.slug);
   if (row.experienceType === "sunday-table") {
     const citySlug = sundayTableLpSlugFromCity(row.city);
     if (citySlug) {

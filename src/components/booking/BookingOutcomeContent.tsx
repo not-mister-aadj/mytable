@@ -14,6 +14,7 @@ import { formatGuestCount, formatMoney } from "@/lib/booking-display";
 import { NextTableConversion } from "@/components/NextTableConversion";
 import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
 import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
+import { isSharedTableType } from "@/lib/event-concepts";
 
 type Variant = "success" | "failed" | "pending";
 
@@ -44,8 +45,8 @@ export function BookingOutcomeContent({
         : dict.failed;
   const eventHref = summary ? summary.eventHref : agendaPath(locale);
   const agendaHref = agendaPath(locale);
-  const isSundayTable = summary?.experienceType === "sunday-table";
-  // Sunday Table's own confirmation drops the dietary-notes step (its venue
+  const isSundayTable = isSharedTableType(summary?.experienceType);
+  // A shared table's (Sunday Social, Sunday Table) own confirmation drops the dietary-notes step (its venue
   // isn't known yet at booking time, so there's nothing to notify there
   // about), and the wine/food discovery pitch and "next table" cross-sell
   // below, both written for the culinary formats and off-message for a

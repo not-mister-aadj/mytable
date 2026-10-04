@@ -4,7 +4,8 @@ import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
 import { getSiteUrl } from "@/lib/admin-url";
 import { formatMoney, reservationCode } from "@/lib/booking-display";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS } from "@/lib/jouw-tafel/logic";
-import { experiencePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
+import { experiencePath, jouwTafelTablePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
+import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 import { formatEmailDate, formatEmailTime } from "@/lib/email/format-email-dates";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
@@ -17,6 +18,8 @@ function eventDisplayName(event: Event, locale: Locale): string {
 
 function buildEventUrl(event: Event, locale: Locale): string {
   const base = getSiteUrl().replace(/\/$/, "");
+  // A "Jouw tafel" Sunday Table lives in /jouw-tafel, never in the agenda.
+  if (isJouwTafelType(event.experienceType)) return `${base}${jouwTafelTablePath(locale, event.slug)}`;
   return `${base}${experiencePath(locale, event.slug)}`;
 }
 
@@ -64,9 +67,11 @@ export async function buildBookingConfirmationEmailProps(
   const locale = await bookingEmailLocale(booking);
   const startsAt = new Date(event.startsAt);
   const endsAt = event.endsAt ? new Date(event.endsAt) : null;
-  const isSundayTable = event.experienceType === "sunday-table";
+  // Both shared-table concepts get the "strangers at one table" wording;
+  // only Sunday Social has its venue in sunday_table_locations.
+  const isSundayTable = isSharedTableType(event.experienceType);
 
-  const sundayTableContext = isSundayTable
+  const sundayTableContext = isSundaySocialType(event.experienceType)
     ? await buildSundayTableEmailContext(event, locale)
     : null;
 
@@ -113,10 +118,10 @@ function memberEmailProps(
     memberGuest:
       guestSeats > 0
         ? {
-            // Members book through the "Jouw tafel" funnel, whose single
-            // seat price is its own (not events.price_cents).
+            // Members book "Jouw tafel" Sunday Tables, whose single seat
+            // price is its own (not events.price_cents).
             was: formatMoney(
-              event.experienceType === "sunday-table" ? JOUW_TAFEL_SEAT_PRICE_CENTS : event.priceCents,
+              isJouwTafelType(event.experienceType) ? JOUW_TAFEL_SEAT_PRICE_CENTS : event.priceCents,
               booking.currency,
               locale,
             ),

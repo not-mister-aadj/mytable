@@ -215,7 +215,8 @@ function QuizHeader({
   progress: number;
   canGoBack: boolean;
   onBack: () => void;
-  /** The avatar at the top right (to settings). */
+  /** The avatar at the top right (to settings), only on the table list:
+   * during the quiz nothing should pull people away from it. */
   avatar: ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
@@ -250,7 +251,7 @@ function QuizHeader({
             </motion.span>
           </AnimatePresence>
         </p>
-        <div className="justify-self-end">{avatar}</div>
+        <div className="justify-self-end">{step === "kies" ? avatar : null}</div>
       </div>
       {/* No progress bar on the list of tables: the quiz is done there. */}
       {step === "kies" ? null : (

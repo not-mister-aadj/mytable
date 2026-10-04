@@ -9,6 +9,7 @@ import {
   CalendarSunIcon,
   ClockIcon,
   PinIcon,
+  QuoteIcon,
   SearchIcon,
   TwoPeopleIcon,
   WineGlassIcon,
@@ -58,6 +59,7 @@ import {
   stopZoektAnswer,
   type BirthDateError,
   type DietaryAnswer,
+  type HeardFromAnswer,
   type FormatAnswer,
   type QuizAnswers,
   type QuizStepId,
@@ -207,7 +209,7 @@ function WelcomeCollage() {
           >
             {/* The photos are landscape in a portrait frame, so object-cover
                 draws them about twice the frame's width: size for that. */}
-            <Image src={f.photo} alt="" fill sizes="340px" quality={90} className="object-cover" priority />
+            <Image src={f.photo} alt="" fill sizes="340px" quality={100} className="object-cover" priority />
           </motion.div>
         </div>
       ))}
@@ -377,7 +379,11 @@ const GUEST_FACES = [
   { src: "/girls-only/wine-tasting-presenter.jpg", position: "8% 30%" },
 ];
 
-/** Three small overlapping round photos with a white ring. */
+/** How far each round photo zooms in on its face: the sources are table
+ * shots, so uncropped a face is only a few pixels in a 56px circle. */
+const FACE_ZOOM = 2.2;
+
+/** Three overlapping round photos with a white ring, zoomed in on a face. */
 function GuestFaces() {
   const stagger = useStagger(0);
   return (
@@ -385,9 +391,18 @@ function GuestFaces() {
       {GUEST_FACES.map((face, i) => (
         <span
           key={face.src}
-          className={`relative h-12 w-12 overflow-hidden rounded-full bg-wine/10 ring-[3px] ring-white ${i ? "-ml-3" : ""}`}
+          className={`relative h-14 w-14 overflow-hidden rounded-full bg-wine/10 shadow-[0_6px_16px_rgba(43,13,18,0.16)] ring-[3px] ring-white ${i ? "-ml-3.5" : ""}`}
         >
-          <Image src={face.src} alt="" fill sizes="48px" className="object-cover" style={{ objectPosition: face.position }} />
+          {/* Sized for the zoom and the landscape crop, at full quality. */}
+          <Image
+            src={face.src}
+            alt=""
+            fill
+            sizes="260px"
+            quality={100}
+            className="object-cover"
+            style={{ objectPosition: face.position, transform: `scale(${FACE_ZOOM})`, transformOrigin: face.position }}
+          />
         </span>
       ))}
     </motion.div>
@@ -414,14 +429,23 @@ function ReviewCard({ testimonial: t, index, locale }: { testimonial: QuizTestim
   return (
     <motion.li
       {...stagger}
-      className="rounded-2xl border border-wine/[0.07] bg-white/85 px-5 py-4 shadow-[0_1px_2px_rgba(43,13,18,0.04),0_6px_18px_rgba(43,13,18,0.05)]"
+      className="relative overflow-hidden rounded-[1.5rem] border border-gold/25 bg-white px-6 pb-4 pt-5 shadow-[0_1px_2px_rgba(43,13,18,0.04),0_14px_34px_-12px_rgba(43,13,18,0.18)]"
     >
-      <p className="font-serif text-[1.06rem] leading-snug text-wine">{t.quote}</p>
-      <p className="mt-2.5 text-[0.8rem] leading-tight text-wine/55">
-        <span className="font-semibold text-wine/80">{t.name}</span>
-        <span className="px-1.5 text-wine/30">·</span>
-        {displayCity(t.city, locale)}
-      </p>
+      <QuoteIcon className="h-5 w-5 text-gold/80" />
+      <p className="mt-2 font-serif text-[1.1rem] leading-[1.4] text-wine">{t.quote}</p>
+      <div className="mt-4 flex items-center gap-2.5 border-t border-wine/[0.06] pt-3.5">
+        <span
+          aria-hidden
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-burgundy/[0.08] font-serif text-[0.95rem] font-semibold text-burgundy ring-1 ring-gold/30"
+        >
+          {t.name.trim().charAt(0).toLocaleUpperCase("nl-NL")}
+        </span>
+        <p className="text-[0.82rem] leading-tight text-wine/55">
+          <span className="font-semibold text-wine/85">{t.name}</span>
+          <span className="px-1.5 text-gold/70">·</span>
+          {displayCity(t.city, locale)}
+        </p>
+      </div>
     </motion.li>
   );
 }
@@ -1072,6 +1096,75 @@ export function DietScreen() {
   );
 }
 
+/** "Hoe ken je ons?": one tap moves on, except "Anders", which opens a field
+ * to say where (optional) and waits for "Verder". */
+export function HeardFromScreen() {
+  const { copy, answers, answerAndNext, variant } = useQuiz();
+  const sheet = variant === "sheet";
+  const [picked, setPicked] = useState<HeardFromAnswer | undefined>(answers.heardFrom);
+  const [other, setOther] = useState(answers.heardFromOther ?? "");
+  const otherRef = useRef<HTMLInputElement>(null);
+  const submitOther = () => answerAndNext({ heardFrom: "other", heardFromOther: other.trim() || undefined });
+  usePrimaryAction(
+    picked === "other" ? submitOther : picked ? () => answerAndNext({ heardFrom: picked, heardFromOther: undefined }) : null,
+  );
+  function choose(id: HeardFromAnswer) {
+    setPicked(id);
+    if (id === "other") {
+      // Seven answers fill the screen: bring the field up above "Verder".
+      requestAnimationFrame(() => {
+        otherRef.current?.focus({ preventScroll: true });
+        otherRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+      return;
+    }
+    answerAndNext({ heardFrom: id, heardFromOther: undefined }, { delay: AUTO_ADVANCE_MS });
+  }
+  return (
+    <>
+      <QuestionHead title={copy.bron.title} />
+      <div role="radiogroup" className={`${sheet ? "mt-5" : answersGap} space-y-3`}>
+        {HEARD_FROM_OPTIONS.map((id, i) => (
+          <ChoiceButton
+            key={id}
+            index={i}
+            selected={picked === id}
+            label={copy.bron.options[id]}
+            icon={optionIcon("bron", id)}
+            onClick={() => choose(id)}
+          />
+        ))}
+      </div>
+      {picked === "other" ? (
+        <div className="mt-5">
+          <label htmlFor="jt-quiz-heard-from" className={`${smallCaps} block text-center`}>
+            {copy.bron.otherLabel}
+          </label>
+          <input
+            ref={otherRef}
+            id="jt-quiz-heard-from"
+            type="text"
+            maxLength={120}
+            enterKeyHint="next"
+            value={other}
+            placeholder={copy.bron.otherPlaceholder}
+            onChange={(e) => setOther(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                submitOther();
+              }
+            }}
+            className={`${inputClass} mt-2 text-center ${inputOk}`}
+          />
+        </div>
+      ) : null}
+      {sheet ? null : <div className="h-28" />}
+      {picked === "other" ? <NextBar label={copy.next} onClick={submitOther} /> : null}
+    </>
+  );
+}
+
 export function FormatsScreen() {
   const { copy, answers, answerAndNext, variant } = useQuiz();
   const sheet = variant === "sheet";
@@ -1276,15 +1369,7 @@ export function QuizQuestion({ step }: { step: QuizStepId }) {
     case "formats":
       return <FormatsScreen />;
     case "bron":
-      return (
-        <SingleChoiceScreen
-          title={copy.bron.title}
-          options={HEARD_FROM_OPTIONS}
-          labels={copy.bron.options}
-          value={answers.heardFrom}
-          toPatch={(v) => ({ heardFrom: v })}
-        />
-      );
+      return <HeardFromScreen />;
     case "klaar":
       return (
         <SingleChoiceScreen

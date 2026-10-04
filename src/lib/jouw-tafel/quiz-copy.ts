@@ -114,7 +114,7 @@ export type QuizCopy = {
     options: Record<FormatAnswer, { title: string; body: string | null }>;
     note: string;
   };
-  bron: { title: string; options: Record<HeardFromAnswer, string> };
+  bron: { title: string; options: Record<HeardFromAnswer, string>; otherLabel: string; otherPlaceholder: string };
   stopReviews: { eyebrow: string; title: string };
   klaar: { title: string; options: Record<ReadyAnswer, string> };
   zoeken: { title: string; items: [string, string, string] };
@@ -328,8 +328,12 @@ const nl: QuizCopy = {
       facebook: "Facebook",
       friends: "Via vrienden",
       google: "Google",
+      ai: "Via AI, zoals ChatGPT",
+      meetup: "Meetup",
       other: "Anders",
     },
+    otherLabel: "Waar kwam je ons tegen?",
+    otherPlaceholder: "Bijvoorbeeld TikTok of een flyer",
   },
   stopReviews: { eyebrow: "Aan tafel", title: "Dit zeggen gasten na hun zondag." },
   klaar: {
@@ -542,8 +546,12 @@ const en: QuizCopy = {
       facebook: "Facebook",
       friends: "Through friends",
       google: "Google",
+      ai: "Via AI, like ChatGPT",
+      meetup: "Meetup",
       other: "Other",
     },
+    otherLabel: "Where did you come across us?",
+    otherPlaceholder: "For example TikTok or a flyer",
   },
   stopReviews: { eyebrow: "At the table", title: "What guests say after their Sunday." },
   klaar: {

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import {
   jouwTafelLogInPath,
-  jouwTafelSettingsPath,
+  jouwTafelStartPath,
   localePath,
 } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
@@ -23,14 +23,15 @@ interface HeaderProps {
 }
 
 /** The site header: logo, "Inloggen" (or "Mijn tafel" once signed in to a
- * "Jouw tafel" account) and the language switch. The button stays visible on
+ * "Jouw tafel" account, back into the quiz where it was left, or the table
+ * list once it is done) and the language switch. The button stays visible on
  * every screen size so returning members can always find their way back in. */
 export function Header({ dict, locale, className = "" }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const { isSignedIn } = useAuthSession();
   const home = localePath(locale);
   const accountHref = isSignedIn
-    ? jouwTafelSettingsPath(locale)
+    ? jouwTafelStartPath(locale)
     : jouwTafelLogInPath(locale);
   const accountLabel = isSignedIn ? dict.nav.myTable : dict.nav.logIn;
   const accountActive = (usePathname() ?? "/") === accountHref;

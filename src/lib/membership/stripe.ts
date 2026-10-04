@@ -122,10 +122,16 @@ export async function ensureMembershipSchedule(sub: Stripe.Subscription): Promis
     if (sub.status !== "active" && sub.status !== "trialing" && sub.status !== "past_due") return null;
     const item = sub.items.data[0];
     if (!item || item.price.id !== prices.initial) return null;
-    schedule = await stripe.subscriptionSchedules.create(
-      { from_subscription: sub.id },
-      { idempotencyKey: `membership-schedule-${sub.id}-${item.current_period_end}` },
-    );
+    try {
+      schedule = await stripe.subscriptionSchedules.create({ from_subscription: sub.id });
+    } catch (error) {
+      // Two webhooks at once: the other one attached it first. A
+      // subscription has at most one schedule, so use that one.
+      const fresh = await stripe.subscriptions.retrieve(sub.id);
+      const attached = subscriptionScheduleId(fresh);
+      if (!attached) throw error;
+      schedule = await stripe.subscriptionSchedules.retrieve(attached);
+    }
   }
 
   // The phase that is running now: keep it exactly as it is (already paid).

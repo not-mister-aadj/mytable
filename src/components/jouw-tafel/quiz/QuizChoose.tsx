@@ -76,7 +76,9 @@ function startTime(iso: string, locale: Locale): string {
 
 /** "Do 8 okt 14:00" / "Thu 8 Oct 2:00 PM": when a table opens for everyone. */
 function openFrom(iso: string, locale: Locale): string {
-  return `${shortDate(iso, locale)} ${startTime(iso, locale)}`;
+  const date = shortDate(iso, locale);
+  // Mid-sentence in Dutch: "jij vanaf ma 5 okt 17:05".
+  return `${locale === "nl" ? date.charAt(0).toLocaleLowerCase("nl-NL") + date.slice(1) : date} ${startTime(iso, locale)}`;
 }
 
 /** "ZO" / "25" / "okt" for the date badge. */
@@ -379,7 +381,7 @@ export function QuizChoose({
               {included ? mk.includedShort : k.perSeat(formatEuros(event.priceCents))}
             </span>
           </motion.button>
-          {unsure || early ? <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div> : null}
+          {unsure ? <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true)}</div> : null}
         </div>
       </motion.li>
     );
@@ -555,7 +557,10 @@ export function QuizChoose({
                           role="radio"
                           aria-checked={active}
                           disabled={disabled}
-                          onClick={() => setSeats(n)}
+                          onClick={() => {
+                            setSeats(n);
+                            setError(null);
+                          }}
                           className={`min-h-10 rounded-full px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 disabled:opacity-35 ${
                             active ? "bg-white text-burgundy shadow-[0_2px_8px_rgba(43,13,18,0.12)]" : "text-wine/60"
                           }`}
@@ -599,7 +604,10 @@ export function QuizChoose({
                       title={mk.singleTitle}
                       sub={selectedEarly ? mk.earlyLabel(openFrom(selected.event.membersOnlyUntil!, locale)) : null}
                       right={`€${formatEuros(selected.event.priceCents)}`}
-                      onSelect={() => setChoice("single")}
+                      onSelect={() => {
+                        setChoice("single");
+                        setError(null);
+                      }}
                     />
                     <ChoiceCard
                       selected={effectiveChoice === "member"}
@@ -608,6 +616,7 @@ export function QuizChoose({
                       right={mk.memberFrom(`€${formatPlanEuros(lowestMonthlyCents(), locale)}`)}
                       onSelect={() => {
                         setChoice("member");
+                        setError(null);
                         trackMembershipEvent(PostHogEvents.membershipPlanSelected, { plan, source: "kies" });
                       }}
                     />
@@ -622,6 +631,7 @@ export function QuizChoose({
                               aria-checked={plan === id}
                               onClick={() => {
                                 setPlan(id);
+                                setError(null);
                                 trackMembershipEvent(PostHogEvents.membershipPlanSelected, { plan: id, source: "kies" });
                               }}
                               className={`min-h-9 rounded-full px-2 text-[0.8rem] font-semibold transition-[background-color,color] duration-200 ${
@@ -632,14 +642,9 @@ export function QuizChoose({
                             </button>
                           ))}
                         </div>
-                        <p className="mt-2.5 px-1 text-[0.82rem] leading-snug text-wine/70">
-                          <span className="font-semibold text-wine">
-                            {planCopy.plan(plan).price} {planCopy.plan(plan).priceUnit}.
-                          </span>{" "}
-                          {planCopy.plan(plan).line}.
-                        </p>
+                        <p className="mt-2.5 px-1 text-[0.82rem] leading-snug text-wine/70">{planCopy.plan(plan).line}.</p>
                         <MemberLines
-                          included={mk.memberSummary(planCopy.plan(plan).name)}
+                          included={mk.memberSummary}
                           guest={
                             effectiveSeats === 2
                               ? {
@@ -767,6 +772,7 @@ function ChoiceCard({
       type="button"
       role="radio"
       aria-checked={selected}
+      aria-label={`${title}, ${right}`}
       disabled={disabled}
       onClick={onSelect}
       className={`flex min-h-[3.4rem] w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 disabled:cursor-not-allowed disabled:opacity-60 ${

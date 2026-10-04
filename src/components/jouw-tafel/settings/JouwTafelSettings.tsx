@@ -102,6 +102,16 @@ function clockTime(iso: string, locale: Locale): string {
   }).format(new Date(iso));
 }
 
+/** "4 februari 2027" / "4 February 2027" (membership dates). */
+function fullDate(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
+    timeZone: AMSTERDAM,
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
 function birthDateText(iso: string | undefined, locale: Locale): string | null {
   if (!iso) return null;
   return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
@@ -588,14 +598,14 @@ export function JouwTafelSettings({
                   className={`text-[0.92rem] leading-snug ${membership.summary.kind === "past_due" ? "font-semibold text-red-700" : "text-wine/70"}`}
                 >
                   {membership.summary.kind === "renews"
-                    ? ms.renews(longDate(membership.summary.date, locale, false), `€${formatPlanEuros(membership.summary.cents, locale)}`)
+                    ? ms.renews(fullDate(membership.summary.date, locale), `€${formatPlanEuros(membership.summary.cents, locale)}`)
                     : membership.summary.kind === "ends"
-                      ? ms.ends(longDate(membership.summary.date, locale, false))
+                      ? ms.ends(fullDate(membership.summary.date, locale))
                       : membership.summary.kind === "past_due"
                         ? ms.pastDue
                         : null}
                   {membership.blockedUntil ? (
-                    <span className="mt-1 block text-wine/70">{ms.blocked(longDate(membership.blockedUntil, locale, false))}</span>
+                    <span className="mt-1 block text-wine/70">{ms.blocked(fullDate(membership.blockedUntil, locale))}</span>
                   ) : null}
                 </span>
               </li>

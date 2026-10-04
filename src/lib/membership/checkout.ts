@@ -11,6 +11,7 @@ import { getRunningMembershipForUser, previousStripeCustomerId } from "@/lib/mem
 import { guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
 import { planPriceIds } from "@/lib/membership/stripe";
 import { memberBookingAmountCents } from "@/lib/membership/logic";
+import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 
 export type MembershipCheckoutSource = "page" | "kies";
@@ -140,10 +141,12 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         metadata: { kind: "membership", plan: input.plan, user_id: input.user.id, email, locale: input.locale },
       },
       custom_text: {
+        // Stripe shows "billed every 4 months" / "yearly" for the first
+        // price, so the plan's own words go right above the pay button.
         submit: {
           message: en
-            ? `Your membership starts right after payment. Cancel monthly after your first period. Terms: ${site}${termsPath("en")}`
-            : `Je lidmaatschap start direct na betaling. Maandelijks opzegbaar na je eerste periode. Voorwaarden: ${site}${termsPath("nl")}`,
+            ? `${planPriceLine(input.plan, "en")}. Your membership starts right after payment. Terms: ${site}${termsPath("en")}`
+            : `${planPriceLine(input.plan, "nl")}. Je lidmaatschap start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
         },
       },
       success_url: `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,

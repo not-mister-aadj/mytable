@@ -335,7 +335,7 @@ export type MembershipKiesCopy = {
   planShort: (id: MembershipPlanId) => string;
   becomeMember: string;
   becomeMemberBusy: string;
-  memberSummary: (plan: string) => string;
+  memberSummary: string;
   included: string;
   includedShort: string;
   guest: string;
@@ -361,7 +361,7 @@ export function getMembershipKiesCopy(locale: Locale): MembershipKiesCopy {
       planShort: (id) => (id === "1m" ? "1 month" : id === "4m" ? "4 months" : "1 year"),
       becomeMember: "Become a member and book",
       becomeMemberBusy: "One moment",
-      memberSummary: (plan) => `Your seat is included. Membership ${plan}, cancel monthly after your first period.`,
+      memberSummary: "Your own seat is included.",
       included: "Included in your membership",
       includedShort: "Included",
       guest: "Guest",
@@ -385,7 +385,7 @@ export function getMembershipKiesCopy(locale: Locale): MembershipKiesCopy {
     planShort: (id) => (id === "1m" ? "1 maand" : id === "4m" ? "4 maanden" : "1 jaar"),
     becomeMember: "Word lid en boek",
     becomeMemberBusy: "Even geduld",
-    memberSummary: (plan) => `Je plek is inbegrepen. Lidmaatschap ${plan}, maandelijks opzegbaar na je eerste periode.`,
+    memberSummary: "Je eigen plek is inbegrepen.",
     included: "Inbegrepen in je lidmaatschap",
     includedShort: "Inbegrepen",
     guest: "Gast",

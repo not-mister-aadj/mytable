@@ -121,7 +121,9 @@ export async function syncMembershipFromSubscription(
   const before = await getMembershipBySubscription(sub.id);
   const periodEnd = subscriptionPeriodEnd(sub);
   const { cancelling, endsAt } = subscriptionCancellation(sub);
-  const scheduleId = input.scheduleId ?? subscriptionScheduleId(sub) ?? before?.stripeScheduleId ?? null;
+  // The schedule attached right now (null once released, e.g. after a
+  // cancellation in the Billing Portal), so the cron can spot a missing one.
+  const scheduleId = input.scheduleId ?? subscriptionScheduleId(sub);
   const onFirstPeriod = sub.items.data[0]?.price.lookup_key?.endsWith("_initial") || plan === "1m";
   const now = new Date();
 

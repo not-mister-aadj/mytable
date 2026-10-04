@@ -103,7 +103,9 @@ export async function JouwTafelMembershipPage({
     <JouwTafelMembership
       locale={locale}
       state={state}
-      initialPlan={isMembershipPlanId(planParam) ? planParam : DEFAULT_MEMBERSHIP_PLAN}
+      initialPlan={
+        state.kind === "member" ? state.plan : isMembershipPlanId(planParam) ? planParam : DEFAULT_MEMBERSHIP_PLAN
+      }
       singleSeatCents={singleSeatCents(events, now)}
       testimonials={testimonials}
     />

@@ -20,6 +20,8 @@ export type BookingMovedEmailProps = {
   seats: number;
   bookingCode: string;
   eventUrl: string;
+  /** The customer moved it themselves ("Je hebt je boeking verzet"). */
+  selfService?: boolean;
 };
 
 export function BookingMovedEmail({
@@ -36,6 +38,7 @@ export function BookingMovedEmail({
   seats,
   bookingCode,
   eventUrl,
+  selfService = false,
 }: BookingMovedEmailProps) {
   const en = locale === "en";
   const greeting = customerName
@@ -66,9 +69,13 @@ export function BookingMovedEmail({
         greeting={greeting}
         headline={en ? "Your booking was moved" : "Je boeking is verplaatst"}
         body={
-          en
-            ? "We updated your booking. Your new table details are below."
-            : "We hebben je boeking aangepast. Hieronder vind je je nieuwe tafelgegevens."
+          selfService
+            ? en
+              ? "You moved your booking to the next Sunday. Your new table details are below."
+              : "Je hebt je boeking verzet naar de volgende zondag. Hieronder vind je je nieuwe tafelgegevens."
+            : en
+              ? "We updated your booking. Your new table details are below."
+              : "We hebben je boeking aangepast. Hieronder vind je je nieuwe tafelgegevens."
         }
       />
 

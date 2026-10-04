@@ -7,13 +7,7 @@ import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
-import { buildBookingMovedEmailProps } from "@/lib/email/build-email-props";
-import { sendBookingMovedEmail } from "@/lib/email/sendBookingMovedEmail";
-import {
-  onBookingCancelled,
-  onBookingCreated,
-  onBookingMoved,
-} from "@/lib/customers/hooks";
+import { onBookingCancelled } from "@/lib/customers/hooks";
 import { parseEventExtras, GIRLS_ONLY_ATMOSPHERE_TAG } from "@/lib/event-extras";
 import { syncEventVenuesFromEvent } from "@/lib/event-venues";
 import {
@@ -34,6 +28,7 @@ import {
 } from "@/lib/experience-types";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
+import { transferBooking } from "@/lib/booking-transfer";
 import { redirect } from "next/navigation";
 
 export type EventFormState = {
@@ -577,167 +572,8 @@ export async function transferBookingToEventAction(
     return { error: "Database niet geconfigureerd" };
   }
 
-  const db = getDb();
-
   try {
-    const slugs = await db.transaction(async (tx) => {
-      const [booking] = await tx
-        .select()
-        .from(bookings)
-        .where(eq(bookings.id, bookingId))
-        .limit(1);
-
-      if (!booking) {
-        throw new Error("Boeking niet gevonden");
-      }
-      if (booking.paymentStatus !== "paid") {
-        throw new Error("Alleen bevestigde betalingen kunnen worden verplaatst");
-      }
-      if (booking.lifecycleStatus !== "active") {
-        throw new Error("Deze boeking is niet meer actief op deze tafel");
-      }
-      if (booking.eventId === targetEventId) {
-        throw new Error("Kies een andere tafel");
-      }
-
-      const [sourceEvent] = await tx
-        .select()
-        .from(events)
-        .where(eq(events.id, booking.eventId))
-        .limit(1);
-      const [targetEvent] = await tx
-        .select()
-        .from(events)
-        .where(eq(events.id, targetEventId))
-        .limit(1);
-
-      if (!sourceEvent || !targetEvent) {
-        throw new Error("Tafel niet gevonden");
-      }
-      if (targetEvent.workflowStatus === "cancelled") {
-        throw new Error("Doeltafel is geannuleerd");
-      }
-      if (targetEvent.spotsSold + booking.seats > targetEvent.capacity) {
-        throw new Error("Niet genoeg plekken op de doeltafel");
-      }
-
-      const transferredAt = new Date();
-
-      const [newBooking] = await tx
-        .insert(bookings)
-        .values({
-          eventId: targetEventId,
-          customerId: booking.customerId,
-          email: booking.email,
-          customerName: booking.customerName,
-          seats: booking.seats,
-          amountCents: booking.amountCents,
-          currency: booking.currency,
-          stripePaymentIntentId: booking.stripePaymentIntentId,
-          paymentStatus: "paid",
-          locale: booking.locale,
-          dietaryNotes: booking.dietaryNotes,
-          seatingPreference: booking.seatingPreference,
-          tableLanguagePreference: booking.tableLanguagePreference,
-          adminNotes: booking.adminNotes,
-          confirmationEmailSentAt: booking.confirmationEmailSentAt,
-          // A member's booking stays a member's booking on the new date.
-          membershipId: booking.membershipId,
-          lifecycleStatus: "active",
-          transferredFromBookingId: booking.id,
-          transferredAt,
-          transferredBy: user.email ?? undefined,
-        })
-        .returning();
-
-      if (!newBooking) {
-        throw new Error("Kon nieuwe boeking niet aanmaken");
-      }
-
-      await tx
-        .update(bookings)
-        .set({
-          lifecycleStatus: "transferred",
-          transferredToEventId: targetEventId,
-          transferredToBookingId: newBooking.id,
-          transferredAt,
-          transferredBy: user.email ?? undefined,
-        })
-        .where(eq(bookings.id, bookingId));
-
-      await tx.insert(bookingEvents).values([
-        {
-          bookingId,
-          type: "transferred",
-          payload: {
-            fromEventId: sourceEvent.id,
-            toEventId: targetEventId,
-            toBookingId: newBooking.id,
-            by: user.email,
-          },
-        },
-        {
-          bookingId: newBooking.id,
-          type: "transferred_in",
-          payload: {
-            fromEventId: sourceEvent.id,
-            fromBookingId: bookingId,
-            by: user.email,
-          },
-        },
-      ]);
-
-      return {
-        sourceSlug: sourceEvent.slug,
-        targetSlug: targetEvent.slug,
-        eventIds: [sourceEvent.id, targetEventId] as const,
-        newBooking,
-        sourceEvent,
-        targetEvent,
-        customerId: booking.customerId,
-        sourceBookingId: bookingId,
-      };
-    });
-
-    if (slugs.customerId) {
-      await onBookingMoved({
-        customerId: slugs.customerId,
-        fromEvent: slugs.sourceEvent,
-        toEvent: slugs.targetEvent,
-        fromBookingId: slugs.sourceBookingId,
-        toBookingId: slugs.newBooking.id,
-        by: user.email,
-      });
-    } else {
-      const customerId = await onBookingCreated({
-        booking: slugs.newBooking,
-        event: slugs.targetEvent,
-      });
-      await onBookingMoved({
-        customerId,
-        fromEvent: slugs.sourceEvent,
-        toEvent: slugs.targetEvent,
-        fromBookingId: slugs.sourceBookingId,
-        toBookingId: slugs.newBooking.id,
-        by: user.email,
-      });
-    }
-
-    await reconcileEventSpotsSold([...slugs.eventIds]);
-    revalidateEventPaths(slugs.sourceEvent);
-    revalidateEventPaths(slugs.targetEvent);
-
-    try {
-      const movedProps = await buildBookingMovedEmailProps(
-        slugs.newBooking,
-        slugs.sourceEvent,
-        slugs.targetEvent,
-      );
-      await sendBookingMovedEmail(movedProps);
-    } catch (emailErr) {
-      console.error("[transfer booking] moved email failed", emailErr);
-    }
-
+    await transferBooking({ bookingId, targetEventId, by: user.email ?? null });
     return { error: null };
   } catch (error) {
     return {

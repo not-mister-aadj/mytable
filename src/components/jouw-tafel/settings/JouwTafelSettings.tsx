@@ -49,6 +49,11 @@ export type SettingsBooking = {
   isMemberSeat: boolean;
   withPaidGuest: boolean;
   cancellable: boolean;
+  reschedule:
+    | { state: "available"; targetEventId: string; targetStartsAt: string }
+    | { state: "too_late" }
+    | { state: "none" }
+    | null;
 };
 
 /** The membership group at the top (null: not a member, "Word lid"). */
@@ -327,6 +332,34 @@ export function JouwTafelSettings({
   const [mailsBusy, setMailsBusy] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmMove, setConfirmMove] = useState(false);
+  const [moving, setMoving] = useState(false);
+
+  async function moveBooking(booking: SettingsBooking) {
+    if (moving || booking.reschedule?.state !== "available") return;
+    setMoving(true);
+    try {
+      const res = await fetch("/api/bookings/reschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: booking.id, expectedTargetEventId: booking.reschedule.targetEventId }),
+      });
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; startsAt?: string; code?: string } | null;
+      if (!res.ok || !data?.ok || !data.startsAt) {
+        setToast(data?.code === "target_changed" ? s.reservations.reschedule.changed : s.reservations.reschedule.failed);
+        if (data?.code === "target_changed") router.refresh();
+        return;
+      }
+      setSheet(null);
+      setConfirmMove(false);
+      setToast(s.reservations.reschedule.done(longDate(data.startsAt, locale, false)));
+      router.refresh();
+    } catch {
+      setToast(s.reservations.reschedule.failed);
+    } finally {
+      setMoving(false);
+    }
+  }
   const [deleteError, setDeleteError] = useState(false);
   const primaryActionRef = useRef<(() => void) | null>(null);
   const answers = quiz.answers;
@@ -513,6 +546,7 @@ export function JouwTafelSettings({
           onClick={() => {
             trackSettingsEvent(PostHogEvents.bookingOpened, { upcoming: new Date(b.startsAt).getTime() > Date.now() });
             setConfirmCancel(false);
+            setConfirmMove(false);
             setSheet({ kind: "booking", booking: b });
           }}
           className={`${rowBase} active:bg-cream/70`}
@@ -838,10 +872,26 @@ export function JouwTafelSettings({
             )
           ) : (
             <>
+            {sheet.booking.reschedule ? (
+              <RescheduleBlock
+                booking={sheet.booking}
+                locale={locale}
+                copy={s.reservations.reschedule}
+                confirming={confirmMove}
+                moving={moving}
+                onAsk={() => setConfirmMove(true)}
+                onCancel={() => setConfirmMove(false)}
+                onConfirm={() => void moveBooking(sheet.booking)}
+              />
+            ) : (
               <p className="mt-2 text-[0.92rem] leading-relaxed text-wine/70">{s.reservations.change}</p>
-              <button type="button" onClick={() => void copyEmail()} className={`${secondaryButton} mt-5`}>
-                {s.reservations.changeLink}
-              </button>
+            )}
+            {sheet.booking.reschedule && sheet.booking.reschedule.state !== "none" ? (
+              <p className="mt-4 text-[0.88rem] leading-relaxed text-wine/60">{s.reservations.reschedule.questions}</p>
+            ) : null}
+            <button type="button" onClick={() => void copyEmail()} className={`${secondaryButton} mt-3`}>
+              {s.reservations.changeLink}
+            </button>
             </>
           )}
         </BottomSheet>
@@ -888,6 +938,63 @@ export function JouwTafelSettings({
           </motion.div>
         ) : null}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** "Verzetten naar de volgende zondag" in the booking sheet. */
+function RescheduleBlock({
+  booking,
+  locale,
+  copy,
+  confirming,
+  moving,
+  onAsk,
+  onCancel,
+  onConfirm,
+}: {
+  booking: SettingsBooking;
+  locale: Locale;
+  copy: SettingsCopy["reservations"]["reschedule"];
+  confirming: boolean;
+  moving: boolean;
+  onAsk: () => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const option = booking.reschedule;
+  if (!option) return null;
+  if (option.state === "none") {
+    return <p className="mt-4 text-[0.92rem] leading-relaxed text-wine/75">{copy.none(displayCity(booking.city, locale))}</p>;
+  }
+  if (option.state === "too_late") {
+    return (
+      <div className="mt-5">
+        <button type="button" disabled className={`${secondaryButton} opacity-50`}>
+          {copy.button}
+        </button>
+        <p className="mt-2 text-center text-[0.85rem] text-wine/60">{copy.tooLate}</p>
+      </div>
+    );
+  }
+  if (!confirming) {
+    return (
+      <button type="button" onClick={onAsk} className={`${primaryButton} mt-5`}>
+        {copy.button}
+      </button>
+    );
+  }
+  return (
+    <div className="mt-5 rounded-2xl bg-cream/70 p-4">
+      <p className="text-[0.95rem] leading-relaxed text-wine">
+        {copy.confirm(longDate(option.targetStartsAt, locale, false), displayCity(booking.city, locale))}
+      </p>
+      <button type="button" onClick={onConfirm} disabled={moving} className={`${primaryButton} mt-4 !min-h-12`}>
+        {moving ? copy.busy : copy.confirmButton}
+      </button>
+      <button type="button" onClick={onCancel} disabled={moving} className={`${secondaryButton} mt-2 !min-h-12`}>
+        {copy.cancelButton}
+      </button>
     </div>
   );
 }

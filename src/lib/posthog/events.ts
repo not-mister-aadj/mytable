@@ -77,6 +77,8 @@ export const PostHogEvents = {
   membershipCancelClicked: "membership_cancel_clicked",
   memberSeatCancelled: "member_seat_cancelled",
   earlyAccessBlockedView: "early_access_blocked_view",
+  /** A customer moved their own seat to the next Sunday (days_before only). */
+  bookingRescheduled: "booking_rescheduled",
 } as const;
 
 export type PostHogEventName =

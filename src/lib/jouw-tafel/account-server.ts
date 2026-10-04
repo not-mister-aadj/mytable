@@ -14,6 +14,7 @@ import { normalizeEmail } from "@/lib/customers/normalize";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { CAMPAIGN_UNSUBSCRIBED_TAG } from "@/lib/email/campaign-mail";
 import { canMemberCancelSeat } from "@/lib/membership/logic";
+import { loadRescheduleCandidates, rescheduleOption, type RescheduleOption } from "@/lib/jouw-tafel/reschedule-server";
 
 // Server side of the "Jouw tafel" settings page: reservations, the mail
 // switch and deleting an account. Only ever for the signed-in person's own
@@ -29,10 +30,13 @@ export type MemberBooking = {
   name: { nl: string; en: string } | null;
   /** A member's booking (own seat included). */
   isMemberSeat: boolean;
-  /** A paid guest seat comes with it (refunded when cancelled). */
+  /** A paid guest seat comes with it (not refunded when cancelled). */
   withPaidGuest: boolean;
   /** The member can still cancel it (until 48 hours before). */
   cancellable: boolean;
+  /** "Verzetten naar de volgende zondag" for an upcoming Sunday Table seat;
+   * null when it does not apply. */
+  reschedule: RescheduleOption | null;
 };
 
 /**
@@ -60,6 +64,7 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
       nameEn: events.nameEn,
       membershipId: bookings.membershipId,
       amountCents: bookings.amountCents,
+      eventId: events.id,
     })
     .from(bookings)
     .innerJoin(events, eq(bookings.eventId, events.id))
@@ -74,6 +79,9 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     )
     .orderBy(events.startsAt);
   const now = Date.now();
+  const candidates = rows.some((r) => r.experienceType === "sunday-table" && r.startsAt.getTime() >= now)
+    ? await loadRescheduleCandidates()
+    : [];
   const all = rows.map((r) => ({
     id: r.id,
     code: reservationCode(r.id),
@@ -84,6 +92,10 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     isMemberSeat: Boolean(r.membershipId),
     withPaidGuest: Boolean(r.membershipId) && r.seats > 1 && r.amountCents > 0,
     cancellable: Boolean(r.membershipId) && canMemberCancelSeat(r.startsAt, now),
+    reschedule:
+      r.experienceType === "sunday-table" && r.startsAt.getTime() >= now && !r.membershipId
+        ? rescheduleOption({ id: r.eventId, city: r.city, nameNl: r.nameNl, startsAt: r.startsAt }, r.seats, candidates, now)
+        : null,
   }));
   return {
     upcoming: all.filter((b) => new Date(b.startsAt).getTime() >= now),

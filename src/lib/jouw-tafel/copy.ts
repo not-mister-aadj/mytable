@@ -145,7 +145,7 @@ const landingNl: LandingCopy = {
     steps: [
       {
         title: "Kies je zondag.",
-        body: "Elke maand een vaste datum in jouw stad, met een tafel voor jouw leeftijd.",
+        body: "Elke maand een vaste datum in jouw stad. Wij stellen de tafels samen.",
       },
       {
         title: "Wij kiezen de wijnbar.",
@@ -346,7 +346,7 @@ const landingEn: LandingCopy = {
     steps: [
       {
         title: "Choose your Sunday.",
-        body: "A fixed date in your city every month, with a table for your age.",
+        body: "A fixed date in your city every month. We put the tables together.",
       },
       {
         title: "We choose the wine bar.",

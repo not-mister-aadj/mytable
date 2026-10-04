@@ -51,6 +51,8 @@ export type QuizEvent = {
   /** When booking opens (for members first), ISO; shown on a table that is
    * not bookable yet. */
   opensAt?: string | null;
+  /** An admin's exception: open for everyone from this moment (ISO). */
+  bookingOpensAt?: string | null;
 };
 
 /** Members can book a Sunday Table this many days before its date;
@@ -64,8 +66,20 @@ export const JOUW_TAFEL_DATES_PER_CITY = 2;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** When members, and then everyone, can book a Sunday Table. */
-export function jouwTafelBookingWindow(startsAt: Date | string): { membersFrom: Date; everyoneFrom: Date } {
+/** An admin's exception (events.extras.bookingOpensAt): the moment a table
+ * opens for everyone at once, instead of the usual window. Null when unset. */
+export function bookingOpensOverride(extras: unknown): string | null {
+  const value = (extras as { bookingOpensAt?: unknown } | null | undefined)?.bookingOpensAt;
+  return typeof value === "string" && !Number.isNaN(Date.parse(value)) ? value : null;
+}
+
+/** When members, and then everyone, can book a Sunday Table. With an
+ * admin's exception (`opensAt`) everyone can book from that moment. */
+export function jouwTafelBookingWindow(
+  startsAt: Date | string,
+  opensAt?: string | null,
+): { membersFrom: Date; everyoneFrom: Date } {
+  if (opensAt) return { membersFrom: new Date(opensAt), everyoneFrom: new Date(opensAt) };
   const start = typeof startsAt === "string" ? Date.parse(startsAt) : startsAt.getTime();
   const membersFrom = start - JOUW_TAFEL_MEMBERS_OPEN_DAYS * DAY_MS;
   return { membersFrom: new Date(membersFrom), everyoneFrom: new Date(membersFrom + EARLY_ACCESS_HOURS * 60 * 60 * 1000) };
@@ -76,11 +90,10 @@ export function jouwTafelBookingWindow(startsAt: Date | string): { membersFrom: 
  * before members can book, members only until everyone can (an admin's
  * later members_only_until wins), and when it opens.
  */
-export function withBookingWindow<T extends { startsAt: string; comingSoon: boolean; membersOnlyUntil?: string | null }>(
-  event: T,
-  now: number = Date.now(),
-): T & { opensAt: string } {
-  const { membersFrom, everyoneFrom } = jouwTafelBookingWindow(event.startsAt);
+export function withBookingWindow<
+  T extends { startsAt: string; comingSoon: boolean; membersOnlyUntil?: string | null; bookingOpensAt?: string | null },
+>(event: T, now: number = Date.now()): T & { opensAt: string } {
+  const { membersFrom, everyoneFrom } = jouwTafelBookingWindow(event.startsAt, event.bookingOpensAt);
   const stored = event.membersOnlyUntil ? Date.parse(event.membersOnlyUntil) : 0;
   return {
     ...event,

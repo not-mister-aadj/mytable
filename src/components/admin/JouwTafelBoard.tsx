@@ -7,6 +7,7 @@ import {
   addEventVenueAction,
   addGroupAction,
   assignBookingAction,
+  openForEveryoneNowAction,
   removeEventVenueAction,
   removeGroupAction,
   setGroupsFinalAction,
@@ -198,6 +199,20 @@ export function JouwTafelBoard({
               Maak definitief
             </button>
           )}
+          {!event.openForEveryone && event.state !== "full" ? (
+            <button
+              type="button"
+              className={ghost}
+              disabled={pending}
+              onClick={() => {
+                if (window.confirm("Deze tafel nu voor iedereen boekbaar maken, zonder voorrang voor leden?")) {
+                  run(() => openForEveryoneNowAction(event.id));
+                }
+              }}
+            >
+              Nu boekbaar maken
+            </button>
+          ) : null}
           {unassignedSeats > 0 && !event.finalAt ? (
             <p className="text-xs text-wine/55">{unassignedSeats} nog niet ingedeeld</p>
           ) : null}

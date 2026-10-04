@@ -33,11 +33,12 @@ export type CalendarState = "not_yet" | "bookable" | "full";
 
 /** What the calendar shows: not bookable yet (for anyone), bookable, or full. */
 export function calendarState(
-  event: { startsAt: string | Date; capacity: number; spotsSold: number; comingSoon: boolean },
+  event: { startsAt: string | Date; capacity: number; spotsSold: number; comingSoon: boolean; bookingOpensAt?: string | null },
   now: number = Date.now(),
 ): CalendarState {
   if (event.spotsSold >= event.capacity) return "full";
-  if (event.comingSoon || now < jouwTafelBookingWindow(event.startsAt).membersFrom.getTime()) return "not_yet";
+  const opens = jouwTafelBookingWindow(event.startsAt, event.bookingOpensAt).membersFrom.getTime();
+  if (event.comingSoon || now < opens) return "not_yet";
   return "bookable";
 }
 

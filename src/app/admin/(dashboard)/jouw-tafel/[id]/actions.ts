@@ -7,6 +7,7 @@ import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema"
 import { requireAdmin } from "@/lib/admin-auth";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 import { nextGroupNumber } from "@/lib/jouw-tafel/groups-logic";
+import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 
 function refresh(eventId: string) {
   revalidatePath(`/admin/jouw-tafel/${eventId}`);
@@ -124,5 +125,29 @@ export async function setGroupsFinalAction(eventId: string, final: boolean) {
     .update(events)
     .set({ groupsFinalAt: final ? new Date() : null, updatedAt: new Date() })
     .where(eq(events.id, eventId));
+  refresh(eventId);
+}
+
+/** The exception to the booking window: this table is bookable for
+ * everyone from now on, without the members' head start. */
+export async function openForEveryoneNowAction(eventId: string) {
+  await requireAdmin();
+  const db = getDb();
+  const [event] = await db
+    .select()
+    .from(events)
+    .where(and(eq(events.id, eventId), eq(events.experienceType, JOUW_TAFEL_TYPE)))
+    .limit(1);
+  if (!event) throw new Error("Tafel niet gevonden.");
+  const [row] = await db
+    .update(events)
+    .set({
+      extras: { ...(event.extras ?? {}), comingSoon: false, bookingOpensAt: new Date().toISOString() },
+      membersOnlyUntil: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(events.id, eventId))
+    .returning();
+  revalidateEventPaths(row);
   refresh(eventId);
 }

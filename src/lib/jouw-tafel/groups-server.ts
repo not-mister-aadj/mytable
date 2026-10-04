@@ -6,6 +6,7 @@ import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { QUIZ_METADATA_KEY, ageFromBirthDate, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { calendarState, monthGrid, type CalendarState } from "@/lib/jouw-tafel/groups-logic";
 import { seriesStartsAt } from "@/lib/jouw-tafel/series-server";
+import { bookingOpensOverride, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
 // ---------------------------------------------------------------- calendar
 
@@ -72,7 +73,7 @@ export async function loadCalendarMonth(year: number, month: number, now = Date.
       capacity: r.capacity,
       spotsSold: r.spotsSold,
       state: calendarState(
-        { startsAt: r.startsAt, capacity: r.capacity, spotsSold: r.spotsSold, comingSoon: Boolean(r.extras?.comingSoon) },
+        { startsAt: r.startsAt, capacity: r.capacity, spotsSold: r.spotsSold, comingSoon: Boolean(r.extras?.comingSoon), bookingOpensAt: bookingOpensOverride(r.extras) },
         now,
       ),
       venueCount: venueCount.get(r.id) ?? 0,
@@ -109,6 +110,10 @@ export type EventBoard = {
     spotsSold: number;
     state: CalendarState;
     finalAt: string | null;
+    /** An admin opened it for everyone early (extras.bookingOpensAt). */
+    openedEarly: boolean;
+    /** Everyone (not just members) can book it now. */
+    openForEveryone: boolean;
   };
   venues: { id: string; name: string; address: string | null }[];
   groups: BoardGroup[];
@@ -200,10 +205,17 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       capacity: event.capacity,
       spotsSold: event.spotsSold,
       state: calendarState(
-        { startsAt: event.startsAt, capacity: event.capacity, spotsSold: event.spotsSold, comingSoon: Boolean(event.extras?.comingSoon) },
+        { startsAt: event.startsAt, capacity: event.capacity, spotsSold: event.spotsSold, comingSoon: Boolean(event.extras?.comingSoon), bookingOpensAt: bookingOpensOverride(event.extras) },
         now,
       ),
       finalAt: event.groupsFinalAt?.toISOString() ?? null,
+      openedEarly: Boolean(bookingOpensOverride(event.extras)),
+      openForEveryone:
+        !event.extras?.comingSoon &&
+        now >= Math.max(
+          jouwTafelBookingWindow(event.startsAt, bookingOpensOverride(event.extras)).everyoneFrom.getTime(),
+          event.membersOnlyUntil?.getTime() ?? 0,
+        ),
     },
     venues: linked,
     groups: groupRows,

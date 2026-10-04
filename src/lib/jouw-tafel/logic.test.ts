@@ -7,6 +7,8 @@ import {
   cityTables,
   cityTabs,
   displayCity,
+  JOUW_TAFEL_SEAT_PRICE_CENTS,
+  resolveSeatPriceCents,
   nearbyCities,
   seatPriceCents,
   supportedCity,
@@ -135,4 +137,13 @@ test("city tabs: without geo, open the first city that has a table", () => {
 test("seat price comes from the soonest upcoming table, null without tables", () => {
   assert.equal(seatPriceCents(EVENTS, NOW), 1000);
   assert.equal(seatPriceCents([], NOW), null);
+});
+
+test("seat price: the funnel's own price only for a funnel Sunday Table", () => {
+  assert.equal(JOUW_TAFEL_SEAT_PRICE_CENTS, 1500);
+  assert.equal(resolveSeatPriceCents({ source: "jouw-tafel", eventPriceCents: 1000, isSundayTable: true }), 1500);
+  assert.equal(resolveSeatPriceCents({ source: undefined, eventPriceCents: 1000, isSundayTable: true }), 1000);
+  assert.equal(resolveSeatPriceCents({ source: "agenda", eventPriceCents: 1000, isSundayTable: true }), 1000);
+  assert.equal(resolveSeatPriceCents({ source: "jouw-tafel", eventPriceCents: 4900, isSundayTable: false }), 4900);
+  assert.equal(resolveSeatPriceCents({ source: 1500, eventPriceCents: 1000, isSundayTable: true }), 1000);
 });

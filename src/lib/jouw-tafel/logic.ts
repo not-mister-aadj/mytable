@@ -52,6 +52,34 @@ export const QUIZ_CITY_COORDS: Record<QuizCity, { lat: number; lon: number }> = 
   Nijmegen: { lat: 51.835, lon: 5.833 },
 };
 
+/**
+ * The price of one seat at a Sunday Table booked through the "Jouw tafel"
+ * funnel (/jouw-tafel, the quiz and "Kies je zondag"): €15. It differs on
+ * purpose from events.price_cents, which the rest of the site keeps using
+ * (the /agenda cards, the older Sunday Table pages and their booking flow).
+ * Founder's decision; booking the same table via /agenda at the event price
+ * is accepted. The server only charges this when the checkout request says
+ * it comes from the funnel (see resolveSeatPriceCents).
+ */
+export const JOUW_TAFEL_SEAT_PRICE_CENTS = 1500;
+
+/** The checkout `source` the funnel sends with a reservation. */
+export const JOUW_TAFEL_CHECKOUT_SOURCE = "jouw-tafel";
+
+/**
+ * The per-seat price /api/checkout charges: the funnel price for a Sunday
+ * Table booked from the funnel, otherwise exactly the event's own price.
+ * Decided on the server from the source; never a client-sent amount.
+ */
+export function resolveSeatPriceCents(input: {
+  source: unknown;
+  eventPriceCents: number;
+  isSundayTable: boolean;
+}): number {
+  if (input.isSundayTable && input.source === JOUW_TAFEL_CHECKOUT_SOURCE) return JOUW_TAFEL_SEAT_PRICE_CENTS;
+  return input.eventPriceCents;
+}
+
 /** Our cities within this many km of each other count as nearby. */
 export const NEARBY_KM = 30;
 

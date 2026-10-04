@@ -23,6 +23,7 @@ import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 export type MemberBooking = {
   id: string;
+  eventId: string;
   code: string;
   city: string;
   startsAt: string;
@@ -85,6 +86,7 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
     : [];
   const all = rows.map((r) => ({
     id: r.id,
+    eventId: r.eventId,
     code: reservationCode(r.id),
     city: r.city,
     startsAt: r.startsAt.toISOString(),
@@ -112,6 +114,14 @@ export async function getMemberBookings(email: string): Promise<{ upcoming: Memb
  * Sunday Table waitlist invites skip it too (getWaitlistInviteCandidates).
  * On by default.
  */
+/** The upcoming tables this person has a seat at: event id to seats. */
+export async function getBookedSeats(email: string): Promise<Record<string, number>> {
+  const { upcoming } = await getMemberBookings(email);
+  const out: Record<string, number> = {};
+  for (const b of upcoming) out[b.eventId] = (out[b.eventId] ?? 0) + b.seats;
+  return out;
+}
+
 export async function getTableMailsOn(email: string): Promise<boolean> {
   if (!isDbConfigured()) return true;
   const [customer] = await getDb()

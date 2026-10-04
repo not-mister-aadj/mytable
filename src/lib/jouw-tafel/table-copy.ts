@@ -14,6 +14,8 @@ export type TableCopy = {
   title: string;
   dateLine: (date: string, time: string, city: string) => string;
   how: { title: string; steps: (time: string) => string[] };
+  /** The button on a table this person already has a seat at. */
+  bookedCta: string;
   expect: { title: string; items: string[] };
   good: { title: string; items: string[] };
   cta: {
@@ -44,6 +46,7 @@ const nl: TableCopy = {
   back: "Terug naar Kies je zondag",
   imageAlt: "Een tafel die het glas heft",
   title: "Sunday Table",
+  bookedCta: "Bekijk je reservering",
   dateLine: (date, time, city) => `${date} · ${time} · ${city}`,
   how: {
     title: "Zo werkt het",
@@ -102,6 +105,7 @@ const en: TableCopy = {
   back: "Back to Choose your Sunday",
   imageAlt: "A table raising their glasses",
   title: "Sunday Table",
+  bookedCta: "View your booking",
   dateLine: (date, time, city) => `${date} · ${time} · ${city}`,
   how: {
     title: "How it works",

@@ -109,6 +109,7 @@ export function QuizChoose({
   handlers,
   tablePath,
   membership = null,
+  booked = {},
 }: {
   locale: Locale;
   copy: QuizCopy;
@@ -120,6 +121,8 @@ export function QuizChoose({
   handlers: ChooseHandlers;
   /** The table page for an event slug. */
   tablePath: (slug: string) => string;
+  /** Tables this person already has a seat at: event id to seats. */
+  booked?: Record<string, number>;
   /** Their running membership, null when not a member. */
   membership?: ClientMembership | null;
 }) {
@@ -204,7 +207,10 @@ export function QuizChoose({
     const soon = event.comingSoon;
     const asMember =
       memberBookingDecision(fromClientMembership(membership), new Date(event.startsAt), now).kind === "included";
-    const chip = earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember);
+    const seats = booked[event.id];
+    const chip = seats
+      ? { text: k.booked(seats), tone: "wine" as const }
+      : earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember);
     return (
       <motion.li
         key={event.id}

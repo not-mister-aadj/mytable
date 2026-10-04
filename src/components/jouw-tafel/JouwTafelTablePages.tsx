@@ -27,6 +27,10 @@ import {
   type ClientMembership,
 } from "@/lib/membership/logic";
 import type { QuizEvent } from "@/lib/jouw-tafel/logic";
+import Link from "next/link";
+import { secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
+import { getBookedSeats } from "@/lib/jouw-tafel/account-server";
 
 export function jouwTafelTableMetadata(locale: Locale): Metadata {
   return { title: getTableCopy(locale).metaTitle, robots: NO_INDEX };
@@ -76,12 +80,20 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
   if (!event) notFound();
   const now = tableNow();
   const state = tableState(event, now);
-  const { membership, access } = await reserveAccess(user.id, event, now);
-  // A blocked or past-due member sees why, instead of the reserve button.
-  const memberState =
-    state === "open" && (access.kind === "blocked" || access.kind === "past_due") ? (
-      <MemberStateCta locale={locale} access={access} settingsHref={jouwTafelSettingsPath(locale)} />
-    ) : undefined;
+  const [{ membership, access }, booked] = await Promise.all([
+    reserveAccess(user.id, event, now),
+    getBookedSeats(user.email).catch(() => ({}) as Record<string, number>),
+  ]);
+  const seats = booked[event.id];
+  // Already at this table: say so and point to the booking. A blocked or
+  // past-due member sees why, instead of the reserve button.
+  const memberState = seats ? (
+    <Link href={jouwTafelSettingsPath(locale)} className={secondaryButton}>
+      {getTableCopy(locale).bookedCta}
+    </Link>
+  ) : state === "open" && (access.kind === "blocked" || access.kind === "past_due") ? (
+    <MemberStateCta locale={locale} access={access} settingsHref={jouwTafelSettingsPath(locale)} />
+  ) : undefined;
   return (
     <JouwTafelTable
       locale={locale}
@@ -90,7 +102,11 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
       email={user.email}
       kiesHref={kiesHref(locale)}
       reserveHref={jouwTafelReservePath(locale, slug)}
-      chip={earlyChip(event, locale, membership, now) ?? undefined}
+      chip={
+        seats
+          ? { text: getQuizCopy(locale).kies.booked(seats), tone: "wine" }
+          : earlyChip(event, locale, membership, now) ?? undefined
+      }
       cta={memberState}
     />
   );
@@ -103,6 +119,9 @@ export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; s
   if (!event) notFound();
   const now = tableNow();
   if (tableState(event, now) !== "open") redirect(jouwTafelTablePath(locale, slug));
+  // Already a seat here: the table page shows it, with a link to the booking.
+  const booked = await getBookedSeats(user.email).catch(() => ({}) as Record<string, number>);
+  if (booked[event.id]) redirect(jouwTafelTablePath(locale, slug));
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const { answers } = sanitizeQuizState(meta[QUIZ_METADATA_KEY]);
   const [{ membership, access }, proof] = await Promise.all([

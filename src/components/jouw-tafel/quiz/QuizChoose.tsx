@@ -328,11 +328,6 @@ export function QuizChoose({
             {k.noMatch(shownCity)}
           </p>
         )}
-        {answers.tableType === "girls_only" ? (
-          <p className="mx-auto mt-4 max-w-[21rem] rounded-2xl bg-gold/[0.12] px-4 py-3 text-center text-[0.92rem] leading-snug text-wine/80 text-balance">
-            {k.girlsOnly}
-          </p>
-        ) : null}
         <div className="mt-3 flex justify-center">
           <button
             ref={infoTrigger}

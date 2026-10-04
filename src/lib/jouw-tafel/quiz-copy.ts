@@ -150,7 +150,6 @@ export type QuizCopy = {
     /** Line 1 of a table card. */
     tableName: string;
     /** Under the subtitle when she prefers a women-only table. */
-    girlsOnly: string;
     /** Our chosen cities without a table on the list (joined; n of them). */
     noSunday: (cities: string, n: number) => string;
     /** The link under the subtitle, and the sheet's title. */
@@ -382,7 +381,6 @@ const nl: QuizCopy = {
     selectAria: "Kies deze tafel",
     ourCities: "Of schuif aan in een van onze steden",
     tableName: "Sunday Table",
-    girlsOnly: "Girls only tafels plannen we zodra er genoeg aanmeldingen zijn. Je hoort het als eerste.",
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
     infoLink: "Wat is een Sunday Table?",
@@ -606,7 +604,6 @@ const en: QuizCopy = {
     selectAria: "Choose this table",
     ourCities: "Or join a table in one of our cities",
     tableName: "Sunday Table",
-    girlsOnly: "We'll plan women-only tables once enough people sign up. You'll be the first to hear.",
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,
     infoLink: "What is a Sunday Table?",

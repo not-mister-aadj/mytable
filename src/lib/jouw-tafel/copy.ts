@@ -92,8 +92,6 @@ export type LandingCopy = {
     comingSoon: string;
     /** Shown instead of a spot count while the count would say little. */
     open: string;
-    englishOpen: string;
-    dutchOnly: string | null;
     where: (city: string) => string;
     empty: (city: string) => string;
   };
@@ -163,8 +161,6 @@ const landingNl: LandingCopy = {
     cityTabsAria: "Kies een stad",
     comingSoon: "Binnenkort",
     open: "Plekken vrij",
-    englishOpen: "Ook Engels",
-    dutchOnly: null,
     where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
     empty: (city) =>
       `Nog geen tafel in ${city}. Meld je aan, dan hoor je het als eerste zodra er een is.`,
@@ -230,7 +226,7 @@ const landingNl: LandingCopy = {
       },
       {
         q: "In welke taal?",
-        a: "Meestal in het Nederlands. Bij sommige tafels is Engels ook welkom; dat zie je bij de datum staan. Zo weet je van tevoren wat je kunt verwachten.",
+        a: "Meestal in het Nederlands. Spreek je liever Engels? Geef het aan bij je aanmelding, dan houden we daar rekening mee bij het indelen van de tafels.",
       },
     ],
   },
@@ -360,8 +356,6 @@ const landingEn: LandingCopy = {
     cityTabsAria: "Choose a city",
     comingSoon: "Coming soon",
     open: "Seats available",
-    englishOpen: "English welcome",
-    dutchOnly: "In Dutch",
     where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
     empty: (city) =>
       `No table in ${city} yet. Sign up and you'll be the first to hear when there is one.`,
@@ -427,7 +421,7 @@ const landingEn: LandingCopy = {
       },
       {
         q: "In which language?",
-        a: "Mostly Dutch. At some tables English is welcome too; you'll see that next to the date. So you know what to expect beforehand.",
+        a: "Mostly Dutch. Prefer English? Let us know when you sign up and we'll take it into account when we seat the tables.",
       },
     ],
   },

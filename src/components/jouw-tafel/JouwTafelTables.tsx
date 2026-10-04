@@ -129,15 +129,6 @@ export function JouwTafelTables({
                         <span>{startTime(event.startsAt, locale)}</span>
                         <span aria-hidden>·</span>
                         <span className="font-semibold text-wine/80">{event.bracket}</span>
-                        {event.englishOpen ? (
-                          <span className="rounded-full bg-gold/12 px-2 py-0.5 text-[11px] font-semibold text-wine/70">
-                            {copy.englishOpen}
-                          </span>
-                        ) : copy.dutchOnly ? (
-                          <span className="rounded-full bg-wine/5 px-2 py-0.5 text-[11px] font-semibold text-wine/55">
-                            {copy.dutchOnly}
-                          </span>
-                        ) : null}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">

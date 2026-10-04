@@ -18,6 +18,7 @@ import {
   metaLeadEventId,
   metaCompleteRegistrationEventId,
   metaQuizLeadEventId,
+  metaMembershipPurchaseEventId,
   metaSubscribeEventId,
   metaPurchaseEventId,
 } from "@/lib/analytics/metaIds";
@@ -410,6 +411,12 @@ export function subscribe(input: { subscriptionId: string; plan: string; value: 
   });
   window.fbq!("track", "Subscribe", payload, { eventID: eventId });
   logMetaEvent("Subscribe", { ...payload, event_id: eventId });
+  // Also a Purchase with the same value, so Purchase-optimised ad sets
+  // count membership sales.
+  const purchaseId = metaMembershipPurchaseEventId(input.subscriptionId);
+  const purchasePayload = { ...payload, content_type: "product" };
+  window.fbq!("track", "Purchase", purchasePayload, { eventID: purchaseId });
+  logMetaEvent("Purchase", { ...purchasePayload, event_id: purchaseId });
   try {
     localStorage.setItem(key, "1");
   } catch {

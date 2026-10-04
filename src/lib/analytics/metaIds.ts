@@ -30,3 +30,10 @@ export function metaViewContentEventId(eventId: string): string {
 export function metaSubscribeEventId(subscriptionId: string): string {
   return `subscribe_${subscriptionId}`;
 }
+
+/** The Purchase sent alongside a started membership, so ad sets that
+ * optimise for Purchase see membership sales too. Own id, deduplicated
+ * between Pixel and CAPI like Subscribe. */
+export function metaMembershipPurchaseEventId(subscriptionId: string): string {
+  return `purchase_sub_${subscriptionId}`;
+}

@@ -61,7 +61,14 @@ const CHIP_TONE: Record<ChipTone, string> = {
 
 /** "Nog maar 3 plekken" (wine), "Plekken vrij" (gold), "Binnenkort" (grey). */
 export function spotsChip(event: QuizEvent, locale: Locale, copy: QuizCopy["kies"]): { text: string; tone: ChipTone } {
-  if (event.comingSoon) return { text: copy.soonBadge, tone: "grey" };
+  if (event.comingSoon) {
+    // Not bookable yet: say from when (members can book from that day).
+    if (event.opensAt) {
+      const { day, month } = dateParts(event.opensAt, locale);
+      return { text: copy.opensFrom(`${day} ${month}`), tone: "grey" };
+    }
+    return { text: copy.soonBadge, tone: "grey" };
+  }
   const left = spotsLeft(event);
   return shouldShowSpotsCount(left, event.spotsSold)
     ? { text: formatSpotsLeftHint(left, locale), tone: "wine" }

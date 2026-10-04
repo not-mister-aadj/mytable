@@ -18,7 +18,7 @@ import { generateEventSlug } from "@/lib/event-slug";
 import { resolveUniqueEventSlug } from "@/lib/event-slug.server";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { DEFAULT_EVENT_IMAGE } from "@/lib/image-settings";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 import { SERIES_WARN_DAYS, addDays, seriesDates, seriesWindow } from "@/lib/jouw-tafel/series-logic";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 
@@ -40,8 +40,9 @@ async function loadPauses(): Promise<JouwTafelPause[]> {
 
 /**
  * Creates every missing table of every active series from today up to the
- * horizon (SERIES_HORIZON_DAYS), published and bookable straight away (a
- * Sunday Table never waits for a venue: guests hear it later). Never
+ * horizon (SERIES_HORIZON_DAYS), published (a Sunday Table never waits for
+ * a venue: guests hear it later). Members can book 4 weeks before the date,
+ * everyone 2 days later (see jouwTafelBookingWindow). Never
  * touches a table that exists, and never brings back a date an admin
  * removed. Safe to run twice at once (unique series + date).
  */
@@ -85,6 +86,8 @@ export async function generateSeriesTables(now = new Date()): Promise<{ created:
           categoryNl: "SUNDAY TABLE",
           categoryEn: "SUNDAY TABLE",
           publishedAt: now,
+          // Members first (4 weeks ahead), everyone from this moment.
+          membersOnlyUntil: jouwTafelBookingWindow(startsAt).everyoneFrom,
           seriesId: series.id,
           seriesDate: date,
           extras: {},

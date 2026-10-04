@@ -23,7 +23,7 @@ if (!url) {
 const sql = postgres(url, { prepare: false, onnotice: () => {} });
 
 async function main() {
-  const files = ["0033_jouw_tafel_series.sql", "0034_jouw_tafel_always_bookable.sql"];
+  const files = ["0033_jouw_tafel_series.sql", "0034_jouw_tafel_always_bookable.sql", "0035_jouw_tafel_booking_window.sql"];
   for (const file of files) {
     const migration = readFileSync(join(process.cwd(), "drizzle", file), "utf8");
     await sql.unsafe(migration);

@@ -9,6 +9,9 @@ import {
   displayCity,
   JOUW_TAFEL_SEAT_PRICE_CENTS,
   resolveSeatPriceCents,
+  jouwTafelBookingWindow,
+  withBookingWindow,
+  nextDatesPerCity,
   nearbyCities,
   seatPriceCents,
   supportedCity,
@@ -144,4 +147,38 @@ test("seat price: €15 for a Jouw tafel Sunday Table, the event price otherwise
   assert.equal(resolveSeatPriceCents({ eventPriceCents: 1000, isJouwTafel: true }), 1500);
   assert.equal(resolveSeatPriceCents({ eventPriceCents: 4900, isJouwTafel: true }), 1500);
   assert.equal(resolveSeatPriceCents({ eventPriceCents: 1000, isJouwTafel: false }), 1000);
+});
+
+test("booking window: members 28 days before, everyone 2 days later", () => {
+  const { membersFrom, everyoneFrom } = jouwTafelBookingWindow("2026-11-01T13:00:00Z");
+  assert.equal(membersFrom.toISOString(), "2026-10-04T13:00:00.000Z");
+  assert.equal(everyoneFrom.toISOString(), "2026-10-06T13:00:00.000Z");
+});
+
+test("withBookingWindow: not bookable before members can, members only for 48 hours", () => {
+  const table = { startsAt: "2026-11-29T13:00:00Z", comingSoon: false, membersOnlyUntil: null };
+  const before = withBookingWindow(table, Date.parse("2026-10-31T12:00:00Z"));
+  assert.equal(before.comingSoon, true);
+  assert.equal(before.opensAt, "2026-11-01T13:00:00.000Z");
+  const members = withBookingWindow(table, Date.parse("2026-11-02T12:00:00Z"));
+  assert.equal(members.comingSoon, false);
+  assert.equal(members.membersOnlyUntil, "2026-11-03T13:00:00.000Z");
+  // An admin's later moment wins.
+  const later = withBookingWindow({ ...table, membersOnlyUntil: "2026-11-10T10:00:00.000Z" }, Date.parse("2026-11-02T12:00:00Z"));
+  assert.equal(later.membersOnlyUntil, "2026-11-10T10:00:00.000Z");
+});
+
+test("nextDatesPerCity keeps the next two dates of each city", () => {
+  const e = (city: string, startsAt: string) => ({ city, startsAt });
+  const kept = nextDatesPerCity([
+    e("Rotterdam", "2026-12-27T13:00:00Z"),
+    e("Rotterdam", "2026-11-01T13:00:00Z"),
+    e("rotterdam", "2026-11-29T13:00:00Z"),
+    e("Den Haag", "2026-11-08T13:00:00Z"),
+  ]);
+  assert.deepEqual(kept.map((k) => `${k.city} ${k.startsAt.slice(0, 10)}`), [
+    "Rotterdam 2026-11-01",
+    "Den Haag 2026-11-08",
+    "rotterdam 2026-11-29",
+  ]);
 });

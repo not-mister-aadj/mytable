@@ -90,6 +90,8 @@ export type LandingCopy = {
     title: (city: string | null) => string;
     cityTabsAria: string;
     comingSoon: string;
+    /** "Vanaf 4 okt": a table that opens for booking later. */
+    opensFrom: (date: string) => string;
     /** Shown instead of a spot count while the count would say little. */
     open: string;
     where: (city: string) => string;
@@ -162,6 +164,7 @@ const landingNl: LandingCopy = {
     title: (city) => (city ? `Eerstvolgende tafels in ${city}` : "Eerstvolgende tafels"),
     cityTabsAria: "Kies een stad",
     comingSoon: "Binnenkort",
+    opensFrom: (date) => `Vanaf ${date}`,
     open: "Plekken vrij",
     where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
     empty: (city) =>
@@ -362,6 +365,7 @@ const landingEn: LandingCopy = {
     title: (city) => (city ? `Upcoming tables in ${city}` : "Upcoming tables"),
     cityTabsAria: "Choose a city",
     comingSoon: "Coming soon",
+    opensFrom: (date) => `From ${date}`,
     open: "Seats available",
     where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
     empty: (city) =>

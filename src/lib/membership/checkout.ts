@@ -14,6 +14,7 @@ import { memberBookingAmountCents } from "@/lib/membership/logic";
 import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
+import { jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
 export type MembershipCheckoutSource = "page" | "kies";
 
@@ -41,6 +42,8 @@ export type MembershipCheckoutResult =
 export function sundayTableUnavailable(event: Event | undefined, seats: number, now = new Date()): "table_unavailable" | "table_full" | null {
   if (!event || event.workflowStatus !== "published" || event.experienceType !== JOUW_TAFEL_TYPE) return "table_unavailable";
   if (event.extras?.comingSoon) return "table_unavailable";
+  // A new member books first, but not before members can (4 weeks ahead).
+  if (now.getTime() < jouwTafelBookingWindow(event.startsAt).membersFrom.getTime()) return "table_unavailable";
   if (isEventClosedForBooking(event.startsAt, now)) return "table_unavailable";
   if (event.capacity - event.spotsSold < seats) return "table_full";
   return null;

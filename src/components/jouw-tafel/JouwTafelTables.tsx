@@ -20,6 +20,13 @@ import { PinIcon } from "@/components/jouw-tafel/icons";
 const AMSTERDAM = "Europe/Amsterdam";
 
 /** "Zo 25 okt" / "Sun 25 Oct". */
+/** "4 okt" / "4 Oct": when a table opens for booking. */
+function dayMonth(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { timeZone: AMSTERDAM, day: "numeric", month: "short" })
+    .format(new Date(iso))
+    .replace(/\.$/, "");
+}
+
 function shortDate(iso: string, locale: Locale): string {
   const parts = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
     timeZone: AMSTERDAM,
@@ -138,7 +145,7 @@ export function JouwTafelTables({
                     <div className="shrink-0 text-right">
                       {event.comingSoon ? (
                         <span className="inline-flex rounded-full border border-gold/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-wine/70">
-                          {copy.comingSoon}
+                          {event.opensAt ? copy.opensFrom(dayMonth(event.opensAt, locale)) : copy.comingSoon}
                         </span>
                       ) : (
                         <span className="text-sm font-semibold text-burgundy">

@@ -6,7 +6,6 @@ import { getDb } from "@/db/index";
 import { bookings, events, jouwTafelPauses, jouwTafelSeries } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
-import { replaceEventVenues } from "@/lib/event-venues";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isIsoDate, isStartTime, weekday } from "@/lib/jouw-tafel/series-logic";
 import {
@@ -83,15 +82,13 @@ export async function generateNowAction() {
 }
 
 /**
- * One table: its maximum capacity and its venue (our own planning: guests
- * hear the venue later). Saving also opens a table that was still on
- * "Binnenkort", since a Sunday Table is always bookable.
+ * One table: its maximum capacity. Saving also opens a table that was still
+ * on "Binnenkort". Venues and groups are set on the table's own page.
  */
 export async function saveTableAction(formData: FormData) {
   await requireAdmin();
   const id = text(formData, "id");
   const capacity = int(formData, "capacity");
-  const venueId = text(formData, "venueId");
   const db = getDb();
   const [event] = await db
     .select()
@@ -102,7 +99,6 @@ export async function saveTableAction(formData: FormData) {
   if (!(capacity >= 1 && capacity <= 100)) throw new Error("Capaciteit tussen 1 en 100.");
   if (capacity < event.spotsSold) throw new Error(`Er zijn al ${event.spotsSold} plekken verkocht.`);
 
-  await replaceEventVenues(event.id, venueId ? [venueId] : []);
   const extras = event.extras?.comingSoon ? { ...event.extras, comingSoon: false } : event.extras;
   const [row] = await db
     .update(events)

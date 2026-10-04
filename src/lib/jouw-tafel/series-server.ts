@@ -149,8 +149,8 @@ export type SeriesTableRow = {
   spotsSold: number;
   comingSoon: boolean;
   membersOnlyUntil: string | null;
-  venueId: string | null;
-  venueName: string | null;
+  /** The venues linked to this table, in order. */
+  venueNames: string[];
   /** Close and still without a venue (for our own planning). */
   needsAttention: boolean;
 };
@@ -185,14 +185,17 @@ export async function loadSeriesAdminData(now = new Date()): Promise<SeriesAdmin
           .from(eventVenues)
           .where(inArray(eventVenues.eventId, rows.map((r) => r.id)))
       : [];
-  const venueOf = new Map<string, string>();
-  for (const link of links) if (!venueOf.has(link.eventId)) venueOf.set(link.eventId, link.venueId);
   const venueName = new Map(venueRows.map((v) => [v.id, v.name]));
+  const venuesOf = new Map<string, string[]>();
+  for (const link of links) {
+    const name = venueName.get(link.venueId);
+    if (name) venuesOf.set(link.eventId, [...(venuesOf.get(link.eventId) ?? []), name]);
+  }
 
   const tables: SeriesTableRow[] = rows.map((r) => {
     const date = r.seriesDate ?? amsterdamDateIso(r.startsAt);
     const comingSoon = Boolean(r.extras?.comingSoon);
-    const venueId = venueOf.get(r.id) ?? null;
+    const venueNames = venuesOf.get(r.id) ?? [];
     return {
       id: r.id,
       slug: r.slug,
@@ -204,9 +207,8 @@ export async function loadSeriesAdminData(now = new Date()): Promise<SeriesAdmin
       spotsSold: r.spotsSold,
       comingSoon,
       membersOnlyUntil: r.membersOnlyUntil?.toISOString() ?? null,
-      venueId,
-      venueName: venueId ? venueName.get(venueId) ?? null : null,
-      needsAttention: date <= warnBefore && !venueId,
+      venueNames,
+      needsAttention: date <= warnBefore && venueNames.length === 0,
     };
   });
   return { series, pauses, tables, venues: venueRows };

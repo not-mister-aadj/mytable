@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/i18n/config";
-import { agendaPath, localePath } from "@/i18n/config";
+import {
+  jouwTafelLogInPath,
+  jouwTafelSettingsPath,
+  localePath,
+} from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
+import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { FastLink } from "./ui/FastLink";
 
@@ -17,24 +22,18 @@ interface HeaderProps {
   className?: string;
 }
 
-function stripLocale(pathname: string): string {
-  if (pathname === "/en" || pathname.startsWith("/en/")) {
-    return pathname.slice(3) || "/";
-  }
-  return pathname || "/";
-}
-
-/** Sign-in is paused site-wide (see AuthProviders.tsx) — there's no member
- * destination left, so this always renders the public, signed-out nav. */
+/** The site header: logo, "Inloggen" (or "Mijn tafel" once signed in to a
+ * "Jouw tafel" account) and the language switch. The button stays visible on
+ * every screen size so returning members can always find their way back in. */
 export function Header({ dict, locale, className = "" }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuId = useId();
+  const { isSignedIn } = useAuthSession();
   const home = localePath(locale);
-  const pathname = usePathname() ?? "/";
-  const path = stripLocale(pathname);
-  const agendaHref = agendaPath(locale);
-  const agendaActive = path === "/agenda" || path.startsWith("/agenda/");
+  const accountHref = isSignedIn
+    ? jouwTafelSettingsPath(locale)
+    : jouwTafelLogInPath(locale);
+  const accountLabel = isSignedIn ? dict.nav.myTable : dict.nav.logIn;
+  const accountActive = (usePathname() ?? "/") === accountHref;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -42,23 +41,6 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
 
   return (
     <header
@@ -79,16 +61,15 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
           </Link>
         </div>
 
-
         <div className="flex items-center justify-end gap-1.5 justify-self-end sm:gap-3">
           <FastLink
-            href={agendaHref}
-            className={`cta-lift cta-lift-burgundy hidden items-center whitespace-nowrap rounded-full bg-burgundy px-2.5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-wine md:inline-flex lg:px-4 lg:text-xs lg:tracking-[0.12em] ${
-              agendaActive ? "opacity-80" : ""
+            href={accountHref}
+            className={`cta-lift cta-lift-burgundy inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-burgundy px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-wine lg:px-4 lg:text-xs lg:tracking-[0.12em] ${
+              accountActive ? "opacity-80" : ""
             }`}
           >
-            <span aria-current={agendaActive ? "page" : undefined}>
-              Agenda
+            <span aria-current={accountActive ? "page" : undefined}>
+              {accountLabel}
             </span>
           </FastLink>
           <LanguageSwitcher
@@ -96,64 +77,8 @@ export function Header({ dict, locale, className = "" }: HeaderProps) {
             label={dict.languageSwitch}
             variant="girlsOnly"
           />
-          <button
-            type="button"
-            className="site-header__menu-btn inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border md:hidden"
-            aria-expanded={menuOpen}
-            aria-controls={menuId}
-            aria-label={menuOpen ? dict.closeMenu : dict.openMenu}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <MenuIcon open={menuOpen} />
-          </button>
         </div>
       </div>
-
-      {menuOpen ? (
-        <div
-          id={menuId}
-          className="site-header__mobile-menu border-t border-wine/10 md:hidden"
-        >
-          <nav
-            className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-8"
-            aria-label={dict.nav.navAria}
-          >
-            <FastLink
-              href={agendaHref}
-              onClick={() => setMenuOpen(false)}
-              className={`cta-lift cta-lift-burgundy inline-flex items-center justify-center rounded-2xl bg-burgundy px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-cream transition hover:bg-wine ${
-                agendaActive ? "opacity-80" : ""
-              }`}
-            >
-              <span aria-current={agendaActive ? "page" : undefined}>
-                Agenda
-              </span>
-            </FastLink>
-          </nav>
-        </div>
-      ) : null}
     </header>
-  );
-}
-
-function MenuIcon({ open }: { open: boolean }) {
-  return (
-    <span className="relative block h-3.5 w-4" aria-hidden>
-      <span
-        className={`site-header__menu-icon absolute left-0 top-0 block h-0.5 w-full rounded-full transition ${
-          open ? "translate-y-[6px] rotate-45" : ""
-        }`}
-      />
-      <span
-        className={`site-header__menu-icon absolute left-0 top-[6px] block h-0.5 w-full rounded-full transition ${
-          open ? "opacity-0" : ""
-        }`}
-      />
-      <span
-        className={`site-header__menu-icon absolute left-0 top-[12px] block h-0.5 w-full rounded-full transition ${
-          open ? "-translate-y-[6px] -rotate-45" : ""
-        }`}
-      />
-    </span>
   );
 }

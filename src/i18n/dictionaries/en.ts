@@ -18,6 +18,7 @@ export const en: Dictionary = {
       blog: "Blog",
       myAccount: "My account",
       logIn: "Log in",
+      myTable: "My table",
       signUp: "Sign up",
       navAria: "Main navigation",
       waitlistCta: "Join the waitlist",

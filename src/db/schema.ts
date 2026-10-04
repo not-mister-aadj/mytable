@@ -508,6 +508,15 @@ export const sundayTableLocations = pgTable(
   }),
 );
 
+/** The "Jouw tafel" account welcome, once per account (drizzle/0032). */
+export const accountWelcomeEmails = pgTable("account_welcome_emails", {
+  userId: uuid("user_id").primaryKey(),
+  email: text("email").notNull(),
+  /** "open" (tables in her cities) | "none" | "skipped" (already booked). */
+  variant: text("variant").notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const affiliateCodes = pgTable("affiliate_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: text("code").notNull().unique(),

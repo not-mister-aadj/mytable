@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { sendAbandonedWaitlistWelcomeEmails } from "@/lib/email/send-abandoned-waitlist-welcome-emails";
+import { sendAccountWelcomeEmails } from "@/lib/email/send-account-welcome-emails";
 import { isEmailConfigured } from "@/lib/email/resend";
 
 export async function GET(request: Request) {
@@ -28,5 +29,23 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.json({ processed: results.length, sent, failed });
+  // "Jouw tafel" accounts get their own welcome (not the waitlist one).
+  const accounts = await sendAccountWelcomeEmails().catch((error: unknown) => {
+    console.error("[cron] account welcome emails failed", error);
+    return [];
+  });
+  if (accounts.length > 0) {
+    console.info(`[cron] account welcome emails: ${accounts.filter((r) => r.ok).length} ok of ${accounts.length}`);
+  }
+
+  return NextResponse.json({
+    processed: results.length,
+    sent,
+    failed,
+    accountWelcome: {
+      sent: accounts.filter((r) => r.ok && r.variant !== "skipped").length,
+      skipped: accounts.filter((r) => r.variant === "skipped").length,
+      failed: accounts.filter((r) => !r.ok).length,
+    },
+  });
 }

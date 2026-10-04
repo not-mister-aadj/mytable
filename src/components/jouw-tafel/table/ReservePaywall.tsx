@@ -36,8 +36,8 @@ function ArrowRight({ className = "h-4 w-4" }: { className?: string }) {
 /** Gold round badge with a check, for the benefit rows. */
 function CheckBadge() {
   return (
-    <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/[0.18] text-[#8a6430] ring-1 ring-gold/30">
-      <CheckIcon className="h-3.5 w-3.5" />
+    <span aria-hidden className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/[0.18] text-[#8a6430] ring-1 ring-gold/30">
+      <CheckIcon className="h-3 w-3" />
     </span>
   );
 }
@@ -131,22 +131,22 @@ export function ReservePaywall({
   return (
     <div>
       {/* The table */}
-      <div className="flex items-center gap-3 rounded-2xl border border-wine/[0.08] bg-white/80 px-4 py-3">
-        <span aria-hidden className="h-9 w-1 rounded-full bg-burgundy/80" />
+      <div className="flex items-center gap-3 rounded-2xl border border-wine/[0.08] bg-white/80 px-4 py-2.5">
+        <span aria-hidden className="h-8 w-1 rounded-full bg-burgundy/80" />
         <div className="min-w-0">
-          <p className="font-serif text-[1.15rem] font-medium leading-tight text-wine">{t.title}</p>
+          <p className="font-serif text-[1.05rem] font-medium leading-tight text-wine">{t.title}</p>
           <p className="mt-0.5 truncate text-[0.88rem] text-wine/65">{t.dateLine(date, time, city)}</p>
         </div>
       </div>
 
       {proofCount !== null ? (
-        <p className="mt-4 text-center text-[0.8rem] font-semibold uppercase tracking-[0.14em] text-gold">{r.proof(proofCount)}</p>
+        <p className="mt-3 text-center text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-gold">{r.proof(proofCount)}</p>
       ) : null}
 
       {/* What you get */}
-      <ul className="mt-6 space-y-3.5">
+      <ul className="mt-4 space-y-2">
         {r.benefits(city).map((line) => (
-          <li key={line} className="flex items-center gap-3 text-[0.98rem] leading-snug text-wine/85">
+          <li key={line} className="flex items-center gap-2.5 text-[0.88rem] leading-snug text-wine/85">
             <CheckBadge />
             {line}
           </li>
@@ -154,8 +154,8 @@ export function ReservePaywall({
       </ul>
 
       {/* Plans */}
-      <h2 className="mt-9 font-serif text-[1.75rem] font-medium leading-tight tracking-tight text-wine">{r.chooseTitle}</h2>
-      <div role="radiogroup" aria-label={r.chooseTitle} onKeyDown={onPlanKey} className="mt-4 space-y-3">
+      <h2 className="mt-6 font-serif text-[1.45rem] font-medium leading-tight tracking-tight text-wine">{r.chooseTitle}</h2>
+      <div role="radiogroup" aria-label={r.chooseTitle} onKeyDown={onPlanKey} className="mt-3 space-y-2">
         {MEMBERSHIP_PLAN_IDS.map((id, i) => {
           const p = MEMBERSHIP_PLANS[id];
           const on = plan === id;
@@ -172,7 +172,7 @@ export function ReservePaywall({
               tabIndex={on ? 0 : -1}
               onClick={() => choosePlan(id)}
               whileTap={reduceMotion ? undefined : { scale: 0.985 }}
-              className={`relative flex w-full items-center gap-4 rounded-[1.25rem] border-2 px-5 py-4 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-burgundy/20 ${
+              className={`relative flex w-full items-center gap-4 rounded-2xl border-2 px-4 py-2.5 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-burgundy/20 ${
                 on
                   ? "border-burgundy bg-[#fcf3f1] shadow-[0_10px_28px_rgba(90,15,27,0.12)]"
                   : "border-wine/[0.09] bg-white shadow-[0_1px_2px_rgba(43,13,18,0.04)] hover:border-wine/20"
@@ -189,13 +189,14 @@ export function ReservePaywall({
                     </span>
                   ) : null}
                 </span>
-                <span className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="font-serif text-[1.95rem] font-medium leading-none tracking-tight text-wine [font-variant-numeric:lining-nums_tabular-nums]">{euros(p.monthlyCents)}</span>
-                  <span className="text-[0.9rem] text-wine/60">{r.perMonth}</span>
+                <span className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
+                  <span className="font-serif text-[1.5rem] font-medium leading-none tracking-tight text-wine [font-variant-numeric:lining-nums_tabular-nums]">{euros(p.monthlyCents)}</span>
+                  <span className="text-[0.85rem] text-wine/60">{r.perMonth}</span>
+                  {/* Total on the same line, to keep the rows short. */}
+                  {p.initialMonths > 1 ? (
+                    <span className="text-[0.8rem] text-wine/45">· {r.total(euros(p.initialCents))}</span>
+                  ) : null}
                 </span>
-                {p.initialMonths > 1 ? (
-                  <span className="mt-1 block text-[0.82rem] text-wine/50">{r.total(euros(p.initialCents))}</span>
-                ) : null}
               </span>
               <RadioDot on={on} />
             </motion.button>
@@ -210,7 +211,7 @@ export function ReservePaywall({
         aria-checked={seats === 2}
         disabled={!guestPossible}
         onClick={toggleGuest}
-        className="mt-4 flex min-h-14 w-full items-center gap-3 rounded-2xl bg-white/70 px-4 py-3 text-left ring-1 ring-wine/[0.08] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 disabled:cursor-not-allowed"
+        className="mt-3 flex min-h-12 w-full items-center gap-3 rounded-2xl bg-white/70 px-4 py-2 text-left ring-1 ring-wine/[0.08] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/40 disabled:cursor-not-allowed"
       >
         <span className="min-w-0 flex-1">
           <span className={`block text-[0.95rem] font-semibold ${guestPossible ? "text-wine" : "text-wine/45"}`}>{r.guestQuestion}</span>
@@ -240,7 +241,7 @@ export function ReservePaywall({
         onClick={() => onJoin(plan, seats)}
         disabled={busy !== null}
         whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-        className={`${primaryButton} mt-6 gap-2`}
+        className={`${primaryButton} mt-4 gap-2`}
       >
         {busy === "join" ? r.busy : r.cta(plan)}
         {busy === "join" ? null : <ArrowRight />}
@@ -250,24 +251,24 @@ export function ReservePaywall({
           {error.message}
         </p>
       ) : null}
-      <p className="mx-auto mt-3 max-w-[22rem] text-center text-[0.8rem] leading-snug text-wine/55">{r.ctaNote}</p>
+      <p className="mx-auto mt-2 max-w-[22rem] text-center text-[0.75rem] leading-snug text-wine/55">{r.ctaNote}</p>
 
       {/* Or */}
-      <div className="my-8 flex items-center gap-4" aria-hidden>
+      <div className="my-5 flex items-center gap-4" aria-hidden>
         <span className="h-px flex-1 bg-wine/10" />
         <span className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-wine/40">{r.or}</span>
         <span className="h-px flex-1 bg-wine/10" />
       </div>
 
       {/* Single seat */}
-      <div className={`overflow-hidden rounded-[1.25rem] border-2 transition-colors duration-200 ${singleOpen ? "border-wine/25 bg-white" : "border-wine/[0.12] bg-transparent"}`}>
+      <div className={`overflow-hidden rounded-2xl border-2 transition-colors duration-200 ${singleOpen ? "border-wine/25 bg-white" : "border-wine/[0.12] bg-transparent"}`}>
         <button
           type="button"
           aria-expanded={singleOpen}
           aria-controls="losse-plek"
           disabled={early}
           onClick={toggleSingle}
-          className="flex w-full items-center gap-3 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-burgundy/20 disabled:cursor-not-allowed"
+          className="flex w-full items-center gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-burgundy/20 disabled:cursor-not-allowed"
         >
           <span className="min-w-0 flex-1">
             <span className={`block text-[1rem] font-semibold ${early ? "text-wine/50" : "text-wine"}`}>
@@ -332,7 +333,7 @@ export function ReservePaywall({
         </AnimatePresence>
       </div>
 
-      <p className="mt-8 text-center text-[0.8rem] leading-relaxed text-wine/50">{r.footnote}</p>
+      <p className="mt-5 text-center text-[0.75rem] leading-relaxed text-wine/50">{r.footnote}</p>
     </div>
   );
 }

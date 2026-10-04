@@ -31,6 +31,7 @@ import {
   nextChargeCents,
   savingsExample,
 } from "./plans";
+import { getMembershipPageCopy, getMembershipSettingsCopy } from "./page-copy";
 
 const NOW = Date.parse("2026-10-04T10:00:00Z");
 const HOUR = 60 * 60 * 1000;
@@ -259,4 +260,15 @@ test("a membership survives the trip to the browser", () => {
   const starts = new Date(NOW + 2 * DAY);
   assert.deepEqual(memberBookingDecision(back, starts, NOW), memberBookingDecision(m, starts, NOW));
   assert.equal(toClientMembership(member({ status: "canceled" })), null);
+});
+
+test("cancelling a member seat never promises a refund, and says so for a guest", () => {
+  for (const locale of ["nl", "en"] as const) {
+    const s = getMembershipSettingsCopy(locale);
+    assert.doesNotMatch(s.cancelSeatConfirm(true), /terug|refund/i);
+    assert.doesNotMatch(s.cancelSeatConfirm(false), /terug|refund/i);
+    assert.match(s.cancelSeatGuestNote, locale === "nl" ? /niet terug/ : /not refunded/);
+    const faq = getMembershipPageCopy(locale).faq.items({ single: "€15" }).map((i) => i.a).join(" ");
+    assert.match(faq, locale === "nl" ? /niet terug/ : /not refunded/);
+  }
 });

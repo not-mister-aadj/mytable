@@ -810,6 +810,9 @@ export function JouwTafelSettings({
                 <div className="mt-5 rounded-2xl bg-cream/70 p-4">
                   <p className="font-serif text-[1.25rem] text-wine">{ms.cancelSeatTitle}</p>
                   <p className="mt-1 text-[0.9rem] leading-relaxed text-wine/70">{ms.cancelSeatRule}</p>
+                  {sheet.booking.withPaidGuest ? (
+                    <p className="mt-2 text-[0.9rem] font-semibold leading-relaxed text-wine">{ms.cancelSeatGuestNote}</p>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => void cancelSeat(sheet.booking)}

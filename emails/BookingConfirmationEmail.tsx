@@ -150,6 +150,11 @@ export function BookingConfirmationEmail({
             {en
               ? "Can't make it? Cancel your seat in your settings up to 48 hours before."
               : "Kun je toch niet? Zeg je plek uiterlijk 48 uur van tevoren af in je instellingen."}
+            {memberGuest
+              ? en
+                ? " Your guest's seat is cancelled with it and is not refunded."
+                : " De plek van je gast vervalt dan ook en wordt niet terugbetaald."
+              : ""}
           </Text>
         </EmailCard>
       ) : null}

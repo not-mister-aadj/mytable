@@ -174,7 +174,7 @@ const nl: MembershipPageCopy = {
       },
       {
         q: "Wat als ik een maand niet kan?",
-        a: `Dan sla je die maand gewoon over. Heb je al een zondag geboekt, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen. Dan kan iemand anders aanschuiven.`,
+        a: `Dan sla je die maand gewoon over. Heb je al een zondag geboekt, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen. Dan kan iemand anders aanschuiven. Had je een gast meegeboekt, dan vervalt die plek ook en krijg je wat je ervoor betaalde niet terug.`,
       },
       {
         q: "Kan ik iemand meenemen?",
@@ -279,7 +279,7 @@ const en: MembershipPageCopy = {
       },
       {
         q: "What if I cannot make it for a month?",
-        a: `Then you simply skip that month. Already booked a Sunday? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before. Then someone else can join.`,
+        a: `Then you simply skip that month. Already booked a Sunday? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before. Then someone else can join. If you booked a guest, that seat is cancelled too and what you paid for it is not refunded.`,
       },
       {
         q: "Can I bring someone?",
@@ -422,6 +422,8 @@ export type MembershipSettingsCopy = {
   cancelSeatKeep: string;
   cancelSeatTitle: string;
   cancelSeatRule: string;
+  /** With a paid guest seat: it is not refunded. */
+  cancelSeatGuestNote: string;
   cancelSeatTooLate: string;
   cancelSeatDone: string;
   cancelSeatFailed: string;
@@ -451,10 +453,11 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
       cancelSeat: "Cancel my seat",
       cancelSeatBusy: "Cancelling",
       cancelSeatConfirm: (withGuest) =>
-        withGuest ? "Yes, cancel both seats (your guest's seat is refunded)" : "Yes, cancel my seat",
+        withGuest ? "Yes, cancel both seats" : "Yes, cancel my seat",
       cancelSeatKeep: "Keep my seat",
       cancelSeatTitle: "Cancel your seat?",
       cancelSeatRule: `You can cancel up to ${h} hours before the start. Your seat then goes to someone else.`,
+      cancelSeatGuestNote: "Your guest's seat is cancelled too. What you paid for it is not refunded.",
       cancelSeatTooLate: `Cancelling is possible up to ${h} hours before the start.`,
       cancelSeatDone: "Your seat is cancelled.",
       cancelSeatFailed: "That did not work. Please try again.",
@@ -481,10 +484,11 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
     cancelSeat: "Plek afzeggen",
     cancelSeatBusy: "Afzeggen",
     cancelSeatConfirm: (withGuest) =>
-      withGuest ? "Ja, zeg beide plekken af (je gast krijgt het geld terug)" : "Ja, zeg mijn plek af",
+      withGuest ? "Ja, zeg beide plekken af" : "Ja, zeg mijn plek af",
     cancelSeatKeep: "Plek houden",
     cancelSeatTitle: "Plek afzeggen?",
     cancelSeatRule: `Afzeggen kan tot ${h} uur voor de start. Je plek gaat dan naar iemand anders.`,
+    cancelSeatGuestNote: "De plek van je gast vervalt ook. Wat je voor die plek hebt betaald, krijg je niet terug.",
     cancelSeatTooLate: `Afzeggen kan tot ${h} uur voor de start.`,
     cancelSeatDone: "Je plek is afgezegd.",
     cancelSeatFailed: "Dat lukte niet. Probeer het nog een keer.",

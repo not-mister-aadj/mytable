@@ -313,7 +313,7 @@ export const termsNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "13.5 Je plek afzeggen. Als lid kun je je plek tot 48 uur voor de start kosteloos afzeggen in je instellingen, zodat iemand anders kan aanschuiven. Heb je een gast meegeboekt, dan zeg je beide plekken af en betalen wij de ledenprijs van je gast terug. Daarna is afzeggen niet meer mogelijk. Artikel 6 (ruilen) geldt niet voor plekken die bij je lidmaatschap zijn inbegrepen.",
+          text: "13.5 Je plek afzeggen. Als lid kun je je plek tot 48 uur voor de start kosteloos afzeggen in je instellingen, zodat iemand anders kan aanschuiven. Heb je een gast meegeboekt, dan zeg je beide plekken af. Wat je voor de plek van je gast hebt betaald, krijg je niet terug. Daarna is afzeggen niet meer mogelijk. Artikel 6 (ruilen) geldt niet voor plekken die bij je lidmaatschap zijn inbegrepen.",
         },
         {
           type: "p",

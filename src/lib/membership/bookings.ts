@@ -5,8 +5,6 @@ import { onBookingCancelled, onPaymentCompleted } from "@/lib/customers/hooks";
 import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { canMemberCancelSeat } from "@/lib/membership/logic";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
-import { captureCriticalError } from "@/lib/sentry/critical";
 
 // Member bookings: the member's own seat is included (amount 0), a guest
 // seat costs the member price. They are ordinary `bookings` rows with
@@ -78,12 +76,15 @@ export async function confirmMemberBooking(input: {
 }
 
 export type CancelSeatResult =
-  | { ok: true; refundedCents: number }
+  | { ok: true }
   | { ok: false; error: "not_found" | "not_member_seat" | "too_late" | "already_cancelled" };
 
 /**
  * A member cancels their own booking (until MEMBER_SEAT_CANCEL_HOURS before
- * the start). Frees the seats; a paid guest seat is refunded.
+ * the start). A plain cancellation: the seats are freed, nothing is
+ * refunded, also not a guest seat paid at the member price (founder's
+ * decision). The booking stays "paid" (the money was kept) and is marked
+ * removed.
  */
 export async function cancelMemberSeat(input: {
   bookingId: string;
@@ -110,7 +111,7 @@ export async function cancelMemberSeat(input: {
   const updated = await db.transaction(async (tx) => {
     const [changed] = await tx
       .update(bookings)
-      .set({ lifecycleStatus: "removed", paymentStatus: "refunded" })
+      .set({ lifecycleStatus: "removed" })
       .where(and(eq(bookings.id, booking.id), eq(bookings.lifecycleStatus, "active"), eq(bookings.paymentStatus, "paid")))
       .returning();
     if (!changed) return null;
@@ -127,49 +128,9 @@ export async function cancelMemberSeat(input: {
   });
   if (!updated) return { ok: false, error: "already_cancelled" };
 
-  let refundedCents = 0;
-  if (booking.amountCents > 0 && isStripeConfigured()) {
-    refundedCents = await refundGuestSeat(booking).catch((error: unknown) => {
-      captureCriticalError(error, {
-        flow: "payment",
-        step: "member_seat_refund",
-        tags: { booking_id: booking.id },
-      });
-      return 0;
-    });
-  }
-
   revalidateEventPaths(event);
   if (booking.customerId) {
     await onBookingCancelled({ customerId: booking.customerId, booking: updated, event }).catch(() => undefined);
   }
-  return { ok: true, refundedCents };
-}
-
-/**
- * Refunds what the guest seat cost. A guest seat bought with an existing
- * membership is its own payment (payment intent); one bought together
- * with the membership sits on the subscription's first invoice, so that
- * one is refunded through the invoice's payment.
- */
-async function refundGuestSeat(booking: Booking): Promise<number> {
-  const stripe = getStripe();
-  const amount = booking.amountCents;
-  let paymentIntent = booking.stripePaymentIntentId;
-  if (!paymentIntent && booking.stripeCheckoutSessionId) {
-    const session = await stripe.checkout.sessions.retrieve(booking.stripeCheckoutSessionId, {
-      expand: ["invoice.payments"],
-    });
-    if (typeof session.payment_intent === "string") paymentIntent = session.payment_intent;
-    const invoice = session.invoice && typeof session.invoice !== "string" ? session.invoice : null;
-    const payment = invoice?.payments?.data.find((p) => p.payment.type === "payment_intent");
-    const pi = payment?.payment.payment_intent;
-    if (!paymentIntent && pi) paymentIntent = typeof pi === "string" ? pi : pi.id;
-  }
-  if (!paymentIntent) throw new Error(`No payment found to refund for booking ${booking.id}`);
-  await stripe.refunds.create(
-    { payment_intent: paymentIntent, amount, metadata: { booking_id: booking.id, reason: "member_seat_cancelled" } },
-    { idempotencyKey: `member-seat-refund-${booking.id}` },
-  );
-  return amount;
+  return { ok: true };
 }

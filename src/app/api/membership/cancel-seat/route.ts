@@ -8,7 +8,8 @@ import { PostHogEvents } from "@/lib/posthog/events";
 /**
  * POST /api/membership/cancel-seat: a member cancels their own booking,
  * until 48 hours before the start (see MEMBER_SEAT_CANCEL_HOURS). Body
- * { bookingId }. Only for the signed-in person's own booking.
+ * { bookingId }. Only for the signed-in person's own booking. No refund,
+ * also not for a paid guest seat.
  */
 export async function POST(request: Request) {
   const user = await getMemberUser();
@@ -23,8 +24,8 @@ export async function POST(request: Request) {
       const status = result.error === "not_found" ? 404 : 409;
       return NextResponse.json({ error: result.error }, { status });
     }
-    void captureServerEvent(user.id, PostHogEvents.memberSeatCancelled, { refunded: result.refundedCents > 0 });
-    return NextResponse.json({ ok: true, refundedCents: result.refundedCents });
+    void captureServerEvent(user.id, PostHogEvents.memberSeatCancelled, { refunded: false });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     captureClientSafeError(error, "member_seat_cancel", { booking_id: body.bookingId });
     return NextResponse.json({ error: "failed" }, { status: 500 });

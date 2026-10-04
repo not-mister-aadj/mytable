@@ -7,7 +7,6 @@ import { bookings, events, jouwTafelPauses, jouwTafelSeries } from "@/db/schema"
 import { requireAdmin } from "@/lib/admin-auth";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 import { replaceEventVenues } from "@/lib/event-venues";
-import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isIsoDate, isStartTime, weekday } from "@/lib/jouw-tafel/series-logic";
 import {
@@ -84,8 +83,9 @@ export async function generateNowAction() {
 }
 
 /**
- * One table: its maximum capacity and its venue. Linking a venue to a table
- * that is still "Binnenkort" opens it for booking, members first (48 hours).
+ * One table: its maximum capacity and its venue (our own planning: guests
+ * hear the venue later). Saving also opens a table that was still on
+ * "Binnenkort", since a Sunday Table is always bookable.
  */
 export async function saveTableAction(formData: FormData) {
   await requireAdmin();
@@ -103,14 +103,12 @@ export async function saveTableAction(formData: FormData) {
   if (capacity < event.spotsSold) throw new Error(`Er zijn al ${event.spotsSold} plekken verkocht.`);
 
   await replaceEventVenues(event.id, venueId ? [venueId] : []);
-  const opening = Boolean(venueId) && Boolean(event.extras?.comingSoon);
-  const extras = opening ? { ...(event.extras ?? {}), comingSoon: false } : event.extras;
+  const extras = event.extras?.comingSoon ? { ...event.extras, comingSoon: false } : event.extras;
   const [row] = await db
     .update(events)
     .set({ capacity, extras, updatedAt: new Date() })
     .where(eq(events.id, event.id))
     .returning();
-  if (opening) await applyMembersOnlyDefault(event.id);
   revalidateEventPaths(row);
   revalidatePath(ADMIN_PATH);
 }

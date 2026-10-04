@@ -69,8 +69,8 @@ export default async function AdminJouwTafelPage() {
         <h1 className="font-serif text-3xl text-burgundy">Sunday Table</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
           De tafels van Jouw tafel (/jouw-tafel). Elke nacht maakt het systeem de data van elke reeks tot 8 weken
-          vooruit aan als &quot;Binnenkort&quot;. Koppel je een zaak, dan gaat de tafel open: eerst 48 uur voor leden.
-          Deze tafels staan nooit in de agenda.
+          vooruit aan, meteen boekbaar tot de maximale capaciteit. De zaak koppel je voor je eigen planning; gasten
+          horen hem later. Deze tafels staan nooit in de agenda.
         </p>
       </div>
 
@@ -78,13 +78,13 @@ export default async function AdminJouwTafelPage() {
         <section className="rounded-2xl border border-gold/50 bg-gold/10 p-5 sm:p-6">
           <h2 className="font-serif text-xl text-burgundy">Aandacht nodig</h2>
           <p className="mt-1 text-sm text-wine/65">
-            Binnen {SERIES_WARN_DAYS} dagen en nog zonder zaak of nog niet open:
+            Binnen {SERIES_WARN_DAYS} dagen en nog zonder zaak:
           </p>
           <ul className="mt-3 space-y-1 text-sm text-wine">
             {attention.map((t) => (
               <li key={t.id}>
                 <span className="font-semibold">{t.city}</span> · {formatDate(t.date)} ·{" "}
-                {t.venueName ? status(t) : "geen zaak"}
+                {t.spotsSold} / {t.capacity} geboekt
               </li>
             ))}
           </ul>
@@ -163,7 +163,7 @@ export default async function AdminJouwTafelPage() {
                               ))}
                           </select>
                           <button type="submit" className={button}>
-                            {t.comingSoon ? "Opslaan" : "Bewaar"}
+                            Opslaan
                           </button>
                         </form>
                         {t.spotsSold === 0 ? (
@@ -181,8 +181,7 @@ export default async function AdminJouwTafelPage() {
               </tbody>
             </table>
             <p className="mt-3 text-xs text-wine/50">
-              Een zaak kiezen bij een tafel op Binnenkort zet hem open. Alleen zaken uit dezelfde stad staan in de
-              lijst; voeg nieuwe toe onder Venues.
+              Alleen zaken uit dezelfde stad staan in de lijst; voeg nieuwe toe onder Venues.
             </p>
           </div>
         )}
@@ -254,7 +253,7 @@ export default async function AdminJouwTafelPage() {
           <input type="date" name="firstDate" className={field} aria-label="Eerste zondag" required />
           <input type="number" name="intervalWeeks" min={1} max={12} defaultValue={4} className={`${field} w-16`} aria-label="Om de zoveel weken" />
           <input type="time" name="startTime" defaultValue="14:00" className={field} aria-label="Starttijd" />
-          <input type="number" name="defaultCapacity" min={1} max={100} defaultValue={12} className={`${field} w-20`} aria-label="Maximale capaciteit" />
+          <input type="number" name="defaultCapacity" min={1} max={100} defaultValue={20} className={`${field} w-20`} aria-label="Maximale capaciteit" />
           <input type="hidden" name="active" value="on" />
           <button type="submit" className={button}>
             Toevoegen

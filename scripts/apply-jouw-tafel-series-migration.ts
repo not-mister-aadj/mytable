@@ -1,5 +1,5 @@
 /**
- * Applies drizzle/0033_jouw_tafel_series.sql ("Jouw tafel" Sunday Table
+ * Applies drizzle/0033_jouw_tafel_series.sql and 0034 ("Jouw tafel" Sunday Table
  * series, pauses and skipped dates, plus the agreed start). Idempotent.
  *
  *   npx tsx scripts/apply-jouw-tafel-series-migration.ts
@@ -23,10 +23,12 @@ if (!url) {
 const sql = postgres(url, { prepare: false, onnotice: () => {} });
 
 async function main() {
-  const file = "0033_jouw_tafel_series.sql";
-  const migration = readFileSync(join(process.cwd(), "drizzle", file), "utf8");
-  await sql.unsafe(migration);
-  console.log(`OK: ${file} applied`);
+  const files = ["0033_jouw_tafel_series.sql", "0034_jouw_tafel_always_bookable.sql"];
+  for (const file of files) {
+    const migration = readFileSync(join(process.cwd(), "drizzle", file), "utf8");
+    await sql.unsafe(migration);
+    console.log(`OK: ${file} applied`);
+  }
   await sql.end();
 }
 

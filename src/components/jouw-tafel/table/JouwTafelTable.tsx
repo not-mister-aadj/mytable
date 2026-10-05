@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeftIcon, CheckIcon } from "@/components/jouw-tafel/icons";
 import { CHIP_TONE, spotsChip } from "@/components/jouw-tafel/quiz/QuizChoose";
 import { primaryButton, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
@@ -41,7 +41,7 @@ export function tableTime(iso: string, locale: Locale): string {
 export function TableHeader({ href, label, title }: { href: string; label: string; title?: string }) {
   return (
     <header className="sticky top-0 z-30 bg-cream/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-cream/80">
-      <div className="mx-auto grid h-14 w-full max-w-md grid-cols-[3rem_1fr_3rem] items-center px-2">
+      <div className="mx-auto grid h-14 w-full max-w-md sm:max-w-2xl grid-cols-[3rem_1fr_3rem] items-center px-2">
         <Link
           href={href}
           aria-label={label}
@@ -158,20 +158,77 @@ const EXPECT_PHOTOS = [
   "/girls-only/duo-table.jpg",
 ];
 
-/** "Wat je kunt verwachten": a sideways row of photo cards, one line each. */
-function ExpectSection({ title, items }: { title: string; items: string[] }) {
+const arrowClass =
+  "flex h-9 w-9 items-center justify-center rounded-full border border-wine/15 bg-white/70 text-wine transition hover:bg-white disabled:cursor-default disabled:opacity-30";
+
+/** "Wat je kunt verwachten": a sideways row of photo cards, one line each.
+ * Swipe on a phone; arrows and dots for a mouse. */
+function ExpectSection({ title, items, locale }: { title: string; items: string[]; locale: Locale }) {
+  const rowRef = useRef<HTMLUListElement>(null);
+  const [active, setActive] = useState(0);
+  const [atEnd, setAtEnd] = useState(false);
+
+  const onScroll = () => {
+    const row = rowRef.current;
+    if (!row) return;
+    const card = row.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + 12 : row.clientWidth;
+    setActive(Math.min(items.length - 1, Math.round(row.scrollLeft / step)));
+    setAtEnd(row.scrollLeft + row.clientWidth >= row.scrollWidth - 4);
+  };
+
+  const scrollToCard = (index: number) => {
+    const row = rowRef.current;
+    const card = row?.children[index] as HTMLElement | undefined;
+    if (!row || !card) return;
+    const first = row.firstElementChild as HTMLElement;
+    row.scrollTo({ left: card.offsetLeft - first.offsetLeft, behavior: "smooth" });
+  };
+
   return (
     <section className="mt-12">
-      <p className={eyebrowClass}>{title}</p>
-      <ul className="-mx-5 mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex items-center justify-between gap-4">
+        <p className={eyebrowClass}>{title}</p>
+        <div className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            aria-label={locale === "en" ? "Previous" : "Vorige"}
+            onClick={() => scrollToCard(Math.max(0, active - 1))}
+            disabled={active === 0}
+            className={arrowClass}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label={locale === "en" ? "Next" : "Volgende"}
+            onClick={() => scrollToCard(Math.min(items.length - 1, active + 1))}
+            disabled={atEnd}
+            className={arrowClass}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <ul
+        ref={rowRef}
+        onScroll={onScroll}
+        className={`-mx-5 mt-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden ${
+          atEnd ? "" : "sm:[mask-image:linear-gradient(to_right,black_80%,transparent)]"
+        }`}
+      >
         {items.map((item, i) => (
-          <li key={item} className="w-[15rem] shrink-0 snap-start">
+          <li key={item} className="w-[72%] shrink-0 snap-start sm:w-[15rem]">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-wine/10">
               <Image
                 src={EXPECT_PHOTOS[i % EXPECT_PHOTOS.length]!}
                 alt=""
                 fill
-                sizes="240px"
+                sizes="(min-width: 640px) 240px, 72vw"
                 quality={90}
                 className="object-cover"
               />
@@ -180,6 +237,14 @@ function ExpectSection({ title, items }: { title: string; items: string[] }) {
           </li>
         ))}
       </ul>
+      <div className="mt-3 flex justify-center gap-1.5" aria-hidden>
+        {items.map((item, i) => (
+          <span
+            key={item}
+            className={`h-1.5 rounded-full transition-all ${i === active ? "w-5 bg-wine" : "w-1.5 bg-wine/20"}`}
+          />
+        ))}
+      </div>
     </section>
   );
 }
@@ -280,14 +345,14 @@ export function JouwTafelTable({
   return (
     <div className="min-h-[100svh] bg-cream pb-36 text-wine">
       <TableHeader href={kiesHref} label={t.back} />
-      <main className="mx-auto w-full max-w-md px-5">
+      <main className="mx-auto w-full max-w-md px-5 sm:max-w-2xl sm:px-8">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mt-1 aspect-[4/3] overflow-hidden rounded-[1.75rem] shadow-[0_24px_60px_rgba(43,13,18,0.18)]"
+          className="relative mt-1 aspect-[4/3] sm:aspect-[16/9] overflow-hidden rounded-[1.75rem] shadow-[0_24px_60px_rgba(43,13,18,0.18)]"
         >
-          <Image src={PHOTO} alt={t.imageAlt} fill priority sizes="(min-width: 480px) 448px, 100vw" quality={90} className="object-cover object-[35%_55%]" />
+          <Image src={PHOTO} alt={t.imageAlt} fill priority sizes="(min-width: 640px) 608px, 100vw" quality={90} className="object-cover object-[35%_55%]" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#14060a]/45 to-transparent" />
           <span
             className={`absolute left-4 top-4 inline-flex items-center rounded-full px-3.5 py-2 text-xs font-semibold backdrop-blur-sm ${
@@ -312,7 +377,7 @@ export function JouwTafelTable({
         </p>
 
         <StepsSection title={t.how.title} steps={t.how.steps(time)} />
-        <ExpectSection title={t.expect.title} items={t.expect.items} />
+        <ExpectSection title={t.expect.title} items={t.expect.items} locale={locale} />
         <GoodToKnow title={t.good.title} items={t.good.items} />
         {stats ? <WhyPeopleCome locale={locale} stats={stats} /> : null}
         <TableFaq faq={t.faq} />

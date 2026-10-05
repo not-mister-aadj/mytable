@@ -309,8 +309,8 @@ test("chooseTables: a place that is not ours has no tables of its own; no table 
   const utrecht = chooseTables(EVENTS, { cities: ["Utrecht"], age: 45, ageMatters: "yes" }, NOW);
   assert.equal(utrecht.hasMatch, false);
   assert.deepEqual(utrecht.rows.map((r) => r.kind), ["soon"]);
-  const groningen = chooseTables(EVENTS, { cities: ["Groningen"], age: 30, ageMatters: "no" }, NOW);
-  assert.deepEqual(groningen, { rows: [], hasMatch: false });
+  const nijmegen = chooseTables(EVENTS, { cities: ["Nijmegen"], age: 30, ageMatters: "no" }, NOW);
+  assert.deepEqual(nijmegen, { rows: [], hasMatch: false });
 });
 
 test("chooseTables: two cities, in the order they were picked", () => {

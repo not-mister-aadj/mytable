@@ -13,6 +13,8 @@ import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import { getTableCopy } from "@/lib/jouw-tafel/table-copy";
 import type { TableState } from "@/lib/jouw-tafel/table-logic";
 import { trackTableEvent } from "@/lib/posthog/analytics";
+import { TestimonialMarquee } from "@/components/TestimonialMarquee";
+import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { PostHogEvents } from "@/lib/posthog/events";
 
 const PHOTO = "/girls-only/wine-tasting-toast.jpg";
@@ -57,8 +59,8 @@ export function TableHeader({ href, label, title }: { href: string; label: strin
 /** "Nog twijfels?": the same questions block as the Sunday Social pages. */
 function TableFaq({ faq }: { faq: { eyebrow: string; title: string; items: { q: string; a: string }[] } }) {
   return (
-    <section className="mt-12">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{faq.eyebrow}</p>
+    <section className="mt-12 border-t border-wine/10 pt-10">
+      <p className={eyebrowClass}>{faq.eyebrow}</p>
       <h2 className="mt-3 font-serif text-[1.6rem] font-medium leading-tight tracking-tight text-wine">{faq.title}</h2>
       <div className="mt-6 divide-y divide-wine/10 rounded-[1.5rem] border border-wine/10 bg-white/70 px-5 shadow-[0_20px_50px_rgba(43,13,18,0.06)]">
         {faq.items.map((item) => (
@@ -80,23 +82,157 @@ function TableFaq({ faq }: { faq: { eyebrow: string; title: string; items: { q: 
   );
 }
 
-function ListSection({ title, items, numbered = false }: { title: string; items: string[]; numbered?: boolean }) {
+const eyebrowClass = "text-[11px] font-semibold uppercase tracking-[0.28em] text-gold";
+
+/** Small line icons for the steps, on a dark tile like the Sunday Social
+ * pages: reserve, hear the venue, join the table, more tables. */
+function StepIcon({ index }: { index: number }) {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  if (index === 0) {
+    return (
+      <svg {...common}>
+        <path d="M4 8a2 2 0 0 0 0 4v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a2 2 0 0 1 0-4V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v3Z" />
+        <path d="M14 4v13" strokeDasharray="2 2" />
+      </svg>
+    );
+  }
+  if (index === 1) {
+    return (
+      <svg {...common}>
+        <path d="M12 21s-6-5.6-6-11a6 6 0 1 1 12 0c0 5.4-6 11-6 11Z" />
+        <circle cx="12" cy="10" r="2.2" />
+      </svg>
+    );
+  }
+  if (index === 2) {
+    return (
+      <svg {...common}>
+        <path d="M8 3h8l-.6 6.2A3.4 3.4 0 0 1 12 12.3a3.4 3.4 0 0 1-3.4-3.1L8 3Z" />
+        <path d="M12 12.3V20M8.5 20h7" />
+      </svg>
+    );
+  }
   return (
-    <section className="mt-9">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{title}</h2>
-      <ul className="mt-4 space-y-3.5">
+    <svg {...common}>
+      <circle cx="8" cy="9" r="2.6" />
+      <circle cx="16" cy="9" r="2.6" />
+      <path d="M3.5 19c.6-2.8 2.4-4.3 4.5-4.3s3.9 1.5 4.5 4.3M11.5 19c.6-2.8 2.4-4.3 4.5-4.3s3.9 1.5 4.5 4.3" />
+    </svg>
+  );
+}
+
+/** "Zo werkt het": each step on a dark icon tile. */
+function StepsSection({ title, steps }: { title: string; steps: string[] }) {
+  return (
+    <section className="mt-12">
+      <p className={eyebrowClass}>{title}</p>
+      <ol className="mt-6 space-y-5">
+        {steps.map((step, i) => (
+          <li key={step} className="flex items-center gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-wine text-cream">
+              <StepIcon index={i} />
+            </span>
+            <p className="font-serif text-[1.15rem] font-medium leading-snug tracking-tight text-wine">{step}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+const EXPECT_PHOTOS = [
+  "/girls-only/wine-tasting-conversation.jpg",
+  "/girls-only/table-wine-laughing.jpg",
+  "/girls-only/smiling-glasses.jpg",
+  "/girls-only/wine-tasting-presenter.jpg",
+  "/girls-only/duo-table.jpg",
+];
+
+/** "Wat je kunt verwachten": a sideways row of photo cards, one line each. */
+function ExpectSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="mt-12">
+      <p className={eyebrowClass}>{title}</p>
+      <ul className="-mx-5 mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item, i) => (
-          <li key={item} className="flex items-start gap-3.5 text-[1rem] leading-relaxed text-wine/85">
-            <span
-              aria-hidden
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gold/50 bg-white text-[0.8rem] font-semibold text-burgundy"
-            >
-              {numbered ? i + 1 : <CheckIcon className="h-3.5 w-3.5" />}
+          <li key={item} className="w-[15rem] shrink-0 snap-start">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-wine/10">
+              <Image
+                src={EXPECT_PHOTOS[i % EXPECT_PHOTOS.length]!}
+                alt=""
+                fill
+                sizes="240px"
+                quality={90}
+                className="object-cover"
+              />
+            </div>
+            <p className="mt-3 font-serif text-[1.08rem] font-medium leading-snug tracking-tight text-wine">{item}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** "Goed om te weten": the practical points in one white card. */
+function GoodToKnow({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="mt-12">
+      <p className={eyebrowClass}>{title}</p>
+      <ul className="mt-5 space-y-3.5 rounded-[1.5rem] border border-wine/10 bg-white/70 p-5 shadow-[0_20px_50px_rgba(43,13,18,0.05)]">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-3 text-[0.98rem] leading-relaxed text-wine/80">
+            <span aria-hidden className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+              <CheckIcon className="h-3.5 w-3.5" />
             </span>
             {item}
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+export type TableStats = { meetNewPeople: number; solo: number; discoverPlaces: number; justForFun: number };
+
+/** "Waarom mensen bij MyTable komen" plus the guests' own words, as on the
+ * Sunday Social pages. */
+function WhyPeopleCome({ locale, stats }: { locale: Locale; stats: TableStats }) {
+  const t = getTableCopy(locale);
+  // A 0% says nothing, so those are left out (and the grid with them).
+  const items = [stats.meetNewPeople, stats.solo, stats.discoverPlaces, stats.justForFun]
+    .map((value, i) => ({ value, label: t.stats.labels[i]! }))
+    .filter((item) => item.value > 0);
+  const people = getBrandLandingTestimonialRows(locale).people;
+  return (
+    <section className="mt-12 border-t border-wine/10 pt-10">
+      <p className={eyebrowClass}>{t.stats.eyebrow}</p>
+      <h2 className="mt-3 font-serif text-[1.6rem] font-medium leading-tight tracking-tight text-wine text-balance">
+        {t.stats.title}
+      </h2>
+      {items.length > 0 ? (
+        <div className="mt-7 grid grid-cols-2 gap-6">
+          {items.map((item) => (
+            <div key={item.label}>
+              <p className="font-serif text-3xl font-medium text-wine">{item.value}%</p>
+              <p className="mt-1 text-sm leading-snug text-wine/60">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className="-mx-5 overflow-hidden">
+        <TestimonialMarquee top={people} bottom={[]} fadeFromClassName="from-cream" cardClassName="border-wine/10 bg-white/80" singleRow />
+      </div>
     </section>
   );
 }
@@ -115,6 +251,7 @@ export function JouwTafelTable({
   reserveHref,
   cta,
   chip: chipOverride,
+  stats,
 }: {
   locale: Locale;
   event: QuizEvent;
@@ -125,6 +262,9 @@ export function JouwTafelTable({
   cta?: ReactNode;
   /** Replaces the spots chip (a non-member's "Te boeken vanaf ..."). */
   chip?: { text: string; tone: keyof typeof CHIP_TONE };
+  /** "Waarom mensen bij MyTable komen" (real waitlist numbers); the block
+   * is left out without them. */
+  stats?: TableStats | null;
 }) {
   const t = getTableCopy(locale);
   const k = getQuizCopy(locale).kies;
@@ -145,24 +285,36 @@ export function JouwTafelTable({
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mt-1 aspect-[4/3] overflow-hidden rounded-[1.75rem]"
+          className="relative mt-1 aspect-[4/3] overflow-hidden rounded-[1.75rem] shadow-[0_24px_60px_rgba(43,13,18,0.18)]"
         >
-          <Image src={PHOTO} alt={t.imageAlt} fill priority sizes="(min-width: 480px) 448px, 100vw" className="object-cover object-[35%_55%]" />
-        </motion.div>
-
-        <h1 className="mt-6 font-serif text-[2.4rem] font-medium leading-[1.05] tracking-tight text-wine">{t.title}</h1>
-        <p className="mt-2 text-[1.02rem] text-wine/75">
-          {t.dateLine(tableDate(event.startsAt, locale), time, city)}
-        </p>
-        <p className="mt-3">
-          <span className={`inline-block rounded-full px-2.5 py-1 text-[0.78rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
+          <Image src={PHOTO} alt={t.imageAlt} fill priority sizes="(min-width: 480px) 448px, 100vw" quality={90} className="object-cover object-[35%_55%]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#14060a]/45 to-transparent" />
+          <span
+            className={`absolute left-4 top-4 inline-flex items-center rounded-full px-3.5 py-2 text-xs font-semibold backdrop-blur-sm ${
+              chip.tone === "grey" ? "bg-[#14060a]/50 text-cream" : "bg-gold text-wine"
+            }`}
+          >
             {chip.text}
           </span>
+        </motion.div>
+
+        <p className={`mt-7 ${eyebrowClass}`}>
+          {t.title} · {city}
+        </p>
+        <h1 className="mt-3 font-serif text-[2.4rem] font-medium leading-[1.05] tracking-tight text-wine">{t.title}</h1>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-wine/15 bg-beige/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine/80">
+            {t.sizeTag}
+          </span>
+        </div>
+        <p className="mt-3 text-lg font-medium text-wine/90 first-letter:uppercase">
+          {tableDate(event.startsAt, locale)} · {time}
         </p>
 
-        <ListSection title={t.how.title} items={t.how.steps(time)} numbered />
-        <ListSection title={t.expect.title} items={t.expect.items} />
-        <ListSection title={t.good.title} items={t.good.items} />
+        <StepsSection title={t.how.title} steps={t.how.steps(time)} />
+        <ExpectSection title={t.expect.title} items={t.expect.items} />
+        <GoodToKnow title={t.good.title} items={t.good.items} />
+        {stats ? <WhyPeopleCome locale={locale} stats={stats} /> : null}
         <TableFaq faq={t.faq} />
       </main>
 

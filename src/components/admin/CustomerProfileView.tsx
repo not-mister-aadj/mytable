@@ -7,6 +7,7 @@ import type { AdminCustomerProfile } from "@/lib/admin-customers-data";
 import { updateCustomerNotesAction } from "@/app/admin/(dashboard)/customers/actions";
 import { adminPath } from "@/lib/admin-url";
 import { formatMoney } from "@/lib/booking-display";
+import { describeTouch } from "@/lib/analytics/attribution";
 import {
   customerStatusPillClass,
 } from "@/lib/customers/status";
@@ -167,6 +168,21 @@ export function CustomerProfileView({
               Sinds {formatDate(profile.createdAt)}
             </span>
           </div>
+          {profile.attribution ? (
+            <div className="mt-3 space-y-1 text-sm text-wine/65">
+              <p>
+                <span className="font-medium text-wine/80">Herkomst:</span>{" "}
+                {describeTouch(profile.attribution.first)}
+              </p>
+              {profile.attribution.last &&
+              describeTouch(profile.attribution.last) !== describeTouch(profile.attribution.first) ? (
+                <p>
+                  <span className="font-medium text-wine/80">Laatste campagne:</span>{" "}
+                  {describeTouch(profile.attribution.last)}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 

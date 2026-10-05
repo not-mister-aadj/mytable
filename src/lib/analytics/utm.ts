@@ -1,3 +1,12 @@
+import {
+  ATTRIBUTION_FIRST_COOKIE,
+  ATTRIBUTION_LAST_COOKIE,
+  ATTRIBUTION_MAX_AGE_SECONDS,
+  campaignFromSearch,
+  externalReferrerHost,
+  type Touch,
+} from "@/lib/analytics/attribution";
+
 export type UtmParams = {
   utm_source?: string;
   utm_medium?: string;
@@ -32,9 +41,48 @@ export function parseUtmFromSearch(search: string): UtmParams {
   return utm;
 }
 
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? match[1]! : null;
+}
+
+function writeTouchCookie(name: string, touch: Touch) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(JSON.stringify(touch))}; Max-Age=${ATTRIBUTION_MAX_AGE_SECONDS}; Path=/; SameSite=Lax${secure}`;
+}
+
+/** The external referrer only counts once per page load (it does not
+ * change on client-side navigation). */
+let referrerCaptured = false;
+
+/**
+ * Keeps where the visitor came from in the attribution cookies: the first
+ * visit ever (always), and the last visit that came from a campaign or
+ * another site. See src/lib/analytics/attribution.ts.
+ */
+export function captureAttribution(search: string) {
+  try {
+    const campaign = campaignFromSearch(search);
+    const hasCampaign = Object.keys(campaign).length > 0;
+    const referrer = referrerCaptured ? null : externalReferrerHost(document.referrer, window.location.hostname);
+    referrerCaptured = true;
+    const touch: Touch = {
+      ...campaign,
+      ...(referrer ? { referrer } : {}),
+      landing: window.location.pathname,
+      at: new Date().toISOString(),
+    };
+    if (!readCookie(ATTRIBUTION_FIRST_COOKIE)) writeTouchCookie(ATTRIBUTION_FIRST_COOKIE, touch);
+    if (hasCampaign || referrer) writeTouchCookie(ATTRIBUTION_LAST_COOKIE, touch);
+  } catch {
+    // Cookies may be blocked; attribution is a nice-to-have.
+  }
+}
+
 export function persistUtmFromUrl(search?: string): UtmParams {
   if (typeof window === "undefined") return {};
 
+  captureAttribution(search ?? window.location.search);
   const parsed = parseUtmFromSearch(search ?? window.location.search);
   if (Object.keys(parsed).length === 0) {
     return getStoredUtm();

@@ -31,6 +31,7 @@ import Link from "next/link";
 import { secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import { getBookedSeats } from "@/lib/jouw-tafel/account-server";
+import { getSundayTableMotivationStats } from "@/lib/sunday-table-motivation-stats";
 
 export function jouwTafelTableMetadata(locale: Locale): Metadata {
   return { title: getTableCopy(locale).metaTitle, robots: NO_INDEX };
@@ -80,9 +81,10 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
   if (!event) notFound();
   const now = tableNow();
   const state = tableState(event, now);
-  const [{ membership, access }, booked] = await Promise.all([
+  const [{ membership, access }, booked, stats] = await Promise.all([
     reserveAccess(user.id, event, now),
     getBookedSeats(user.email).catch(() => ({}) as Record<string, number>),
+    getSundayTableMotivationStats().catch(() => null),
   ]);
   const seats = booked[event.id];
   // Already at this table: say so and point to the booking. A blocked or
@@ -108,6 +110,7 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
           : earlyChip(event, locale, membership, now) ?? undefined
       }
       cta={memberState}
+      stats={stats}
     />
   );
 }

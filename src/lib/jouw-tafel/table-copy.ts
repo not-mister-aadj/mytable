@@ -18,6 +18,10 @@ export type TableCopy = {
   bookedCta: string;
   expect: { title: string; items: string[] };
   good: { title: string; items: string[] };
+  /** The pill under the title. */
+  sizeTag: string;
+  /** "Waarom mensen bij MyTable komen": real numbers from the waitlist. */
+  stats: { eyebrow: string; title: string; labels: [string, string, string, string] };
   /** "Nog twijfels?": the questions at the bottom of the table page. */
   faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
   cta: {
@@ -49,6 +53,17 @@ const nl: TableCopy = {
   imageAlt: "Een tafel die het glas heft",
   title: "Sunday Table",
   bookedCta: "Bekijk je reservering",
+  sizeTag: "4 tot 6 personen",
+  stats: {
+    eyebrow: "Waarom mensen bij MyTable komen",
+    title: "Herkenbaar? Dit blijkt uit de data van al onze events",
+    labels: [
+      "komt om nieuwe mensen te ontmoeten",
+      "komt in z'n eentje",
+      "wil een nieuwe plek ontdekken",
+      "komt gewoon voor de gezelligheid",
+    ],
+  },
   dateLine: (date, time, city) => `${date} · ${time} · ${city}`,
   how: {
     title: "Zo werkt het",
@@ -162,6 +177,12 @@ const en: TableCopy = {
   imageAlt: "A table raising their glasses",
   title: "Sunday Table",
   bookedCta: "View your booking",
+  sizeTag: "4 to 6 people",
+  stats: {
+    eyebrow: "Why people come to MyTable",
+    title: "Sound familiar? Here's what we see across all our events",
+    labels: ["come to meet new people", "come solo", "want to discover a new place", "just come for good company"],
+  },
   dateLine: (date, time, city) => `${date} · ${time} · ${city}`,
   how: {
     title: "How it works",

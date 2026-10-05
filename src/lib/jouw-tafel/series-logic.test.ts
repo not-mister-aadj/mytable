@@ -28,7 +28,7 @@ test("the agreed plan: two cities a Sunday, neighbours a week apart", () => {
   const plan = (firstDate: string) => seriesDates({ firstDate, intervalWeeks: 4, active: true }, window, BREAK);
   assert.deepEqual(plan("2026-11-08"), ["2026-11-08", "2026-12-06", "2027-01-31"]); // Den Haag, Eindhoven
   assert.deepEqual(plan("2026-11-15"), ["2026-11-15", "2026-12-13", "2027-02-07"]); // Amsterdam, Breda
-  assert.deepEqual(plan("2026-11-22"), ["2026-11-22", "2027-01-17", "2027-02-14"]); // Utrecht, Groningen
+  assert.deepEqual(plan("2026-11-22"), ["2026-11-22", "2027-01-17", "2027-02-14"]); // Utrecht
 });
 
 test("the window starts mid-series without walking from the first date", () => {

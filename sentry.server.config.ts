@@ -16,4 +16,12 @@ Sentry.init({
   enableLogs: true,
 
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.NODE_ENV,
+
+  // HEAD requests come from link checkers (mail scanners such as Outlook
+  // Safe Links, link previews), not from visitors. A slow database moment
+  // during such a check is not worth an alert.
+  beforeSend(event) {
+    if (event.request?.method?.toUpperCase() === "HEAD") return null;
+    return event;
+  },
 });

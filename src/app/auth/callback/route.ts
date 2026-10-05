@@ -96,6 +96,17 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.user) {
+    // The code was already used (a refresh or the back button after a
+    // successful sign-in) or the PKCE verifier is gone, but the browser may
+    // still hold a valid session from that first round. Then just go on.
+    const { data: existing } = await supabase.auth.getUser();
+    if (existing.user) {
+      const response = NextResponse.redirect(`${siteOrigin}${next}`);
+      pendingCookies.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options);
+      });
+      return response;
+    }
     captureCriticalError(
       error ?? new Error("Member OAuth exchange returned no user"),
       {

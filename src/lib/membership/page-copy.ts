@@ -162,7 +162,7 @@ const nl: MembershipPageCopy = {
     title: "Hoe het werkt",
     steps: [
       { title: "Kies je lidmaatschap", body: "Je betaalt veilig online en bent meteen lid." },
-      { title: "Kies je zondag", body: "Jij kunt al 48 uur eerder boeken dan niet-leden." },
+      { title: "Kies je zondag", body: "Je boekt al 4 weken van tevoren, een paar dagen eerder dan de rest." },
       { title: "Schuif aan", body: "Waar precies, hoor je een week van tevoren." },
     ],
     imageAlt: "Gasten in gesprek aan een Sunday Table",
@@ -270,7 +270,7 @@ const en: MembershipPageCopy = {
     title: "How it works",
     steps: [
       { title: "Choose your membership", body: "You pay safely online and are a member straight away." },
-      { title: "Choose your Sunday", body: "You can book 48 hours before non-members." },
+      { title: "Choose your Sunday", body: "You book 4 weeks ahead, a few days before everyone else." },
       { title: "Join the table", body: "Where exactly, you hear a week before." },
     ],
     imageAlt: "Guests talking at a Sunday Table",

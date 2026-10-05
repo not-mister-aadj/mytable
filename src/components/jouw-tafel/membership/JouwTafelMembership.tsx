@@ -287,7 +287,7 @@ export function JouwTafelMembership({
               <h2 className={`${h2Class} mt-3`}>{copy.benefits.title}</h2>
             </Reveal>
             <ul className="mt-10 grid gap-4 sm:grid-cols-3 sm:gap-5">
-              {copy.benefits.items.map((item, index) => {
+              {copy.benefits.items({ single }).map((item, index) => {
                 const Icon = benefitIcons[index] ?? CalendarIcon;
                 return (
                   <Reveal key={item.title} delay={index * 0.08} className="h-full">

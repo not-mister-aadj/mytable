@@ -4,6 +4,7 @@ import { customers, type Membership } from "@/db/schema";
 import { MembershipEmail } from "@/emails/MembershipEmail";
 import { jouwTafelKiesPath, jouwTafelSettingsPath } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
+import { getSingleSeatCents } from "@/lib/jouw-tafel/data";
 import { onEmailSent } from "@/lib/customers/hooks";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
@@ -46,8 +47,8 @@ async function send(to: string, mail: MembershipMail, customerId: string | null,
 
 export async function sendMembershipWelcomeEmail(m: Membership, bookedSunday: Date | null): Promise<boolean> {
   if (!isMembershipPlanId(m.plan)) return false;
-  const r = await recipient(m);
-  const mail = welcomeMail({ locale: r.locale, firstName: r.firstName, plan: m.plan, bookedSunday, links: links(r.locale) });
+  const [r, singleSeatCents] = await Promise.all([recipient(m), getSingleSeatCents()]);
+  const mail = welcomeMail({ locale: r.locale, firstName: r.firstName, plan: m.plan, bookedSunday, singleSeatCents, links: links(r.locale) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: welkom");
 }
 

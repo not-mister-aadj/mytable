@@ -21,7 +21,7 @@ export default async function MembershipEmailPreviewPage({ searchParams }: Props
   const links = { kies: "https://www.mytable.club/jouw-tafel/start?stap=kies", settings: "https://www.mytable.club/jouw-tafel/instellingen" };
   const sunday = new Date("2026-10-25T13:00:00Z");
   const mails: { label: string; mail: MembershipMail }[] = [
-    { label: "Welkom als lid", mail: welcomeMail({ locale, firstName: "Anna", plan: "4m", bookedSunday: sunday, links }) },
+    { label: "Welkom als lid", mail: welcomeMail({ locale, firstName: "Anna", plan: "4m", bookedSunday: sunday, singleSeatCents: 1500, links }) },
     { label: "Herinnering eerste periode", mail: reminderMail({ locale, firstName: "Anna", plan: "4m", from: new Date("2027-02-04T09:00:00Z"), links }) },
     { label: "Opzegging bevestigd", mail: cancelledMail({ locale, firstName: "Anna", until: new Date("2027-02-04T09:00:00Z"), links }) },
     { label: "Niet gekomen: waarschuwing", mail: noShowWarningMail({ locale, firstName: "Anna", sunday, links }) },

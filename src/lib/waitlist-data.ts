@@ -2,6 +2,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
+import { readAttribution } from "@/lib/analytics/attribution-server";
 
 /** One waitlist, one meaning — "priority_list" was retired, see drizzle/0020. */
 export async function createWaitlistSignup(input: {
@@ -30,6 +31,7 @@ export async function createWaitlistSignup(input: {
 
   const db = getDb();
   const locale = input.locale === "en" ? "en" : "nl";
+  const attribution = await readAttribution();
 
   try {
     const [inserted] = await db
@@ -41,6 +43,7 @@ export async function createWaitlistSignup(input: {
         name,
         source,
         preferences: preferences ?? undefined,
+        attribution: attribution ?? undefined,
       })
       .onConflictDoNothing({
         target: [waitlistSignups.email, waitlistSignups.city],
@@ -52,7 +55,7 @@ export async function createWaitlistSignup(input: {
     }
 
     const [existing] = await db
-      .select({ id: waitlistSignups.id, source: waitlistSignups.source })
+      .select({ id: waitlistSignups.id, source: waitlistSignups.source, attribution: waitlistSignups.attribution })
       .from(waitlistSignups)
       .where(
         and(
@@ -64,6 +67,11 @@ export async function createWaitlistSignup(input: {
 
     if (!existing) {
       return { ok: false, error: "Could not save signup" };
+    }
+
+    if (attribution && !existing.attribution) {
+      // A row from before attribution existed: keep where they came from now.
+      await db.update(waitlistSignups).set({ attribution }).where(eq(waitlistSignups.id, existing.id));
     }
 
     if (preferences || name) {

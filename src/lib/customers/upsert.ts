@@ -6,6 +6,7 @@ import type { UpsertCustomerInput } from "@/lib/customers/types";
 import { captureServerEvent, identifyServerPerson } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { hashEmail } from "@/lib/posthog/properties";
+import { readAttribution } from "@/lib/analytics/attribution-server";
 
 export async function upsertCustomerFromEmail(
   input: UpsertCustomerInput,
@@ -48,6 +49,7 @@ export async function upsertCustomerFromEmail(
     return { id: existing.id, isNew: false };
   }
 
+  const attribution = await readAttribution();
   const [created] = await db
     .insert(customers)
     .values({
@@ -58,6 +60,7 @@ export async function upsertCustomerFromEmail(
       language: nextLanguage,
       preferredCity: input.preferredCity ?? null,
       phone: input.phone ?? null,
+      attribution: attribution ?? undefined,
       firstSeenAt: now,
       lastSeenAt: now,
       createdAt: now,

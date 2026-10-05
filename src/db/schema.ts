@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { Attribution } from "@/lib/analytics/attribution";
 import type { SundayTableSignupProfile } from "@/lib/sunday-table-shared";
 
 export type { SundayTableSignupProfile } from "@/lib/sunday-table-shared";
@@ -157,6 +158,8 @@ export const customers = pgTable(
     lastName: text("last_name"),
     phone: text("phone"),
     preferredCity: text("preferred_city"),
+    /** Where they came from when the customer was created, set once. */
+    attribution: jsonb("attribution").$type<Attribution>(),
     language: text("language"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -323,6 +326,9 @@ export const waitlistSignups = pgTable(
     name: text("name"),
     source: text("source").notNull().default("waitlist"),
     preferences: jsonb("preferences").$type<Record<string, unknown>>(),
+    /** Where they came from (first visit and last campaign click), set once.
+     * See src/lib/analytics/attribution.ts. */
+    attribution: jsonb("attribution").$type<Attribution>(),
     customerId: uuid("customer_id").references(() => customers.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

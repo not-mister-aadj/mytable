@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readAttribution } from "@/lib/analytics/attribution-server";
 import { eq } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -464,11 +465,13 @@ export async function POST(request: Request) {
 
   const utm = cleanAttribution(body.utm);
   const metaContext = parseMetaTrackingContext(body.meta);
-  if (Object.keys(utm).length > 0) {
+  // The attribution cookies add the first visit and the click ids.
+  const attribution = await readAttribution();
+  if (Object.keys(utm).length > 0 || attribution) {
     await db.insert(bookingEvents).values({
       bookingId: booking.id,
       type: "checkout_utm",
-      payload: utm,
+      payload: { ...utm, ...(attribution ? { attribution } : {}) },
     });
   }
 

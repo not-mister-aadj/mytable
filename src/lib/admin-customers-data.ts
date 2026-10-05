@@ -1,4 +1,5 @@
-import { desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
+import type { Attribution } from "@/lib/analytics/attribution";
 import {
   bookings,
   customerActivities,
@@ -98,6 +99,8 @@ export type AdminCustomerProfile = {
   lastName: string | null;
   phone: string | null;
   preferredCity: string | null;
+  /** Where they came from (customer row, else their first waitlist signup). */
+  attribution: Attribution | null;
   language: string | null;
   favoriteCity: string | null;
   favoriteEventType: string | null;
@@ -276,6 +279,18 @@ export async function getAdminCustomerProfile(
     .where(eq(bookings.customerId, customerId))
     .orderBy(desc(bookings.createdAt));
 
+  const attribution =
+    row.attribution ??
+    (
+      await db
+        .select({ attribution: waitlistSignups.attribution })
+        .from(waitlistSignups)
+        .where(and(eq(waitlistSignups.email, row.emailNormalized), isNotNull(waitlistSignups.attribution)))
+        .orderBy(asc(waitlistSignups.createdAt))
+        .limit(1)
+    )[0]?.attribution ??
+    null;
+
   const activityRows = await db
     .select()
     .from(customerActivities)
@@ -298,6 +313,7 @@ export async function getAdminCustomerProfile(
     lastName: row.lastName,
     phone: row.phone,
     preferredCity: row.preferredCity,
+    attribution,
     language: row.language,
     favoriteCity: row.favoriteCity,
     favoriteEventType: row.favoriteEventType,

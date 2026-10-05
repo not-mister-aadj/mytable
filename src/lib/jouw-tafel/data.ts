@@ -4,7 +4,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, bookingOpensOverride, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, bookingOpensOverride, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, spotsLeft, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
@@ -151,6 +151,30 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
     console.error("[jouw-tafel] loading events failed", error);
     if (process.env.NEXT_PHASE === "phase-production-build") return { events: [], now: Date.now() };
     throw error;
+  }
+}
+
+/**
+ * The single seat price: the price of the open tables when they all cost the
+ * same, else null (copy then says "een losse plek" without a number). Never a
+ * price that is not in the database.
+ */
+export function singleSeatCents(events: QuizEvent[], now: number): number | null {
+  const prices = new Set(
+    events
+      .filter((e) => !e.comingSoon && spotsLeft(e) > 0 && new Date(e.startsAt).getTime() > now)
+      .map((e) => e.priceCents),
+  );
+  return prices.size === 1 ? [...prices][0]! : null;
+}
+
+/** The same for a mail: null when the database cannot be reached. */
+export async function getSingleSeatCents(): Promise<number | null> {
+  try {
+    const { events, now } = await getJouwTafelEvents();
+    return singleSeatCents(events, now);
+  } catch {
+    return null;
   }
 }
 

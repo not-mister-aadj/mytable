@@ -64,10 +64,13 @@ export function welcomeMail(input: {
   firstName?: string | null;
   plan: MembershipPlanId;
   bookedSunday?: Date | null;
+  /** A single seat, to show the guest price as a discount; null leaves it out. */
+  singleSeatCents?: number | null;
   links: Links;
 }): MembershipMail {
   const { locale: l, plan } = input;
   const guest = `€${formatPlanEuros(getMembershipPlan(plan).monthlyCents, l)}`;
+  const single = input.singleSeatCents ? `€${formatPlanEuros(input.singleSeatCents, l)}` : null;
   const en = l === "en";
   const booked = input.bookedSunday ? mailSunday(input.bookedSunday, l) : null;
   return {
@@ -93,25 +96,31 @@ export function welcomeMail(input: {
       items: [
         {
           icon: "calendar",
-          title: en ? "Every Sunday Table" : "Elke Sunday Table",
-          description: en ? "Every Sunday in your cities, as often as you like." : "Alle zondagen in jouw steden, zo vaak als je wilt.",
+          title: en ? "A seat every Sunday" : "Elke zondag aan tafel",
+          description: en
+            ? "Join every Sunday Table in your cities, as often as you like."
+            : "Schuif aan bij elke Sunday Table in jouw steden, zo vaak als je wilt.",
         },
         {
           icon: "clock",
-          title: en ? "Book earlier" : "Eerder boeken",
+          title: en ? "First to book" : "Als eerste boeken",
           description: en
-            ? "You book 48 hours before non-members. So you are sure of your seat."
-            : "Je boekt 48 uur eerder dan niet-leden. Zo ben je zeker van je plek.",
+            ? "As a member you can book 4 weeks ahead. That is a few days before everyone else."
+            : "Als lid boek je al 4 weken van tevoren. Dat is een paar dagen eerder dan de rest.",
         },
         {
           icon: "people",
           title: en ? "Bring someone" : "Iemand meenemen",
-          description: en ? `Your guest pays the member price: ${guest}.` : `Je gast betaalt de ledenprijs: ${guest}.`,
+          description: en
+            ? `Bring someone at the member price: ${guest}${single ? ` instead of ${single}` : ""}.`
+            : `Neem iemand mee voor de ledenprijs: ${guest}${single ? ` in plaats van ${single}` : ""}.`,
         },
         {
           icon: "wineGlasses",
-          title: en ? "Drinks at the table" : "Drankjes aan tafel",
-          description: en ? "You order and pay for your own drinks at the table." : "Je drankjes bestel en betaal je zelf aan tafel.",
+          title: en ? "Our picks" : "Onze aanraders",
+          description: en
+            ? "The day before, we email you what you really should try."
+            : "Een dag van tevoren mailen we wat je echt moet proberen.",
         },
       ],
       cta: {

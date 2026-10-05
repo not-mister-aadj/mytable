@@ -30,7 +30,7 @@ export type MembershipPageCopy = {
   metaDescription: string;
   settingsLink: string;
   hero: { title: string; sub: string; cta: string; note: string; imageAlt: string };
-  benefits: { eyebrow: string; title: string; items: { title: string; body: string }[] };
+  benefits: { eyebrow: string; title: string; items: (guest: { single: string | null }) => { title: string; body: string }[] };
   plans: {
     eyebrow: string;
     title: string;
@@ -110,6 +110,11 @@ function planEn(id: MembershipPlanId): PlanCopy {
 const guestPricesNl = `${eur(MEMBERSHIP_PLANS["1m"].monthlyCents, "nl")}, ${eur(MEMBERSHIP_PLANS["4m"].monthlyCents, "nl")} of ${eur(MEMBERSHIP_PLANS["12m"].monthlyCents, "nl")}`;
 const guestPricesEn = `${eur(MEMBERSHIP_PLANS["1m"].monthlyCents, "en")}, ${eur(MEMBERSHIP_PLANS["4m"].monthlyCents, "en")} or ${eur(MEMBERSHIP_PLANS["12m"].monthlyCents, "en")}`;
 
+/** The lowest guest price (the monthly amount of the longest plan). */
+const lowestGuestCents = Math.min(...Object.values(MEMBERSHIP_PLANS).map((p) => p.monthlyCents));
+const lowestGuestNl = eur(lowestGuestCents, "nl");
+const lowestGuestEn = eur(lowestGuestCents, "en");
+
 const nl: MembershipPageCopy = {
   metaTitle: "Lid worden · MyTable",
   metaDescription: "Word lid en schuif aan bij elke Sunday Table in jouw steden.",
@@ -124,10 +129,13 @@ const nl: MembershipPageCopy = {
   benefits: {
     eyebrow: "Lidmaatschap",
     title: "Wat je krijgt",
-    items: [
-      { title: "Elke Sunday Table", body: "Alle zondagen in jouw steden, zo vaak als je wilt." },
-      { title: "Eerder boeken", body: "Je boekt 48 uur eerder dan niet-leden. Zo ben je zeker van je plek." },
-      { title: "Iemand meenemen", body: "Je gast betaalt de ledenprijs." },
+    items: ({ single }) => [
+      { title: "Elke zondag aan tafel", body: "Schuif aan bij elke Sunday Table in jouw steden, zo vaak als je wilt." },
+      { title: "Als eerste boeken", body: "Als lid boek je al 4 weken van tevoren. Dat is een paar dagen eerder dan de rest." },
+      {
+        title: "Iemand meenemen",
+        body: `Neem iemand mee voor de ledenprijs: vanaf ${lowestGuestNl}${single ? ` in plaats van ${single}` : ""}.`,
+      },
     ],
   },
   plans: {
@@ -229,10 +237,13 @@ const en: MembershipPageCopy = {
   benefits: {
     eyebrow: "Membership",
     title: "What you get",
-    items: [
-      { title: "Every Sunday Table", body: "Every Sunday in your cities, as often as you like." },
-      { title: "Book earlier", body: "You book 48 hours before non-members. So you are sure of your seat." },
-      { title: "Bring someone", body: "Your guest pays the member price." },
+    items: ({ single }) => [
+      { title: "A seat every Sunday", body: "Join every Sunday Table in your cities, as often as you like." },
+      { title: "First to book", body: "As a member you can book 4 weeks ahead. That is a few days before everyone else." },
+      {
+        title: "Bring someone",
+        body: `Bring someone at the member price: from ${lowestGuestEn}${single ? ` instead of ${single}` : ""}.`,
+      },
     ],
   },
   plans: {

@@ -3,8 +3,7 @@ import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { JouwTafelMembership, type MembershipPageState } from "@/components/jouw-tafel/membership/JouwTafelMembership";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import type { Locale } from "@/i18n/config";
-import { getJouwTafelEvents } from "@/lib/jouw-tafel/data";
-import { spotsLeft } from "@/lib/jouw-tafel/logic";
+import { getJouwTafelEvents, singleSeatCents } from "@/lib/jouw-tafel/data";
 import type { JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 import { getMemberUser } from "@/lib/member-auth";
 import { getMembershipForUser } from "@/lib/membership/data";
@@ -25,20 +24,6 @@ export function jouwTafelMembershipMetadata(locale: Locale): Metadata {
 
 function firstParam(value: string | string[] | undefined): string | null {
   return (Array.isArray(value) ? value[0] : value)?.trim() || null;
-}
-
-/**
- * The single seat price for the page: the price of the open tables when
- * they all cost the same, else null (the page then says "een losse plek"
- * without a number). Never a price that is not in the database.
- */
-function singleSeatCents(events: Awaited<ReturnType<typeof getJouwTafelEvents>>["events"], now: number): number | null {
-  const prices = new Set(
-    events
-      .filter((e) => !e.comingSoon && spotsLeft(e) > 0 && new Date(e.startsAt).getTime() > now)
-      .map((e) => e.priceCents),
-  );
-  return prices.size === 1 ? [...prices][0]! : null;
 }
 
 /**

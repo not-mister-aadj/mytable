@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { ArrowLeftIcon, CheckIcon } from "@/components/jouw-tafel/icons";
 import { CHIP_TONE, spotsChip } from "@/components/jouw-tafel/quiz/QuizChoose";
 import { primaryButton, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
@@ -154,7 +154,7 @@ const EXPECT_PHOTOS = [
   "/girls-only/wine-tasting-conversation.jpg",
   "/girls-only/table-wine-laughing.jpg",
   "/girls-only/smiling-glasses.jpg",
-  "/girls-only/wine-tasting-presenter.jpg",
+  "/girls-only/table-group.jpg",
   "/girls-only/duo-table.jpg",
 ];
 
@@ -162,19 +162,22 @@ const arrowClass =
   "flex h-9 w-9 items-center justify-center rounded-full border border-wine/15 bg-white/70 text-wine transition hover:bg-white disabled:cursor-default disabled:opacity-30";
 
 /** "Wat je kunt verwachten": a sideways row of photo cards, one line each.
- * Swipe on a phone; arrows and dots for a mouse. */
+ * Swipe on a phone; drag, arrows or dots with a mouse. */
 function ExpectSection({ title, items, locale }: { title: string; items: string[]; locale: Locale }) {
   const rowRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
   const [atEnd, setAtEnd] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
 
   const onScroll = () => {
     const row = rowRef.current;
     if (!row) return;
     const card = row.firstElementChild as HTMLElement | null;
     const step = card ? card.offsetWidth + 12 : row.clientWidth;
-    setActive(Math.min(items.length - 1, Math.round(row.scrollLeft / step)));
-    setAtEnd(row.scrollLeft + row.clientWidth >= row.scrollWidth - 4);
+    const end = row.scrollLeft + row.clientWidth >= row.scrollWidth - 4;
+    setAtEnd(end);
+    setActive(end ? items.length - 1 : Math.min(items.length - 1, Math.round(row.scrollLeft / step)));
   };
 
   const scrollToCard = (index: number) => {
@@ -183,6 +186,35 @@ function ExpectSection({ title, items, locale }: { title: string; items: string[
     if (!row || !card) return;
     const first = row.firstElementChild as HTMLElement;
     row.scrollTo({ left: card.offsetLeft - first.offsetLeft, behavior: "smooth" });
+  };
+
+  // Dragging with a mouse (touch already swipes natively). Snapping is off
+  // while dragging, then the row settles on the nearest card.
+  const onPointerDown = (e: PointerEvent<HTMLUListElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || !rowRef.current) return;
+    drag.current = { x: e.clientX, left: rowRef.current.scrollLeft, moved: false };
+  };
+  const onPointerMove = (e: PointerEvent<HTMLUListElement>) => {
+    const row = rowRef.current;
+    if (!drag.current || !row) return;
+    const dx = e.clientX - drag.current.x;
+    if (!drag.current.moved && Math.abs(dx) < 4) return;
+    if (!drag.current.moved) {
+      drag.current.moved = true;
+      setDragging(true);
+      row.setPointerCapture(e.pointerId);
+    }
+    row.scrollLeft = drag.current.left - dx;
+  };
+  const endDrag = () => {
+    const row = rowRef.current;
+    const wasDragging = drag.current?.moved;
+    drag.current = null;
+    if (!wasDragging || !row) return;
+    setDragging(false);
+    const card = row.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + 12 : row.clientWidth;
+    scrollToCard(Math.min(items.length - 1, Math.round(row.scrollLeft / step)));
   };
 
   return (
@@ -217,7 +249,13 @@ function ExpectSection({ title, items, locale }: { title: string; items: string[
       <ul
         ref={rowRef}
         onScroll={onScroll}
-        className={`-mx-5 mt-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden ${
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        className={`-mx-5 mt-5 flex select-none scroll-px-5 gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden ${
+          dragging ? "cursor-grabbing" : "snap-x snap-mandatory sm:cursor-grab"
+        } ${
           atEnd ? "" : "sm:[mask-image:linear-gradient(to_right,black_80%,transparent)]"
         }`}
       >
@@ -230,19 +268,30 @@ function ExpectSection({ title, items, locale }: { title: string; items: string[
                 fill
                 sizes="(min-width: 640px) 240px, 72vw"
                 quality={90}
-                className="object-cover"
+                draggable={false}
+                className="pointer-events-none object-cover"
               />
             </div>
             <p className="mt-3 font-serif text-[1.08rem] font-medium leading-snug tracking-tight text-wine">{item}</p>
           </li>
         ))}
       </ul>
-      <div className="mt-3 flex justify-center gap-1.5" aria-hidden>
+      <div className="mt-2 flex justify-center">
         {items.map((item, i) => (
-          <span
+          <button
             key={item}
-            className={`h-1.5 rounded-full transition-all ${i === active ? "w-5 bg-wine" : "w-1.5 bg-wine/20"}`}
-          />
+            type="button"
+            aria-label={`${i + 1} / ${items.length}`}
+            aria-current={i === active}
+            onClick={() => scrollToCard(i)}
+            className="group flex h-6 items-center px-[3px]"
+          >
+            <span
+              className={`block h-1.5 rounded-full transition-all ${
+                i === active ? "w-5 bg-wine" : "w-1.5 bg-wine/20 group-hover:bg-wine/45"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </section>

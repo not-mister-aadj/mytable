@@ -12,10 +12,17 @@ function ev(partial: Partial<QuizEvent> = {}): QuizEvent {
   };
 }
 
-test("table state: open, soon, sold out, closed", () => {
-  assert.equal(tableState(ev(), NOW), "open");
+test("table state: open, soon, closed (full, empty in time, or too late)", () => {
+  assert.equal(tableState(ev({ spotsSold: 1 }), NOW), "open");
   assert.equal(tableState(ev({ comingSoon: true }), NOW), "soon");
-  assert.equal(tableState(ev({ spotsSold: 12 }), NOW), "sold_out");
+  assert.equal(tableState(ev({ spotsSold: 12 }), NOW), "closed");
+  // Nobody booked: open until 14 days before, then closed. One seat, or an
+  // admin's exception, keeps it open.
+  assert.equal(tableState(ev(), NOW), "open");
+  assert.equal(tableState(ev(), Date.parse("2026-10-11T12:59:00Z")), "open");
+  assert.equal(tableState(ev(), Date.parse("2026-10-11T13:00:00Z")), "closed");
+  assert.equal(tableState(ev({ spotsSold: 1 }), Date.parse("2026-10-11T13:00:00Z")), "open");
+  assert.equal(tableState(ev({ bookingOpensAt: "2026-10-01T10:00:00Z" }), Date.parse("2026-10-11T13:00:00Z")), "open");
   assert.equal(tableState(ev({ startsAt: "2026-10-05T13:00:00Z" }), NOW), "closed");
   assert.equal(tableState(ev({ startsAt: "2026-10-01T13:00:00Z" }), NOW), "closed");
 });

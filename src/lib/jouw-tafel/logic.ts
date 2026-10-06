@@ -2,6 +2,7 @@
 // city from IP geo, and the upcoming table list. No db imports here; the
 // server side lives in ./data.ts.
 
+import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { cityMatchKey } from "@/lib/waitlist-city";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
 
@@ -103,10 +104,55 @@ export function withBookingWindow<
   };
 }
 
-/** The next JOUW_TAFEL_DATES_PER_CITY dates of each city (by start). */
+/** A table nobody booked closes this many days before its date. */
+export const JOUW_TAFEL_EMPTY_CLOSE_DAYS = 14;
+
+/** A table stays in the lists until this many days after its start. */
+export const JOUW_TAFEL_SHOWN_AFTER_DAYS = 1;
+
+type ClosableTable = {
+  startsAt: string | Date;
+  capacity: number;
+  spotsSold: number;
+  bookingOpensAt?: string | null;
+};
+
+function startMs(startsAt: string | Date): number {
+  return typeof startsAt === "string" ? Date.parse(startsAt) : startsAt.getTime();
+}
+
+/** Nobody booked and the date is JOUW_TAFEL_EMPTY_CLOSE_DAYS away or less.
+ * An admin's exception (bookingOpensAt) keeps the table open. */
+export function isClosedEmpty(event: ClosableTable, now: number = Date.now()): boolean {
+  if (event.spotsSold > 0 || event.bookingOpensAt) return false;
+  return now >= startMs(event.startsAt) - JOUW_TAFEL_EMPTY_CLOSE_DAYS * DAY_MS;
+}
+
+/** Why a table can no longer be booked, or null while it can. Visitors
+ * never see the reason: every one reads "Niet meer te boeken". */
+export function closedReason(event: ClosableTable, now: number = Date.now()): "past" | "full" | "empty" | null {
+  if (isEventClosedForBooking(new Date(startMs(event.startsAt)), new Date(now))) return "past";
+  if (event.capacity - event.spotsSold <= 0) return "full";
+  if (isClosedEmpty(event, now)) return "empty";
+  return null;
+}
+
+export function isNoLongerBookable(event: ClosableTable, now: number = Date.now()): boolean {
+  return closedReason(event, now) !== null;
+}
+
+/** Still in the lists: until JOUW_TAFEL_SHOWN_AFTER_DAYS after its start. */
+export function isShownTable(event: { startsAt: string | Date }, now: number = Date.now()): boolean {
+  return now < startMs(event.startsAt) + JOUW_TAFEL_SHOWN_AFTER_DAYS * DAY_MS;
+}
+
+/** The next JOUW_TAFEL_DATES_PER_CITY dates of each city (by start). A
+ * table for which `counts` is false (no longer bookable) does not use up
+ * one of those dates, but is kept when it comes before them. */
 export function nextDatesPerCity<T extends { city: string; startsAt: string }>(
   events: readonly T[],
   perCity: number = JOUW_TAFEL_DATES_PER_CITY,
+  counts: (event: T) => boolean = () => true,
 ): T[] {
   const seen = new Map<string, number>();
   return [...events]
@@ -114,8 +160,9 @@ export function nextDatesPerCity<T extends { city: string; startsAt: string }>(
     .filter((e) => {
       const key = cityMatchKey(e.city);
       const n = seen.get(key) ?? 0;
-      seen.set(key, n + 1);
-      return n < perCity;
+      if (n >= perCity) return false;
+      if (counts(e)) seen.set(key, n + 1);
+      return true;
     });
 }
 
@@ -241,17 +288,11 @@ function byDate(a: QuizEvent, b: QuizEvent): number {
   return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
 }
 
-/** Every upcoming table in one city, soonest first. A full table drops off
- * the list (there is nothing left to sign up for). */
+/** Every table in one city that is still shown, soonest first. A table
+ * that can no longer be booked (full, or closed) stays until the day after
+ * its date, as "Niet meer te boeken". */
 export function cityTables(events: QuizEvent[], city: string, now: number = Date.now()): QuizEvent[] {
-  return events
-    .filter(
-      (e) =>
-        sameCity(e.city, city) &&
-        isUpcoming(e, now) &&
-        (e.comingSoon || spotsLeft(e) > 0),
-    )
-    .sort(byDate);
+  return events.filter((e) => sameCity(e.city, city) && isShownTable(e, now)).sort(byDate);
 }
 
 /**

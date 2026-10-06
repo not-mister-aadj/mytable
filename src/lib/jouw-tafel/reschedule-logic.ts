@@ -2,7 +2,7 @@
 // pure and unit tested (npx tsx --test src/lib/jouw-tafel/*.test.ts).
 
 import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { bracketFromEventName, sameCity } from "@/lib/jouw-tafel/logic";
+import { bracketFromEventName, isClosedEmpty, sameCity } from "@/lib/jouw-tafel/logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 /** Moving is free up to this many days before the start (terms art. 6). */
@@ -30,13 +30,16 @@ export type RescheduleCandidate = {
   workflowStatus: string;
   experienceType: string;
   comingSoon: boolean;
+  /** An admin's exception (events.extras.bookingOpensAt), or null. */
+  bookingOpensAt?: string | null;
 };
 
 /**
  * The table a booking moves to: the next published, bookable Sunday Table
  * after the current one, in the same city, with the same age bracket
  * ("· 20-39" / "· 35+", or both without one: a table for everyone), with
- * room for all its seats. Null when there is none.
+ * room for all its seats. Never a table that closed because nobody booked
+ * it in time. Null when there is none.
  */
 export function pickRescheduleTarget(
   source: { id: string; city: string; nameNl: string; startsAt: Date },
@@ -56,6 +59,7 @@ export function pickRescheduleTarget(
         bracketFromEventName(e.nameNl) === bracket &&
         e.startsAt.getTime() > source.startsAt.getTime() &&
         !isEventClosedForBooking(e.startsAt, new Date(now)) &&
+        !isClosedEmpty(e, now) &&
         e.capacity - e.spotsSold >= seats,
     )
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());

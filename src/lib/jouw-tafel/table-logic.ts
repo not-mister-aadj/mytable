@@ -1,18 +1,17 @@
 // The table page and reserve step: pure, unit tested.
 
-import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, closedReason, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
 
-export type TableState = "open" | "soon" | "sold_out" | "closed";
+/** "closed": full, nobody booked in time, or too late. One state on
+ * purpose: a visitor never learns which of these it is. */
+export type TableState = "open" | "soon" | "closed";
 
 /** What the table page offers: reserve, notify (Binnenkort), or neither. */
 export function tableState(event: QuizEvent, now: number = Date.now()): TableState {
-  if (new Date(event.startsAt).getTime() <= now || isEventClosedForBooking(new Date(event.startsAt), new Date(now))) {
-    return "closed";
-  }
+  const reason = closedReason(event, now);
+  if (reason === "past") return "closed";
   if (event.comingSoon) return "soon";
-  if (spotsLeft(event) <= 0) return "sold_out";
-  return "open";
+  return reason ? "closed" : "open";
 }
 
 /** Seats she can pick: 1 or 2, never more than are left. */

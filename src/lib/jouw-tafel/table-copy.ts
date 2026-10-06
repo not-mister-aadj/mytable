@@ -30,7 +30,6 @@ export type TableCopy = {
     notifyBusy: string;
     notifyDone: string;
     notifyFailed: string;
-    soldOut: string;
     closed: string;
   };
   reserve: {
@@ -154,8 +153,7 @@ const nl: TableCopy = {
     notifyBusy: "Even geduld",
     notifyDone: "Genoteerd. Je hoort het als eerste.",
     notifyFailed: "Dat lukte niet. Probeer het nog een keer.",
-    soldOut: "Deze tafel is vol",
-    closed: "Boeken voor deze tafel is gesloten",
+    closed: "Deze tafel is niet meer te boeken",
   },
   reserve: {
     metaTitle: "Reserveren | MyTable",
@@ -273,8 +271,7 @@ const en: TableCopy = {
     notifyBusy: "One moment",
     notifyDone: "Noted. You will be the first to know.",
     notifyFailed: "That did not work. Please try again.",
-    soldOut: "This table is full",
-    closed: "Booking for this table has closed",
+    closed: "This table is no longer available",
   },
   reserve: {
     metaTitle: "Reserve | MyTable",

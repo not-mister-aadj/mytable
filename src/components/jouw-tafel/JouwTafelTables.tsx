@@ -10,6 +10,7 @@ import {
   cityTables,
   cityTabs,
   displayCity,
+  isNoLongerBookable,
   spotsLeft,
   type QuizCity,
   type QuizEvent,
@@ -47,7 +48,8 @@ function startTime(iso: string, locale: Locale): string {
 
 /**
  * "Eerstvolgende tafels": the live table list, per city. Information only:
- * date, age group, spots or "Binnenkort". Never a venue.
+ * date, age group, spots, "Binnenkort" or "Niet meer te boeken" (full or
+ * closed, never said which). Never a venue.
  */
 export function JouwTafelTables({
   locale,
@@ -121,10 +123,13 @@ export function JouwTafelTables({
               {tables.map((event) => {
                 const left = spotsLeft(event);
                 const showCount = shouldShowSpotsCount(left, event.spotsSold);
+                const closed = isNoLongerBookable(event, now);
                 return (
                   <li key={event.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
                     <div className="min-w-0 flex-1">
-                      <p className="whitespace-nowrap font-serif text-[1.35rem] font-medium leading-tight text-wine">
+                      <p
+                        className={`whitespace-nowrap font-serif text-[1.35rem] font-medium leading-tight ${closed ? "text-wine/50" : "text-wine"}`}
+                      >
                         {shortDate(event.startsAt, locale)}
                       </p>
                       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-wine/60">
@@ -140,7 +145,9 @@ export function JouwTafelTables({
                     <div className="shrink-0 text-right">
                       {/* A visitor here is not a member yet: a table in the
                           members' days opens for them later too. */}
-                      {event.comingSoon || isMembersOnly(event.membersOnlyUntil ?? null, now) ? (
+                      {closed ? (
+                        <span className="text-sm font-medium text-wine/55">{copy.noLongerBookable}</span>
+                      ) : event.comingSoon || isMembersOnly(event.membersOnlyUntil ?? null, now) ? (
                         <span className="block max-w-[10rem] text-[0.85rem] font-medium leading-snug text-wine/60">
                           {event.membersOnlyUntil ?? event.opensAt
                             ? copy.opensFrom(openFromDay((event.membersOnlyUntil ?? event.opensAt)!, locale))

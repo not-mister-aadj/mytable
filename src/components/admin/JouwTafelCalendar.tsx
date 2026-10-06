@@ -5,11 +5,12 @@ import type { CalendarMonth } from "@/lib/jouw-tafel/groups-server";
 
 const WEEKDAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
-/** Three states only: the background says it all. */
+/** The background says it all; a table that closed empty is struck through. */
 const STATE_CLASS: Record<CalendarState, string> = {
   not_yet: "bg-wine/[0.05] text-wine/55 border-transparent",
   bookable: "bg-white text-wine border-border-subtle",
   full: "bg-wine text-cream border-wine",
+  closed: "bg-wine/[0.05] text-wine/45 border-dashed border-wine/25 line-through",
 };
 
 const pill =
@@ -123,7 +124,13 @@ export function JouwTafelCalendar({
                           <Link
                             href={path(`/jouw-tafel/${item.id}`)}
                             className={`flex items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-xs transition hover:opacity-85 ${STATE_CLASS[item.state]}`}
-                            title={item.venueCount ? `${item.venueCount} zaak/zaken gekoppeld` : "Nog geen zaak"}
+                            title={
+                              item.state === "closed"
+                                ? "Gesloten (geen boekingen)"
+                                : item.venueCount
+                                  ? `${item.venueCount} zaak/zaken gekoppeld`
+                                  : "Nog geen zaak"
+                            }
                           >
                             <span className="truncate font-semibold">{item.city}</span>
                             <span className="flex shrink-0 items-center gap-1.5 tabular-nums">

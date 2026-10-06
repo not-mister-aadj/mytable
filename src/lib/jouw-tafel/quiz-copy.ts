@@ -125,6 +125,8 @@ export type QuizCopy = {
     nearby: string;
     comingSoon: string;
     spotsOpen: string;
+    /** A full or closed table: the same words for both, on purpose. */
+    noLongerBookable: string;
     soonBadge: string;
     /** "Vanaf 4 okt": a table that opens for booking later. */
     opensFrom: (date: string) => string;
@@ -357,6 +359,7 @@ const nl: QuizCopy = {
     nearby: "Vlakbij",
     comingSoon: "Binnenkort te boeken",
     spotsOpen: "Plekken vrij",
+    noLongerBookable: "Niet meer te boeken",
     soonBadge: "Binnenkort",
     opensFrom: (date) => `Te boeken vanaf ${date}`,
     guarantees: [
@@ -584,6 +587,7 @@ const en: QuizCopy = {
     nearby: "Nearby",
     comingSoon: "Opening soon",
     spotsOpen: "Seats available",
+    noLongerBookable: "No longer available",
     soonBadge: "Coming soon",
     opensFrom: (date) => `Bookable from ${date}`,
     guarantees: [

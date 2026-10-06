@@ -4,17 +4,17 @@
 // browser imports here, so it can be unit tested:
 // npx tsx --test src/lib/jouw-tafel/*.test.ts
 
-import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { cityMatchKey } from "@/lib/waitlist-city";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   QUIZ_CITIES,
   SIGNUP_COUNT_MIN,
   displayCity,
+  isNoLongerBookable,
+  isShownTable,
   nearbyCities,
   roundSignupCount,
   sameCity,
-  spotsLeft,
   supportedCity,
   type QuizBracket,
   type QuizEvent,
@@ -462,8 +462,9 @@ export function waitlistAgeRange(age: number): WaitlistAgeRange {
 
 export type ChooseRow = {
   event: QuizEvent;
-  /** "open": can be booked now. "soon": shown, not on sale yet. */
-  kind: "open" | "soon";
+  /** "open": can be booked now. "soon": shown, not on sale yet.
+   * "closed": no longer bookable (full or closed, never said which). */
+  kind: "open" | "soon" | "closed";
   /** In a city within reach, not their own. */
   nearby: boolean;
 };
@@ -472,8 +473,9 @@ export type ChooseRow = {
  * "Kies je zondag": tables in their chosen cities for their age group(s)
  * first (in the order they chose the cities, then their own group, then by
  * date), then tables in cities within reach of any chosen city, then tables
- * that are coming soon (chosen cities, then nearby). Full tables and tables
- * closed for booking drop off. `cities` is primary first.
+ * that are coming soon (chosen cities, then nearby). A table in a chosen
+ * city that can no longer be booked stays until the day after its date
+ * ("closed"); nearby ones drop off. `cities` is primary first.
  */
 export function chooseTables(
   events: QuizEvent[],
@@ -491,14 +493,15 @@ export function chooseTables(
   const time = (e: QuizEvent) => new Date(e.startsAt).getTime();
 
   const eligible = events.filter(
-    (e) =>
-      (e.bracket === null || brackets.includes(e.bracket)) &&
-      time(e) > now &&
-      !isEventClosedForBooking(new Date(e.startsAt), new Date(now)),
+    (e) => (e.bracket === null || brackets.includes(e.bracket)) && isShownTable(e, now),
   );
-  const own = eligible.filter((e) => isChosen(e.city));
-  const nearby = eligible.filter((e) => !isChosen(e.city) && nearRank(e) >= 0);
-  const isOpen = (e: QuizEvent) => !e.comingSoon && spotsLeft(e) > 0;
+  const closed = (e: QuizEvent) => isNoLongerBookable(e, now);
+  const ownClosed = eligible
+    .filter((e) => isChosen(e.city) && closed(e))
+    .sort((a, b) => cityRank(a) - cityRank(b) || time(a) - time(b));
+  const own = eligible.filter((e) => isChosen(e.city) && !closed(e));
+  const nearby = eligible.filter((e) => !isChosen(e.city) && nearRank(e) >= 0 && !closed(e));
+  const isOpen = (e: QuizEvent) => !e.comingSoon;
 
   const ownOpen = own
     .filter(isOpen)
@@ -513,6 +516,7 @@ export function chooseTables(
 
   const rows: ChooseRow[] = [
     ...ownOpen.map((event) => ({ event, kind: "open" as const, nearby: false })),
+    ...ownClosed.map((event) => ({ event, kind: "closed" as const, nearby: false })),
     ...nearbyOpen.map((event) => ({ event, kind: "open" as const, nearby: true })),
     ...soon.map((event) => ({ event, kind: "soon" as const, nearby: !isChosen(event.city) })),
   ];
@@ -693,7 +697,8 @@ export function kiesCities(
   const named: string[] = [];
   const noSunday: string[] = [];
   for (const city of splitCities(cities).ours) {
-    const own = rows.some((r) => !r.nearby && sameCity(r.event.city, city));
+    // A table that can no longer be booked is not a Sunday to pick.
+    const own = rows.some((r) => r.kind !== "closed" && !r.nearby && sameCity(r.event.city, city));
     const near = nearbyCities(city);
     const nearby = rows.some((r) => r.nearby && near.some((n) => sameCity(n, r.event.city)));
     if (own || nearby) named.push(city);

@@ -3,7 +3,7 @@
  * part. A group is 5 to 6 people (one conversation); under 4 or over 7 gets
  * a warning, never a block.
  */
-import { jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
+import { isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
 export const GROUP_TARGET = 6;
 export const GROUP_MIN = 4;
@@ -29,14 +29,16 @@ export function nextGroupNumber(existing: readonly number[]): number {
   return n;
 }
 
-export type CalendarState = "not_yet" | "bookable" | "full";
+export type CalendarState = "not_yet" | "bookable" | "full" | "closed";
 
-/** What the calendar shows: not bookable yet (for anyone), bookable, or full. */
+/** What the calendar shows: not bookable yet (for anyone), bookable, full,
+ * or closed because nobody booked it 14 days before. */
 export function calendarState(
   event: { startsAt: string | Date; capacity: number; spotsSold: number; comingSoon: boolean; bookingOpensAt?: string | null },
   now: number = Date.now(),
 ): CalendarState {
   if (event.spotsSold >= event.capacity) return "full";
+  if (isClosedEmpty(event, now)) return "closed";
   const opens = jouwTafelBookingWindow(event.startsAt, event.bookingOpensAt).membersFrom.getTime();
   if (event.comingSoon || now < opens) return "not_yet";
   return "bookable";

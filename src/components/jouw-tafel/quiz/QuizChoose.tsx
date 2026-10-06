@@ -246,10 +246,17 @@ export function QuizChoose({
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
   const openRows = rows.filter((r) => r.kind === "open");
-  const ownOpen = openRows.filter((r) => !r.nearby);
-  // One "In {stad}" section per chosen city with open tables, in their order.
+  // A table that can no longer be booked stays in its city, by date, until
+  // the day after it.
+  const ownShown = rows.filter((r) => r.kind !== "soon" && !r.nearby);
+  // One "In {stad}" section per chosen city with tables, in their order.
   const citySections = cities
-    .map((city) => ({ city, rows: ownOpen.filter((r) => sameCity(r.event.city, city)) }))
+    .map((city) => ({
+      city,
+      rows: ownShown
+        .filter((r) => sameCity(r.event.city, city))
+        .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt)),
+    }))
     .filter((s) => s.rows.length > 0);
   const nearbyOpen = openRows.filter((r) => r.nearby);
   const soonRows = rows.filter((r) => r.kind === "soon");
@@ -258,8 +265,8 @@ export function QuizChoose({
   useEffect(() => {
     if (viewedRef.current) return;
     viewedRef.current = true;
-    handlers.onViewed({ tables_shown: rows.length, has_match: hasMatch });
-  }, [handlers, rows.length, hasMatch]);
+    handlers.onViewed({ tables_shown: rows.filter((r) => r.kind !== "closed").length, has_match: hasMatch });
+  }, [handlers, rows, hasMatch]);
 
   // early_access_blocked_view: once per table shown as not bookable yet for a non-member.
   const earlySeen = useRef(new Set<string>());
@@ -301,13 +308,17 @@ export function QuizChoose({
 
   function tableCard(row: ChooseRow, index: number) {
     const event = row.event;
-    const soon = event.comingSoon;
+    const closed = row.kind === "closed";
+    const soon = event.comingSoon && !closed;
+    const muted = soon || closed;
     const asMember =
       memberBookingDecision(fromClientMembership(membership), new Date(event.startsAt), now).kind === "included";
     const seats = booked[event.id];
     const chip = seats
       ? { text: k.booked(seats), tone: "wine" as const }
-      : earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember);
+      : closed
+        ? { text: k.noLongerBookable, tone: "grey" as const }
+        : earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember);
     return (
       <motion.li
         key={event.id}
@@ -323,9 +334,9 @@ export function QuizChoose({
             whileTap={reduceMotion ? undefined : { scale: 0.985 }}
             className="flex w-full touch-manipulation items-center gap-3.5 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
-            <DateBadge iso={event.startsAt} locale={locale} muted={soon} />
+            <DateBadge iso={event.startsAt} locale={locale} muted={muted} />
             <span className="min-w-0 flex-1">
-              <span className={`block text-[1rem] font-semibold leading-tight ${soon ? "text-wine/80" : "text-wine"}`}>
+              <span className={`block text-[1rem] font-semibold leading-tight ${muted ? "text-wine/80" : "text-wine"}`}>
                 {k.tableName}
               </span>
               <span className="mt-0.5 block text-[0.9rem] leading-tight text-wine/70">{startTime(event.startsAt, locale)}</span>
@@ -405,7 +416,7 @@ export function QuizChoose({
       </div>
 
       {citySections.map((section) => {
-        const offset = ownOpen.indexOf(section.rows[0]!);
+        const offset = ownShown.indexOf(section.rows[0]!);
         return (
           <section key={section.city} className="mt-8">
             {sectionTitle(k.inCity(displayCity(section.city, locale)))}
@@ -417,14 +428,14 @@ export function QuizChoose({
       {nearbyOpen.length > 0 ? (
         <section className="mt-8">
           {sectionTitle(ourCities ? k.ourCities : k.nearby)}
-          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownOpen.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownShown.length + i))}</ul>
         </section>
       ) : null}
 
       {soonRows.length > 0 ? (
         <section className="mt-8">
           {sectionTitle(k.comingSoon)}
-          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, openRows.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownShown.length + nearbyOpen.length + i))}</ul>
         </section>
       ) : null}
 

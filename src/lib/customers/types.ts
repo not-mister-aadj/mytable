@@ -8,6 +8,10 @@ export const CustomerActivityTypes = {
   waitlistJoined: "waitlist_joined",
   emailSent: "email_sent",
   noteAdded: "note_added",
+  accountFrozen: "account_frozen",
+  accountUnfrozen: "account_unfrozen",
+  paymentRefunded: "payment_refunded",
+  paymentDisputed: "payment_disputed",
 } as const;
 
 export type CustomerActivityType =

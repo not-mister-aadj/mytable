@@ -17,6 +17,8 @@ import {
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
+import { isEmailFrozen } from "@/lib/customers/freeze";
+import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
   isEnglishOpenForSundayTable,
   isTableLanguagePreference,
@@ -278,6 +280,12 @@ export async function POST(request: Request) {
   if (signedInUser?.email) {
     runningMembership = await getRunningMembershipForUser(signedInUser.id);
     memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
+  }
+
+  // An account on hold (a disputed payment) books nothing, also not with a
+  // membership, until an admin releases it.
+  if ((await isEmailFrozen(email)) || (await isEmailFrozen(signedInUser?.email))) {
+    return NextResponse.json({ code: FROZEN_ERROR_CODE, error: frozenMessage(locale) }, { status: 403 });
   }
 
   if (isJouwTafel && memberDecision.kind === "blocked") {

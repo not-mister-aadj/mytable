@@ -38,6 +38,7 @@ import { formatPlanEuros, lowestMonthlyCents, type MembershipPlanId } from "@/li
 import { jouwTafelMembershipPath } from "@/i18n/config";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { FROZEN_ERROR_CODE } from "@/lib/customers/freeze-logic";
 
 export type SettingsBooking = {
   id: string;
@@ -342,11 +343,19 @@ export function JouwTafelSettings({
       const res = await fetch("/api/bookings/reschedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId: booking.id, expectedTargetEventId: booking.reschedule.targetEventId }),
+        body: JSON.stringify({ bookingId: booking.id, expectedTargetEventId: booking.reschedule.targetEventId, locale }),
       });
-      const data = (await res.json().catch(() => null)) as { ok?: boolean; startsAt?: string; code?: string } | null;
+      const data = (await res.json().catch(() => null)) as
+        | { ok?: boolean; startsAt?: string; code?: string; error?: string }
+        | null;
       if (!res.ok || !data?.ok || !data.startsAt) {
-        setToast(data?.code === "target_changed" ? s.reservations.reschedule.changed : s.reservations.reschedule.failed);
+        setToast(
+          data?.code === "target_changed"
+            ? s.reservations.reschedule.changed
+            : data?.code === FROZEN_ERROR_CODE && data.error
+              ? data.error
+              : s.reservations.reschedule.failed,
+        );
         if (data?.code === "target_changed") router.refresh();
         return;
       }

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { getMemberUser } from "@/lib/member-auth";
 import { rescheduleOwnBooking } from "@/lib/jouw-tafel/reschedule-server";
+import { isEmailFrozen } from "@/lib/customers/freeze";
+import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 
@@ -17,7 +19,16 @@ export async function POST(request: Request) {
   if (!isDbConfigured()) return NextResponse.json({ error: "Not configured" }, { status: 503 });
   const user = await getMemberUser();
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = (await request.json().catch(() => ({}))) as { bookingId?: unknown; expectedTargetEventId?: unknown };
+  const body = (await request.json().catch(() => ({}))) as {
+    bookingId?: unknown;
+    expectedTargetEventId?: unknown;
+    locale?: unknown;
+  };
+  // An account on hold (a disputed payment) cannot move a booking either.
+  if (await isEmailFrozen(user.email)) {
+    const locale = body.locale === "en" ? "en" : "nl";
+    return NextResponse.json({ code: FROZEN_ERROR_CODE, error: frozenMessage(locale) }, { status: 403 });
+  }
   if (typeof body.bookingId !== "string" || !UUID.test(body.bookingId)) {
     return NextResponse.json({ error: "Invalid booking" }, { status: 400 });
   }

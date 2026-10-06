@@ -4,7 +4,12 @@ import { emailBrand, emailSpacing } from "../brand";
 export function EmailStyles() {
   return (
     <Head>
+      {/* Ask mail apps to keep our light colours. Apple Mail and Outlook
+          follow this; Gmail's dark mode ignores it and inverts anyway. */}
+      <meta name="color-scheme" content="light only" />
+      <meta name="supported-color-schemes" content="light only" />
       <style>{`
+        :root { color-scheme: light only; supported-color-schemes: light only; }
         .email-card-inner {
           padding-top: ${emailSpacing.cardPaddingTop} !important;
           padding-right: ${emailSpacing.cardPaddingRight} !important;
@@ -20,11 +25,8 @@ export function EmailStyles() {
             padding-left: ${emailSpacing.cardPaddingMobileLeft} !important;
           }
           .email-hero-headline { font-size: 28px !important; }
-          .email-hero-art { display: none !important; }
-          .email-hero-text { width: 100% !important; }
           .email-cta-button {
             display: block !important;
-            width: 100% !important;
             box-sizing: border-box !important;
             min-height: 50px !important;
             line-height: 50px !important;

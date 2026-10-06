@@ -30,9 +30,9 @@ export function Button({
         textDecoration: "none",
         borderRadius: emailRadii.pill,
         padding: "17px 40px",
+        // A block already fills the width. No width: 100% here: where a mail
+        // app drops box-sizing, 100% plus the padding stuck out on the right.
         display: fullWidth ? "block" : "inline-block",
-        width: fullWidth ? "100%" : "auto",
-        maxWidth: fullWidth ? "100%" : "none",
         boxSizing: "border-box",
         textAlign: "center",
         border: isPrimary ? "none" : `1px solid ${emailBrand.divider}`,

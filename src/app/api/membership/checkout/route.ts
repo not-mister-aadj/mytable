@@ -6,6 +6,8 @@ import { getMemberUser } from "@/lib/member-auth";
 import { createMembershipCheckout } from "@/lib/membership/checkout";
 import { isMembershipPlanId } from "@/lib/membership/plans";
 import { captureClientSafeError } from "@/lib/membership/errors";
+import { isEmailFrozen } from "@/lib/customers/freeze";
+import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import { isStripeConfigured } from "@/lib/stripe";
 
 const ERRORS = {
@@ -43,6 +45,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const locale = body.locale === "en" ? "en" : "nl";
+  // An account on hold (a disputed payment) cannot become a member either.
+  if (await isEmailFrozen(user.email)) {
+    return NextResponse.json({ error: frozenMessage(locale), code: FROZEN_ERROR_CODE }, { status: 403 });
+  }
   if (!isMembershipPlanId(body.plan)) return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   const source = body.source === "kies" ? "kies" : "page";
 

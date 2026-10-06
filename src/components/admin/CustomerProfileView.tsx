@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { AdminCustomerProfile } from "@/lib/admin-customers-data";
-import { updateCustomerNotesAction } from "@/app/admin/(dashboard)/customers/actions";
+import { setCustomerFrozenAction, updateCustomerNotesAction } from "@/app/admin/(dashboard)/customers/actions";
+import { hasFrozenTag } from "@/lib/customers/freeze-logic";
 import { adminPath } from "@/lib/admin-url";
 import { formatMoney } from "@/lib/booking-display";
 import { describeTouch } from "@/lib/analytics/attribution";
@@ -98,6 +99,11 @@ const ACTIVITY_FILTERS = [
   { id: "mails", label: "Mails", types: ["email_sent"] },
   { id: "waitlist", label: "Wachtlijst", types: ["waitlist_joined"] },
   { id: "notes", label: "Notities", types: ["note_added"] },
+  {
+    id: "hold",
+    label: "Slot en disputen",
+    types: ["account_frozen", "account_unfrozen", "payment_disputed", "payment_refunded"],
+  },
 ] as const;
 
 type ActivityFilterId = (typeof ACTIVITY_FILTERS)[number]["id"];
@@ -127,6 +133,22 @@ export function CustomerProfileView({
   const filteredActivities = activeFilterTypes
     ? profile.activities.filter((a) => activeFilterTypes.includes(a.type))
     : profile.activities;
+
+  const frozen = hasFrozenTag(profile.tags);
+  const [freezeError, setFreezeError] = useState<string | null>(null);
+
+  function toggleFrozen() {
+    const question = frozen
+      ? "Account vrijgeven? Deze klant kan dan weer boeken."
+      : "Account op slot zetten? Deze klant kan dan niets meer boeken tot je het vrijgeeft.";
+    if (!window.confirm(question)) return;
+    setFreezeError(null);
+    startTransition(async () => {
+      const result = await setCustomerFrozenAction(profile.id, !frozen);
+      if (result.ok) router.refresh();
+      else setFreezeError(result.error);
+    });
+  }
 
   function saveNotes() {
     startTransition(async () => {
@@ -159,6 +181,20 @@ export function CustomerProfileView({
             >
               {profile.statusLabel}
             </span>
+            {frozen ? (
+              <span className="inline-flex rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-900 ring-1 ring-inset ring-red-200">
+                Op slot
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={toggleFrozen}
+              disabled={pending}
+              className="inline-flex min-h-7 items-center rounded-full border border-border-subtle px-3 text-xs font-semibold text-wine/70 transition hover:border-burgundy/40 hover:text-burgundy disabled:opacity-50"
+            >
+              {frozen ? "Account vrijgeven" : "Op slot zetten"}
+            </button>
+            {freezeError ? <span className="text-xs font-semibold text-red-700">{freezeError}</span> : null}
             {profile.preferredCity ? (
               <span className="text-sm text-wine/60">
                 Voorkeur: {profile.preferredCity}

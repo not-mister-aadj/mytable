@@ -8,6 +8,7 @@ import { PostHogEvents } from "@/lib/posthog/events";
 import { getStripe } from "@/lib/stripe";
 import { fulfillPaidCheckoutSession } from "@/lib/stripe/fulfill-checkout";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
+import { handleChargeRefunded, handleDisputeCreated } from "@/lib/stripe/refunds-disputes";
 import {
   fulfillMembershipCheckout,
   invoiceSubscriptionId,
@@ -54,6 +55,22 @@ export async function POST(request: Request) {
   // there is idempotent.
   const membershipResponse = await handleMembershipEvent(event);
   if (membershipResponse) return membershipResponse;
+
+  // A refund made in Stripe, or a disputed payment (chargeback). A failure
+  // answers 500 so Stripe retries; both handlers are idempotent.
+  if (event.type === "charge.refunded" || event.type === "charge.dispute.created") {
+    try {
+      if (event.type === "charge.refunded") {
+        await handleChargeRefunded(event.data.object as import("stripe").Stripe.Charge);
+      } else {
+        await handleDisputeCreated(stripe, event.data.object as import("stripe").Stripe.Dispute);
+      }
+      return NextResponse.json({ received: true });
+    } catch (error) {
+      captureCriticalError(error, { flow: "payment", step: event.type, tags: { stripe_event: event.id } });
+      return NextResponse.json({ error: "Failed" }, { status: 500 });
+    }
+  }
 
   if (
     event.type === "checkout.session.completed" ||

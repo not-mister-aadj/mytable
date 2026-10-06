@@ -18,7 +18,7 @@ import { generateEventSlug } from "@/lib/event-slug";
 import { resolveUniqueEventSlug } from "@/lib/event-slug.server";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { DEFAULT_EVENT_IMAGE } from "@/lib/image-settings";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 import { SERIES_WARN_DAYS, addDays, datesToCreate, seriesWindow } from "@/lib/jouw-tafel/series-logic";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 
@@ -149,9 +149,13 @@ export type SeriesTableRow = {
   spotsSold: number;
   comingSoon: boolean;
   membersOnlyUntil: string | null;
+  /** Nobody booked it 14 days before: closed for visitors ("Niet meer te
+   * boeken", like a full table). */
+  closedEmpty: boolean;
   /** The venues linked to this table, in order. */
   venueNames: string[];
-  /** Close and still without a venue (for our own planning). */
+  /** Close and still without a venue (for our own planning). Never for a
+   * table that closed empty. */
   needsAttention: boolean;
 };
 
@@ -196,6 +200,7 @@ export async function loadSeriesAdminData(now = new Date()): Promise<SeriesAdmin
     const date = r.seriesDate ?? amsterdamDateIso(r.startsAt);
     const comingSoon = Boolean(r.extras?.comingSoon);
     const venueNames = venuesOf.get(r.id) ?? [];
+    const closedEmpty = isClosedEmpty({ ...r, bookingOpensAt: bookingOpensOverride(r.extras) });
     return {
       id: r.id,
       slug: r.slug,
@@ -207,8 +212,9 @@ export async function loadSeriesAdminData(now = new Date()): Promise<SeriesAdmin
       spotsSold: r.spotsSold,
       comingSoon,
       membersOnlyUntil: r.membersOnlyUntil?.toISOString() ?? null,
+      closedEmpty,
       venueNames,
-      needsAttention: date <= warnBefore && venueNames.length === 0,
+      needsAttention: date <= warnBefore && venueNames.length === 0 && !closedEmpty,
     };
   });
   return { series, pauses, tables, venues: venueRows };

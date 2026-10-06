@@ -1,8 +1,7 @@
 // The "Jouw tafel" account welcome: who gets it and which variant. Pure and
 // unit tested (npx tsx --test src/lib/jouw-tafel/*.test.ts).
 
-import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { cityTables, displayCity, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { cityTables, displayCity, isNoLongerBookable, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 
 /** Sent this long after the quiz is completed. */
 export const ACCOUNT_WELCOME_DELAY_MS = 30 * 60 * 1000;
@@ -39,7 +38,7 @@ export function accountWelcomeVariant(
     const city = supportedCity(raw);
     if (!city) return false;
     return cityTables([...events], city, now).some(
-      (e) => !e.comingSoon && e.capacity > e.spotsSold && !isEventClosedForBooking(new Date(e.startsAt), new Date(now)),
+      (e) => !e.comingSoon && !isNoLongerBookable(e, now),
     );
   });
   const show = (list: readonly string[]) => [...new Set(list.map((c) => displayCity(supportedCity(c) ?? c, locale)))];

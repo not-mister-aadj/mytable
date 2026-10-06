@@ -61,7 +61,7 @@ function openFromLabel(date: Date, locale: Locale): string {
     minute: "2-digit",
   }).format(date);
 }
-import { JOUW_TAFEL_CHECKOUT_SOURCE, bookingOpensOverride, jouwTafelBookingWindow, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_CHECKOUT_SOURCE, bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -248,6 +248,20 @@ export async function POST(request: Request) {
           locale === "en"
             ? `You can book this table from ${openFromLabel(bookingWindow.membersFrom, locale)}.`
             : `Je kunt deze tafel boeken vanaf ${openFromLabel(bookingWindow.membersFrom, locale)}.`,
+      },
+      { status: 409 },
+    );
+  }
+  // A Sunday Table nobody booked 14 days before is closed. The message is
+  // the same as for a full table: nobody learns which of the two it is.
+  if (isJouwTafel && isClosedEmpty({ ...event, bookingOpensAt: bookingOpensOverride(event.extras) })) {
+    return NextResponse.json(
+      {
+        code: "full",
+        error:
+          locale === "en"
+            ? "This table can no longer be booked. Choose another Sunday."
+            : "Deze tafel is niet meer te boeken. Kies een andere zondag.",
       },
       { status: 409 },
     );

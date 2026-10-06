@@ -12,13 +12,13 @@ const ERRORS = {
   nl: {
     already_member: "Je bent al lid.",
     table_unavailable: "Deze tafel is niet meer te boeken. Kies een andere zondag.",
-    table_full: "Deze tafel is vol. Kies een andere zondag.",
+    table_full: "Deze tafel is niet meer te boeken. Kies een andere zondag.",
     checkout_failed: "Afrekenen lukte niet. Probeer het nog een keer.",
   },
   en: {
     already_member: "You are already a member.",
     table_unavailable: "This table can no longer be booked. Choose another Sunday.",
-    table_full: "This table is full. Choose another Sunday.",
+    table_full: "This table can no longer be booked. Choose another Sunday.",
     checkout_failed: "Checkout did not work. Please try again.",
   },
 } as const;

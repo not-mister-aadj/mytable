@@ -36,6 +36,7 @@ function toCandidate(e: Event): RescheduleCandidate {
     spotsSold: e.spotsSold,
     workflowStatus: e.workflowStatus,
     experienceType: e.experienceType,
+    bookingOpensAt: bookingOpensOverride(e.extras),
     // Only a table that is open for booking (at least for members).
     comingSoon: Boolean(e.extras?.comingSoon) || Date.now() < jouwTafelBookingWindow(e.startsAt, bookingOpensOverride(e.extras)).membersFrom.getTime(),
   };

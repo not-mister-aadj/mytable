@@ -31,6 +31,10 @@ test("calendar state: not yet before members can book, then bookable, full wins"
   assert.equal(calendarState(table, Date.parse("2026-10-31T12:00:00Z")), "not_yet");
   assert.equal(calendarState(table, Date.parse("2026-11-01T14:00:00Z")), "bookable");
   assert.equal(calendarState({ ...table, spotsSold: 20 }, Date.parse("2026-10-01T12:00:00Z")), "full");
+  // Nobody booked 14 days before: closed; one seat or an admin's exception keeps it open.
+  assert.equal(calendarState(table, Date.parse("2026-11-15T13:00:00Z")), "closed");
+  assert.equal(calendarState({ ...table, spotsSold: 1 }, Date.parse("2026-11-15T13:00:00Z")), "bookable");
+  assert.equal(calendarState({ ...table, bookingOpensAt: "2026-11-15T14:00:00Z" }, Date.parse("2026-11-16T13:00:00Z")), "bookable");
 });
 
 test("month grid: whole Monday-first weeks", () => {

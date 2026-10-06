@@ -48,3 +48,13 @@ test("skips full, coming soon, draft, other formats; none when nothing fits", ()
   const close = [ev("close", { startsAt: new Date(NOW + DAY) })];
   assert.equal(pickRescheduleTarget({ ...source, startsAt: new Date(NOW - DAY) }, close, 1, NOW), null);
 });
+
+test("never to a table that closed because nobody booked it 14 days before", () => {
+  const source = { id: "src", city: "Rotterdam", nameNl: "Sunday Table · 35+", startsAt: new Date("2026-10-11T13:00:00Z") };
+  const empty = ev("empty", { startsAt: new Date("2026-10-15T13:00:00Z") });
+  const booked = ev("booked", { startsAt: new Date("2026-10-15T13:00:00Z"), spotsSold: 2 });
+  const opened = ev("opened", { startsAt: new Date("2026-10-15T13:00:00Z"), bookingOpensAt: "2026-10-01T10:00:00Z" });
+  assert.equal(pickRescheduleTarget(source, [empty], 1, NOW), null);
+  assert.equal(pickRescheduleTarget(source, [empty, booked], 1, NOW)?.id, "booked");
+  assert.equal(pickRescheduleTarget(source, [opened], 1, NOW)?.id, "opened");
+});

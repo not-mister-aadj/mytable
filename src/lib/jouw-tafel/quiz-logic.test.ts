@@ -288,20 +288,37 @@ test("chooseTables: 37 who does not mind sees both groups, 35+ first", () => {
     "rdam-25-okt-35:open",
     "rdam-18-okt-20:open",
     "rdam-1-nov-20:open",
+    "rdam-closed:closed",
+    "rdam-full:closed",
     "dh-8-nov-35:open:nearby",
     "rdam-22-nov-35:soon",
     "dh-22-nov-20:soon:nearby",
   ]);
 });
 
-test("chooseTables: 28 sees 20-39 only, full and closed tables drop off", () => {
+test("chooseTables: 28 sees 20-39 only, full and closed tables stay as closed until the day after", () => {
   const result = chooseTables(EVENTS, { cities: ["Rotterdam"], age: 28, ageMatters: "no" }, NOW);
   assert.equal(result.hasMatch, true);
   assert.deepEqual(rows({ cities: ["Rotterdam"], age: 28, ageMatters: "no" }), [
     "rdam-18-okt-20:open",
     "rdam-1-nov-20:open",
+    "rdam-closed:closed",
+    "rdam-full:closed",
     "dh-22-nov-20:soon:nearby",
   ]);
+  // A day after its date a table is gone.
+  const later = chooseTables(EVENTS, { cities: ["Rotterdam"], age: 28, ageMatters: "no" }, Date.parse("2026-10-03T13:00:00Z"));
+  assert.equal(later.rows.some((r) => r.event.slug === "rdam-closed"), false);
+});
+
+test("chooseTables: nobody booked 14 days before: closed, never as nearby", () => {
+  const empty = event({ slug: "dh-empty", city: "Den Haag", bracket: null, startsAt: "2026-10-11T13:00:00Z" });
+  const input = { cities: ["Den Haag"], age: 45, ageMatters: "yes" as const };
+  const own = chooseTables([empty], input, NOW).rows.map((r) => `${r.event.slug}:${r.kind}`);
+  assert.deepEqual(own, ["dh-empty:closed"]);
+  assert.equal(chooseTables([empty], input, NOW).hasMatch, false);
+  const nearby = chooseTables([empty], { ...input, cities: ["Rotterdam"] }, NOW).rows;
+  assert.deepEqual(nearby, []);
 });
 
 test("chooseTables: a place that is not ours has no tables of its own; no table at all is no match", () => {
@@ -321,6 +338,8 @@ test("chooseTables: two cities, in the order they were picked", () => {
     "rdam-25-okt-35:open",
     "rdam-18-okt-20:open",
     "rdam-1-nov-20:open",
+    "rdam-closed:closed",
+    "rdam-full:closed",
     "dh-22-nov-20:soon",
     "rdam-22-nov-35:soon",
   ]);

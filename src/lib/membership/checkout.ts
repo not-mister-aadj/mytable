@@ -14,7 +14,7 @@ import { memberBookingAmountCents } from "@/lib/membership/logic";
 import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
-import { bookingOpensOverride, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
+import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
 export type MembershipCheckoutSource = "page" | "kies";
 
@@ -46,6 +46,8 @@ export function sundayTableUnavailable(event: Event | undefined, seats: number, 
   if (now.getTime() < jouwTafelBookingWindow(event.startsAt, bookingOpensOverride(event.extras)).membersFrom.getTime()) return "table_unavailable";
   if (isEventClosedForBooking(event.startsAt, now)) return "table_unavailable";
   if (event.capacity - event.spotsSold < seats) return "table_full";
+  // Nobody booked it 14 days before: closed, like a full table.
+  if (isClosedEmpty({ ...event, bookingOpensAt: bookingOpensOverride(event.extras) }, now.getTime())) return "table_unavailable";
   return null;
 }
 

@@ -26,7 +26,7 @@ import {
   toClientMembership,
   type ClientMembership,
 } from "@/lib/membership/logic";
-import type { QuizEvent } from "@/lib/jouw-tafel/logic";
+import { closedReason, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import Link from "next/link";
 import { secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
@@ -107,10 +107,13 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
       chip={
         seats
           ? { text: getQuizCopy(locale).kies.booked(seats), tone: "wine" }
-          : earlyChip(event, locale, membership, now) ?? undefined
+          : state === "closed"
+            ? undefined
+            : earlyChip(event, locale, membership, now) ?? undefined
       }
       cta={memberState}
       stats={stats}
+      closedReason={state === "closed" ? closedReason(event, now) : null}
     />
   );
 }

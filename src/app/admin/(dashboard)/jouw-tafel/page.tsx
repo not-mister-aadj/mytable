@@ -47,7 +47,8 @@ function status(row: SeriesTableRow): string {
   if (row.membersOnlyUntil && new Date(row.membersOnlyUntil).getTime() > Date.now()) {
     return `Open voor leden tot ${formatMoment(row.membersOnlyUntil)}`;
   }
-  return row.spotsSold >= row.capacity ? "Vol" : "Open";
+  if (row.spotsSold >= row.capacity) return "Vol";
+  return row.closedEmpty ? "Gesloten (geen boekingen)" : "Open";
 }
 
 export default async function AdminJouwTafelPage() {

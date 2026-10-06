@@ -4,12 +4,14 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, QUIZ_CITIES, bookingOpensOverride, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, spotsLeft, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_SEAT_PRICE_CENTS, JOUW_TAFEL_SHOWN_AFTER_DAYS, QUIZ_CITIES, bookingOpensOverride, isNoLongerBookable, isShownTable, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
-/** Published, upcoming Sunday Tables. Deliberately no venue: the page never
- * names one, because the wine bar is booked once the tables are known. */
+/** Published Sunday Tables, upcoming or started less than
+ * JOUW_TAFEL_SHOWN_AFTER_DAYS ago (still shown as "Niet meer te boeken").
+ * Deliberately no venue: the page never names one, because the wine bar is
+ * booked once the tables are known. */
 async function loadEvents(): Promise<QuizEvent[]> {
   if (!isDbConfigured()) return [];
   const db = getDb();
@@ -30,7 +32,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
       and(
         eq(events.experienceType, JOUW_TAFEL_TYPE),
         eq(events.workflowStatus, "published"),
-        gt(events.startsAt, new Date()),
+        gt(events.startsAt, new Date(Date.now() - JOUW_TAFEL_SHOWN_AFTER_DAYS * 24 * 60 * 60 * 1000)),
       ),
     );
 
@@ -59,7 +61,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
 
 /** Short cache, dropped with the agenda whenever a purchase or admin edit
  * revalidates PUBLISHED_EVENTS_CACHE_TAG. */
-const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v2"], {
+const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v3"], {
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });
@@ -143,9 +145,13 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
   try {
     // The booking window depends on the moment, so it is applied after the
     // cache: members from 4 weeks before, everyone 2 days later, and only
-    // the next two dates of each city.
+    // the next two dates of each city. A table that can no longer be booked
+    // is shown before those, without using up one of the two.
     const now = Date.now();
-    const events = nextDatesPerCity(await getCachedEvents()).map((e) => withBookingWindow(e, now));
+    const shown = (await getCachedEvents()).filter((e) => isShownTable(e, now));
+    const events = nextDatesPerCity(shown, undefined, (e) => !isNoLongerBookable(e, now)).map((e) =>
+      withBookingWindow(e, now),
+    );
     return { events, now };
   } catch (error) {
     console.error("[jouw-tafel] loading events failed", error);
@@ -162,7 +168,7 @@ export async function getJouwTafelEvents(): Promise<{ events: QuizEvent[]; now: 
 export function singleSeatCents(events: QuizEvent[], now: number): number | null {
   const prices = new Set(
     events
-      .filter((e) => !e.comingSoon && spotsLeft(e) > 0 && new Date(e.startsAt).getTime() > now)
+      .filter((e) => !e.comingSoon && !isNoLongerBookable(e, now))
       .map((e) => e.priceCents),
   );
   return prices.size === 1 ? [...prices][0]! : null;

@@ -366,6 +366,7 @@ export function JouwTafelTable({
   cta,
   chip: chipOverride,
   stats,
+  closedReason = null,
 }: {
   locale: Locale;
   event: QuizEvent;
@@ -379,17 +380,25 @@ export function JouwTafelTable({
   /** "Waarom mensen bij MyTable komen" (real waitlist numbers); the block
    * is left out without them. */
   stats?: TableStats | null;
+  /** Why a closed table is closed, for analytics only; never shown. */
+  closedReason?: "past" | "full" | "empty" | null;
 }) {
   const t = getTableCopy(locale);
   const k = getQuizCopy(locale).kies;
   const reduceMotion = useReducedMotion();
-  const chip = chipOverride ?? spotsChip(event, locale, k);
+  const chip =
+    chipOverride ?? (state === "closed" ? { text: k.noLongerBookable, tone: "grey" as const } : spotsChip(event, locale, k));
   const time = tableTime(event.startsAt, locale);
   const city = displayCity(event.city, locale);
 
   useEffect(() => {
-    trackTableEvent(PostHogEvents.tablePageViewed, { event_slug: event.slug, state, locale });
-  }, [event.slug, state, locale]);
+    trackTableEvent(PostHogEvents.tablePageViewed, {
+      event_slug: event.slug,
+      state,
+      locale,
+      ...(closedReason ? { closed_reason: closedReason } : {}),
+    });
+  }, [event.slug, state, locale, closedReason]);
 
   return (
     <div className="min-h-[100svh] bg-cream pb-36 text-wine">
@@ -469,7 +478,7 @@ function DefaultCta({
   if (state === "soon") return <NotifyButton locale={locale} eventId={event.id} email={email} />;
   return (
     <button type="button" disabled className={primaryButton}>
-      {state === "sold_out" ? t.cta.soldOut : t.cta.closed}
+      {t.cta.closed}
     </button>
   );
 }

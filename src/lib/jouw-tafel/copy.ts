@@ -94,6 +94,8 @@ export type LandingCopy = {
     opensFrom: (date: string) => string;
     /** Shown instead of a spot count while the count would say little. */
     open: string;
+    /** A full or closed table: the same words for both, on purpose. */
+    noLongerBookable: string;
     where: (city: string) => string;
     empty: (city: string) => string;
   };
@@ -166,6 +168,7 @@ const landingNl: LandingCopy = {
     comingSoon: "Binnenkort",
     opensFrom: (date) => `Te boeken vanaf ${date}`,
     open: "Plekken vrij",
+    noLongerBookable: "Niet meer te boeken",
     where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
     empty: (city) =>
       `Nog geen tafel in ${city}. Meld je aan, dan hoor je het als eerste zodra er een is.`,
@@ -367,6 +370,7 @@ const landingEn: LandingCopy = {
     comingSoon: "Coming soon",
     opensFrom: (date) => `Bookable from ${date}`,
     open: "Seats available",
+    noLongerBookable: "No longer available",
     where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
     empty: (city) =>
       `No table in ${city} yet. Sign up and you'll be the first to hear when there is one.`,

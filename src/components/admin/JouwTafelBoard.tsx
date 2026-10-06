@@ -35,7 +35,12 @@ function formatWhen(iso: string) {
   }).format(new Date(iso));
 }
 
-const STATE_LABEL = { not_yet: "Nog niet te boeken", bookable: "Boekbaar", full: "Vol" } as const;
+const STATE_LABEL = {
+  not_yet: "Nog niet te boeken",
+  bookable: "Boekbaar",
+  full: "Vol",
+  closed: "Gesloten (geen boekingen)",
+} as const;
 
 export function JouwTafelBoard({
   board,
@@ -208,7 +213,8 @@ export function JouwTafelBoard({
               Maak definitief
             </button>
           )}
-          {!event.openForEveryone && event.state !== "full" ? (
+          {/* Also reopens a table that closed because nobody booked it. */}
+          {(!event.openForEveryone || event.state === "closed") && event.state !== "full" ? (
             <button
               type="button"
               className={ghost}

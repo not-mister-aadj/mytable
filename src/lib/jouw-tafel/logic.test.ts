@@ -12,6 +12,10 @@ import {
   jouwTafelBookingWindow,
   bookingOpensOverride,
   withBookingWindow,
+  closedReason,
+  isClosedEmpty,
+  isNoLongerBookable,
+  isShownTable,
   nextDatesPerCity,
   nearbyCities,
   seatPriceCents,
@@ -109,13 +113,29 @@ test("city tables: soonest first, both age groups, coming soon included", () => 
   assert.deepEqual(cityTables(EVENTS, "Amsterdam", NOW), []);
 });
 
-test("city tables: past and sold-out tables drop off", () => {
+test("city tables: a full or past table stays until the day after its date", () => {
   const list = [
-    event({ slug: "past", city: "Rotterdam", bracket: "35+", startsAt: "2026-09-27T12:00:00Z" }),
+    event({ slug: "long-past", city: "Rotterdam", bracket: "35+", startsAt: "2026-09-27T12:00:00Z" }),
+    event({ slug: "yesterday", city: "Rotterdam", bracket: "35+", startsAt: "2026-09-30T13:00:00Z" }),
     event({ slug: "full", city: "Rotterdam", bracket: "35+", startsAt: "2026-10-25T13:00:00Z", spotsSold: 12 }),
     event({ slug: "open", city: "Rotterdam", bracket: "35+", startsAt: "2026-11-25T13:00:00Z" }),
   ];
-  assert.deepEqual(slugs(cityTables(list, "Rotterdam", NOW)), ["open"]);
+  assert.deepEqual(slugs(cityTables(list, "Rotterdam", NOW)), ["yesterday", "full", "open"]);
+});
+
+test("closed: full, nobody booked 14 days before (unless an admin opened it), or too late", () => {
+  const t = (partial: Partial<QuizEvent> = {}) =>
+    event({ slug: "t", city: "Rotterdam", bracket: null, startsAt: "2026-10-25T13:00:00Z", ...partial });
+  const at = (iso: string) => Date.parse(iso);
+  assert.equal(closedReason(t(), at("2026-10-11T12:59:00Z")), null);
+  assert.equal(closedReason(t(), at("2026-10-11T13:00:00Z")), "empty");
+  assert.equal(isClosedEmpty(t({ spotsSold: 1 }), at("2026-10-20T13:00:00Z")), false);
+  assert.equal(isClosedEmpty(t({ bookingOpensAt: "2026-10-01T00:00:00Z" }), at("2026-10-20T13:00:00Z")), false);
+  assert.equal(closedReason(t({ spotsSold: 12 }), NOW), "full");
+  assert.equal(closedReason(t({ spotsSold: 3 }), at("2026-10-23T13:00:00Z")), "past");
+  assert.equal(isNoLongerBookable(t({ spotsSold: 3 }), at("2026-10-20T13:00:00Z")), false);
+  assert.equal(isShownTable(t(), at("2026-10-26T12:59:00Z")), true);
+  assert.equal(isShownTable(t(), at("2026-10-26T13:00:00Z")), false);
 });
 
 test("city tabs: the visitor's city first and open, then only cities with tables", () => {
@@ -182,6 +202,19 @@ test("nextDatesPerCity keeps the next two dates of each city", () => {
     "Den Haag 2026-11-08",
     "rotterdam 2026-11-29",
   ]);
+});
+
+test("nextDatesPerCity: a closed table does not use up one of the two dates", () => {
+  const e = (startsAt: string, closed = false) => ({ city: "Rotterdam", startsAt, closed });
+  const kept = nextDatesPerCity(
+    [e("2026-10-25T13:00:00Z", true), e("2026-11-01T13:00:00Z", true), e("2026-11-29T13:00:00Z"), e("2026-12-27T13:00:00Z"), e("2027-01-24T13:00:00Z")],
+    2,
+    (x) => !x.closed,
+  );
+  assert.deepEqual(kept.map((k) => k.startsAt.slice(0, 10)), ["2026-10-25", "2026-11-01", "2026-11-29", "2026-12-27"]);
+  // A closed table after the two dates is not shown.
+  const after = nextDatesPerCity([e("2026-11-29T13:00:00Z"), e("2026-12-27T13:00:00Z"), e("2027-01-24T13:00:00Z", true)], 2, (x) => !x.closed);
+  assert.equal(after.length, 2);
 });
 
 test("an admin's exception opens a table for everyone at once", () => {

@@ -79,10 +79,12 @@ export function JouwTafelTables({
         </h2>
       </div>
 
+      {/* A swipeable row on a phone; on wider screens the cities wrap, so a
+          centred row never hides the first city out of reach. */}
       <div
         role="group"
         aria-label={copy.cityTabsAria}
-        className="-mx-5 mt-7 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:justify-center sm:px-0 [&::-webkit-scrollbar]:hidden"
+        className="-mx-5 mt-7 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {cities.map((c) => {
           const selected = c === city;

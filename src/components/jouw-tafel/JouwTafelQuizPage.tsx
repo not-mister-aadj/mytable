@@ -4,6 +4,7 @@ import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { JouwTafelQuiz, type QuizTestimonial } from "@/components/jouw-tafel/quiz/JouwTafelQuiz";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { jouwTafelPath, jouwTafelSignUpPath, type Locale } from "@/i18n/config";
+import { withDbTimeout } from "@/db/index";
 import { getMemberUser } from "@/lib/member-auth";
 import { devCountOverride, getJouwTafelEvents, getSignupSubsetCounts, getWaitlistCityCounts } from "@/lib/jouw-tafel/data";
 import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
@@ -17,6 +18,15 @@ import { requestCity, type JouwTafelSearchParams } from "@/lib/jouw-tafel/reques
 import { getMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
 import { toClientMembership } from "@/lib/membership/logic";
 import { getBookedSeats } from "@/lib/jouw-tafel/account-server";
+
+/** How long the quiz waits for data it can do without. */
+const OPTIONAL_DATA_MS = 4000;
+
+/** The tables are needed: after a hang the pool is fresh, so try once more. */
+async function tablesWithRetry(): ReturnType<typeof getJouwTafelEvents> {
+  const first = await withDbTimeout(getJouwTafelEvents(), { ms: OPTIONAL_DATA_MS, fallback: null, label: "quiz tables" });
+  return first ?? getJouwTafelEvents();
+}
 
 /** Same three guests as on the landing page. */
 const TESTIMONIAL_NAMES = ["Carmen", "Mark", "Sophie"];
@@ -50,19 +60,35 @@ export async function JouwTafelQuizPage({
   const requested = firstParam(searchParams.stap);
   const initialStep = resolveStep(requested, state.answers);
 
+  // Right after signing in this is someone's first screen, so it never waits
+  // on a slow database: what the quiz can do without gets OPTIONAL_DATA_MS,
+  // then the page goes on without it (counts drop out of the copy, the
+  // membership and booked seats are read again on the table page).
   const [{ events, now }, geoCity, cityCounts, subsetCounts, membership, booked] = await Promise.all([
-    getJouwTafelEvents(),
+    tablesWithRetry(),
     requestCity(searchParams),
-    getWaitlistCityCounts(devCountOverride(searchParams.aantal)),
-    getSignupSubsetCounts(devCountOverride(searchParams.aantal)),
-    getMembershipForUser(user.id).catch((error: unknown) => {
-      console.error("[jouw-tafel quiz] loading membership failed", error);
-      return null;
+    withDbTimeout(getWaitlistCityCounts(devCountOverride(searchParams.aantal)), {
+      ms: OPTIONAL_DATA_MS,
+      fallback: {},
+      label: "quiz city counts",
     }),
-    getBookedSeats(user.email).catch((error: unknown) => {
-      console.error("[jouw-tafel quiz] loading bookings failed", error);
-      return {};
+    withDbTimeout(getSignupSubsetCounts(devCountOverride(searchParams.aantal)), {
+      ms: OPTIONAL_DATA_MS,
+      fallback: {},
+      label: "quiz subset counts",
     }),
+    withDbTimeout(getMembershipForUser(user.id), { ms: OPTIONAL_DATA_MS, fallback: null, label: "quiz membership" }).catch(
+      (error: unknown) => {
+        console.error("[jouw-tafel quiz] loading membership failed", error);
+        return null;
+      },
+    ),
+    withDbTimeout(getBookedSeats(user.email), { ms: OPTIONAL_DATA_MS, fallback: {}, label: "quiz booked seats" }).catch(
+      (error: unknown) => {
+        console.error("[jouw-tafel quiz] loading bookings failed", error);
+        return {};
+      },
+    ),
   ]);
 
   const { culinary, people } = getBrandLandingTestimonialRows(locale);

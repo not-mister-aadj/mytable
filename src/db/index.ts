@@ -48,6 +48,46 @@ export function getDb(): DrizzleDb {
   return globalForDb.__mytableDrizzle!;
 }
 
+/**
+ * Drops this instance's pool so the next query opens fresh connections. For
+ * after a query hung: when Vercel thaws a frozen instance its sockets to the
+ * pooler can be dead without anyone noticing, and every query on them waits
+ * until the network gives up. The old pool gets a few seconds to finish what
+ * is still running, then closes.
+ */
+export function resetDbPool(): void {
+  const old = globalForDb.__mytablePostgres;
+  globalForDb.__mytablePostgres = undefined;
+  globalForDb.__mytableDrizzle = undefined;
+  if (old) void old.end({ timeout: 5 }).catch(() => undefined);
+}
+
+/**
+ * Resolves with `fallback` when `promise` takes longer than `ms`, and drops
+ * the pool (see resetDbPool), so one dead connection never leaves a visitor
+ * staring at a loading page. For data a page can do without; errors still
+ * reject as before.
+ */
+export function withDbTimeout<T>(promise: Promise<T>, input: { ms: number; fallback: T; label: string }): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      console.error(`[db] ${input.label} took longer than ${input.ms}ms; continuing without it`);
+      resetDbPool();
+      resolve(input.fallback);
+    }, input.ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export function isDbConfigured(): boolean {
   return Boolean(connectionString);
 }

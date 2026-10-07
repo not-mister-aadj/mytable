@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { withDbTimeout } from "@/db/index";
 import { syncMemberCustomer } from "@/lib/member-auth";
 import { sanitizeMemberNextPath } from "@/lib/member-url";
 import { getSiteUrl, isAdminHost, resolveHostname } from "@/lib/admin-url";
@@ -118,7 +119,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await syncMemberCustomer(data.user, locale);
+    // Never holds up signing in: the quiz's first save (the waitlist row)
+    // creates or updates the customer row as well.
+    await withDbTimeout(syncMemberCustomer(data.user, locale), {
+      ms: 4000,
+      fallback: { customerId: null },
+      label: "auth callback customer sync",
+    });
   } catch (err) {
     console.error("[auth/callback] customer sync failed", err);
     captureCriticalError(err, {

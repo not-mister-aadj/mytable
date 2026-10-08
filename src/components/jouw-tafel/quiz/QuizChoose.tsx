@@ -154,7 +154,7 @@ function ChooseFilters({
       <div
         role="group"
         aria-label={copy.citiesAria}
-        className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {cities.map((city) => {
           const on = isChosen(city);

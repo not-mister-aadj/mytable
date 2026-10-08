@@ -127,7 +127,7 @@ We willen graag een paar tafels bij jullie reserveren op zondag 18 of 25 oktober
 Het gaat om een groepje van MyTable, waarmee we vaker beginnende wijnliefhebbers samenbrengen op zondagmiddag. Iedereen bestelt en betaalt zelf van de kaart, net als jullie gewone gasten.
 
 Met vriendelijke groet,
-Freek
+Dj
 www.mytable.club
 instagram.com/mytable.club`,
     attachmentPath: null,
@@ -149,7 +149,7 @@ Ik wilde even checken of een paar tafels op zondag 18 of 25 oktober bij jullie m
 Of kan ik dit beter met iemand anders binnen jullie team bespreken?
 
 Met vriendelijke groet,
-Freek
+Dj
 www.mytable.club
 instagram.com/mytable.club`,
     attachmentPath: null,
@@ -171,7 +171,7 @@ Ik stuur hierover nog een laatste berichtje. Staan jullie open voor een paar taf
 Als het niet past, is dat natuurlijk ook helemaal goed.
 
 Met vriendelijke groet,
-Freek
+Dj
 www.mytable.club
 instagram.com/mytable.club`,
     attachmentPath: null,

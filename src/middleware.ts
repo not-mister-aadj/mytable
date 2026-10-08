@@ -7,6 +7,7 @@ import {
   usesAdminSubdomainFromEnv,
 } from "@/lib/admin-url";
 import { updateSupabaseSession } from "@/lib/supabase/middleware";
+import { OAUTH_RESUME_PATH, oauthStateErrorLocale } from "@/lib/auth/oauth-landing";
 
 const BLOG_CATEGORY_IDS = new Set([
   "tips",
@@ -82,6 +83,17 @@ export async function middleware(request: NextRequest) {
     const notFoundUrl = request.nextUrl.clone();
     notFoundUrl.pathname = `/${defaultLocale}/__not-found__`;
     return NextResponse.rewrite(notFoundUrl);
+  }
+
+  // A Google sign-in that Supabase could not finish lands on the homepage
+  // (its Site URL). Pick it up so someone who is signed in after all still
+  // reaches the quiz instead of the homepage.
+  const oauthErrorLocale = oauthStateErrorLocale(pathname, request.nextUrl.searchParams);
+  if (oauthErrorLocale) {
+    const resumeUrl = request.nextUrl.clone();
+    resumeUrl.pathname = OAUTH_RESUME_PATH;
+    resumeUrl.search = `?locale=${oauthErrorLocale}`;
+    return NextResponse.redirect(resumeUrl);
   }
 
   // /login and /inloggen used to redirect into a sign-in modal on the

@@ -223,7 +223,7 @@ export const sundayTableLpNl: SundayTableLpLabels = {
     title: "Nu open",
     body: "Hier schuif je nu aan. Meer steden volgen.",
     comingSoon: "Binnenkort",
-    comingSoonCities: "Amsterdam · Eindhoven",
+    comingSoonCities: "Amsterdam",
   },
   final: {
     title: "Klaar voor je eerste Sunday Social?",

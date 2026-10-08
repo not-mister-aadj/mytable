@@ -254,7 +254,7 @@ export type OnboardingCityId = (typeof ONBOARDING_CITIES)[number];
 
 export type OnboardingCityStatus = "active" | "coming_soon" | "hidden";
 
-/** Launch focus: 3 live cities; AMS/EHV teaser; rest hidden. */
+/** Launch focus: 4 live cities; Amsterdam teaser; rest hidden. */
 export const ONBOARDING_CITY_STATUS: Record<
   OnboardingCityId,
   OnboardingCityStatus
@@ -263,7 +263,7 @@ export const ONBOARDING_CITY_STATUS: Record<
   "Den Haag": "active",
   Utrecht: "active",
   Amsterdam: "coming_soon",
-  Eindhoven: "coming_soon",
+  Eindhoven: "active",
   Groningen: "hidden",
   Maastricht: "hidden",
   Nijmegen: "hidden",

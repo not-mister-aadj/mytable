@@ -17,6 +17,7 @@ import {
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
+import { MIN_ONBOARDING_AGE, isAtLeastMinAge } from "@/lib/member-onboarding";
 import { isEmailFrozen } from "@/lib/customers/freeze";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
@@ -117,6 +118,9 @@ export async function POST(request: Request) {
     dietaryNotes?: string;
     seatingPreference?: string;
     tableLanguagePreference?: string;
+    /** Sunday Social: the booker's date of birth (YYYY-MM-DD), only to
+     * check 18+. Not stored; the booking only records that it was checked. */
+    birthDate?: string;
     joinPriorityList?: boolean;
     affiliateCode?: string;
     referralCode?: string;
@@ -217,6 +221,22 @@ export async function POST(request: Request) {
   // bookings). Memberships and the €15 seat belong to Sunday Table only.
   const isSundayTable = isSharedTableType(event.experienceType);
   const isJouwTafel = isJouwTafelType(event.experienceType);
+
+  // Sunday Social is 18+: the date page asks for a date of birth. Only the
+  // legal age is checked here, never the table's own age group.
+  const isSundaySocial = isSundaySocialType(event.experienceType);
+  if (isSundaySocial && !isAtLeastMinAge(body.birthDate)) {
+    return NextResponse.json(
+      {
+        code: "under_age",
+        error:
+          locale === "en"
+            ? "You need to be 18 or older to book."
+            : "Om te boeken moet je 18 jaar of ouder zijn.",
+      },
+      { status: 400 },
+    );
+  }
 
   // The date page only offers a ticket for "English" on tables that can seat
   // English speakers. Guard it here too, so nobody who only speaks English
@@ -454,6 +474,14 @@ export async function POST(request: Request) {
       locale,
     },
   });
+
+  if (isSundaySocial) {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: "age_confirmed",
+      payload: { minAge: MIN_ONBOARDING_AGE },
+    });
+  }
 
   if (isJouwTafel) {
     await db.insert(bookingEvents).values({

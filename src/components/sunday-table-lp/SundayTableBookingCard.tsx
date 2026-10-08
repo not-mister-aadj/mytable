@@ -10,6 +10,17 @@ import {
 } from "@/lib/booking-table-language";
 import { getStoredUtm } from "@/lib/analytics/utm";
 import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+import { isAtLeastMinAge, latestLegalBirthDate } from "@/lib/member-onboarding";
+
+/** Date of birth: only a check that the booker is 18 or older. */
+const BIRTH_COPY = {
+  nl: { label: "Geboortedatum", underAge: "Om te boeken moet je 18 jaar of ouder zijn." },
+  en: { label: "Date of birth", underAge: "You need to be 18 or older to book." },
+} as const;
+
+function isoDay(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 export interface EnglishComingSoonLabels {
   title: string;
@@ -70,6 +81,8 @@ export function SundayTableBookingCard({
 }: SundayTableBookingCardProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const birthCopy = BIRTH_COPY[locale === "en" ? "en" : "nl"];
   const [seats, setSeats] = useState<1 | 2>(1);
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
@@ -133,6 +146,10 @@ export function SundayTableBookingCard({
       if (!englishNotified) await notifyEnglish();
       return;
     }
+    if (!isAtLeastMinAge(birthDate)) {
+      setError(birthCopy.underAge);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -146,6 +163,7 @@ export function SundayTableBookingCard({
           seats,
           locale,
           tableLanguagePreference,
+          birthDate,
           utm: getStoredUtm(),
         }),
       });
@@ -193,6 +211,25 @@ export function SundayTableBookingCard({
           className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
         />
       </label>
+      {englishOnlyWaiting ? null : (
+        <label className="block text-sm font-medium text-wine">
+          {birthCopy.label}
+          <input
+            id="sunday-social-birth-date"
+            type="date"
+            required
+            autoComplete="bday"
+            min="1920-01-01"
+            max={isoDay(latestLegalBirthDate())}
+            value={birthDate}
+            onChange={(e) => {
+              setBirthDate(e.target.value);
+              setError(null);
+            }}
+            className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
+          />
+        </label>
+      )}
 
       <div>
         <span className="block text-sm font-medium text-wine">{languageLabel}</span>

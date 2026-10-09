@@ -98,7 +98,7 @@ function waitlistSteps(
   if (answers.gender === "female") steps.push("tafeltype");
   steps.push("zoekt", "gesprek", "wijn", "gezelschap");
   if (answers.companion === "with") steps.push("wie");
-  steps.push("taal", "dieet", "bron", "availability");
+  steps.push("taal", "bron", "availability");
   if (sundayAvailability === "no") steps.push("altDays");
   steps.push("ticketPrice");
   if (interests.includes("wine_tasting") || interests.includes("chefs_special")) steps.push("allInclusivePrice");

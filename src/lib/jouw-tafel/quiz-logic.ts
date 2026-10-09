@@ -250,6 +250,8 @@ export function quizSteps(answers: QuizAnswers): QuizStepId[] {
     if (step === "stop-alleen") return answers.companion !== "with";
     if (step === "stop-twijfel") return answers.ready === "unsure";
     if (step === "wie" || step === "stop-wie") return answers.companion === "with";
+    // Dietary needs: not used yet, so not asked (answers given before stay).
+    if (step === "dieet") return false;
     return true;
   });
 }
@@ -714,7 +716,7 @@ export function kiesCities(
 export const SETTINGS_GROUPS = {
   // Gender is shown under Account, locked: it is answered once in the quiz.
   tafel: ["stad", "leeftijd", "tafeltype", "taal", "gezelschap", "wie"],
-  zondag: ["zoekt", "wijn", "gesprek", "dieet"],
+  zondag: ["zoekt", "wijn", "gesprek"],
   binnenkort: ["formats"],
 } as const satisfies Record<string, readonly QuizStepId[]>;
 

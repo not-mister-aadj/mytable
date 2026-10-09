@@ -120,9 +120,9 @@ test("quizSteps: alone gets one stop, with someone gets 'wie' and its stop", () 
     withSomeone.slice(withSomeone.indexOf("gezelschap"), withSomeone.indexOf("taal") + 1),
     ["gezelschap", "wie", "stop-wie", "taal"],
   );
-  assert.equal(stepPosition("kies", { companion: "alone" }).total, 23);
-  assert.equal(stepPosition("kies", { companion: "with" }).total, 24);
-  assert.equal(stepPosition("kies", { companion: "alone", ready: "unsure" }).total, 24);
+  assert.equal(stepPosition("kies", { companion: "alone" }).total, 22);
+  assert.equal(stepPosition("kies", { companion: "with" }).total, 23);
+  assert.equal(stepPosition("kies", { companion: "alone", ready: "unsure" }).total, 23);
 });
 
 test("gender: women get the table type question, everyone else skips it", () => {
@@ -147,7 +147,7 @@ test("gender: women get the table type question, everyone else skips it", () => 
   // Answered or not.
   assert.equal(firstMissingStep({ ...DONE_ALONE, gender: "female" }), "tafeltype");
   assert.equal(firstMissingStep({ ...DONE_ALONE, gender: "female", tableType: "any" }), null);
-  assert.equal(stepPosition("kies", { companion: "alone", gender: "female" }).total, 24);
+  assert.equal(stepPosition("kies", { companion: "alone", gender: "female" }).total, 23);
   assert.equal(analyticsAnswer("gender", { gender: "unspecified" }), "unspecified");
   assert.equal(analyticsAnswer("tafeltype", { gender: "female", tableType: "girls_only" }), "girls_only");
 });
@@ -199,7 +199,8 @@ test("firstMissingStep and optional steps", () => {
   assert.equal(firstMissingStep({}), "naam");
   assert.equal(firstMissingStep({ name: "Sam" }), "geboortedatum");
   assert.equal(firstMissingStep({ ...DONE_ALONE, companion: "with" }), "wie");
-  assert.equal(firstMissingStep({ ...DONE_ALONE, dietary: undefined }), "dieet");
+  // Dietary needs are not asked (yet): a missing answer does not hold anyone up.
+  assert.equal(firstMissingStep({ ...DONE_ALONE, dietary: undefined }), null);
   assert.equal(firstMissingStep(DONE_ALONE), null);
   // An under-18 date stored somehow does not count as answered.
   assert.equal(firstMissingStep({ name: "Sam", birthDate: "2015-01-01" }), "geboortedatum");

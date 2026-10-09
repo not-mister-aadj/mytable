@@ -13,7 +13,7 @@ export type AuthCopy = {
   signUp: { metaTitle: string; title: string; sub: string; switchPrompt: string; switchLink: string };
   logIn: { metaTitle: string; title: string; sub?: string; switchPrompt: string; switchLink: string };
   /** After "Aanmelden": only the email (no code yet), then the quiz. */
-  emailStart: { title: string; sub: string; button: string; sending: string };
+  emailStart: { title: string; button: string; sending: string };
   /** The code step before reserving or becoming a member: the account. */
   confirm: { title: string; sub: string };
   google: string;
@@ -269,7 +269,6 @@ const landingNl: LandingCopy = {
     },
     emailStart: {
       title: "Wat is je e-mail?",
-      sub: "Geen wachtwoord, geen code. Daarna een paar korte vragen en kies je je zondag.",
       button: "Verder",
       sending: "Even geduld",
     },
@@ -481,7 +480,6 @@ const landingEn: LandingCopy = {
     },
     emailStart: {
       title: "What's your email?",
-      sub: "No password, no code. Then a few short questions and you choose your Sunday.",
       button: "Continue",
       sending: "One moment",
     },

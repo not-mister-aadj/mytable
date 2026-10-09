@@ -9,7 +9,7 @@ import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 
 /** Published Sunday Tables, upcoming or started less than
- * JOUW_TAFEL_SHOWN_AFTER_DAYS ago (still shown as "Niet meer te boeken").
+ * JOUW_TAFEL_SHOWN_AFTER_DAYS ago (still shown as "Full").
  * Deliberately no venue: the page never names one, because the wine bar is
  * booked once the tables are known. */
 async function loadEvents(): Promise<QuizEvent[]> {

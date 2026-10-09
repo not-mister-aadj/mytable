@@ -172,7 +172,7 @@ const landingNl: LandingCopy = {
     comingSoon: "Binnenkort",
     opensFrom: (date) => `Te boeken vanaf ${date}`,
     open: "Plekken vrij",
-    noLongerBookable: "Niet meer te boeken",
+    noLongerBookable: "Full",
     where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
     empty: (city) =>
       `Nog geen tafel in ${city}. Meld je aan, dan hoor je het als eerste zodra er een is.`,
@@ -383,7 +383,7 @@ const landingEn: LandingCopy = {
     comingSoon: "Coming soon",
     opensFrom: (date) => `Bookable from ${date}`,
     open: "Seats available",
-    noLongerBookable: "No longer available",
+    noLongerBookable: "Full",
     where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
     empty: (city) =>
       `No table in ${city} yet. Sign up and you'll be the first to hear when there is one.`,

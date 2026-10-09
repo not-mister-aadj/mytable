@@ -129,7 +129,7 @@ export function isClosedEmpty(event: ClosableTable, now: number = Date.now()): b
 }
 
 /** Why a table can no longer be booked, or null while it can. Visitors
- * never see the reason: every one reads "Niet meer te boeken". */
+ * never see the reason: every one reads "Full". */
 export function closedReason(event: ClosableTable, now: number = Date.now()): "past" | "full" | "empty" | null {
   if (isEventClosedForBooking(new Date(startMs(event.startsAt)), new Date(now))) return "past";
   if (event.capacity - event.spotsSold <= 0) return "full";
@@ -290,7 +290,7 @@ function byDate(a: QuizEvent, b: QuizEvent): number {
 
 /** Every table in one city that is still shown, soonest first. A table
  * that can no longer be booked (full, or closed) stays until the day after
- * its date, as "Niet meer te boeken". */
+ * its date, as "Full". */
 export function cityTables(events: QuizEvent[], city: string, now: number = Date.now()): QuizEvent[] {
   return events.filter((e) => sameCity(e.city, city) && isShownTable(e, now)).sort(byDate);
 }

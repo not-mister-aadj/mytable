@@ -4,6 +4,8 @@ import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { earlyChip } from "@/lib/membership/early-label";
 import { JouwTafelMemberReserve, MemberStateCta, type ReserveAccess } from "@/components/jouw-tafel/table/JouwTafelMemberReserve";
 import { JouwTafelTable } from "@/components/jouw-tafel/table/JouwTafelTable";
+import { JouwTafelReserve } from "@/components/jouw-tafel/table/JouwTafelReserve";
+import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 import {
   jouwTafelReservePath,
   jouwTafelSettingsPath,
@@ -141,6 +143,18 @@ export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; s
     // The real number only (no dev override): shown from SIGNUP_COUNT_MIN up.
     getWaitlistProof(null),
   ]);
+  // Membership not offered: a plain seat (choose 1 or 2, pay). Existing
+  // members keep their own view (seat included, blocked, past due).
+  if (!MEMBERSHIP_OPEN && access.kind === "non_member") {
+    return (
+      <JouwTafelReserve
+        locale={locale}
+        event={event}
+        guest={{ email: user.email, answers }}
+        tableHref={jouwTafelTablePath(locale, slug)}
+      />
+    );
+  }
   return (
     <JouwTafelMemberReserve
       locale={locale}

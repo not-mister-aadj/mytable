@@ -107,7 +107,7 @@ const nl: TableCopy = {
       },
       {
         q: "Wat kost het?",
-        a: "€15 voor je plek aan tafel, of inbegrepen als je lid bent. Drankjes en bites bestel en betaal je zelf aan tafel, van de kaart van de wijnbar.",
+        a: "€10 voor je plek aan tafel. Drankjes en bites bestel en betaal je zelf aan tafel, van de kaart van de wijnbar.",
       },
       {
         q: "Hoe groot is een tafel?",
@@ -225,7 +225,7 @@ const en: TableCopy = {
       },
       {
         q: "What does it cost?",
-        a: "€15 for your seat at the table, or included if you are a member. Drinks and bites you order and pay yourself at the table, from the wine bar's menu.",
+        a: "€10 for your seat at the table. Drinks and bites you order and pay yourself at the table, from the wine bar's menu.",
       },
       {
         q: "How big is a table?",

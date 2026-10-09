@@ -34,7 +34,7 @@ import { getSettingsCopy, type SettingsCopy } from "@/lib/jouw-tafel/settings-co
 import { trackLanguageChanged, trackMembershipEvent, trackSettingsEvent } from "@/lib/posthog/analytics";
 import { getMembershipSettingsCopy } from "@/lib/membership/page-copy";
 import { planName } from "@/lib/membership/mail-copy";
-import { formatPlanEuros, lowestMonthlyCents, type MembershipPlanId } from "@/lib/membership/plans";
+import { MEMBERSHIP_OPEN, formatPlanEuros, lowestMonthlyCents, type MembershipPlanId } from "@/lib/membership/plans";
 import { jouwTafelMembershipPath } from "@/i18n/config";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -628,6 +628,7 @@ export function JouwTafelSettings({
           <p className="mt-1 truncate text-[0.92rem] text-wine/55">{email}</p>
         </div>
 
+        {membership || MEMBERSHIP_OPEN ? (
         <Group title={ms.group} note={membership ? ms.note : undefined}>
           {membership ? (
             <>
@@ -662,6 +663,7 @@ export function JouwTafelSettings({
             />
           )}
         </Group>
+        ) : null}
 
         <Group title={s.reservations.title}>
           {bookings.upcoming.length ? (

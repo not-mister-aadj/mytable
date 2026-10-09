@@ -5,6 +5,15 @@
 // Every plan bills a first period upfront and then continues at its monthly
 // amount, cancellable per month. "1m" is simply monthly from the start.
 
+/**
+ * Whether the membership is offered. Off since 9 October 2026: every Sunday
+ * Table is a single €10 seat, nobody books earlier, and the membership page,
+ * paywall and "Word lid" links are hidden. Existing members keep their
+ * membership (included seat, settings, mails). Set to true to bring it all
+ * back; nothing was removed.
+ */
+export const MEMBERSHIP_OPEN = false;
+
 export const MEMBERSHIP_PLAN_IDS = ["1m", "4m", "12m"] as const;
 export type MembershipPlanId = (typeof MEMBERSHIP_PLAN_IDS)[number];
 

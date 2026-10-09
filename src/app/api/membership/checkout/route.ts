@@ -9,6 +9,7 @@ import { captureClientSafeError } from "@/lib/membership/errors";
 import { isEmailFrozen } from "@/lib/customers/freeze";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import { isStripeConfigured } from "@/lib/stripe";
+import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 
 const ERRORS = {
   nl: {
@@ -32,6 +33,10 @@ const ERRORS = {
  * 401 when signed out (the page then goes through sign up and back).
  */
 export async function POST(request: Request) {
+  // No new memberships while it is not offered.
+  if (!MEMBERSHIP_OPEN) {
+    return NextResponse.json({ error: "Membership is not offered" }, { status: 404 });
+  }
   if (!isDbConfigured() || !isStripeConfigured()) {
     return NextResponse.json({ error: "Not configured" }, { status: 503 });
   }

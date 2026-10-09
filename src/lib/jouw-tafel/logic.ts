@@ -5,6 +5,7 @@
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { cityMatchKey } from "@/lib/waitlist-city";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
+import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 
 export type QuizBracket = "20-39" | "35+";
 
@@ -83,7 +84,9 @@ export function jouwTafelBookingWindow(
   if (opensAt) return { membersFrom: new Date(opensAt), everyoneFrom: new Date(opensAt) };
   const start = typeof startsAt === "string" ? Date.parse(startsAt) : startsAt.getTime();
   const membersFrom = start - JOUW_TAFEL_MEMBERS_OPEN_DAYS * DAY_MS;
-  return { membersFrom: new Date(membersFrom), everyoneFrom: new Date(membersFrom + EARLY_ACCESS_HOURS * 60 * 60 * 1000) };
+  // Without the membership on offer, everyone books from the same moment.
+  const earlyHours = MEMBERSHIP_OPEN ? EARLY_ACCESS_HOURS : 0;
+  return { membersFrom: new Date(membersFrom), everyoneFrom: new Date(membersFrom + earlyHours * 60 * 60 * 1000) };
 }
 
 /**
@@ -95,7 +98,8 @@ export function withBookingWindow<
   T extends { startsAt: string; comingSoon: boolean; membersOnlyUntil?: string | null; bookingOpensAt?: string | null },
 >(event: T, now: number = Date.now()): T & { opensAt: string } {
   const { membersFrom, everyoneFrom } = jouwTafelBookingWindow(event.startsAt, event.bookingOpensAt);
-  const stored = event.membersOnlyUntil ? Date.parse(event.membersOnlyUntil) : 0;
+  // A stored members_only_until only counts while the membership is offered.
+  const stored = MEMBERSHIP_OPEN && event.membersOnlyUntil ? Date.parse(event.membersOnlyUntil) : 0;
   return {
     ...event,
     comingSoon: event.comingSoon || now < membersFrom.getTime(),
@@ -179,17 +183,17 @@ export const QUIZ_CITY_COORDS: Record<QuizCity, { lat: number; lon: number }> = 
 };
 
 /**
- * The price of one seat at a "Jouw tafel" Sunday Table: €15, whatever
+ * The price of one seat at a "Jouw tafel" Sunday Table: €10, whatever
  * events.price_cents says. Sunday Social (the agenda concept) keeps charging
  * its event's own price. See resolveSeatPriceCents.
  */
-export const JOUW_TAFEL_SEAT_PRICE_CENTS = 1500;
+export const JOUW_TAFEL_SEAT_PRICE_CENTS = 1000;
 
 /** The checkout `source` the funnel sends with a reservation. */
 export const JOUW_TAFEL_CHECKOUT_SOURCE = "jouw-tafel";
 
 /**
- * The per-seat price /api/checkout charges: €15 for a "Jouw tafel" Sunday
+ * The per-seat price /api/checkout charges: €10 for a "Jouw tafel" Sunday
  * Table, otherwise exactly the event's own price. Decided on the server from
  * the event's type; never a client-sent amount.
  */

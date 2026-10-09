@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { JouwTafelMembership, type MembershipPageState } from "@/components/jouw-tafel/membership/JouwTafelMembership";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
-import type { Locale } from "@/i18n/config";
+import { jouwTafelPath, type Locale } from "@/i18n/config";
 import { getJouwTafelEvents, singleSeatCents } from "@/lib/jouw-tafel/data";
 import type { JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 import { getMemberUser } from "@/lib/member-auth";
@@ -10,7 +11,7 @@ import { getMembershipForUser } from "@/lib/membership/data";
 import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
 import { isActiveMember } from "@/lib/membership/logic";
 import { membershipSnapshot } from "@/lib/membership/data";
-import { DEFAULT_MEMBERSHIP_PLAN, getMembershipPlan, isMembershipPlanId } from "@/lib/membership/plans";
+import { DEFAULT_MEMBERSHIP_PLAN, MEMBERSHIP_OPEN, getMembershipPlan, isMembershipPlanId } from "@/lib/membership/plans";
 import { getMembershipPageCopy } from "@/lib/membership/page-copy";
 import { mailSunday } from "@/lib/membership/mail-copy";
 
@@ -57,6 +58,9 @@ export async function JouwTafelMembershipPage({
   const snapshot = membershipSnapshot(membership);
   const active = isActiveMember(snapshot, now);
   const member = active || membership?.status === "past_due";
+  // Not offered now: only an existing member still sees this page (their
+  // plan); everyone else goes to the landing page.
+  if (!MEMBERSHIP_OPEN && !member) redirect(jouwTafelPath(locale));
 
   let state: MembershipPageState = { kind: "visitor" };
   if (user && member && membership && snapshot) {

@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
+import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 
 /**
  * When a Sunday Table opens for booking (published, or out of "binnenkort"),
@@ -9,7 +10,8 @@ import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
  * already sells seats (it was open before, it stays open).
  */
 export async function applyMembersOnlyDefault(eventId: string): Promise<void> {
-  if (!isDbConfigured()) return;
+  // Nobody books earlier while the membership is not offered.
+  if (!isDbConfigured() || !MEMBERSHIP_OPEN) return;
   await getDb().execute(sql`
     UPDATE events e
     SET members_only_until = now() + make_interval(hours => ${EARLY_ACCESS_HOURS}), updated_at = now()

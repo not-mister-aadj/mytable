@@ -51,6 +51,7 @@ import {
   memberBookingDecision,
   type MemberBookingDecision,
 } from "@/lib/membership/logic";
+import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 import { bookAsMember } from "@/lib/membership/member-checkout";
 
 /** "zondag 25 oktober 14:00" for the early-access message. */
@@ -288,8 +289,10 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   }
+  // A stored members_only_until only counts while the membership is offered.
+  const storedMembersOnly = MEMBERSHIP_OPEN ? event.membersOnlyUntil : null;
   const membersOnlyUntil = bookingWindow
-    ? new Date(Math.max(event.membersOnlyUntil?.getTime() ?? 0, bookingWindow.everyoneFrom.getTime()))
+    ? new Date(Math.max(storedMembersOnly?.getTime() ?? 0, bookingWindow.everyoneFrom.getTime()))
     : event.membersOnlyUntil;
 
   // Members (Sunday Table): own seat included, a guest at the member price,

@@ -17,8 +17,11 @@ function sundayKey(item: ExperienceItem): string {
   return `${item.city.toLowerCase()}|${item.startsAt ? amsterdamDateIso(new Date(item.startsAt)) : item.id}`;
 }
 
-/** A Sunday Social shows on the agenda only while it can be booked. */
+/** A Sunday Social shows on the agenda only while it can be booked: it has
+ * a published event (a location row alone has no seats or price) and is
+ * not coming soon or sold out. */
 function isBookableNow(item: ExperienceItem): boolean {
+  if (item.capacity === undefined) return false;
   return item.status === "available" || item.status === "almostFull";
 }
 

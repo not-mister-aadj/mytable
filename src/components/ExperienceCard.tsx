@@ -103,7 +103,10 @@ export function ExperienceCard({
       ? "Sunday Social"
       : cardCategoryLine(experience, visibleTags);
   const sundayTableBadges: string[] = isSundayTable
-    ? [ageBracket, locale === "en" ? "Mixed" : "Gemengd"].filter(
+    ? [
+        ageBracket ?? (locale === "en" ? "All ages" : "Alle leeftijden"),
+        locale === "en" ? "Mixed" : "Gemengd",
+      ].filter(
         (label): label is string => Boolean(label),
       )
     : [];

@@ -60,7 +60,11 @@ export function filterAgendaByAge(
   bracket: string,
 ): EnrichedExperience[] {
   if (!bracket) return items;
-  return items.filter((item) => agendaAgeBracket(item) === bracket);
+  // A Sunday Social for all ages (no bracket in its name) fits every age.
+  return items.filter((item) => {
+    const own = agendaAgeBracket(item);
+    return own === bracket || (item.category === "Sunday Social" && own === null);
+  });
 }
 
 export function filterAgendaItems(

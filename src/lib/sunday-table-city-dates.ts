@@ -6,6 +6,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
 import { shouldShowSpotsCount } from "@/lib/experience-booking";
 import { getUpcomingSundayTableLocations } from "@/lib/sunday-table-locations";
+import { getBookableSundaySocials } from "@/lib/sunday-social-tables";
 import {
   formatSundayTableCardDate,
   parseAmsterdamDateIso,
@@ -90,7 +91,29 @@ export async function getUpcomingSundayTableDates(
     }),
   );
 
-  return dates.filter((date): date is SundayTableCityDate => date !== null);
+  const handMade = dates.filter((date): date is SundayTableCityDate => date !== null);
+  // The tables the series planned in this city that can be booked now (the
+  // same Sundays "Kies je zondag" shows). A date that already has a
+  // hand-made Sunday Social is the same afternoon, so it is not added.
+  const taken = new Set(handMade.map((d) => d.tableDate));
+  const series = (await getBookableSundaySocials())
+    .filter((t) => t.city.toLowerCase() === cityName.toLowerCase() && !taken.has(t.dateIso))
+    .map((t): SundayTableCityDate => {
+      const seatsLeft = Math.max(0, t.capacity - t.spotsSold);
+      const dateLabel = formatSundayTableCardDate(t.startsAt, locale);
+      return {
+        tableDate: t.dateIso,
+        dateLabel:
+          dateLabel.charAt(0).toLocaleUpperCase(locale === "nl" ? "nl-NL" : "en-GB") + dateLabel.slice(1),
+        venueName: t.venueName ?? (locale === "en" ? "Location to be announced" : "Locatie volgt"),
+        ageBracket: t.bracket,
+        priceEuros: Math.round(t.priceCents / 100),
+        status: "available",
+        spotsLeft: shouldShowSpotsCount(seatsLeft, t.spotsSold) ? seatsLeft : null,
+        href: sundayTableLocationPath(locale, citySlug, t.dateIso),
+      };
+    });
+  return [...handMade, ...series].sort((a, b) => a.tableDate.localeCompare(b.tableDate));
 }
 
 /** The soonest bookable table per age bracket, in date order, so the hero

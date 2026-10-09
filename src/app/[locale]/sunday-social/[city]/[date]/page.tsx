@@ -19,6 +19,11 @@ import {
 } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { sundayTableLpCityFromSlug } from "@/data/sunday-table-lp-cities";
+import {
+  findSundaySocialSeriesTable,
+  hasSundaySocialCityPage,
+  sundaySocialCityFromSlug,
+} from "@/lib/sunday-social-tables";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import {
   formatSundayTableDate,
@@ -188,19 +193,71 @@ async function loadLocation(citySlug: string, date: string) {
   return { city, table, location };
 }
 
+type SundaySocialPageData = {
+  city: { slug: string; name: string };
+  table: Date;
+  location: { venueName: string; address: string };
+  ticketEvent: {
+    id: string;
+    nameNl: string;
+    nameEn: string;
+    capacity: number;
+    spotsSold: number;
+    priceCents: number;
+    imageUrl: string | null;
+  };
+  comingSoon: boolean;
+  spotsLeft: number;
+};
+
+/**
+ * The Sunday Social on this city and date: a hand-made one (a location
+ * row and its "sunday-table" event), else the table the series planned for
+ * that Sunday ("jouw-tafel", the same table "Kies je zondag" shows), with
+ * its venue once an admin set one.
+ */
+async function loadSundaySocial(citySlug: string, date: string, locale: Locale): Promise<SundaySocialPageData | null> {
+  const handMade = await loadLocation(citySlug, date);
+  if (handMade) {
+    const ticketEvent = await loadTicketEvent(handMade.city.name, handMade.table);
+    if (ticketEvent) {
+      return {
+        city: handMade.city,
+        table: handMade.table,
+        location: { venueName: handMade.location.venueName, address: handMade.location.address },
+        ticketEvent,
+        comingSoon: Boolean(ticketEvent.extras?.comingSoon),
+        spotsLeft: Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold),
+      };
+    }
+  }
+  const city = sundaySocialCityFromSlug(citySlug);
+  const table = parseAmsterdamDateIso(date);
+  if (!city || !table) return null;
+  const series = await findSundaySocialSeriesTable(city.name, date);
+  if (!series) return null;
+  return {
+    city,
+    table,
+    location: {
+      venueName: series.venue?.name ?? (locale === "en" ? "Location to be announced" : "Locatie volgt"),
+      address: series.venue?.address ?? "",
+    },
+    ticketEvent: series,
+    comingSoon: series.comingSoon,
+    spotsLeft: series.closed ? 0 : Math.max(0, series.capacity - series.spotsSold),
+  };
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, city: citySlug, date } = await params;
   if (!isValidLocale(locale)) return {};
-  const found = await loadLocation(citySlug, date);
+  const found = await loadSundaySocial(citySlug, date, locale as Locale);
   if (!found) return {};
-  const { city, table, location } = found;
-  const ticketEvent = await loadTicketEvent(city.name, table);
-  const ageBracket = ticketEvent
-    ? ageBracketFromEventName(
-        locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
-      )
-    : null;
-  const comingSoon = Boolean(ticketEvent?.extras?.comingSoon);
+  const { city, table, location, ticketEvent, comingSoon } = found;
+  const ageBracket = ageBracketFromEventName(
+    locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
+  );
   const bracketSuffix = ageBracket ? ` · ${ageBracket}` : "";
   const dateLabel = formatSundayTableDate(table, locale as Locale);
   const title = comingSoon
@@ -224,13 +281,9 @@ export default async function SundayTableEventPage({ params }: Props) {
   const { locale: localeParam, city: citySlug, date } = await params;
   if (!isValidLocale(localeParam)) notFound();
   const locale = localeParam as Locale;
-  const found = await loadLocation(citySlug, date);
+  const found = await loadSundaySocial(citySlug, date, locale);
   if (!found) notFound();
-  const { city, table, location } = found;
-  const ticketEvent = await loadTicketEvent(city.name, table);
-  if (!ticketEvent) notFound();
-  const comingSoon = Boolean(ticketEvent.extras?.comingSoon);
-  const spotsLeft = Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold);
+  const { city, table, location, ticketEvent, comingSoon, spotsLeft } = found;
   const showSpotsCount = shouldShowSpotsCount(spotsLeft, ticketEvent.spotsSold);
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
@@ -242,7 +295,8 @@ export default async function SundayTableEventPage({ params }: Props) {
     ? `${ageBracket} ${locale === "en" ? "yrs" : "jaar"}`
     : null;
   const mixedLabel = locale === "en" ? "Mixed" : "Gemengd";
-  const tags = [ageBracketLabel, mixedLabel].filter(
+  const allAgesLabel = locale === "en" ? "All ages" : "Alle leeftijden";
+  const tags = [ageBracketLabel ?? allAgesLabel, mixedLabel].filter(
     (tag): tag is string => Boolean(tag),
   );
   const motivationStats = await getSundayTableMotivationStats();
@@ -269,6 +323,8 @@ export default async function SundayTableEventPage({ params }: Props) {
   );
   const en = locale === "en";
   const venueLabel = venue ? venue.about.name : null;
+  // The venue's own name once it is known (an address is set), for the FAQ.
+  const menuVenue = location.address ? location.venueName : null;
   const venueTeam = en
     ? venueLabel
       ? `the team at ${venueLabel}`
@@ -439,7 +495,7 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Do I need to worry about allergies or dietary needs?",
               answer:
-                "Not in advance. You order your own dishes from Bar Juni's menu, so you simply pick what works for you. Need something specific? Just let the staff know on the spot.",
+                `Not in advance. You order your own dishes from ${menuVenue ? `${menuVenue}'s` : "the venue's"} menu, so you simply pick what works for you. Need something specific? Just let the staff know on the spot.`,
             },
             {
               question: "What if I don't click with anyone at the table?",
@@ -533,7 +589,7 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Moet ik rekening houden met allergieën of dieetwensen?",
               answer:
-                "Nee, dat hoeft niet vooraf. Je bestelt je eigen gerechten van de kaart bij Bar Juni, dus je kiest gewoon wat bij jou past. Heb je toch iets bijzonders nodig? Geef het gerust aan bij de bediening ter plekke.",
+                `Nee, dat hoeft niet vooraf. Je bestelt je eigen gerechten van de kaart ${menuVenue ? `bij ${menuVenue}` : "van de zaak"}, dus je kiest gewoon wat bij jou past. Heb je toch iets bijzonders nodig? Geef het gerust aan bij de bediening ter plekke.`,
             },
             {
               question: "Wat als ik niemand tof vind aan tafel?",
@@ -561,7 +617,10 @@ export default async function SundayTableEventPage({ params }: Props) {
           breadcrumbJsonLd(pageUrl, [
             { name: "Home", path: localePath(locale) },
             { name: "Sunday Social", path: sundayTableLpPath(locale) },
-            { name: city.name, path: sundayTableLpCityPath(locale, city.slug) },
+            {
+              name: city.name,
+              path: hasSundaySocialCityPage(city.slug) ? sundayTableLpCityPath(locale, city.slug) : sundayTableLpPath(locale),
+            },
             { name: capitalizedDate, path: sundayTableLocationPath(locale, city.slug, date) },
           ]),
         ]}

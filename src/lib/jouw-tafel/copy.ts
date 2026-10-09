@@ -166,7 +166,7 @@ const landingNl: LandingCopy = {
     imageAlt: "Gesprek en gelach aan tafel, met wijnglazen op tafel",
   },
   tables: {
-    eyebrow: "Sunday Table",
+    eyebrow: "Sunday Social",
     title: (city) => (city ? `Eerstvolgende tafels in ${city}` : "Eerstvolgende tafels"),
     cityTabsAria: "Kies een stad",
     comingSoon: "Binnenkort",
@@ -185,7 +185,7 @@ const landingNl: LandingCopy = {
   membership: {
     eyebrow: "Lidmaatschap",
     title: "Vaker aanschuiven?",
-    body: "Als lid schuif je aan bij elke Sunday Table in jouw steden. En je boekt eerder dan anderen.",
+    body: "Als lid schuif je aan bij elke Sunday Social in jouw steden. En je boekt eerder dan anderen.",
     link: "Bekijk het lidmaatschap",
   },
   promise: {
@@ -202,7 +202,7 @@ const landingNl: LandingCopy = {
       },
       {
         title: "Niet gezellig? Volgende op ons.",
-        body: "Vond je je tafel niet leuk? Laat het ons binnen 2 dagen weten, dan is je volgende Sunday Table gratis.",
+        body: "Vond je je tafel niet leuk? Laat het ons binnen 2 dagen weten, dan is je volgende Sunday Social gratis.",
       },
     ],
   },
@@ -236,11 +236,11 @@ const landingNl: LandingCopy = {
       },
       {
         q: "Wat als ik het niet gezellig vond?",
-        a: "Dat horen we graag van je. Laat het ons binnen 2 dagen na je tafel weten, dan is je volgende Sunday Table op ons. Zo kun je het nog een keer proberen, aan een andere tafel.",
+        a: "Dat horen we graag van je. Laat het ons binnen 2 dagen na je tafel weten, dan is je volgende Sunday Social op ons. Zo kun je het nog een keer proberen, aan een andere tafel.",
       },
       {
         q: "Is het een datingevent?",
-        a: "Nee. Sunday Table is een gezellige middag aan tafel, met goede wijn en goede gesprekken. Er zitten mannen en vrouwen aan tafel, en iedereen komt voor de gezelligheid.",
+        a: "Nee. Sunday Social is een gezellige middag aan tafel, met goede wijn en goede gesprekken. Er zitten mannen en vrouwen aan tafel, en iedereen komt voor de gezelligheid.",
       },
       {
         q: "In welke taal?",
@@ -377,7 +377,7 @@ const landingEn: LandingCopy = {
     imageAlt: "Conversation and laughter at a table with wine glasses",
   },
   tables: {
-    eyebrow: "Sunday Table",
+    eyebrow: "Sunday Social",
     title: (city) => (city ? `Upcoming tables in ${city}` : "Upcoming tables"),
     cityTabsAria: "Choose a city",
     comingSoon: "Coming soon",
@@ -396,7 +396,7 @@ const landingEn: LandingCopy = {
   membership: {
     eyebrow: "Membership",
     title: "Want to join more often?",
-    body: "As a member you join every Sunday Table in your cities. And you book before everyone else.",
+    body: "As a member you join every Sunday Social in your cities. And you book before everyone else.",
     link: "See the membership",
   },
   promise: {
@@ -413,7 +413,7 @@ const landingEn: LandingCopy = {
       },
       {
         title: "Not your kind of table? The next one is on us.",
-        body: "Did not enjoy your table? Let us know within 2 days and your next Sunday Table is free.",
+        body: "Did not enjoy your table? Let us know within 2 days and your next Sunday Social is free.",
       },
     ],
   },
@@ -447,11 +447,11 @@ const landingEn: LandingCopy = {
       },
       {
         q: "What if I didn't enjoy it?",
-        a: "We'd like to hear that. Let us know within 2 days after your table and your next Sunday Table is on us. That way you can give it another try, at a different table.",
+        a: "We'd like to hear that. Let us know within 2 days after your table and your next Sunday Social is on us. That way you can give it another try, at a different table.",
       },
       {
         q: "Is it a dating event?",
-        a: "No. Sunday Table is a convivial afternoon at the table, with good wine and good conversation. Men and women sit together, and everyone comes for the company.",
+        a: "No. Sunday Social is a convivial afternoon at the table, with good wine and good conversation. Men and women sit together, and everyone comes for the company.",
       },
       {
         q: "In which language?",

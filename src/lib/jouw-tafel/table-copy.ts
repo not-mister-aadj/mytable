@@ -1,5 +1,5 @@
 // The table page and the reserve step after "Kies je zondag", Dutch and
-// English. Facts follow the Sunday Table date page (2 to 3 hours, 4 to 6
+// English. Facts follow the Sunday Social date page (2 to 3 hours, 4 to 6
 // people, drinks ordered and paid yourself, our picks the day before), the
 // landing FAQ and the terms (7 days to move, goes ahead from 4 guests,
 // 18+). Never a venue: the bar is known a week ahead. No em dashes, no
@@ -47,10 +47,10 @@ export type TableCopy = {
 };
 
 const nl: TableCopy = {
-  metaTitle: "Sunday Table | MyTable",
+  metaTitle: "Sunday Social | MyTable",
   back: "Terug naar Kies je zondag",
   imageAlt: "Een tafel die het glas heft",
-  title: "Sunday Table",
+  title: "Sunday Social",
   bookedCta: "Bekijk je reservering",
   sizeTag: "4 tot 6 personen",
   stats: {
@@ -98,7 +98,7 @@ const nl: TableCopy = {
     title: "Nog twijfels? Hier zijn de antwoorden",
     items: [
       {
-        q: "Wat is Sunday Table?",
+        q: "Wat is Sunday Social?",
         a: "Een tafel van 4 tot 6 mensen die je nog niet kent, in een goede wijnbar in jouw stad. Je boekt een plek, schuift aan en ontdekt samen een nieuwe plek. Wij geven onze eigen wijnaanraders mee.",
       },
       {
@@ -143,7 +143,7 @@ const nl: TableCopy = {
       },
       {
         q: "Wat als het niet klikt?",
-        a: "Laat het ons binnen 2 dagen na je tafel weten, dan is je volgende Sunday Table op ons. Zo kun je het nog een keer proberen, aan een andere tafel.",
+        a: "Laat het ons binnen 2 dagen na je tafel weten, dan is je volgende Sunday Social op ons. Zo kun je het nog een keer proberen, aan een andere tafel.",
       },
     ],
   },
@@ -170,10 +170,10 @@ const nl: TableCopy = {
 };
 
 const en: TableCopy = {
-  metaTitle: "Sunday Table | MyTable",
+  metaTitle: "Sunday Social | MyTable",
   back: "Back to Choose your Sunday",
   imageAlt: "A table raising their glasses",
-  title: "Sunday Table",
+  title: "Sunday Social",
   bookedCta: "View your booking",
   sizeTag: "4 to 6 people",
   stats: {
@@ -216,7 +216,7 @@ const en: TableCopy = {
     title: "Still on the fence? Here are the answers",
     items: [
       {
-        q: "What is Sunday Table?",
+        q: "What is Sunday Social?",
         a: "A table of 4 to 6 people you have not met yet, in a good wine bar in your city. You book a seat, join the table and discover a new place together. We add our own wine picks.",
       },
       {
@@ -261,7 +261,7 @@ const en: TableCopy = {
       },
       {
         q: "What if it does not click?",
-        a: "Let us know within 2 days after your table and your next Sunday Table is on us. So you can try again, at another table.",
+        a: "Let us know within 2 days after your table and your next Sunday Social is on us. So you can try again, at another table.",
       },
     ],
   },

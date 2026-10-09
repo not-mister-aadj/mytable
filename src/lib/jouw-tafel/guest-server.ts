@@ -81,13 +81,22 @@ export async function createGuest(input: { email: string; locale: Locale }): Pro
   return toGuest(row);
 }
 
-export async function saveGuestState(id: string, state: QuizState, options: { leadSent?: boolean } = {}): Promise<void> {
+/** `leadSent`: Meta's Lead went out for them. `fromWaitlist`: they came
+ * through the waitlist, which already sent its own Lead and welcome mail,
+ * so neither goes out again for this row. */
+export async function saveGuestState(
+  id: string,
+  state: QuizState,
+  options: { leadSent?: boolean; fromWaitlist?: boolean } = {},
+): Promise<void> {
+  const now = new Date();
   await getDb()
     .update(jouwTafelGuests)
     .set({
       state: state as unknown as Record<string, unknown>,
-      updatedAt: new Date(),
-      ...(options.leadSent ? { leadSentAt: new Date() } : {}),
+      updatedAt: now,
+      ...(options.leadSent || options.fromWaitlist ? { leadSentAt: now } : {}),
+      ...(options.fromWaitlist ? { welcomeSentAt: now } : {}),
     })
     .where(eq(jouwTafelGuests.id, id));
 }

@@ -359,7 +359,7 @@ const nl: QuizCopy = {
     nearby: "Vlakbij",
     comingSoon: "Binnenkort te boeken",
     spotsOpen: "Plekken vrij",
-    noLongerBookable: "Niet meer te boeken",
+    noLongerBookable: "Full",
     soonBadge: "Binnenkort",
     opensFrom: (date) => `Te boeken vanaf ${date}`,
     guarantees: [
@@ -587,7 +587,7 @@ const en: QuizCopy = {
     nearby: "Nearby",
     comingSoon: "Opening soon",
     spotsOpen: "Seats available",
-    noLongerBookable: "No longer available",
+    noLongerBookable: "Full",
     soonBadge: "Coming soon",
     opensFrom: (date) => `Bookable from ${date}`,
     guarantees: [

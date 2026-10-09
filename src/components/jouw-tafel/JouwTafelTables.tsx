@@ -48,7 +48,7 @@ function startTime(iso: string, locale: Locale): string {
 
 /**
  * "Eerstvolgende tafels": the live table list, per city. Information only:
- * date, age group, spots, "Binnenkort" or "Niet meer te boeken" (full or
+ * date, age group, spots, "Binnenkort" or "Full" (full or
  * closed, never said which). Never a venue.
  */
 export function JouwTafelTables({

@@ -31,7 +31,7 @@ import {
   trackEmailSignupCompleted,
   trackSundayTableWaitlistEnriched,
 } from "@/lib/posthog/analytics";
-import { VISIBLE_ONBOARDING_CITIES } from "@/lib/member-onboarding";
+import { QUIZ_CITIES, displayCity } from "@/lib/jouw-tafel/logic";
 
 /** Same check as createWaitlistSignup on the server. */
 /**
@@ -119,48 +119,6 @@ const FLOW_COPY = {
   nl: { skipQuestion: "Vraag overslaan", finish: "Klaar", searching: "We zoeken jouw tafel" },
   en: { skipQuestion: "Skip question", finish: "Done", searching: "Finding your table" },
 } as const;
-
-/** The 4 live, bookable formats — food_walk/aperitivo are waitlist-only
- * interest options elsewhere, not real products yet, so they're left out
- * of this picker. */
-const FORMAT_OPTIONS: Array<{
-  id: WaitlistInterestId;
-  label: { nl: string; en: string };
-  subtitle: { nl: string; en: string };
-}> = [
-  {
-    id: "sunday_table",
-    label: { nl: "Sunday Social", en: "Sunday Social" },
-    subtitle: {
-      nl: "Ontmoet nieuwe mensen aan tafel, elke maand",
-      en: "Meet new people at the table, every month",
-    },
-  },
-  {
-    id: "wine_tasting",
-    label: { nl: "Wijnproeverij", en: "Wine Tasting" },
-    subtitle: {
-      nl: "Proef bijzondere wijnen met bijpassende hapjes",
-      en: "Taste special wines with matching bites",
-    },
-  },
-  {
-    id: "wine_walk",
-    label: { nl: "Wijnwalk", en: "Wine Walk" },
-    subtitle: {
-      nl: "Wandel met je eigen groep langs de leukste wijnbars en restaurants",
-      en: "Walk with your own group past the best wine bars and restaurants",
-    },
-  },
-  {
-    id: "chefs_special",
-    label: { nl: "Chef's Table", en: "Chef's Table" },
-    subtitle: {
-      nl: "De chef kiest zijn beste gerechten in kleine porties, zodat je meer kan proeven",
-      en: "The chef picks their best dishes in small portions, so you can taste more",
-    },
-  },
-];
 
 function ChipButton({
   label,
@@ -340,12 +298,6 @@ export function SundayTableWaitlistModal({
           ),
         ),
       );
-
-  function toggleInterest(id: WaitlistInterestId) {
-    setInterests((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
-  }
 
   function toggleCity(c: string) {
     setSelectedCities((prev) =>
@@ -791,52 +743,14 @@ export function SundayTableWaitlistModal({
                       ) : null}
                     </label>
 
-                    <div>
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
-                        {labels.formatLabel}
-                      </span>
-                      {/* On a phone these are small pills again, so the whole
-                          form fits on one screen with the submit button in
-                          view (the stacked cards with subtitles pushed it
-                          below the fold and sign-ups dropped). The subtitles
-                          only show from tablet width up. */}
-                      <div className="mt-1.5 flex flex-wrap gap-2 sm:grid sm:grid-cols-2">
-                        {FORMAT_OPTIONS.map((format) => {
-                          const selected = interests.includes(format.id);
-                          return (
-                            <button
-                              key={format.id}
-                              type="button"
-                              onClick={() => toggleInterest(format.id)}
-                              className={`rounded-full border px-4 py-2 text-left transition sm:rounded-2xl sm:py-3 ${
-                                selected
-                                  ? "border-burgundy bg-burgundy text-cream"
-                                  : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
-                              }`}
-                            >
-                              <span className="block text-sm font-medium sm:font-semibold">
-                                {format.label[locale === "en" ? "en" : "nl"]}
-                              </span>
-                              <span
-                                className={`mt-0.5 hidden text-xs leading-snug sm:block ${
-                                  selected ? "text-cream/75" : "text-wine/55"
-                                }`}
-                              >
-                                {format.subtitle[locale === "en" ? "en" : "nl"]}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
                     {!cityName ? (
                       <div>
                         <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
                           {labels.cityLabel}
                         </span>
                         <div className="mt-1.5 flex flex-wrap gap-2">
-                          {VISIBLE_ONBOARDING_CITIES.map((c) => (
+                          {/* The same cities as the "Jouw tafel" quiz. */}
+                          {QUIZ_CITIES.map((c) => (
                             <button
                               key={c}
                               type="button"
@@ -847,7 +761,7 @@ export function SundayTableWaitlistModal({
                                   : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
                               }`}
                             >
-                              {c}
+                              {displayCity(c, locale)}
                             </button>
                           ))}
                           <button

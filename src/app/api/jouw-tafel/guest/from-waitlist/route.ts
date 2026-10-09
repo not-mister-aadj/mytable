@@ -12,6 +12,8 @@ import {
 } from "@/lib/jouw-tafel/guest-server";
 import { answerCities, isQuizComplete, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { accountWelcomeVariant } from "@/lib/jouw-tafel/welcome-logic";
+import { getMemberUser } from "@/lib/member-auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
@@ -35,6 +37,8 @@ function checkRateLimit(key: string, max = 10, windowMs = 60_000): boolean {
  * and moves them in. Answers { kies: true } when a table is open in one of
  * their cities, else { kies: false } (then the modal says they are on the
  * list). An address with an account already gets { kies: false } and no row.
+ * Signed in as someone else in this browser: that session ends first, so
+ * "Kies je zondag" shows this person's answers, not the other account's.
  */
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -56,6 +60,11 @@ export async function POST(request: Request) {
 
   try {
     if (await emailHasAccount(email)) return NextResponse.json({ kies: false });
+    const signedIn = await getMemberUser();
+    if (signedIn?.email && signedIn.email.trim().toLowerCase() !== email) {
+      const supabase = await createSupabaseServerClient();
+      await supabase.auth.signOut({ scope: "local" });
+    }
     const current = await getCookieGuest();
     const guest = current && current.email === email ? current : await createGuest({ email, locale });
     // Answers already given in this browser stay; the waitlist ones fill in.

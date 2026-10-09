@@ -32,6 +32,7 @@ import { trackJouwTafelEvent } from "@/lib/posthog/analytics";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { JouwTafelFaq } from "@/components/jouw-tafel/JouwTafelFaq";
 import { JouwTafelTables } from "@/components/jouw-tafel/JouwTafelTables";
+import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 import {
   CalendarIcon,
   CheckIcon,
@@ -567,7 +568,9 @@ export function JouwTafelLanding({
           </div>
         </section>
 
-        {/* 6b. Vaker aanschuiven? A pointer to the membership page, no prices. */}
+        {/* 6b. Vaker aanschuiven? A pointer to the membership page, no prices
+            (only while the membership is offered). */}
+        {MEMBERSHIP_OPEN ? (
         <section data-landing-section="lidmaatschap" className="px-5 pb-16 sm:pb-20">
           <Reveal className="mx-auto max-w-2xl">
             <div className="relative overflow-hidden rounded-[1.75rem] bg-burgundy px-6 py-9 text-center text-cream shadow-[0_18px_44px_rgba(90,15,27,0.22)] sm:px-10">
@@ -586,6 +589,7 @@ export function JouwTafelLanding({
             </div>
           </Reveal>
         </section>
+        ) : null}
 
         {/* 7. FAQ */}
         <section

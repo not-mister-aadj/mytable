@@ -1,4 +1,5 @@
 // Run with: npx tsx --test src/lib/jouw-tafel/*.test.ts
+import { MEMBERSHIP_OPEN } from "../membership/plans";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
@@ -163,17 +164,17 @@ test("seat price comes from the soonest upcoming table, null without tables", ()
   assert.equal(seatPriceCents([], NOW), null);
 });
 
-test("seat price: €15 for a Jouw tafel Sunday Table, the event price otherwise", () => {
-  assert.equal(JOUW_TAFEL_SEAT_PRICE_CENTS, 1500);
-  assert.equal(resolveSeatPriceCents({ eventPriceCents: 1000, isJouwTafel: true }), 1500);
-  assert.equal(resolveSeatPriceCents({ eventPriceCents: 4900, isJouwTafel: true }), 1500);
+test("seat price: €10 for a Jouw tafel Sunday Table, the event price otherwise", () => {
+  assert.equal(JOUW_TAFEL_SEAT_PRICE_CENTS, 1000);
+  assert.equal(resolveSeatPriceCents({ eventPriceCents: 1500, isJouwTafel: true }), 1000);
+  assert.equal(resolveSeatPriceCents({ eventPriceCents: 4900, isJouwTafel: true }), 1000);
   assert.equal(resolveSeatPriceCents({ eventPriceCents: 1000, isJouwTafel: false }), 1000);
 });
 
-test("booking window: members 28 days before, everyone 2 days later", () => {
+test("booking window: 28 days before; everyone at once while the membership is not offered", () => {
   const { membersFrom, everyoneFrom } = jouwTafelBookingWindow("2026-11-01T13:00:00Z");
   assert.equal(membersFrom.toISOString(), "2026-10-04T13:00:00.000Z");
-  assert.equal(everyoneFrom.toISOString(), "2026-10-06T13:00:00.000Z");
+  assert.equal(everyoneFrom.toISOString(), MEMBERSHIP_OPEN ? "2026-10-06T13:00:00.000Z" : "2026-10-04T13:00:00.000Z");
 });
 
 test("withBookingWindow: not bookable before members can, members only for 48 hours", () => {
@@ -183,10 +184,10 @@ test("withBookingWindow: not bookable before members can, members only for 48 ho
   assert.equal(before.opensAt, "2026-11-01T13:00:00.000Z");
   const members = withBookingWindow(table, Date.parse("2026-11-02T12:00:00Z"));
   assert.equal(members.comingSoon, false);
-  assert.equal(members.membersOnlyUntil, "2026-11-03T13:00:00.000Z");
-  // An admin's later moment wins.
+  assert.equal(members.membersOnlyUntil, MEMBERSHIP_OPEN ? "2026-11-03T13:00:00.000Z" : "2026-11-01T13:00:00.000Z");
+  // An admin's later moment wins (only while the membership is offered).
   const later = withBookingWindow({ ...table, membersOnlyUntil: "2026-11-10T10:00:00.000Z" }, Date.parse("2026-11-02T12:00:00Z"));
-  assert.equal(later.membersOnlyUntil, "2026-11-10T10:00:00.000Z");
+  assert.equal(later.membersOnlyUntil, MEMBERSHIP_OPEN ? "2026-11-10T10:00:00.000Z" : "2026-11-01T13:00:00.000Z");
 });
 
 test("nextDatesPerCity keeps the next two dates of each city", () => {

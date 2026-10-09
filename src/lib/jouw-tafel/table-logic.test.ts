@@ -30,6 +30,6 @@ test("table state: open, soon, closed (full, empty in time, or too late)", () =>
 test("seats and the single total", () => {
   assert.equal(maxSeats(ev({ spotsSold: 11 })), 1);
   assert.equal(maxSeats(ev()), 2);
-  assert.equal(singleTotalCents(1), 1500);
-  assert.equal(singleTotalCents(2), 3000);
+  assert.equal(singleTotalCents(1), 1000);
+  assert.equal(singleTotalCents(2), 2000);
 });

@@ -8,10 +8,7 @@ import type { WaitlistInterestId } from "@/i18n/waitlist-page.types";
 import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { trackAgendaViewed } from "@/lib/posthog/analytics";
 import {
-  filterAgendaByAge,
   filterAgendaByCity,
-  listAgendaAgeBrackets,
-  resolveAgendaAgeParam,
   resolveAgendaCityParam,
   sortAgendaTimeline,
 } from "@/lib/agenda";
@@ -59,25 +56,18 @@ export function AgendaPageContent({
     [searchParams],
   );
   // Links (e.g. from ads) can open the agenda already filtered:
-  // ?stad=utrecht&leeftijd=35. "city" and "age" work too.
+  // ?stad=utrecht ("city" works too). There is no age filter: every Sunday
+  // Social is for all ages (an old ?leeftijd= link simply shows all).
   const rawCityParam =
     searchParams.get("city") ?? searchParams.get("stad") ?? "";
-  const rawAgeParam =
-    searchParams.get("leeftijd") ?? searchParams.get("age") ?? "";
   const fromSundayTable = searchParams.get("from") === "sunday-table";
   const affiliateFromQuery = searchParams.get("aff")?.trim() ?? "";
   const cities = useMemo(
     () => [...new Set(agendaItems.map((item) => item.city))].sort(),
     [agendaItems],
   );
-  const ageBrackets = useMemo(
-    () => listAgendaAgeBrackets(agendaItems),
-    [agendaItems],
-  );
   const cityFromQuery = resolveAgendaCityParam(rawCityParam, cities);
-  const ageFromQuery = resolveAgendaAgeParam(rawAgeParam, ageBrackets);
   const [selectedCity, setSelectedCity] = useState(cityFromQuery);
-  const [selectedAge, setSelectedAge] = useState(ageFromQuery);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const waitlistLabels = getSundayTableLpLabels(locale).waitlist;
   const altWaitlistLabels = getSundayTableLpLabels(
@@ -87,13 +77,6 @@ export function AgendaPageContent({
   useEffect(() => {
     if (cityFromQuery) setSelectedCity(cityFromQuery);
   }, [cityFromQuery]);
-
-  // A new ?leeftijd= in the URL (client-side navigation) selects that age.
-  const [ageParamSeen, setAgeParamSeen] = useState(ageFromQuery);
-  if (ageFromQuery !== ageParamSeen) {
-    setAgeParamSeen(ageFromQuery);
-    if (ageFromQuery) setSelectedAge(ageFromQuery);
-  }
 
   const items = useMemo(() => {
     const sorted = sortAgendaTimeline(
@@ -109,11 +92,11 @@ export function AgendaPageContent({
   }, [agendaItems, locale, preferredMoods]);
 
   const filteredItems = useMemo(
-    () => filterAgendaByAge(filterAgendaByCity(items, selectedCity), selectedAge),
-    [items, selectedCity, selectedAge],
+    () => filterAgendaByCity(items, selectedCity),
+    [items, selectedCity],
   );
 
-  const hasActiveFilters = selectedCity !== "" || selectedAge !== "";
+  const hasActiveFilters = selectedCity !== "";
 
   useEffect(() => {
     trackAgendaViewed({
@@ -126,10 +109,9 @@ export function AgendaPageContent({
 
   function clearAllFilters() {
     setSelectedCity("");
-    setSelectedAge("");
   }
 
-  const filterKey = `${selectedCity}|${selectedAge}`;
+  const filterKey = selectedCity;
   const experienceQuery =
     fromSundayTable || affiliateFromQuery
       ? [
@@ -170,9 +152,9 @@ export function AgendaPageContent({
           cities={cities}
           selectedCity={selectedCity}
           onCityChange={setSelectedCity}
-          ageBrackets={ageBrackets}
-          selectedAge={selectedAge}
-          onAgeChange={setSelectedAge}
+          ageBrackets={[]}
+          selectedAge=""
+          onAgeChange={() => {}}
           resultCount={filteredItems.length}
           onClear={clearAllFilters}
           hasActiveFilters={hasActiveFilters}

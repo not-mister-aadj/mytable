@@ -19,17 +19,16 @@ export function roundSignupCount(n: number): number {
   return Math.ceil(n / 100) * 100;
 }
 
-/** Our cities (the largest of the Netherlands, without Groningen: too far
- * from the others for now). Any other place is its own place (a waitlist),
- * never counted as one of these. */
+/** Our cities. Breda, Nijmegen and Groningen were dropped on 9 October
+ * 2026 (to come back as MyTable grows; their series are paused, not
+ * deleted). Any other place is its own place (a waitlist), never counted
+ * as one of these. */
 export const QUIZ_CITIES = [
   "Rotterdam",
   "Den Haag",
   "Utrecht",
   "Amsterdam",
   "Eindhoven",
-  "Breda",
-  "Nijmegen",
 ] as const;
 export type QuizCity = (typeof QUIZ_CITIES)[number];
 
@@ -178,8 +177,6 @@ export const QUIZ_CITY_COORDS: Record<QuizCity, { lat: number; lon: number }> = 
   Utrecht: { lat: 52.089, lon: 5.095 },
   Amsterdam: { lat: 52.373, lon: 4.905 },
   Eindhoven: { lat: 51.45, lon: 5.459 },
-  Breda: { lat: 51.58, lon: 4.756 },
-  Nijmegen: { lat: 51.835, lon: 5.833 },
 };
 
 /**

@@ -23,14 +23,12 @@ import { amsterdamDateIso, formatSundayTableCardDateTime } from "@/lib/sunday-wi
  * next to the hand-made Sunday Socials (experience_type "sunday-table").
  */
 
-/** Every city a Sunday Social can be in, with its URL slug. The first four
- * also have their own city page (sunday-table-lp-cities). */
+/** Every city a Sunday Social can be in, with its URL slug (the quiz's
+ * cities). The first four also have their own city page
+ * (sunday-table-lp-cities). */
 export const SUNDAY_SOCIAL_CITIES: ReadonlyArray<{ slug: string; name: string }> = [
   ...SUNDAY_TABLE_LP_CITIES,
   { slug: "amsterdam", name: "Amsterdam" },
-  { slug: "breda", name: "Breda" },
-  { slug: "nijmegen", name: "Nijmegen" },
-  { slug: "groningen", name: "Groningen" },
 ];
 
 export function sundaySocialCityFromSlug(slug: string): { slug: string; name: string } | null {

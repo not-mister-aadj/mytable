@@ -148,8 +148,8 @@ test("city tabs: the visitor's city first and open, then only cities with tables
     initial: "Utrecht",
   });
   // A visitor from a city without tables still sees their own city first.
-  assert.equal(cityTabs(EVENTS, "Nijmegen", NOW).cities[0], "Nijmegen");
-  assert.ok(!cityTabs(EVENTS, null, NOW).cities.includes("Breda"));
+  assert.equal(cityTabs(EVENTS, "Amsterdam", NOW).cities[0], "Amsterdam");
+  assert.ok(!cityTabs(EVENTS, null, NOW).cities.includes("Amsterdam"));
 });
 
 test("city tabs: without geo, open the first city that has a table", () => {

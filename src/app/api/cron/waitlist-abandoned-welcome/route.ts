@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { sendAbandonedWaitlistWelcomeEmails } from "@/lib/email/send-abandoned-waitlist-welcome-emails";
-import { sendAccountWelcomeEmails } from "@/lib/email/send-account-welcome-emails";
+import { sendAccountWelcomeEmails, sendGuestWelcomeEmails } from "@/lib/email/send-account-welcome-emails";
 import { isEmailConfigured } from "@/lib/email/resend";
 
 export async function GET(request: Request) {
@@ -30,10 +30,16 @@ export async function GET(request: Request) {
   }
 
   // "Jouw tafel" accounts get their own welcome (not the waitlist one).
-  const accounts = await sendAccountWelcomeEmails().catch((error: unknown) => {
+  const accountRuns = await sendAccountWelcomeEmails().catch((error: unknown) => {
     console.error("[cron] account welcome emails failed", error);
     return [];
   });
+  // The same welcome for "Jouw tafel" with only an email given so far.
+  const guestRuns = await sendGuestWelcomeEmails().catch((error: unknown) => {
+    console.error("[cron] guest welcome emails failed", error);
+    return [];
+  });
+  const accounts = [...accountRuns, ...guestRuns];
   if (accounts.length > 0) {
     console.info(`[cron] account welcome emails: ${accounts.filter((r) => r.ok).length} ok of ${accounts.length}`);
   }

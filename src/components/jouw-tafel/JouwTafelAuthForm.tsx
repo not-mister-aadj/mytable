@@ -121,6 +121,8 @@ export function JouwTafelAuthForm({
   proofText,
   startFresh,
   hadSession,
+  confirm = false,
+  initialEmail = "",
 }: {
   locale: Locale;
   screen: AuthScreen;
@@ -138,15 +140,24 @@ export function JouwTafelAuthForm({
   startFresh: boolean;
   /** A session existed when the page was rendered; it is ended on load. */
   hadSession: boolean;
+  /** "Bevestig je e-mail": the account step before reserving or becoming a
+   * member (also signs in an existing account). */
+  confirm?: boolean;
+  /** The address they gave before (the email screen), prefilled. */
+  initialEmail?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   // Imported here rather than passed in: the copy holds functions, which
   // can't cross from a server component.
   const copy = getLandingCopy(locale).auth;
-  const screenCopy = screen === "signup" ? copy.signUp : copy.logIn;
+  const screenCopy = confirm
+    ? { ...copy.signUp, ...copy.confirm }
+    : screen === "signup"
+      ? copy.signUp
+      : copy.logIn;
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   /** The address the code went to; null until a code was sent. */
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<EmailFieldError | null>(null);
@@ -599,12 +610,14 @@ export function JouwTafelAuthForm({
         {copy.legal.after}
       </p>
 
-      <p className="mt-7 border-t border-wine/8 pt-6 text-sm text-wine/70">
-        {screenCopy.switchPrompt}{" "}
-        <Link href={switchPath} onClick={goToSignUpWithEmail} className={textLink}>
-          {screenCopy.switchLink}
-        </Link>
-      </p>
+      {confirm ? null : (
+        <p className="mt-7 border-t border-wine/8 pt-6 text-sm text-wine/70">
+          {screenCopy.switchPrompt}{" "}
+          <Link href={switchPath} onClick={goToSignUpWithEmail} className={textLink}>
+            {screenCopy.switchLink}
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

@@ -305,6 +305,7 @@ export function JouwTafelQuiz({
   landingPath,
   membership = null,
   booked = {},
+  guest = false,
 }: {
   locale: Locale;
   /** localStorage key for this account's copy of the answers. */
@@ -329,6 +330,9 @@ export function JouwTafelQuiz({
   membership?: ClientMembership | null;
   /** Tables this person already has a seat at: event id to seats. */
   booked?: Record<string, number>;
+  /** Email given, account not confirmed yet: no avatar to settings, which
+   * needs the account. */
+  guest?: boolean;
 }) {
   const copy = getQuizCopy(locale);
   const router = useRouter();
@@ -789,12 +793,14 @@ export function JouwTafelQuiz({
         canGoBack={previousStep(step, answers) !== null && step !== "zoeken"}
         onBack={goBack}
         avatar={
-          <AvatarButton
-            name={answers.name ?? accountFirstName}
-            label={copy.settings}
-            href={settingsHref}
-            onOpen={() => void openSettings()}
-          />
+          guest ? null : (
+            <AvatarButton
+              name={answers.name ?? accountFirstName}
+              label={copy.settings}
+              href={settingsHref}
+              onOpen={() => void openSettings()}
+            />
+          )
         }
       />
       <main className="relative mx-auto w-full max-w-md overflow-x-clip px-5 pt-2">

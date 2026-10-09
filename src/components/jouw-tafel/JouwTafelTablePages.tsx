@@ -12,6 +12,7 @@ import {
   jouwTafelTablePath,
   type Locale,
 } from "@/i18n/config";
+import { adoptGuestQuiz, getQuizPerson } from "@/lib/jouw-tafel/guest-server";
 import { getMemberUser } from "@/lib/member-auth";
 import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { getTableCopy } from "@/lib/jouw-tafel/table-copy";
@@ -41,11 +42,13 @@ export function jouwTafelReserveMetadata(locale: Locale): Metadata {
   return { title: getTableCopy(locale).reserve.metaTitle, robots: NO_INDEX };
 }
 
-/** Signed in, or off to sign up. */
-async function requireUser(locale: Locale) {
+/** Signed in (with any answers given before the account moved in), or off
+ * to confirm their email first (the account), then back to `next`. */
+async function requireUser(locale: Locale, next: string) {
   const user = await getMemberUser();
-  if (!user?.email) redirect(jouwTafelSignUpPath(locale));
-  return { ...user, email: user.email };
+  if (!user?.email) redirect(`${jouwTafelSignUpPath(locale)}?naar=${encodeURIComponent(next)}`);
+  const adopted = await adoptGuestQuiz(user).catch(() => user);
+  return { ...adopted, email: user.email };
 }
 
 function kiesHref(locale: Locale): string {
@@ -62,8 +65,8 @@ async function loadMembership(userId: string): Promise<ClientMembership | null> 
 }
 
 /** How this person books this table right now. */
-async function reserveAccess(userId: string, event: QuizEvent, now: number) {
-  const membership = await loadMembership(userId);
+async function reserveAccess(userId: string | null, event: QuizEvent, now: number) {
+  const membership = userId ? await loadMembership(userId) : null;
   const decision = memberBookingDecision(fromClientMembership(membership), new Date(event.startsAt), now);
   const access: ReserveAccess =
     decision.kind === "blocked"
@@ -76,14 +79,17 @@ async function reserveAccess(userId: string, event: QuizEvent, now: number) {
 
 /** /jouw-tafel/tafel/{slug} (EN /en/your-table/table/{slug}). */
 export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slug: string }) {
-  const user = await requireUser(locale);
+  // Open with only an email given too; reserving asks for the account.
+  const person = await getQuizPerson();
+  if (!person) redirect(jouwTafelSignUpPath(locale));
+  const user = person.kind === "user" ? person.user : null;
   const event = await getFunnelTable(slug);
   if (!event) notFound();
   const now = tableNow();
   const state = tableState(event, now);
   const [{ membership, access }, booked, stats] = await Promise.all([
-    reserveAccess(user.id, event, now),
-    getBookedSeats(user.email).catch(() => ({}) as Record<string, number>),
+    reserveAccess(user?.id ?? null, event, now),
+    user ? getBookedSeats(user.email).catch(() => ({}) as Record<string, number>) : ({} as Record<string, number>),
     getSundayTableMotivationStats().catch(() => null),
   ]);
   const seats = booked[event.id];
@@ -101,7 +107,7 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
       locale={locale}
       event={event}
       state={state}
-      email={user.email}
+      email={user ? user.email : person.kind === "guest" ? person.guest.email : ""}
       kiesHref={kiesHref(locale)}
       reserveHref={jouwTafelReservePath(locale, slug)}
       chip={
@@ -120,7 +126,7 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
 
 /** /jouw-tafel/tafel/{slug}/reserveren: only while the table is open. */
 export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; slug: string }) {
-  const user = await requireUser(locale);
+  const user = await requireUser(locale, jouwTafelReservePath(locale, slug));
   const event = await getFunnelTable(slug);
   if (!event) notFound();
   const now = tableNow();

@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import type { Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
+import { getCookieGuest, saveGuestState } from "@/lib/jouw-tafel/guest-server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendMetaCapiQuizLead } from "@/lib/analytics/metaCapi";
 import { metaQuizLeadEventId } from "@/lib/analytics/metaIds";
@@ -35,13 +36,13 @@ function checkRateLimit(key: string, max = 60, windowMs = 60_000): boolean {
 }
 
 /**
- * Saves the "Jouw tafel" quiz for the signed-in person (POST
- * /api/auth/member/quiz). Lives under /api/auth so the middleware refreshes
- * the Supabase session first.
+ * Saves the "Jouw tafel" quiz for the signed-in person, or for a guest who
+ * so far gave only an email (POST /api/auth/member/quiz). Lives under
+ * /api/auth so the middleware refreshes the Supabase session first.
  *
  * Body: { state, locale, waitlist?, notifyEventId?, meta? }
  * - Always: the quiz state goes into the user's metadata (jouw_tafel_quiz),
- *   so the quiz resumes on any device.
+ *   so the quiz resumes on any device; for a guest into their guest row.
  * - waitlist: true (quiz done, or the table list is shown): the answers go
  *   onto a waitlist row for each chosen city.
  * - Meta's Lead (CAPI): once per account, on the save that first carries
@@ -52,10 +53,16 @@ function checkRateLimit(key: string, max = 60, windowMs = 60_000): boolean {
  */
 export async function POST(request: Request) {
   const user = await getMemberUser();
-  if (!user?.email) {
+  const guest = user?.email ? null : await getCookieGuest();
+  const person = user?.email
+    ? { id: user.id, email: user.email, meta: (user.user_metadata ?? {}) as Record<string, unknown> }
+    : guest
+      ? { id: guest.id, email: guest.email, meta: guest.leadSentAt ? { [QUIZ_LEAD_SENT_KEY]: guest.leadSentAt.toISOString() } : {} }
+      : null;
+  if (!person) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!checkRateLimit(`quiz:${user.id}`)) {
+  if (!checkRateLimit(`quiz:${person.id}`)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -83,24 +90,33 @@ export async function POST(request: Request) {
     state.notify = [...(state.notify ?? []), notifyEventId].slice(-20);
   }
 
-  const fromSettings = body.origin === "settings";
-  const before = sanitizeQuizState((user.user_metadata ?? {})[QUIZ_METADATA_KEY]);
-  const sendLead = !fromSettings && shouldSendQuizLead(state, user.user_metadata);
-  const supabase = await createSupabaseServerClient();
-  const { error: metaError } = await supabase.auth.updateUser({
-    data: {
-      [QUIZ_METADATA_KEY]: state,
-      ...(sendLead ? { [QUIZ_LEAD_SENT_KEY]: new Date().toISOString() } : {}),
-    },
-  });
-  if (metaError) {
-    console.error("[jouw-tafel quiz] saving metadata failed:", metaError.message);
-    return NextResponse.json({ error: "Could not save" }, { status: 500 });
+  const fromSettings = Boolean(user?.email) && body.origin === "settings";
+  const before = sanitizeQuizState(person.meta[QUIZ_METADATA_KEY]);
+  const sendLead = !fromSettings && shouldSendQuizLead(state, person.meta);
+  if (guest) {
+    try {
+      await saveGuestState(guest.id, state, { leadSent: sendLead });
+    } catch (error) {
+      console.error("[jouw-tafel quiz] saving guest state failed:", error);
+      return NextResponse.json({ error: "Could not save" }, { status: 500 });
+    }
+  } else {
+    const supabase = await createSupabaseServerClient();
+    const { error: metaError } = await supabase.auth.updateUser({
+      data: {
+        [QUIZ_METADATA_KEY]: state,
+        ...(sendLead ? { [QUIZ_LEAD_SENT_KEY]: new Date().toISOString() } : {}),
+      },
+    });
+    if (metaError) {
+      console.error("[jouw-tafel quiz] saving metadata failed:", metaError.message);
+      return NextResponse.json({ error: "Could not save" }, { status: 500 });
+    }
   }
 
   let waitlist: { created: boolean } | null = null;
   if (body.waitlist === true || notifyEventId) {
-    const result = await upsertQuizWaitlist({ email: user.email, locale, state });
+    const result = await upsertQuizWaitlist({ email: person.email, locale, state });
     if (result.ok) {
       waitlist = { created: result.lead !== null };
     } else if (result.error !== "no_city") {
@@ -111,7 +127,7 @@ export async function POST(request: Request) {
   if (fromSettings) {
     const { removed } = cityChanges(answerCities(before.answers), answerCities(state.answers));
     try {
-      await removeQuizWaitlistCities({ email: user.email, removed, keep: answerCities(state.answers) });
+      await removeQuizWaitlistCities({ email: person.email, removed, keep: answerCities(state.answers) });
     } catch (error) {
       console.error("[jouw-tafel quiz] removing waitlist cities failed:", error);
     }
@@ -119,8 +135,8 @@ export async function POST(request: Request) {
 
   if (sendLead) {
     const metaContext = parseMetaTrackingContext(body.meta);
-    const email = user.email;
-    const userId = user.id;
+    const email = person.email;
+    const userId = person.id;
     const eventId = metaQuizLeadEventId(userId);
     // Kept alive past the response (Vercel freezes the function once it has
     // answered), like /api/waitlist.
@@ -143,7 +159,7 @@ export async function POST(request: Request) {
 
   if (notifyEventId) {
     try {
-      await addEventNotifySignup({ eventId: notifyEventId, email: user.email, locale });
+      await addEventNotifySignup({ eventId: notifyEventId, email: person.email, locale });
     } catch (error) {
       console.error("[jouw-tafel quiz] notify signup failed:", error);
       return NextResponse.json({ error: "Could not sign up" }, { status: 400 });

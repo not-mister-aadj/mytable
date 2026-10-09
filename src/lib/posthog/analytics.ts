@@ -194,6 +194,15 @@ export function trackJouwTafelAuthEvent(
   capture(event, props);
 }
 
+/** "Wat is je e-mail?" (no email in here, ever). `outcome` on submit:
+ * "guest" (on to the quiz) or "account" (already has one, to log in). */
+export function trackEmailStartEvent(
+  event: typeof PostHogEvents.emailStartViewed | typeof PostHogEvents.emailStartSubmitted,
+  props: AnalyticsProperties & { outcome?: "guest" | "account" },
+): void {
+  capture(event, props);
+}
+
 /** Logout from the "Jouw tafel" welcome page. */
 export function trackJouwTafelLogout(props: { locale: string }): void {
   capture(PostHogEvents.authLoggedOut, props);

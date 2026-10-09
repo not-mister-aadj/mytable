@@ -18,15 +18,29 @@ export type JouwTafelWelcomeEmailProps = {
   cities: string;
   kiesUrl: string;
   settingsUrl: string;
+  /** Email given, no account yet (that comes when they reserve): no
+   * "account ready" and no settings link; every link opens their Sundays. */
+  guest?: boolean;
 };
 
-export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kiesUrl, settingsUrl }: JouwTafelWelcomeEmailProps) {
+export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kiesUrl, settingsUrl, guest = false }: JouwTafelWelcomeEmailProps) {
   const en = locale === "en";
   const name = firstName?.trim();
   const greeting = en ? (name ? `Hi ${name},` : "Hi,") : name ? `Hoi ${name},` : "Hoi,";
-  const intro = en
-    ? "Lovely to have you. Your account is ready and we now know what you are in the mood for."
-    : "Fijn dat je erbij bent. Je account staat klaar en we weten nu waar je zin in hebt.";
+  const intro = guest
+    ? en
+      ? "Lovely to have you. We now know what you are in the mood for."
+      : "Fijn dat je erbij bent. We weten nu waar je zin in hebt."
+    : en
+      ? "Lovely to have you. Your account is ready and we now know what you are in the mood for."
+      : "Fijn dat je erbij bent. Je account staat klaar en we weten nu waar je zin in hebt.";
+  const preview = guest
+    ? en
+      ? "Your Sunday is waiting."
+      : "Je zondag staat klaar."
+    : en
+      ? "Your account is ready."
+      : "Je account staat klaar.";
   const body =
     variant === "open"
       ? en
@@ -37,7 +51,7 @@ export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kies
         : `In ${cities} is nog geen zondag gepland. Zodra die er is, hoor je het als eerste.`;
 
   return (
-    <EmailLayout preview={en ? "Your account is ready." : "Je account staat klaar."}>
+    <EmailLayout preview={preview}>
       <EmailHero greeting={greeting} headline={en ? "Welcome to the table" : "Welkom aan tafel"} body={intro} warmLine={body} />
 
       {variant === "open" ? (
@@ -46,6 +60,8 @@ export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kies
           label={en ? "Choose your Sunday →" : "Kies je zondag →"}
           helperText={en ? "Free to move up to 7 days before." : "Gratis verzetten tot 7 dagen vooraf."}
         />
+      ) : guest ? (
+        <CTASection href={kiesUrl} label={en ? "View the Sundays →" : "Bekijk de zondagen →"} />
       ) : (
         <CTASection
           href={settingsUrl}
@@ -53,6 +69,7 @@ export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kies
         />
       )}
 
+      {guest ? null : (
       <Text style={{ ...emailType.bodySmall, textAlign: "center", margin: "0 0 8px" }}>
         {en ? "You can change your preferences any time in your " : "Je voorkeuren aanpassen kan altijd in je "}
         <Link href={settingsUrl} style={{ color: emailBrand.burgundy, textDecoration: "underline" }}>
@@ -60,6 +77,7 @@ export function JouwTafelWelcomeEmail({ locale, firstName, variant, cities, kies
         </Link>
         .
       </Text>
+      )}
     </EmailLayout>
   );
 }

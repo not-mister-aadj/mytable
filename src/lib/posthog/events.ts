@@ -50,6 +50,9 @@ export const PostHogEvents = {
   authGoogleClicked: "auth_google_clicked",
   authGoogleHiddenInApp: "auth_google_hidden_in_app",
   authLoggedOut: "auth_logged_out",
+  /** "Wat is je e-mail?" after "Aanmelden" (email only, the quiz next). */
+  emailStartViewed: "email_start_viewed",
+  emailStartSubmitted: "email_start_submitted",
   /** Quiz after signing up (/jouw-tafel/start). No personal data, ever. */
   quizStepViewed: "quiz_step_viewed",
   quizStepCompleted: "quiz_step_completed",

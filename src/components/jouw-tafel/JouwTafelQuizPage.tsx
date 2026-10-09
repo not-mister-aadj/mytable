@@ -5,7 +5,7 @@ import { JouwTafelQuiz, type QuizTestimonial } from "@/components/jouw-tafel/qui
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { jouwTafelPath, jouwTafelSignUpPath, type Locale } from "@/i18n/config";
 import { withDbTimeout } from "@/db/index";
-import { getMemberUser } from "@/lib/member-auth";
+import { getQuizPerson } from "@/lib/jouw-tafel/guest-server";
 import { devCountOverride, getJouwTafelEvents, getSignupSubsetCounts, getWaitlistCityCounts } from "@/lib/jouw-tafel/data";
 import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
@@ -40,10 +40,10 @@ function firstParam(value: string | string[] | undefined): string | null {
 }
 
 /**
- * /jouw-tafel/start (EN /en/your-table/start): the quiz after signing up or
- * logging in, ending at "Kies je zondag". Signed out goes to sign up. The
- * answers live in the account (user metadata), so the quiz resumes where
- * it was left, on any device.
+ * /jouw-tafel/start (EN /en/your-table/start): the quiz, ending at "Kies je
+ * zondag". For an account the answers live in its metadata (any device);
+ * for a guest, who so far gave only an email, in their guest row (this
+ * browser). Neither goes to the email screen.
  */
 export async function JouwTafelQuizPage({
   locale,
@@ -52,11 +52,13 @@ export async function JouwTafelQuizPage({
   locale: Locale;
   searchParams: JouwTafelSearchParams;
 }) {
-  const user = await getMemberUser();
-  if (!user?.email) redirect(jouwTafelSignUpPath(locale));
+  const person = await getQuizPerson();
+  if (!person) redirect(jouwTafelSignUpPath(locale));
+  const user = person.kind === "user" ? person.user : null;
+  const personId = user ? user.id : person.kind === "guest" ? person.guest.id : "";
 
-  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-  const state = sanitizeQuizState(meta[QUIZ_METADATA_KEY]);
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  const state = user ? sanitizeQuizState(meta[QUIZ_METADATA_KEY]) : person.kind === "guest" ? person.guest.state : sanitizeQuizState(null);
   const requested = firstParam(searchParams.stap);
   const initialStep = resolveStep(requested, state.answers);
 
@@ -77,13 +79,13 @@ export async function JouwTafelQuizPage({
       fallback: {},
       label: "quiz subset counts",
     }),
-    withDbTimeout(getMembershipForUser(user.id), { ms: OPTIONAL_DATA_MS, fallback: null, label: "quiz membership" }).catch(
+    (user ? withDbTimeout(getMembershipForUser(user.id), { ms: OPTIONAL_DATA_MS, fallback: null, label: "quiz membership" }) : Promise.resolve(null)).catch(
       (error: unknown) => {
         console.error("[jouw-tafel quiz] loading membership failed", error);
         return null;
       },
     ),
-    withDbTimeout(getBookedSeats(user.email), { ms: OPTIONAL_DATA_MS, fallback: {}, label: "quiz booked seats" }).catch(
+    (user ? withDbTimeout(getBookedSeats(user.email), { ms: OPTIONAL_DATA_MS, fallback: {}, label: "quiz booked seats" }) : Promise.resolve({})).catch(
       (error: unknown) => {
         console.error("[jouw-tafel quiz] loading bookings failed", error);
         return {};
@@ -101,8 +103,9 @@ export async function JouwTafelQuizPage({
   return (
     <JouwTafelQuiz
       locale={locale}
-      userId={user.id}
-      storageKey={`mytable_jt_quiz_${user.id}`}
+      userId={personId}
+      storageKey={`mytable_jt_quiz_${personId}`}
+      guest={!user}
       initialState={state}
       initialStep={initialStep}
       requestedStep={requested}

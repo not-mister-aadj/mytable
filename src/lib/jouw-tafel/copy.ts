@@ -12,6 +12,10 @@ export type FaqItem = { q: string; a: string };
 export type AuthCopy = {
   signUp: { metaTitle: string; title: string; sub: string; switchPrompt: string; switchLink: string };
   logIn: { metaTitle: string; title: string; sub?: string; switchPrompt: string; switchLink: string };
+  /** After "Aanmelden": only the email (no code yet), then the quiz. */
+  emailStart: { title: string; sub: string; button: string; sending: string };
+  /** The code step before reserving or becoming a member: the account. */
+  confirm: { title: string; sub: string };
   google: string;
   googleFailed: string;
   or: string;
@@ -261,7 +265,17 @@ const landingNl: LandingCopy = {
       metaTitle: "Inloggen | MyTable",
       title: "Welkom terug",
       switchPrompt: "Nog geen account?",
-      switchLink: "Maak een account",
+      switchLink: "Meld je aan",
+    },
+    emailStart: {
+      title: "Wat is je e-mail?",
+      sub: "Geen wachtwoord, geen code. Daarna een paar korte vragen en kies je je zondag.",
+      button: "Verder",
+      sending: "Even geduld",
+    },
+    confirm: {
+      title: "Bevestig je e-mail",
+      sub: "We sturen je een code van 6 cijfers. Daarna ga je meteen verder.",
     },
     google: "Doorgaan met Google",
     googleFailed: "Inloggen met Google lukte niet. Probeer het opnieuw of gebruik je e-mailadres.",
@@ -274,7 +288,7 @@ const landingNl: LandingCopy = {
       emailEmpty: "Vul je e-mailadres in.",
       emailInvalid: "Dit e-mailadres lijkt niet te kloppen. Kijk het nog even na.",
       unknownEmail: "We kennen dit e-mailadres nog niet.",
-      createAccount: "Maak een account",
+      createAccount: "Meld je aan",
       rateLimited: "Er zijn net een paar codes verstuurd. Wacht even en probeer het dan opnieuw.",
       generic: "Dat lukte even niet. Probeer het opnieuw.",
     },
@@ -463,7 +477,17 @@ const landingEn: LandingCopy = {
       metaTitle: "Log in | MyTable",
       title: "Welcome back",
       switchPrompt: "No account yet?",
-      switchLink: "Create an account",
+      switchLink: "Sign up",
+    },
+    emailStart: {
+      title: "What's your email?",
+      sub: "No password, no code. Then a few short questions and you choose your Sunday.",
+      button: "Continue",
+      sending: "One moment",
+    },
+    confirm: {
+      title: "Confirm your email",
+      sub: "We'll send you a 6-digit code. Then you carry on right away.",
     },
     google: "Continue with Google",
     googleFailed: "Signing in with Google didn't work. Try again or use your email address.",
@@ -476,7 +500,7 @@ const landingEn: LandingCopy = {
       emailEmpty: "Fill in your email address.",
       emailInvalid: "This email address doesn't look right. Please check it.",
       unknownEmail: "We don't know this email address yet.",
-      createAccount: "Create an account",
+      createAccount: "Sign up",
       rateLimited: "A few codes were just sent. Wait a moment and try again.",
       generic: "That didn't work. Please try again.",
     },

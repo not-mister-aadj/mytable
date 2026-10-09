@@ -531,6 +531,21 @@ export const accountWelcomeEmails = pgTable("account_welcome_emails", {
   sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** "Jouw tafel" before an account: email, quiz state and mail claims, keyed
+ * by the guest cookie (drizzle/0038). */
+export const jouwTafelGuests = pgTable("jouw_tafel_guests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull(),
+  locale: text("locale").notNull().default("nl"),
+  state: jsonb("state").$type<Record<string, unknown>>().notNull().default({}),
+  leadSentAt: timestamp("lead_sent_at", { withTimezone: true }),
+  welcomeSentAt: timestamp("welcome_sent_at", { withTimezone: true }),
+  /** The account the answers moved into, once they confirmed their email. */
+  userId: uuid("user_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** "Jouw tafel" Sunday Table series: a table in `city` every
  * `intervalWeeks` from `firstDate`, created ahead by a daily cron
  * (drizzle/0033). */

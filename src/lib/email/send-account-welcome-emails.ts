@@ -1,6 +1,6 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { accountWelcomeEmails } from "@/db/schema";
+import { accountWelcomeEmails, jouwTafelGuests } from "@/db/schema";
 import { JouwTafelWelcomeEmail } from "@/emails/JouwTafelWelcomeEmail";
 import { jouwTafelSettingsPath, jouwTafelStartPath, type Locale } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
@@ -52,6 +52,8 @@ export async function sendAccountWelcomeEmails(now: Date = new Date()): Promise<
       and (u.raw_user_meta_data -> ${QUIZ_METADATA_KEY} ->> 'completedAt') ~ '^[0-9]+$'
       and (u.raw_user_meta_data -> ${QUIZ_METADATA_KEY} ->> 'completedAt')::bigint between ${from} and ${to}
       and not exists (select 1 from account_welcome_emails a where a.user_id = u.id)
+      -- Already welcomed while they had only given their email.
+      and not exists (select 1 from jouw_tafel_guests g where g.user_id = u.id and g.welcome_sent_at is not null)
     limit 50
   `)) as unknown as Array<{ id: string; email: string; meta: Record<string, unknown> | null }>;
   if (candidates.length === 0) return [];
@@ -96,6 +98,77 @@ export async function sendAccountWelcomeEmails(now: Date = new Date()): Promise<
       }),
     }).catch(() => false);
     if (!ok) await db.delete(accountWelcomeEmails).where(eq(accountWelcomeEmails.userId, user.id));
+    results.push({ email, ok, variant: pick.variant });
+  }
+  return results;
+}
+
+
+/**
+ * The same welcome for someone who gave only their email (no account yet,
+ * that comes when they reserve): once per guest row, 30 minutes after the
+ * quiz, skipped for good when they already booked or the answers moved into
+ * an account (then the account's own welcome applies). welcome_sent_at is
+ * the claim. Its links open "Kies je zondag" in any browser.
+ */
+export async function sendGuestWelcomeEmails(now: Date = new Date()): Promise<AccountWelcomeResult[]> {
+  const db = getDb();
+  const nowMs = now.getTime();
+  const from = Math.max(since(), nowMs - ACCOUNT_WELCOME_MAX_LOOKBACK_MS);
+  const to = nowMs - ACCOUNT_WELCOME_DELAY_MS;
+  if (from > to) return [];
+
+  const candidates = (await db.execute(sql`
+    select g.id, g.email, g.locale, g.state
+    from jouw_tafel_guests g
+    where g.user_id is null
+      and g.welcome_sent_at is null
+      and (g.state ->> 'completedAt') ~ '^[0-9]+$'
+      and (g.state ->> 'completedAt')::bigint between ${from} and ${to}
+    limit 50
+  `)) as unknown as Array<{ id: string; email: string; locale: string; state: Record<string, unknown> | null }>;
+  if (candidates.length === 0) return [];
+
+  const { events } = await getJouwTafelEvents();
+  const results: AccountWelcomeResult[] = [];
+  for (const guest of candidates) {
+    const state = sanitizeQuizState(guest.state);
+    if (!isQuizComplete(state.answers) || !isAccountWelcomeDue(state.completedAt, nowMs, since())) continue;
+    const email = guest.email.trim().toLowerCase();
+    const [paid] = (await db.execute(sql`
+      select 1 as x from bookings where lower(email) = ${email} and payment_status = 'paid' limit 1
+    `)) as unknown as Array<{ x: number }>;
+    const locale: Locale = guest.locale === "en" ? "en" : "nl";
+    const pick = paid ? null : accountWelcomeVariant(answerCities(state.answers), events, nowMs, locale);
+
+    const claimed = await db
+      .update(jouwTafelGuests)
+      .set({ welcomeSentAt: new Date() })
+      .where(and(eq(jouwTafelGuests.id, guest.id), isNull(jouwTafelGuests.welcomeSentAt)))
+      .returning({ id: jouwTafelGuests.id });
+    if (claimed.length === 0) continue;
+    if (!pick) {
+      results.push({ email, ok: true, variant: "skipped" });
+      continue;
+    }
+
+    const site = getSiteUrl().replace(/\/$/, "");
+    const resumeUrl = `${site}/api/jouw-tafel/guest/resume?g=${guest.id}`;
+    const firstName = state.answers.name?.trim() || undefined;
+    const ok = await sendSimpleEmail({
+      to: email,
+      subject: jouwTafelWelcomeSubject(firstName, locale),
+      element: JouwTafelWelcomeEmail({
+        locale,
+        firstName,
+        variant: pick.variant,
+        cities: joinCityNames(pick.cities, locale),
+        kiesUrl: resumeUrl,
+        settingsUrl: resumeUrl,
+        guest: true,
+      }),
+    }).catch(() => false);
+    if (!ok) await db.update(jouwTafelGuests).set({ welcomeSentAt: null }).where(eq(jouwTafelGuests.id, guest.id));
     results.push({ email, ok, variant: pick.variant });
   }
   return results;

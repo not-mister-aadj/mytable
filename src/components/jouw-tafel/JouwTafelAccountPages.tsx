@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { JouwTafelAuthForm, type AuthScreen } from "@/components/jouw-tafel/JouwTafelAuthForm";
+import { JouwTafelEmailStart } from "@/components/jouw-tafel/JouwTafelEmailStart";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { PlaceholderViewTracker } from "@/components/jouw-tafel/PlaceholderViewTracker";
 import {
@@ -19,6 +20,7 @@ import {
   type Locale,
 } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
+import { getCookieGuest } from "@/lib/jouw-tafel/guest-server";
 import { devCountOverride, getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
 import { isGoogleSignInAllowed, isInAppBrowser } from "@/lib/jouw-tafel/auth-logic";
@@ -73,21 +75,33 @@ export async function JouwTafelAuthPage({
   screen: AuthScreen;
   searchParams: AccountSearchParams;
 }) {
-  // Log in while signed in: go straight on. Sign up always starts fresh: an
-  // existing session is ended in the browser (see startFresh) so a new
-  // account never inherits someone else's name or answers.
-  // ?naar=lid&plan=4m: started from "Word lid" on the membership page, so
-  // the way back is that page with the plan still chosen.
-  const toMembership = firstParam(searchParams.naar) === "lid";
+  // Sign up ("Aanmelden" on the landing page) asks only for the email and
+  // goes on to the quiz; the account (email code) comes when they reserve.
+  // ?naar=lid&plan=4m: "Word lid" on the membership page, so the way back
+  // is that page with the plan still chosen.
+  // ?naar=/jouw-tafel/tafel/x/reserveren: "Reserveer" without an account.
+  // Both show "Bevestig je e-mail", which makes the account (or signs in
+  // an existing one) and goes back there. Log in while signed in: go on.
+  const naar = firstParam(searchParams.naar);
+  const toMembership = naar === "lid";
+  const toPath = naar && naar.startsWith(`${jouwTafelPath(locale)}/`) && !naar.startsWith("//") ? naar : null;
+  const confirm = screen === "signup" && (toMembership || toPath !== null);
   const planParam = firstParam(searchParams.plan);
   const plan = isMembershipPlanId(planParam) ? planParam : null;
   const nextPath = toMembership
     ? `${jouwTafelMembershipPath(locale)}${plan ? `?plan=${plan}` : ""}`
-    : jouwTafelStartPath(locale);
-  const carry = toMembership ? `?naar=lid${plan ? `&plan=${plan}` : ""}` : "";
+    : (toPath ?? jouwTafelStartPath(locale));
+  const carry = toMembership
+    ? `?naar=lid${plan ? `&plan=${plan}` : ""}`
+    : toPath
+      ? `?naar=${encodeURIComponent(toPath)}`
+      : "";
 
   const signedIn = Boolean(await getMemberUser());
-  if (signedIn && screen === "login") redirect(nextPath);
+  if (signedIn && (screen === "login" || confirm)) redirect(nextPath);
+  const guest = screen === "signup" ? await getCookieGuest() : null;
+  // Email already given in this browser: straight back to the quiz.
+  if (screen === "signup" && !confirm && (signedIn || guest)) redirect(jouwTafelStartPath(locale));
 
   const userAgent = (await headers()).get("user-agent");
   const inApp = isInAppBrowser(userAgent);
@@ -97,6 +111,21 @@ export async function JouwTafelAuthPage({
   });
   const proof = await getWaitlistProof(null, devCountOverride(searchParams.aantal));
   const proofText = proof ? getLandingCopy(locale).hero.proof(proof.count, null) : null;
+  if (screen === "signup" && !confirm) {
+    return (
+      <AccountShell locale={locale}>
+        <PlaceholderViewTracker kind={screen} locale={locale} />
+        <JouwTafelEmailStart
+          locale={locale}
+          quizPath={jouwTafelStartPath(locale)}
+          logInPath={jouwTafelLogInPath(locale)}
+          termsHref={termsPath(locale)}
+          privacyHref={privacyPath(locale)}
+          proofText={proofText}
+        />
+      </AccountShell>
+    );
+  }
   return (
     <AccountShell locale={locale}>
       <PlaceholderViewTracker kind={screen} locale={locale} />
@@ -112,8 +141,10 @@ export async function JouwTafelAuthPage({
         termsHref={termsPath(locale)}
         privacyHref={privacyPath(locale)}
         proofText={proofText}
-        startFresh={screen === "signup"}
+        startFresh={false}
         hadSession={signedIn}
+        confirm={confirm}
+        initialEmail={guest?.email ?? ""}
       />
     </AccountShell>
   );

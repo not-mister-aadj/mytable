@@ -11,6 +11,7 @@ import {
 import {
   jouwTafelSignUpPath,
   jouwTafelMembershipPath,
+  jouwTafelPath,
   jouwTafelStartPath,
   jouwTafelWelcomePath,
   type Locale,
@@ -44,6 +45,9 @@ function jouwTafelWelcomeLocale(next: string): Locale | null {
   const path = next.split("?")[0];
   if (path === jouwTafelStartPath("nl") || path === jouwTafelWelcomePath("nl") || path === jouwTafelMembershipPath("nl")) return "nl";
   if (path === jouwTafelStartPath("en") || path === jouwTafelWelcomePath("en") || path === jouwTafelMembershipPath("en")) return "en";
+  // "Bevestig je e-mail" before reserving: back to that table.
+  if (path.startsWith(`${jouwTafelPath("en")}/`)) return "en";
+  if (path.startsWith(`${jouwTafelPath("nl")}/`)) return "nl";
   return null;
 }
 

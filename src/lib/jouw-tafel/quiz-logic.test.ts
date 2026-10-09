@@ -364,11 +364,11 @@ test("chooseTables: nearby means not in any chosen city", () => {
 
 test("kiesCities: name only chosen cities with tables here; ours without get a line", () => {
   const input = { age: 45, ageMatters: "yes" as const };
-  // Den Haag has its own table, Utrecht only a coming-soon one, Breda none.
-  const r = chooseTables(EVENTS, { ...input, cities: ["Den Haag", "Utrecht", "Breda", "Zwolle"] }, NOW).rows;
-  assert.deepEqual(kiesCities(["Den Haag", "Utrecht", "Breda", "Zwolle"], r), {
+  // Den Haag has its own table, Utrecht only a coming-soon one, Amsterdam none.
+  const r = chooseTables(EVENTS, { ...input, cities: ["Den Haag", "Utrecht", "Amsterdam", "Zwolle"] }, NOW).rows;
+  assert.deepEqual(kiesCities(["Den Haag", "Utrecht", "Amsterdam", "Zwolle"], r), {
     named: ["Den Haag", "Utrecht"],
-    noSunday: ["Breda"],
+    noSunday: ["Amsterdam"],
   });
   // Rotterdam with a table of its own.
   const rd = chooseTables(EVENTS, { ...input, cities: ["Rotterdam"] }, NOW).rows;
@@ -566,7 +566,7 @@ test("stopStadContent: one city, two, three, four or more, under and over 100", 
   const en = getQuizCopy("en");
   const cityCounts = { Rotterdam: 120 };
   const rdz = cityMask(["Rotterdam", "Den Haag"]);
-  const many = cityMask(["Rotterdam", "Den Haag", "Utrecht", "Breda"]);
+  const many = cityMask(["Rotterdam", "Den Haag", "Utrecht", "Amsterdam"]);
   const subset = { [String(rdz)]: 150, [String(many)]: 400 };
 
   assert.deepEqual(stopStadContent(nl, "nl", ["Rotterdam"], cityCounts, subset), {
@@ -576,8 +576,8 @@ test("stopStadContent: one city, two, three, four or more, under and over 100", 
     waitlistLine: null,
     stat: { n: 120, label: "aangemeld in Rotterdam" },
   });
-  assert.deepEqual(stopStadContent(nl, "nl", ["Breda"], cityCounts, subset), {
-    title: "Je bent niet de enige in Breda.",
+  assert.deepEqual(stopStadContent(nl, "nl", ["Amsterdam"], cityCounts, subset), {
+    title: "Je bent niet de enige in Amsterdam.",
     countLine: null,
     perCity: null,
     waitlistLine: null,
@@ -596,11 +596,11 @@ test("stopStadContent: one city, two, three, four or more, under and over 100", 
   assert.equal(three.countLine, "210+ people in Rotterdam, The Hague and Utrecht have already signed up.");
   assert.equal(three.perCity, "Next, you'll see the Sundays in each city.");
 
-  const four = stopStadContent(nl, "nl", ["Rotterdam", "Den Haag", "Utrecht", "Breda"], cityCounts, subset);
+  const four = stopStadContent(nl, "nl", ["Rotterdam", "Den Haag", "Utrecht", "Amsterdam"], cityCounts, subset);
   assert.equal(four.countLine, "In de steden die jij koos hebben zich al 400+ mensen aangemeld.");
 
   // Under 100 (not in the counts) or no count at all: the fallback.
-  const under = stopStadContent(nl, "nl", ["Utrecht", "Breda"], cityCounts, subset);
+  const under = stopStadContent(nl, "nl", ["Utrecht", "Amsterdam"], cityCounts, subset);
   assert.deepEqual(under, {
     title: "Meer steden, meer zondagen.",
     countLine: null,

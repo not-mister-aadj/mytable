@@ -114,7 +114,6 @@ export function JouwTafelEmailStart({
       <h1 className="font-serif text-[2rem] font-medium leading-[1.1] tracking-tight text-wine text-balance">
         {copy.emailStart.title}
       </h1>
-      <p className="mt-3 text-[1.02rem] leading-relaxed text-wine/70">{copy.emailStart.sub}</p>
 
       <form method="post" className="mt-7" noValidate onSubmit={onSubmit}>
         <label htmlFor="jt-start-email" className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">

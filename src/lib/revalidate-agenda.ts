@@ -3,15 +3,16 @@ import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import type { Event } from "@/db/schema";
 import { sundayTableLocationPath } from "@/i18n/config";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
-import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
+import { sundaySocialSlugFromCity } from "@/lib/sunday-social-tables";
 
 /** Sunday Social's reveal page (/sunday-social/[city]/[date]) shows a live
  * "spots left" chip, but isn't covered by the generic /agenda paths below,
  * so a fresh purchase or admin edit wouldn't show up there until the
  * page's own 60s ISR window happened to pass. */
 function sundayTablePaths(event: Pick<Event, "experienceType" | "city" | "startsAt">): string[] {
-  if (event.experienceType !== "sunday-table") return [];
-  const citySlug = sundayTableLpSlugFromCity(event.city);
+  // Series tables ("jouw-tafel") have the same date page.
+  if (event.experienceType !== "sunday-table" && event.experienceType !== "jouw-tafel") return [];
+  const citySlug = sundaySocialSlugFromCity(event.city);
   if (!citySlug) return [];
   const dateIso = amsterdamDateIso(new Date(event.startsAt));
   return [

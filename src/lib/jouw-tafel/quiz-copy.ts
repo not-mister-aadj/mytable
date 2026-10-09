@@ -204,7 +204,7 @@ const nl: QuizCopy = {
     hint: "Zo zetten we je aan een tafel met mensen in jouw leeftijdsgroep.",
     incomplete: "Vul je hele geboortedatum in.",
     invalid: "Deze datum klopt niet.",
-    under18: "Sunday Table is voor 18 jaar en ouder.",
+    under18: "Sunday Social is voor 18 jaar en ouder.",
   },
   leeftijd: {
     title: "Zit je graag aan tafel met mensen van ongeveer jouw leeftijd?",
@@ -258,7 +258,7 @@ const nl: QuizCopy = {
   },
   stopZoekt: {
     places: "Dan zit je goed. We kiezen plekken die de moeite waard zijn.",
-    cosy: "Een goed glas, geen planning. Daar is Sunday Table voor.",
+    cosy: "Een goed glas, geen planning. Daar is Sunday Social voor.",
     wines: "Aan tafel krijg je onze wijnaanraders van de kaart.",
     treat: "Een goed glas, goed gezelschap. Je verdient het.",
     new_city: "De leukste manier om een stad te leren kennen.",
@@ -325,7 +325,7 @@ const nl: QuizCopy = {
       wine_tasting: { title: "Wijnproeverij", body: "Proef bijzondere wijnen met bijpassende hapjes." },
       wine_walk: { title: "Wijnwalk", body: "Wandel met een kleine groep langs de leukste wijnbars." },
       chefs_special: { title: "Chef's Table", body: "De chef kookt zijn beste gerechten in kleine gangen." },
-      sunday_only: { title: "Alleen Sunday Table", body: null },
+      sunday_only: { title: "Alleen Sunday Social", body: null },
     },
     note: "Deze formats komen later. Je hoort het als eerste zodra er een datum is.",
   },
@@ -372,12 +372,12 @@ const nl: QuizCopy = {
     noMatch: (city) =>
       `Je bent aangemeld. Zodra er in ${city} een tafel opent, hoor je het als eerste.`,
     share: "Deel met een vriend",
-    shareTitle: "Sunday Table",
+    shareTitle: "Sunday Social",
     shareText: "Een zondagmiddag aan tafel met nieuwe mensen. Zin om mee te doen?",
     shareCopied: "Link gekopieerd.",
     selectAria: "Kies deze tafel",
     ourCities: "Of schuif aan in een van onze steden",
-    tableName: "Sunday Table",
+    tableName: "Sunday Social",
     booked: (seats) => (seats > 1 ? `Je bent erbij · ${seats} plekken` : "Je bent erbij"),
     filters: {
       citiesAria: "Steden",
@@ -388,7 +388,7 @@ const nl: QuizCopy = {
     },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
-    infoLink: "Wat is een Sunday Table?",
+    infoLink: "Wat is een Sunday Social?",
     infoClose: "Sluiten",
     infoLines: [
       "Een middag aan tafel met 4 tot 6 mensen in een goede wijnbar in jouw stad.",
@@ -432,7 +432,7 @@ const en: QuizCopy = {
     hint: "So we can seat you with people in your age group.",
     incomplete: "Please fill in your full date of birth.",
     invalid: "This date doesn't look right.",
-    under18: "Sunday Table is for ages 18 and up.",
+    under18: "Sunday Social is for ages 18 and up.",
   },
   leeftijd: {
     title: "Do you like sitting with people around your own age?",
@@ -486,7 +486,7 @@ const en: QuizCopy = {
   },
   stopZoekt: {
     places: "You're in the right place. We pick places worth the visit.",
-    cosy: "A good glass, no planning. That's what Sunday Table is for.",
+    cosy: "A good glass, no planning. That's what Sunday Social is for.",
     wines: "At the table you get our wine picks from the list.",
     treat: "A good glass, good company. You've earned it.",
     new_city: "The nicest way to get to know a city.",
@@ -553,7 +553,7 @@ const en: QuizCopy = {
       wine_tasting: { title: "Wine tasting", body: "Taste special wines with matching bites." },
       wine_walk: { title: "Wine walk", body: "Walk past the nicest wine bars with a small group." },
       chefs_special: { title: "Chef's Table", body: "The chef cooks their best dishes in small courses." },
-      sunday_only: { title: "Just Sunday Table", body: null },
+      sunday_only: { title: "Just Sunday Social", body: null },
     },
     note: "These formats come later. You'll be the first to hear once there's a date.",
   },
@@ -600,12 +600,12 @@ const en: QuizCopy = {
     noMatch: (city) =>
       `You're signed up. As soon as a table opens in ${city}, you'll be the first to hear.`,
     share: "Share with a friend",
-    shareTitle: "Sunday Table",
+    shareTitle: "Sunday Social",
     shareText: "A Sunday afternoon at the table with new people. Want to join?",
     shareCopied: "Link copied.",
     selectAria: "Choose this table",
     ourCities: "Or join a table in one of our cities",
-    tableName: "Sunday Table",
+    tableName: "Sunday Social",
     booked: (seats) => (seats > 1 ? `You're going · ${seats} seats` : "You're going"),
     filters: {
       citiesAria: "Cities",
@@ -616,7 +616,7 @@ const en: QuizCopy = {
     },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,
-    infoLink: "What is a Sunday Table?",
+    infoLink: "What is a Sunday Social?",
     infoClose: "Close",
     infoLines: [
       "An afternoon at a table with 4 to 6 people in a good wine bar in your city.",

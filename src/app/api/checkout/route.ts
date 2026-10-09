@@ -224,9 +224,12 @@ export async function POST(request: Request) {
   const isJouwTafel = isJouwTafelType(event.experienceType);
 
   // Sunday Social is 18+: the date page asks for a date of birth. Only the
-  // legal age is checked here, never the table's own age group.
+  // legal age is checked here, never the table's own age group. A series
+  // table booked from that same date page sends one too, so it is checked
+  // as well (the quiz asked the birth date before).
   const isSundaySocial = isSundaySocialType(event.experienceType);
-  if (isSundaySocial && !isAtLeastMinAge(body.birthDate)) {
+  const birthDateSent = typeof body.birthDate === "string" && body.birthDate.trim() !== "";
+  if ((isSundaySocial || (isJouwTafel && birthDateSent)) && !isAtLeastMinAge(body.birthDate)) {
     return NextResponse.json(
       {
         code: "under_age",

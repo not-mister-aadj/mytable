@@ -2,9 +2,10 @@ import type { User } from "@supabase/supabase-js";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getDb, isDbConfigured } from "@/db/index";
-import { jouwTafelGuests } from "@/db/schema";
+import { jouwTafelGuests, waitlistSignups } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
+import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { QUIZ_LEAD_SENT_KEY, QUIZ_METADATA_KEY, hasAnyAnswer, sanitizeQuizState, type QuizState } from "@/lib/jouw-tafel/quiz-logic";
 
@@ -112,10 +113,12 @@ export async function emailHasAccount(email: string): Promise<boolean> {
 
 /**
  * Right after someone confirms their email (the account exists): moves the
- * guest quiz into the account, so the quiz never asks again. Takes the
- * cookie's row, else the newest open row for that (now proven) address.
- * An account that already has answers keeps its own. Returns the user with
- * the answers in place.
+ * guest quiz into the account, so the quiz never asks again. Takes this
+ * browser's row (the cookie), also when they confirmed a different address
+ * than the one they started with; else the newest open row for that (now
+ * proven) address. An account that already has answers keeps its own.
+ * With a different address, their waitlist rows move along to it.
+ * Returns the user with the answers in place.
  */
 export async function adoptGuestQuiz<T extends User>(user: T): Promise<T> {
   if (!user.email || !isDbConfigured()) return user;
@@ -124,7 +127,7 @@ export async function adoptGuestQuiz<T extends User>(user: T): Promise<T> {
 
   const email = user.email.trim().toLowerCase();
   const cookieGuest = await getCookieGuest();
-  let guest = cookieGuest && cookieGuest.email === email ? cookieGuest : null;
+  let guest = cookieGuest;
   if (!guest) {
     const [row] = await getDb()
       .select()
@@ -147,7 +150,41 @@ export async function adoptGuestQuiz<T extends User>(user: T): Promise<T> {
     return user;
   }
   await getDb().update(jouwTafelGuests).set({ userId: user.id, updatedAt: new Date() }).where(eq(jouwTafelGuests.id, guest.id));
+  if (guest.email !== email) {
+    await moveWaitlistRows({ from: guest.email, to: email, locale: guest.locale, name: guest.state.answers.name }).catch(
+      (error: unknown) => console.error("[jouw-tafel guest] moving waitlist rows failed:", error),
+    );
+  }
   return { ...user, user_metadata: nextMeta };
+}
+
+/**
+ * Started with one address, confirmed another: the waitlist rows go to the
+ * confirmed one (and its customer), so the person counts once. A city that
+ * address already has keeps its own row; the old one is dropped.
+ */
+async function moveWaitlistRows(input: { from: string; to: string; locale: Locale; name?: string }): Promise<void> {
+  const db = getDb();
+  const rows = await db
+    .select({ id: waitlistSignups.id, city: waitlistSignups.city })
+    .from(waitlistSignups)
+    .where(eq(waitlistSignups.email, input.from));
+  if (rows.length === 0) return;
+  const { id: customerId } = await upsertCustomerFromEmail({
+    email: input.to,
+    language: input.locale,
+    preferredCity: rows[0]!.city,
+    customerName: input.name,
+  });
+  for (const row of rows) {
+    const [taken] = await db
+      .select({ id: waitlistSignups.id })
+      .from(waitlistSignups)
+      .where(and(eq(waitlistSignups.email, input.to), eq(waitlistSignups.city, row.city)))
+      .limit(1);
+    if (taken) await db.delete(waitlistSignups).where(eq(waitlistSignups.id, row.id));
+    else await db.update(waitlistSignups).set({ email: input.to, customerId }).where(eq(waitlistSignups.id, row.id));
+  }
 }
 
 /** The account (with any guest answers moved in), else the cookie's guest. */

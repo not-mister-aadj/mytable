@@ -6,26 +6,23 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as Sentry from "@sentry/nextjs";
 import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
+import { jouwTafelKiesPath } from "@/i18n/config";
 import type {
-  WaitlistAgeRangeId,
   WaitlistAllInclusivePriceId,
   WaitlistAltDayId,
-  WaitlistCompanyId,
-  WaitlistExperienceId,
-  WaitlistGenderId,
   WaitlistInterestId,
-  WaitlistLanguageId,
   WaitlistSundayAvailabilityId,
-  WaitlistTableTypeId,
   WaitlistTicketPriceId,
-  WaitlistVibeId,
-  WaitlistWhyId,
 } from "@/i18n/waitlist-page.types";
+import { rememberPreferredCity } from "@/lib/member-onboarding";
+import { QuizQuestion, QuizScreenContext } from "@/components/jouw-tafel/quiz/quiz-screens";
+import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
-  GIRLS_WHATSAPP_GROUP_URL,
-  MIXED_WHATSAPP_GROUP_URL,
-  rememberPreferredCity,
-} from "@/lib/member-onboarding";
+  buildWaitlistPreferences,
+  citiesAnswer,
+  type QuizAnswers,
+  type QuizStepId,
+} from "@/lib/jouw-tafel/quiz-logic";
 import {
   getMetaBrowserCookies,
   getMetaEventSourceUrl,
@@ -60,26 +57,68 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 type WaitlistLabels = SundayTableLpLabels["waitlist"];
-type Phase = "capture" | "questions" | "done";
-/** "profile" (gender + age) and "match" (vibe + experience) are grouped
- * multi-question screens — a few quick taps, not a whole extra screen per
- * data point. "tableType" only appears for gender === "female", see
- * `useSteps` below. "language" always comes first — it also decides which
- * language the rest of the questionnaire renders in. "altDays" only appears
- * when "availability" is answered "no". "ticketPrice" always follows
- * "match"; "allInclusivePrice" only appears when interests includes
- * wine_tasting or chefs_special. */
-type StepKey =
-  | "language"
-  | "profile"
-  | "why"
-  | "company"
-  | "availability"
-  | "altDays"
-  | "tableType"
-  | "match"
-  | "ticketPrice"
-  | "allInclusivePrice";
+type Phase = "capture" | "questions" | "searching" | "done";
+/** The questions after the sign-up form: the "Jouw tafel" quiz questions
+ * (same wording and answers, shown compact as in the settings sheet), then
+ * the waitlist's own research questions. Every one can be skipped. Name,
+ * cities and formats come from the form. "tafeltype" only for women, "wie"
+ * only when they come with someone, "altDays" only when Sunday does not
+ * suit, "allInclusivePrice" only for wine tasting or chef's table. */
+type QuizStepKey = Extract<
+  QuizStepId,
+  "geboortedatum" | "leeftijd" | "gender" | "tafeltype" | "zoekt" | "gesprek" | "wijn" | "gezelschap" | "wie" | "taal" | "dieet" | "bron"
+>;
+type StepKey = QuizStepKey | "availability" | "altDays" | "ticketPrice" | "allInclusivePrice";
+
+const QUIZ_STEP_KEYS = new Set<StepKey>([
+  "geboortedatum",
+  "leeftijd",
+  "gender",
+  "tafeltype",
+  "zoekt",
+  "gesprek",
+  "wijn",
+  "gezelschap",
+  "wie",
+  "taal",
+  "dieet",
+  "bron",
+]);
+
+function isQuizStepKey(step: StepKey): step is QuizStepKey {
+  return QUIZ_STEP_KEYS.has(step);
+}
+
+function waitlistSteps(
+  answers: QuizAnswers,
+  sundayAvailability: WaitlistSundayAvailabilityId | null,
+  interests: readonly WaitlistInterestId[],
+): StepKey[] {
+  const steps: StepKey[] = ["geboortedatum", "leeftijd", "gender"];
+  if (answers.gender === "female") steps.push("tafeltype");
+  steps.push("zoekt", "gesprek", "wijn", "gezelschap");
+  if (answers.companion === "with") steps.push("wie");
+  steps.push("taal", "dieet", "bron", "availability");
+  if (sundayAvailability === "no") steps.push("altDays");
+  steps.push("ticketPrice");
+  if (interests.includes("wine_tasting") || interests.includes("chefs_special")) steps.push("allInclusivePrice");
+  return steps;
+}
+
+/** The waitlist's formats as the quiz's "formats" answer. */
+function quizFormats(interests: readonly WaitlistInterestId[]): QuizAnswers["formats"] {
+  const formats = interests.filter(
+    (i): i is "wine_tasting" | "wine_walk" | "chefs_special" =>
+      i === "wine_tasting" || i === "wine_walk" || i === "chefs_special",
+  );
+  return formats.length ? formats : undefined;
+}
+
+/** Lines for the question flow that the shared waitlist copy does not have. */
+const FLOW_COPY = {
+  nl: { skipQuestion: "Vraag overslaan", finish: "Klaar", searching: "We zoeken jouw tafel" },
+  en: { skipQuestion: "Skip question", finish: "Done", searching: "Finding your table" },
+} as const;
 
 /** The 4 live, bookable formats — food_walk/aperitivo are waitlist-only
  * interest options elsewhere, not real products yet, so they're left out
@@ -147,44 +186,6 @@ function ChipButton({
   );
 }
 
-/** Compact single-select row of pills, for grouping a few quick-tap
- * questions onto one screen (gender+age, vibe+experience). */
-function PillRow<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: Array<{ id: T; label: string }>;
-  value: T | null;
-  onChange: (id: T) => void;
-}) {
-  return (
-    <div>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy">
-        {label}
-      </span>
-      <div className="mt-1.5 flex flex-wrap gap-2">
-        {options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            onClick={() => onChange(option.id)}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-              value === option.id
-                ? "border-burgundy bg-burgundy text-cream"
-                : "border-wine/12 bg-white text-wine hover:border-burgundy/40"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /** A short sideways shake on a field that still needs input. Runs again on
  * every failed submit, and is skipped for people who prefer less motion. */
 function shakeField(input: HTMLElement | null) {
@@ -205,7 +206,6 @@ function shakeField(input: HTMLElement | null) {
 
 export function SundayTableWaitlistModal({
   labels,
-  altLabels,
   locale,
   open,
   onOpenChange,
@@ -213,9 +213,9 @@ export function SundayTableWaitlistModal({
   presetInterest,
 }: {
   labels: WaitlistLabels;
-  /** Same waitlist copy block, in the other locale — the language question
-   * (first in the flow) can switch the rest of the questionnaire to it. */
-  altLabels: WaitlistLabels;
+  /** Same waitlist copy block in the other locale (no longer used: the
+   * questions follow the site's language). */
+  altLabels?: WaitlistLabels;
   locale: Locale;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -264,62 +264,26 @@ export function SundayTableWaitlistModal({
   const [finishing, setFinishing] = useState(false);
 
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [why, setWhy] = useState<WaitlistWhyId[]>([]);
-  const [whyOther, setWhyOther] = useState("");
-  const [company, setCompany] = useState<WaitlistCompanyId[]>([]);
-  const [tableType, setTableType] = useState<WaitlistTableTypeId | null>(null);
-  const [gender, setGender] = useState<WaitlistGenderId | null>(null);
-  const [ageRange, setAgeRange] = useState<WaitlistAgeRangeId | null>(null);
-  const [vibe, setVibe] = useState<WaitlistVibeId | null>(null);
+  /** The quiz answers so far (name, cities and formats from the form). */
+  const [quiz, setQuiz] = useState<QuizAnswers>({});
+  const quizRef = useRef<QuizAnswers>({});
+  const primaryActionRef = useRef<(() => void) | null>(null);
   const [ticketPrice, setTicketPrice] = useState<WaitlistTicketPriceId | null>(
     null,
   );
   const [allInclusivePrice, setAllInclusivePrice] =
     useState<WaitlistAllInclusivePriceId | null>(null);
-  const [experience, setExperience] = useState<WaitlistExperienceId | null>(
-    null,
-  );
-  const [language, setLanguage] = useState<WaitlistLanguageId | null>(null);
   const [sundayAvailability, setSundayAvailability] =
     useState<WaitlistSundayAvailabilityId | null>(null);
   const [altDays, setAltDays] = useState<WaitlistAltDayId[]>([]);
 
-  // "Which table?" only makes sense once we know they're choosing between
-  // girls-only and mixed — men and "prefer not to say" skip straight to
-  // the match-preferences step. "language" always comes first. "altDays"
-  // only appears once "availability" is answered "no". "ticketPrice" always
-  // follows "match"; "allInclusivePrice" only follows it when the person
-  // picked an interest that's actually sold all-inclusive.
-  const steps = useMemo<StepKey[]>(() => {
-    const base: StepKey[] = [
-      "language",
-      "profile",
-      "why",
-      "company",
-      "availability",
-    ];
-    if (sundayAvailability === "no") base.push("altDays");
-    if (gender === "female") base.push("tableType");
-    base.push("match", "ticketPrice");
-    if (interests.includes("wine_tasting") || interests.includes("chefs_special")) {
-      base.push("allInclusivePrice");
-    }
-    return base;
-  }, [gender, sundayAvailability, interests]);
-
-  // Which locale's copy to show for the question flow — switches once the
-  // language question is answered "english" or "dutch"; "both" (or not yet
-  // answered) keeps the site's own locale.
-  const questionLabels: WaitlistLabels =
-    language === "english"
-      ? locale === "en"
-        ? labels
-        : altLabels
-      : language === "dutch"
-        ? locale === "nl"
-          ? labels
-          : altLabels
-        : labels;
+  const steps = useMemo<StepKey[]>(
+    () => waitlistSteps(quiz, sundayAvailability, interests),
+    [quiz, sundayAvailability, interests],
+  );
+  const questionLabels: WaitlistLabels = labels;
+  const quizCopy = getQuizCopy(locale);
+  const flowCopy = FLOW_COPY[locale];
 
   useEffect(() => {
     if (!open) return;
@@ -356,17 +320,10 @@ export function SundayTableWaitlistModal({
     setWaitlistId(null);
     setIsNewSignup(false);
     setQuestionIndex(0);
-    setWhy([]);
-    setWhyOther("");
-    setCompany([]);
-    setTableType(null);
-    setGender(null);
-    setAgeRange(null);
-    setVibe(null);
+    setQuiz({});
+    quizRef.current = {};
     setTicketPrice(null);
     setAllInclusivePrice(null);
-    setExperience(null);
-    setLanguage(null);
     setSundayAvailability(null);
     setAltDays([]);
   }, [open, cityName, presetInterest]);
@@ -383,14 +340,6 @@ export function SundayTableWaitlistModal({
           ),
         ),
       );
-
-  // Mirrors the server-side gate in SundayTableWaitlistWelcomeEmail: the
-  // WhatsApp groups are Rotterdam-specific, offered when Rotterdam is any
-  // one of the cities this signup is for (the email now lists all of them,
-  // not just the first).
-  const showRotterdamWhatsapp = effectiveCities.some(
-    (c) => c.trim().toLowerCase() === "rotterdam",
-  );
 
   function toggleInterest(id: WaitlistInterestId) {
     setInterests((prev) =>
@@ -485,6 +434,13 @@ export function SundayTableWaitlistModal({
       }
       setWaitlistId(payload.id ?? null);
       setIsNewSignup(payload.created === true);
+      const seeded: QuizAnswers = {
+        name: nameValue,
+        ...citiesAnswer(effectiveCities),
+        ...(quizFormats(interests) ? { formats: quizFormats(interests) } : {}),
+      };
+      quizRef.current = seeded;
+      setQuiz(seeded);
       setPhase("questions");
     } catch (networkError) {
       setError(labels.error);
@@ -497,29 +453,24 @@ export function SundayTableWaitlistModal({
     }
   }
 
-  // Saves whatever has been answered so far — called on every "Verder", not
-  // just the final one, so an abandoned modal still leaves us with partial
-  // answers instead of nothing. `overrides` covers selectTableType, whose
-  // auto-advance timer would otherwise read tableType from a closure
-  // snapshotted before the click's state update lands.
+  // Saves whatever has been answered so far, called on every answer, not
+  // just the last one, so an abandoned modal still leaves us with partial
+  // answers instead of nothing. `overrides` carries a value whose state
+  // update has not landed yet (an answer tapped just now).
   async function savePreferences(
     overrides?: {
-      tableType?: WaitlistTableTypeId | null;
-      language?: WaitlistLanguageId | null;
+      quiz?: QuizAnswers;
       sundayAvailability?: WaitlistSundayAvailabilityId | null;
       ticketPrice?: WaitlistTicketPriceId | null;
       allInclusivePrice?: WaitlistAllInclusivePriceId | null;
     },
-    /** Set only by submitEnrichment — marks this as the save that actually
+    /** Set only by submitEnrichment: marks this as the save that actually
      * finishes the flow (whether by completing every question or hitting
-     * "skip"), which is what triggers the welcome email server-side. Every
+     * "Klaar"), which is what triggers the welcome email server-side. Every
      * other call is just a per-step autosave. */
     opts?: { final?: boolean },
   ) {
-    const effectiveTableType =
-      overrides && "tableType" in overrides ? overrides.tableType : tableType;
-    const effectiveLanguage =
-      overrides && "language" in overrides ? overrides.language : language;
+    const answers = overrides?.quiz ?? quizRef.current;
     const effectiveSundayAvailability =
       overrides && "sundayAvailability" in overrides
         ? overrides.sundayAvailability
@@ -532,6 +483,10 @@ export function SundayTableWaitlistModal({
       overrides && "allInclusivePrice" in overrides
         ? overrides.allInclusivePrice
         : allInclusivePrice;
+    // The quiz's own mapping onto the waitlist fields, without its version
+    // key (that marks a row as made by the account quiz).
+    const { quizVersion: _quizVersion, ...fromQuiz } = buildWaitlistPreferences(answers);
+    void _quizVersion;
     try {
       await fetch("/api/waitlist", {
         method: "POST",
@@ -546,14 +501,10 @@ export function SundayTableWaitlistModal({
             ? { complete: true, isNewSignup }
             : {}),
           preferences: {
-            why,
-            whyOther: why.includes("other") ? whyOther.trim() : "",
-            company,
-            tableType: effectiveTableType ? [effectiveTableType] : [],
+            ...fromQuiz,
+            // Only what they answered: no defaults for skipped questions.
+            tableType: answers.gender === "female" && answers.tableType ? fromQuiz.tableType : [],
             interests,
-            gender: gender ? [gender] : [],
-            ageRange: ageRange ? [ageRange] : [],
-            vibe: vibe ? [vibe] : [],
             priceRanges: {
               ticket: effectiveTicketPrice ? [effectiveTicketPrice] : [],
               allInclusive: effectiveAllInclusivePrice
@@ -561,34 +512,27 @@ export function SundayTableWaitlistModal({
                 : [],
             },
             priceRangeSource: "self_reported",
-            experience: experience ? [experience] : [],
-            language: effectiveLanguage ? [effectiveLanguage] : [],
             sundayAvailability: effectiveSundayAvailability
               ? [effectiveSundayAvailability]
               : [],
             altDays,
+            quizAnswers: answers,
           },
         }),
       });
     } catch {
-      // Non-blocking — the next step (or the final submit) retries with
+      // Non-blocking: the next step (or the final submit) retries with
       // the latest answers either way, and the person is on the list
       // regardless.
     }
   }
 
   function answeredCount() {
+    const a = quizRef.current;
     return (
-      (why.length > 0 ? 1 : 0) +
-      (company.length > 0 ? 1 : 0) +
-      (tableType ? 1 : 0) +
-      (gender ? 1 : 0) +
-      (ageRange ? 1 : 0) +
-      (vibe ? 1 : 0) +
+      [a.birthDate, a.ageMatters, a.gender, a.tableType, a.why?.length, a.conversation, a.wine, a.companion, a.companionWho, a.language, a.dietary?.length, a.heardFrom].filter(Boolean).length +
       (ticketPrice ? 1 : 0) +
       (allInclusivePrice ? 1 : 0) +
-      (experience ? 1 : 0) +
-      (language ? 1 : 0) +
       (sundayAvailability ? 1 : 0) +
       (altDays.length > 0 ? 1 : 0)
     );
@@ -607,84 +551,81 @@ export function SundayTableWaitlistModal({
         skipped,
       });
     }
+    // On to "Kies je zondag" with these answers when a Sunday Table is open
+    // in one of their cities (the quiz there only asks what was skipped).
+    // Format pages (a wine walk, a tasting) stay with their own message.
+    if (!presetInterest || presetInterest === "sunday_table") {
+      try {
+        const res = await fetch("/api/jouw-tafel/guest/from-waitlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), locale, answers: quizRef.current }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { kies?: boolean };
+        if (data.kies) {
+          setPhase("searching");
+          window.setTimeout(() => window.location.assign(jouwTafelKiesPath(locale)), 1400);
+          return;
+        }
+      } catch {
+        // Then simply the "you are on the list" screen.
+      }
+    }
     setPhase("done");
   }
 
-  function advanceQuestion() {
-    if (questionIndex < steps.length - 1) {
-      void savePreferences();
-      setQuestionIndex((i) => i + 1);
-    } else {
+  /** Next question after `from` (the steps as they are with `answers`), or
+   * the end. */
+  function advanceFrom(from: StepKey, answers: QuizAnswers = quizRef.current, availability = sundayAvailability) {
+    const list = waitlistSteps(answers, availability, interests);
+    const next = list.indexOf(from) + 1;
+    if (next <= 0 || next >= list.length) {
       void submitEnrichment(false);
+      return;
     }
+    setQuestionIndex(next);
   }
 
-  function toggleWhy(id: WaitlistWhyId) {
-    setWhy((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
+  function advanceQuestion() {
+    void savePreferences();
+    advanceFrom(currentStep);
   }
 
-  function toggleCompany(id: WaitlistCompanyId) {
-    setCompany((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
-  }
-
-  function selectTableType(id: WaitlistTableTypeId) {
-    setTableType(id);
-    void savePreferences({ tableType: id });
-    // tableType is never the last step (match always follows it) — advance
-    // directly instead of going through advanceQuestion, whose closure here
-    // would still see the pre-click tableType value.
-    window.setTimeout(() => {
-      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
-    }, 180);
-  }
-
-  function selectLanguage(id: WaitlistLanguageId) {
-    setLanguage(id);
-    void savePreferences({ language: id });
-    // language is always the first step, never the last — same reasoning
-    // as selectTableType above.
-    window.setTimeout(() => {
-      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
-    }, 180);
+  /** A quiz question answered: store, save, go on (single choice waits a
+   * beat so the tap shows). */
+  function answerQuiz(patch: Partial<QuizAnswers>, options?: { delay?: number }) {
+    const from = currentStep;
+    const next: QuizAnswers = { ...quizRef.current, ...patch };
+    for (const key of Object.keys(next) as Array<keyof QuizAnswers>) {
+      if (next[key] === undefined) delete next[key];
+    }
+    quizRef.current = next;
+    setQuiz(next);
+    void savePreferences({ quiz: next });
+    const go = () => advanceFrom(from, next);
+    if (options?.delay) window.setTimeout(go, options.delay);
+    else go();
   }
 
   function selectAvailability(id: WaitlistSundayAvailabilityId) {
+    const from = currentStep;
     setSundayAvailability(id);
     void savePreferences({ sundayAvailability: id });
-    // availability is never the last step (altDays or tableType/match always
-    // follows) — same reasoning as selectTableType/selectLanguage above.
-    window.setTimeout(() => {
-      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
-    }, 180);
-  }
-
-  // Unlike tableType/language/availability, "ticketPrice" and
-  // "allInclusivePrice" can each land on the *last* step (allInclusivePrice
-  // only shows for some interests, so ticketPrice is sometimes the final
-  // question) — auto-advancing has to fall through to submitEnrichment
-  // there instead of clamping in place and going nowhere.
-  function advanceOrSubmit() {
-    if (questionIndex < steps.length - 1) {
-      setQuestionIndex((i) => Math.min(i + 1, steps.length - 1));
-    } else {
-      void submitEnrichment(false);
-    }
+    window.setTimeout(() => advanceFrom(from, quizRef.current, id), 180);
   }
 
   function selectTicketPrice(id: WaitlistTicketPriceId) {
+    const from = currentStep;
     setTicketPrice(id);
     void savePreferences({ ticketPrice: id });
-    window.setTimeout(advanceOrSubmit, 180);
+    window.setTimeout(() => advanceFrom(from), 180);
   }
 
   function selectAllInclusivePrice(id: WaitlistAllInclusivePriceId) {
+    const from = currentStep;
     setAllInclusivePrice(id);
     void savePreferences({ allInclusivePrice: id });
-    window.setTimeout(advanceOrSubmit, 180);
+    window.setTimeout(() => advanceFrom(from), 180);
   }
 
   function toggleAltDay(id: WaitlistAltDayId) {
@@ -742,7 +683,7 @@ export function SundayTableWaitlistModal({
                   >
                     {phase === "questions"
                       ? questionLabels.questionsTitle
-                      : phase === "done"
+                      : phase === "done" || phase === "searching"
                         ? questionLabels.title
                         : labels.title}
                   </h2>
@@ -966,11 +907,21 @@ export function SundayTableWaitlistModal({
                   >
                     {questionLabels.questionsBody}
                   </p>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-wine/35">
-                    {questionLabels.progress
-                      .replace("{n}", String(currentStepIndex + 1))
-                      .replace("{total}", String(steps.length))}
-                  </p>
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-wine/35">
+                      {questionLabels.progress
+                        .replace("{n}", String(currentStepIndex + 1))
+                        .replace("{total}", String(steps.length))}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void submitEnrichment(true)}
+                      disabled={finishing}
+                      className="text-xs font-semibold uppercase tracking-[0.14em] text-burgundy transition hover:text-wine disabled:opacity-60"
+                    >
+                      {flowCopy.finish}
+                    </button>
+                  </div>
 
                   {/* Not wrapped in AnimatePresence: in this React/Next
                       version, its exit tracking never resolves here, which
@@ -981,114 +932,30 @@ export function SundayTableWaitlistModal({
                     initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25 }}
-                    className={
-                      currentStep === "profile" || currentStep === "match"
-                        ? "mt-3 space-y-4"
-                        : "mt-3"
-                    }
+                    className="mt-3"
                   >
-                      {currentStep === "language" ? (
-                        <>
-                          <h3 className="font-serif text-lg text-wine">
-                            {questionLabels.language.title}
-                          </h3>
-                          <div className="mt-3 grid gap-2">
-                            {questionLabels.language.options.map((option) => (
-                              <ChipButton
-                                key={option.id}
-                                label={option.label}
-                                selected={language === option.id}
-                                onClick={() => selectLanguage(option.id)}
-                              />
-                            ))}
-                          </div>
-                        </>
-                      ) : null}
-
-                      {currentStep === "profile" ? (
-                        <>
-                          <PillRow
-                            label={questionLabels.gender.title}
-                            options={questionLabels.gender.options}
-                            value={gender}
-                            onChange={setGender}
-                          />
-                          <PillRow
-                            label={questionLabels.ageRange.title}
-                            options={questionLabels.ageRange.options}
-                            value={ageRange}
-                            onChange={setAgeRange}
-                          />
-                          <button
-                            type="button"
-                            onClick={advanceQuestion}
-                            disabled={finishing}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
-                          >
-                            {questionLabels.continueCta}
-                          </button>
-                        </>
-                      ) : null}
-
-                      {currentStep === "why" ? (
-                        <>
-                          <h3 className="font-serif text-lg text-wine">
-                            {questionLabels.why.title}
-                          </h3>
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            {questionLabels.why.options.map((option) => (
-                              <ChipButton
-                                key={option.id}
-                                label={option.label}
-                                selected={why.includes(option.id)}
-                                onClick={() => toggleWhy(option.id)}
-                              />
-                            ))}
-                          </div>
-                          {why.includes("other") ? (
-                            <input
-                              type="text"
-                              value={whyOther}
-                              onChange={(e) => setWhyOther(e.target.value)}
-                              placeholder={questionLabels.why.otherPlaceholder}
-                              className="mt-2 w-full rounded-2xl border border-wine/10 bg-white/80 px-4 py-3 text-sm text-wine outline-none focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/15"
-                            />
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={advanceQuestion}
-                            disabled={finishing}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
-                          >
-                            {questionLabels.continueCta}
-                          </button>
-                        </>
-                      ) : null}
-
-                      {currentStep === "company" ? (
-                        <>
-                          <h3 className="font-serif text-lg text-wine">
-                            {questionLabels.company.title}
-                          </h3>
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            {questionLabels.company.options.map((option) => (
-                              <ChipButton
-                                key={option.id}
-                                label={option.label}
-                                selected={company.includes(option.id)}
-                                onClick={() => toggleCompany(option.id)}
-                              />
-                            ))}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={advanceQuestion}
-                            disabled={finishing}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
-                          >
-                            {questionLabels.continueCta}
-                          </button>
-                        </>
+                      {isQuizStepKey(currentStep) ? (
+                        <QuizScreenContext.Provider
+                          value={{
+                            locale,
+                            copy: quizCopy,
+                            step: currentStep,
+                            answers: quiz,
+                            accountFirstName: quiz.name ?? "",
+                            geoCity: null,
+                            cityCounts: {},
+                            subsetCounts: {},
+                            testimonials: [],
+                            reduceMotion: Boolean(reduceMotion),
+                            answerAndNext: answerQuiz,
+                            continueFrom: () => advanceFrom(currentStep),
+                            primaryActionRef,
+                            variant: "sheet",
+                            submitLabel: questionLabels.continueCta,
+                          }}
+                        >
+                          <QuizQuestion step={currentStep} />
+                        </QuizScreenContext.Provider>
                       ) : null}
 
                       {currentStep === "availability" ? (
@@ -1124,49 +991,6 @@ export function SundayTableWaitlistModal({
                               />
                             ))}
                           </div>
-                          <button
-                            type="button"
-                            onClick={advanceQuestion}
-                            disabled={finishing}
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine disabled:opacity-60"
-                          >
-                            {questionLabels.continueCta}
-                          </button>
-                        </>
-                      ) : null}
-
-                      {currentStep === "tableType" ? (
-                        <>
-                          <h3 className="font-serif text-lg text-wine">
-                            {questionLabels.tableType.title}
-                          </h3>
-                          <div className="mt-3 grid gap-2">
-                            {questionLabels.tableType.options.map((option) => (
-                              <ChipButton
-                                key={option.id}
-                                label={option.label}
-                                selected={tableType === option.id}
-                                onClick={() => selectTableType(option.id)}
-                              />
-                            ))}
-                          </div>
-                        </>
-                      ) : null}
-
-                      {currentStep === "match" ? (
-                        <>
-                          <PillRow
-                            label={questionLabels.vibe.title}
-                            options={questionLabels.vibe.options}
-                            value={vibe}
-                            onChange={setVibe}
-                          />
-                          <PillRow
-                            label={questionLabels.experience.title}
-                            options={questionLabels.experience.options}
-                            value={experience}
-                            onChange={setExperience}
-                          />
                           <button
                             type="button"
                             onClick={advanceQuestion}
@@ -1232,14 +1056,31 @@ export function SundayTableWaitlistModal({
                     </button>
                     <button
                       type="button"
-                      onClick={() => void submitEnrichment(true)}
+                      onClick={() => advanceFrom(currentStep)}
                       disabled={finishing}
                       className="font-semibold uppercase tracking-[0.14em] text-wine/40 transition hover:text-wine disabled:opacity-60"
                     >
-                      {questionLabels.skip}
+                      {flowCopy.skipQuestion}
                     </button>
                   </div>
                 </>
+              ) : null}
+
+              {phase === "searching" ? (
+                <div role="status" className="mt-6 flex flex-col items-center gap-4 py-6 text-center">
+                  <span aria-hidden className="flex gap-2">
+                    {[0, 1, 2].map((dot) => (
+                      <span
+                        key={dot}
+                        className="h-2.5 w-2.5 animate-pulse rounded-full bg-burgundy/70 motion-reduce:animate-none"
+                        style={{ animationDelay: `${dot * 180}ms` }}
+                      />
+                    ))}
+                  </span>
+                  <p id={descId} className="font-serif text-lg text-wine">
+                    {flowCopy.searching}
+                  </p>
+                </div>
               ) : null}
 
               {phase === "done" ? (
@@ -1250,45 +1091,6 @@ export function SundayTableWaitlistModal({
                   >
                     {questionLabels.successBody}
                   </p>
-
-                  {/* Same Rotterdam-only gate as the welcome email — these
-                      WhatsApp groups are Rotterdam-specific communities. */}
-                  {showRotterdamWhatsapp ? (
-                    <>
-                      <p className="mt-2 text-sm leading-relaxed text-wine/45">
-                        {questionLabels.successNext}
-                      </p>
-
-                      <div className="mt-6 space-y-3">
-                        <a
-                          href={GIRLS_WHATSAPP_GROUP_URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(43,13,18,0.06)] transition hover:border-[#25D366]/35"
-                        >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
-                            →
-                          </span>
-                          <span className="text-sm font-semibold text-wine">
-                            {questionLabels.whatsappGirlsLabel}
-                          </span>
-                        </a>
-                        <a
-                          href={MIXED_WHATSAPP_GROUP_URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(43,13,18,0.06)] transition hover:border-[#25D366]/35"
-                        >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wine text-cream">
-                            →
-                          </span>
-                          <span className="text-sm font-semibold text-wine">
-                            {questionLabels.whatsappMixedLabel}
-                          </span>
-                        </a>
-                      </div>
-                    </>
-                  ) : null}
 
                   <button
                     type="button"

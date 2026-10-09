@@ -103,4 +103,7 @@ export type WaitlistPreferences = {
   altDays: WaitlistAltDayId[];
   /** Free-text elaboration when why includes "other" */
   whyOther: string;
+  /** The "Jouw tafel" quiz answers from the waitlist questions (quiz shape),
+   * so the quiz can skip them later. */
+  quizAnswers?: Record<string, unknown>;
 };

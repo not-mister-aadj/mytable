@@ -14,6 +14,7 @@ import type { Locale } from "@/i18n/config";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import { getSiteUrl } from "@/lib/env";
 import { normalizeWaitlistCities } from "@/lib/waitlist-city";
+import { sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 
 const TICKET_PRICE_IDS = new Set([
   "under_5",
@@ -136,6 +137,12 @@ function parsePreferences(
   const altDays = parseStringArray(raw.altDays, ALT_DAY_IDS);
   const whyOther =
     typeof raw.whyOther === "string" ? raw.whyOther.trim().slice(0, 200) : "";
+  // The "Jouw tafel" quiz answers given in the waitlist questions, kept as
+  // they are (cleaned) so they can fill in the quiz later.
+  const quizAnswers =
+    raw.quizAnswers && typeof raw.quizAnswers === "object"
+      ? sanitizeQuizState({ answers: raw.quizAnswers }).answers
+      : null;
 
   if (
     !interests.length &&
@@ -151,7 +158,8 @@ function parsePreferences(
     !language.length &&
     !sundayAvailability.length &&
     !altDays.length &&
-    !whyOther
+    !whyOther &&
+    !quizAnswers
   ) {
     return null;
   }
@@ -174,6 +182,7 @@ function parsePreferences(
       sundayAvailability as WaitlistPreferences["sundayAvailability"],
     altDays: altDays as WaitlistPreferences["altDays"],
     whyOther,
+    ...(quizAnswers ? { quizAnswers } : {}),
   };
 }
 

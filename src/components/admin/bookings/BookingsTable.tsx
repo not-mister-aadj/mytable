@@ -1,5 +1,6 @@
 "use client";
 
+import { ageFromBirthDate } from "@/lib/member-onboarding";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -106,6 +107,11 @@ export function BookingsTable({
                       <div className="min-w-0">
                         <p className="truncate font-medium text-wine">
                           {row.customerName || "Gast"}
+                          {ageFromBirthDate(row.birthDate) !== null ? (
+                            <span className="ml-1.5 font-normal text-wine/55">
+                              {ageFromBirthDate(row.birthDate)} jaar
+                            </span>
+                          ) : null}
                         </p>
                         <p className="truncate text-xs text-wine/55">
                           {row.customerId ? (
@@ -224,6 +230,11 @@ export function BookingsTable({
               <div className="flex flex-wrap items-center gap-2">
                 <p className="font-medium text-wine">
                   {row.customerName || row.email}
+                  {ageFromBirthDate(row.birthDate) !== null ? (
+                    <span className="ml-1.5 font-normal text-wine/55">
+                      {ageFromBirthDate(row.birthDate)} jaar
+                    </span>
+                  ) : null}
                 </p>
                 <BookingStatusPill status={row.bookingStatus} />
               </div>

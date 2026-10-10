@@ -440,7 +440,7 @@ export const privacyNl: LegalDocumentContent = {
             {
               type: "ul",
               items: [
-                "Reservering plaatsen: je naam, e-mailadres, aantal plaatsen en optioneel dieetwensen;",
+                "Reservering plaatsen: je naam, e-mailadres, geboortedatum, aantal plaatsen en optioneel dieetwensen. Je geboortedatum gebruiken we om te controleren dat je 18 jaar of ouder bent en om je aan een tafel met mensen van ongeveer jouw leeftijd te zetten;",
                 "Contact per e-mail: je naam, e-mailadres en de inhoud van je bericht;",
                 "Account: je e-mailadres, en als je inlogt met Google ook de naam die bij je Google-account hoort;",
                 "Quiz: je antwoorden, zoals je geboortedatum, gender, tafelvoorkeur, steden en voorkeuren;",

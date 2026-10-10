@@ -22,6 +22,9 @@ export function agendaImageForVenue(
   if (venueName === "Bar Juni Rotterdam") {
     return "https://lh3.googleusercontent.com/grass-cs/ACvplmPKHPMZLbYmXXtC7a58PZZXLNLyYVbh6MRSFgUerRrfHIuVrFPWpbL6PJEEE7g98cQ-HZDirRJoY7D7WXBNHAZMPMDr3matKwDmgYtgoXZmnsoswO2hHtZNvhOCgJOql5VWJkywm4G80yYn=w1600-h1200-p-k-no";
   }
+  if (venueName === "Vino Victoria") {
+    return "https://lh3.googleusercontent.com/grass-cs/AABkmLfmM_mNJB6V3i3BHDd13uRpL_I10Kp44XBjdjQXnJA1T6rZToAZO2Rdi_Ft1-x3zHfDOZGPnPdy1cHrqejjaGGA90i4uaFMudzhW_bEx4mlEou82dXxkE1v5-luVL0lYWhLXZ1hJha4pusf=w1600-h1200-p-k-no";
+  }
   return eventImageUrl?.trim() || images.wineGlasses;
 }
 

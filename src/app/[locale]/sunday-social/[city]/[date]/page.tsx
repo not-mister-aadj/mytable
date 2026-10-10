@@ -151,8 +151,8 @@ function venueAbout(
           {
             label: en ? "Getting there" : "Bereikbaarheid",
             value: en
-              ? "In the city centre, about 10 minutes' walk from Eindhoven Centraal"
-              : "In het centrum, ongeveer 10 minuten lopen van Eindhoven Centraal",
+              ? "In the city centre, about 13 minutes' walk from Eindhoven Centraal"
+              : "In het centrum, ongeveer 13 minuten lopen van Eindhoven Centraal",
           },
           {
             label: en ? "On the menu" : "Op de kaart",

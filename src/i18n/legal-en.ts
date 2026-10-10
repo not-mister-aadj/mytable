@@ -440,7 +440,7 @@ export const privacyEn: LegalDocumentContent = {
             {
               type: "ul",
               items: [
-                "Making a reservation: your name, email address, number of seats and optional dietary notes;",
+                "Making a reservation: your name, email address, date of birth, number of seats and optional dietary notes. We use your date of birth to check that you are 18 or older and to seat you at a table with people of about your age;",
                 "Contact by email: your name, email address and message content;",
                 "Account: your email address, and if you log in with Google also the name linked to your Google account;",
                 "Quiz: your answers, such as your date of birth, gender, table preference, cities and preferences;",

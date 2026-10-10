@@ -1,5 +1,6 @@
 "use client";
 
+import { ageFromBirthDate } from "@/lib/member-onboarding";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -134,6 +135,11 @@ export function BookingDetailDrawer({
                 <h2 className="mt-1 font-serif text-2xl text-burgundy">
                   {booking.customerName || "Gast"}
                 </h2>
+                {ageFromBirthDate(booking.birthDate) !== null ? (
+                  <p className="mt-1 text-sm text-wine/70">
+                    {ageFromBirthDate(booking.birthDate)} jaar (geboren {booking.birthDate})
+                  </p>
+                ) : null}
                 <p className="mt-1 font-mono text-xs text-wine/55">
                   {booking.reservationCode}
                 </p>

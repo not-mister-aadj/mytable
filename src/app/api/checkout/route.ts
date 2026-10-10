@@ -17,7 +17,8 @@ import {
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
-import { MIN_ONBOARDING_AGE, isAtLeastMinAge } from "@/lib/member-onboarding";
+import { MIN_ONBOARDING_AGE, ageFromBirthDate, isAtLeastMinAge } from "@/lib/member-onboarding";
+import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { isEmailFrozen } from "@/lib/customers/freeze";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
@@ -450,6 +451,14 @@ export async function POST(request: Request) {
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
   }
+  // Kept with the booking, so tables can be grouped by age: the date the
+  // date page asked for, else the quiz answer of the signed-in guest.
+  const quizBirthDate = signedInUser
+    ? sanitizeQuizState((signedInUser.user_metadata ?? {})[QUIZ_METADATA_KEY]).answers.birthDate
+    : undefined;
+  const sentBirthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
+  const bookingBirthDate =
+    [sentBirthDate, quizBirthDate ?? ""].find((value) => ageFromBirthDate(value) !== null) ?? null;
   const [booking] = await db
     .insert(bookings)
     .values({
@@ -460,6 +469,7 @@ export async function POST(request: Request) {
       amountCents,
       locale,
       dietaryNotes: body.dietaryNotes?.trim() || null,
+      birthDate: bookingBirthDate,
       seatingPreference,
       tableLanguagePreference,
       paymentStatus: "pending",

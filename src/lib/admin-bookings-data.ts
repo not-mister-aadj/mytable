@@ -219,6 +219,7 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       customerFailedPayments,
       crmBadge: badge,
       customerName: booking.customerName,
+      birthDate: booking.birthDate,
       seats: booking.seats,
       amountCents: booking.amountCents,
       currency: booking.currency,

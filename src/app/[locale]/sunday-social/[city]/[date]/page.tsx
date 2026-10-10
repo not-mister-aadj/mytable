@@ -144,8 +144,8 @@ function venueAbout(
         eyebrow: en ? "About the venue" : "Over de locatie",
         name: "Vino Victoria",
         body: en
-          ? "Vino Victoria is the wine bar of Jeroen Binder, sommelier and host, who worked at Restaurant 1910 and Tribeca before. Since 2025 he pours a wide choice of wines by the glass at the Victoriapark, with cheese and charcuterie boards and small dishes on the side. You don't need to know anything about wine: the team helps you find what you like. For Sunday Social, we keep a table for you."
-          : "Vino Victoria is de wijnbar van Jeroen Binder, vinoloog en gastheer, die eerder werkte bij Restaurant 1910 en Tribeca. Sinds 2025 schenkt hij aan het Victoriapark een ruime keuze aan wijnen per glas, met kaas- en vleesplanken en kleine gerechten erbij. Je hoeft niets van wijn te weten: het team denkt mee over wat bij jou past. Voor Sunday Social houden we een tafel voor je vrij.",
+          ? "Vino Victoria is a wine bar at the Victoriapark in the centre of Eindhoven, open since 2025. It pours a wide choice of wines by the glass, with cheese and charcuterie boards and small dishes on the menu. For Sunday Social, we keep a few tables for you."
+          : "Vino Victoria is een wijnbar aan het Victoriapark, in het centrum van Eindhoven, open sinds 2025. Er staat een ruime keuze aan wijnen per glas op de kaart, met kaas- en vleesplanken en kleine gerechten. Voor Sunday Social houden we een paar tafels voor je vrij.",
         facts: [
           { label: en ? "Address" : "Adres", value: address, href: mapsHref },
           {

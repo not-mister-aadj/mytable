@@ -86,6 +86,31 @@ function buildVenueHeroImages(
       },
     ];
   }
+  if (venueName === "Vino Victoria") {
+    return [
+      {
+        src: "https://lh3.googleusercontent.com/grass-cs/AABkmLfmM_mNJB6V3i3BHDd13uRpL_I10Kp44XBjdjQXnJA1T6rZToAZO2Rdi_Ft1-x3zHfDOZGPnPdy1cHrqejjaGGA90i4uaFMudzhW_bEx4mlEou82dXxkE1v5-luVL0lYWhLXZ1hJha4pusf=w1600-h1200-p-k-no",
+        alt:
+          locale === "en"
+            ? "The wine shelves at Vino Victoria"
+            : "De wijnkast bij Vino Victoria",
+      },
+      {
+        src: "https://lh3.googleusercontent.com/grass-cs/AABkmLckHvVdPHXi-K3KdQ1yWMkdkesDPShHehPn9Ovya5IRFCQa2zhLqRs2vFhARNTRuikWy4yF1st3VwfMOzqD7fSBunaK5JO-am7YqJREoI6KZXr400t1eibkz6yH9U_Fiq3UIBx_E--lTylP=w1600-h1200-p-k-no",
+        alt:
+          locale === "en"
+            ? "A bite and a glass of wine at Vino Victoria"
+            : "Een hapje en een glas wijn bij Vino Victoria",
+      },
+      {
+        src: "/girls-only/wine-tasting-toast.jpg",
+        alt:
+          locale === "en"
+            ? "A full table raises a toast during a MyTable wine tasting"
+            : "Een volle tafel proost tijdens een MyTable wijnproeverij",
+      },
+    ];
+  }
   if (eventImageUrl?.trim()) {
     return [
       {
@@ -111,8 +136,36 @@ function venueAbout(
   mapsHref: string,
   locale: Locale,
 ): { about: VenueAbout } | null {
-  if (venueName !== "Bar Juni Rotterdam") return null;
   const en = locale === "en";
+  // Sources for Vino Victoria: vinovictoria.nl and its Google Maps listing.
+  if (venueName === "Vino Victoria") {
+    return {
+      about: {
+        eyebrow: en ? "About the venue" : "Over de locatie",
+        name: "Vino Victoria",
+        body: en
+          ? "Vino Victoria is the wine bar of Jeroen Binder, sommelier and host, who worked at Restaurant 1910 and Tribeca before. Since 2025 he pours a wide choice of wines by the glass at the Victoriapark, with cheese and charcuterie boards and small dishes on the side. You don't need to know anything about wine: the team helps you find what you like. For Sunday Social, we keep a table for you."
+          : "Vino Victoria is de wijnbar van Jeroen Binder, vinoloog en gastheer, die eerder werkte bij Restaurant 1910 en Tribeca. Sinds 2025 schenkt hij aan het Victoriapark een ruime keuze aan wijnen per glas, met kaas- en vleesplanken en kleine gerechten erbij. Je hoeft niets van wijn te weten: het team denkt mee over wat bij jou past. Voor Sunday Social houden we een tafel voor je vrij.",
+        facts: [
+          { label: en ? "Address" : "Adres", value: address, href: mapsHref },
+          {
+            label: en ? "Getting there" : "Bereikbaarheid",
+            value: en
+              ? "In the city centre, about 10 minutes' walk from Eindhoven Centraal"
+              : "In het centrum, ongeveer 10 minuten lopen van Eindhoven Centraal",
+          },
+          {
+            label: en ? "On the menu" : "Op de kaart",
+            value: en
+              ? "Wines by the glass, cheese and charcuterie boards, small bites"
+              : "Wijnen per glas, kaas- en vleesplanken en kleine hapjes",
+          },
+          { label: en ? "Neighbourhood" : "Buurt", value: en ? "City centre" : "Centrum" },
+        ],
+      },
+    };
+  }
+  if (venueName !== "Bar Juni Rotterdam") return null;
   return {
     about: {
       eyebrow: en ? "About the venue" : "Over de locatie",
@@ -149,6 +202,13 @@ function venueGoogleRating(venueName: string, locale: Locale) {
       score: "4.9",
       label: locale === "en" ? "123 Google reviews" : "123 reviews op Google",
       href: "https://www.google.com/maps/search/?api=1&query=Juni+Rotterdam",
+    };
+  }
+  if (venueName === "Vino Victoria") {
+    return {
+      score: "4.9",
+      label: locale === "en" ? "120 Google reviews" : "120 reviews op Google",
+      href: "https://www.google.com/maps/search/?api=1&query=Vino+Victoria+Eindhoven",
     };
   }
   return null;

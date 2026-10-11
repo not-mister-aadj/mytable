@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import {
+  MEMBERSHIP_OFFER_CREDIT_CENTS,
   MEMBERSHIP_PLAN_IDS,
   MEMBERSHIP_PLANS,
   hasInitialTerm,
@@ -43,6 +44,29 @@ export async function planPriceIds(plan: MembershipPlanId): Promise<{ initial: s
   const ids = await membershipPriceIds();
   const keys = MEMBERSHIP_PLANS[plan].lookupKeys;
   return { initial: ids.get(keys.initial)!, monthly: ids.get(keys.monthly)! };
+}
+
+/** The coupon of the offer after a paid Sunday Social: the seat they just
+ * paid for comes off the first month, once. Made on first use, so test
+ * and live mode need no setup. */
+const OFFER_COUPON_ID = "mytable-seat-counts-10";
+
+export async function membershipOfferCouponId(): Promise<string> {
+  const stripe = getStripe();
+  try {
+    const existing = await stripe.coupons.retrieve(OFFER_COUPON_ID);
+    if (existing.valid) return existing.id;
+  } catch {
+    // Not there yet: made below.
+  }
+  const created = await stripe.coupons.create({
+    id: OFFER_COUPON_ID,
+    amount_off: MEMBERSHIP_OFFER_CREDIT_CENTS,
+    currency: "eur",
+    duration: "once",
+    name: "Je plek van vandaag telt mee",
+  });
+  return created.id;
 }
 
 let portalConfigCache: string | null = null;

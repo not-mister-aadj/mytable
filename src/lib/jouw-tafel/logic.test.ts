@@ -11,6 +11,7 @@ import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
   resolveSeatPriceCents,
   jouwTafelBookingWindow,
+  memberBookingOpensAt,
   bookingOpensOverride,
   withBookingWindow,
   closedReason,
@@ -175,6 +176,12 @@ test("booking window: 28 days before; everyone at once while the membership is n
   const { membersFrom, everyoneFrom } = jouwTafelBookingWindow("2026-11-01T13:00:00Z");
   assert.equal(membersFrom.toISOString(), "2026-10-04T13:00:00.000Z");
   assert.equal(everyoneFrom.toISOString(), MEMBERSHIP_OPEN ? "2026-10-06T13:00:00.000Z" : "2026-10-04T13:00:00.000Z");
+});
+
+test("a member books 48 hours before a table opens; an admin's moment opens it for everyone at once", () => {
+  if (MEMBERSHIP_OPEN) return;
+  assert.equal(memberBookingOpensAt("2026-11-01T13:00:00Z").toISOString(), "2026-10-02T13:00:00.000Z");
+  assert.equal(memberBookingOpensAt("2026-11-01T13:00:00Z", "2026-09-20T10:00:00.000Z").toISOString(), "2026-09-20T10:00:00.000Z");
 });
 
 test("withBookingWindow: not bookable before members can, members only for 48 hours", () => {

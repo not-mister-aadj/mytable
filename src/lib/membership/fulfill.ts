@@ -133,7 +133,8 @@ export async function fulfillMembershipCheckout(session: Stripe.Checkout.Session
       subscriptionId: membership.stripeSubscriptionId ?? membership.id,
       email,
       plan: membership.plan,
-      valueCents: plan?.initialCents ?? 0,
+      // What was really paid (the offer takes the booked seat off).
+      valueCents: session.amount_total ?? plan?.initialCents ?? 0,
       locale,
       userData: metaUserDataFromStoredContext(stored, email, name ?? null, { country: "nl" }),
     }).catch(() => false);

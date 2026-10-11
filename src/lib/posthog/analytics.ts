@@ -250,6 +250,9 @@ export function trackMembershipEvent(
     | typeof PostHogEvents.membershipCheckoutStarted
     | typeof PostHogEvents.membershipStarted
     | typeof PostHogEvents.membershipCancelClicked
+    | typeof PostHogEvents.membershipOfferShown
+    | typeof PostHogEvents.membershipOfferAccepted
+    | typeof PostHogEvents.membershipOfferDeclined
     | typeof PostHogEvents.memberSeatCancelled
     | typeof PostHogEvents.earlyAccessBlockedView,
   props: AnalyticsProperties,

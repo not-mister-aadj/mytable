@@ -8,15 +8,15 @@ import { onBookingCreated } from "@/lib/customers/hooks";
 import { getSiteUrl } from "@/lib/env";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { getRunningMembershipForUser, previousStripeCustomerId } from "@/lib/membership/data";
-import { guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
-import { planPriceIds } from "@/lib/membership/stripe";
+import { MEMBERSHIP_OFFER_CREDIT_CENTS, formatPlanEuros, getMembershipPlan, guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
+import { membershipOfferCouponId, planPriceIds } from "@/lib/membership/stripe";
 import { memberBookingAmountCents } from "@/lib/membership/logic";
 import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
 import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
-export type MembershipCheckoutSource = "page" | "kies";
+export type MembershipCheckoutSource = "page" | "kies" | "offer";
 
 export type MembershipCheckoutInput = {
   user: { id: string; email: string };
@@ -31,6 +31,9 @@ export type MembershipCheckoutInput = {
     dietaryNotes?: string | null;
     tableLanguagePreference?: string | null;
   } | null;
+  /** The offer after a paid Sunday Social: that booking's seat comes off
+   * the first month, and the person returns to its confirmation page. */
+  offer?: { bookingId: string; bookingSessionId: string } | null;
   meta: MetaTrackingContext;
 };
 
@@ -111,6 +114,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
     locale: input.locale,
     source: input.source,
     ...(input.table?.name ? { name: input.table.name.slice(0, 200) } : {}),
+    ...(input.offer ? { offer_booking_id: input.offer.bookingId } : {}),
     ...(pendingBookingId ? { member_booking_id: pendingBookingId, event_id: input.table!.eventId, seats: String(input.table!.seats) } : {}),
     ...metaContextToStripeMetadata(input.meta),
     ...(input.meta.clientIpAddress ? { mt_ip: input.meta.clientIpAddress.slice(0, 60) } : {}),
@@ -126,7 +130,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         unit_amount: guestCents,
         tax_behavior: "inclusive",
         product_data: {
-          name: en ? "Guest at your Sunday Table (member price)" : "Gast aan je Sunday Table (ledenprijs)",
+          name: en ? "Guest at your Sunday Social (member price)" : "Gast aan je Sunday Social (ledenprijs)",
           description: event ? `${event.city} · MyTable` : "MyTable",
         },
       },
@@ -134,6 +138,17 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
   }
 
   const existingCustomer = await previousStripeCustomerId({ userId: input.user.id, email });
+  const plan = getMembershipPlan(input.plan);
+  const firstMonth = `€${formatPlanEuros(Math.max(0, plan.initialCents - MEMBERSHIP_OFFER_CREDIT_CENTS), input.locale)}`;
+  const monthly = `€${formatPlanEuros(plan.monthlyCents, input.locale)}`;
+  const priceLine = input.offer
+    ? en
+      ? `${firstMonth} for your first month, then ${monthly} per month, cancel monthly`
+      : `${firstMonth} voor je eerste maand, daarna ${monthly} per maand, per maand opzegbaar`
+    : planPriceLine(input.plan, input.locale);
+  const confirmed = input.offer
+    ? `${site}/${input.locale}/boeking/bevestigd?session_id=${encodeURIComponent(input.offer.bookingSessionId)}`
+    : null;
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -142,6 +157,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
       locale: en ? "en" : "nl",
       payment_method_types: getSubscriptionCheckoutPaymentMethodTypes("EUR"),
       line_items: lineItems,
+      ...(input.offer ? { discounts: [{ coupon: await membershipOfferCouponId() }] } : {}),
       metadata,
       subscription_data: {
         metadata: { kind: "membership", plan: input.plan, user_id: input.user.id, email, locale: input.locale },
@@ -151,13 +167,14 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         // price, so the plan's own words go right above the pay button.
         submit: {
           message: en
-            ? `${planPriceLine(input.plan, "en")}. Your membership starts right after payment. Terms: ${site}${termsPath("en")}`
-            : `${planPriceLine(input.plan, "nl")}. Je lidmaatschap start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
+            ? `${priceLine}. Your membership starts right after payment. Terms: ${site}${termsPath("en")}`
+            : `${priceLine}. Je lidmaatschap start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
         },
       },
-      success_url: `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:
-        input.source === "kies" ? `${site}${jouwTafelKiesPath(input.locale)}` : `${site}${page}?plan=${input.plan}`,
+      success_url: confirmed ? `${confirmed}&lid={CHECKOUT_SESSION_ID}` : `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: confirmed
+        ? confirmed
+        : input.source === "kies" ? `${site}${jouwTafelKiesPath(input.locale)}` : `${site}${page}?plan=${input.plan}`,
     });
     if (pendingBookingId) {
       await db.update(bookings).set({ stripeCheckoutSessionId: session.id }).where(eq(bookings.id, pendingBookingId));

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { jouwTafelKiesPath, type Locale } from "@/i18n/config";
+import { jouwTafelKiesPath, jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
 import {
   DEFAULT_TABLE_LANGUAGE_PREFERENCE,
@@ -17,6 +17,29 @@ const BIRTH_COPY = {
   nl: { label: "Geboortedatum", underAge: "Om te boeken moet je 18 jaar of ouder zijn." },
   en: { label: "Date of birth", underAge: "You need to be 18 or older to book." },
 } as const;
+
+/** A signed-in member books here too: their own seat is included. */
+const MEMBER_COPY = {
+  nl: {
+    included: "Inbegrepen in je lidmaatschap",
+    reserve: "Reserveer mijn plek",
+    guestFree: "Je gast komt deze keer gratis mee",
+    guestPaid: (price: string) => `Je gast betaalt ${price}`,
+    free: "gratis",
+    login: "Al lid? Log in",
+  },
+  en: {
+    included: "Included in your membership",
+    reserve: "Reserve my seat",
+    guestFree: "Your guest comes along for free this time",
+    guestPaid: (price: string) => `Your guest pays ${price}`,
+    free: "free",
+    login: "Already a member? Log in",
+  },
+} as const;
+
+/** What the card knows about a signed-in member (from /api/jouw-tafel/guest/me). */
+export type CardMember = { guestCents: number; freeGuest: boolean; endsAt: string | null };
 
 function isoDay(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -54,6 +77,9 @@ interface SundayTableBookingCardProps {
   /** "Wat je krijgt voor €10", shown under the buy button. */
   included?: { title: string; items: string[]; note: string } | null;
   genericErrorLabel: string;
+  /** When this Sunday starts (ISO): a membership that ends before it does
+   * not cover the seat. */
+  startsAt?: string | null;
 }
 
 export function SundayTableBookingCard({
@@ -78,6 +104,7 @@ export function SundayTableBookingCard({
   guarantees,
   included = null,
   genericErrorLabel,
+  startsAt = null,
 }: SundayTableBookingCardProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -87,14 +114,26 @@ export function SundayTableBookingCard({
   /** Came through the quiz ("Kies je zondag"): the card is filled in with
    * what they gave there, and a link goes back to their Sundays. */
   const [fromQuiz, setFromQuiz] = useState(false);
+  /** A signed-in member: own seat included, the guest free or at the member price. */
+  const [member, setMember] = useState<CardMember | null>(null);
+  /** Nobody is signed in: a member can log in from here. */
+  const [signedOut, setSignedOut] = useState(false);
+  const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/jouw-tafel/guest/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((me: { known?: boolean; email?: string; name?: string | null; birthDate?: string | null } | null) => {
-        if (cancelled || !me?.known) return;
-        setFromQuiz(true);
+      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null } | null) => {
+        if (cancelled) return;
+        if (!me?.known) {
+          setSignedOut(Boolean(me));
+          return;
+        }
+        // A membership that ends before this Sunday does not cover it.
+        const covers = !me.member?.endsAt || !startsAt || Date.parse(startsAt) <= Date.parse(me.member.endsAt);
+        if (me.member && covers) setMember(me.member);
+        else setFromQuiz(true);
         if (me.email) setEmail((current) => current || me.email!);
         if (me.name) setName((current) => current || me.name!);
         if (me.birthDate) setBirthDate((current) => current || me.birthDate!);
@@ -105,7 +144,7 @@ export function SundayTableBookingCard({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [startsAt]);
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [loading, setLoading] = useState(false);
@@ -115,7 +154,11 @@ export function SundayTableBookingCard({
 
   const soldOut = spotsLeft <= 0;
   const maxSeats = Math.min(2, spotsLeft);
-  const total = pricePerSeatEuros * seats;
+  const guestFree = Boolean(member?.freeGuest);
+  const memberGuestEuros = member ? member.guestCents / 100 : 0;
+  const total = member ? (seats === 2 && !guestFree ? memberGuestEuros : 0) : pricePerSeatEuros * seats;
+  const euroLabel = (value: number) =>
+    Number.isInteger(value) ? `€${value}` : `€${value.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
   // Most tables are Dutch-speaking: there "English" stays selectable, but it
   // swaps the ticket button for a sign-up for the first English table.
   const englishOpen = isEnglishOpenForSundayTable(eventId);
@@ -195,6 +238,11 @@ export function SundayTableBookingCard({
         setLoading(false);
         return;
       }
+      // A member's included seat (and a free guest) is booked straight away.
+      if (data.booked) {
+        window.location.href = `${jouwTafelSettingsPath(locale)}?geboekt=1`;
+        return;
+      }
       window.location.href = data.url;
     } catch {
       setError(genericErrorLabel);
@@ -221,12 +269,21 @@ export function SundayTableBookingCard({
           {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
         </a>
       ) : null}
+      {member ? (
+        <p className="flex items-center gap-2 rounded-xl border border-gold/50 bg-gold/10 px-3.5 py-2.5 text-sm font-semibold text-wine">
+          <span aria-hidden className="text-emerald-700">
+            ✓
+          </span>
+          {memberCopy.included}
+        </p>
+      ) : null}
       <label className="block text-sm font-medium text-wine">
         {emailLabel}
         <input
           type="email"
           required
           value={email}
+          readOnly={Boolean(member)}
           onChange={(e) => setEmail(e.target.value)}
           className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
         />
@@ -332,6 +389,11 @@ export function SundayTableBookingCard({
             {seatTwoLabel}
           </button>
         </div>
+        {member && seats === 2 ? (
+          <p className="mt-2 text-sm text-wine/70">
+            {guestFree ? memberCopy.guestFree : memberCopy.guestPaid(euroLabel(memberGuestEuros))}
+          </p>
+        ) : null}
       </div>
       )}
 
@@ -346,10 +408,22 @@ export function SundayTableBookingCard({
             ? "…"
             : englishOnlyWaiting
               ? englishComingSoon.cta
-              : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
+              : member
+                ? `${memberCopy.reserve} · ${total > 0 ? euroLabel(total) : memberCopy.free}`
+                : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
       )}
-      {englishOnlyWaiting || !included ? null : (
+      {signedOut && !member ? (
+        <p className="text-center text-sm">
+          <a
+            href={jouwTafelLogInPath(locale)}
+            className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+          >
+            {memberCopy.login}
+          </a>
+        </p>
+      ) : null}
+      {englishOnlyWaiting || !included || member ? null : (
         <div className="rounded-2xl border border-wine/10 bg-white/60 px-4 py-3.5">
           <p className="text-sm font-semibold text-wine">{included.title}</p>
           <ul className="mt-2 space-y-1.5">

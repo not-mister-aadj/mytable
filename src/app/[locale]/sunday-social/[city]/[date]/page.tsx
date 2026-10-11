@@ -267,6 +267,9 @@ type SundaySocialPageData = {
     imageUrl: string | null;
   };
   comingSoon: boolean;
+  /** A member can book from this moment, before everyone else (ISO). */
+  memberOpensAt: string | null;
+  startsAt: string | null;
   spotsLeft: number;
 };
 
@@ -287,6 +290,8 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
         location: { venueName: handMade.location.venueName, address: handMade.location.address },
         ticketEvent,
         comingSoon: Boolean(ticketEvent.extras?.comingSoon),
+        memberOpensAt: null,
+        startsAt: ticketEvent.startsAt.toISOString(),
         spotsLeft: Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold),
       };
     }
@@ -305,6 +310,8 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
     },
     ticketEvent: series,
     comingSoon: series.comingSoon,
+    memberOpensAt: series.memberOpensAt,
+    startsAt: series.startsAt,
     spotsLeft: series.closed ? 0 : Math.max(0, series.capacity - series.spotsSold),
   };
 }
@@ -343,7 +350,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   const locale = localeParam as Locale;
   const found = await loadSundaySocial(citySlug, date, locale);
   if (!found) notFound();
-  const { city, table, location, ticketEvent, comingSoon, spotsLeft } = found;
+  const { city, table, location, ticketEvent, comingSoon, memberOpensAt, startsAt, spotsLeft } = found;
   const showSpotsCount = shouldShowSpotsCount(spotsLeft, ticketEvent.spotsSold);
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
@@ -716,6 +723,8 @@ export default async function SundayTableEventPage({ params }: Props) {
           showSpotsCount={showSpotsCount}
           pricePerSeatEuros={pricePerSeatEuros}
           comingSoon={comingSoon}
+          memberOpensAt={memberOpensAt}
+          startsAt={startsAt}
           ticketsLeftLabel={copy.ticketsLeftLabel}
           availableChipLabel={copy.availableChipLabel}
           soldOutChipLabel={copy.soldOutChipLabel}

@@ -5,7 +5,7 @@
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { cityMatchKey } from "@/lib/waitlist-city";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
-import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
+import { MEMBERSHIP_OPEN, MEMBERS_BOOK_EARLY } from "@/lib/membership/plans";
 
 export type QuizBracket = "20-39" | "35+";
 
@@ -86,6 +86,17 @@ export function jouwTafelBookingWindow(
   // Without the membership on offer, everyone books from the same moment.
   const earlyHours = MEMBERSHIP_OPEN ? EARLY_ACCESS_HOURS : 0;
   return { membersFrom: new Date(membersFrom), everyoneFrom: new Date(membersFrom + earlyHours * 60 * 60 * 1000) };
+}
+
+/**
+ * When a member can book a table: 48 hours before it opens for everyone.
+ * Everyone else's window stays exactly as it is. An admin's exception
+ * (`opensAt`) opens the table for everybody at that one moment.
+ */
+export function memberBookingOpensAt(startsAt: Date | string, opensAt?: string | null): Date {
+  const { membersFrom } = jouwTafelBookingWindow(startsAt, opensAt);
+  if (opensAt || MEMBERSHIP_OPEN || !MEMBERS_BOOK_EARLY) return membersFrom;
+  return new Date(membersFrom.getTime() - EARLY_ACCESS_HOURS * 60 * 60 * 1000);
 }
 
 /**

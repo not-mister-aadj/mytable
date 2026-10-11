@@ -2,7 +2,7 @@
 // (npx tsx --test src/lib/membership/*.test.ts). No db, Stripe or browser
 // imports here.
 
-import { hasInitialTerm, isMembershipPlanId, type MembershipPlanId } from "@/lib/membership/plans";
+import { FREE_GUEST_EVERY_MONTHS, hasInitialTerm, isMembershipPlanId, type MembershipPlanId } from "@/lib/membership/plans";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -122,9 +122,36 @@ export function earlyAccessAllows(decision: MemberBookingDecision, membersOnlyUn
   return decision.kind === "included";
 }
 
-/** Price of a booking for a member: own seat free, a guest at `guestCents`. */
-export function memberBookingAmountCents(seats: number, guestCents: number): number {
-  return Math.max(0, seats - 1) * guestCents;
+/** Price of a booking for a member: own seat free, a guest at `guestCents`
+ * (or free, with the free guest of every 3 months). */
+export function memberBookingAmountCents(seats: number, guestCents: number, freeGuest = false): number {
+  return freeGuest ? 0 : Math.max(0, seats - 1) * guestCents;
+}
+
+// ---------------------------------------------------------------- free guest
+
+/** `months` calendar months later (30 Nov + 3 months = 28/29 Feb). */
+export function addMonths(date: Date, months: number): Date {
+  let out = date;
+  for (let i = 0; i < months; i += 1) out = addOneMonth(out);
+  return out;
+}
+
+/**
+ * Whether the member can bring a guest for free right now. One at a time:
+ * `usedFor` is the Sunday the last free guest was booked for, and the next
+ * one is there FREE_GUEST_EVERY_MONTHS months after that Sunday. Never used
+ * (a new member): available straight away.
+ */
+export function freeGuestAvailable(usedFor: Date | null | undefined, now: number = Date.now()): boolean {
+  if (!usedFor) return true;
+  return now >= addMonths(usedFor, FREE_GUEST_EVERY_MONTHS).getTime();
+}
+
+/** When the next free guest is there, or null when one is available now. */
+export function nextFreeGuestAt(usedFor: Date | null | undefined, now: number = Date.now()): Date | null {
+  if (freeGuestAvailable(usedFor, now)) return null;
+  return addMonths(usedFor!, FREE_GUEST_EVERY_MONTHS);
 }
 
 // ---------------------------------------------------------------- cancel seat

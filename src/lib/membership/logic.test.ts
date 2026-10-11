@@ -10,8 +10,10 @@ import {
   earlyAccessAllows,
   isActiveMember,
   isMembersOnly,
+  freeGuestAvailable,
   memberBookingAmountCents,
   memberBookingDecision,
+  nextFreeGuestAt,
   membershipStatusFromStripe,
   membershipSummary,
   needsRenewalReminder,
@@ -73,7 +75,8 @@ test("plan prices match the approved design", () => {
 });
 
 test("guest price per plan is the plan's monthly amount", () => {
-  assert.equal(guestSeatCents("1m"), 1299);
+  // Never more than a single seat.
+  assert.equal(guestSeatCents("1m"), 1000);
   assert.equal(guestSeatCents("4m"), 900);
   assert.equal(guestSeatCents("12m"), 825);
 });
@@ -101,6 +104,19 @@ test("member booking amount: own seat free, guest at member price", () => {
   assert.equal(memberBookingAmountCents(2, 900), 900);
   assert.equal(memberBookingAmountCents(2, 825), 825);
   assert.equal(memberBookingAmountCents(2, 1299), 1299);
+  // The free guest of every 3 months.
+  assert.equal(memberBookingAmountCents(2, 1000, true), 0);
+});
+
+test("free guest: there for a new member, and again 3 months after the Sunday it was used for", () => {
+  const now = Date.parse("2026-11-01T12:00:00Z");
+  assert.equal(freeGuestAvailable(null, now), true);
+  const usedFor = new Date("2026-11-08T13:00:00Z");
+  assert.equal(freeGuestAvailable(usedFor, now), false);
+  assert.equal(freeGuestAvailable(usedFor, Date.parse("2027-02-08T12:59:00Z")), false);
+  assert.equal(freeGuestAvailable(usedFor, Date.parse("2027-02-08T13:00:00Z")), true);
+  assert.equal(nextFreeGuestAt(usedFor, now)?.toISOString(), "2027-02-08T13:00:00.000Z");
+  assert.equal(nextFreeGuestAt(null, now), null);
 });
 
 test("savings example is computed from the single price", () => {

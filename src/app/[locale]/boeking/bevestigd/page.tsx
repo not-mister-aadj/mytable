@@ -19,6 +19,8 @@ import {
   findSundayTableIntroBooking,
   type SundayTableIntro,
 } from "@/lib/sunday-table-intro";
+import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
+import { getMembershipOffer, isOfferMembershipOf, type MembershipOffer } from "@/lib/membership/offer";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ session_id?: string; lid?: string }>;
 };
 
 export default async function BookingConfirmedPage({
@@ -40,7 +42,7 @@ export default async function BookingConfirmedPage({
   searchParams,
 }: Props) {
   const { locale } = await params;
-  const { session_id: sessionId } = await searchParams;
+  const { session_id: sessionId, lid: membershipSessionId } = await searchParams;
   if (!isValidLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
@@ -53,6 +55,10 @@ export default async function BookingConfirmedPage({
   // Answers already saved for this booking, so coming back to this page
   // shows them instead of an empty form.
   let savedIntro: SundayTableIntro | null = null;
+  // The membership offer comes before the confirmation, once per booking.
+  let offer: MembershipOffer | null = null;
+  // Back from Stripe after saying yes to it.
+  let memberWelcome = false;
 
   if (sessionId) {
     await tryFulfillCheckoutSessionSafe(sessionId, {
@@ -75,6 +81,16 @@ export default async function BookingConfirmedPage({
       console.error("[confirmation page] failed to load booking status", err);
     }
 
+    try {
+      if (membershipSessionId) {
+        const fulfilled = await tryFulfillMembershipSession(membershipSessionId);
+        memberWelcome = Boolean(fulfilled?.ok && (await isOfferMembershipOf(sessionId, fulfilled.membership.email)));
+      }
+      if (confirmation.summary && !memberWelcome) offer = await getMembershipOffer(sessionId);
+    } catch (err) {
+      console.error("[confirmation page] membership offer failed", err);
+    }
+
     if (confirmation.summary?.bookingId || purchase?.bookingId) {
       void sendMetaCapiPurchaseForSession(sessionId, await headers()).catch(
         (err) => {
@@ -87,7 +103,6 @@ export default async function BookingConfirmedPage({
   return (
     <>
       {purchase ? <ConfirmationPurchaseEmbed data={purchase} /> : null}
-      <Header dict={dict.header} locale={locale} />
       <MetaConfirmationPurchase
         initial={purchase}
         locale={locale as Locale}
@@ -101,8 +116,11 @@ export default async function BookingConfirmedPage({
         locale={locale as Locale}
         initialSummary={confirmation.summary}
         savedIntro={savedIntro}
+        header={<Header dict={dict.header} locale={locale} />}
+        footer={<Footer dict={dict.footer} locale={locale} />}
+        offer={offer}
+        memberWelcome={memberWelcome}
       />
-      <Footer dict={dict.footer} locale={locale} />
     </>
   );
 }

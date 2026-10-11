@@ -58,6 +58,18 @@ export async function getRunningMembershipForUser(userId: string): Promise<Membe
   return row ?? null;
 }
 
+/** A running membership on this email address, if any. Only to tell someone
+ * who is not signed in to log in first; a seat is never booked on it. */
+export async function getRunningMembershipByEmail(email: string): Promise<Membership | null> {
+  if (!isDbConfigured()) return null;
+  const [row] = await getDb()
+    .select()
+    .from(memberships)
+    .where(and(sql`lower(${memberships.email}) = ${email.trim().toLowerCase()}`, ne(memberships.status, "canceled")))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function getMembershipById(id: string): Promise<Membership | null> {
   const [row] = await getDb().select().from(memberships).where(eq(memberships.id, id)).limit(1);
   return row ?? null;

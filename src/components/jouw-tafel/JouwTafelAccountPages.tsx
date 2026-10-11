@@ -18,6 +18,7 @@ import {
   privacyPath,
   termsPath,
   type Locale,
+  sundayTableLpPath,
 } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
 import { getCookieGuest } from "@/lib/jouw-tafel/guest-server";
@@ -84,7 +85,11 @@ export async function JouwTafelAuthPage({
   // an existing one) and goes back there. Log in while signed in: go on.
   const naar = firstParam(searchParams.naar);
   const toMembership = naar === "lid";
-  const toPath = naar && naar.startsWith(`${jouwTafelPath(locale)}/`) && !naar.startsWith("//") ? naar : null;
+  // Also a Sunday Social date page: a member who logs in from its booking
+  // card goes back to that Sunday.
+  const ownPath = (prefix: string) => Boolean(naar && naar.startsWith(`${prefix}/`));
+  const toPath =
+    naar && (ownPath(jouwTafelPath(locale)) || ownPath(sundayTableLpPath(locale))) && !naar.startsWith("//") ? naar : null;
   const confirm = screen === "signup" && (toMembership || toPath !== null);
   const planParam = firstParam(searchParams.plan);
   const plan = isMembershipPlanId(planParam) ? planParam : null;

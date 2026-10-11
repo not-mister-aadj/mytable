@@ -24,11 +24,13 @@ export type OfferRow = { title: string; detail: string; amount: string | null };
 
 export type MembershipOfferCopy = {
   paid: (sunday: string | null) => string;
-  eyebrow: string;
   headline: { before: string; accent: string };
   lead: string;
   stackTitle: string;
   rows: OfferRow[];
+  /** In front of every amount in the list: it is what the part is worth,
+   * not something that is charged. */
+  worthPrefix: string;
   worth: { label: string; amount: string };
   /** What is paid today, on top of the seat already paid for, and after. */
   price: { label: string; amount: string; extra: string; credited: string; after: string };
@@ -57,7 +59,6 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
   if (en) {
     return {
       paid: (sunday) => (sunday ? `Paid. Your seat on ${sunday} is yours.` : "Paid. Your seat is yours."),
-      eyebrow: `Your ${credit} of today counts`,
       // Honest about where the other Sundays are: each city has one
       // Sunday Social every 4 weeks, so more Sundays means other cities.
       headline: { before: `For ${first} extra: every Sunday Social, in `, accent: `all ${a.cities} cities` },
@@ -76,7 +77,8 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
           amount: single,
         },
       ],
-      worth: { label: "Together worth", amount: worth },
+      worthPrefix: "worth",
+      worth: { label: "Total value of your membership", amount: worth },
       price: {
         label: "Today you pay",
         amount: first,
@@ -93,7 +95,6 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
   }
   return {
     paid: (sunday) => (sunday ? `Betaald. Je plek op ${sunday} staat vast.` : "Betaald. Je plek staat vast."),
-    eyebrow: `Je ${credit} van vandaag telt mee`,
     headline: { before: `Voor ${first} extra: elke Sunday Social, in `, accent: `alle ${a.cities} steden` },
     lead: `Je hebt net ${paid} betaald voor één zondag${a.city ? ` in ${a.city}` : ""}. Upgrade voor ${first} extra en schuif deze maand ook aan in de andere steden.`,
     stackTitle: "Dit krijg je als lid",
@@ -110,7 +111,8 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
         amount: single,
       },
     ],
-    worth: { label: "Samen ter waarde van", amount: worth },
+    worthPrefix: "t.w.v.",
+    worth: { label: "Totale waarde van je lidmaatschap", amount: worth },
     price: {
       label: "Vandaag betaal je",
       amount: first,

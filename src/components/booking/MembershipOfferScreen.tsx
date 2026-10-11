@@ -118,12 +118,9 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
         </div>
 
         <div className="relative mx-auto max-w-xl px-5 pb-14 pt-8 sm:px-6 sm:pt-14">
-          <motion.p {...rise(0)} className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
-            {copy.eyebrow}
-          </motion.p>
           <motion.h1
-            {...rise(0.06)}
-            className="mt-4 font-serif text-[2.3rem] font-medium leading-[1.05] tracking-tight text-cream sm:text-[3.4rem]"
+            {...rise(0)}
+            className="font-serif text-[2.3rem] font-medium leading-[1.05] tracking-tight text-cream sm:text-[3.4rem]"
           >
             {copy.headline.before}
             <em className="text-gold">{copy.headline.accent}</em>
@@ -154,8 +151,8 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
                         <span className="mt-0.5 block text-sm leading-snug text-wine/60">{row.detail}</span>
                       </span>
                       {row.amount ? (
-                        <span className="shrink-0 whitespace-nowrap pt-1 text-base font-semibold tabular-nums text-wine/80">
-                          {row.amount}
+                        <span className="shrink-0 whitespace-nowrap pt-1.5 text-sm tabular-nums text-wine/55">
+                          {copy.worthPrefix} {row.amount}
                         </span>
                       ) : null}
                     </li>
@@ -169,7 +166,7 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
             <div className="border-t border-wine/10 bg-beige px-5 py-5 sm:px-7 sm:py-6">
               <div className="flex items-baseline justify-between gap-4 text-sm text-wine/65">
                 <span>{copy.worth.label}</span>
-                <span className="tabular-nums">{copy.worth.amount}</span>
+                <span className="tabular-nums line-through decoration-burgundy/60">{copy.worth.amount}</span>
               </div>
               <div className="mt-4 border-t border-wine/10 pt-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-burgundy">{copy.price.label}</p>

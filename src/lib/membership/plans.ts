@@ -14,6 +14,30 @@
  */
 export const MEMBERSHIP_OPEN = false;
 
+/**
+ * The membership offer right after a paid Sunday Social (the screen between
+ * paying and the confirmation). On while MEMBERSHIP_OPEN is off: nothing
+ * else of the membership shows, booking stays open to everyone, and the
+ * only way in is that one screen. It sells one plan, monthly, with what
+ * the booking just cost taken off the first month.
+ */
+export const MEMBERSHIP_OFFER_OPEN = true;
+export const MEMBERSHIP_OFFER_PLAN = "1m" as const;
+/** Taken off the first month: the seat they just paid for. */
+export const MEMBERSHIP_OFFER_CREDIT_CENTS = 1000;
+/** The offer stays open this long after the screen first showed. */
+export const MEMBERSHIP_OFFER_MINUTES = 30;
+
+/** Members book this many hours before a table opens for everyone. */
+export const MEMBERS_BOOK_EARLY = MEMBERSHIP_OPEN || MEMBERSHIP_OFFER_OPEN;
+
+/** A member's guest never pays more than a single seat costs. */
+export const MEMBER_GUEST_MAX_CENTS = 1000;
+
+/** A member brings one guest for free, again this many months after the
+ * Sunday the last free guest came along. */
+export const FREE_GUEST_EVERY_MONTHS = 3;
+
 export const MEMBERSHIP_PLAN_IDS = ["1m", "4m", "12m"] as const;
 export type MembershipPlanId = (typeof MEMBERSHIP_PLAN_IDS)[number];
 
@@ -74,9 +98,10 @@ export function hasInitialTerm(id: MembershipPlanId): boolean {
   return MEMBERSHIP_PLANS[id].initialMonths > 1;
 }
 
-/** What a member's guest pays for a seat: the plan's monthly amount. */
+/** What a member's guest pays for a seat: the plan's monthly amount, and
+ * never more than a single seat. */
 export function guestSeatCents(id: MembershipPlanId): number {
-  return MEMBERSHIP_PLANS[id].monthlyCents;
+  return Math.min(MEMBERSHIP_PLANS[id].monthlyCents, MEMBER_GUEST_MAX_CENTS);
 }
 
 /** What a plan's first period saves against buying a single seat every

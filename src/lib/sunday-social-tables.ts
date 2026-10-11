@@ -10,6 +10,7 @@ import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
   bookingOpensOverride,
   isNoLongerBookable,
+  memberBookingOpensAt,
   withBookingWindow,
 } from "@/lib/jouw-tafel/logic";
 import { agendaImageForVenue } from "@/lib/sunday-table-agenda-item";
@@ -139,6 +140,10 @@ export type SundaySocialSeriesTable = {
   imageUrl: string | null;
   /** Not bookable yet (opens 4 weeks before). */
   comingSoon: boolean;
+  /** While not open yet: the moment a member can book it (48 hours before
+   * everyone), ISO. Null when it is open, or held back by an admin. */
+  memberOpensAt: string | null;
+  startsAt: string;
   /** Full, closed empty or too close to the date. */
   closed: boolean;
   venue: VenueInfo | null;
@@ -179,6 +184,7 @@ export async function findSundaySocialSeriesTable(
     now,
   );
   const venue = (await venuesByEvent([row.id])).get(row.id) ?? null;
+  const heldBack = Boolean((row.extras as { comingSoon?: boolean } | null)?.comingSoon);
   return {
     id: row.id,
     nameNl: row.nameNl,
@@ -188,6 +194,8 @@ export async function findSundaySocialSeriesTable(
     priceCents: JOUW_TAFEL_SEAT_PRICE_CENTS,
     imageUrl: row.imageUrl,
     comingSoon: windowed.comingSoon,
+    memberOpensAt: windowed.comingSoon && !heldBack ? memberBookingOpensAt(startsAt, bookingOpensAt).toISOString() : null,
+    startsAt,
     closed: isNoLongerBookable({ startsAt, capacity: row.capacity, spotsSold: row.spotsSold, bookingOpensAt }, now),
     venue,
   };

@@ -65,6 +65,11 @@ interface SundayTableEventRevealProps {
   /** Venue is still being finalized: shows the page but replaces the
    * booking form with an announcement instead of taking payments. */
   comingSoon?: boolean;
+  /** Not open for everyone yet, but a member can book from this moment
+   * (ISO): for them the booking card shows instead of "coming soon". */
+  memberOpensAt?: string | null;
+  /** When this Sunday starts (ISO). */
+  startsAt?: string | null;
   ticketsLeftLabel: string;
   availableChipLabel: string;
   soldOutChipLabel: string;
@@ -145,7 +150,9 @@ export function SundayTableEventReveal({
   spotsLeft,
   showSpotsCount,
   pricePerSeatEuros,
-  comingSoon = false,
+  comingSoon: comingSoonForEveryone = false,
+  memberOpensAt = null,
+  startsAt = null,
   ticketsLeftLabel,
   availableChipLabel,
   soldOutChipLabel,
@@ -180,6 +187,27 @@ export function SundayTableEventReveal({
   included,
   sectionNavLabels,
 }: SundayTableEventRevealProps) {
+  // Members book before the table opens for everyone: once their moment is
+  // there, a signed-in member gets the booking card.
+  const [memberEarly, setMemberEarly] = useState(false);
+  useEffect(() => {
+    if (!comingSoonForEveryone || !memberOpensAt || Date.now() < Date.parse(memberOpensAt)) return;
+    let cancelled = false;
+    fetch("/api/jouw-tafel/guest/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((me: { member?: { endsAt: string | null } | null } | null) => {
+        if (cancelled || !me?.member) return;
+        const covers = !me.member.endsAt || !startsAt || Date.parse(startsAt) <= Date.parse(me.member.endsAt);
+        if (covers) setMemberEarly(true);
+      })
+      .catch(() => {
+        /* the page simply stays on "coming soon" */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [comingSoonForEveryone, memberOpensAt, startsAt]);
+  const comingSoon = comingSoonForEveryone && !memberEarly;
   const [shareCopied, setShareCopied] = useState(false);
   const [slide, setSlide] = useState(0);
   const activeImage = heroImages[slide] ?? heroImages[0];
@@ -466,6 +494,7 @@ export function SundayTableEventReveal({
                   guarantees={bookingGuarantees}
                   included={included}
                   genericErrorLabel={bookingErrorLabel}
+                  startsAt={startsAt}
                 />
               )}
             </div>

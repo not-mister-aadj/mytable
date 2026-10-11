@@ -289,6 +289,9 @@ export const memberships = pgTable(
     noShowCount: integer("no_show_count").notNull().default(0),
     noShowWarnedAt: timestamp("no_show_warned_at", { withTimezone: true }),
     bookingBlockedUntil: timestamp("booking_blocked_until", { withTimezone: true }),
+    /** The Sunday the last free guest was booked for. The next free guest
+     * is there 3 months after it; null: never used, available now. */
+    freeGuestUsedFor: timestamp("free_guest_used_for", { withTimezone: true }),
     welcomeEmailSentAt: timestamp("welcome_email_sent_at", { withTimezone: true }),
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     cancelEmailSentFor: timestamp("cancel_email_sent_for", { withTimezone: true }),

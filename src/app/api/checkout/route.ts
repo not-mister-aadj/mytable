@@ -66,7 +66,7 @@ function openFromLabel(date: Date, locale: Locale): string {
     minute: "2-digit",
   }).format(date);
 }
-import { JOUW_TAFEL_CHECKOUT_SOURCE, bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
+import { JOUW_TAFEL_CHECKOUT_SOURCE, bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow, memberBookingOpensAt, resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -263,10 +263,25 @@ export async function POST(request: Request) {
     );
   }
 
-  // A Sunday Table opens for members 4 weeks before its date and for
-  // everyone 2 days later (an admin's later members_only_until wins).
+  // Members (every Sunday Social): own seat included, a guest at the member
+  // price (or free, once every 3 months), and they book 48 hours before
+  // the table opens for everyone.
+  let memberDecision: MemberBookingDecision = { kind: "non_member" };
+  let runningMembership: Awaited<ReturnType<typeof getRunningMembershipForUser>> = null;
+  const signedInUser = isSundayTable ? await getMemberUser() : null;
+  if (signedInUser?.email) {
+    runningMembership = await getRunningMembershipForUser(signedInUser.id);
+    memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
+  }
+
+  // A series table opens 4 weeks before its date, and for a member 48
+  // hours before that.
   const bookingWindow = isJouwTafel ? jouwTafelBookingWindow(event.startsAt, bookingOpensOverride(event.extras)) : null;
-  if (bookingWindow && Date.now() < bookingWindow.membersFrom.getTime()) {
+  const opensForThisPerson =
+    bookingWindow && memberDecision.kind === "included"
+      ? memberBookingOpensAt(event.startsAt, bookingOpensOverride(event.extras))
+      : bookingWindow?.membersFrom ?? null;
+  if (bookingWindow && opensForThisPerson && Date.now() < opensForThisPerson.getTime()) {
     return NextResponse.json(
       {
         code: "not_open",
@@ -299,15 +314,6 @@ export async function POST(request: Request) {
     ? new Date(Math.max(storedMembersOnly?.getTime() ?? 0, bookingWindow.everyoneFrom.getTime()))
     : event.membersOnlyUntil;
 
-  // Members (Sunday Table): own seat included, a guest at the member price,
-  // and they book first. Everyone else waits until members_only_until.
-  let memberDecision: MemberBookingDecision = { kind: "non_member" };
-  let runningMembership: Awaited<ReturnType<typeof getRunningMembershipForUser>> = null;
-  const signedInUser = isJouwTafel ? await getMemberUser() : null;
-  if (signedInUser?.email) {
-    runningMembership = await getRunningMembershipForUser(signedInUser.id);
-    memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
-  }
 
   // An account on hold (a disputed payment) books nothing, also not with a
   // membership, until an admin releases it.
@@ -315,7 +321,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ code: FROZEN_ERROR_CODE, error: frozenMessage(locale) }, { status: 403 });
   }
 
-  if (isJouwTafel && memberDecision.kind === "blocked") {
+  if (isSundayTable && memberDecision.kind === "blocked") {
     return NextResponse.json(
       {
         code: "member_blocked",
@@ -328,7 +334,7 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   }
-  if (isJouwTafel && memberDecision.kind === "past_due") {
+  if (isSundayTable && memberDecision.kind === "past_due") {
     return NextResponse.json(
       {
         code: "member_past_due",
@@ -354,7 +360,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (isJouwTafel && memberDecision.kind === "included" && runningMembership && signedInUser?.email) {
+  if (isSundayTable && memberDecision.kind === "included" && runningMembership && signedInUser?.email) {
     const memberSeats = resolveSundayTableSeats(Math.max(1, Number(body.seats) || 1), event.capacity - event.spotsSold);
     if (memberSeats === null) {
       return NextResponse.json(
@@ -372,6 +378,7 @@ export async function POST(request: Request) {
         locale,
         dietaryNotes: body.dietaryNotes?.trim() || null,
         tableLanguagePreference,
+        birthDate: birthDateSent ? String(body.birthDate).trim() : null,
       });
       if (result.kind === "booked") {
         return NextResponse.json({ booked: true, bookingId: result.bookingId, code: result.code });

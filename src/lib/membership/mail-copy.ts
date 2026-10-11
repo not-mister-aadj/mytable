@@ -3,7 +3,7 @@
 // at the table.
 
 import type { MembershipEmailProps } from "@/emails/MembershipEmail";
-import { formatPlanEuros, getMembershipPlan, type MembershipPlanId } from "@/lib/membership/plans";
+import { formatPlanEuros, getMembershipPlan, guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
 import { MEMBER_SEAT_CANCEL_HOURS } from "@/lib/membership/logic";
 
 type Locale = "nl" | "en";
@@ -69,20 +69,19 @@ export function welcomeMail(input: {
   links: Links;
 }): MembershipMail {
   const { locale: l, plan } = input;
-  const guest = `€${formatPlanEuros(getMembershipPlan(plan).monthlyCents, l)}`;
-  const single = input.singleSeatCents ? `€${formatPlanEuros(input.singleSeatCents, l)}` : null;
+  const guest = `€${formatPlanEuros(guestSeatCents(plan), l)}`;
   const en = l === "en";
   const booked = input.bookedSunday ? mailSunday(input.bookedSunday, l) : null;
   return {
     subject: en ? "Welcome, you are a member" : "Welkom als lid",
     props: {
       locale: l,
-      preview: en ? "Every Sunday Table in your cities is now included." : "Elke Sunday Table in jouw steden is nu inbegrepen.",
+      preview: en ? "Every Sunday Social is now included." : "Elke Sunday Social is nu inbegrepen.",
       greeting: greeting(l, input.firstName),
       headline: en ? "Welcome, you are a member" : "Welkom als lid",
       body: en
-        ? "Lovely to have you. From now on you can join every Sunday Table in your cities."
-        : "Fijn dat je erbij bent. Vanaf nu schuif je aan bij elke Sunday Table in jouw steden.",
+        ? "Lovely to have you. From now on you can join every Sunday Social, in every city."
+        : "Fijn dat je erbij bent. Vanaf nu schuif je aan bij elke Sunday Social, in elke stad.",
       warmLine: booked
         ? en
           ? `Your seat for ${booked} is booked. The confirmation follows in a separate email.`
@@ -98,22 +97,22 @@ export function welcomeMail(input: {
           icon: "calendar",
           title: en ? "A seat every Sunday" : "Elke zondag aan tafel",
           description: en
-            ? "Join every Sunday Table in your cities, as often as you like."
-            : "Schuif aan bij elke Sunday Table in jouw steden, zo vaak als je wilt.",
+            ? "Join every Sunday Social, in every city, as often as you like."
+            : "Schuif aan bij elke Sunday Social, in elke stad, zo vaak als je wilt.",
         },
         {
           icon: "clock",
           title: en ? "First to book" : "Als eerste boeken",
           description: en
-            ? "As a member you can book 4 weeks ahead. That is a few days before everyone else."
-            : "Als lid boek je al 4 weken van tevoren. Dat is een paar dagen eerder dan de rest.",
+            ? "As a member you book 2 days before a table opens for everyone."
+            : "Als lid boek je 2 dagen voordat een tafel voor iedereen opengaat.",
         },
         {
           icon: "people",
           title: en ? "Bring someone" : "Iemand meenemen",
           description: en
-            ? `Bring someone at the member price: ${guest}${single ? ` instead of ${single}` : ""}.`
-            : `Neem iemand mee voor de ledenprijs: ${guest}${single ? ` in plaats van ${single}` : ""}.`,
+            ? `Every 3 months you bring someone for free, the first time straight away. Any other guest pays ${guest}.`
+            : `Elke 3 maanden neem je iemand gratis mee, de eerste keer meteen. Een andere gast betaalt ${guest}.`,
         },
         {
           icon: "wineGlasses",

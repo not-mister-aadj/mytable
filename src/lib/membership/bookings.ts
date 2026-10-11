@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { bookingEvents, bookings, events, type Booking, type Event } from "@/db/schema";
+import { bookingEvents, bookings, events, memberships, type Booking, type Event } from "@/db/schema";
 import { onBookingCancelled, onPaymentCompleted } from "@/lib/customers/hooks";
 import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
@@ -124,6 +124,18 @@ export async function cancelMemberSeat(input: {
       type: "cancelled_by_member",
       payload: { seats: booking.seats, amountCents: booking.amountCents },
     });
+    // The guest came along for free: the member gets the free guest back.
+    const [freeGuest] = await tx
+      .select({ id: bookingEvents.id })
+      .from(bookingEvents)
+      .where(and(eq(bookingEvents.bookingId, booking.id), eq(bookingEvents.type, "member_free_guest")))
+      .limit(1);
+    if (freeGuest && booking.membershipId) {
+      await tx
+        .update(memberships)
+        .set({ freeGuestUsedFor: null, updatedAt: new Date() })
+        .where(and(eq(memberships.id, booking.membershipId), eq(memberships.freeGuestUsedFor, event.startsAt)));
+    }
     return changed;
   });
   if (!updated) return { ok: false, error: "already_cancelled" };

@@ -1,15 +1,18 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull, lte, or } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { bookingEvents, bookings, type Event, type Membership } from "@/db/schema";
+import { bookingEvents, bookings, memberships, type Event, type Membership } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { reservationCode } from "@/lib/booking-display";
 import { onBookingCreated } from "@/lib/customers/hooks";
 import { getSiteUrl } from "@/lib/env";
 import { confirmMemberBooking } from "@/lib/membership/bookings";
-import { memberBookingAmountCents } from "@/lib/membership/logic";
+import { freeGuestAvailable, memberBookingAmountCents } from "@/lib/membership/logic";
 import { guestSeatCents, isMembershipPlanId } from "@/lib/membership/plans";
 import { getCheckoutPaymentMethodTypes, getStripe } from "@/lib/stripe";
 import { jouwTafelSettingsPath, jouwTafelKiesPath } from "@/i18n/config";
+
+/** booking_events type: this booking's guest came along for free. */
+export const FREE_GUEST_EVENT = "member_free_guest";
 
 export type MemberBookingResult =
   /** Own seat only: booked straight away, no payment. */
@@ -36,9 +39,10 @@ async function alreadyBooked(membershipId: string, eventId: string): Promise<boo
 }
 
 /**
- * A member books a Sunday Table: their own seat is included (amount 0); a
- * second seat for a guest costs the plan's member price, paid in a one-time
- * Checkout. Capacity is checked when the seats are taken.
+ * A member books a Sunday Social: their own seat is included (amount 0); a
+ * second seat for a guest is free once every 3 months, and otherwise costs
+ * the member price, paid in a one-time Checkout. Capacity is checked when
+ * the seats are taken.
  */
 export async function bookAsMember(input: {
   event: Event;
@@ -49,6 +53,7 @@ export async function bookAsMember(input: {
   locale: Locale;
   dietaryNotes: string | null;
   tableLanguagePreference: string;
+  birthDate?: string | null;
 }): Promise<MemberBookingResult> {
   const { event, membership } = input;
   if (!isMembershipPlanId(membership.plan)) return { kind: "error", status: 500, code: "checkout_failed" };
@@ -56,8 +61,34 @@ export async function bookAsMember(input: {
   if (event.capacity - event.spotsSold < input.seats) return { kind: "error", status: 409, code: "full" };
 
   const guestCents = guestSeatCents(membership.plan);
-  const amountCents = memberBookingAmountCents(input.seats, guestCents);
   const db = getDb();
+  // The free guest: taken here, in one statement, so two bookings at once
+  // cannot both get it. Given back below when the booking does not go through.
+  const previousFreeGuest = membership.freeGuestUsedFor;
+  let freeGuest = false;
+  if (input.seats === 2 && freeGuestAvailable(previousFreeGuest)) {
+    const [taken] = await db
+      .update(memberships)
+      .set({ freeGuestUsedFor: event.startsAt, updatedAt: new Date() })
+      .where(
+        and(
+          eq(memberships.id, membership.id),
+          previousFreeGuest
+            ? or(isNull(memberships.freeGuestUsedFor), lte(memberships.freeGuestUsedFor, previousFreeGuest))
+            : isNull(memberships.freeGuestUsedFor),
+        ),
+      )
+      .returning({ id: memberships.id });
+    freeGuest = Boolean(taken);
+  }
+  const giveFreeGuestBack = async () => {
+    if (!freeGuest) return;
+    await db
+      .update(memberships)
+      .set({ freeGuestUsedFor: previousFreeGuest ?? null })
+      .where(and(eq(memberships.id, membership.id), eq(memberships.freeGuestUsedFor, event.startsAt)));
+  };
+  const amountCents = memberBookingAmountCents(input.seats, guestCents, freeGuest);
   const [booking] = await db
     .insert(bookings)
     .values({
@@ -70,17 +101,25 @@ export async function bookAsMember(input: {
       dietaryNotes: input.dietaryNotes,
       seatingPreference: "join_others",
       tableLanguagePreference: input.tableLanguagePreference,
+      birthDate: input.birthDate || null,
       paymentStatus: "pending",
       membershipId: membership.id,
     })
     .returning();
-  if (!booking) return { kind: "error", status: 500, code: "checkout_failed" };
+  if (!booking) {
+    await giveFreeGuestBack();
+    return { kind: "error", status: 500, code: "checkout_failed" };
+  }
   await onBookingCreated({ booking, event }).catch(() => undefined);
+  if (freeGuest) {
+    await db.insert(bookingEvents).values({ bookingId: booking.id, type: FREE_GUEST_EVENT, payload: { plan: membership.plan } });
+  }
 
   if (amountCents === 0) {
     const confirmed = await confirmMemberBooking({ bookingId: booking.id, membershipId: membership.id, context: "member_free_seat" });
     if (!confirmed.ok) {
       await db.update(bookings).set({ paymentStatus: "failed" }).where(eq(bookings.id, booking.id));
+      await giveFreeGuestBack();
       return { kind: "error", status: 409, code: "full" };
     }
     return { kind: "booked", bookingId: booking.id, code: reservationCode(booking.id) };
@@ -106,7 +145,7 @@ export async function bookAsMember(input: {
             currency: "eur",
             unit_amount: guestCents,
             product_data: {
-              name: en ? "Guest at your Sunday Table (member price)" : "Gast aan je Sunday Table (ledenprijs)",
+              name: en ? "Guest at your Sunday Social (member price)" : "Gast aan je Sunday Social (ledenprijs)",
               description: `${event.city} · MyTable`,
             },
           },

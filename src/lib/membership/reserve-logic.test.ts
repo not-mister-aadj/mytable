@@ -6,7 +6,7 @@ import { memberReserveTodayCents } from "@/lib/membership/reserve-logic";
 test("joining: the first period, plus the guest at the plan's member price", () => {
   assert.equal(memberReserveTodayCents({ kind: "join", plan: "4m", seats: 1 }), 3600);
   assert.equal(memberReserveTodayCents({ kind: "join", plan: "4m", seats: 2 }), 3600 + 900);
-  assert.equal(memberReserveTodayCents({ kind: "join", plan: "1m", seats: 2 }), 1299 + 1299);
+  assert.equal(memberReserveTodayCents({ kind: "join", plan: "1m", seats: 2 }), 1299 + 1000);
   assert.equal(memberReserveTodayCents({ kind: "join", plan: "12m", seats: 2 }), 9900 + 825);
 });
 

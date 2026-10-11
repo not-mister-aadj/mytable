@@ -78,6 +78,10 @@ export const PostHogEvents = {
   membershipCheckoutStarted: "membership_checkout_started",
   membershipStarted: "membership_started",
   membershipCancelClicked: "membership_cancel_clicked",
+  /** The offer between paying for a Sunday Social and its confirmation. */
+  membershipOfferShown: "membership_offer_shown",
+  membershipOfferAccepted: "membership_offer_accepted",
+  membershipOfferDeclined: "membership_offer_declined",
   memberSeatCancelled: "member_seat_cancelled",
   earlyAccessBlockedView: "early_access_blocked_view",
   /** A customer moved their own seat to the next Sunday (days_before only). */

@@ -87,8 +87,10 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
   }
 
   const rise = (delay: number) => ({
-    initial: { opacity: 0, y: 14 },
-    animate: { opacity: 1, y: 0 },
+    // Only a small rise, never hidden: the offer must be readable even
+    // when the animation does not run (a tab opened in the background).
+    initial: { y: 14 },
+    animate: { y: 0 },
     transition: { duration: 0.6, ease, delay },
   });
 

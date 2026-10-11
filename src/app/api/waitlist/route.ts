@@ -195,9 +195,6 @@ export async function POST(request: Request) {
   }
 
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`waitlist:${ip}`)) {
-    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
-  }
 
   let body: {
     email?: string;
@@ -228,6 +225,18 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
+
+  // New sign-ups stay tightly limited. The questions after it save on every
+  // answer (some fifteen saves in a minute or two), so those get their own,
+  // roomier limit: sharing the tight one dropped answers and the final save
+  // that sends the welcome mail.
+  const allowed =
+    body.enrich === true
+      ? checkRateLimit(`waitlist-enrich:${ip}`, 80)
+      : checkRateLimit(`waitlist:${ip}`);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   }
 
   const email = body.email?.trim();

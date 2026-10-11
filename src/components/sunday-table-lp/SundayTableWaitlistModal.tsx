@@ -278,6 +278,9 @@ export function SundayTableWaitlistModal({
     setWaitlistId(null);
     setIsNewSignup(false);
     setQuestionIndex(0);
+    // A second sign-up in the same page visit must be able to finish too.
+    finishingRef.current = false;
+    setFinishing(false);
     setQuiz({});
     quizRef.current = {};
     setTicketPrice(null);

@@ -62,23 +62,34 @@ const PRICES: PriceSpec[] = [
   { lookupKey: p12.lookupKeys.monthly, nickname: "1 jaar: daarna per maand", unitAmount: p12.monthlyCents, interval: "month", intervalCount: 1 },
 ];
 
+/** Shown under the product name on the Stripe payment page. */
+const PRODUCT_DESCRIPTION = "Elke Sunday Social inbegrepen, in alle steden. Per maand opzegbaar.";
+
+/** Brings an existing product's text in line with the one above. */
+async function withCurrentText(product: Stripe.Product): Promise<Stripe.Product> {
+  if (product.description === PRODUCT_DESCRIPTION) return product;
+  const updated = await stripe.products.update(product.id, { description: PRODUCT_DESCRIPTION });
+  console.log(`Product: ${product.id} (description updated)`);
+  return updated;
+}
+
 async function ensureProduct(): Promise<Stripe.Product> {
   const found = await stripe.products.search({ query: `metadata['mytable']:'${PRODUCT_TAG}'` }).catch(() => null);
   const existing = found?.data.find((p) => p.active) ?? found?.data[0];
   if (existing) {
     console.log(`Product: ${existing.id} (exists)`);
-    return existing;
+    return withCurrentText(existing);
   }
   // Search can lag a few seconds after creation: fall back to listing.
   for await (const product of stripe.products.list({ limit: 100 })) {
     if (product.metadata?.mytable === PRODUCT_TAG) {
       console.log(`Product: ${product.id} (exists)`);
-      return product;
+      return withCurrentText(product);
     }
   }
   const product = await stripe.products.create({
     name: "MyTable lidmaatschap",
-    description: "Elke Sunday Table in jouw steden. Maandelijks opzegbaar na je eerste periode.",
+    description: PRODUCT_DESCRIPTION,
     metadata: { mytable: PRODUCT_TAG },
   });
   console.log(`Product: ${product.id} (created)`);

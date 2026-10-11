@@ -4,7 +4,7 @@ import { events, eventVenues, venues } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { sundayTableLocationPath } from "@/i18n/config";
 import type { ExperienceItem } from "@/i18n/types";
-import { SUNDAY_TABLE_LP_CITIES, sundayTableLpCityFromSlug } from "@/data/sunday-table-lp-cities";
+import { sundaySocialSlugFromCity } from "@/lib/sunday-social-cities";
 import { getJouwTafelEvents } from "@/lib/jouw-tafel/data";
 import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
@@ -23,27 +23,13 @@ import { amsterdamDateIso, formatSundayTableCardDateTime } from "@/lib/sunday-wi
  * next to the hand-made Sunday Socials (experience_type "sunday-table").
  */
 
-/** Every city a Sunday Social can be in, with its URL slug (the quiz's
- * cities). The first four also have their own city page
- * (sunday-table-lp-cities). */
-export const SUNDAY_SOCIAL_CITIES: ReadonlyArray<{ slug: string; name: string }> = [
-  ...SUNDAY_TABLE_LP_CITIES,
-  { slug: "amsterdam", name: "Amsterdam" },
-];
-
-export function sundaySocialCityFromSlug(slug: string): { slug: string; name: string } | null {
-  return SUNDAY_SOCIAL_CITIES.find((c) => c.slug === slug) ?? null;
-}
-
-export function sundaySocialSlugFromCity(city: string): string | null {
-  const key = city.trim().toLowerCase();
-  return SUNDAY_SOCIAL_CITIES.find((c) => c.name.toLowerCase() === key)?.slug ?? null;
-}
-
-/** True when the city has its own /sunday-social/[city] page. */
-export function hasSundaySocialCityPage(slug: string): boolean {
-  return sundayTableLpCityFromSlug(slug) !== null;
-}
+export {
+  SUNDAY_SOCIAL_CITIES,
+  hasSundaySocialCityPage,
+  sundaySocialCityFromSlug,
+  sundaySocialDatePath,
+  sundaySocialSlugFromCity,
+} from "@/lib/sunday-social-cities";
 
 type VenueInfo = { name: string; address: string | null };
 

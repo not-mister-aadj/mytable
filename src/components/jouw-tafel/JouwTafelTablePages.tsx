@@ -6,6 +6,7 @@ import { JouwTafelMemberReserve, MemberStateCta, type ReserveAccess } from "@/co
 import { JouwTafelTable } from "@/components/jouw-tafel/table/JouwTafelTable";
 import { JouwTafelReserve } from "@/components/jouw-tafel/table/JouwTafelReserve";
 import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import {
   jouwTafelReservePath,
   jouwTafelSettingsPath,
@@ -66,6 +67,20 @@ async function loadMembership(userId: string): Promise<ClientMembership | null> 
   return toClientMembership(membershipSnapshot(row));
 }
 
+/**
+ * One page per afternoon: while the membership is not offered, the table
+ * page and its reserve step are the Sunday Social date page (photos, venue,
+ * price and the booking card), so older links and mails end up there. With
+ * the membership these pages come back for members' included seats.
+ */
+async function redirectToDatePage(locale: Locale, slug: string): Promise<void> {
+  if (MEMBERSHIP_OPEN) return;
+  const event = await getFunnelTable(slug);
+  if (!event) notFound();
+  const datePath = sundaySocialDatePath(locale, event);
+  if (datePath) redirect(datePath);
+}
+
 /** How this person books this table right now. */
 async function reserveAccess(userId: string | null, event: QuizEvent, now: number) {
   const membership = userId ? await loadMembership(userId) : null;
@@ -81,6 +96,7 @@ async function reserveAccess(userId: string | null, event: QuizEvent, now: numbe
 
 /** /jouw-tafel/tafel/{slug} (EN /en/your-table/table/{slug}). */
 export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slug: string }) {
+  await redirectToDatePage(locale, slug);
   // Open with only an email given too; reserving asks for the account.
   const person = await getQuizPerson();
   if (!person) redirect(jouwTafelSignUpPath(locale));
@@ -128,6 +144,7 @@ export async function JouwTafelTablePage({ locale, slug }: { locale: Locale; slu
 
 /** /jouw-tafel/tafel/{slug}/reserveren: only while the table is open. */
 export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; slug: string }) {
+  await redirectToDatePage(locale, slug);
   const user = await requireUser(locale, jouwTafelReservePath(locale, slug));
   const event = await getFunnelTable(slug);
   if (!event) notFound();

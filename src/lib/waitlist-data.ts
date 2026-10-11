@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
@@ -126,4 +126,25 @@ export async function releaseWaitlistWelcomeEmailClaim(id: string): Promise<void
     .update(waitlistSignups)
     .set({ welcomeEmailSentAt: null })
     .where(eq(waitlistSignups.id, id));
+}
+
+/**
+ * True when this address already went through the waitlist questions (it
+ * got the welcome mail) or did the quiz (a row with answers). Then the
+ * questions are not asked a second time, and the answers stay as they are.
+ */
+export async function hasWaitlistAnswers(rawEmail: string): Promise<boolean> {
+  const email = rawEmail.trim().toLowerCase();
+  if (!email) return false;
+  const [row] = await getDb()
+    .select({ id: waitlistSignups.id })
+    .from(waitlistSignups)
+    .where(
+      and(
+        eq(waitlistSignups.email, email),
+        or(isNotNull(waitlistSignups.welcomeEmailSentAt), isNotNull(waitlistSignups.preferences)),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
 }

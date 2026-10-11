@@ -34,9 +34,10 @@ function checkRateLimit(key: string, max = 10, windowMs = 60_000): boolean {
  * Body: { email, locale, answers } with the answers in the quiz's shape.
  * Puts them on a guest row (and its cookie), so "Kies je zondag" opens with
  * them and the quiz only asks what was skipped; reserving makes the account
- * and moves them in. Answers { kies: true } when a table is open in one of
- * their cities, else { kies: false } (then the modal says they are on the
- * list). An address with an account already gets { kies: false } and no row.
+ * and moves them in. Answers { guest: true } once the row and cookie are
+ * there (the modal then goes on to "Kies je zondag"), with { kies } telling
+ * whether a table is open in one of their cities. An address with an account
+ * already gets { kies: false } and no row or cookie.
  * Signed in as someone else in this browser: that session ends first, so
  * "Kies je zondag" shows this person's answers, not the other account's.
  */
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
 
     const { events, now } = await getJouwTafelEvents();
     const kies = accountWelcomeVariant(answerCities(state.answers), events, now, locale).variant === "open";
-    const response = NextResponse.json({ kies });
+    const response = NextResponse.json({ kies, guest: true });
     response.cookies.set(GUEST_COOKIE, guest.id, guestCookieOptions);
     return response;
   } catch (error) {

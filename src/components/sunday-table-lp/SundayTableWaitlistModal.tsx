@@ -66,7 +66,7 @@ type Phase = "capture" | "questions" | "searching" | "done";
  * suit, "allInclusivePrice" only for wine tasting or chef's table. */
 type QuizStepKey = Extract<
   QuizStepId,
-  "geboortedatum" | "leeftijd" | "gender" | "tafeltype" | "zoekt" | "gesprek" | "wijn" | "gezelschap" | "wie" | "taal" | "dieet" | "bron"
+  "geboortedatum" | "leeftijd" | "gender" | "tafeltype" | "zoekt" | "gesprek" | "wijn" | "gezelschap" | "wie" | "taal" | "dieet" | "formats" | "bron" | "klaar"
 >;
 type StepKey = QuizStepKey | "availability" | "altDays" | "ticketPrice" | "allInclusivePrice";
 
@@ -82,7 +82,9 @@ const QUIZ_STEP_KEYS = new Set<StepKey>([
   "wie",
   "taal",
   "dieet",
+  "formats",
   "bron",
+  "klaar",
 ]);
 
 function isQuizStepKey(step: StepKey): step is QuizStepKey {
@@ -98,10 +100,13 @@ function waitlistSteps(
   if (answers.gender === "female") steps.push("tafeltype");
   steps.push("zoekt", "gesprek", "wijn", "gezelschap");
   if (answers.companion === "with") steps.push("wie");
-  steps.push("taal", "bron", "availability");
-  if (sundayAvailability === "no") steps.push("altDays");
-  steps.push("ticketPrice");
-  if (interests.includes("wine_tasting") || interests.includes("chefs_special")) steps.push("allInclusivePrice");
+  // The same questions as the account quiz, nothing more. The waitlist's
+  // own research questions (Sunday availability, other days, ticket price,
+  // all-in price) are no longer asked; their screens are kept below in case
+  // they come back.
+  steps.push("taal", "formats", "bron", "klaar");
+  void sundayAvailability;
+  void interests;
   return steps;
 }
 
@@ -526,9 +531,9 @@ export function SundayTableWaitlistModal({
         skipped,
       });
     }
-    // On to "Kies je zondag" with these answers when a Sunday Table is open
-    // in one of their cities (the quiz there only asks what was skipped).
-    // Format pages (a wine walk, a tasting) stay with their own message.
+    // On to "Kies je zondag" with these answers (the quiz there only asks
+    // what was skipped). Format pages (a wine walk, a tasting) stay with
+    // their own message.
     if (!presetInterest || presetInterest === "sunday_table") {
       try {
         const res = await fetch("/api/jouw-tafel/guest/from-waitlist", {
@@ -536,8 +541,11 @@ export function SundayTableWaitlistModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: email.trim(), locale, answers: quizRef.current }),
         });
-        const data = (await res.json().catch(() => ({}))) as { kies?: boolean };
-        if (data.kies) {
+        const data = (await res.json().catch(() => ({}))) as { kies?: boolean; guest?: boolean };
+        // Always on to "Kies je zondag", like the account quiz: their cities
+        // as chips, the tables that are there, or a line when there is none
+        // yet. Only an address that already has an account stays here.
+        if (data.guest) {
           setPhase("searching");
           window.setTimeout(() => window.location.assign(jouwTafelKiesPath(locale)), 1400);
           return;

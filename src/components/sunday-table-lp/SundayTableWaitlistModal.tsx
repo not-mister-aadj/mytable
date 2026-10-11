@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as Sentry from "@sentry/nextjs";
 import type { Locale } from "@/i18n/config";
 import type { SundayTableLpLabels } from "@/i18n/sunday-table-lp.types";
-import { jouwTafelKiesPath } from "@/i18n/config";
+import { agendaPath, jouwTafelKiesPath } from "@/i18n/config";
 import type {
   WaitlistAllInclusivePriceId,
   WaitlistAltDayId,
@@ -116,8 +116,18 @@ function quizFormats(interests: readonly WaitlistInterestId[]): QuizAnswers["for
 
 /** Lines for the question flow that the shared waitlist copy does not have. */
 const FLOW_COPY = {
-  nl: { skipQuestion: "Vraag overslaan", finish: "Klaar", searching: "We zoeken jouw tafel" },
-  en: { skipQuestion: "Skip question", finish: "Done", searching: "Finding your table" },
+  nl: {
+    skipQuestion: "Vraag overslaan",
+    finish: "Klaar",
+    searching: "We zoeken jouw tafel",
+    seeAgenda: "Bekijk wat er nu te boeken is",
+  },
+  en: {
+    skipQuestion: "Skip question",
+    finish: "Done",
+    searching: "Finding your table",
+    seeAgenda: "See what you can book now",
+  },
 } as const;
 
 function ChipButton({
@@ -222,6 +232,8 @@ export function SundayTableWaitlistModal({
   const [finishing, setFinishing] = useState(false);
 
   const [questionIndex, setQuestionIndex] = useState(0);
+  /** On the list already, with answers: the end screen, with the agenda. */
+  const [returning, setReturning] = useState(false);
   /** The quiz answers so far (name, cities and formats from the form). */
   const [quiz, setQuiz] = useState<QuizAnswers>({});
   const quizRef = useRef<QuizAnswers>({});
@@ -281,6 +293,7 @@ export function SundayTableWaitlistModal({
     // A second sign-up in the same page visit must be able to finish too.
     finishingRef.current = false;
     setFinishing(false);
+    setReturning(false);
     setQuiz({});
     quizRef.current = {};
     setTicketPrice(null);
@@ -377,7 +390,7 @@ export function SundayTableWaitlistModal({
         });
         return;
       }
-      const payload = (await res.json()) as { id?: string; created?: boolean };
+      const payload = (await res.json()) as { id?: string; created?: boolean; answered?: boolean };
       for (const c of effectiveCities) {
         rememberPreferredCity(c);
         trackEmailSignupCompleted({
@@ -389,6 +402,13 @@ export function SundayTableWaitlistModal({
       }
       setWaitlistId(payload.id ?? null);
       setIsNewSignup(payload.created === true);
+      // Already answered the questions before: not asked again (their
+      // answers stay), a new city is simply added.
+      if (payload.answered) {
+        setReturning(true);
+        setPhase("done");
+        return;
+      }
       const seeded: QuizAnswers = {
         name: nameValue,
         ...citiesAnswer(effectiveCities),
@@ -1008,6 +1028,15 @@ export function SundayTableWaitlistModal({
                   >
                     {questionLabels.successBody}
                   </p>
+
+                  {returning ? (
+                    <a
+                      href={agendaPath(locale)}
+                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-burgundy px-7 text-xs font-semibold uppercase tracking-[0.16em] text-cream transition hover:bg-wine"
+                    >
+                      {flowCopy.seeAgenda}
+                    </a>
+                  ) : null}
 
                   <button
                     type="button"

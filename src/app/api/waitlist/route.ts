@@ -3,6 +3,7 @@ import { isDbConfigured } from "@/db/index";
 import {
   claimWaitlistWelcomeEmail,
   createWaitlistSignup,
+  hasWaitlistAnswers,
   releaseWaitlistWelcomeEmailClaim,
 } from "@/lib/waitlist-data";
 import { onWaitlistJoined } from "@/lib/customers/hooks";
@@ -261,6 +262,14 @@ export async function POST(request: Request) {
   const enrich = body.enrich === true;
   const signupIds: string[] = [];
   const createdFlags: boolean[] = [];
+  // Someone who already answered the questions (or did the quiz) is not
+  // asked again: the modal goes straight to its end screen.
+  const answeredBefore = enrich
+    ? false
+    : await hasWaitlistAnswers(email).catch((error: unknown) => {
+        console.error("[waitlist] hasWaitlistAnswers failed:", error);
+        return false;
+      });
 
   for (const city of cities) {
     const result = await createWaitlistSignup({
@@ -382,5 +391,6 @@ export async function POST(request: Request) {
     id: signupIds[0],
     ids: signupIds,
     created: createdFlags[0] ?? false,
+    answered: answeredBefore,
   });
 }

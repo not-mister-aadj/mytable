@@ -18,21 +18,20 @@ export type MembershipOfferAmounts = {
   cities: number;
 };
 
-export type OfferRow = { title: string; detail: string; amount: string | null; credit?: boolean };
+export type OfferRow = { title: string; detail: string; amount: string | null };
 
 export type MembershipOfferCopy = {
   paid: (sunday: string | null) => string;
   eyebrow: string;
+  headline: { before: string; accent: string };
   lead: string;
-  headline: { before: string; accent: string; after: string };
   stackTitle: string;
   rows: OfferRow[];
   worth: { label: string; amount: string };
-  regular: { label: string; amount: string };
-  now: { label: string; amount: string; note: string };
+  /** What is paid today, on top of the seat already paid for, and after. */
+  price: { label: string; amount: string; extra: string; credited: string; after: string };
   cta: string;
   busy: string;
-  terms: string;
   decline: string;
   lastChance: string;
   error: string;
@@ -56,14 +55,14 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
   if (en) {
     return {
       paid: (sunday) => (sunday ? `Paid. Your seat on ${sunday} is yours.` : "Paid. Your seat is yours."),
-      eyebrow: `Wait, your ${credit} is still worth something`,
-      lead: `You just paid ${paid} for one Sunday.`,
-      headline: { before: `For ${first} more you get `, accent: "all of them", after: "." },
+      eyebrow: `Your ${credit} of today counts`,
+      headline: { before: "Turn your ticket into a month full of ", accent: "Sunday Socials" },
+      lead: `You just paid ${paid} for one Sunday. Upgrade for ${first} extra and also book the other Sunday Socials in our ${a.cities} cities this month.`,
       stackTitle: "What you get as a member",
       rows: [
         {
           title: `Every Sunday Social included, in all ${a.cities} cities`,
-          detail: "4 Sundays one by one",
+          detail: `4 Sunday Socials at ${single} each. You book while there are seats.`,
           amount: fourSundays,
         },
         { title: "Book before everyone else", detail: "You book 2 days before a table opens", amount: null },
@@ -72,34 +71,32 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
           detail: "The first time straight away",
           amount: single,
         },
-        {
-          title: `Your ${credit} of today counts`,
-          detail: "It comes off your first month",
-          amount: `− ${credit}`,
-          credit: true,
-        },
       ],
       worth: { label: "Together worth", amount: worth },
-      regular: { label: "Normally", amount: `${monthly} per month` },
-      now: { label: "Your first month", amount: first, note: `Then ${monthly} per month` },
-      cta: `Yes, make me a member for ${first}`,
+      price: {
+        label: "Today you pay",
+        amount: first,
+        extra: "extra",
+        credited: `Your ${credit} ticket is taken off.`,
+        after: `Then ${monthly} per month. Cancel monthly.`,
+      },
+      cta: `Yes, upgrade my ticket for ${first}`,
       busy: "One moment…",
-      terms: "No contract. You can cancel every month in your settings.",
-      decline: "No thanks, I would rather book per Sunday",
+      decline: "No, I will stick to this Sunday",
       lastChance: `Please note: after this screen you cannot come back here. The ${credit} of this booking then no longer counts.`,
       error: "Something went wrong. Please try again.",
     };
   }
   return {
     paid: (sunday) => (sunday ? `Betaald. Je plek op ${sunday} staat vast.` : "Betaald. Je plek staat vast."),
-    eyebrow: `Wacht, je ${credit} is nog wat waard`,
-    lead: `Je hebt net ${paid} betaald voor één zondag.`,
-    headline: { before: `Voor ${first} erbij krijg je ze `, accent: "allemaal", after: "." },
+    eyebrow: `Je ${credit} van vandaag telt mee`,
+    headline: { before: "Maak van je ticket een maand vol ", accent: "Sunday Socials" },
+    lead: `Je hebt net ${paid} betaald voor één zondag. Upgrade voor ${first} extra en boek deze maand ook de andere Sunday Socials in onze ${a.cities} steden.`,
     stackTitle: "Dit krijg je als lid",
     rows: [
       {
         title: `Elke Sunday Social inbegrepen, in alle ${a.cities} steden`,
-        detail: "4 zondagen los",
+        detail: `4 Sunday Socials à ${single}. Je boekt zolang er plek is.`,
         amount: fourSundays,
       },
       { title: "Eerder boeken dan de rest", detail: "Jij boekt 2 dagen voordat een tafel opengaat", amount: null },
@@ -108,20 +105,18 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
         detail: "De eerste keer meteen",
         amount: single,
       },
-      {
-        title: `Je ${credit} van vandaag telt mee`,
-        detail: "Die gaat van je eerste maand af",
-        amount: `− ${credit}`,
-        credit: true,
-      },
     ],
     worth: { label: "Samen ter waarde van", amount: worth },
-    regular: { label: "Normaal", amount: `${monthly} per maand` },
-    now: { label: "Je eerste maand", amount: first, note: `Daarna ${monthly} per maand` },
-    cta: `Ja, maak me lid voor ${first}`,
+    price: {
+      label: "Vandaag betaal je",
+      amount: first,
+      extra: "extra",
+      credited: `Je ticket van ${credit} is verrekend.`,
+      after: `Daarna ${monthly} per maand. Maandelijks opzegbaar.`,
+    },
+    cta: `Ja, upgrade mijn ticket voor ${first}`,
     busy: "Een moment…",
-    terms: "Geen contract. Opzeggen kan elke maand in je instellingen.",
-    decline: "Nee bedankt, ik boek liever per zondag",
+    decline: "Nee, ik hou het bij deze zondag",
     lastChance: `Let op: na dit scherm kun je hier niet meer naar terug. De ${credit} van deze boeking telt daarna niet meer mee.`,
     error: "Er ging iets mis. Probeer het nog een keer.",
   };

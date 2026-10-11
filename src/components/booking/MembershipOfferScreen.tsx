@@ -121,17 +121,16 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
           <motion.p {...rise(0)} className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
             {copy.eyebrow}
           </motion.p>
-          <motion.p {...rise(0.06)} className="mt-5 text-base leading-relaxed text-cream/75 sm:text-lg">
-            {copy.lead}
-          </motion.p>
           <motion.h1
-            {...rise(0.1)}
-            className="mt-1.5 font-serif text-[2.3rem] font-medium leading-[1.05] tracking-tight text-cream sm:text-6xl"
+            {...rise(0.06)}
+            className="mt-4 font-serif text-[2.3rem] font-medium leading-[1.05] tracking-tight text-cream sm:text-[3.4rem]"
           >
             {copy.headline.before}
             <em className="text-gold">{copy.headline.accent}</em>
-            {copy.headline.after}
           </motion.h1>
+          <motion.p {...rise(0.1)} className="mt-4 text-base leading-relaxed text-cream/80 sm:text-lg">
+            {copy.lead}
+          </motion.p>
 
           {/* What a member gets, each with what it is worth */}
           <motion.section
@@ -145,11 +144,7 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
                   const Icon = ROW_ICONS[index];
                   return (
                     <li key={row.title} className="flex items-start gap-3.5 py-3.5 sm:py-4">
-                      <span
-                        className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full ${
-                          row.credit ? "bg-gold text-wine" : "bg-burgundy/[0.08] text-burgundy"
-                        }`}
-                      >
+                      <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-burgundy/[0.08] text-burgundy">
                         {Icon ? <Icon className="h-[18px] w-[18px]" /> : <CheckIcon className="h-4 w-4" />}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -159,11 +154,7 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
                         <span className="mt-0.5 block text-sm leading-snug text-wine/60">{row.detail}</span>
                       </span>
                       {row.amount ? (
-                        <span
-                          className={`shrink-0 whitespace-nowrap pt-1 text-base font-semibold tabular-nums ${
-                            row.credit ? "text-burgundy" : "text-wine/80"
-                          }`}
-                        >
+                        <span className="shrink-0 whitespace-nowrap pt-1 text-base font-semibold tabular-nums text-wine/80">
                           {row.amount}
                         </span>
                       ) : null}
@@ -173,26 +164,23 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
               </ul>
             </div>
 
-            {/* The price: what it is worth, what it normally costs, what it costs now */}
+            {/* The price: what it is worth, then exactly what is paid today
+                (on top of the seat already paid for) and what follows */}
             <div className="border-t border-wine/10 bg-beige px-5 py-5 sm:px-7 sm:py-6">
               <div className="flex items-baseline justify-between gap-4 text-sm text-wine/65">
                 <span>{copy.worth.label}</span>
                 <span className="tabular-nums">{copy.worth.amount}</span>
               </div>
-              <div className="mt-1.5 flex items-baseline justify-between gap-4 text-sm text-wine/65">
-                <span>{copy.regular.label}</span>
-                <span className="tabular-nums line-through decoration-burgundy/60">{copy.regular.amount}</span>
-              </div>
-              <div className="mt-4 flex items-end justify-between gap-4">
-                <span>
-                  <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-burgundy">
-                    {copy.now.label}
+              <div className="mt-4 border-t border-wine/10 pt-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-burgundy">{copy.price.label}</p>
+                <p className="mt-1.5 flex items-baseline gap-2.5 text-burgundy">
+                  <span className="font-serif text-6xl font-medium leading-none tracking-tight sm:text-7xl">
+                    {copy.price.amount}
                   </span>
-                  <span className="mt-1 block text-sm text-wine/60">{copy.now.note}</span>
-                </span>
-                <span className="font-serif text-5xl font-medium leading-none tracking-tight text-burgundy sm:text-6xl">
-                  {copy.now.amount}
-                </span>
+                  <span className="font-serif text-3xl font-medium leading-none sm:text-4xl">{copy.price.extra}</span>
+                </p>
+                <p className="mt-3 text-[15px] font-semibold leading-snug text-wine">{copy.price.credited}</p>
+                <p className="mt-0.5 text-[15px] leading-snug text-wine/70">{copy.price.after}</p>
               </div>
             </div>
           </motion.section>
@@ -206,7 +194,6 @@ export function MembershipOfferScreen({ locale, sessionId, sunday, amounts, onDo
             >
               {busy ? copy.busy : copy.cta}
             </button>
-            <p className="mt-3 text-center text-sm text-cream/65">{copy.terms}</p>
             {error ? (
               <p role="alert" className="mt-3 text-center text-sm font-medium text-[#f3b9b0]">
                 {error}

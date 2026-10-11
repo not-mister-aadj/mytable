@@ -16,6 +16,8 @@ export type MembershipOfferAmounts = {
   firstMonthCents: number;
   /** Cities with a Sunday Social. */
   cities: number;
+  /** The city of the Sunday that was just booked, if known. */
+  city?: string | null;
 };
 
 export type OfferRow = { title: string; detail: string; amount: string | null };
@@ -56,8 +58,10 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
     return {
       paid: (sunday) => (sunday ? `Paid. Your seat on ${sunday} is yours.` : "Paid. Your seat is yours."),
       eyebrow: `Your ${credit} of today counts`,
-      headline: { before: "Turn your ticket into a month full of ", accent: "Sunday Socials" },
-      lead: `You just paid ${paid} for one Sunday. Upgrade for ${first} extra and also book the other Sunday Socials in our ${a.cities} cities this month.`,
+      // Honest about where the other Sundays are: each city has one
+      // Sunday Social every 4 weeks, so more Sundays means other cities.
+      headline: { before: `For ${first} extra: every Sunday Social, in `, accent: `all ${a.cities} cities` },
+      lead: `You just paid ${paid} for one Sunday${a.city ? ` in ${a.city}` : ""}. Upgrade for ${first} extra and this month you can also join in the other cities.`,
       stackTitle: "What you get as a member",
       rows: [
         {
@@ -90,8 +94,8 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
   return {
     paid: (sunday) => (sunday ? `Betaald. Je plek op ${sunday} staat vast.` : "Betaald. Je plek staat vast."),
     eyebrow: `Je ${credit} van vandaag telt mee`,
-    headline: { before: "Maak van je ticket een maand vol ", accent: "Sunday Socials" },
-    lead: `Je hebt net ${paid} betaald voor één zondag. Upgrade voor ${first} extra en boek deze maand ook de andere Sunday Socials in onze ${a.cities} steden.`,
+    headline: { before: `Voor ${first} extra: elke Sunday Social, in `, accent: `alle ${a.cities} steden` },
+    lead: `Je hebt net ${paid} betaald voor één zondag${a.city ? ` in ${a.city}` : ""}. Upgrade voor ${first} extra en schuif deze maand ook aan in de andere steden.`,
     stackTitle: "Dit krijg je als lid",
     rows: [
       {

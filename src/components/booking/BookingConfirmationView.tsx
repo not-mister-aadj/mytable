@@ -109,6 +109,7 @@ export function BookingConfirmationView({
             ...offer,
             paidCents: summary.amountCents ?? offer.singleSeatCents,
             cities: SUNDAY_SOCIAL_CITIES.length,
+            city: summary.city || null,
           }}
           onDone={() => {
             setOfferOpen(false);

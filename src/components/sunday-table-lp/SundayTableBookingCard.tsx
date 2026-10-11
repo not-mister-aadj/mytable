@@ -27,6 +27,7 @@ const MEMBER_COPY = {
     guestPaid: (price: string) => `Je gast betaalt ${price}`,
     free: "gratis",
     login: "Al lid? Log in",
+    loginCta: "Log in als lid",
   },
   en: {
     included: "Included in your membership",
@@ -35,6 +36,7 @@ const MEMBER_COPY = {
     guestPaid: (price: string) => `Your guest pays ${price}`,
     free: "free",
     login: "Already a member? Log in",
+    loginCta: "Log in as a member",
   },
 } as const;
 
@@ -119,6 +121,11 @@ export function SundayTableBookingCard({
   /** Nobody is signed in: a member can log in from here. */
   const [signedOut, setSignedOut] = useState(false);
   const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
+  /** The typed address is a member's, but nobody is signed in as them. */
+  const [needsLogin, setNeedsLogin] = useState(false);
+  /** Back to this Sunday after logging in. */
+  const logInHref = () =>
+    `${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.pathname)}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -234,6 +241,7 @@ export function SundayTableBookingCard({
       });
       const data = await res.json();
       if (!res.ok) {
+        setNeedsLogin(data.code === "member_login");
         setError(data.error ?? genericErrorLabel);
         setLoading(false);
         return;
@@ -284,7 +292,13 @@ export function SundayTableBookingCard({
           required
           value={email}
           readOnly={Boolean(member)}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (needsLogin) {
+              setNeedsLogin(false);
+              setError(null);
+            }
+          }}
           className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
         />
       </label>
@@ -397,9 +411,21 @@ export function SundayTableBookingCard({
       </div>
       )}
 
-      {error ? <p className="text-sm text-red-800">{error}</p> : null}
+      {needsLogin && error ? (
+        <div className="rounded-2xl border border-gold/50 bg-gold/10 px-4 py-4">
+          <p className="text-sm font-semibold leading-snug text-wine">{error}</p>
+          <a
+            href={logInHref()}
+            className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-burgundy px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-wine"
+          >
+            {memberCopy.loginCta}
+          </a>
+        </div>
+      ) : error ? (
+        <p className="text-sm text-red-800">{error}</p>
+      ) : null}
 
-      {englishOnlyWaiting && englishNotified ? null : (
+      {(englishOnlyWaiting && englishNotified) || needsLogin ? null : (
         <Button
           type="submit"
           className="w-full justify-center bg-burgundy px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.1em] text-cream hover:bg-wine"
@@ -416,7 +442,7 @@ export function SundayTableBookingCard({
       {signedOut && !member ? (
         <p className="text-center text-sm">
           <a
-            href={jouwTafelLogInPath(locale)}
+            href={logInHref()}
             className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
           >
             {memberCopy.login}

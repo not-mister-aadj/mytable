@@ -46,7 +46,7 @@ import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/
 import { captureCriticalError } from "@/lib/sentry/critical";
 import type { Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
-import { getRunningMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
+import { getRunningMembershipByEmail, getRunningMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
 import {
   earlyAccessAllows,
   memberBookingDecision,
@@ -272,6 +272,26 @@ export async function POST(request: Request) {
   if (signedInUser?.email) {
     runningMembership = await getRunningMembershipForUser(signedInUser.id);
     memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
+  }
+
+  // The address of a member, typed by someone who is not signed in as that
+  // member: never charged for a seat the membership includes. They log in
+  // first (the address alone books nothing, or anyone could book in a
+  // member's name).
+  if (isSundayTable && memberDecision.kind === "non_member" && signedInUser?.email?.trim().toLowerCase() !== email) {
+    const theirs = membershipSnapshot(await getRunningMembershipByEmail(email).catch(() => null));
+    if (theirs && memberBookingDecision(theirs, event.startsAt).kind !== "non_member") {
+      return NextResponse.json(
+        {
+          code: "member_login",
+          error:
+            locale === "en"
+              ? "You are a member. Log in to reserve your seat without paying."
+              : "Je bent lid. Log in om je plek zonder te betalen te reserveren.",
+        },
+        { status: 409 },
+      );
+    }
   }
 
   // A series table opens 4 weeks before its date, and for a member 48

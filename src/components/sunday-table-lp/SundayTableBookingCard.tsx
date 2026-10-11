@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { Locale } from "@/i18n/config";
+import { useEffect, useState } from "react";
+import { jouwTafelKiesPath, type Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
 import {
   DEFAULT_TABLE_LANGUAGE_PREFERENCE,
@@ -84,6 +84,28 @@ export function SundayTableBookingCard({
   const [birthDate, setBirthDate] = useState("");
   const birthCopy = BIRTH_COPY[locale === "en" ? "en" : "nl"];
   const [seats, setSeats] = useState<1 | 2>(1);
+  /** Came through the quiz ("Kies je zondag"): the card is filled in with
+   * what they gave there, and a link goes back to their Sundays. */
+  const [fromQuiz, setFromQuiz] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/jouw-tafel/guest/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((me: { known?: boolean; email?: string; name?: string | null; birthDate?: string | null } | null) => {
+        if (cancelled || !me?.known) return;
+        setFromQuiz(true);
+        if (me.email) setEmail((current) => current || me.email!);
+        if (me.name) setName((current) => current || me.name!);
+        if (me.birthDate) setBirthDate((current) => current || me.birthDate!);
+      })
+      .catch(() => {
+        /* the card simply stays empty */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [tableLanguagePreference, setTableLanguagePreference] =
     useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [loading, setLoading] = useState(false);
@@ -190,6 +212,15 @@ export function SundayTableBookingCard({
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+      {fromQuiz ? (
+        <a
+          href={jouwTafelKiesPath(locale)}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+        >
+          <span aria-hidden>&larr;</span>
+          {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
+        </a>
+      ) : null}
       <label className="block text-sm font-medium text-wine">
         {emailLabel}
         <input

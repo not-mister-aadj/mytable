@@ -17,6 +17,7 @@ import {
   type QuizTestimonial,
 } from "@/components/jouw-tafel/quiz/quiz-screens";
 import { jouwTafelSettingsPath, jouwTafelTablePath, type Locale } from "@/i18n/config";
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import { getMetaBrowserCookies, getMetaEventSourceUrl } from "@/lib/analytics/metaCookies";
 import { trackMetaQuizLead } from "@/lib/analytics/metaTracking";
 import { trackQuizEvent, trackQuizStepLeft, trackTableEvent } from "@/lib/posthog/analytics";
@@ -744,7 +745,7 @@ export function JouwTafelQuiz({
             membership={membership}
             booked={booked}
             onAnswers={updateAnswers}
-            tablePath={(slug) => jouwTafelTablePath(locale, slug)}
+            tablePath={(event) => sundaySocialDatePath(locale, event) ?? jouwTafelTablePath(locale, event.slug)}
           />
         );
       default:

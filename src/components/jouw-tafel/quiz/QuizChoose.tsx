@@ -215,7 +215,8 @@ export function QuizChoose({
   notified: Set<string>;
   handlers: ChooseHandlers;
   /** The table page for an event slug. */
-  tablePath: (slug: string) => string;
+  /** Where a table card goes: the Sunday Social date page of that table. */
+  tablePath: (event: QuizEvent) => string;
   /** Tables this person already has a seat at: event id to seats. */
   booked?: Record<string, number>;
   /** Saves a change from the filters on top (cities, kind of table). */
@@ -280,7 +281,7 @@ export function QuizChoose({
 
   function open(row: ChooseRow) {
     handlers.onOpen({ event_slug: row.event.slug, nearby: row.nearby, coming_soon: row.event.comingSoon });
-    window.location.assign(tablePath(row.event.slug));
+    window.location.assign(tablePath(row.event));
   }
 
   function notifyButton(event: QuizEvent | null, compact = false) {

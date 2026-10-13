@@ -24,7 +24,8 @@ function PinIcon({ filled }: { filled: boolean }) {
   );
 }
 
-/** The month view of the "Jouw tafel" admin: one block per table in its day. */
+/** The month view of the "Tafels" admin: one block per Sunday Social in its
+ * day, the series' tables and the hand-made ones alike. */
 export function JouwTafelCalendar({
   data,
   current,
@@ -122,7 +123,7 @@ export function JouwTafelCalendar({
                       {dayItems.map((item) => (
                         <li key={item.id}>
                           <Link
-                            href={path(`/jouw-tafel/${item.id}`)}
+                            href={path(item.handMade ? "/sunday-tables" : `/jouw-tafel/${item.id}`)}
                             className={`flex items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-xs transition hover:opacity-85 ${STATE_CLASS[item.state]}`}
                             title={
                               item.state === "closed"

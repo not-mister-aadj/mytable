@@ -195,8 +195,8 @@ function venueAbout(
         eyebrow: en ? "About the venue" : "Over de locatie",
         name: "Bar Cava",
         body: en
-          ? "Bar Cava is a tapas and wine bar on the Ganzenmarkt, in the centre of Utrecht. The list has a wide choice of cava and wines by the glass, and from 15:00 the kitchen serves home-made tapas to share. For Sunday Social, we keep a table for you."
-          : "Bar Cava is een tapas- en wijnbar aan de Ganzenmarkt, in het centrum van Utrecht. Op de kaart staat een ruime keuze aan cava en wijnen per glas, en vanaf 15:00 serveert de keuken huisgemaakte tapas om te delen. Voor Sunday Social houden we een tafel voor je vrij.",
+          ? "Bar Cava is a tapas and wine bar on the Ganzenmarkt, right in the old centre of Utrecht. Behind the bar is a wall of bottles with cava in the lead: from fresh and light to aged vintage, next to wines from Spain, France and Italy. The kitchen makes its own tapas, meant for sharing. A warm, easy-going place where you set the pace yourself. For Sunday Social, we keep a table for you."
+          : "Bar Cava is een tapas- en wijnbar aan de Ganzenmarkt, midden in de Utrechtse binnenstad. Achter de bar staat een wand vol flessen, met cava in de hoofdrol: van fris en licht tot gerijpte vintage, naast wijnen uit Spanje, Frankrijk en Italië. De keuken maakt de tapas zelf, bedoeld om te delen. Een warme, ongedwongen zaak waar je zelf het tempo bepaalt. Voor Sunday Social houden we een tafel voor je vrij.",
         facts: [
           { label: en ? "Address" : "Adres", value: address, href: mapsHref },
           {
@@ -208,8 +208,8 @@ function venueAbout(
           {
             label: en ? "On the menu" : "Op de kaart",
             value: en
-              ? "Cava and wines by the glass, tapas from 15:00"
-              : "Cava en wijnen per glas, tapas vanaf 15:00",
+              ? "Cava and wines by the glass, home-made tapas to share"
+              : "Cava en wijnen per glas, huisgemaakte tapas om te delen",
           },
           { label: en ? "Neighbourhood" : "Buurt", value: en ? "City centre" : "Centrum" },
         ],

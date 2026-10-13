@@ -67,6 +67,9 @@ export function BookingConfirmationEmail({
       ? "1 plek"
       : `${seats} plekken`;
   const trimmedDietary = dietaryNotes?.trim();
+  // A Sunday Social can be booked before its venue is set: the mail only
+  // says "you'll find it below" when the venue really is in the card.
+  const venueKnown = Boolean(venueName?.trim() || startLocation?.trim());
 
   const aloneOrTogetherTitle = isSundayTable
     ? en
@@ -104,9 +107,13 @@ export function BookingConfirmationEmail({
         headline={en ? "Your table is ready" : "Je tafel staat klaar"}
         body={
           isSundayTable
-            ? en
-              ? "Your booking is confirmed. The venue is already set, you'll find it below."
-              : "Je boeking is bevestigd. De locatie staat al vast, je vindt hem hieronder."
+            ? venueKnown
+              ? en
+                ? "Your booking is confirmed. The venue is already set, you'll find it below."
+                : "Je boeking is bevestigd. De locatie staat al vast, je vindt hem hieronder."
+              : en
+                ? "Your booking is confirmed. You will hear the venue from us as soon as it is set."
+                : "Je boeking is bevestigd. De locatie hoor je van ons zodra die vaststaat."
             : en
               ? "Your booking is confirmed. We will send all practical details 24 hours beforehand."
               : "Je boeking is bevestigd. We sturen je alle praktische informatie 24 uur van tevoren toe."

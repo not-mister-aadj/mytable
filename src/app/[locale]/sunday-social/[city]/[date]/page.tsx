@@ -111,6 +111,28 @@ function buildVenueHeroImages(
       },
     ];
   }
+  if (venueName === "Bar Cava") {
+    return [
+      {
+        src: "/venues/bar-cava-utrecht.jpg",
+        alt: locale === "en" ? "The bar at Bar Cava in Utrecht" : "De bar van Bar Cava in Utrecht",
+      },
+      {
+        src: "https://lh3.googleusercontent.com/grass-cs/AABkmLfQtb4Cex5CXMeK52EPnEuuxbJs-A5C2j0d0PY-UAOPJ9hpYcXMu1mCY_FmUUX3C5P1hGceyfgElUrZwFt2_fn9MXIdfuj--zIP4fJHeYPTQoeV7ltU7hpdOPLk16h080Cj9Io=w1600-h1200-p-k-no",
+        alt:
+          locale === "en"
+            ? "The front of Bar Cava on the Ganzenmarkt"
+            : "De gevel van Bar Cava aan de Ganzenmarkt",
+      },
+      {
+        src: "/girls-only/wine-tasting-toast.jpg",
+        alt:
+          locale === "en"
+            ? "A full table raises a toast during a MyTable wine tasting"
+            : "Een volle tafel proost tijdens een MyTable wijnproeverij",
+      },
+    ];
+  }
   if (eventImageUrl?.trim()) {
     return [
       {
@@ -165,6 +187,35 @@ function venueAbout(
       },
     };
   }
+  // Sources for Bar Cava: barcava.nl and its Google Maps listing (walking
+  // time from Utrecht Centraal: 9 minutes, 650 m).
+  if (venueName === "Bar Cava") {
+    return {
+      about: {
+        eyebrow: en ? "About the venue" : "Over de locatie",
+        name: "Bar Cava",
+        body: en
+          ? "Bar Cava is a tapas and wine bar on the Ganzenmarkt, right in the old centre of Utrecht. Behind the bar is a wall of bottles with cava in the lead: from fresh and light to aged vintage, next to wines from Spain, France and Italy. The kitchen makes its own tapas, meant for sharing. A warm, easy-going place where you set the pace yourself. For Sunday Social, we keep a table for you."
+          : "Bar Cava is een tapas- en wijnbar aan de Ganzenmarkt, midden in de Utrechtse binnenstad. Achter de bar staat een wand vol flessen, met cava in de hoofdrol: van fris en licht tot gerijpte vintage, naast wijnen uit Spanje, Frankrijk en Italië. De keuken maakt de tapas zelf, bedoeld om te delen. Een warme, ongedwongen zaak waar je zelf het tempo bepaalt. Voor Sunday Social houden we een tafel voor je vrij.",
+        facts: [
+          { label: en ? "Address" : "Adres", value: address, href: mapsHref },
+          {
+            label: en ? "Getting there" : "Bereikbaarheid",
+            value: en
+              ? "In the city centre, about 9 minutes' walk from Utrecht Centraal"
+              : "In het centrum, ongeveer 9 minuten lopen van Utrecht Centraal",
+          },
+          {
+            label: en ? "On the menu" : "Op de kaart",
+            value: en
+              ? "Cava and wines by the glass, home-made tapas to share"
+              : "Cava en wijnen per glas, huisgemaakte tapas om te delen",
+          },
+          { label: en ? "Neighbourhood" : "Buurt", value: en ? "City centre" : "Centrum" },
+        ],
+      },
+    };
+  }
   if (venueName !== "Bar Juni Rotterdam") return null;
   return {
     about: {
@@ -202,6 +253,13 @@ function venueGoogleRating(venueName: string, locale: Locale) {
       score: "4.9",
       label: locale === "en" ? "123 Google reviews" : "123 reviews op Google",
       href: "https://www.google.com/maps/search/?api=1&query=Juni+Rotterdam",
+    };
+  }
+  if (venueName === "Bar Cava") {
+    return {
+      score: "4.6",
+      label: locale === "en" ? "785 Google reviews" : "785 reviews op Google",
+      href: "https://www.google.com/maps/search/?api=1&query=Bar+Cava+Utrecht",
     };
   }
   if (venueName === "Vino Victoria") {

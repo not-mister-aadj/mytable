@@ -1,4 +1,4 @@
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events, waitlistSignups } from "@/db/schema";
@@ -6,10 +6,14 @@ import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS, JOUW_TAFEL_SHOWN_AFTER_DAYS, QUIZ_CITIES, bookingOpensOverride, isNoLongerBookable, isShownTable, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
-import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
+import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
+import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 
-/** Published Sunday Tables, upcoming or started less than
- * JOUW_TAFEL_SHOWN_AFTER_DAYS ago (still shown as "Full").
+/** Published Sunday Socials, upcoming or started less than
+ * JOUW_TAFEL_SHOWN_AFTER_DAYS ago (still shown as "Full"): the tables the
+ * series planned, and the hand-made ones (experience_type "sunday-table").
+ * One Sunday Social per city per Sunday: a hand-made one wins over a series
+ * table on the same city and date.
  * Deliberately no venue: the page never names one, because the wine bar is
  * booked once the tables are known. */
 async function loadEvents(): Promise<QuizEvent[]> {
@@ -26,19 +30,52 @@ async function loadEvents(): Promise<QuizEvent[]> {
       spotsSold: events.spotsSold,
       extras: events.extras,
       membersOnlyUntil: events.membersOnlyUntil,
+      experienceType: events.experienceType,
+      priceCents: events.priceCents,
+      createdAt: events.createdAt,
     })
     .from(events)
     .where(
       and(
-        eq(events.experienceType, JOUW_TAFEL_TYPE),
+        inArray(events.experienceType, [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE]),
         eq(events.workflowStatus, "published"),
         gt(events.startsAt, new Date(Date.now() - JOUW_TAFEL_SHOWN_AFTER_DAYS * 24 * 60 * 60 * 1000)),
       ),
     );
 
+  // A hand-made Sunday Social needs seats to be a table at all, and the
+  // same afternoon is never listed twice.
+  const handMadeKeys = new Set(
+    rows
+      .filter((r) => r.experienceType === SUNDAY_SOCIAL_TYPE && r.capacity > 0)
+      .map((r) => `${r.city.toLowerCase()}|${amsterdamDateIso(r.startsAt)}`),
+  );
+
   const out: QuizEvent[] = [];
   for (const row of rows) {
+    const handMade = row.experienceType === SUNDAY_SOCIAL_TYPE;
+    if (handMade && row.capacity <= 0) continue;
+    if (!handMade && handMadeKeys.has(`${row.city.toLowerCase()}|${amsterdamDateIso(row.startsAt)}`)) continue;
     const bracket = bracketFromEventName(row.nameNl);
+    if (handMade) {
+      out.push({
+        id: row.id,
+        slug: row.slug,
+        city: row.city,
+        bracket,
+        startsAt: row.startsAt.toISOString(),
+        priceCents: row.priceCents,
+        capacity: row.capacity,
+        spotsSold: row.spotsSold,
+        comingSoon: Boolean(row.extras?.comingSoon),
+        englishOpen: isEnglishOpenForSundayTable(row.id),
+        membersOnlyUntil: null,
+        // No booking window and no closing when empty: open for everyone
+        // from the moment it was made.
+        bookingOpensAt: row.createdAt.toISOString(),
+      });
+      continue;
+    }
     out.push({
       id: row.id,
       slug: row.slug,
@@ -61,7 +98,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
 
 /** Short cache, dropped with the agenda whenever a purchase or admin edit
  * revalidates PUBLISHED_EVENTS_CACHE_TAG. */
-const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v3"], {
+const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v4"], {
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });

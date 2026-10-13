@@ -17,12 +17,13 @@ function sundayKey(item: ExperienceItem): string {
   return `${item.city.toLowerCase()}|${item.startsAt ? amsterdamDateIso(new Date(item.startsAt)) : item.id}`;
 }
 
-/** A Sunday Social shows on the agenda only while it can be booked: it has
- * a published event (a location row alone has no seats or price) and is
- * not coming soon or sold out. */
-function isBookableNow(item: ExperienceItem): boolean {
-  if (item.capacity === undefined) return false;
-  return item.status === "available" || item.status === "almostFull";
+/** A Sunday Social shows on the agenda while it can be booked, and also
+ * once it is sold out (as sold out). It needs a published event with seats
+ * (a location row alone has no seats or price); one that is coming soon or
+ * closed is left out. */
+function isShownOnAgenda(item: ExperienceItem): boolean {
+  if (item.capacity === undefined || item.capacity <= 0) return false;
+  return item.status === "available" || item.status === "almostFull" || item.status === "soldOut";
 }
 
 export async function AgendaEventsSection({ locale }: AgendaEventsSectionProps) {
@@ -35,7 +36,7 @@ export async function AgendaEventsSection({ locale }: AgendaEventsSectionProps) 
     await Promise.all(
       locations.map((location) => buildSundayTableAgendaItem(location, locale)),
     )
-  ).filter((item): item is ExperienceItem => item !== null && isBookableNow(item));
+  ).filter((item): item is ExperienceItem => item !== null && isShownOnAgenda(item));
   // Hand-made Sunday Socials first; a series table on the same city and
   // Sunday is the same afternoon, so it is not shown twice.
   const taken = new Set(handMade.map(sundayKey));

@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { eventGroups, eventVenues, events, jouwTafelPauses, venues } from "@/db/schema";
-import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
+import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { QUIZ_METADATA_KEY, ageFromBirthDate, girlsOnlyWish, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { calendarState, monthGrid, type CalendarState } from "@/lib/jouw-tafel/groups-logic";
@@ -20,6 +20,9 @@ export type CalendarItem = {
   state: CalendarState;
   venueCount: number;
   final: boolean;
+  /** A hand-made Sunday Social (not planned by the series): it is managed
+   * on the "Sunday Social" tab, not on a table board. */
+  handMade: boolean;
 };
 
 export type CalendarMonth = {
@@ -29,7 +32,8 @@ export type CalendarMonth = {
   cities: string[];
 };
 
-/** Every "Jouw tafel" Sunday Table in the weeks of a month view. */
+/** Every Sunday Social in the weeks of a month view: the tables the series
+ * planned and the hand-made ones (one event per city per Sunday). */
 export async function loadCalendarMonth(year: number, month: number, now = Date.now()): Promise<CalendarMonth> {
   const db = getDb();
   const weeks = monthGrid(year, month);
@@ -41,7 +45,7 @@ export async function loadCalendarMonth(year: number, month: number, now = Date.
       .from(events)
       .where(
         and(
-          eq(events.experienceType, JOUW_TAFEL_TYPE),
+          inArray(events.experienceType, [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE]),
           eq(events.workflowStatus, "published"),
           gte(events.startsAt, seriesStartsAt(first, "00:00")),
           lte(events.startsAt, seriesStartsAt(last, "23:59")),
@@ -52,7 +56,10 @@ export async function loadCalendarMonth(year: number, month: number, now = Date.
       .select()
       .from(jouwTafelPauses)
       .where(and(lte(jouwTafelPauses.startsOn, last), gte(jouwTafelPauses.endsOn, first))),
-    db.selectDistinct({ city: events.city }).from(events).where(eq(events.experienceType, JOUW_TAFEL_TYPE)),
+    db
+      .selectDistinct({ city: events.city })
+      .from(events)
+      .where(inArray(events.experienceType, [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE])),
   ]);
   const counts =
     rows.length > 0
@@ -65,20 +72,33 @@ export async function loadCalendarMonth(year: number, month: number, now = Date.
   const venueCount = new Map(counts.map((c) => [c.eventId, c.n]));
   return {
     weeks,
-    items: rows.map((r) => ({
-      id: r.id,
-      city: r.city,
-      date: amsterdamDateIso(r.startsAt),
-      startsAt: r.startsAt.toISOString(),
-      capacity: r.capacity,
-      spotsSold: r.spotsSold,
-      state: calendarState(
-        { startsAt: r.startsAt, capacity: r.capacity, spotsSold: r.spotsSold, comingSoon: Boolean(r.extras?.comingSoon), bookingOpensAt: bookingOpensOverride(r.extras) },
-        now,
-      ),
-      venueCount: venueCount.get(r.id) ?? 0,
-      final: Boolean(r.groupsFinalAt),
-    })),
+    items: rows.map((r) => {
+      const handMade = r.experienceType === SUNDAY_SOCIAL_TYPE;
+      const comingSoon = Boolean(r.extras?.comingSoon);
+      return {
+        id: r.id,
+        city: r.city,
+        date: amsterdamDateIso(r.startsAt),
+        startsAt: r.startsAt.toISOString(),
+        capacity: r.capacity,
+        spotsSold: r.spotsSold,
+        // A hand-made one has no booking window and never closes empty: it
+        // is open from the moment it is published.
+        state: handMade
+          ? r.spotsSold >= r.capacity
+            ? ("full" as const)
+            : comingSoon
+              ? ("not_yet" as const)
+              : ("bookable" as const)
+          : calendarState(
+              { startsAt: r.startsAt, capacity: r.capacity, spotsSold: r.spotsSold, comingSoon, bookingOpensAt: bookingOpensOverride(r.extras) },
+              now,
+            ),
+        venueCount: venueCount.get(r.id) ?? 0,
+        final: Boolean(r.groupsFinalAt),
+        handMade,
+      };
+    }),
     pauses: pauseRows.map((p) => ({ startsOn: p.startsOn, endsOn: p.endsOn, label: p.label })),
     cities: [...new Set(cityRows.map((c) => c.city))].sort((a, b) => a.localeCompare(b, "nl")),
   };

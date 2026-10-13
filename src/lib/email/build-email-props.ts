@@ -1,4 +1,7 @@
-import type { Booking, Event, Venue } from "@/db/schema";
+import { asc, eq } from "drizzle-orm";
+import { getDb, isDbConfigured } from "@/db/index";
+import { eventVenues, venues, type Booking, type Event, type Venue } from "@/db/schema";
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import type { BookingConfirmationEmailProps } from "@/emails/BookingConfirmationEmail";
 import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
 import { getSiteUrl } from "@/lib/admin-url";
@@ -52,6 +55,29 @@ async function buildSundayTableEmailContext(
   };
 }
 
+/**
+ * A Sunday Social the series planned ("jouw-tafel") has its venue in
+ * event_venues (set by an admin once known), and its own page is the Sunday
+ * Social date page. Without a venue yet, only the link is returned.
+ */
+async function buildSeriesTableEmailContext(
+  event: Event,
+  locale: Locale,
+): Promise<{ eventUrl: string; venueName?: string; startLocation?: string }> {
+  const base = getSiteUrl().replace(/\/$/, "");
+  const datePath = sundaySocialDatePath(locale, { city: event.city, startsAt: new Date(event.startsAt) });
+  const eventUrl = datePath ? `${base}${datePath}` : buildEventUrl(event, locale);
+  if (!isDbConfigured()) return { eventUrl };
+  const [venue] = await getDb()
+    .select({ name: venues.name, address: venues.address })
+    .from(eventVenues)
+    .innerJoin(venues, eq(venues.id, eventVenues.venueId))
+    .where(eq(eventVenues.eventId, event.id))
+    .orderBy(asc(eventVenues.position))
+    .limit(1);
+  return { eventUrl, venueName: venue?.name, startLocation: venue?.address ?? undefined };
+}
+
 async function bookingEmailLocale(booking: Booking): Promise<Locale> {
   return resolveEmailLocale({
     email: booking.email,
@@ -73,7 +99,9 @@ export async function buildBookingConfirmationEmailProps(
 
   const sundayTableContext = isSundaySocialType(event.experienceType)
     ? await buildSundayTableEmailContext(event, locale)
-    : null;
+    : isJouwTafelType(event.experienceType)
+      ? await buildSeriesTableEmailContext(event, locale).catch(() => null)
+      : null;
 
   const member = memberEmailProps(booking, event, locale);
   return {

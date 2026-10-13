@@ -1,9 +1,6 @@
 import { EmailLayout } from "./components/EmailLayout";
 import { Button } from "./components/Button";
-import {
-  GIRLS_WHATSAPP_GROUP_URL,
-  MIXED_WHATSAPP_GROUP_URL,
-} from "@/lib/member-onboarding";
+import { MIXED_WHATSAPP_GROUP_URL } from "@/lib/member-onboarding";
 import { joinCityNames } from "@/lib/email/format-cities";
 
 export type SundayTableWaitlistWelcomeEmailProps = {
@@ -11,9 +8,8 @@ export type SundayTableWaitlistWelcomeEmailProps = {
   firstName?: string;
   /** Every city this signup joined the waitlist for, not just one. */
   cities: string[];
-  /** Unknown at signup time unless the enrichment questions were already
-   * answered — when unset, both WhatsApp groups are offered so the person
-   * can self-select. */
+  /** Not used by this mail any more (it offered a women-only WhatsApp
+   * group once); kept so callers need no change. */
   gender?: "female" | "male" | "other" | "unspecified";
 };
 
@@ -21,7 +17,6 @@ export function SundayTableWaitlistWelcomeEmail({
   locale,
   firstName,
   cities,
-  gender,
 }: SundayTableWaitlistWelcomeEmailProps) {
   const nl = locale !== "en";
   const greeting = firstName
@@ -32,13 +27,10 @@ export function SundayTableWaitlistWelcomeEmail({
       ? "Hoi,"
       : "Hi,";
   const cityLabel = joinCityNames(cities, locale);
-  // WhatsApp groups are Rotterdam-specific communities — only offer them
-  // when Rotterdam is one of the cities this signup is for.
+  // The WhatsApp group is a Rotterdam community: only offered when
+  // Rotterdam is one of the cities this signup is for. One group for
+  // everyone, the mixed group chat.
   const showWhatsapp = cities.some((c) => c.trim().toLowerCase() === "rotterdam");
-  // Women get both groups, since the Sunday Socials on sale are mixed.
-  // Everyone else only gets the mixed group chat.
-  const showGirlsOnly = showWhatsapp && (gender === "female" || gender === undefined);
-  const showMixed = showWhatsapp;
 
   return (
     <EmailLayout preview={nl ? "Je staat op de lijst" : "You're on the list"}>
@@ -67,23 +59,12 @@ export function SundayTableWaitlistWelcomeEmail({
           <p style={{ margin: "0 0 12px", fontSize: 15, color: "#2b0d12" }}>
             {nl
               ? "Liever updates via WhatsApp dan mail? Join de groep, daar doen we ook onze aankondigingen."
-              : "Prefer WhatsApp updates over email? Join the group — we post our announcements there too."}
+              : "Prefer WhatsApp updates over email? Join the group, we post our announcements there too."}
           </p>
           <div style={{ margin: "0 0 24px" }}>
-            {showGirlsOnly ? (
-              <div style={{ margin: showMixed ? "0 0 12px" : "0" }}>
-                <Button href={GIRLS_WHATSAPP_GROUP_URL} variant="secondary">
-                  Girls only WhatsApp
-                </Button>
-              </div>
-            ) : null}
-            {showMixed ? (
-              <div style={{ margin: "0" }}>
-                <Button href={MIXED_WHATSAPP_GROUP_URL} variant="secondary">
-                  {nl ? "MyTable groepschat" : "MyTable groupchat"}
-                </Button>
-              </div>
-            ) : null}
+            <Button href={MIXED_WHATSAPP_GROUP_URL} variant="secondary">
+              {nl ? "MyTable groepschat" : "MyTable groupchat"}
+            </Button>
           </div>
         </>
       ) : null}

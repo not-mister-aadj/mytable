@@ -112,8 +112,8 @@ export function BookingConfirmationEmail({
                 ? "Your booking is confirmed. The venue is already set, you'll find it below."
                 : "Je boeking is bevestigd. De locatie staat al vast, je vindt hem hieronder."
               : en
-                ? "Your booking is confirmed. You will hear the venue from us 7 days beforehand."
-                : "Je boeking is bevestigd. De locatie hoor je van ons 7 dagen van tevoren."
+                ? "Your booking is confirmed. You will hear the venue from us at the latest 7 days beforehand."
+                : "Je boeking is bevestigd. De locatie hoor je uiterlijk 7 dagen van tevoren van ons."
             : en
               ? "Your booking is confirmed. We will send all practical details 24 hours beforehand."
               : "Je boeking is bevestigd. We sturen je alle praktische informatie 24 uur van tevoren toe."

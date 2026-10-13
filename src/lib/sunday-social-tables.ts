@@ -64,17 +64,29 @@ export type BookableSundaySocial = {
   priceCents: number;
   venueName: string | null;
   imageUrl: string | null;
+  /** Every seat is taken (only with `includeFull`). */
+  full: boolean;
 };
+
+/** Sold out: it has seats, all of them are taken, and it has not started. */
+function isFullTable(t: { capacity: number; spotsSold: number; startsAt: string }, now: number): boolean {
+  return t.capacity > 0 && t.spotsSold >= t.capacity && Date.parse(t.startsAt) > now;
+}
 
 /**
  * The series tables that can be booked right now: open (from 4 weeks
  * before), not full, not closed (an empty table closes 14 days before).
- * A city without such a Sunday is left out.
+ * A city without such a Sunday is left out. With `includeFull` a sold-out
+ * table stays in the list (the agenda shows it as sold out); a table that
+ * closed empty never does.
  */
-export async function getBookableSundaySocials(): Promise<BookableSundaySocial[]> {
+export async function getBookableSundaySocials(options: { includeFull?: boolean } = {}): Promise<BookableSundaySocial[]> {
   const { events: tables, now } = await getJouwTafelEvents();
   const bookable = tables.filter(
-    (t) => !t.comingSoon && !isNoLongerBookable(t, now) && sundaySocialSlugFromCity(t.city) !== null,
+    (t) =>
+      !t.comingSoon &&
+      sundaySocialSlugFromCity(t.city) !== null &&
+      (!isNoLongerBookable(t, now) || (options.includeFull === true && isFullTable(t, now))),
   );
   if (bookable.length === 0) return [];
   const ids = bookable.map((t) => t.id);
@@ -99,13 +111,15 @@ export async function getBookableSundaySocials(): Promise<BookableSundaySocial[]
       priceCents: t.priceCents,
       venueName: venueMap.get(t.id)?.name ?? null,
       imageUrl: images.get(t.id) ?? null,
+      full: isFullTable(t, now),
     };
   });
 }
 
-/** The bookable series tables as agenda cards. */
+/** The series tables as agenda cards: the bookable ones, and the sold-out
+ * ones (shown as sold out, so the agenda also shows what filled up). */
 export async function getBookableSundaySocialItems(locale: Locale): Promise<ExperienceItem[]> {
-  const tables = await getBookableSundaySocials();
+  const tables = await getBookableSundaySocials({ includeFull: true });
   return tables.map(
     (t) =>
       ({
@@ -116,7 +130,7 @@ export async function getBookableSundaySocialItems(locale: Locale): Promise<Expe
         dateTime: formatSundayTableCardDateTime(t.startsAt, locale),
         startsAt: t.startsAt.toISOString(),
         price: t.priceCents / 100,
-        status: "available",
+        status: t.full ? "soldOut" : "available",
         capacity: t.capacity,
         spotsSold: t.spotsSold,
         image: agendaImageForVenue(t.venueName ?? "", t.imageUrl),

@@ -119,7 +119,7 @@ export async function declineMembershipOffer(sessionId: string): Promise<void> {
 
 /** The account for this address: theirs when they have one, else a new one
  * (no password; they sign in with a code sent to this address). */
-async function accountIdForEmail(email: string): Promise<string> {
+export async function accountIdForEmail(email: string): Promise<string> {
   const rows = (await getDb().execute(sql`
     select id from auth.users where lower(email) = ${email} order by created_at asc limit 1
   `)) as unknown as Array<{ id: string }>;

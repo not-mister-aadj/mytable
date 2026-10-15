@@ -134,14 +134,14 @@ export function getMemberWelcomeCopy(locale: Locale): { eyebrow: string; title: 
     return {
       eyebrow: "You are a member",
       title: "Welcome. Every Sunday is yours now.",
-      body: "Your membership has started and the confirmation is in your inbox. Log in with the email address of this booking to choose your next Sunday.",
-      cta: "Choose your next Sunday",
+      body: "This Sunday is booked. Every next Sunday you book yourself, in your account: log in with the email address of this booking and you get a code by email, no password needed. You can have 2 Sundays booked at a time.",
+      cta: "Log in to your account",
     };
   }
   return {
     eyebrow: "Je bent lid",
     title: "Welkom. Elke zondag is nu van jou.",
-    body: "Je lidmaatschap is gestart en de bevestiging staat in je mail. Log in met het e-mailadres van deze boeking om je volgende zondag te kiezen.",
-    cta: "Kies je volgende zondag",
+    body: "Deze zondag staat vast. Elke volgende zondag boek je zelf, in je account: log in met het e-mailadres van deze boeking en je krijgt een code per mail, een wachtwoord is niet nodig. Je kunt 2 zondagen tegelijk geboekt hebben.",
+    cta: "Log in op je account",
   };
 }

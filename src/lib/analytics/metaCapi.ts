@@ -26,6 +26,7 @@ import {
 import { getSiteUrl } from "@/lib/env";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
+import { purchaseRefOfSession } from "@/lib/analytics/confirmationPurchase";
 
 function eventDisplayName(event: Event, locale: string): string {
   return locale === "en" ? event.nameEn : event.nameNl;
@@ -227,8 +228,9 @@ export async function sendMetaCapiPurchaseForSession(
 
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
-  const bookingId = session.metadata?.booking_id;
-  if (!bookingId) return false;
+  const ref = purchaseRefOfSession(session);
+  if (!ref) return false;
+  const bookingId = ref.bookingId;
 
   const db = getDb();
   const [row] = await db
@@ -259,7 +261,9 @@ export async function sendMetaCapiPurchaseForSession(
   const nameParts = splitPersonName(row.booking.customerName);
   const stripePhone = session.customer_details?.phone?.trim() || null;
   const sent = await sendMetaCapiPurchase({
-    booking: row.booking,
+    // "Elke zondag": the seat is included (amount 0); the value is what the
+    // first month cost.
+    booking: ref.paidCents !== null ? { ...row.booking, amountCents: ref.paidCents } : row.booking,
     event: row.event,
     userData: mergeMetaCapiUserData(
       metaUserDataFromStoredContext(

@@ -1,13 +1,13 @@
-import { and, eq, isNull, lte, or } from "drizzle-orm";
+import { and, count, eq, gt, isNull, lte, or } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { bookingEvents, bookings, memberships, type Event, type Membership } from "@/db/schema";
+import { bookingEvents, bookings, events, memberships, type Event, type Membership } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { reservationCode } from "@/lib/booking-display";
 import { onBookingCreated } from "@/lib/customers/hooks";
 import { getSiteUrl } from "@/lib/env";
 import { confirmMemberBooking } from "@/lib/membership/bookings";
 import { freeGuestAvailable, memberBookingAmountCents } from "@/lib/membership/logic";
-import { guestSeatCents, isMembershipPlanId } from "@/lib/membership/plans";
+import { MEMBER_MAX_UPCOMING_BOOKINGS, guestSeatCents, isMembershipPlanId } from "@/lib/membership/plans";
 import { getCheckoutPaymentMethodTypes, getStripe } from "@/lib/stripe";
 import { jouwTafelSettingsPath, jouwTafelKiesPath } from "@/i18n/config";
 
@@ -19,7 +19,7 @@ export type MemberBookingResult =
   | { kind: "booked"; bookingId: string; code: string }
   /** With a guest: a one-time Checkout for the guest seat. */
   | { kind: "checkout"; url: string; bookingId: string }
-  | { kind: "error"; status: number; code: "already_booked" | "full" | "checkout_failed" };
+  | { kind: "error"; status: number; code: "already_booked" | "full" | "checkout_failed" | "max_upcoming" };
 
 /** True when this membership already has an active seat at this table. */
 async function alreadyBooked(membershipId: string, eventId: string): Promise<boolean> {
@@ -36,6 +36,23 @@ async function alreadyBooked(membershipId: string, eventId: string): Promise<boo
     )
     .limit(1);
   return Boolean(row);
+}
+
+/** How many Sundays still to come this membership has a seat at. */
+async function upcomingBookings(membershipId: string, now = new Date()): Promise<number> {
+  const [row] = await getDb()
+    .select({ n: count() })
+    .from(bookings)
+    .innerJoin(events, eq(bookings.eventId, events.id))
+    .where(
+      and(
+        eq(bookings.membershipId, membershipId),
+        eq(bookings.paymentStatus, "paid"),
+        eq(bookings.lifecycleStatus, "active"),
+        gt(events.startsAt, now),
+      ),
+    );
+  return Number(row?.n ?? 0);
 }
 
 /**
@@ -59,6 +76,10 @@ export async function bookAsMember(input: {
   const { event, membership } = input;
   if (!isMembershipPlanId(membership.plan)) return { kind: "error", status: 500, code: "checkout_failed" };
   if (await alreadyBooked(membership.id, event.id)) return { kind: "error", status: 409, code: "already_booked" };
+  // At most 2 Sundays to come at a time: a free seat is not held for months.
+  if ((await upcomingBookings(membership.id)) >= MEMBER_MAX_UPCOMING_BOOKINGS) {
+    return { kind: "error", status: 409, code: "max_upcoming" };
+  }
   if (event.capacity - event.spotsSold < input.seats) return { kind: "error", status: 409, code: "full" };
 
   const guestCents = guestSeatCents(membership.plan);

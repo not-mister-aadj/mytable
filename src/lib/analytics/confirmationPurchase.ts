@@ -20,6 +20,24 @@ export type ConfirmationPurchaseData = {
   pendingPayment: boolean;
 };
 
+/**
+ * The booking a Checkout session pays for, and what was paid when that is
+ * not the booking's own amount. A single seat: metadata.booking_id. "Elke
+ * zondag" (a membership Checkout with this Sunday's seat in it): the seat's
+ * booking, at what the first month cost, so it counts as a purchase too.
+ */
+export function purchaseRefOfSession(session: {
+  metadata?: Record<string, string> | null;
+  amount_total?: number | null;
+}): { bookingId: string; paidCents: number | null } | null {
+  const md = session.metadata ?? {};
+  if (md.booking_id) return { bookingId: md.booking_id, paidCents: null };
+  if (md.kind === "membership" && md.source === "booking" && md.member_booking_id) {
+    return { bookingId: md.member_booking_id, paidCents: session.amount_total ?? null };
+  }
+  return null;
+}
+
 export async function getConfirmationPurchase(
   sessionId: string,
   locale: Locale,
@@ -35,11 +53,11 @@ export async function getConfirmationPurchase(
     return null;
   }
 
-  const bookingId = session.metadata?.booking_id;
-
-  if (!bookingId) {
+  const ref = purchaseRefOfSession(session);
+  if (!ref) {
     return null;
   }
+  const bookingId = ref.bookingId;
 
   const sessionReady =
     session.status === "complete" || session.payment_status === "paid";
@@ -63,7 +81,7 @@ export async function getConfirmationPurchase(
   return {
     bookingId: row.booking.id,
     eventId: row.event.id,
-    value: row.booking.amountCents / 100,
+    value: (ref.paidCents ?? row.booking.amountCents) / 100,
     currency: row.booking.currency.toUpperCase(),
     contentName: locale === "en" ? row.event.nameEn : row.event.nameNl,
     experienceType: row.event.experienceType ?? DEFAULT_EXPERIENCE_TYPE,

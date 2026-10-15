@@ -52,8 +52,10 @@ import {
   memberBookingDecision,
   type MemberBookingDecision,
 } from "@/lib/membership/logic";
-import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
+import { MEMBERSHIP_AT_BOOKING, MEMBERSHIP_AT_BOOKING_PLAN, MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 import { bookAsMember } from "@/lib/membership/member-checkout";
+import { createMembershipCheckout } from "@/lib/membership/checkout";
+import { accountIdForEmail } from "@/lib/membership/offer";
 
 /** "zondag 25 oktober 14:00" for the early-access message. */
 function openFromLabel(date: Date, locale: Locale): string {
@@ -124,6 +126,11 @@ export async function POST(request: Request) {
      * check 18+. Not stored; the booking only records that it was checked. */
     birthDate?: string;
     agePreference?: string;
+    /** Sunday Social: "single" (this Sunday, one seat) or "monthly" (the
+     * membership, with this Sunday's seat in it). */
+    plan?: string;
+    /** The page the booking card is on, to come back to from Stripe. */
+    returnPath?: string;
     joinPriorityList?: boolean;
     affiliateCode?: string;
     referralCode?: string;
@@ -415,6 +422,10 @@ export async function POST(request: Request) {
         already_booked: locale === "en" ? "You already have a seat at this table." : "Je hebt al een plek aan deze tafel.",
         full: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over.",
         checkout_failed: locale === "en" ? "Checkout failed." : "Checkout mislukt.",
+        max_upcoming:
+          locale === "en"
+            ? "You already have 2 Sundays booked. After your next Sunday you can choose a new one."
+            : "Je hebt al 2 zondagen geboekt. Na je volgende zondag kun je weer een nieuwe kiezen.",
       };
       return NextResponse.json({ code: result.code, error: messages[result.code] }, { status: result.status });
     } catch (error) {
@@ -424,6 +435,90 @@ export async function POST(request: Request) {
         step: "member_booking",
         tags: { event_id: event.id, membership_id: runningMembership.id },
       });
+      return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });
+    }
+  }
+
+  // "Elke zondag": the membership, paid monthly, with this Sunday's seat in
+  // it. One subscription Checkout; the webhook makes the membership and
+  // books the seat. The account is made here (sign-in by email code).
+  if (isSundayTable && MEMBERSHIP_AT_BOOKING && body.plan === "monthly") {
+    const monthlySeats = resolveSundayTableSeats(Math.max(1, Number(body.seats) || 1), event.capacity - event.spotsSold);
+    if (monthlySeats === null) {
+      return NextResponse.json(
+        { error: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over." },
+        { status: 409 },
+      );
+    }
+    const quizBirth = signedInUser
+      ? sanitizeQuizState((signedInUser.user_metadata ?? {})[QUIZ_METADATA_KEY]).answers.birthDate
+      : undefined;
+    const sentBirth = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
+    const monthlyBirthDate = [sentBirth, quizBirth ?? ""].find((value) => ageFromBirthDate(value) !== null) ?? null;
+    const utm = cleanAttribution(body.utm);
+    const attribution = await readAttribution();
+    const extraEvents: Array<{ type: string; payload: Record<string, unknown> }> = [
+      {
+        type: MEDIA_MARKETING_CONSENT_EVENT,
+        payload: { version: MEDIA_MARKETING_CONSENT_VERSION, acceptedAt: new Date().toISOString(), locale },
+      },
+      ...(isSundaySocial ? [{ type: "age_confirmed", payload: { minAge: MIN_ONBOARDING_AGE } }] : []),
+      ...(Object.keys(utm).length > 0 || attribution
+        ? [{ type: "checkout_utm", payload: { ...utm, ...(attribution ? { attribution } : {}) } }]
+        : []),
+      { type: "checkout_choice", payload: { plan: "monthly" } },
+    ];
+    try {
+      const signedInIsBooker = signedInUser?.email?.trim().toLowerCase() === email;
+      const userId = signedInIsBooker && signedInUser ? signedInUser.id : await accountIdForEmail(email);
+      const result = await createMembershipCheckout({
+        user: { id: userId, email },
+        plan: MEMBERSHIP_AT_BOOKING_PLAN,
+        locale,
+        source: "booking",
+        table: {
+          eventId: event.id,
+          seats: monthlySeats === 2 ? 2 : 1,
+          name: customerName,
+          dietaryNotes: body.dietaryNotes?.trim() || null,
+          tableLanguagePreference,
+          birthDate: monthlyBirthDate,
+          agePreference,
+          events: extraEvents,
+        },
+        returnPath: typeof body.returnPath === "string" ? body.returnPath : null,
+        meta: withRequestClientHints(parseMetaTrackingContext(body.meta), request),
+      });
+      if (result.ok) {
+        void captureServerEvent(email, PostHogEvents.checkoutStarted, {
+          event_id: event.id,
+          event_slug: event.slug,
+          event_type: event.experienceType,
+          city: event.city,
+          seats: monthlySeats,
+          plan: "monthly",
+          stripe_session_id: result.sessionId,
+          language: locale,
+        });
+        return NextResponse.json({ url: result.url, bookingId: result.bookingId ?? null });
+      }
+      const messages = {
+        already_member:
+          locale === "en"
+            ? "You are a member. Log in to reserve your seat without paying."
+            : "Je bent lid. Log in om je plek zonder te betalen te reserveren.",
+        table_full: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over.",
+        table_unavailable:
+          locale === "en" ? "This table can no longer be booked." : "Deze tafel is niet meer te boeken.",
+        checkout_failed: locale === "en" ? "Checkout failed." : "Checkout mislukt.",
+      };
+      return NextResponse.json(
+        { code: result.error === "already_member" ? "member_login" : result.error, error: messages[result.error] },
+        { status: result.error === "checkout_failed" ? 500 : 409 },
+      );
+    } catch (error) {
+      console.error("[checkout] monthly checkout failed", error);
+      captureCriticalError(error, { flow: "payment", step: "monthly_checkout", tags: { event_id: event.id } });
       return NextResponse.json({ error: "Checkout mislukt." }, { status: 500 });
     }
   }

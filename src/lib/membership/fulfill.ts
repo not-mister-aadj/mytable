@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type Stripe from "stripe";
 import { getDb } from "@/db/index";
 import { bookingEvents, bookings, memberships, type Membership } from "@/db/schema";
@@ -94,6 +94,14 @@ export async function fulfillMembershipCheckout(session: Stripe.Checkout.Session
     const confirmed = await confirmMemberBooking({ bookingId, membershipId: membership.id, context: "membership_checkout" });
     if (confirmed.ok) {
       bookedEventStartsAt = confirmed.event.startsAt;
+      // Joined with a guest: that was the free guest; the next one comes 3
+      // months after this Sunday.
+      if (confirmed.booking.seats === 2 && confirmed.booking.amountCents === 0) {
+        await getDb()
+          .update(memberships)
+          .set({ freeGuestUsedFor: confirmed.event.startsAt, updatedAt: new Date() })
+          .where(and(eq(memberships.id, membership.id), isNull(memberships.freeGuestUsedFor)));
+      }
     } else if (confirmed.error === "capacity") {
       await getDb().update(bookings).set({ paymentStatus: "failed" }).where(eq(bookings.id, bookingId));
       await getDb()

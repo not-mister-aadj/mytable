@@ -9,7 +9,7 @@ import {
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
 import { getStoredUtm } from "@/lib/analytics/utm";
-import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+import { trackSundaySocialTicketChosen, trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
 import { isAtLeastMinAge, latestLegalBirthDate } from "@/lib/member-onboarding";
 import {
   MEMBERSHIP_AT_BOOKING,
@@ -43,6 +43,11 @@ const PLAN_COPY = {
     monthlyBody: "Deze zondag, en daarna elke Sunday Social in alle steden. Die boek je zelf in je account. Maandelijks opzegbaar.",
     missing: "Kies of je alleen deze zondag of elke zondag wilt.",
     monthlyCta: "Word lid en reserveer",
+    singleShort: "eenmalig",
+    monthlyShort: "alle steden, maandelijks opzegbaar",
+    next: "Verder",
+    back: "Wijzig",
+    monthlyNote: "Volgende zondagen boek je zelf in je account. Maandelijks opzegbaar.",
   },
   en: {
     label: "Choose your ticket",
@@ -53,6 +58,11 @@ const PLAN_COPY = {
     monthlyBody: "This Sunday, then every Sunday Social in every city. You book those yourself in your account. Cancel monthly.",
     missing: "Choose just this Sunday or every Sunday.",
     monthlyCta: "Become a member and reserve",
+    singleShort: "one time",
+    monthlyShort: "every city, cancel monthly",
+    next: "Continue",
+    back: "Change",
+    monthlyNote: "You book next Sundays yourself in your account. Cancel monthly.",
   },
 } as const;
 type TicketPlan = "single" | "monthly";
@@ -166,6 +176,9 @@ export function SundayTableBookingCard({
   const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
   const planCopy = PLAN_COPY[locale === "en" ? "en" : "nl"];
   const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>(null);
+  /** Two steps for someone who is not a member: 1. which ticket and how
+   * many, 2. their details. A member goes straight to 2. */
+  const [step, setStep] = useState<1 | 2>(1);
   /** The typed address is a member's, but nobody is signed in as them. */
   const [needsLogin, setNeedsLogin] = useState(false);
   /** Back to this Sunday after logging in. */
@@ -211,6 +224,8 @@ export function SundayTableBookingCard({
   // The choice is only for someone who is not a member yet.
   const offersPlan = MEMBERSHIP_AT_BOOKING && !member;
   const monthly = offersPlan && ticketPlan === "monthly";
+  const twoSteps = offersPlan;
+  const showDetails = !twoSteps || step === 2;
   const total = member
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
@@ -263,9 +278,23 @@ export function SundayTableBookingCard({
     }
   }
 
+  function goToDetails() {
+    if (!ticketPlan) {
+      setError(planCopy.missing);
+      return;
+    }
+    setError(null);
+    trackSundaySocialTicketChosen({ plan: ticketPlan, seats, city: cityName, locale });
+    setStep(2);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (soldOut || loading) return;
+    if (!showDetails) {
+      goToDetails();
+      return;
+    }
     if (englishOnlyWaiting) {
       if (!englishNotified) await notifyEnglish();
       return;
@@ -329,27 +358,107 @@ export function SundayTableBookingCard({
     );
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-      {fromQuiz ? (
-        <a
-          href={jouwTafelKiesPath(locale)}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+  const chipClass = (on: boolean) =>
+    `rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+      on ? "border-burgundy bg-burgundy text-cream" : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
+    }`;
+  const inputClass =
+    "mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10";
+
+  const seatsPicker = (
+    <div>
+      <span className="block text-sm font-medium text-wine">{seatsLabel}</span>
+      <div className="mt-1.5 grid grid-cols-2 gap-2">
+        <button type="button" onClick={() => setSeats(1)} className={chipClass(seats === 1)}>
+          {seatOneLabel}
+        </button>
+        <button
+          type="button"
+          onClick={() => setSeats(2)}
+          disabled={maxSeats < 2}
+          className={`${chipClass(seats === 2)} disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          <span aria-hidden>&larr;</span>
-          {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
-        </a>
+          {seatTwoLabel}
+        </button>
+      </div>
+      {member && seats === 2 ? (
+        <p className="mt-2 text-sm text-wine/70">
+          {guestFree ? memberCopy.guestFree : memberCopy.guestPaid(euroLabel(memberGuestEuros))}
+        </p>
       ) : null}
-      {offersPlan && !englishOnlyWaiting ? (
+    </div>
+  );
+
+  const includedBox = englishOnlyWaiting || !included || member ? null : (
+    <div className="rounded-2xl border border-wine/10 bg-white/60 px-4 py-3.5">
+      <p className="text-sm font-semibold text-wine">{included.title}</p>
+      <ul className="mt-2 space-y-1.5">
+        {included.items.map((item) => (
+          <li key={item} className="flex gap-2 text-sm leading-snug text-wine/75">
+            <span aria-hidden className="shrink-0 text-emerald-700">
+              ✓
+            </span>
+            {item}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2.5 border-t border-wine/10 pt-2 text-xs leading-snug text-wine/55">{included.note}</p>
+    </div>
+  );
+
+  const guaranteesLine = englishOnlyWaiting ? null : (
+    <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-wine/50">
+      {guarantees.map((item) => (
+        <span key={item} className="inline-flex items-center gap-1">
+          <span aria-hidden className="text-wine/40">
+            ✓
+          </span>
+          {item}
+        </span>
+      ))}
+    </p>
+  );
+
+  const errorBlock =
+    needsLogin && error ? (
+      <div className="rounded-2xl border border-gold/50 bg-gold/10 px-4 py-4">
+        <p className="text-sm font-semibold leading-snug text-wine">{error}</p>
+        <a
+          href={logInHref()}
+          className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-burgundy px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-wine"
+        >
+          {memberCopy.loginCta}
+        </a>
+      </div>
+    ) : error ? (
+      <p className="text-sm text-red-800">{error}</p>
+    ) : null;
+
+  const submitClass =
+    "w-full justify-center bg-burgundy px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.1em] text-cream hover:bg-wine";
+
+  // Step 1: which ticket, and how many.
+  if (!showDetails) {
+    return (
+      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+        {fromQuiz ? (
+          <a
+            href={jouwTafelKiesPath(locale)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+          >
+            <span aria-hidden>&larr;</span>
+            {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
+          </a>
+        ) : null}
         <div>
           <span className="block text-sm font-medium text-wine">{planCopy.label}</span>
-          <div className="mt-1.5 space-y-2">
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
             {(
               [
-                ["single", planCopy.singleTitle, euroLabel(pricePerSeatEuros), null, planCopy.singleBody],
-                ["monthly", planCopy.monthlyTitle, euroLabel(MONTHLY_CENTS / 100), planCopy.perMonth, planCopy.monthlyBody],
+                ["single", planCopy.singleTitle, euroLabel(pricePerSeatEuros), null, planCopy.singleShort],
+                ["monthly", planCopy.monthlyTitle, euroLabel(MONTHLY_CENTS / 100), planCopy.perMonth, planCopy.monthlyShort],
               ] as const
-            ).map(([value, title, price, unit, body]) => {
+            ).map(([value, title, price, unit, short]) => {
               const chosen = ticketPlan === value;
               return (
                 <button
@@ -360,33 +469,73 @@ export function SundayTableBookingCard({
                     setTicketPlan(value);
                     setError(null);
                   }}
-                  className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left transition ${
+                  className={`flex flex-col items-center rounded-2xl border px-3 py-3.5 text-center transition ${
                     chosen ? "border-burgundy bg-burgundy/[0.06] ring-1 ring-burgundy" : "border-wine/15 bg-white hover:border-wine/30"
                   }`}
                 >
-                  <span
-                    aria-hidden
-                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                      chosen ? "border-burgundy" : "border-wine/30"
-                    }`}
-                  >
-                    {chosen ? <span className="h-2.5 w-2.5 rounded-full bg-burgundy" /> : null}
+                  <span className="text-sm font-semibold text-wine">{title}</span>
+                  <span className="mt-1 font-serif text-2xl leading-none text-wine">
+                    {price}
+                    {unit ? <span className="ml-1 font-sans text-xs font-medium text-wine/60">{unit}</span> : null}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-baseline justify-between gap-3">
-                      <span className="font-semibold text-wine">{title}</span>
-                      <span className="shrink-0 font-semibold text-wine">
-                        {price}
-                        {unit ? <span className="ml-1 text-xs font-medium text-wine/60">{unit}</span> : null}
-                      </span>
-                    </span>
-                    <span className="mt-1 block text-sm leading-snug text-wine/65">{body}</span>
-                  </span>
+                  <span className="mt-1.5 text-xs leading-snug text-wine/60">{short}</span>
                 </button>
               );
             })}
           </div>
         </div>
+        {seatsPicker}
+        {errorBlock}
+        <Button type="submit" className={`${submitClass} ${ticketPlan ? "" : "opacity-60"}`}>
+          {`${planCopy.next}${ticketPlan ? ` · ${euroLabel(total)}` : ""}`}
+        </Button>
+        {signedOut ? (
+          <p className="text-center text-sm">
+            <a
+              href={logInHref()}
+              className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+            >
+              {memberCopy.login}
+            </a>
+          </p>
+        ) : null}
+        {includedBox}
+        {guaranteesLine}
+      </form>
+    );
+  }
+
+  // Step 2: their details (a member starts here).
+  return (
+    <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+      {twoSteps && ticketPlan ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-wine/10 bg-white/70 px-3.5 py-2.5 text-sm text-wine">
+          <span className="font-semibold">
+            {ticketPlan === "monthly"
+              ? `${planCopy.monthlyTitle} · ${euroLabel(MONTHLY_CENTS / 100)} ${planCopy.perMonth}`
+              : `${planCopy.singleTitle} · ${euroLabel(pricePerSeatEuros)}`}
+            <span className="font-normal text-wine/60"> · {seats === 2 ? seatTwoLabel : seatOneLabel}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setStep(1);
+              setError(null);
+            }}
+            className="shrink-0 font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+          >
+            {planCopy.back}
+          </button>
+        </div>
+      ) : null}
+      {!twoSteps && fromQuiz ? (
+        <a
+          href={jouwTafelKiesPath(locale)}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+        >
+          <span aria-hidden>&larr;</span>
+          {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
+        </a>
       ) : null}
       {member ? (
         <p className="flex items-center gap-2 rounded-xl border border-gold/50 bg-gold/10 px-3.5 py-2.5 text-sm font-semibold text-wine">
@@ -410,7 +559,7 @@ export function SundayTableBookingCard({
               setError(null);
             }
           }}
-          className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
+          className={inputClass}
         />
       </label>
       <label className="block text-sm font-medium text-wine">
@@ -421,7 +570,7 @@ export function SundayTableBookingCard({
           autoComplete="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
+          className={inputClass}
         />
       </label>
       {englishOnlyWaiting ? null : (
@@ -439,7 +588,7 @@ export function SundayTableBookingCard({
               setBirthDate(e.target.value);
               setError(null);
             }}
-            className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
+            className={inputClass}
           />
         </label>
       )}
@@ -456,11 +605,7 @@ export function SundayTableBookingCard({
                   setAgePreference(value);
                   setError(null);
                 }}
-                className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
-                  agePreference === value
-                    ? "border-burgundy bg-burgundy text-cream"
-                    : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
-                }`}
+                className={chipClass(agePreference === value)}
               >
                 {ageCopy[value]}
               </button>
@@ -479,16 +624,7 @@ export function SundayTableBookingCard({
               ["prefer_english", languageEnglishLabel],
             ] as const
           ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => selectLanguage(value)}
-              className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
-                tableLanguagePreference === value
-                  ? "border-burgundy bg-burgundy text-cream"
-                  : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
-              }`}
-            >
+            <button key={value} type="button" onClick={() => selectLanguage(value)} className={`${chipClass(tableLanguagePreference === value)} px-2`}>
               {label}
             </button>
           ))}
@@ -497,75 +633,18 @@ export function SundayTableBookingCard({
 
       {englishOnlyWaiting ? (
         <div className="rounded-2xl border border-gold/40 bg-gold/10 px-4 py-4">
-          <p className="font-serif text-lg leading-snug text-wine">
-            {englishComingSoon.title}
-          </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-wine/70">
-            {englishComingSoon.body}
-          </p>
-          {englishNotified ? (
-            <p className="mt-3 text-sm font-semibold text-wine">
-              ✓ {englishComingSoon.success}
-            </p>
-          ) : null}
+          <p className="font-serif text-lg leading-snug text-wine">{englishComingSoon.title}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-wine/70">{englishComingSoon.body}</p>
+          {englishNotified ? <p className="mt-3 text-sm font-semibold text-wine">✓ {englishComingSoon.success}</p> : null}
         </div>
       ) : null}
 
-      {englishOnlyWaiting ? null : (
-      <div>
-        <span className="block text-sm font-medium text-wine">{seatsLabel}</span>
-        <div className="mt-1.5 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setSeats(1)}
-            className={`rounded-xl border px-3.5 py-2.5 text-sm font-medium transition ${
-              seats === 1
-                ? "border-burgundy bg-burgundy text-cream"
-                : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
-            }`}
-          >
-            {seatOneLabel}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSeats(2)}
-            disabled={maxSeats < 2}
-            className={`rounded-xl border px-3.5 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
-              seats === 2
-                ? "border-burgundy bg-burgundy text-cream"
-                : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
-            }`}
-          >
-            {seatTwoLabel}
-          </button>
-        </div>
-        {member && seats === 2 ? (
-          <p className="mt-2 text-sm text-wine/70">
-            {guestFree ? memberCopy.guestFree : memberCopy.guestPaid(euroLabel(memberGuestEuros))}
-          </p>
-        ) : null}
-      </div>
-      )}
+      {!twoSteps && !englishOnlyWaiting ? seatsPicker : null}
 
-      {needsLogin && error ? (
-        <div className="rounded-2xl border border-gold/50 bg-gold/10 px-4 py-4">
-          <p className="text-sm font-semibold leading-snug text-wine">{error}</p>
-          <a
-            href={logInHref()}
-            className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-burgundy px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-cream transition hover:bg-wine"
-          >
-            {memberCopy.loginCta}
-          </a>
-        </div>
-      ) : error ? (
-        <p className="text-sm text-red-800">{error}</p>
-      ) : null}
+      {errorBlock}
 
       {(englishOnlyWaiting && englishNotified) || needsLogin ? null : (
-        <Button
-          type="submit"
-          className="w-full justify-center bg-burgundy px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.1em] text-cream hover:bg-wine"
-        >
+        <Button type="submit" className={submitClass}>
           {loading
             ? "…"
             : englishOnlyWaiting
@@ -577,7 +656,10 @@ export function SundayTableBookingCard({
                   : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
       )}
-      {signedOut && !member ? (
+      {monthly && !englishOnlyWaiting ? (
+        <p className="text-center text-xs leading-snug text-wine/60">{planCopy.monthlyNote}</p>
+      ) : null}
+      {!twoSteps && signedOut && !member ? (
         <p className="text-center text-sm">
           <a
             href={logInHref()}
@@ -587,36 +669,8 @@ export function SundayTableBookingCard({
           </a>
         </p>
       ) : null}
-      {englishOnlyWaiting || !included || member ? null : (
-        <div className="rounded-2xl border border-wine/10 bg-white/60 px-4 py-3.5">
-          <p className="text-sm font-semibold text-wine">{included.title}</p>
-          <ul className="mt-2 space-y-1.5">
-            {included.items.map((item) => (
-              <li key={item} className="flex gap-2 text-sm leading-snug text-wine/75">
-                <span aria-hidden className="shrink-0 text-emerald-700">
-                  ✓
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2.5 border-t border-wine/10 pt-2 text-xs leading-snug text-wine/55">
-            {included.note}
-          </p>
-        </div>
-      )}
-      {englishOnlyWaiting ? null : (
-      <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-wine/50">
-        {guarantees.map((item) => (
-          <span key={item} className="inline-flex items-center gap-1">
-            <span aria-hidden className="text-wine/40">
-              ✓
-            </span>
-            {item}
-          </span>
-        ))}
-      </p>
-      )}
+      {twoSteps ? null : includedBox}
+      {guaranteesLine}
     </form>
   );
 }

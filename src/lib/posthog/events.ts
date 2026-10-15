@@ -23,6 +23,8 @@ export const PostHogEvents = {
   whatsappJoinClicked: "whatsapp_join_clicked",
   sundayTableCtaClicked: "sunday_table_cta_clicked",
   sundayTableEnglishRequested: "sunday_table_english_requested",
+  /** Booking card step 1 done ("Continue"): which ticket and how many. */
+  sundaySocialTicketChosen: "sunday_social_ticket_chosen",
   scrollDepthReached: "scroll_depth_reached",
   onboardingStepViewed: "onboarding_step_viewed",
   onboardingStepCompleted: "onboarding_step_completed",

@@ -316,6 +316,15 @@ export function trackSundayTableEnglishRequested(props: {
   capture(PostHogEvents.sundayTableEnglishRequested, props);
 }
 
+export function trackSundaySocialTicketChosen(props: {
+  plan: "single" | "monthly";
+  seats: number;
+  city: string;
+  locale: string;
+}): void {
+  capture(PostHogEvents.sundaySocialTicketChosen, props);
+}
+
 export function trackScrollDepthReached(props: {
   depth_percent: number;
   page_path: string;

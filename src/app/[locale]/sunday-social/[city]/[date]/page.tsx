@@ -325,6 +325,9 @@ type SundaySocialPageData = {
     imageUrl: string | null;
   };
   comingSoon: boolean;
+  /** False while no wine bar is linked yet: the page says when it follows
+   * and why, instead of naming a venue. */
+  venueKnown: boolean;
   /** A member can book from this moment, before everyone else (ISO). */
   memberOpensAt: string | null;
   startsAt: string | null;
@@ -348,6 +351,7 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
         location: { venueName: handMade.location.venueName, address: handMade.location.address },
         ticketEvent,
         comingSoon: Boolean(ticketEvent.extras?.comingSoon),
+        venueKnown: true,
         memberOpensAt: null,
         startsAt: ticketEvent.startsAt.toISOString(),
         spotsLeft: Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold),
@@ -368,6 +372,7 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
     },
     ticketEvent: series,
     comingSoon: series.comingSoon,
+    venueKnown: Boolean(series.venue),
     memberOpensAt: series.memberOpensAt,
     startsAt: series.startsAt,
     spotsLeft: series.closed ? 0 : Math.max(0, series.capacity - series.spotsSold),
@@ -379,23 +384,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isValidLocale(locale)) return {};
   const found = await loadSundaySocial(citySlug, date, locale as Locale);
   if (!found) return {};
-  const { city, table, location, ticketEvent, comingSoon } = found;
+  const { city, table, location, ticketEvent, comingSoon, venueKnown } = found;
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
   );
   const bracketSuffix = ageBracket ? ` · ${ageBracket}` : "";
   const dateLabel = formatSundayTableDate(table, locale as Locale);
-  const title = comingSoon
+  const title = comingSoon || !venueKnown
     ? locale === "en"
       ? `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
       : `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
     : locale === "en"
       ? `Sunday Social${bracketSuffix} · ${dateLabel} at ${location.venueName} | MyTable`
       : `Sunday Social${bracketSuffix} · ${dateLabel} bij ${location.venueName} | MyTable`;
-  const description = comingSoon
+  const description = comingSoon || !venueKnown
     ? locale === "en"
-      ? `Sunday Social is coming to ${city.name} on ${dateLabel}. Venue announced soon.`
-      : `Sunday Social komt naar ${city.name} op ${dateLabel}. Locatie volgt binnenkort.`
+      ? `Sunday Social in ${city.name} on ${dateLabel}, at a wine bar we pick once we know who is coming.`
+      : `Sunday Social in ${city.name} op ${dateLabel}, bij een wijnbar die we kiezen als we weten wie er komen.`
     : locale === "en"
       ? `Join Sunday Social in ${city.name} on ${dateLabel}, at ${location.venueName}.`
       : `Schuif aan bij Sunday Social in ${city.name} op ${dateLabel}, bij ${location.venueName}.`;
@@ -408,7 +413,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   const locale = localeParam as Locale;
   const found = await loadSundaySocial(citySlug, date, locale);
   if (!found) notFound();
-  const { city, table, location, ticketEvent, comingSoon, memberOpensAt, startsAt, spotsLeft } = found;
+  const { city, table, location, ticketEvent, comingSoon, venueKnown, memberOpensAt, startsAt, spotsLeft } = found;
   const showSpotsCount = shouldShowSpotsCount(spotsLeft, ticketEvent.spotsSold);
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
@@ -497,7 +502,55 @@ export default async function SundayTableEventPage({ params }: Props) {
     ],
   };
 
-  const daySteps: DaySteps = {
+  // No wine bar yet: the heading is the date and city, and the page says
+  // when the venue follows (7 days before) and why it is not named yet.
+  const revealDate = formatSundayTableDate(new Date(table.getTime() - 7 * 24 * 60 * 60 * 1000), locale);
+  const venuePending = venueKnown
+    ? null
+    : {
+        heading: en ? `${capitalizedDate} in ${city.name}` : `${capitalizedDate} in ${city.name}`,
+        city: city.name,
+        note: en ? `You'll hear the wine bar by ${revealDate}` : `De wijnbar hoor je uiterlijk ${revealDate}`,
+        title: en ? "Why the wine bar isn't named yet" : "Waarom de wijnbar nog niet bekend is",
+        body: en
+          ? "We choose from a few wine bars in the city. Which one it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before."
+          : "We kiezen uit een paar wijnbars in de stad. Welke het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail.",
+      };
+  const pendingFaq = {
+    question: en ? "Why isn't the wine bar named yet?" : "Waarom staat de wijnbar er nog niet bij?",
+    answer: venuePending ? venuePending.body : "",
+  };
+
+  const daySteps: DaySteps = venuePending
+    ? {
+        eyebrow: en ? "In four steps" : "In vier stappen",
+        title: en ? "How it works" : "Zo werkt het",
+        steps: [
+          {
+            title: en ? "Book your seat" : "Je boekt je plek",
+            body: en
+              ? "Your ticket reserves a seat at one of our tables."
+              : "Met je ticket reserveer je een plek aan een van onze tafels.",
+          },
+          {
+            title: en ? "We set the tables" : "Wij delen de tafels in",
+            body: en
+              ? "By age and by what you chose when booking."
+              : "Op leeftijd en op wat je bij het boeken koos.",
+          },
+          {
+            title: en ? "The wine bar by email" : "De wijnbar per mail",
+            body: en ? `By ${revealDate} at the latest.` : `Uiterlijk ${revealDate}.`,
+          },
+          {
+            title: en ? "Sunday at 2:00 PM" : "Zondag om 14:00 schuif je aan",
+            body: en
+              ? "Plan for two to three hours. Or longer, if it clicks."
+              : "Reken op twee tot drie uur. Of langer, als het klikt.",
+          },
+        ],
+      }
+    : {
     eyebrow: en ? "In three steps" : "In drie stappen",
     title: en ? "How it works" : "Zo werkt het",
     steps: [
@@ -590,7 +643,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           },
           shareLabel: "Share",
           shareCopiedLabel: "Link copied",
-          shareTitle: `Sunday Social · ${dateLabel} at ${location.venueName}`,
+          shareTitle: venuePending ? `Sunday Social · ${dateLabel} in ${city.name}` : `Sunday Social · ${dateLabel} at ${location.venueName}`,
           statsEyebrow: "Why people come to MyTable",
           statsTitle: "Sound familiar? Here's what we see across all our events",
           stats: [
@@ -684,7 +737,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           },
           shareLabel: "Delen",
           shareCopiedLabel: "Link gekopieerd",
-          shareTitle: `Sunday Social · ${dateLabel} bij ${location.venueName}`,
+          shareTitle: venuePending ? `Sunday Social · ${dateLabel} in ${city.name}` : `Sunday Social · ${dateLabel} bij ${location.venueName}`,
           statsEyebrow: "Waarom mensen bij MyTable komen",
           statsTitle: "Herkenbaar? Dit blijkt uit de data van al onze events",
           stats: [
@@ -758,6 +811,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           timeLabel={timeLabel}
           venueName={location.venueName}
           address={location.address}
+          venuePending={venuePending}
           heroImages={heroImages}
           introLead={copy.introLead}
           intro={copy.intro}
@@ -775,7 +829,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           stats={copy.stats}
           faqEyebrow={copy.faqEyebrow}
           faqTitle={copy.faqTitle}
-          faqItems={copy.faqItems}
+          faqItems={venuePending ? [pendingFaq, ...copy.faqItems] : copy.faqItems}
           eventId={ticketEvent.id}
           spotsLeft={spotsLeft}
           showSpotsCount={showSpotsCount}

@@ -220,6 +220,7 @@ export async function getAdminBookingsPageData(): Promise<AdminBookingsPageData>
       crmBadge: badge,
       customerName: booking.customerName,
       birthDate: booking.birthDate,
+      agePreference: booking.agePreference,
       seats: booking.seats,
       amountCents: booking.amountCents,
       currency: booking.currency,

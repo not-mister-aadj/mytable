@@ -113,6 +113,9 @@ export type BoardGuest = {
   member: boolean;
   firstTime: boolean;
   age: number | null;
+  /** "similar" (around their age) or "any" (all ages): asked at booking,
+   * else the quiz's "does age matter"; null when unknown. */
+  agePreference: "similar" | "any" | null;
   language: string | null;
   dietary: string | null;
   /** Ladies only: "strict", or "mixed_ok" when a mixed table is fine if it
@@ -154,6 +157,8 @@ type GuestRow = {
   group_id: string | null;
   dietary_notes: string | null;
   table_language_preference: string | null;
+  birth_date: string | null;
+  age_preference: string | null;
   earlier: number;
   quiz: unknown;
 };
@@ -183,7 +188,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       .orderBy(asc(eventGroups.number)),
     db.execute(sql`
       select b.id, b.customer_name, b.email, b.seats, b.membership_id, b.group_id, b.dietary_notes,
-             b.table_language_preference,
+             b.table_language_preference, b.birth_date::text as birth_date, b.age_preference,
              (select count(*) from bookings p join events pe on pe.id = p.event_id
                where lower(p.email) = lower(b.email) and p.payment_status = 'paid'
                  and pe.starts_at < ${event.startsAt.toISOString()}::timestamptz)::int as earlier,
@@ -204,7 +209,17 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
 
   const guests: BoardGuest[] = guestRows.map((g) => {
     const answers = sanitizeQuizState(g.quiz).answers;
-    const age = answers.birthDate ? ageFromBirthDate(answers.birthDate, now) : null;
+    // The birth date given at booking, else the one from the quiz.
+    const birthDate = g.birth_date ?? answers.birthDate;
+    const age = birthDate ? ageFromBirthDate(birthDate, now) : null;
+    const agePreference =
+      g.age_preference === "similar" || g.age_preference === "any"
+        ? g.age_preference
+        : answers.ageMatters === "yes"
+          ? "similar"
+          : answers.ageMatters === "no"
+            ? "any"
+            : null;
     return {
       bookingId: g.id,
       name: g.customer_name?.trim() || answers.name?.trim() || g.email.split("@")[0]!,
@@ -212,6 +227,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       member: Boolean(g.membership_id),
       firstTime: g.earlier === 0,
       age: age,
+      agePreference,
       language: answers.language ?? g.table_language_preference ?? null,
       dietary: g.dietary_notes?.trim() || null,
       ladies: girlsOnlyWish(answers),

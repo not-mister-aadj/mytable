@@ -218,6 +218,9 @@ export const bookings = pgTable("bookings", {
   /** Date of birth given when booking (YYYY-MM-DD), for grouping tables by
    * age (drizzle/0039). Null for older bookings. */
   birthDate: date("birth_date"),
+  /** Asked when booking a Sunday Social: "similar" (people around my age)
+   * or "any" (all ages fine). Null for older bookings. */
+  agePreference: text("age_preference"),
   seatingPreference: text("seating_preference"),
   tableLanguagePreference: text("table_language_preference"),
   adminNotes: text("admin_notes"),

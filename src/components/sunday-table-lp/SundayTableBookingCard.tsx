@@ -18,6 +18,14 @@ const BIRTH_COPY = {
   en: { label: "Date of birth", underAge: "You need to be 18 or older to book." },
 } as const;
 
+/** "Aan tafel met": asked for every Sunday Social, so the tables can be
+ * set by age. Required. */
+const AGE_PREFERENCE_COPY = {
+  nl: { label: "Aan tafel met", similar: "Mensen rond mijn leeftijd", any: "Maakt niet uit", missing: "Kies met wie je aan tafel wilt." },
+  en: { label: "At the table with", similar: "People around my age", any: "Doesn't matter", missing: "Choose who you'd like at your table." },
+} as const;
+type AgePreference = "similar" | "any";
+
 /** A signed-in member books here too: their own seat is included. */
 const MEMBER_COPY = {
   nl: {
@@ -112,6 +120,8 @@ export function SundayTableBookingCard({
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const birthCopy = BIRTH_COPY[locale === "en" ? "en" : "nl"];
+  const ageCopy = AGE_PREFERENCE_COPY[locale === "en" ? "en" : "nl"];
+  const [agePreference, setAgePreference] = useState<AgePreference | null>(null);
   const [seats, setSeats] = useState<1 | 2>(1);
   /** Came through the quiz ("Kies je zondag"): the card is filled in with
    * what they gave there, and a link goes back to their Sundays. */
@@ -222,6 +232,10 @@ export function SundayTableBookingCard({
       setError(birthCopy.underAge);
       return;
     }
+    if (!agePreference) {
+      setError(ageCopy.missing);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -236,6 +250,7 @@ export function SundayTableBookingCard({
           locale,
           tableLanguagePreference,
           birthDate,
+          agePreference,
           utm: getStoredUtm(),
         }),
       });
@@ -331,6 +346,31 @@ export function SundayTableBookingCard({
             className="mt-1.5 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 shadow-sm transition focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
           />
         </label>
+      )}
+      {englishOnlyWaiting ? null : (
+        <div>
+          <span className="block text-sm font-medium text-wine">{ageCopy.label}</span>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            {(["similar", "any"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={agePreference === value}
+                onClick={() => {
+                  setAgePreference(value);
+                  setError(null);
+                }}
+                className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                  agePreference === value
+                    ? "border-burgundy bg-burgundy text-cream"
+                    : "border-wine/15 bg-white text-wine/70 hover:border-wine/30"
+                }`}
+              >
+                {ageCopy[value]}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       <div>

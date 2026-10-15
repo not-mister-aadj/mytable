@@ -3,9 +3,9 @@ import { isDbConfigured } from "@/db/index";
 import { openTablesToKeepTwoPerCity } from "@/lib/jouw-tafel/auto-open";
 
 /**
- * Hourly (vercel.json): every city keeps two Sunday Socials that can be
- * booked. When one fills up, closes or takes place, the next series table
- * opens. Idempotent.
+ * Daily at 03:45 (vercel.json), right after the series job has made new
+ * tables: every city keeps two Sunday Socials that can be booked. When one
+ * fills up, closes or takes place, the next series table opens. Idempotent.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();

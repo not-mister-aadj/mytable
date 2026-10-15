@@ -27,7 +27,7 @@
     },
     {
       "path": "/api/cron/open-dates",
-      "schedule": "20 * * * *"
+      "schedule": "45 3 * * *"
     }
   ]
 }

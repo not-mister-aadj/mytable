@@ -140,6 +140,11 @@ export function BookingDetailDrawer({
                     {ageFromBirthDate(booking.birthDate)} jaar (geboren {booking.birthDate})
                   </p>
                 ) : null}
+                {booking.agePreference ? (
+                  <p className="mt-1 text-sm text-wine/70">
+                    Aan tafel met: {booking.agePreference === "similar" ? "mensen rond eigen leeftijd" : "alle leeftijden"}
+                  </p>
+                ) : null}
                 <p className="mt-1 font-mono text-xs text-wine/55">
                   {booking.reservationCode}
                 </p>

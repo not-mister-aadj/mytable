@@ -48,6 +48,8 @@ export type AdminBookingRow = {
   customerName: string | null;
   /** Date of birth given when booking (YYYY-MM-DD), null when unknown. */
   birthDate: string | null;
+  /** "similar" (around their age) or "any" (all ages), as asked at booking. */
+  agePreference: string | null;
   seats: number;
   amountCents: number;
   currency: string;

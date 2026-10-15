@@ -54,6 +54,7 @@ export async function bookAsMember(input: {
   dietaryNotes: string | null;
   tableLanguagePreference: string;
   birthDate?: string | null;
+  agePreference?: string | null;
 }): Promise<MemberBookingResult> {
   const { event, membership } = input;
   if (!isMembershipPlanId(membership.plan)) return { kind: "error", status: 500, code: "checkout_failed" };
@@ -102,6 +103,7 @@ export async function bookAsMember(input: {
       seatingPreference: "join_others",
       tableLanguagePreference: input.tableLanguagePreference,
       birthDate: input.birthDate || null,
+      agePreference: input.agePreference || null,
       paymentStatus: "pending",
       membershipId: membership.id,
     })

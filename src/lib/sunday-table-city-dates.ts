@@ -105,7 +105,9 @@ export async function getUpcomingSundayTableDates(
         tableDate: t.dateIso,
         dateLabel:
           dateLabel.charAt(0).toLocaleUpperCase(locale === "nl" ? "nl-NL" : "en-GB") + dateLabel.slice(1),
-        venueName: t.venueName ?? (locale === "en" ? "Location to be announced" : "Locatie volgt"),
+        // No wine bar yet: the city, like the date page (the bar follows a
+        // week before).
+        venueName: t.venueName ?? t.city,
         ageBracket: t.bracket,
         priceEuros: Math.round(t.priceCents / 100),
         status: "available",

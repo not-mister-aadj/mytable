@@ -34,6 +34,9 @@ interface SundayTableEventRevealProps {
   timeLabel: string;
   venueName: string;
   address: string;
+  /** The wine bar is not chosen yet: the heading is the date and city, the
+   * venue line says when it follows, and a short block says why. */
+  venuePending?: { heading: string; city: string; note: string; title: string; body: string } | null;
   heroImages: HeroImage[];
   /** One short line in bold above the intro. */
   introLead?: string;
@@ -128,6 +131,7 @@ export function SundayTableEventReveal({
   timeLabel,
   venueName,
   address,
+  venuePending = null,
   heroImages,
   introLead,
   intro,
@@ -382,7 +386,7 @@ export function SundayTableEventReveal({
               {eyebrow}
             </p>
             <h1 className="mt-3 font-serif text-[2.1rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
-              {venueName}
+              {venuePending ? venuePending.heading : venueName}
             </h1>
             {tags.length > 0 ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -407,6 +411,12 @@ export function SundayTableEventReveal({
             <p className={`${introLead ? "mt-2" : "mt-4"} max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg`}>
               {intro}
             </p>
+            {venuePending ? (
+              <div className="mt-6 max-w-xl rounded-2xl border border-gold/40 bg-gold/10 px-5 py-4">
+                <p className="font-serif text-lg text-wine">{venuePending.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-wine/75">{venuePending.body}</p>
+              </div>
+            ) : null}
 
             {/* On phones these come before the booking form, so people know
                 what it is before they are asked to pay; on desktop the form
@@ -443,7 +453,9 @@ export function SundayTableEventReveal({
                 <div className="flex items-baseline justify-between gap-4">
                   <dt className="text-wine/55">{venueFieldLabel}</dt>
                   <dd className="text-right">
-                    {comingSoon ? (
+                    {venuePending ? (
+                      <span className="font-medium text-wine">{venuePending.city}</span>
+                    ) : comingSoon ? (
                       <span className="font-medium text-wine">{venueName}</span>
                     ) : (
                       <a
@@ -455,7 +467,7 @@ export function SundayTableEventReveal({
                         {venueName}
                       </a>
                     )}
-                    <span className="block text-xs text-wine/55">{address}</span>
+                    <span className="block text-xs text-wine/55">{venuePending ? venuePending.note : address}</span>
                   </dd>
                 </div>
               </dl>

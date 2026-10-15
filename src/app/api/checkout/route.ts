@@ -123,6 +123,7 @@ export async function POST(request: Request) {
     /** Sunday Social: the booker's date of birth (YYYY-MM-DD), only to
      * check 18+. Not stored; the booking only records that it was checked. */
     birthDate?: string;
+    agePreference?: string;
     joinPriorityList?: boolean;
     affiliateCode?: string;
     referralCode?: string;
@@ -230,6 +231,9 @@ export async function POST(request: Request) {
   // as well (the quiz asked the birth date before).
   const isSundaySocial = isSundaySocialType(event.experienceType);
   const birthDateSent = typeof body.birthDate === "string" && body.birthDate.trim() !== "";
+  // "Aan tafel met": people around my age, or all ages. The booking card
+  // asks it for every Sunday Social; an older page may not send it.
+  const agePreference = body.agePreference === "similar" || body.agePreference === "any" ? body.agePreference : null;
   if ((isSundaySocial || (isJouwTafel && birthDateSent)) && !isAtLeastMinAge(body.birthDate)) {
     return NextResponse.json(
       {
@@ -399,6 +403,7 @@ export async function POST(request: Request) {
         dietaryNotes: body.dietaryNotes?.trim() || null,
         tableLanguagePreference,
         birthDate: birthDateSent ? String(body.birthDate).trim() : null,
+        agePreference,
       });
       if (result.kind === "booked") {
         return NextResponse.json({ booked: true, bookingId: result.bookingId, code: result.code });
@@ -497,6 +502,7 @@ export async function POST(request: Request) {
       locale,
       dietaryNotes: body.dietaryNotes?.trim() || null,
       birthDate: bookingBirthDate,
+      agePreference,
       seatingPreference,
       tableLanguagePreference,
       paymentStatus: "pending",

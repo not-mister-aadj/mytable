@@ -129,6 +129,11 @@ export function JouwTafelBoard({
           <span className="rounded-full bg-cream px-2 py-0.5">{g.member ? "Lid" : "Ticket"}</span>
           {g.firstTime ? <span className="rounded-full bg-cream px-2 py-0.5">Eerste keer</span> : null}
           {band ? <span className="rounded-full bg-cream px-2 py-0.5">{band}</span> : null}
+          {g.agePreference ? (
+            <span className="rounded-full bg-cream px-2 py-0.5">
+              {g.agePreference === "similar" ? "Rond eigen leeftijd" : "Alle leeftijden"}
+            </span>
+          ) : null}
           {g.language ? <span className="rounded-full bg-cream px-2 py-0.5">{g.language}</span> : null}
           {g.dietary ? <span className="rounded-full bg-cream px-2 py-0.5">{g.dietary}</span> : null}
         </p>

@@ -53,7 +53,8 @@ test("never to a table that closed because nobody booked it 14 days before", () 
   const source = { id: "src", city: "Rotterdam", nameNl: "Sunday Table · 35+", startsAt: new Date("2026-10-11T13:00:00Z") };
   const empty = ev("empty", { startsAt: new Date("2026-10-15T13:00:00Z") });
   const booked = ev("booked", { startsAt: new Date("2026-10-15T13:00:00Z"), spotsSold: 2 });
-  const opened = ev("opened", { startsAt: new Date("2026-10-15T13:00:00Z"), bookingOpensAt: "2026-10-01T10:00:00Z" });
+  // Opened by an admin inside the last 14 days: stays open.
+  const opened = ev("opened", { startsAt: new Date("2026-10-15T13:00:00Z"), bookingOpensAt: "2026-10-02T10:00:00Z" });
   assert.equal(pickRescheduleTarget(source, [empty], 1, NOW), null);
   assert.equal(pickRescheduleTarget(source, [empty, booked], 1, NOW)?.id, "booked");
   assert.equal(pickRescheduleTarget(source, [opened], 1, NOW)?.id, "opened");

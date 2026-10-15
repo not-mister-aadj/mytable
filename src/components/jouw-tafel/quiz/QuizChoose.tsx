@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { CheckIcon, InfoIcon, PinIcon } from "@/components/jouw-tafel/icons";
@@ -49,6 +50,56 @@ function shortDate(iso: string, locale: Locale): string {
   const { weekday, day, month } = dateParts(iso, locale);
   const text = `${weekday} ${day} ${month}`;
   return text.charAt(0).toLocaleUpperCase() + text.slice(1);
+}
+
+/** Real photos of our tables, one per card in turn (the wine bar is not
+ * known yet, so never a venue photo). */
+const TABLE_PHOTOS = [
+  "/girls-only/wine-tasting-conversation.jpg",
+  "/girls-only/wine-tasting-toast.jpg",
+  "/girls-only/table-wine-laughing.jpg",
+  "/girls-only/smiling-glasses.jpg",
+  "/girls-only/table-group.jpg",
+] as const;
+const LADIES_PHOTOS = ["/girls-only/table-group.jpg", "/girls-only/laughing-bar.jpg", "/girls-only/table-wine-laughing.jpg"] as const;
+
+const CARD_COPY = {
+  nl: {
+    wineBarIn: (city: string) => `Een wijnbar in ${city}`,
+    people: "Aan tafel met 4 tot 6 nieuwe mensen",
+    age: "Ingedeeld op leeftijd",
+    venueBy: (date: string) => `De wijnbar hoor je uiterlijk ${date}`,
+    perSeat: "per plek",
+    reserve: "Reserveer je plek",
+    next: "Eerstvolgende",
+  },
+  en: {
+    wineBarIn: (city: string) => `A wine bar in ${city}`,
+    people: "At a table with 4 to 6 new people",
+    age: "Seated by age",
+    venueBy: (date: string) => `You'll hear the wine bar by ${date}`,
+    perSeat: "per seat",
+    reserve: "Reserve your seat",
+    next: "Next up",
+  },
+} as const;
+
+/** "Zondag 8 november" / "Sunday 8 November". */
+function longDate(iso: string, locale: Locale): string {
+  const text = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
+    timeZone: AMSTERDAM,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(iso));
+  return text.charAt(0).toLocaleUpperCase() + text.slice(1);
+}
+
+/** "1 nov": the venue follows 7 days before the Sunday. */
+function revealDate(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { timeZone: AMSTERDAM, day: "numeric", month: "short" })
+    .format(new Date(Date.parse(iso) - 7 * 24 * 60 * 60 * 1000))
+    .replace(/\.$/, "");
 }
 
 type ChipTone = "wine" | "gold" | "grey";
@@ -188,8 +239,9 @@ export type ChooseHandlers = {
 
 /**
  * "Kies je zondag": the live list for this person (their city and age
- * group first, then nearby, then coming soon). No prices here: a card opens
- * the table page, where she reserves. Never a venue.
+ * group first, then nearby, then coming soon). A bookable Sunday is a full
+ * card (photo, three reasons, the seat price, "Reserveer je plek") that opens
+ * the date page, where she reserves. Never a venue, and no monthly price.
  */
 export function QuizChoose({
   locale,
@@ -305,6 +357,80 @@ export function QuizChoose({
     );
   }
 
+  const cardCopy = CARD_COPY[locale === "en" ? "en" : "nl"];
+  // The very next bookable Sunday stands out ("Eerstvolgende").
+  const featuredId = [...openRows]
+    .filter((r) => !r.event.comingSoon && !booked[r.event.id])
+    .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt))[0]?.event.id;
+
+  /** A Sunday that can be booked now: a photo of a real table, the date,
+   * "a wine bar in {city}", three short reasons, the price and a button. */
+  function bookableCard(row: ChooseRow, index: number, chip: { text: string; tone: ChipTone }) {
+    const event = row.event;
+    const featured = event.id === featuredId;
+    const photos = answers.gender === "female" && answers.tableType === "girls_only" ? LADIES_PHOTOS : TABLE_PHOTOS;
+    const photo = photos[index % photos.length]!;
+    const price = event.priceCents / 100;
+    const priceLabel = Number.isInteger(price) ? `€${price}` : `€${price.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
+    return (
+      <motion.li
+        key={event.id}
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, delay: reduceMotion ? 0 : 0.06 + index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className={`${rowCard} ${rowIdle} overflow-hidden ${featured ? "ring-1 ring-gold/60" : ""}`}>
+          <button
+            type="button"
+            aria-label={`${k.selectAria}: ${shortDate(event.startsAt, locale)}`}
+            onClick={() => open(row)}
+            className="block w-full touch-manipulation text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+          >
+            <span className={`relative block w-full ${featured ? "aspect-[16/9]" : "aspect-[16/7]"}`}>
+              <Image src={photo} alt="" fill sizes="(max-width: 640px) 100vw, 420px" className="object-cover" />
+              <span className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+                {featured ? (
+                  <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">
+                    {cardCopy.next}
+                  </span>
+                ) : null}
+                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[0.72rem] font-semibold leading-none text-burgundy shadow-sm">
+                  {chip.text}
+                </span>
+              </span>
+            </span>
+            <span className="block px-4 pb-4 pt-3.5">
+              <span className="block text-[1.05rem] font-semibold leading-tight text-wine">
+                {longDate(event.startsAt, locale)} · {startTime(event.startsAt, locale)}
+              </span>
+              <span className="mt-1 flex items-center gap-1 text-[0.92rem] text-wine/70">
+                <PinIcon className="h-3.5 w-3.5 shrink-0" />
+                {cardCopy.wineBarIn(displayCity(event.city, locale))}
+              </span>
+              <span className="mt-3 block space-y-1">
+                {[cardCopy.people, cardCopy.age, cardCopy.venueBy(revealDate(event.startsAt, locale))].map((line) => (
+                  <span key={line} className="flex items-start gap-2 text-[0.88rem] leading-snug text-wine/75">
+                    <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />
+                    {line}
+                  </span>
+                ))}
+              </span>
+              <span className="mt-4 flex items-center justify-between gap-3">
+                <span className="shrink-0">
+                  <span className="font-serif text-2xl leading-none text-wine">{priceLabel}</span>
+                  <span className="ml-1 text-[0.82rem] text-wine/60">{cardCopy.perSeat}</span>
+                </span>
+                <span className="inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-[0.85rem] font-semibold uppercase tracking-[0.08em] text-cream">
+                  {cardCopy.reserve}
+                </span>
+              </span>
+            </span>
+          </button>
+        </div>
+      </motion.li>
+    );
+  }
+
   function tableCard(row: ChooseRow, index: number) {
     const event = row.event;
     const closed = row.kind === "closed";
@@ -313,6 +439,10 @@ export function QuizChoose({
     const asMember =
       memberBookingDecision(fromClientMembership(membership), new Date(event.startsAt), now).kind === "included";
     const seats = booked[event.id];
+    // Bookable now and no seat yet: the full card.
+    if (!muted && !seats && !earlyBlocked(event, membership, now)) {
+      return bookableCard(row, index, spotsChip(event, locale, k, asMember));
+    }
     const chip = seats
       ? { text: k.booked(seats), tone: "wine" as const }
       : closed

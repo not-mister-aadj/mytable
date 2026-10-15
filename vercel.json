@@ -24,6 +24,10 @@
     {
       "path": "/api/cron/jouw-tafel-series",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/open-dates",
+      "schedule": "20 * * * *"
     }
   ]
 }

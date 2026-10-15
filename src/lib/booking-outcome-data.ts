@@ -21,6 +21,7 @@ import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
 import { sundayTableLpSlugFromCity } from "@/data/sunday-table-lp-cities";
 import { isJouwTafelType } from "@/lib/event-concepts";
+import { purchaseRefOfSession } from "@/lib/analytics/confirmationPurchase";
 
 export type BookingGalleryItem = {
   url: string;
@@ -227,10 +228,12 @@ export async function getBookingConfirmationStatus(
     return { summary: null, pending: false };
   }
 
-  const bookingId = session.metadata?.booking_id;
-  if (!bookingId) {
+  // A single seat, or "Elke zondag" (the membership with this seat in it).
+  const ref = purchaseRefOfSession(session);
+  if (!ref) {
     return { summary: null, pending: false };
   }
+  const bookingId = ref.bookingId;
 
   const db = getDb();
   const [row] = await db
@@ -257,7 +260,7 @@ export async function getBookingConfirmationStatus(
   try {
     return {
       summary: await mapEventToSummary(row.event, locale, {
-        amountCents: row.booking.amountCents,
+        amountCents: ref.paidCents ?? row.booking.amountCents,
         currency: row.booking.currency,
         seats: row.booking.seats,
         id: row.booking.id,

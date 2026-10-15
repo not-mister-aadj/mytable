@@ -3,7 +3,7 @@
 // at the table.
 
 import type { MembershipEmailProps } from "@/emails/MembershipEmail";
-import { formatPlanEuros, getMembershipPlan, guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
+import { MEMBER_MAX_UPCOMING_BOOKINGS, formatPlanEuros, getMembershipPlan, guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
 import { MEMBER_SEAT_CANCEL_HOURS } from "@/lib/membership/logic";
 
 type Locale = "nl" | "en";
@@ -55,7 +55,8 @@ export function planPriceLine(plan: MembershipPlanId, locale: Locale): string {
   return `${initial} voor het eerste jaar, daarna ${monthly} per maand, per maand opzegbaar`;
 }
 
-type Links = { kies: string; settings: string };
+/** login: the log-in page that goes on to "Kies je zondag" afterwards. */
+type Links = { kies: string; settings: string; login?: string };
 
 export type MembershipMail = { subject: string; props: MembershipEmailProps };
 
@@ -84,8 +85,8 @@ export function welcomeMail(input: {
         : "Fijn dat je erbij bent. Vanaf nu schuif je aan bij elke Sunday Social, in elke stad.",
       warmLine: booked
         ? en
-          ? `Your seat for ${booked} is booked. The confirmation follows in a separate email.`
-          : `Je plek op ${booked} staat vast. De bevestiging krijg je in een aparte mail.`
+          ? `Your seat for ${booked} is booked. The confirmation follows in a separate email. Every next Sunday you book yourself, in your account.`
+          : `Je plek op ${booked} staat vast. De bevestiging krijg je in een aparte mail. Elke volgende zondag boek je zelf, in je account.`
         : undefined,
       details: {
         label: en ? "Your membership" : "Je lidmaatschap",
@@ -97,8 +98,15 @@ export function welcomeMail(input: {
           icon: "calendar",
           title: en ? "A seat every Sunday" : "Elke zondag aan tafel",
           description: en
-            ? "Join every Sunday Social, in every city, as often as you like."
-            : "Schuif aan bij elke Sunday Social, in elke stad, zo vaak als je wilt.",
+            ? `Join every Sunday Social, in every city. You book each Sunday yourself, up to ${MEMBER_MAX_UPCOMING_BOOKINGS} at a time.`
+            : `Schuif aan bij elke Sunday Social, in elke stad. Je boekt elke zondag zelf, tot ${MEMBER_MAX_UPCOMING_BOOKINGS} tegelijk.`,
+        },
+        {
+          icon: "mail",
+          title: en ? "Your account" : "Je account",
+          description: en
+            ? "Log in with this email address. You get a code by email, no password needed. There you choose your next Sunday."
+            : "Log in met dit e-mailadres. Je krijgt een code per mail, een wachtwoord is niet nodig. Daar kies je je volgende zondag.",
         },
         {
           icon: "clock",
@@ -123,9 +131,9 @@ export function welcomeMail(input: {
         },
       ],
       cta: {
-        href: input.links.kies,
-        label: en ? "Choose your Sunday →" : "Kies je zondag →",
-        helperText: en ? "See which tables are open for you." : "Bekijk welke tafels er voor je klaarstaan.",
+        href: input.links.login ?? input.links.kies,
+        label: en ? "Log in to your account →" : "Log in op je account →",
+        helperText: en ? "With this email address, then choose your next Sunday." : "Met dit e-mailadres, daarna kies je je volgende zondag.",
       },
       note: en
         ? "You can cancel any time in your settings."

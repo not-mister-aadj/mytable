@@ -13,10 +13,10 @@ import { membershipOfferCouponId, planPriceIds } from "@/lib/membership/stripe";
 import { memberBookingAmountCents } from "@/lib/membership/logic";
 import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
-import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
+import { isJouwTafelType, isSharedTableType } from "@/lib/event-concepts";
 import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
-export type MembershipCheckoutSource = "page" | "kies" | "offer";
+export type MembershipCheckoutSource = "page" | "kies" | "offer" | "booking";
 
 export type MembershipCheckoutInput = {
   user: { id: string; email: string };
@@ -30,7 +30,14 @@ export type MembershipCheckoutInput = {
     name: string;
     dietaryNotes?: string | null;
     tableLanguagePreference?: string | null;
+    birthDate?: string | null;
+    agePreference?: string | null;
+    /** Logged on the pending booking (consent, utm, age check). */
+    events?: Array<{ type: string; payload: Record<string, unknown> }>;
   } | null;
+  /** "Elke zondag" in the booking card: back to this page when they cancel
+   * in Stripe (a path on this site). */
+  returnPath?: string | null;
   /** The offer after a paid Sunday Social: that booking's seat comes off
    * the first month, and the person returns to its confirmation page. */
   offer?: { bookingId: string; bookingSessionId: string } | null;
@@ -38,19 +45,21 @@ export type MembershipCheckoutInput = {
 };
 
 export type MembershipCheckoutResult =
-  | { ok: true; url: string; sessionId: string }
+  | { ok: true; url: string; sessionId: string; bookingId?: string | null }
   | { ok: false; error: "already_member" | "table_unavailable" | "table_full" | "checkout_failed" };
 
-/** Why a Sunday Table cannot be booked right now (shared with /api/checkout). */
+/** Why a Sunday Social cannot be booked right now (shared with
+ * /api/checkout): a series table or a hand-made one. */
 export function sundayTableUnavailable(event: Event | undefined, seats: number, now = new Date()): "table_unavailable" | "table_full" | null {
-  if (!event || event.workflowStatus !== "published" || event.experienceType !== JOUW_TAFEL_TYPE) return "table_unavailable";
+  if (!event || event.workflowStatus !== "published" || !isSharedTableType(event.experienceType)) return "table_unavailable";
   if (event.extras?.comingSoon) return "table_unavailable";
+  const series = isJouwTafelType(event.experienceType);
   // A new member books first, but not before members can (4 weeks ahead).
-  if (now.getTime() < jouwTafelBookingWindow(event.startsAt, bookingOpensOverride(event.extras)).membersFrom.getTime()) return "table_unavailable";
+  if (series && now.getTime() < jouwTafelBookingWindow(event.startsAt, bookingOpensOverride(event.extras)).membersFrom.getTime()) return "table_unavailable";
   if (isEventClosedForBooking(event.startsAt, now)) return "table_unavailable";
   if (event.capacity - event.spotsSold < seats) return "table_full";
   // Nobody booked it 14 days before: closed, like a full table.
-  if (isClosedEmpty({ ...event, bookingOpensAt: bookingOpensOverride(event.extras) }, now.getTime())) return "table_unavailable";
+  if (series && isClosedEmpty({ ...event, bookingOpensAt: bookingOpensOverride(event.extras) }, now.getTime())) return "table_unavailable";
   return null;
 }
 
@@ -86,10 +95,15 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         dietaryNotes: input.table.dietaryNotes?.trim() || null,
         seatingPreference: "join_others",
         tableLanguagePreference: input.table.tableLanguagePreference ?? "both_fine",
+        birthDate: input.table.birthDate || null,
+        agePreference: input.table.agePreference || null,
         paymentStatus: "pending",
       })
       .returning();
     pendingBookingId = booking!.id;
+    for (const extra of input.table.events ?? []) {
+      await db.insert(bookingEvents).values({ bookingId: booking!.id, type: extra.type, payload: extra.payload });
+    }
     await onBookingCreated({ booking: booking!, event: event! }).catch(() => undefined);
     await db.insert(bookingEvents).values({
       bookingId: booking!.id,
@@ -149,6 +163,10 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
   const confirmed = input.offer
     ? `${site}/${input.locale}/boeking/bevestigd?session_id=${encodeURIComponent(input.offer.bookingSessionId)}`
     : null;
+  // "Elke zondag" in the booking card: the same confirmation page as a
+  // single seat, for the booking this Checkout pays for.
+  const fromBooking = input.source === "booking" && pendingBookingId;
+  const back = input.returnPath && input.returnPath.startsWith("/") && !input.returnPath.startsWith("//") ? input.returnPath : null;
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -171,16 +189,20 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
             : `${priceLine}. Je lidmaatschap start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
         },
       },
-      success_url: confirmed ? `${confirmed}&lid={CHECKOUT_SESSION_ID}` : `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: confirmed
-        ? confirmed
-        : input.source === "kies" ? `${site}${jouwTafelKiesPath(input.locale)}` : `${site}${page}?plan=${input.plan}`,
+      success_url: fromBooking
+        ? `${site}/${input.locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}&lid={CHECKOUT_SESSION_ID}`
+        : confirmed ? `${confirmed}&lid={CHECKOUT_SESSION_ID}` : `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: fromBooking && back
+        ? `${site}${back}`
+        : confirmed
+          ? confirmed
+          : input.source === "kies" ? `${site}${jouwTafelKiesPath(input.locale)}` : `${site}${page}?plan=${input.plan}`,
     });
     if (pendingBookingId) {
       await db.update(bookings).set({ stripeCheckoutSessionId: session.id }).where(eq(bookings.id, pendingBookingId));
     }
     if (!session.url) return { ok: false, error: "checkout_failed" };
-    return { ok: true, url: session.url, sessionId: session.id };
+    return { ok: true, url: session.url, sessionId: session.id, bookingId: pendingBookingId };
   } catch (error) {
     if (pendingBookingId) {
       await db.update(bookings).set({ paymentStatus: "failed" }).where(eq(bookings.id, pendingBookingId));

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { customers, type Membership } from "@/db/schema";
 import { MembershipEmail } from "@/emails/MembershipEmail";
-import { jouwTafelKiesPath, jouwTafelSettingsPath } from "@/i18n/config";
+import { jouwTafelKiesPath, jouwTafelLogInPath, jouwTafelSettingsPath } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
 import { getSingleSeatCents } from "@/lib/jouw-tafel/data";
 import { onEmailSent } from "@/lib/customers/hooks";
@@ -24,7 +24,11 @@ type Locale = "nl" | "en";
 
 function links(locale: Locale) {
   const base = getSiteUrl().replace(/\/$/, "");
-  return { kies: `${base}${jouwTafelKiesPath(locale)}`, settings: `${base}${jouwTafelSettingsPath(locale)}` };
+  return {
+    kies: `${base}${jouwTafelKiesPath(locale)}`,
+    settings: `${base}${jouwTafelSettingsPath(locale)}`,
+    login: `${base}${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(jouwTafelKiesPath(locale))}`,
+  };
 }
 
 async function recipient(m: Membership): Promise<{ locale: Locale; firstName: string | null; customerId: string | null }> {

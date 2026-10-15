@@ -21,15 +21,27 @@ export const MEMBERSHIP_OPEN = false;
  * only way in is that one screen. It sells one plan, monthly, with what
  * the booking just cost taken off the first month.
  */
-export const MEMBERSHIP_OFFER_OPEN = true;
+export const MEMBERSHIP_OFFER_OPEN = false;
 export const MEMBERSHIP_OFFER_PLAN = "1m" as const;
 /** Taken off the first month: the seat they just paid for. */
 export const MEMBERSHIP_OFFER_CREDIT_CENTS = 1000;
 /** The offer stays open this long after the screen first showed. */
 export const MEMBERSHIP_OFFER_MINUTES = 30;
 
+/**
+ * The choice in the booking card of every Sunday Social: "Alleen deze
+ * zondag" (a single seat) or "Elke zondag" (the monthly plan, with this
+ * Sunday's seat in it). Since 15 October 2026 the only way to become a
+ * member; the offer screen after paying is off.
+ */
+export const MEMBERSHIP_AT_BOOKING = true;
+export const MEMBERSHIP_AT_BOOKING_PLAN = "1m" as const;
+
+/** A member has at most this many upcoming Sundays booked at a time. */
+export const MEMBER_MAX_UPCOMING_BOOKINGS = 2;
+
 /** Members book this many hours before a table opens for everyone. */
-export const MEMBERS_BOOK_EARLY = MEMBERSHIP_OPEN || MEMBERSHIP_OFFER_OPEN;
+export const MEMBERS_BOOK_EARLY = MEMBERSHIP_OPEN || MEMBERSHIP_OFFER_OPEN || MEMBERSHIP_AT_BOOKING;
 
 /** A member's guest never pays more than a single seat costs. */
 export const MEMBER_GUEST_MAX_CENTS = 1000;
@@ -60,10 +72,12 @@ export type MembershipPlan = {
 export const MEMBERSHIP_PLANS: Record<MembershipPlanId, MembershipPlan> = {
   "1m": {
     id: "1m",
-    initialCents: 1299,
+    initialCents: 1000,
     initialMonths: 1,
-    monthlyCents: 1299,
-    lookupKeys: { initial: "mytable_membership_1m_monthly", monthly: "mytable_membership_1m_monthly" },
+    monthlyCents: 1000,
+    // €10 per month since 15 October 2026 (it was €12,99 under
+    // "mytable_membership_1m_monthly"; a Stripe price never changes).
+    lookupKeys: { initial: "mytable_membership_1m_monthly_10", monthly: "mytable_membership_1m_monthly_10" },
     badge: null,
   },
   "4m": {

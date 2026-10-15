@@ -84,7 +84,12 @@ export default async function BookingConfirmedPage({
     try {
       if (membershipSessionId) {
         const fulfilled = await tryFulfillMembershipSession(membershipSessionId);
-        memberWelcome = Boolean(fulfilled?.ok && (await isOfferMembershipOf(sessionId, fulfilled.membership.email)));
+        // "Elke zondag" in the booking card: one Checkout for both, so the
+        // two ids are the same. Else the offer after a single seat.
+        memberWelcome = Boolean(
+          fulfilled?.ok &&
+            (membershipSessionId === sessionId || (await isOfferMembershipOf(sessionId, fulfilled.membership.email))),
+        );
       }
       if (confirmation.summary && !memberWelcome) offer = await getMembershipOffer(sessionId);
     } catch (err) {

@@ -58,7 +58,7 @@ function member(partial: Partial<MembershipSnapshot> = {}): MembershipSnapshot {
 test("plan prices match the approved design", () => {
   assert.deepEqual(
     [MEMBERSHIP_PLANS["1m"].initialCents, MEMBERSHIP_PLANS["1m"].monthlyCents, MEMBERSHIP_PLANS["1m"].initialMonths],
-    [1299, 1299, 1],
+    [1000, 1000, 1],
   );
   assert.deepEqual(
     [MEMBERSHIP_PLANS["4m"].initialCents, MEMBERSHIP_PLANS["4m"].monthlyCents, MEMBERSHIP_PLANS["4m"].initialMonths],
@@ -82,7 +82,7 @@ test("guest price per plan is the plan's monthly amount", () => {
 });
 
 test("next charge is always the monthly amount", () => {
-  assert.equal(nextChargeCents("1m"), 1299);
+  assert.equal(nextChargeCents("1m"), 1000);
   assert.equal(nextChargeCents("4m"), 900);
   assert.equal(nextChargeCents("12m"), 825);
 });

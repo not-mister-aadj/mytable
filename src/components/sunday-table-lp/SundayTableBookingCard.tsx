@@ -11,6 +11,12 @@ import {
 import { getStoredUtm } from "@/lib/analytics/utm";
 import { trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
 import { isAtLeastMinAge, latestLegalBirthDate } from "@/lib/member-onboarding";
+import {
+  MEMBERSHIP_AT_BOOKING,
+  MEMBERSHIP_AT_BOOKING_PLAN,
+  getMembershipPlan,
+  guestSeatCents,
+} from "@/lib/membership/plans";
 
 /** Date of birth: only a check that the booker is 18 or older. */
 const BIRTH_COPY = {
@@ -25,6 +31,33 @@ const AGE_PREFERENCE_COPY = {
   en: { label: "At the table with", similar: "People around my age", any: "Doesn't matter", missing: "Choose who you'd like at your table." },
 } as const;
 type AgePreference = "similar" | "any";
+
+/** "Alleen deze zondag" or "Elke zondag": nothing is chosen at first. */
+const PLAN_COPY = {
+  nl: {
+    label: "Kies je ticket",
+    singleTitle: "Alleen deze zondag",
+    singleBody: "Eenmalig. Je wijn bestel je zelf.",
+    monthlyTitle: "Elke zondag",
+    perMonth: "per maand",
+    monthlyBody: "Deze zondag, en daarna elke Sunday Social in alle steden. Die boek je zelf in je account. Maandelijks opzegbaar.",
+    missing: "Kies of je alleen deze zondag of elke zondag wilt.",
+    monthlyCta: "Word lid en reserveer",
+  },
+  en: {
+    label: "Choose your ticket",
+    singleTitle: "Just this Sunday",
+    singleBody: "One time. You order your own wine.",
+    monthlyTitle: "Every Sunday",
+    perMonth: "per month",
+    monthlyBody: "This Sunday, then every Sunday Social in every city. You book those yourself in your account. Cancel monthly.",
+    missing: "Choose just this Sunday or every Sunday.",
+    monthlyCta: "Become a member and reserve",
+  },
+} as const;
+type TicketPlan = "single" | "monthly";
+const MONTHLY_CENTS = getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents;
+const MONTHLY_GUEST_CENTS = guestSeatCents(MEMBERSHIP_AT_BOOKING_PLAN);
 
 /** A signed-in member books here too: their own seat is included. */
 const MEMBER_COPY = {
@@ -131,6 +164,8 @@ export function SundayTableBookingCard({
   /** Nobody is signed in: a member can log in from here. */
   const [signedOut, setSignedOut] = useState(false);
   const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
+  const planCopy = PLAN_COPY[locale === "en" ? "en" : "nl"];
+  const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>(null);
   /** The typed address is a member's, but nobody is signed in as them. */
   const [needsLogin, setNeedsLogin] = useState(false);
   /** Back to this Sunday after logging in. */
@@ -173,7 +208,14 @@ export function SundayTableBookingCard({
   const maxSeats = Math.min(2, spotsLeft);
   const guestFree = Boolean(member?.freeGuest);
   const memberGuestEuros = member ? member.guestCents / 100 : 0;
-  const total = member ? (seats === 2 && !guestFree ? memberGuestEuros : 0) : pricePerSeatEuros * seats;
+  // The choice is only for someone who is not a member yet.
+  const offersPlan = MEMBERSHIP_AT_BOOKING && !member;
+  const monthly = offersPlan && ticketPlan === "monthly";
+  const total = member
+    ? seats === 2 && !guestFree ? memberGuestEuros : 0
+    : monthly
+      ? (MONTHLY_CENTS + (seats === 2 ? MONTHLY_GUEST_CENTS : 0)) / 100
+      : pricePerSeatEuros * seats;
   const euroLabel = (value: number) =>
     Number.isInteger(value) ? `€${value}` : `€${value.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
   // Most tables are Dutch-speaking: there "English" stays selectable, but it
@@ -236,6 +278,10 @@ export function SundayTableBookingCard({
       setError(ageCopy.missing);
       return;
     }
+    if (offersPlan && !ticketPlan) {
+      setError(planCopy.missing);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -251,6 +297,8 @@ export function SundayTableBookingCard({
           tableLanguagePreference,
           birthDate,
           agePreference,
+          ...(offersPlan && ticketPlan ? { plan: ticketPlan } : {}),
+          returnPath: window.location.pathname,
           utm: getStoredUtm(),
         }),
       });
@@ -291,6 +339,54 @@ export function SundayTableBookingCard({
           <span aria-hidden>&larr;</span>
           {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
         </a>
+      ) : null}
+      {offersPlan && !englishOnlyWaiting ? (
+        <div>
+          <span className="block text-sm font-medium text-wine">{planCopy.label}</span>
+          <div className="mt-1.5 space-y-2">
+            {(
+              [
+                ["single", planCopy.singleTitle, euroLabel(pricePerSeatEuros), null, planCopy.singleBody],
+                ["monthly", planCopy.monthlyTitle, euroLabel(MONTHLY_CENTS / 100), planCopy.perMonth, planCopy.monthlyBody],
+              ] as const
+            ).map(([value, title, price, unit, body]) => {
+              const chosen = ticketPlan === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={chosen}
+                  onClick={() => {
+                    setTicketPlan(value);
+                    setError(null);
+                  }}
+                  className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left transition ${
+                    chosen ? "border-burgundy bg-burgundy/[0.06] ring-1 ring-burgundy" : "border-wine/15 bg-white hover:border-wine/30"
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                      chosen ? "border-burgundy" : "border-wine/30"
+                    }`}
+                  >
+                    {chosen ? <span className="h-2.5 w-2.5 rounded-full bg-burgundy" /> : null}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span className="font-semibold text-wine">{title}</span>
+                      <span className="shrink-0 font-semibold text-wine">
+                        {price}
+                        {unit ? <span className="ml-1 text-xs font-medium text-wine/60">{unit}</span> : null}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-sm leading-snug text-wine/65">{body}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       ) : null}
       {member ? (
         <p className="flex items-center gap-2 rounded-xl border border-gold/50 bg-gold/10 px-3.5 py-2.5 text-sm font-semibold text-wine">
@@ -476,7 +572,9 @@ export function SundayTableBookingCard({
               ? englishComingSoon.cta
               : member
                 ? `${memberCopy.reserve} · ${total > 0 ? euroLabel(total) : memberCopy.free}`
-                : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
+                : monthly
+                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}`
+                  : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
       )}
       {signedOut && !member ? (

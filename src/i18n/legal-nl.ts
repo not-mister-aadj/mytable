@@ -278,7 +278,7 @@ export const termsNl: LegalDocumentContent = {
         {
           type: "ul",
           items: [
-            "1 maand: €12,99 per maand;",
+            "1 maand: €10 per maand;",
             "4 maanden: €36 voor de eerste 4 maanden, daarna €9 per maand;",
             "1 jaar: €99 voor het eerste jaar, daarna €8,25 per maand.",
           ],

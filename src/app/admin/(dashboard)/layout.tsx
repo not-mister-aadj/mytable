@@ -10,6 +10,8 @@ import { redirect } from "next/navigation";
 // tables, the rest supports the still-live /agenda catalog and booking flow.
 const NAV_ITEM_PATHS = [
   { label: "Dashboard", path: "/", exact: true },
+  // Ad spend next to income, per day, week or month.
+  { label: "Financiën", path: "/finance" },
   { label: "Wachtlijst", path: "/priority-list" },
   // The venue side of the business: which wine bars we mailed, what came back.
   { label: "Outreach", path: "/outreach" },

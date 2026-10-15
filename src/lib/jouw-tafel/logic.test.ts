@@ -132,7 +132,10 @@ test("closed: full, nobody booked 14 days before (unless an admin opened it), or
   assert.equal(closedReason(t(), at("2026-10-11T12:59:00Z")), null);
   assert.equal(closedReason(t(), at("2026-10-11T13:00:00Z")), "empty");
   assert.equal(isClosedEmpty(t({ spotsSold: 1 }), at("2026-10-20T13:00:00Z")), false);
-  assert.equal(isClosedEmpty(t({ bookingOpensAt: "2026-10-01T00:00:00Z" }), at("2026-10-20T13:00:00Z")), false);
+  // Opened early by an admin: still closes when empty 14 days before.
+  assert.equal(isClosedEmpty(t({ bookingOpensAt: "2026-10-01T00:00:00Z" }), at("2026-10-20T13:00:00Z")), true);
+  // Opened by an admin inside the last 14 days: stays open.
+  assert.equal(isClosedEmpty(t({ bookingOpensAt: "2026-10-19T00:00:00Z" }), at("2026-10-20T13:00:00Z")), false);
   assert.equal(closedReason(t({ spotsSold: 12 }), NOW), "full");
   assert.equal(closedReason(t({ spotsSold: 3 }), at("2026-10-23T13:00:00Z")), "past");
   assert.equal(isNoLongerBookable(t({ spotsSold: 3 }), at("2026-10-20T13:00:00Z")), false);

@@ -136,10 +136,14 @@ function startMs(startsAt: string | Date): number {
 }
 
 /** Nobody booked and the date is JOUW_TAFEL_EMPTY_CLOSE_DAYS away or less.
- * An admin's exception (bookingOpensAt) keeps the table open. */
+ * Also for a table an admin opened early (bookingOpensAt): it closes empty
+ * like any other. Only a table an admin opened after that moment (on
+ * purpose, for the last two weeks) stays open. */
 export function isClosedEmpty(event: ClosableTable, now: number = Date.now()): boolean {
-  if (event.spotsSold > 0 || event.bookingOpensAt) return false;
-  return now >= startMs(event.startsAt) - JOUW_TAFEL_EMPTY_CLOSE_DAYS * DAY_MS;
+  if (event.spotsSold > 0) return false;
+  const closesAt = startMs(event.startsAt) - JOUW_TAFEL_EMPTY_CLOSE_DAYS * DAY_MS;
+  if (event.bookingOpensAt && Date.parse(event.bookingOpensAt) >= closesAt) return false;
+  return now >= closesAt;
 }
 
 /** Why a table can no longer be booked, or null while it can. Visitors

@@ -57,6 +57,31 @@ export function formatSpotsLeftHint(
   return spotsLeft === 1 ? "Only 1 spot left" : `Only ${spotsLeft} spots left`;
 }
 
+/** A Sunday Social is filled one table at a time: the seats shown are the
+ * seats left at the table being filled (5 a table), never more than the
+ * event has left. The event's capacity stays the real limit. */
+export const SUNDAY_SOCIAL_TABLE_SIZE = 5;
+
+export function tableSpotsLeft(
+  capacity: number,
+  spotsSold: number,
+  tableSize: number = SUNDAY_SOCIAL_TABLE_SIZE,
+): number {
+  const left = Math.max(0, capacity - spotsSold);
+  if (left === 0) return 0;
+  const atTable = tableSize - (Math.max(0, spotsSold) % tableSize);
+  return Math.min(atTable, left);
+}
+
+/** "Nog 2 plekken aan deze tafel": the table being filled, so it never
+ * reads as if the whole afternoon is nearly full. */
+export function formatTableSpotsLeftHint(spotsLeft: number, locale: Locale): string {
+  if (locale === "nl") {
+    return spotsLeft === 1 ? "Nog 1 plek aan deze tafel" : `Nog ${spotsLeft} plekken aan deze tafel`;
+  }
+  return spotsLeft === 1 ? "1 spot left at this table" : `${spotsLeft} spots left at this table`;
+}
+
 export function formatAlmostFullImageHint(
   spotsLeft: number,
   locale: Locale,

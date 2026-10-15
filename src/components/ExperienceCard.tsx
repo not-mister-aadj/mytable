@@ -19,8 +19,7 @@ import {
 import {
   formatAlmostFullImageHint,
   formatCardDateTimeLine,
-  formatSpotsLeftHint,
-} from "@/lib/event-display";
+  formatSpotsLeftHint, formatTableSpotsLeftHint, tableSpotsLeft} from "@/lib/event-display";
 
 interface ExperienceCardProps {
   experience: ExperienceItem;
@@ -119,15 +118,25 @@ export function ExperienceCard({
     : experience.price > 0
       ? formatPerPerson(experience.price, perPersonFromLabel)
       : null;
+  // A Sunday Social is filled a table at a time: the card shows the seats
+  // left at the table being filled.
+  const tableLeft =
+    isSundayTable && experience.capacity !== undefined && experience.spotsSold !== undefined
+      ? tableSpotsLeft(experience.capacity, experience.spotsSold)
+      : null;
   const showUrgencyHint =
     !isUnavailable &&
     spotsLeft !== null &&
     spotsLeft > 0 &&
-    (isAlmostFull || (isAvailable && spotsLeft <= 15)) &&
-    shouldShowSpotsCount(spotsLeft, experience.spotsSold);
-  const urgencyHintText = isAlmostFull
-    ? formatAlmostFullImageHint(spotsLeft!, locale)
-    : formatSpotsLeftHint(spotsLeft!, locale);
+    (tableLeft !== null ||
+      ((isAlmostFull || (isAvailable && spotsLeft <= 15)) &&
+        shouldShowSpotsCount(spotsLeft, experience.spotsSold)));
+  const urgencyHintText =
+    tableLeft !== null
+      ? formatTableSpotsLeftHint(tableLeft, locale)
+      : isAlmostFull
+        ? formatAlmostFullImageHint(spotsLeft!, locale)
+        : formatSpotsLeftHint(spotsLeft!, locale);
 
   function handleClick() {
     trackEventCardClicked(experience, locale, sourceSection);

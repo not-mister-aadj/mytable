@@ -5,9 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { CheckIcon, InfoIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
-import { formatSpotsLeftHint } from "@/lib/event-display";
-import { shouldShowSpotsCount } from "@/lib/experience-booking";
-import { QUIZ_CITIES, displayCity, sameCity, spotsLeft, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
+import { QUIZ_CITIES, displayCity, sameCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   ageFromBirthDate,
@@ -77,10 +76,9 @@ export function spotsChip(
     }
     return { text: copy.soonBadge, tone: "grey" };
   }
-  const left = spotsLeft(event);
-  return shouldShowSpotsCount(left, event.spotsSold)
-    ? { text: formatSpotsLeftHint(left, locale), tone: "wine" }
-    : { text: copy.spotsOpen, tone: "gold" };
+  // Filled a table at a time: the seats left at the table being filled.
+  const left = tableSpotsLeft(event.capacity, event.spotsSold);
+  return left > 0 ? { text: formatTableSpotsLeftHint(left, locale), tone: "wine" } : { text: copy.spotsOpen, tone: "gold" };
 }
 
 export { CHIP_TONE };

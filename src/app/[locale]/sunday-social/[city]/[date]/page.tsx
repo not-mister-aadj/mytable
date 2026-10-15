@@ -33,8 +33,7 @@ import {
 import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
 import { images } from "@/data/images";
-import { shouldShowSpotsCount } from "@/lib/experience-booking";
-import { formatSpotsLeftHint } from "@/lib/event-display";
+import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
 import { getSundayTableMotivationStats } from "@/lib/sunday-table-motivation-stats";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -414,7 +413,9 @@ export default async function SundayTableEventPage({ params }: Props) {
   const found = await loadSundaySocial(citySlug, date, locale);
   if (!found) notFound();
   const { city, table, location, ticketEvent, comingSoon, venueKnown, memberOpensAt, startsAt, spotsLeft } = found;
-  const showSpotsCount = shouldShowSpotsCount(spotsLeft, ticketEvent.spotsSold);
+  // Filled a table at a time: the seats left at the table being filled
+  // always show.
+  const showSpotsCount = spotsLeft > 0;
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
@@ -609,7 +610,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
-          ticketsLeftLabel: formatSpotsLeftHint(spotsLeft, "en"),
+          ticketsLeftLabel: formatTableSpotsLeftHint(tableSpotsLeft(ticketEvent.capacity, ticketEvent.spotsSold), "en"),
           availableChipLabel: "Available",
           soldOutChipLabel: "Sold out",
           comingSoonChipLabel: "Coming soon",
@@ -700,7 +701,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",
-          ticketsLeftLabel: formatSpotsLeftHint(spotsLeft, "nl"),
+          ticketsLeftLabel: formatTableSpotsLeftHint(tableSpotsLeft(ticketEvent.capacity, ticketEvent.spotsSold), "nl"),
           availableChipLabel: "Beschikbaar",
           soldOutChipLabel: "Uitverkocht",
           comingSoonChipLabel: "Binnenkort bekend",

@@ -3,15 +3,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { Locale } from "@/i18n/config";
-import { formatSpotsLeftHint } from "@/lib/event-display";
-import { shouldShowSpotsCount } from "@/lib/experience-booking";
+import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
 import {
   cityTables,
   cityTabs,
   displayCity,
   isNoLongerBookable,
-  spotsLeft,
   type QuizCity,
   type QuizEvent,
 } from "@/lib/jouw-tafel/logic";
@@ -123,8 +121,8 @@ export function JouwTafelTables({
           <>
             <ul className="divide-y divide-wine/8">
               {tables.map((event) => {
-                const left = spotsLeft(event);
-                const showCount = shouldShowSpotsCount(left, event.spotsSold);
+                const left = tableSpotsLeft(event.capacity, event.spotsSold);
+                const showCount = left > 0;
                 const closed = isNoLongerBookable(event, now);
                 return (
                   <li key={event.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
@@ -157,7 +155,7 @@ export function JouwTafelTables({
                         </span>
                       ) : (
                         <span className="text-sm font-semibold text-burgundy">
-                          {showCount ? formatSpotsLeftHint(left, locale) : copy.open}
+                          {showCount ? formatTableSpotsLeftHint(left, locale) : copy.open}
                         </span>
                       )}
                     </div>

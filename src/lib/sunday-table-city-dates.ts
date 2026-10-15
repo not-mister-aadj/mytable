@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
+import { tableSpotsLeft } from "@/lib/event-display";
 import type { Locale } from "@/i18n/config";
 import { sundayTableLocationPath } from "@/i18n/config";
 import type { SundayTableLpCitySlug } from "@/data/sunday-table-lp-cities";
 import { getDb, isDbConfigured } from "@/db/index";
 import { events } from "@/db/schema";
-import { shouldShowSpotsCount } from "@/lib/experience-booking";
 import { getUpcomingSundayTableLocations } from "@/lib/sunday-table-locations";
 import { getBookableSundaySocials } from "@/lib/sunday-social-tables";
 import {
@@ -85,7 +85,7 @@ export async function getUpcomingSundayTableDates(
           : seatsLeft === 0
             ? "soldOut"
             : "available",
-        spotsLeft: shouldShowSpotsCount(seatsLeft, event.spotsSold) ? seatsLeft : null,
+        spotsLeft: seatsLeft > 0 ? tableSpotsLeft(event.capacity, event.spotsSold) : null,
         href: sundayTableLocationPath(locale, citySlug, location.tableDate),
       };
     }),
@@ -111,7 +111,7 @@ export async function getUpcomingSundayTableDates(
         ageBracket: t.bracket,
         priceEuros: Math.round(t.priceCents / 100),
         status: "available",
-        spotsLeft: shouldShowSpotsCount(seatsLeft, t.spotsSold) ? seatsLeft : null,
+        spotsLeft: seatsLeft > 0 ? tableSpotsLeft(t.capacity, t.spotsSold) : null,
         href: sundayTableLocationPath(locale, citySlug, t.dateIso),
       };
     });

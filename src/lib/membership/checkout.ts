@@ -8,9 +8,9 @@ import { onBookingCreated } from "@/lib/customers/hooks";
 import { getSiteUrl } from "@/lib/env";
 import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { getRunningMembershipForUser, previousStripeCustomerId } from "@/lib/membership/data";
-import { MEMBERSHIP_OFFER_CREDIT_CENTS, formatPlanEuros, getMembershipPlan, guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
+import { MEMBERSHIP_OFFER_CREDIT_CENTS, formatPlanEuros, getMembershipPlan, type MembershipPlanId } from "@/lib/membership/plans";
 import { membershipOfferCouponId, planPriceIds } from "@/lib/membership/stripe";
-import { memberBookingAmountCents } from "@/lib/membership/logic";
+import { FREE_GUEST_EVENT } from "@/lib/membership/member-checkout";
 import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { isJouwTafelType, isSharedTableType } from "@/lib/event-concepts";
@@ -82,7 +82,10 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
     [event] = await db.select().from(events).where(eq(events.id, input.table.eventId)).limit(1);
     const problem = sundayTableUnavailable(event, input.table.seats);
     if (problem) return { ok: false, error: problem };
-    guestCents = memberBookingAmountCents(input.table.seats, guestSeatCents(input.plan));
+    // Joining with a guest: the guest comes along for free (the free guest
+    // of every 3 months, the first one straight away). Taken when the
+    // membership starts (fulfillMembershipCheckout).
+    guestCents = 0;
     const [booking] = await db
       .insert(bookings)
       .values({
@@ -110,6 +113,9 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
       type: "member_checkout_started",
       payload: { plan: input.plan, guestCents },
     });
+    if (input.table.seats === 2) {
+      await db.insert(bookingEvents).values({ bookingId: booking!.id, type: FREE_GUEST_EVENT, payload: { plan: input.plan, onJoin: true } });
+    }
     if (input.meta.fbp || input.meta.fbc || input.meta.clientIpAddress) {
       await db.insert(bookingEvents).values({ bookingId: booking!.id, type: "checkout_meta_context", payload: input.meta });
     }

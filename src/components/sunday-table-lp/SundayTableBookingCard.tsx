@@ -15,7 +15,6 @@ import {
   MEMBERSHIP_AT_BOOKING,
   MEMBERSHIP_AT_BOOKING_PLAN,
   getMembershipPlan,
-  guestSeatCents,
 } from "@/lib/membership/plans";
 
 /** Date of birth: only a check that the booker is 18 or older. */
@@ -40,9 +39,11 @@ const PLAN_COPY = {
     singleBody: "Eenmalig. Je wijn bestel je zelf.",
     monthlyTitle: "Elke zondag",
     perMonth: "per maand",
+    perMonthShort: "maand",
     monthlyBody: "Deze zondag, en daarna elke Sunday Social in alle steden. Die boek je zelf in je account. Maandelijks opzegbaar.",
     missing: "Kies of je alleen deze zondag of elke zondag wilt.",
     monthlyCta: "Word lid en reserveer",
+    guestFree: "gast gratis",
     singleShort: "eenmalig",
     monthlyShort: "alle steden, maandelijks opzegbaar",
     next: "Verder",
@@ -55,9 +56,11 @@ const PLAN_COPY = {
     singleBody: "One time. You order your own wine.",
     monthlyTitle: "Every Sunday",
     perMonth: "per month",
+    perMonthShort: "month",
     monthlyBody: "This Sunday, then every Sunday Social in every city. You book those yourself in your account. Cancel monthly.",
     missing: "Choose just this Sunday or every Sunday.",
     monthlyCta: "Become a member and reserve",
+    guestFree: "guest free",
     singleShort: "one time",
     monthlyShort: "every city, cancel monthly",
     next: "Continue",
@@ -67,7 +70,7 @@ const PLAN_COPY = {
 } as const;
 type TicketPlan = "single" | "monthly";
 const MONTHLY_CENTS = getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents;
-const MONTHLY_GUEST_CENTS = guestSeatCents(MEMBERSHIP_AT_BOOKING_PLAN);
+
 
 /** A signed-in member books here too: their own seat is included. */
 const MEMBER_COPY = {
@@ -229,7 +232,7 @@ export function SundayTableBookingCard({
   const total = member
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
-      ? (MONTHLY_CENTS + (seats === 2 ? MONTHLY_GUEST_CENTS : 0)) / 100
+      ? MONTHLY_CENTS / 100
       : pricePerSeatEuros * seats;
   const euroLabel = (value: number) =>
     Number.isInteger(value) ? `€${value}` : `€${value.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
@@ -487,7 +490,7 @@ export function SundayTableBookingCard({
         {seatsPicker}
         {errorBlock}
         <Button type="submit" className={`${submitClass} ${ticketPlan ? "" : "opacity-60"}`}>
-          {`${planCopy.next}${ticketPlan ? ` · ${euroLabel(total)}` : ""}`}
+          {`${planCopy.next}${ticketPlan ? ` · ${euroLabel(total)}${monthly ? `/${planCopy.perMonthShort}` : ""}${monthly && seats === 2 ? ` · ${planCopy.guestFree}` : ""}` : ""}`}
         </Button>
         {signedOut ? (
           <p className="text-center text-sm">
@@ -652,7 +655,7 @@ export function SundayTableBookingCard({
               : member
                 ? `${memberCopy.reserve} · ${total > 0 ? euroLabel(total) : memberCopy.free}`
                 : monthly
-                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}`
+                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
                   : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
       )}

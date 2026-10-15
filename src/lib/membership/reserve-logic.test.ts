@@ -3,11 +3,11 @@ import test from "node:test";
 import { planSavingsCents } from "@/lib/membership/plans";
 import { memberReserveTodayCents } from "@/lib/membership/reserve-logic";
 
-test("joining: the first period, plus the guest at the plan's member price", () => {
+test("joining: the first period; a guest comes along for free", () => {
   assert.equal(memberReserveTodayCents({ kind: "join", plan: "4m", seats: 1 }), 3600);
-  assert.equal(memberReserveTodayCents({ kind: "join", plan: "4m", seats: 2 }), 3600 + 900);
-  assert.equal(memberReserveTodayCents({ kind: "join", plan: "1m", seats: 2 }), 1000 + 1000);
-  assert.equal(memberReserveTodayCents({ kind: "join", plan: "12m", seats: 2 }), 9900 + 825);
+  assert.equal(memberReserveTodayCents({ kind: "join", plan: "4m", seats: 2 }), 3600);
+  assert.equal(memberReserveTodayCents({ kind: "join", plan: "1m", seats: 2 }), 1000);
+  assert.equal(memberReserveTodayCents({ kind: "join", plan: "12m", seats: 2 }), 9900);
 });
 
 test("a member: own seat free, only a guest pays", () => {

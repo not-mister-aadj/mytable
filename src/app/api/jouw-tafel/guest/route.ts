@@ -59,3 +59,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unavailable" }, { status: 503 });
   }
 }
+
+/**
+ * DELETE /api/jouw-tafel/guest: this browser forgets its guest (the cookie
+ * only; the row stays). Used when someone makes an account with another
+ * address than the guest in this browser, so the earlier answers and
+ * waitlist rows are not moved into the new account.
+ */
+export async function DELETE() {
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(GUEST_COOKIE, "", { ...guestCookieOptions, maxAge: 0 });
+  return response;
+}

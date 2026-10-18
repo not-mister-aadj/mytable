@@ -90,7 +90,10 @@ export async function JouwTafelAuthPage({
   const ownPath = (prefix: string) => Boolean(naar && naar.startsWith(`${prefix}/`));
   const toPath =
     naar && (ownPath(jouwTafelPath(locale)) || ownPath(sundayTableLpPath(locale))) && !naar.startsWith("//") ? naar : null;
-  const confirm = screen === "signup" && (toMembership || toPath !== null);
+  // "Meld je aan" from the log-in screen: make the account (email code)
+  // right away instead of the email-only start that goes on as a guest.
+  const wantsAccount = screen === "signup" && firstParam(searchParams.account) === "1";
+  const confirm = screen === "signup" && (toMembership || toPath !== null || wantsAccount);
   const planParam = firstParam(searchParams.plan);
   const plan = isMembershipPlanId(planParam) ? planParam : null;
   const nextPath = toMembership
@@ -107,6 +110,8 @@ export async function JouwTafelAuthPage({
   const guest = screen === "signup" ? await getCookieGuest() : null;
   // Email already given in this browser: straight back to the quiz.
   if (screen === "signup" && !confirm && (signedIn || guest)) redirect(jouwTafelStartPath(locale));
+
+  const signUpAccountPath = `${jouwTafelSignUpPath(locale)}${carry ? `${carry}&account=1` : "?account=1"}`;
 
   const userAgent = (await headers()).get("user-agent");
   const inApp = isInAppBrowser(userAgent);
@@ -141,15 +146,17 @@ export async function JouwTafelAuthPage({
         inApp={inApp}
         googleError={firstParam(searchParams.fout) === "google"}
         welcomePath={nextPath}
-        switchPath={`${screen === "signup" ? jouwTafelLogInPath(locale) : jouwTafelSignUpPath(locale)}${carry}`}
-        signUpPath={`${jouwTafelSignUpPath(locale)}${carry}`}
+        switchPath={screen === "signup" ? `${jouwTafelLogInPath(locale)}${carry}` : signUpAccountPath}
+        signUpPath={screen === "signup" ? `${jouwTafelSignUpPath(locale)}${carry}` : signUpAccountPath}
         termsHref={termsPath(locale)}
         privacyHref={privacyPath(locale)}
         proofText={proofText}
         startFresh={false}
         hadSession={signedIn}
         confirm={confirm}
-        initialEmail={guest?.email ?? ""}
+        account={wantsAccount && !toMembership && toPath === null}
+        guestEmail={guest?.email ?? null}
+        initialEmail={wantsAccount ? "" : (guest?.email ?? "")}
       />
     </AccountShell>
   );

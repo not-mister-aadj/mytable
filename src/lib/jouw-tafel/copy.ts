@@ -16,6 +16,8 @@ export type AuthCopy = {
   emailStart: { title: string; button: string; sending: string };
   /** The code step before reserving or becoming a member: the account. */
   confirm: { title: string; sub: string };
+  /** "Meld je aan" from the log-in screen: make the account first. */
+  account: { title: string; sub: string };
   google: string;
   googleFailed: string;
   or: string;
@@ -278,6 +280,10 @@ const landingNl: LandingCopy = {
       title: "Bevestig je e-mail",
       sub: "We sturen je een code van 6 cijfers. Daarna ga je meteen verder.",
     },
+    account: {
+      title: "Maak je account aan",
+      sub: "We sturen je een code van 6 cijfers om je e-mailadres te bevestigen. Daarna ga je meteen verder.",
+    },
     google: "Doorgaan met Google",
     googleFailed: "Inloggen met Google lukte niet. Probeer het opnieuw of gebruik je e-mailadres.",
     or: "of",
@@ -489,6 +495,10 @@ const landingEn: LandingCopy = {
     confirm: {
       title: "Confirm your email",
       sub: "We'll send you a 6-digit code. Then you carry on right away.",
+    },
+    account: {
+      title: "Create your account",
+      sub: "We'll send you a 6-digit code to confirm your email address. Then you carry on right away.",
     },
     google: "Continue with Google",
     googleFailed: "Signing in with Google didn't work. Try again or use your email address.",

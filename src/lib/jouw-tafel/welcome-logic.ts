@@ -3,8 +3,9 @@
 
 import { cityTables, displayCity, isNoLongerBookable, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 
-/** Sent this long after the quiz is completed. */
-export const ACCOUNT_WELCOME_DELAY_MS = 30 * 60 * 1000;
+/** Sent this long after the quiz is completed (the cron runs every 5
+ * minutes, so it arrives 15 to 20 minutes after the last answer). */
+export const ACCOUNT_WELCOME_DELAY_MS = 15 * 60 * 1000;
 
 /** Never further back than this, even after a cron outage. */
 export const ACCOUNT_WELCOME_MAX_LOOKBACK_MS = 2 * 24 * 60 * 60 * 1000;

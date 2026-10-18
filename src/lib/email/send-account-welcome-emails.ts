@@ -33,7 +33,7 @@ function since(): number {
 }
 
 /**
- * The "Jouw tafel" account welcome: once per account, 30 minutes after the
+ * The "Jouw tafel" account welcome: once per account, 15 minutes after the
  * quiz (completedAt in the account's metadata), only when she has no paid
  * booking yet (then it is skipped for good). The account_welcome_emails row
  * is the claim, so a run twice or two runs at once send it once.
@@ -106,7 +106,7 @@ export async function sendAccountWelcomeEmails(now: Date = new Date()): Promise<
 
 /**
  * The same welcome for someone who gave only their email (no account yet,
- * that comes when they reserve): once per guest row, 30 minutes after the
+ * that comes when they reserve): once per guest row, 15 minutes after the
  * quiz, skipped for good when they already booked or the answers moved into
  * an account (then the account's own welcome applies). welcome_sent_at is
  * the claim. Its links open "Kies je zondag" in any browser.

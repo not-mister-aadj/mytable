@@ -41,7 +41,14 @@ export async function logSentEmail(input: {
   }
 }
 
-export type LoggedEmail = { id: string; subject: string; kind: string; sentAt: string };
+/** What we know happened to a mail after sending, from Resend's events. */
+export type EmailDeliveryState = {
+  lastEvent: string | null;
+  openCount: number;
+  clickCount: number;
+};
+
+export type LoggedEmail = { id: string; subject: string; kind: string; sentAt: string } & EmailDeliveryState;
 
 /** What each address received, oldest first, without the mail itself. */
 export async function getLoggedEmailsFor(emails: string[]): Promise<Map<string, LoggedEmail[]>> {
@@ -54,13 +61,24 @@ export async function getLoggedEmailsFor(emails: string[]): Promise<Map<string, 
       emailNormalized: emailLog.emailNormalized,
       subject: emailLog.subject,
       sentAt: emailLog.sentAt,
+      lastEvent: emailLog.lastEvent,
+      openCount: emailLog.openCount,
+      clickCount: emailLog.clickCount,
     })
     .from(emailLog)
     .where(inArray(emailLog.emailNormalized, keys))
     .orderBy(emailLog.sentAt);
   for (const row of rows) {
     const list = byEmail.get(row.emailNormalized) ?? [];
-    list.push({ id: row.id, subject: row.subject, kind: emailKind(row.subject), sentAt: row.sentAt.toISOString() });
+    list.push({
+      id: row.id,
+      subject: row.subject,
+      kind: emailKind(row.subject),
+      sentAt: row.sentAt.toISOString(),
+      lastEvent: row.lastEvent,
+      openCount: row.openCount,
+      clickCount: row.clickCount,
+    });
     byEmail.set(row.emailNormalized, list);
   }
   return byEmail;
@@ -76,7 +94,7 @@ export async function getLoggedEmailHtml(id: string): Promise<{ subject: string;
   return row ?? null;
 }
 
-export type EmailLogListRow = {
+export type EmailLogListRow = EmailDeliveryState & {
   id: string;
   to: string;
   /** Sender address and display name, null for mails logged before 0044 and not backfilled. */
@@ -108,6 +126,9 @@ export async function getEmailLogList(): Promise<EmailLogListRow[]> {
       from: emailLog.fromEmail,
       subject: emailLog.subject,
       sentAt: emailLog.sentAt,
+      lastEvent: emailLog.lastEvent,
+      openCount: emailLog.openCount,
+      clickCount: emailLog.clickCount,
       hasHtml: sql<boolean>`${emailLog.html} is not null`,
       customerId: customers.id,
       firstName: customers.firstName,
@@ -123,6 +144,9 @@ export async function getEmailLogList(): Promise<EmailLogListRow[]> {
     subject: row.subject,
     kind: emailKind(row.subject),
     sentAt: row.sentAt.toISOString(),
+    lastEvent: row.lastEvent,
+    openCount: row.openCount,
+    clickCount: row.clickCount,
     hasHtml: row.hasHtml,
     customerId: row.customerId,
     name: row.customerId ? customerDisplayName(row.firstName, row.lastName, row.to) : null,

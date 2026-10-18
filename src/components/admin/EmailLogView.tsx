@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EmailPreviewDialog } from "@/components/admin/EmailPreviewDialog";
+import { EmailStatusPill } from "@/components/admin/EmailStatusPill";
+import { EMAIL_TRACKING_SINCE } from "@/lib/email/email-tracking";
 import { adminPath } from "@/lib/admin-url";
 import type { EmailLogListRow } from "@/lib/email/email-log";
 
@@ -20,6 +22,56 @@ const dateTime = new Intl.DateTimeFormat("nl-NL", {
 
 const amsterdamDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" });
 
+const STATUS_FILTERS: Array<[string, string]> = [
+  ["opened", "Geopend of geklikt"],
+  ["clicked", "Geklikt"],
+  ["not-opened", "Niet geopend"],
+  ["problem", "Bounce, spam of tegengehouden"],
+];
+
+const trackingStart = new Date(EMAIL_TRACKING_SINCE).getTime();
+const trackingStartLabel = new Intl.DateTimeFormat("nl-NL", {
+  day: "numeric",
+  month: "short",
+  timeZone: "Europe/Amsterdam",
+}).format(new Date(EMAIL_TRACKING_SINCE));
+
+const PROBLEMS = new Set(["bounced", "complained", "suppressed"]);
+const OPENED = new Set(["opened", "clicked"]);
+
+function pct(part: number, total: number): string {
+  if (total === 0) return "-";
+  return `${Math.round((part / total) * 1000) / 10}%`;
+}
+
+function matchesStatus(filter: string, row: EmailLogListRow): boolean {
+  const event = row.lastEvent ?? "";
+  switch (filter) {
+    case "opened":
+      return OPENED.has(event) || row.openCount > 0;
+    case "clicked":
+      return event === "clicked" || row.clickCount > 0;
+    case "not-opened":
+      return !OPENED.has(event) && row.openCount === 0 && !PROBLEMS.has(event);
+    case "problem":
+      return PROBLEMS.has(event);
+    default:
+      return true;
+  }
+}
+
+/** Rates over a set of mails: delivery problems over all, opens and clicks
+ * only over mails sent since tracking was on. */
+function rates(rows: EmailLogListRow[]) {
+  const bounced = rows.filter((r) => r.lastEvent === "bounced").length;
+  const spam = rows.filter((r) => r.lastEvent === "complained").length;
+  const held = rows.filter((r) => r.lastEvent === "suppressed").length;
+  const tracked = rows.filter((r) => new Date(r.sentAt).getTime() >= trackingStart && !PROBLEMS.has(r.lastEvent ?? ""));
+  const opened = tracked.filter((r) => OPENED.has(r.lastEvent ?? "") || r.openCount > 0).length;
+  const clicked = tracked.filter((r) => r.lastEvent === "clicked" || r.clickCount > 0).length;
+  return { total: rows.length, bounced, spam, held, tracked: tracked.length, opened, clicked };
+}
+
 const selectClass =
   "rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40";
 
@@ -28,6 +80,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState("all");
   const [sender, setSender] = useState("all");
+  const [status, setStatus] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [open, setOpen] = useState<EmailLogListRow | null>(null);
@@ -49,6 +102,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
     return rows.filter((row) => {
       if (kind !== "all" && row.kind !== kind) return false;
       if (sender !== "all" && (row.fromAddress ?? "") !== sender) return false;
+      if (status !== "all" && !matchesStatus(status, row)) return false;
       const day = amsterdamDay.format(new Date(row.sentAt));
       if (fromDate && day < fromDate) return false;
       if (toDate && day > toDate) return false;
@@ -60,7 +114,9 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
         (row.fromAddress ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, search, kind, sender, fromDate, toDate]);
+  }, [rows, search, kind, sender, status, fromDate, toDate]);
+
+  const stats = useMemo(() => rates(filtered), [filtered]);
 
   // Back to the first page whenever the filtered list changes.
   const [page, setPage] = useState({ list: filtered, count: PAGE_SIZE });
@@ -88,7 +144,8 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
   }, [hasMore, visibleCount]);
 
   const recipients = useMemo(() => new Set(filtered.map((row) => row.to.toLowerCase())).size, [filtered]);
-  const filtering = search !== "" || kind !== "all" || sender !== "all" || fromDate !== "" || toDate !== "";
+  const filtering =
+    search !== "" || kind !== "all" || sender !== "all" || status !== "all" || fromDate !== "" || toDate !== "";
 
   return (
     <div className="space-y-6">
@@ -127,6 +184,14 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
               ))}
             </select>
           ) : null}
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass} aria-label="Status">
+            <option value="all">Alle statussen</option>
+            {STATUS_FILTERS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
           <label className="flex items-center gap-2 text-sm text-wine/65">
             Van
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={selectClass} />
@@ -142,6 +207,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
                 setSearch("");
                 setKind("all");
                 setSender("all");
+                setStatus("all");
                 setFromDate("");
                 setToDate("");
               }}
@@ -155,6 +221,21 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
           {filtered.length} {filtered.length === 1 ? "mail" : "mails"} aan {recipients}{" "}
           {recipients === 1 ? "persoon" : "mensen"}
         </p>
+        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {[
+            ["Openrate", pct(stats.opened, stats.tracked), `${stats.opened} van ${stats.tracked} sinds ${trackingStartLabel}`],
+            ["Klikrate", pct(stats.clicked, stats.tracked), `${stats.clicked} van ${stats.tracked} sinds ${trackingStartLabel}`],
+            ["Spamrate", pct(stats.spam, stats.total), `${stats.spam} van ${stats.total}`],
+            ["Bouncerate", pct(stats.bounced, stats.total), `${stats.bounced} van ${stats.total}`],
+            ["Tegengehouden", pct(stats.held, stats.total), `${stats.held} van ${stats.total}`],
+          ].map(([label, value, hint]) => (
+            <div key={label} className="rounded-xl border border-border-subtle/70 bg-beige/60 px-4 py-3">
+              <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-wine/45">{label}</dt>
+              <dd className="mt-1 font-serif text-2xl text-burgundy">{value}</dd>
+              <dd className="text-xs text-wine/50">{hint}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige/50">
@@ -165,13 +246,14 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px] text-left text-sm">
+            <table className="w-full min-w-[1120px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
                   <th className="px-5 py-3.5">Verstuurd</th>
                   <th className="px-5 py-3.5">Aan</th>
                   <th className="px-5 py-3.5">Verzonden vanaf</th>
                   <th className="px-5 py-3.5">Soort</th>
+                  <th className="px-5 py-3.5">Status</th>
                   <th className="px-5 py-3.5">Onderwerp</th>
                 </tr>
               </thead>
@@ -204,6 +286,9 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
                       <span className="inline-flex rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-wine/75 ring-1 ring-inset ring-border-subtle">
                         {row.kind}
                       </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <EmailStatusPill state={row} />
                     </td>
                     <td className="px-5 py-3.5">
                       <button

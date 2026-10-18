@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { EmailStatusPill } from "@/components/admin/EmailStatusPill";
 import type { CustomerSentEmail } from "@/lib/admin-customer-profile-extras";
 
 const longDateTime = new Intl.DateTimeFormat("nl-NL", {
@@ -83,6 +84,11 @@ export function SentEmailsList({ emails, to }: { emails: CustomerSentEmail[]; to
             <p className="text-xs text-wine/45">
               {longDateTime.format(new Date(email.createdAt))}
               {email.kind ? <span className="ml-2 text-wine/60">{email.kind}</span> : null}
+              {email.delivery ? (
+                <span className="ml-2 align-middle">
+                  <EmailStatusPill state={email.delivery} />
+                </span>
+              ) : null}
             </p>
             {email.logId ? (
               <button

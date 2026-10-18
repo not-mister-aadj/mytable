@@ -339,6 +339,17 @@ export const emailLog = pgTable(
     /** "app" (sent by the site), "script" (sent by hand) or "resend_import". */
     source: text("source").notNull().default("app"),
     sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Latest Resend event, ranked: delivered < opened < clicked < bounced < complained (drizzle/0045). */
+    lastEvent: text("last_event"),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    firstOpenedAt: timestamp("first_opened_at", { withTimezone: true }),
+    lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }),
+    openCount: integer("open_count").notNull().default(0),
+    firstClickedAt: timestamp("first_clicked_at", { withTimezone: true }),
+    lastClickedAt: timestamp("last_clicked_at", { withTimezone: true }),
+    clickCount: integer("click_count").notNull().default(0),
+    bouncedAt: timestamp("bounced_at", { withTimezone: true }),
+    complainedAt: timestamp("complained_at", { withTimezone: true }),
   },
   (table) => ({
     resendIdUnique: uniqueIndex("email_log_resend_id_recipient_unique").on(

@@ -8,6 +8,7 @@ const RULES: Array<[RegExp, string]> = [
   [/^(Verplaatst|Moved):/i, "Verplaatst"],
   [/(\+1 toegevoegd|\+1 added)/i, "+1 erbij"],
   [/(\+1 verwijderd|\+1 removed)/i, "+1 eraf"],
+  [/(je zit in groep|you're in group)/i, "Groep"],
   [/(Locatie|location|je Sunday Social bij|your Sunday Social at)/i, "Locatie"],
   [/(tafelindeling|Your table for)/i, "Vragen"],
   [/(aanraders|our picks)/i, "Aanraders"],

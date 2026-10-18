@@ -170,7 +170,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
   const [event] = await db
     .select()
     .from(events)
-    .where(and(eq(events.id, eventId), eq(events.experienceType, JOUW_TAFEL_TYPE)))
+    .where(and(eq(events.id, eventId), inArray(events.experienceType, [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE])))
     .limit(1);
   if (!event) return null;
 

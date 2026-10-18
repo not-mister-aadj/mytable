@@ -5,12 +5,16 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
-import { JOUW_TAFEL_TYPE } from "@/lib/event-concepts";
+import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { nextGroupNumber } from "@/lib/jouw-tafel/groups-logic";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 
+/** Groups work the same for every Sunday: a series table and a hand-made one. */
+const SUNDAY_TYPES = [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE];
+
 function refresh(eventId: string) {
   revalidatePath(`/admin/jouw-tafel/${eventId}`);
+  revalidatePath(`/admin/events/${eventId}/guests`);
   revalidatePath("/admin/jouw-tafel/kalender");
   revalidatePath("/admin/jouw-tafel");
 }
@@ -19,7 +23,7 @@ async function requireTable(eventId: string) {
   const [event] = await getDb()
     .select({ id: events.id })
     .from(events)
-    .where(and(eq(events.id, eventId), eq(events.experienceType, JOUW_TAFEL_TYPE)))
+    .where(and(eq(events.id, eventId), inArray(events.experienceType, SUNDAY_TYPES)))
     .limit(1);
   if (!event) throw new Error("Tafel niet gevonden.");
 }
@@ -136,7 +140,7 @@ export async function openForEveryoneNowAction(eventId: string) {
   const [event] = await db
     .select()
     .from(events)
-    .where(and(eq(events.id, eventId), eq(events.experienceType, JOUW_TAFEL_TYPE)))
+    .where(and(eq(events.id, eventId), inArray(events.experienceType, SUNDAY_TYPES)))
     .limit(1);
   if (!event) throw new Error("Tafel niet gevonden.");
   const [row] = await db

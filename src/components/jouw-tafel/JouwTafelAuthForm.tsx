@@ -124,6 +124,8 @@ export function JouwTafelAuthForm({
   startFresh,
   hadSession,
   confirm = false,
+  account = false,
+  guestEmail = null,
   initialEmail = "",
 }: {
   locale: Locale;
@@ -145,6 +147,10 @@ export function JouwTafelAuthForm({
   /** "Bevestig je e-mail": the account step before reserving or becoming a
    * member (also signs in an existing account). */
   confirm?: boolean;
+  /** "Meld je aan" from log in: the account step, with its own title. */
+  account?: boolean;
+  /** The guest in this browser's cookie, if any. */
+  guestEmail?: string | null;
   /** The address they gave before (the email screen), prefilled. */
   initialEmail?: string;
 }) {
@@ -154,7 +160,7 @@ export function JouwTafelAuthForm({
   // can't cross from a server component.
   const copy = getLandingCopy(locale).auth;
   const screenCopy = confirm
-    ? { ...copy.signUp, ...copy.confirm }
+    ? { ...copy.signUp, ...(account ? copy.account : copy.confirm) }
     : screen === "signup"
       ? copy.signUp
       : copy.logIn;
@@ -207,7 +213,8 @@ export function JouwTafelAuthForm({
     // hydration (one frame later) rather than in the initial state.
     const frame = requestAnimationFrame(() => {
       const stored = readStoredEmail();
-      if (stored) setEmail((current) => current || stored);
+      // The address typed on the other screen wins over a prefill.
+      if (stored) setEmail(stored);
       // One-time hand-over: once prefilled it is forgotten, so a later visit
       // to sign-up starts empty again.
       if (stored && !onCodeStepInUrl) storeEmail(null);
@@ -336,6 +343,11 @@ export function JouwTafelAuthForm({
     }
 
     setSending(true);
+    // An account for another address than this browser's guest: start
+    // fresh, so the guest's answers and waitlist rows stay with the guest.
+    if (account && guestEmail && guestEmail !== target) {
+      await fetch("/api/jouw-tafel/guest", { method: "DELETE" }).catch(() => undefined);
+    }
     const result = await sendCode(target);
     setSending(false);
     if (result !== "ok") {

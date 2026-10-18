@@ -10,7 +10,7 @@ import {
   resendBookingConfirmationAction,
   transferBookingToEventAction,
 } from "@/app/admin/(dashboard)/events/actions";
-import { adminPath, getSiteUrl } from "@/lib/admin-url";
+import { adminPath } from "@/lib/admin-url";
 import { formatSeatingPreference, isSeatingPreference } from "@/lib/booking-seating";
 import {
   formatTableLanguagePreference,
@@ -50,71 +50,10 @@ function guestInitials(ticket: EventTicketRow) {
   return name.slice(0, 2).toUpperCase();
 }
 
-function occupancyTone(sold: number, capacity: number) {
-  if (capacity <= 0 || sold >= capacity) return "full" as const;
-  if (sold / capacity >= 0.75) return "warning" as const;
-  return "healthy" as const;
-}
 
-function StatCard({
-  label,
-  value,
-  hint,
-  icon,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-border-subtle/80 bg-beige/80 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.04)]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-wine/50">
-            {label}
-          </p>
-          <p className="mt-2 font-serif text-2xl text-burgundy">{value}</p>
-          {hint ? (
-            <p className="mt-1.5 text-xs text-wine/55">{hint}</p>
-          ) : null}
-        </div>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cream text-burgundy/70">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function UsersIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
 
-function ChartIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path d="M3 3v18h18" />
-      <path d="M7 16l4-6 4 3 5-8" />
-    </svg>
-  );
-}
 
-function TicketIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z" />
-      <path d="M13 6v12" />
-    </svg>
-  );
-}
 
 /** "Lid" on a member's booking (own seat free, guest at member price) and
  * "Niet gekomen" once marked. */
@@ -511,6 +450,24 @@ Dit is een lid: de eerste keer krijgt ze een vriendelijke waarschuwing, daarna k
   );
 }
 
+/** Moving, resending and removing are rare: they sit behind "…" so the
+ * list stays calm. */
+function ActionsMenu({ children }: { children: React.ReactNode }) {
+  return (
+    <details className="group relative inline-block text-left">
+      <summary
+        aria-label="Acties"
+        className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-full border border-border-subtle bg-cream text-wine/60 transition hover:border-burgundy/30 hover:text-burgundy [&::-webkit-details-marker]:hidden"
+      >
+        …
+      </summary>
+      <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-border-subtle bg-beige p-3 shadow-xl">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 function GuestCard({
   ticket,
   eventId,
@@ -560,13 +517,17 @@ function GuestCard({
       <GuestIntroAndMails ticket={ticket} />
       {isTransferred ? <TransferDestinationBlock ticket={ticket} /> : null}
 
-      <GuestActions
-        ticket={ticket}
-        eventId={eventId}
-        targets={targets}
-        onChanged={onChanged}
-        layout="card"
-      />
+      <div className="mt-3 flex justify-end">
+        <ActionsMenu>
+          <GuestActions
+            ticket={ticket}
+            eventId={eventId}
+            targets={targets}
+            onChanged={onChanged}
+            layout="card"
+          />
+        </ActionsMenu>
+      </div>
     </motion.article>
   );
 }
@@ -626,14 +587,16 @@ function GuestTableRow({
         <MemberBadges ticket={ticket} />
         {isTransferred ? <TransferDestinationBlock ticket={ticket} /> : null}
       </td>
-      <td className="px-5 py-4">
-        <GuestActions
-          ticket={ticket}
-          eventId={eventId}
-          targets={targets}
-          onChanged={onChanged}
-          layout="inline"
-        />
+      <td className="px-5 py-4 text-right">
+        <ActionsMenu>
+          <GuestActions
+            ticket={ticket}
+            eventId={eventId}
+            targets={targets}
+            onChanged={onChanged}
+            layout="inline"
+          />
+        </ActionsMenu>
       </td>
     </motion.tr>
   );
@@ -651,85 +614,6 @@ const WINE_LABELS: Record<string, string> = {
   bubbles: "Bubbels",
 };
 
-/** Sunday Social "meet your table" answers per guest, for writing the
- * introduction email, the seating plan and the place cards. */
-function MeetYourTable({ tickets }: { tickets: EventTicketRow[] }) {
-  if (tickets.length === 0) return null;
-  const answered = tickets.filter((t) => t.intro.answeredAt).length;
-
-  return (
-    <section className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5 shadow-[0_12px_40px_rgba(43,13,18,0.05)] sm:p-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-serif text-xl text-burgundy">Meet your table</h2>
-        <p className="text-sm text-wine/55">
-          {answered} van {tickets.length} ingevuld
-        </p>
-      </div>
-      <p className="mt-1 text-sm text-wine/55">
-        Voor de voorstelmail, de tafelschikking en de naamkaartjes. Alleen delen met
-        tafelgenoten als &quot;Delen&quot; op ja staat.
-      </p>
-      <ul className="mt-5 grid gap-3 md:grid-cols-2">
-        {tickets.map((ticket) => {
-          const firstName = ticket.customerName?.trim().split(/\s+/)[0] || "Gast";
-          const { intro } = ticket;
-          const status = intro.answeredAt
-            ? "Ingevuld"
-            : intro.requestSentAt
-              ? "Mail verstuurd, nog niet ingevuld"
-              : "Nog niet ingevuld";
-          const answers = [
-            [
-              "Aan tafel",
-              intro.conversationStyle
-                ? (CONVERSATION_STYLE_LABELS[intro.conversationStyle] ?? intro.conversationStyle)
-                : null,
-            ],
-            ["Vraag me over", intro.askMeAbout],
-            ["Favoriete plek", intro.favoriteSpot],
-            ["Wijn", intro.wine ? (WINE_LABELS[intro.wine] ?? intro.wine) : null],
-            ["Nu into", intro.intoNow],
-          ] as const;
-          return (
-            <li key={ticket.id} className="rounded-xl border border-border-subtle bg-cream px-4 py-3.5">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="font-medium text-wine">
-                  {firstName}
-                  {ticket.seats === 2 ? (
-                    <span className="font-normal text-wine/70">
-                      {" "}
-                      + {intro.plusOneName || "vriend(in), naam onbekend"}
-                    </span>
-                  ) : null}
-                  <span className="ml-2 font-mono text-xs font-normal text-wine/50">
-                    {ticket.reservationCode}
-                  </span>
-                </p>
-                <p className="text-xs text-wine/50">
-                  {status}
-                  {intro.answeredAt ? ` · Delen: ${intro.shareConsent ? "ja" : "nee"}` : ""}
-                </p>
-              </div>
-              {intro.answeredAt ? (
-                <dl className="mt-2 space-y-1 text-sm">
-                  {answers.map(([label, value]) =>
-                    value ? (
-                      <div key={label} className="flex gap-2">
-                        <dt className="w-28 shrink-0 text-wine/50">{label}</dt>
-                        <dd className="text-wine">{value}</dd>
-                      </div>
-                    ) : null,
-                  )}
-                </dl>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
 export function EventGuestsView({
   event,
   tickets,
@@ -746,12 +630,6 @@ export function EventGuestsView({
   const transferredCount = tickets.filter(
     (t) => t.lifecycleStatus === "transferred",
   ).length;
-  const spotsFree = Math.max(0, event.capacity - event.spotsSold);
-  const tone = occupancyTone(event.spotsSold, event.capacity);
-  const occupancyPct =
-    event.capacity > 0
-      ? Math.round((event.spotsSold / event.capacity) * 100)
-      : 0;
 
   const filteredTickets = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -769,120 +647,15 @@ export function EventGuestsView({
     });
   }, [tickets, search]);
 
-  const publicUrl = `${getSiteUrl()}/nl/agenda/${event.slug}`;
   const onChanged = () => router.refresh();
 
   return (
     <div className="space-y-8">
-      <div className="overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-beige via-cream to-beige shadow-[0_16px_50px_rgba(43,13,18,0.06)]">
-        <div className="border-b border-border-subtle/60 px-6 py-5 sm:px-8">
-          <Link
-            href={adminPath("/events")}
-            className="inline-flex items-center gap-1.5 text-sm text-wine/55 transition hover:text-burgundy"
-          >
-            <span aria-hidden>←</span> Terug naar tafels
-          </Link>
-          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-wine/45">
-                Gastenlijst
-              </p>
-              <h1 className="mt-1 font-serif text-3xl text-burgundy sm:text-4xl">
-                {event.nameNl}
-              </h1>
-              <p className="mt-2 text-sm text-wine/65">
-                {event.city} · {formatEventAdminListDate(new Date(event.startsAt))}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={`/api/admin/events/${event.id}/guests/export`}
-                className="rounded-full bg-burgundy px-4 py-2 text-sm font-medium text-cream transition hover:bg-burgundy/90"
-              >
-                Exporteer Excel
-              </a>
-              <Link
-                href={adminPath(`/events/${event.id}/edit`)}
-                prefetch={false}
-                className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm font-medium text-wine transition hover:border-burgundy/30"
-              >
-                Tafel bewerken
-              </Link>
-              <a
-                href={publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-border-subtle bg-cream px-4 py-2 text-sm font-medium text-wine transition hover:border-burgundy/30"
-              >
-                Publieke pagina
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-6 py-5 sm:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-wine/70">Bezetting</p>
-              <p className="mt-0.5 text-xs text-wine/50">
-                {event.spotsSold} van {event.capacity} plekken · {spotsFree} vrij
-              </p>
-            </div>
-            <p className="font-serif text-lg text-burgundy">{occupancyPct}%</p>
-          </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-wine/10">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                tone === "full"
-                  ? "bg-red-500"
-                  : tone === "warning"
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-              }`}
-              style={{ width: `${Math.min(100, occupancyPct)}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Actieve gasten"
-          value={String(activeCount)}
-          hint={
-            transferredCount > 0
-              ? `${transferredCount} verplaatst (historisch)`
-              : undefined
-          }
-          icon={<UsersIcon />}
-        />
-        <StatCard
-          label="Bezetting"
-          value={`${event.spotsSold}/${event.capacity}`}
-          hint={`${occupancyPct}% vol`}
-          icon={<ChartIcon />}
-        />
-        <StatCard
-          label="Plekken vrij"
-          value={String(spotsFree)}
-          hint={spotsFree === 0 ? "Tafel is vol" : "Nog te boeken"}
-          icon={<TicketIcon />}
-        />
-        <StatCard
-          label="Tickets totaal"
-          value={String(tickets.length)}
-          hint="Inclusief verplaatst"
-          icon={<TicketIcon />}
-        />
-      </div>
-
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-serif text-xl text-burgundy">Gasten</h2>
-          <p className="mt-1 text-sm text-wine/55">
-            Beheer tickets, verplaatsingen en bevestigingsmails voor deze tafel.
-          </p>
-        </div>
+        <p className="text-sm text-wine/60">
+          {activeCount} {activeCount === 1 ? "gast" : "gasten"}
+          {transferredCount > 0 ? ` · ${transferredCount} verplaatst` : ""}
+        </p>
         <label className="relative w-full sm:max-w-xs">
           <span className="sr-only">Zoek gasten</span>
           <input
@@ -926,7 +699,7 @@ export function EventGuestsView({
 
           <div className="hidden overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige/50 shadow-[0_12px_40px_rgba(43,13,18,0.05)] lg:block">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1080px] text-left text-sm">
+              <table className="w-full min-w-[860px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
                     <th className="px-5 py-3.5">Gast</th>
@@ -934,7 +707,7 @@ export function EventGuestsView({
                     <th className="px-5 py-3.5">Plekken</th>
                     <th className="px-5 py-3.5">Allergieën</th>
                     <th className="px-5 py-3.5">Status</th>
-                    <th className="px-5 py-3.5">Acties</th>
+                    <th className="px-5 py-3.5"><span className="sr-only">Acties</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -955,9 +728,6 @@ export function EventGuestsView({
         </>
       )}
 
-      <MeetYourTable
-        tickets={tickets.filter((t) => t.lifecycleStatus === "active")}
-      />
     </div>
   );
 }

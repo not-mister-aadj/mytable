@@ -46,10 +46,13 @@ export function JouwTafelBoard({
   board,
   calendarHref,
   tablePageHref,
+  embedded = false,
 }: {
   board: EventBoard;
   calendarHref: string;
   tablePageHref: string;
+  /** Shown as a tab on the Sunday page, which has its own heading. */
+  embedded?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -184,6 +187,11 @@ export function JouwTafelBoard({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
+        {embedded ? (
+          <p className="text-sm text-wine/65">
+            Sleep gasten naar een groep. Het groepsnummer gaat mee in de zaterdagmail.
+          </p>
+        ) : (
         <div>
           <Link href={calendarHref} className="text-xs font-semibold text-wine/55 hover:text-burgundy">
             ← Kalender
@@ -198,6 +206,7 @@ export function JouwTafelBoard({
             </a>
           </p>
         </div>
+        )}
         <div className="flex flex-col items-end gap-2">
           {event.finalAt ? (
             <>

@@ -21,6 +21,7 @@ import type {
   TransferTargetEvent,
 } from "@/lib/event-tickets-types";
 import { formatEventAdminListDate } from "@/lib/event-datetime-local";
+import { EmailPreviewDialog } from "@/components/admin/EmailPreviewDialog";
 
 type EventSummary = {
   id: string;
@@ -188,6 +189,117 @@ function GuestNotes({ ticket }: { ticket: EventTicketRow }) {
           {note}
         </span>
       ))}
+    </div>
+  );
+}
+
+const shortDate = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" });
+const longDateTime = new Intl.DateTimeFormat("nl-NL", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Amsterdam",
+});
+
+/** "Vragen ingevuld" when the open questions have an answer, "Deels" when
+ * only a click (talker/listener or wine) came in, "Vragen open" otherwise. */
+function introState(ticket: EventTicketRow): { label: string; className: string } {
+  const { intro } = ticket;
+  const open = [intro.askMeAbout, intro.favoriteSpot, intro.intoNow].some((v) => v?.trim());
+  const date = intro.answeredAt ? ` · ${shortDate.format(new Date(intro.answeredAt))}` : "";
+  if (open) {
+    return { label: `Vragen ingevuld${date}`, className: "bg-emerald-50 text-emerald-800 ring-emerald-200/70" };
+  }
+  if (intro.answeredAt) {
+    return { label: `Deels ingevuld${date}`, className: "bg-amber-50 text-amber-900 ring-amber-200/80" };
+  }
+  return { label: "Vragen open", className: "bg-orange-50 text-orange-900 ring-orange-300/70" };
+}
+
+function IntroAnswers({ ticket }: { ticket: EventTicketRow }) {
+  const { intro } = ticket;
+  const rows = [
+    ["Aan tafel", intro.conversationStyle ? (CONVERSATION_STYLE_LABELS[intro.conversationStyle] ?? intro.conversationStyle) : null],
+    ["Vraag me over", intro.askMeAbout],
+    ["Favoriete plek", intro.favoriteSpot],
+    ["Wijn", intro.wine ? (WINE_LABELS[intro.wine] ?? intro.wine) : null],
+    ["Nu into", intro.intoNow],
+    ["+1", ticket.seats === 2 ? intro.plusOneName : null],
+  ] as const;
+  const filled = rows.filter(([, value]) => value?.trim());
+  return (
+    <div className="mt-2 rounded-xl border border-border-subtle bg-cream px-3.5 py-3 text-sm">
+      {filled.length > 0 ? (
+        <dl className="space-y-1">
+          {filled.map(([label, value]) => (
+            <div key={label} className="flex gap-2">
+              <dt className="w-28 shrink-0 text-wine/50">{label}</dt>
+              <dd className="text-wine">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="text-wine/55">Nog niets ingevuld.</p>
+      )}
+      <p className="mt-2 text-xs text-wine/45">
+        Delen met tafelgenoten: {intro.shareConsent ? "ja" : "nee"}
+        {intro.requestSentAt ? ` · vragenmail ${shortDate.format(new Date(intro.requestSentAt))}` : ""}
+      </p>
+    </div>
+  );
+}
+
+/** Answered or not, and every email this guest got (click for the mail). */
+function GuestIntroAndMails({ ticket }: { ticket: EventTicketRow }) {
+  const [showAnswers, setShowAnswers] = useState(false);
+  const [preview, setPreview] = useState<EventTicketRow["emails"][number] | null>(null);
+  const state = introState(ticket);
+
+  return (
+    <div className="mt-2.5">
+      <button
+        type="button"
+        onClick={() => setShowAnswers((open) => !open)}
+        aria-expanded={showAnswers}
+        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition hover:opacity-80 ${state.className}`}
+      >
+        {state.label}
+        <span aria-hidden className="text-[10px]">{showAnswers ? "▲" : "▼"}</span>
+      </button>
+      {showAnswers ? <IntroAnswers ticket={ticket} /> : null}
+
+      <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-wine/60">
+        <span className="mr-1 text-wine/40">Mails:</span>
+        {ticket.emails.length === 0 ? (
+          <span className="text-wine/40">nog geen bekend</span>
+        ) : (
+          ticket.emails.map((mail, i) => (
+            <span key={mail.id} className="inline-flex items-center">
+              {i > 0 ? <span className="mx-1 text-wine/25">·</span> : null}
+              <button
+                type="button"
+                onClick={() => setPreview(mail)}
+                title={`${mail.subject} · ${longDateTime.format(new Date(mail.sentAt))}`}
+                className="underline decoration-wine/25 underline-offset-2 transition hover:text-burgundy hover:decoration-burgundy/50"
+              >
+                {mail.kind} {shortDate.format(new Date(mail.sentAt))}
+              </button>
+            </span>
+          ))
+        )}
+      </div>
+
+      {preview ? (
+        <EmailPreviewDialog
+          logId={preview.id}
+          subject={preview.subject}
+          sentAt={preview.sentAt}
+          to={ticket.email}
+          onClose={() => setPreview(null)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -445,6 +557,7 @@ function GuestCard({
       </div>
 
       <GuestNotes ticket={ticket} />
+      <GuestIntroAndMails ticket={ticket} />
       {isTransferred ? <TransferDestinationBlock ticket={ticket} /> : null}
 
       <GuestActions
@@ -491,6 +604,7 @@ function GuestTableRow({
             <p className="font-medium text-wine">{guestLabel(ticket)}</p>
             <p className="mt-0.5 text-xs text-wine/55">{ticket.email}</p>
             <GuestNotes ticket={ticket} />
+            <GuestIntroAndMails ticket={ticket} />
           </div>
         </div>
       </td>

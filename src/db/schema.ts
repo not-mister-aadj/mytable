@@ -189,6 +189,15 @@ export const customers = pgTable(
     favoriteEventType: text("favorite_event_type"),
     tags: jsonb("tags").$type<string[]>().default([]),
     notes: text("notes"),
+    /** "Meet your table" answers, kept on the person (drizzle/0042) so a new
+     * booking starts with them; the latest save on any booking wins. */
+    introConversationStyle: text("intro_conversation_style"),
+    introAskMeAbout: text("intro_ask_me_about"),
+    introFavoriteSpot: text("intro_favorite_spot"),
+    introWine: text("intro_wine"),
+    introIntoNow: text("intro_into_now"),
+    introShareConsent: boolean("intro_share_consent").notNull().default(false),
+    introUpdatedAt: timestamp("intro_updated_at", { withTimezone: true }),
   },
   (table) => ({
     emailNormalizedUnique: uniqueIndex("customers_email_normalized_unique").on(
@@ -309,6 +318,30 @@ export const memberships = pgTable(
   (table) => ({
     subscriptionUnique: uniqueIndex("memberships_stripe_subscription_unique").on(
       table.stripeSubscriptionId,
+    ),
+  }),
+);
+
+/** Every email that went out through Resend (drizzle/0042), as sent, so admin
+ * can see what someone received and when. Older mails are imported from
+ * Resend's own history (source "resend_import"). */
+export const emailLog = pgTable(
+  "email_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    toEmail: text("to_email").notNull(),
+    emailNormalized: text("email_normalized").notNull(),
+    subject: text("subject").notNull(),
+    html: text("html"),
+    resendId: text("resend_id"),
+    /** "app" (sent by the site), "script" (sent by hand) or "resend_import". */
+    source: text("source").notNull().default("app"),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    resendIdUnique: uniqueIndex("email_log_resend_id_recipient_unique").on(
+      table.resendId,
+      table.emailNormalized,
     ),
   }),
 );

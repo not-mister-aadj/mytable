@@ -1,8 +1,9 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import { getDb } from "@/db/index";
-import { bookings, events } from "@/db/schema";
+import { bookings, customers, events } from "@/db/schema";
 import { reservationCode } from "@/lib/booking-display";
+import { normalizeEmail } from "@/lib/customers/normalize";
 
 /** "Meet your table": the short introduction a Sunday Social guest fills in
  * right after payment, or later via the reminder email. */
@@ -154,7 +155,7 @@ export async function findSundayTableIntroBooking(
       ),
     )
     .limit(1);
-  return row ? toIntroBooking(row) : null;
+  return row ? withCustomerIntro(toIntroBooking(row)) : null;
 }
 
 /** Parses "MT-5B5230E1", "mt 5b5230e1" or "5B5230E1" into the 8 hex
@@ -188,7 +189,7 @@ export async function findSundayTableIntroBookingByCode(
       ),
     )
     .limit(2);
-  return rows.length === 1 ? toIntroBooking(rows[0]!) : null;
+  return rows.length === 1 ? withCustomerIntro(toIntroBooking(rows[0]!)) : null;
 }
 
 /** Saves the answers. Only fields that are filled in are written: a field
@@ -213,6 +214,7 @@ export async function saveSundayTableIntro(
       ...(hasAnyIntroAnswer(intro) ? { introAnsweredAt: new Date() } : {}),
     })
     .where(eq(bookings.id, bookingId));
+  await saveCustomerIntro(bookingId, intro);
 }
 
 /** One-click answer from the reminder email ("talker", "listener" or
@@ -227,6 +229,128 @@ export async function saveSundayTableIntroConversationStyle(
     .update(bookings)
     .set({ introConversationStyle: style, introAnsweredAt: new Date() })
     .where(and(eq(bookings.id, bookingId), isNull(bookings.introConversationStyle)));
+  const customerId = await customerIdForBooking(bookingId);
+  if (customerId) {
+    await db
+      .update(customers)
+      .set({ introConversationStyle: style, introUpdatedAt: new Date() })
+      .where(and(eq(customers.id, customerId), isNull(customers.introConversationStyle)));
+  }
+}
+
+/* ---------- Answers kept on the person ---------- */
+
+type CustomerIntro = Omit<SundayTableIntro, "plusOneName">;
+
+/** The guest behind a booking: its customer link, or else the customer with
+ * the same email. */
+async function customerIdForBooking(bookingId: string): Promise<string | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({ customerId: bookings.customerId, email: bookings.email })
+    .from(bookings)
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+  if (!row) return null;
+  if (row.customerId) return row.customerId;
+  const [customer] = await db
+    .select({ id: customers.id })
+    .from(customers)
+    .where(eq(customers.emailNormalized, normalizeEmail(row.email)))
+    .limit(1);
+  return customer?.id ?? null;
+}
+
+async function loadCustomerIntro(email: string): Promise<CustomerIntro | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({
+      conversationStyle: customers.introConversationStyle,
+      askMeAbout: customers.introAskMeAbout,
+      favoriteSpot: customers.introFavoriteSpot,
+      wine: customers.introWine,
+      intoNow: customers.introIntoNow,
+      shareConsent: customers.introShareConsent,
+      updatedAt: customers.introUpdatedAt,
+    })
+    .from(customers)
+    .where(eq(customers.emailNormalized, normalizeEmail(email)))
+    .limit(1);
+  if (!row?.updatedAt) return null;
+  return {
+    conversationStyle: isIntroConversationStyle(row.conversationStyle) ? row.conversationStyle : null,
+    askMeAbout: row.askMeAbout ?? "",
+    favoriteSpot: row.favoriteSpot ?? "",
+    wine: isIntroWine(row.wine) ? row.wine : null,
+    intoNow: row.intoNow ?? "",
+    shareConsent: row.shareConsent,
+  };
+}
+
+/** Fills a booking's empty answers with what the guest told us before. */
+export function mergeIntro(booking: SundayTableIntro, saved: CustomerIntro | null): SundayTableIntro {
+  if (!saved) return booking;
+  return {
+    conversationStyle: booking.conversationStyle ?? saved.conversationStyle,
+    askMeAbout: booking.askMeAbout || saved.askMeAbout,
+    favoriteSpot: booking.favoriteSpot || saved.favoriteSpot,
+    wine: booking.wine ?? saved.wine,
+    intoNow: booking.intoNow || saved.intoNow,
+    plusOneName: booking.plusOneName,
+    shareConsent: booking.shareConsent || saved.shareConsent,
+  };
+}
+
+async function withCustomerIntro(booking: IntroBooking): Promise<IntroBooking> {
+  const saved = await loadCustomerIntro(booking.email).catch(() => null);
+  return { ...booking, intro: mergeIntro(booking.intro, saved) };
+}
+
+/** Saves what was filled in on the person too (same rule as the booking: an
+ * empty field keeps the earlier answer). */
+async function saveCustomerIntro(bookingId: string, intro: SundayTableIntro): Promise<void> {
+  const answers = { ...intro, plusOneName: "" };
+  if (!hasAnyIntroAnswer(answers) && !intro.shareConsent) return;
+  const customerId = await customerIdForBooking(bookingId);
+  if (!customerId) return;
+  const db = getDb();
+  await db
+    .update(customers)
+    .set({
+      ...(intro.conversationStyle ? { introConversationStyle: intro.conversationStyle } : {}),
+      ...(intro.askMeAbout ? { introAskMeAbout: intro.askMeAbout } : {}),
+      ...(intro.favoriteSpot ? { introFavoriteSpot: intro.favoriteSpot } : {}),
+      ...(intro.wine ? { introWine: intro.wine } : {}),
+      ...(intro.intoNow ? { introIntoNow: intro.intoNow } : {}),
+      ...(intro.shareConsent ? { introShareConsent: true } : {}),
+      introUpdatedAt: new Date(),
+    })
+    .where(eq(customers.id, customerId));
+}
+
+/** A new booking starts with the answers the guest gave before: copies them
+ * into the booking's empty fields and marks it answered, so no reminder goes
+ * out. Returns true when there was something to copy. */
+export async function applyCustomerIntroToBooking(bookingId: string): Promise<boolean> {
+  const db = getDb();
+  const booking = await findSundayTableIntroBooking({ bookingId });
+  if (!booking) return false;
+  const saved = await loadCustomerIntro(booking.email);
+  if (!saved || !hasAnyIntroAnswer({ ...saved, plusOneName: "" })) return false;
+  const merged = mergeIntro(booking.intro, saved);
+  await db
+    .update(bookings)
+    .set({
+      introConversationStyle: merged.conversationStyle,
+      introAskMeAbout: merged.askMeAbout || null,
+      introFavoriteSpot: merged.favoriteSpot || null,
+      introWine: merged.wine,
+      introIntoNow: merged.intoNow || null,
+      introShareConsent: merged.shareConsent,
+      introAnsweredAt: sql`coalesce(${bookings.introAnsweredAt}, now())`,
+    })
+    .where(eq(bookings.id, bookingId));
+  return true;
 }
 
 const TOKEN_PURPOSE = "sunday_table_intro";

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ConceptBadge } from "@/components/admin/ConceptBadge";
+import { SentEmailsList } from "@/components/admin/EmailPreviewDialog";
 import type {
   CustomerSentEmail,
   CustomerTablemate,
@@ -13,16 +14,6 @@ function formatDate(iso: string) {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date(iso));
-}
-
-function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   }).format(new Date(iso));
 }
 
@@ -112,31 +103,14 @@ export function WaitlistAnswersSection({
   );
 }
 
-export function SentEmailsSection({ emails }: { emails: CustomerSentEmail[] }) {
+export function SentEmailsSection({ emails, to }: { emails: CustomerSentEmail[]; to: string }) {
   return (
     <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">
       <SectionTitle>Verstuurde mails ({emails.length})</SectionTitle>
       {emails.length === 0 ? (
         <p className="mt-4 text-sm text-wine/60">Nog geen mails verstuurd.</p>
       ) : (
-        <ul className="mt-4 max-h-96 space-y-3 overflow-y-auto pr-1">
-          {emails.map((email) => (
-            <li
-              key={email.id}
-              className="border-b border-border-subtle/40 pb-3 last:border-0 last:pb-0"
-            >
-              <p className="text-xs text-wine/45">
-                {formatDateTime(email.createdAt)}
-              </p>
-              <p className="mt-0.5 font-medium text-wine">{email.subject}</p>
-              {email.campaign ? (
-                <p className="mt-0.5 text-xs text-wine/55">
-                  Campagne: {email.campaign}
-                </p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        <SentEmailsList emails={emails} to={to} />
       )}
     </section>
   );

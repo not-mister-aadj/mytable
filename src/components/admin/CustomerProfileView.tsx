@@ -431,7 +431,7 @@ export function CustomerProfileView({
         )}
       </section>
 
-      <SentEmailsSection emails={sentEmails} />
+      <SentEmailsSection emails={sentEmails} to={profile.email} />
 
       <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">

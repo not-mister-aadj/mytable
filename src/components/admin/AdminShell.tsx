@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { AdminSearch } from "@/components/admin/AdminSearch";
 
 export type AdminNavItem = {
   label: string;
@@ -255,6 +256,8 @@ export function AdminShell({
         >
           MyTable Admin
         </Link>
+
+        <AdminSearch />
 
         <SidebarNav
           navItems={navItems}

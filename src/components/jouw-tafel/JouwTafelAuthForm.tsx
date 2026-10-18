@@ -17,7 +17,9 @@ import {
   AUTH_EMAIL_STORAGE_KEY,
   CODE_STEP_PARAM,
   CODE_STEP_VALUE,
+  CODE_SENT_STORAGE_KEY,
   RESEND_COOLDOWN_SECONDS,
+  codeCooldownLeftMs,
   classifySendCodeError,
   classifyVerifyCodeError,
   isNewAuthUser,
@@ -172,6 +174,7 @@ export function JouwTafelAuthForm({
   const [resendAt, setResendAt] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [resent, setResent] = useState(false);
+  const [alreadySent, setAlreadySent] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
@@ -253,6 +256,28 @@ export function JouwTafelAuthForm({
 
   const secondsLeft = Math.max(0, Math.ceil((resendAt - now) / 1000));
 
+  /** When the last code went to this address (this browser), or null. */
+  function readCodeSentAt(target: string): number | null {
+    try {
+      const map = JSON.parse(localStorage.getItem(CODE_SENT_STORAGE_KEY) ?? "{}") as Record<string, number>;
+      return typeof map[target] === "number" ? map[target] : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeCodeSentAt(target: string, at: number) {
+    try {
+      const map = JSON.parse(localStorage.getItem(CODE_SENT_STORAGE_KEY) ?? "{}") as Record<string, number>;
+      // Keep only recent entries so the map never grows.
+      const fresh = Object.fromEntries(Object.entries(map).filter(([, t]) => codeCooldownLeftMs(t, at) > 0));
+      fresh[target] = at;
+      localStorage.setItem(CODE_SENT_STORAGE_KEY, JSON.stringify(fresh));
+    } catch {
+      /* storage unavailable: Supabase still limits per address */
+    }
+  }
+
   const sendCode = useCallback(
     async (target: string): Promise<"ok" | "unknown_email" | "rate_limited" | "invalid_email" | "other"> => {
       const supabase = createSupabaseBrowserClient();
@@ -289,9 +314,28 @@ export function JouwTafelAuthForm({
       return;
     }
     const target = normalizeAuthEmail(email);
-    setSending(true);
     setFieldError(null);
     setFormError(null);
+
+    // A code for this address went out less than a minute ago: show the
+    // code step for that code instead of sending one that cancels it.
+    const lastSentAt = readCodeSentAt(target);
+    if (codeCooldownLeftMs(lastSentAt, Date.now()) > 0 && lastSentAt) {
+      storeEmail(target);
+      setSentTo(target);
+      setCode("");
+      setCodeError(null);
+      setResent(false);
+      setAlreadySent(true);
+      lastTriedCode.current = null;
+      setResendAt(lastSentAt + RESEND_COOLDOWN_SECONDS * 1000);
+      setNow(Date.now());
+      window.history.pushState(null, "", urlWithStep(true));
+      pushedCodeStep.current = true;
+      return;
+    }
+
+    setSending(true);
     const result = await sendCode(target);
     setSending(false);
     if (result !== "ok") {
@@ -304,10 +348,12 @@ export function JouwTafelAuthForm({
     }
     trackJouwTafelAuthEvent(PostHogEvents.authCodeRequested, { screen, resend: false, locale });
     storeEmail(target);
+    writeCodeSentAt(target, Date.now());
     setSentTo(target);
     setCode("");
     setCodeError(null);
     setResent(false);
+    setAlreadySent(false);
     lastTriedCode.current = null;
     const until = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
     setResendAt(until);
@@ -385,6 +431,8 @@ export function JouwTafelAuthForm({
       return;
     }
     trackJouwTafelAuthEvent(PostHogEvents.authCodeRequested, { screen, resend: true, locale });
+    writeCodeSentAt(sentTo, t);
+    setAlreadySent(false);
     setResendAt(t + RESEND_COOLDOWN_SECONDS * 1000);
     setCode("");
     lastTriedCode.current = null;
@@ -478,6 +526,11 @@ export function JouwTafelAuthForm({
           {resent && !codeMessage ? (
             <p role="status" className="mt-2 text-sm font-medium text-wine/70">
               {copy.code.resent}
+            </p>
+          ) : null}
+          {alreadySent && !resent && !codeMessage ? (
+            <p role="status" className="mt-2 text-sm font-medium text-wine/70">
+              {copy.code.alreadySent}
             </p>
           ) : null}
           <button type="submit" className={`${primaryButton} mt-5`} disabled={verifying}>

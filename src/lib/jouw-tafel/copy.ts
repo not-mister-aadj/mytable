@@ -52,6 +52,8 @@ export type AuthCopy = {
     resend: string;
     resendIn: (seconds: number) => string;
     resent: string;
+    /** Shown when a code for this address went out less than a minute ago. */
+    alreadySent: string;
     otherEmail: string;
   };
   welcome: {
@@ -311,6 +313,7 @@ const landingNl: LandingCopy = {
       resend: "Stuur opnieuw",
       resendIn: (seconds) => `Stuur opnieuw (${seconds} s)`,
       resent: "We hebben je een nieuwe code gestuurd.",
+      alreadySent: "Je code is net verstuurd. Gebruik die code; over een minuut kun je een nieuwe aanvragen.",
       otherEmail: "Ander e-mailadres",
     },
     welcome: {
@@ -522,6 +525,7 @@ const landingEn: LandingCopy = {
       resend: "Send again",
       resendIn: (seconds) => `Send again (${seconds} s)`,
       resent: "We sent you a new code.",
+      alreadySent: "Your code was just sent. Please use that one; you can request a new code in a minute.",
       otherEmail: "Different email address",
     },
     welcome: {

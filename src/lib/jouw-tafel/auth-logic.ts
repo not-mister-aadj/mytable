@@ -6,8 +6,20 @@
  * > "Email OTP Length" in both Supabase projects. */
 export const AUTH_CODE_LENGTH = 6;
 
-/** Seconds before "Stuur opnieuw" can be pressed again. */
-export const RESEND_COOLDOWN_SECONDS = 30;
+/** Seconds between two codes for the same address. A new code makes the
+ * previous one invalid, so asking again too soon only locks people out. */
+export const RESEND_COOLDOWN_SECONDS = 60;
+
+/** localStorage key with, per address, when the last code was sent; it
+ * keeps the minute across a reload, the back button and other pages. */
+export const CODE_SENT_STORAGE_KEY = "mytable_jt_code_sent";
+
+/** Milliseconds left before a new code may be sent, 0 when it may. */
+export function codeCooldownLeftMs(sentAt: number | null | undefined, now: number): number {
+  if (!sentAt || !Number.isFinite(sentAt)) return 0;
+  const left = sentAt + RESEND_COOLDOWN_SECONDS * 1000 - now;
+  return left > 0 && left <= RESEND_COOLDOWN_SECONDS * 1000 ? left : 0;
+}
 
 /** Query param that marks the code step, so the back button returns to the
  * email step (`?stap=code`). The email itself never goes in the URL. */

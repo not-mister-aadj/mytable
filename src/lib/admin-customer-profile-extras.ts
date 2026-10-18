@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { personConcepts, type SignupConcept } from "@/lib/signup-concept";
 import { getDb } from "@/db/index";
+import { getLoggedEmailsFor, type LoggedEmail } from "@/lib/email/email-log";
+import { normalizeEmail } from "@/lib/customers/normalize";
 import {
   bookings,
   customerActivities,
@@ -99,6 +101,9 @@ export type CustomerSentEmail = {
   subject: string;
   campaign: string | null;
   createdAt: string;
+  /** Set when the mail itself is in email_log, so it can be previewed. */
+  logId: string | null;
+  kind: string | null;
 };
 
 function metadataString(
@@ -114,9 +119,35 @@ function metadataString(
 }
 
 /** Every email_sent activity, newest first (not capped like the timeline). */
+/** Every mail this person got: email_log (with preview) plus older activity
+ * entries from before the log, newest first. */
 export async function getCustomerSentEmails(
   customerId: string,
+  email: string,
 ): Promise<CustomerSentEmail[]> {
+  const logged = (await getLoggedEmailsFor([email]).catch(() => new Map())).get(normalizeEmail(email)) ?? [];
+  const fromLog: CustomerSentEmail[] = logged.map((mail: LoggedEmail) => ({
+    id: mail.id,
+    subject: mail.subject,
+    campaign: null,
+    createdAt: mail.sentAt,
+    logId: mail.id,
+    kind: mail.kind,
+  }));
+  // An activity for a mail that is also in the log (same subject, within ten
+  // minutes) is the same mail: keep the logged one.
+  const older = (await getCustomerActivityEmails(customerId)).filter(
+    (activity) =>
+      !fromLog.some(
+        (mail) =>
+          mail.subject === activity.subject &&
+          Math.abs(new Date(mail.createdAt).getTime() - new Date(activity.createdAt).getTime()) < 10 * 60 * 1000,
+      ),
+  );
+  return [...fromLog, ...older].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+async function getCustomerActivityEmails(customerId: string): Promise<CustomerSentEmail[]> {
   const db = getDb();
   const rows = await db
     .select()
@@ -143,6 +174,8 @@ export async function getCustomerSentEmails(
       "template",
     ]),
     createdAt: row.createdAt.toISOString(),
+    logId: null,
+    kind: null,
   }));
 }
 

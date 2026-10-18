@@ -36,7 +36,27 @@ export function getResendClient(): Resend | null {
     }
     return null;
   }
-  return new Resend(key);
+  return withEmailLog(new Resend(key));
+}
+
+/** Every send through this client is also written to email_log (see
+ * src/lib/email/email-log.ts), so admin can see what each guest received. */
+function withEmailLog(client: Resend): Resend {
+  const send = client.emails.send.bind(client.emails);
+  client.emails.send = (async (payload, options) => {
+    const result = await send(payload, options);
+    if (!result.error && result.data) {
+      const { logSentEmail } = await import("@/lib/email/email-log");
+      await logSentEmail({
+        to: payload.to,
+        subject: payload.subject ?? "",
+        html: typeof payload.html === "string" ? payload.html : null,
+        resendId: result.data.id,
+      });
+    }
+    return result;
+  }) as typeof client.emails.send;
+  return client;
 }
 
 export function isEmailConfigured(): boolean {

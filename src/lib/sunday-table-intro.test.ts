@@ -52,3 +52,19 @@ test(
     assert.equal(await verifySundayTableIntroToken(foreign), null);
   }),
 );
+
+test("a new booking takes the guest's earlier answers but keeps its own", async () => {
+  const { mergeIntro } = await import("@/lib/sunday-table-intro");
+  const booking = { conversationStyle: null, askMeAbout: "", favoriteSpot: "Cinerama", wine: null, intoNow: "", plusOneName: "Rob", shareConsent: false };
+  const saved = { conversationStyle: "listener" as const, askMeAbout: "Frankrijk", favoriteSpot: "Juni", wine: "red" as const, intoNow: "", shareConsent: true };
+  assert.deepEqual(mergeIntro(booking, saved), {
+    conversationStyle: "listener",
+    askMeAbout: "Frankrijk",
+    favoriteSpot: "Cinerama",
+    wine: "red",
+    intoNow: "",
+    plusOneName: "Rob",
+    shareConsent: true,
+  });
+  assert.deepEqual(mergeIntro(booking, null), booking);
+});

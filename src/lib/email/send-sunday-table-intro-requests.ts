@@ -5,7 +5,7 @@ import { bookings, events } from "@/db/schema";
 import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { sundayTableIntroRequestSubject } from "@/lib/email/subjects";
 import { absoluteUrl } from "@/lib/seo/site";
-import { signSundayTableIntroToken } from "@/lib/sunday-table-intro";
+import { applyCustomerIntroToBooking, signSundayTableIntroToken } from "@/lib/sunday-table-intro";
 import { formatSundayTableDate } from "@/lib/sunday-wine-table";
 
 /** Only bookings from this moment on are eligible, so guests who booked
@@ -57,6 +57,10 @@ export async function sendSundayTableIntroRequests(
   const results: IntroRequestResult[] = [];
 
   for (const { id } of due) {
+    // Answered before, on an earlier booking: those answers carry over and
+    // the booking counts as answered, so no reminder.
+    if (await applyCustomerIntroToBooking(id).catch(() => false)) continue;
+
     // Claim first, so two overlapping cron runs can never both send it. If
     // they answered in the meantime, the claim comes back empty.
     const [claimed] = await db

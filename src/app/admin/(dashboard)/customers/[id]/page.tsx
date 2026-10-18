@@ -35,7 +35,7 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
 
   const [waitlistAnswers, sentEmails, tablemates] = await Promise.all([
     getCustomerWaitlistAnswers(profile.id, profile.email),
-    getCustomerSentEmails(profile.id),
+    getCustomerSentEmails(profile.id, profile.email),
     getCustomerTablemates(profile.id, profile.email),
   ]);
 

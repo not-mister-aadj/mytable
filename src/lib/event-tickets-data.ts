@@ -11,7 +11,8 @@ import {
 } from "@/lib/booking-table-language";
 import { formatMoney, reservationCode } from "@/lib/booking-display";
 import { tierForSeats, type BookingTier } from "@/lib/booking-tiers";
-import { splitCustomerName } from "@/lib/customers/normalize";
+import { normalizeEmail, splitCustomerName } from "@/lib/customers/normalize";
+import { getLoggedEmailsFor } from "@/lib/email/email-log";
 import type {
   EventGuestExportRow,
   EventGuestsExportData,
@@ -58,6 +59,10 @@ export async function getEventTicketsData(
       ),
     )
     .orderBy(desc(bookings.createdAt));
+
+  const emailsByAddress = await getLoggedEmailsFor(ticketRows.map((b) => b.email)).catch(
+    () => new Map<string, never[]>(),
+  );
 
   const transferredToIds = [
     ...new Set(
@@ -142,6 +147,7 @@ export async function getEventTicketsData(
           answeredAt: b.introAnsweredAt?.toISOString() ?? null,
           requestSentAt: b.introRequestSentAt?.toISOString() ?? null,
         },
+        emails: emailsByAddress.get(normalizeEmail(b.email)) ?? [],
         transferDestination: destination
           ? {
               eventId: destination.id,

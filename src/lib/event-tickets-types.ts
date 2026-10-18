@@ -39,6 +39,8 @@ export type EventTicketRow = {
     answeredAt: string | null;
     requestSentAt: string | null;
   };
+  /** Every email this address received from us, oldest first. */
+  emails: Array<{ id: string; subject: string; kind: string; sentAt: string }>;
   transferDestination: EventTicketTransferDestination | null;
 };
 

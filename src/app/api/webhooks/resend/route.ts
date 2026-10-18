@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
+import { applyResendEmailLogEvent } from "@/lib/email/email-log-events";
 import {
   applyResendOutreachEvent,
   verifyResendSignature,
@@ -46,9 +47,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const matched = await applyResendOutreachEvent(event);
-    // Unmatched events are fine: the same endpoint also receives booking mail.
-    return NextResponse.json({ received: true, matched });
+    // Outreach mails have their own tables; every logged mail (email_log)
+    // also gets its delivered / opened / clicked / bounced / spam state.
+    const [outreach, logged] = await Promise.all([
+      applyResendOutreachEvent(event),
+      applyResendEmailLogEvent(event),
+    ]);
+    // Unmatched events are fine (e.g. mails sent before the log existed).
+    return NextResponse.json({ received: true, matched: outreach || logged });
   } catch (error) {
     console.error("[resend webhook] apply failed", error);
     // 500 makes Resend retry, which the dedupe index makes safe.

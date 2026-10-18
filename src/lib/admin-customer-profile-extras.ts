@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { personConcepts, type SignupConcept } from "@/lib/signup-concept";
 import { getDb } from "@/db/index";
-import { getLoggedEmailsFor, type LoggedEmail } from "@/lib/email/email-log";
+import { getLoggedEmailsFor, type EmailDeliveryState, type LoggedEmail } from "@/lib/email/email-log";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import {
   bookings,
@@ -104,6 +104,8 @@ export type CustomerSentEmail = {
   /** Set when the mail itself is in email_log, so it can be previewed. */
   logId: string | null;
   kind: string | null;
+  /** Delivered / opened / clicked / bounced / spam, for logged mails. */
+  delivery: EmailDeliveryState | null;
 };
 
 function metadataString(
@@ -133,6 +135,7 @@ export async function getCustomerSentEmails(
     createdAt: mail.sentAt,
     logId: mail.id,
     kind: mail.kind,
+    delivery: { lastEvent: mail.lastEvent, openCount: mail.openCount, clickCount: mail.clickCount },
   }));
   // An activity for a mail that is also in the log (same subject, within ten
   // minutes) is the same mail: keep the logged one.
@@ -175,6 +178,7 @@ async function getCustomerActivityEmails(customerId: string): Promise<CustomerSe
     ]),
     createdAt: row.createdAt.toISOString(),
     logId: null,
+    delivery: null,
     kind: null,
   }));
 }

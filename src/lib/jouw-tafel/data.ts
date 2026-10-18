@@ -1,7 +1,7 @@
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { getDb, isDbConfigured } from "@/db/index";
-import { events, waitlistSignups } from "@/db/schema";
+import { events } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS, JOUW_TAFEL_SHOWN_AFTER_DAYS, QUIZ_CITIES, bookingOpensOverride, isNoLongerBookable, isShownTable, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
@@ -113,6 +113,7 @@ async function loadWaitlistCounts(): Promise<{ total: number; byCity: Record<str
   const perCity = new Map<string, Set<string>>();
   for (const row of rows) {
     all.add(row.email);
+    if (!row.city) continue;
     const city = supportedCity(row.city) ?? row.city;
     if (!perCity.has(city)) perCity.set(city, new Set());
     perCity.get(city)!.add(row.email);
@@ -122,14 +123,32 @@ async function loadWaitlistCounts(): Promise<{ total: number; byCity: Record<str
   return { total: all.size, byCity };
 }
 
-/** One row per email and city, emails lowercased. */
+/**
+ * Everyone who signed up for MyTable, one row per email and city (emails
+ * lowercased): the waitlist, paid bookings and "laat het me weten" (with the
+ * city of their Sunday), and quiz guests and accounts (no city: they count
+ * in the total only).
+ */
 async function signupRows(): Promise<{ email: string; city: string }[]> {
-  return getDb()
-    .selectDistinct({ email: sql<string>`lower(${waitlistSignups.email})`, city: waitlistSignups.city })
-    .from(waitlistSignups);
+  const db = getDb();
+  const rows = (await db.execute(sql`
+    select distinct lower(email) as email, city from waitlist_signups
+    union
+    select distinct lower(b.email), e.city from bookings b join events e on e.id = b.event_id where b.payment_status = 'paid'
+    union
+    select distinct lower(n.email), e.city from event_notify_signups n join events e on e.id = n.event_id
+    union
+    select distinct lower(email), '' from jouw_tafel_guests
+  `)) as unknown as { email: string; city: string }[];
+  // Accounts live in Supabase Auth; a role without access to it only loses
+  // those few extra people, never the whole count.
+  const accounts = (await db
+    .execute(sql`select distinct lower(email) as email, '' as city from auth.users where email is not null`)
+    .catch(() => [])) as unknown as { email: string; city: string }[];
+  return [...rows, ...accounts];
 }
 
-const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-waitlist-counts-v2"], {
+const getCachedWaitlistCounts = unstable_cache(loadWaitlistCounts, ["jouw-tafel-waitlist-counts-v3"], {
   revalidate: 3600,
 });
 

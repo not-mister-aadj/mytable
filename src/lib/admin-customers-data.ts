@@ -56,17 +56,8 @@ export type AdminCustomerListRow = {
   hasAccount: boolean;
 } & CustomerWaitlistAnswers;
 
-export type AdminCustomersKpi = {
-  totalCustomers: number;
-  payingCustomers: number;
-  repeatCustomers: number;
-  totalRevenueCents: number;
-  avgSpendPerCustomerCents: number;
-};
-
 export type AdminCustomersPageData = {
   customers: AdminCustomerListRow[];
-  kpis: AdminCustomersKpi;
   cities: string[];
   eventTypes: string[];
 };
@@ -217,18 +208,6 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
     };
   });
 
-  // KPI cards keep counting buyers only, as before.
-  const customersList = allCustomers.filter((c) => c.isBuyer);
-
-  const payingCustomers = customersList.filter((c) => c.paidBookingsCount > 0).length;
-  const repeatCustomers = customersList.filter((c) => c.paidBookingsCount > 1).length;
-  const totalRevenueCents = customersList.reduce(
-    (sum, c) => sum + c.totalSpentCents,
-    0,
-  );
-  const avgSpendPerCustomerCents =
-    payingCustomers > 0 ? Math.round(totalRevenueCents / payingCustomers) : 0;
-
   const cities = [
     ...new Set(
       allCustomers
@@ -247,13 +226,6 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
 
   return {
     customers: allCustomers,
-    kpis: {
-      totalCustomers: customersList.length,
-      payingCustomers,
-      repeatCustomers,
-      totalRevenueCents,
-      avgSpendPerCustomerCents,
-    },
     cities,
     eventTypes,
   };

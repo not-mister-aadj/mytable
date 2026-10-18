@@ -5,26 +5,47 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-// Ordered by what actually matters right now: the waitlist is the business
-// today, Tafels (incl. the Sunday Social tab) is how it turns into real
-// tables, the rest supports the still-live /agenda catalog and booking flow.
-const NAV_ITEM_PATHS = [
-  { label: "Dashboard", path: "/", exact: true },
-  { label: "Wachtlijst", path: "/priority-list" },
-  // The venue side of the business: which wine bars we mailed, what came back.
-  { label: "Outreach", path: "/outreach" },
-  // Sunday Social lives on its own route (different data model: invite-based,
-  // no direct price/capacity) but is a tab inside this same section, one tap
-  // from the sidebar. See FormatTabs.tsx.
-  { label: "Tafels", path: "/events", matchAlsoPaths: ["/sunday-tables", "/jouw-tafel"] },
-  { label: "Venues", path: "/venues" },
-  { label: "Types", path: "/experience-types" },
-  { label: "Boekingen", path: "/bookings" },
-  { label: "Klanten", path: "/customers" },
-  { label: "Wachtlijstantwoorden", path: "/customers/antwoorden" },
-  { label: "Analytics", path: "/analytics" },
-  { label: "E-mails", path: "/email-preview" },
-] as const;
+// Five sections, each with its own pages. "Vandaag" is what needs doing; the
+// rest follows the work: Sundays, people, growth, settings.
+type NavDef = { label: string; path: string; exact?: boolean; matchAlso?: string[]; children?: NavDef[] };
+const NAV: NavDef[] = [
+  { label: "Vandaag", path: "/", exact: true },
+  {
+    label: "Zondagen",
+    path: "/events",
+    children: [
+      { label: "Alle zondagen", path: "/events", matchAlso: ["/sunday-tables"] },
+      { label: "Boekingen", path: "/bookings" },
+      { label: "Planning", path: "/jouw-tafel" },
+    ],
+  },
+  {
+    label: "Mensen",
+    path: "/customers",
+    children: [
+      { label: "Klanten", path: "/customers" },
+      { label: "Wachtlijst", path: "/priority-list" },
+      { label: "Wachtlijstantwoorden", path: "/customers/antwoorden" },
+    ],
+  },
+  {
+    label: "Groei",
+    path: "/analytics",
+    children: [
+      { label: "Analytics", path: "/analytics" },
+      { label: "Outreach", path: "/outreach" },
+    ],
+  },
+  {
+    label: "Instellingen",
+    path: "/venues",
+    children: [
+      { label: "Venues", path: "/venues" },
+      { label: "Types", path: "/experience-types" },
+      { label: "E-mailtemplates", path: "/email-preview" },
+    ],
+  },
+];
 
 export default async function AdminDashboardLayout({
   children,
@@ -39,15 +60,14 @@ export default async function AdminDashboardLayout({
     "localhost:3001";
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
 
-  const navItems: AdminNavItem[] = NAV_ITEM_PATHS.map((item) => ({
+  const toItem = (item: NavDef): AdminNavItem => ({
     label: item.label,
     href: adminPath(item.path, hostname),
-    exact: "exact" in item ? item.exact : undefined,
-    matchAlso:
-      "matchAlsoPaths" in item
-        ? item.matchAlsoPaths.map((p) => adminPath(p, hostname))
-        : undefined,
-  }));
+    exact: item.exact,
+    matchAlso: item.matchAlso?.map((p) => adminPath(p, hostname)),
+    children: item.children?.map(toItem),
+  });
+  const navItems: AdminNavItem[] = NAV.map(toItem);
 
   async function signOut() {
     "use server";

@@ -1,287 +1,219 @@
-import { eq, gte, and, gt, desc, sql } from "drizzle-orm";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { adminPath } from "@/lib/admin-url";
-import { bookings, events, waitlistSignups } from "@/db/schema";
-import { ConceptBadge } from "@/components/admin/ConceptBadge";
-import { conceptStats } from "@/lib/signup-concept";
-import { loadPersonConcepts } from "@/lib/signup-concept-data";
-import { getDb, isDbConfigured } from "@/db/index";
+import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
-import { formatDateTime } from "@/lib/event-display";
+import { getTodayData, type TodoItem, type UpcomingSunday } from "@/lib/admin/today-data";
 
-export default async function AdminDashboardPage() {
+/** "Vandaag": what needs doing this week, the coming Sundays and the month. */
+export default async function AdminTodayPage() {
   await requireAdmin();
-
   if (!isDbConfigured()) {
     return <p className="text-wine/70">DATABASE_URL ontbreekt. Zie .env.example.</p>;
   }
 
-  const db = getDb();
-  const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
   const requestHeaders = await headers();
-  const host =
-    requestHeaders.get("x-forwarded-host") ??
-    requestHeaders.get("host") ??
-    "localhost:3001";
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3001";
   const hostname = host.split(":")[0].toLowerCase();
+  const href = (path: string) => adminPath(path, hostname);
+  const eventHref = (id: string, tab?: string) => href(`/events/${id}/guests${tab ? `?tab=${tab}` : ""}`);
 
-  const [revenue] = await db
-    .select({
-      total: sql<number>`coalesce(sum(${bookings.amountCents}), 0)`,
-    })
-    .from(bookings)
-    .where(
-      and(eq(bookings.paymentStatus, "paid"), gte(bookings.createdAt, weekAgo)),
-    );
-
-  const [bookingCount] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(bookings)
-    .where(
-      and(eq(bookings.paymentStatus, "paid"), gte(bookings.createdAt, weekAgo)),
-    );
-
-  const now = new Date();
-
-  const [publishedCount] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(events)
-    .where(eq(events.workflowStatus, "published"));
-
-  const upcoming = await db
-    .select()
-    .from(events)
-    .where(
-      and(eq(events.workflowStatus, "published"), gt(events.startsAt, now)),
-    )
-    .orderBy(events.startsAt)
-    .limit(5);
-
-  // A/B: old waitlist funnel vs /jouw-tafel account, per person by first
-  // touch (see src/lib/signup-concept.ts).
-  const people = await loadPersonConcepts();
-  const conceptCounts = conceptStats(people.values(), now, 14);
-  const signupTotal = conceptCounts.total.waitlist + conceptCounts.total.account;
-  const signupWeek = conceptCounts.last7d.waitlist + conceptCounts.last7d.account;
-
-  const recentWaitlist = await db
-    .select({
-      email: waitlistSignups.email,
-      name: waitlistSignups.name,
-      city: waitlistSignups.city,
-      createdAt: waitlistSignups.createdAt,
-    })
-    .from(waitlistSignups)
-    .orderBy(desc(waitlistSignups.createdAt))
-    .limit(5);
-
-  const priorityListHref = adminPath("/priority-list", hostname);
+  const data = await getTodayData(eventHref);
+  const todayLabel = new Intl.DateTimeFormat("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "Europe/Amsterdam",
+  }).format(new Date());
 
   return (
-    <div>
-      <h1 className="font-serif text-3xl text-burgundy">Dashboard</h1>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          label="Aanmeldingen totaal"
-          value={String(signupTotal)}
-          sub={`Wachtlijst ${conceptCounts.total.waitlist} · Account ${conceptCounts.total.account}`}
-          href={priorityListHref}
-        />
-        <Stat
-          label="Aanmeldingen (7 dagen)"
-          value={String(signupWeek)}
-          sub={`Wachtlijst ${conceptCounts.last7d.waitlist} · Account ${conceptCounts.last7d.account}`}
-          href={priorityListHref}
-        />
-        <Stat
-          label="Betaalde boekingen (7d)"
-          value={String(bookingCount?.count ?? 0)}
-        />
-        <Stat
-          label="Omzet (7 dagen)"
-          value={`€${((revenue?.total ?? 0) / 100).toFixed(2)}`}
-        />
-      </div>
+    <div className="space-y-10">
+      <header>
+        <p className="text-sm capitalize text-wine/55">{todayLabel}</p>
+        <h1 className="mt-1 font-serif text-3xl text-burgundy">Vandaag</h1>
+      </header>
 
-      <section className="mt-10">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-burgundy">
-            Recente wachtlijst-aanmeldingen
-          </h2>
-          <Link
-            href={priorityListHref}
-            className="text-sm text-burgundy underline"
-          >
-            Bekijk alles
-          </Link>
-        </div>
-        {recentWaitlist.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-dashed border-border-subtle bg-beige/40 px-4 py-6 text-center text-sm text-wine/60">
-            Nog geen aanmeldingen.
+      <section aria-labelledby="todo-title">
+        <h2 id="todo-title" className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
+          Te doen
+        </h2>
+        {data.todos.length === 0 ? (
+          <p className="mt-3 rounded-xl border border-border-subtle bg-beige/60 px-4 py-4 text-sm text-wine/65">
+            Niets dat nu aandacht nodig heeft.
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-border-subtle rounded-2xl border border-border-subtle bg-beige">
-            {recentWaitlist.map((row) => (
-              <li
-                key={`${row.email}-${row.city}`}
-                className="flex flex-col gap-1 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-              >
-                <span className="flex flex-wrap items-center gap-2">
-                  {row.name ?? row.email}
-                  <span className="text-wine/60"> · {row.city}</span>
-                  {people.get(row.email.toLowerCase()) ? (
-                    <ConceptBadge
-                      concept={people.get(row.email.toLowerCase())!.concept}
-                      hasAccount={people.get(row.email.toLowerCase())!.hasAccount}
-                    />
-                  ) : null}
-                </span>
-                <span className="text-wine/50">
-                  {new Intl.DateTimeFormat("nl-NL", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }).format(row.createdAt)}
-                </span>
-              </li>
+          <ul className="mt-3 divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-beige/60">
+            {data.todos.map((todo) => (
+              <TodoRow key={todo.key} todo={todo} />
             ))}
           </ul>
         )}
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-medium text-burgundy">
-          Aanmeldingen per concept{" "}
-          <span className="text-sm font-normal text-wine/50">
-            (laatste 14 dagen, nieuwe mensen; {conceptCounts.overlap} van de wachtlijst hebben ook een account)
-          </span>
-        </h2>
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-border-subtle bg-beige">
-          <table className="w-full min-w-[320px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border-subtle text-xs uppercase tracking-[0.06em] text-wine/50">
-                <th className="px-4 py-2.5 font-medium">Dag</th>
-                <th className="px-4 py-2.5 text-right font-medium">Wachtlijst</th>
-                <th className="px-4 py-2.5 text-right font-medium">Account</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-subtle">
-              {conceptCounts.perDay.map((d) => (
-                <tr key={d.day}>
-                  <td className="px-4 py-2 text-wine/75">
-                    {new Intl.DateTimeFormat("nl-NL", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(
-                      new Date(`${d.day}T12:00:00Z`),
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-right tabular-nums text-wine">{d.waitlist}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-wine">{d.account}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-burgundy">
-            Aankomende tafels{" "}
-            <span className="text-sm font-normal text-wine/50">
-              ({publishedCount?.count ?? 0} gepubliceerd)
-            </span>
+      <section aria-labelledby="sundays-title">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="sundays-title" className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
+            Komende zondagen
           </h2>
-          <Link
-            href={adminPath("/events/new", hostname)}
-            className="text-sm text-burgundy underline"
-          >
-            Nieuwe tafel
+          <Link href={href("/events")} className="text-sm text-burgundy hover:underline">
+            Alle zondagen
           </Link>
         </div>
-        {upcoming.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-dashed border-border-subtle bg-beige/40 px-4 py-6 text-center text-sm text-wine/60">
-            Geen aankomende, gepubliceerde tafels.
-          </p>
+        {data.sundays.length === 0 ? (
+          <p className="mt-3 text-sm text-wine/60">Geen zondagen gepland.</p>
         ) : (
-        <ul className="mt-4 divide-y divide-border-subtle rounded-2xl border border-border-subtle bg-beige">
-          {upcoming.map((e) => {
-            const editHref = adminPath(`/events/${e.id}/edit`, hostname);
-
-            return (
-            <li
-              key={e.id}
-              className="flex flex-col gap-2 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-            >
-              <span>
-                {e.nameNl} · {e.city}
-                <span className="text-wine/60">
-                  {" "}
-                  ·{" "}
-                  {formatDateTime(
-                    new Date(e.startsAt),
-                    e.endsAt ? new Date(e.endsAt) : null,
-                    "nl",
-                  )}
-                </span>
-              </span>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="text-wine/60">
-                  {e.spotsSold}/{e.capacity}
-                </span>
-                <Link
-                  href={editHref}
-                  prefetch={false}
-                  className="rounded-full border border-border-subtle bg-cream px-3.5 py-1.5 text-sm font-medium text-burgundy transition hover:border-burgundy/30"
-                >
-                  Bewerken
-                </Link>
-              </div>
-            </li>
-            );
-          })}
-        </ul>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {data.sundays.map((sunday) => (
+              <SundayCard key={sunday.id} sunday={sunday} href={eventHref(sunday.id)} />
+            ))}
+          </div>
         )}
       </section>
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        <section aria-labelledby="month-title">
+          <h2 id="month-title" className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
+            Doel {data.month.label}
+          </h2>
+          <MonthTarget month={data.month} />
+        </section>
+
+        <section aria-labelledby="recent-title">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="recent-title" className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
+              Laatste boekingen
+            </h2>
+            <Link href={href("/bookings")} className="text-sm text-burgundy hover:underline">
+              Alle boekingen
+            </Link>
+          </div>
+          <ul className="mt-3 divide-y divide-border-subtle rounded-xl border border-border-subtle bg-beige/60 text-sm">
+            {data.recentBookings.map((b) => (
+              <li key={b.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="min-w-0 truncate text-wine">
+                  {b.name}
+                  {b.seats > 1 ? <span className="text-wine/50"> +{b.seats - 1}</span> : null}
+                  <span className="text-wine/50"> · {b.city} {shortDate(b.startsAt)}</span>
+                </span>
+                <span className="shrink-0 text-xs tabular-nums text-wine/45">{relative(b.createdAt)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </div>
   );
 }
 
-function Stat({
-  label,
-  value,
-  sub,
-  href,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  href?: string;
-}) {
-  const content = (
-    <>
-      <p className="text-sm text-wine/60">{label}</p>
-      <p className="mt-1 font-serif text-2xl text-burgundy">{value}</p>
-      {sub ? <p className="mt-1 text-xs text-wine/55">{sub}</p> : null}
-    </>
-  );
+function shortDate(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(iso));
+}
 
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="block rounded-2xl border border-border-subtle bg-beige p-5 transition hover:border-burgundy/30 hover:bg-cream/60"
-      >
-        {content}
+function relative(iso: string): string {
+  const minutes = Math.round((Date.now() - Date.parse(iso)) / 60_000);
+  if (minutes < 60) return `${Math.max(1, minutes)} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} u`;
+  return new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(iso));
+}
+
+const TONE: Record<TodoItem["tone"], { dot: string; label: string }> = {
+  urgent: { dot: "bg-red-500", label: "Nu" },
+  soon: { dot: "bg-amber-500", label: "Binnenkort" },
+  info: { dot: "bg-wine/30", label: "Ter info" },
+};
+
+function TodoRow({ todo }: { todo: TodoItem }) {
+  const tone = TONE[todo.tone];
+  return (
+    <li>
+      <Link href={todo.href} className="flex items-start gap-3 px-4 py-3 transition hover:bg-cream/70">
+        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${tone.dot}`} aria-label={tone.label} />
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium text-wine">{todo.title}</span>
+          <span className="block text-sm text-wine/60">{todo.detail}</span>
+        </span>
+        <span aria-hidden className="mt-0.5 text-wine/30">
+          →
+        </span>
       </Link>
-    );
-  }
+    </li>
+  );
+}
+
+function SundayCard({ sunday, href }: { sunday: UpcomingSunday; href: string }) {
+  const pct = sunday.capacity > 0 ? Math.min(100, Math.round((sunday.seatsSold / sunday.capacity) * 100)) : 0;
+  const full = sunday.seatsSold >= sunday.capacity;
+  const date = new Intl.DateTimeFormat("nl-NL", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Amsterdam",
+  }).format(new Date(sunday.startsAt));
+  const when =
+    sunday.daysUntil <= 0 ? "vandaag" : sunday.daysUntil === 1 ? "morgen" : `over ${sunday.daysUntil} dagen`;
+  const answered = sunday.guests - sunday.questionsOpen;
 
   return (
-    <div className="rounded-2xl border border-border-subtle bg-beige p-5">
-      {content}
+    <Link
+      href={href}
+      className="block rounded-xl border border-border-subtle bg-beige/60 p-4 transition hover:border-burgundy/30 hover:bg-cream/70"
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="font-medium text-wine">{sunday.city}</p>
+        <p className="text-xs text-wine/50">{when}</p>
+      </div>
+      <p className="text-sm text-wine/60">
+        {date}
+        {sunday.venueName ? ` · ${sunday.venueName}` : ""}
+      </p>
+      <div className="mt-3 flex items-center gap-2">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-wine/10">
+          <div className={`h-full rounded-full ${full ? "bg-emerald-600" : "bg-burgundy/70"}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-xs tabular-nums text-wine/70">
+          {sunday.seatsSold}/{sunday.capacity}
+        </span>
+      </div>
+      {sunday.guests > 0 ? (
+        <p className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-wine/55">
+          <span>
+            Vragen {answered}/{sunday.guests}
+          </span>
+          <span>Locatie {sunday.locationSent > 0 ? `${sunday.locationSent}/${sunday.guests}` : "nog niet"}</span>
+        </p>
+      ) : (
+        <p className="mt-2.5 text-xs text-wine/45">Nog geen gasten</p>
+      )}
+    </Link>
+  );
+}
+
+function MonthTarget({ month }: { month: { revenueCents: number; seats: number; targetCents: number | null } }) {
+  const euro = (cents: number) => `€${Math.round(cents / 100).toLocaleString("nl-NL")}`;
+  const pct = month.targetCents ? Math.min(100, Math.round((month.revenueCents / month.targetCents) * 100)) : null;
+  const reached = month.targetCents !== null && month.revenueCents >= month.targetCents;
+  return (
+    <div className="mt-3 rounded-xl border border-border-subtle bg-beige/60 p-4">
+      <p className="font-serif text-3xl text-burgundy">
+        {euro(month.revenueCents)}
+        {month.targetCents !== null ? <span className="text-lg text-wine/45"> / {euro(month.targetCents)}</span> : null}
+      </p>
+      <p className="mt-1 text-sm text-wine/60">
+        {month.seats} {month.seats === 1 ? "plek" : "plekken"} verkocht voor zondagen deze maand
+      </p>
+      {pct !== null ? (
+        <>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-wine/10">
+            <div className={`h-full rounded-full ${reached ? "bg-emerald-600" : "bg-burgundy/70"}`} style={{ width: `${pct}%` }} />
+          </div>
+          <p className="mt-2 text-xs text-wine/55">
+            {reached ? "Doel gehaald" : `Nog ${euro((month.targetCents ?? 0) - month.revenueCents)} tot het doel`}
+          </p>
+        </>
+      ) : (
+        <p className="mt-2 text-xs text-wine/50">Geen doel voor deze maand.</p>
+      )}
     </div>
   );
 }

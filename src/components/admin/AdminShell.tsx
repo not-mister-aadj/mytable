@@ -12,6 +12,8 @@ export type AdminNavItem = {
   /** Extra path prefixes that should also count as "active" — e.g. Sunday
    * Table lives on its own route but is a tab inside the Tafels section. */
   matchAlso?: string[];
+  /** Pages inside this section; shown under it while the section is open. */
+  children?: AdminNavItem[];
 };
 
 function normalizePath(path: string): string {
@@ -73,6 +75,33 @@ function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
+/** How well a nav item matches the current path: the length of the matching
+ * prefix, or -1. The longest match wins, so "Wachtlijstantwoorden"
+ * (/customers/antwoorden) beats "Klanten" (/customers). */
+function matchScore(pathname: string, item: AdminNavItem): number {
+  const path = normalizePath(pathname);
+  const targets = [item.href, ...(item.matchAlso ?? [])].map(normalizePath);
+  let best = -1;
+  for (const target of targets) {
+    const hit = item.exact ? path === target : matchesPrefix(path, target);
+    if (hit) best = Math.max(best, target.length);
+  }
+  return best;
+}
+
+function activeChild(pathname: string, item: AdminNavItem): AdminNavItem | null {
+  let winner: AdminNavItem | null = null;
+  let best = -1;
+  for (const child of item.children ?? []) {
+    const score = matchScore(pathname, child);
+    if (score > best) {
+      best = score;
+      winner = child;
+    }
+  }
+  return best >= 0 ? winner : null;
+}
+
 function SidebarNav({
   navItems,
   pathname,
@@ -85,26 +114,47 @@ function SidebarNav({
   return (
     <nav className="flex flex-col gap-1" aria-label="Admin navigatie">
       {navItems.map((item) => {
-        const active = isNavActive(
-          pathname,
-          item.href,
-          item.exact,
-          item.matchAlso,
-        );
+        const child = item.children ? activeChild(pathname, item) : null;
+        const active = item.children ? child !== null : isNavActive(pathname, item.href, item.exact, item.matchAlso);
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${
-              active
-                ? "bg-burgundy text-cream shadow-sm"
-                : "text-wine/80 hover:bg-burgundy/[0.06] hover:text-burgundy"
-            }`}
-            aria-current={active ? "page" : undefined}
-          >
-            {item.label}
-          </Link>
+          <div key={item.href + item.label}>
+            <Link
+              href={item.href}
+              onClick={onNavigate}
+              className={`block rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${
+                active && !item.children
+                  ? "bg-burgundy text-cream shadow-sm"
+                  : active
+                    ? "text-burgundy"
+                    : "text-wine/80 hover:bg-burgundy/[0.06] hover:text-burgundy"
+              }`}
+              aria-current={active && !item.children ? "page" : undefined}
+            >
+              {item.label}
+            </Link>
+            {item.children && active ? (
+              <div className="mb-1 ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-border-subtle pl-2">
+                {item.children.map((sub) => {
+                  const subActive = sub === child;
+                  return (
+                    <Link
+                      key={sub.href + sub.label}
+                      href={sub.href}
+                      onClick={onNavigate}
+                      className={`rounded-lg px-3 py-1.5 text-sm transition-colors duration-200 ${
+                        subActive
+                          ? "bg-burgundy text-cream"
+                          : "text-wine/70 hover:bg-burgundy/[0.06] hover:text-burgundy"
+                      }`}
+                      aria-current={subActive ? "page" : undefined}
+                    >
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </nav>

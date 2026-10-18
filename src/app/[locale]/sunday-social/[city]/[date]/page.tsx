@@ -389,8 +389,8 @@ export default async function SundayTableEventPage({ params }: Props) {
       {
         title: en ? "A table that fits" : "Een tafel die klopt",
         body: en
-          ? "Everyone at the table is in the mood for it. Two days before, you already know who's joining."
-          : "Iedereen aan tafel heeft er zin in. Twee dagen vooraf weet je al wie er aanschuiven.",
+          ? "Everyone at the table is in the mood for it. The day before, you already know who's joining."
+          : "Iedereen aan tafel heeft er zin in. De dag ervoor weet je al wie er aanschuiven.",
         image: {
           src: "/girls-only/wine-tasting-conversation.jpg",
           alt: en ? "Guests in conversation at a MyTable table" : "Gasten in gesprek aan een MyTable-tafel",
@@ -490,7 +490,7 @@ export default async function SundayTableEventPage({ params }: Props) {
         items: [
           "A seat at a table with 4 to 6 new people",
           "A place we picked for you",
-          "An email two days before with who's joining",
+          "An email the day before with who's joining",
           "Our tips from the menu",
         ],
         note: "Your ticket is your seat at the table. What you drink and eat, you order yourself from the menu.",
@@ -500,7 +500,7 @@ export default async function SundayTableEventPage({ params }: Props) {
         items: [
           "Een plek aan tafel met 4 tot 6 nieuwe mensen",
           "Een zaak die wij voor je uitkozen",
-          "Twee dagen vooraf een mail met wie er aanschuiven",
+          "De dag ervoor een mail met wie er aanschuiven",
           "Onze tips van de kaart",
         ],
         note: "Je ticket is je plek aan tafel. Wat je drinkt en eet, bestel je zelf van de kaart.",

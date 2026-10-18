@@ -15,6 +15,7 @@ function recipients(to: string | string[] | undefined): string[] {
  * failing log must not turn a sent email into an error. */
 export async function logSentEmail(input: {
   to: string | string[] | undefined;
+  from?: string | null;
   subject: string;
   html?: string | null;
   resendId?: string | null;
@@ -26,6 +27,7 @@ export async function logSentEmail(input: {
     toEmail: address,
     emailNormalized: normalizeEmail(address),
     subject: input.subject,
+    fromEmail: input.from ?? null,
     html: input.html ?? null,
     resendId: input.resendId ?? null,
     source: input.source ?? (process.env.EMAIL_LOG_SOURCE === "script" ? "script" : "app"),
@@ -77,6 +79,9 @@ export async function getLoggedEmailHtml(id: string): Promise<{ subject: string;
 export type EmailLogListRow = {
   id: string;
   to: string;
+  /** Sender address and display name, null for mails logged before 0044 and not backfilled. */
+  fromAddress: string | null;
+  fromName: string | null;
   subject: string;
   kind: string;
   sentAt: string;
@@ -85,6 +90,14 @@ export type EmailLogListRow = {
   name: string | null;
 };
 
+/** "Het MyTable-team <hallo@x.nl>" -> address and name; a bare address has no name. */
+export function splitSender(from: string | null): { fromAddress: string | null; fromName: string | null } {
+  if (!from) return { fromAddress: null, fromName: null };
+  const match = from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  if (!match) return { fromAddress: from.trim(), fromName: null };
+  return { fromAddress: match[2]!.trim(), fromName: match[1]!.trim() || null };
+}
+
 /** Every logged email, newest first, without the mail itself (for the admin E-mails page). */
 export async function getEmailLogList(): Promise<EmailLogListRow[]> {
   if (!isDbConfigured()) return [];
@@ -92,6 +105,7 @@ export async function getEmailLogList(): Promise<EmailLogListRow[]> {
     .select({
       id: emailLog.id,
       to: emailLog.toEmail,
+      from: emailLog.fromEmail,
       subject: emailLog.subject,
       sentAt: emailLog.sentAt,
       hasHtml: sql<boolean>`${emailLog.html} is not null`,
@@ -105,6 +119,7 @@ export async function getEmailLogList(): Promise<EmailLogListRow[]> {
   return rows.map((row) => ({
     id: row.id,
     to: row.to,
+    ...splitSender(row.from),
     subject: row.subject,
     kind: emailKind(row.subject),
     sentAt: row.sentAt.toISOString(),

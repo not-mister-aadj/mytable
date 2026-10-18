@@ -27,6 +27,7 @@ const selectClass =
 export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState("all");
+  const [sender, setSender] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [open, setOpen] = useState<EmailLogListRow | null>(null);
@@ -37,10 +38,17 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [rows]);
 
+  const senders = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const row of rows) if (row.fromAddress) counts.set(row.fromAddress, (counts.get(row.fromAddress) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((row) => {
       if (kind !== "all" && row.kind !== kind) return false;
+      if (sender !== "all" && (row.fromAddress ?? "") !== sender) return false;
       const day = amsterdamDay.format(new Date(row.sentAt));
       if (fromDate && day < fromDate) return false;
       if (toDate && day > toDate) return false;
@@ -48,10 +56,11 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
       return (
         row.to.toLowerCase().includes(q) ||
         (row.name ?? "").toLowerCase().includes(q) ||
-        row.subject.toLowerCase().includes(q)
+        row.subject.toLowerCase().includes(q) ||
+        (row.fromAddress ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, search, kind, fromDate, toDate]);
+  }, [rows, search, kind, sender, fromDate, toDate]);
 
   // Back to the first page whenever the filtered list changes.
   const [page, setPage] = useState({ list: filtered, count: PAGE_SIZE });
@@ -79,7 +88,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
   }, [hasMore, visibleCount]);
 
   const recipients = useMemo(() => new Set(filtered.map((row) => row.to.toLowerCase())).size, [filtered]);
-  const filtering = search !== "" || kind !== "all" || fromDate !== "" || toDate !== "";
+  const filtering = search !== "" || kind !== "all" || sender !== "all" || fromDate !== "" || toDate !== "";
 
   return (
     <div className="space-y-6">
@@ -97,7 +106,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Zoek op naam, e-mail of onderwerp…"
+            placeholder="Zoek op naam, e-mail, afzender of onderwerp…"
             className="w-full max-w-md rounded-full border border-border-subtle bg-cream px-4 py-2.5 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
           />
           <select value={kind} onChange={(e) => setKind(e.target.value)} className={selectClass} aria-label="Soort mail">
@@ -108,6 +117,16 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
               </option>
             ))}
           </select>
+          {senders.length > 0 ? (
+            <select value={sender} onChange={(e) => setSender(e.target.value)} className={selectClass} aria-label="Verzonden vanaf">
+              <option value="all">Alle afzenders</option>
+              {senders.map(([address, count]) => (
+                <option key={address} value={address}>
+                  {address} ({count})
+                </option>
+              ))}
+            </select>
+          ) : null}
           <label className="flex items-center gap-2 text-sm text-wine/65">
             Van
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={selectClass} />
@@ -122,6 +141,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
               onClick={() => {
                 setSearch("");
                 setKind("all");
+                setSender("all");
                 setFromDate("");
                 setToDate("");
               }}
@@ -145,11 +165,12 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left text-sm">
+            <table className="w-full min-w-[1000px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
                   <th className="px-5 py-3.5">Verstuurd</th>
                   <th className="px-5 py-3.5">Aan</th>
+                  <th className="px-5 py-3.5">Verzonden vanaf</th>
                   <th className="px-5 py-3.5">Soort</th>
                   <th className="px-5 py-3.5">Onderwerp</th>
                 </tr>
@@ -168,6 +189,16 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
                         </Link>
                       ) : null}
                       <p className={row.customerId ? "text-xs text-wine/55" : "text-wine/70"}>{row.to}</p>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {row.fromAddress ? (
+                        <>
+                          <p className="text-wine/70">{row.fromAddress}</p>
+                          {row.fromName ? <p className="text-xs text-wine/50">{row.fromName}</p> : null}
+                        </>
+                      ) : (
+                        <span className="text-wine/40">-</span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="inline-flex rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-wine/75 ring-1 ring-inset ring-border-subtle">
@@ -214,6 +245,7 @@ export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
           subject={open.subject}
           sentAt={open.sentAt}
           to={open.name ? `${open.name} (${open.to})` : open.to}
+          from={open.fromAddress ? (open.fromName ? `${open.fromName} (${open.fromAddress})` : open.fromAddress) : null}
           onClose={() => setOpen(null)}
         />
       ) : null}

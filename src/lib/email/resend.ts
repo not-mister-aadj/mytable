@@ -49,6 +49,7 @@ function withEmailLog(client: Resend): Resend {
       const { logSentEmail } = await import("@/lib/email/email-log");
       await logSentEmail({
         to: payload.to,
+        from: payload.from,
         subject: payload.subject ?? "",
         html: typeof payload.html === "string" ? payload.html : null,
         resendId: result.data.id,

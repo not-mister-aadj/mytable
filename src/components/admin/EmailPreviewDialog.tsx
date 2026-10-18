@@ -19,12 +19,15 @@ export function EmailPreviewDialog({
   subject,
   sentAt,
   to,
+  from,
   onClose,
 }: {
   logId: string;
   subject: string;
   sentAt: string;
   to: string;
+  /** Sender, shown when known. */
+  from?: string | null;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -51,7 +54,7 @@ export function EmailPreviewDialog({
           <div className="min-w-0">
             <p className="truncate font-medium text-wine">{subject}</p>
             <p className="mt-0.5 text-xs text-wine/55">
-              Aan {to} · {longDateTime.format(new Date(sentAt))}
+              {from ? <>Van {from} · </> : null}Aan {to} · {longDateTime.format(new Date(sentAt))}
             </p>
           </div>
           <button

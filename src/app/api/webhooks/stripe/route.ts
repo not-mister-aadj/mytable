@@ -15,6 +15,7 @@ import {
   isMembershipCheckout,
   syncMembershipSubscription,
 } from "@/lib/membership/fulfill";
+import { recordMembershipPayment } from "@/lib/membership/payments";
 import {
   captureCriticalError,
   captureCriticalMessage,
@@ -254,6 +255,7 @@ async function handleMembershipEvent(
       const invoice = event.data.object as import("stripe").Stripe.Invoice;
       const subscriptionId = invoiceSubscriptionId(invoice);
       if (!subscriptionId) return null;
+      if (event.type === "invoice.paid") await recordMembershipPayment(invoice);
       await syncMembershipSubscription(subscriptionId);
       return NextResponse.json({ received: true });
     }

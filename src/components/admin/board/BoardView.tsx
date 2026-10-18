@@ -93,6 +93,7 @@ function ShareBar({ title, shares }: { title: string; shares: Share[] }) {
 export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (month: string) => string }) {
   const k = data.kpis;
   const maxRevenue = Math.max(1, ...data.months.map((m) => Math.max(m.revenueCents, m.targetCents ?? 0)));
+  const hasMembershipRevenue = data.months.some((m) => m.membershipCents > 0);
   const funnelTop = data.funnel.posthog?.[0]?.count ?? 0;
   const contribution = data.unit.contributionCents;
 
@@ -130,8 +131,16 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
         <Tile
           label="Omzet"
           value={euro(k.revenueCents.value)}
-          sub={`Tickets voor zondagen in ${monthName(data.month, false)}.${k.targetCents !== null ? ` Doel ${euro(k.targetCents)}.` : ""}`}
+          sub={`Tickets voor zondagen in ${monthName(data.month, false)} plus lidmaatschappen betaald in ${monthName(data.month, false)}.${k.targetCents !== null ? ` Doel ${euro(k.targetCents)}.` : ""}`}
         >
+          <p className="flex flex-wrap gap-x-3 text-xs text-wine/70">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-sm bg-burgundy" /> Tickets {euro(k.ticketRevenueCents.value)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-sm bg-amber-500" /> Leden {euro(k.membershipRevenueCents.value)}
+            </span>
+          </p>
           <Delta kpi={k.revenueCents} good="up" format="money" />
           {k.targetCents !== null ? (
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-wine/10">
@@ -141,6 +150,20 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
               />
             </div>
           ) : null}
+        </Tile>
+        <Tile
+          label="MRR"
+          value={euro(k.mrrCents.value)}
+          sub={`Terugkerende omzet per maand uit lidmaatschappen, ${data.isCurrentMonth ? "vandaag" : "aan het eind van de maand"}. Een plan van 4 maanden telt voor €9 per maand.`}
+        >
+          <Delta kpi={k.mrrCents} good="up" format="money" label="vs begin van de maand" />
+        </Tile>
+        <Tile
+          label="Leden"
+          value={String(k.members.active.value ?? 0)}
+          sub={`Actieve lidmaatschappen. Deze maand ${k.members.new} nieuw, ${k.members.churned} opgezegd.`}
+        >
+          <Delta kpi={k.members.active} good="up" format="count" label="vs begin van de maand" />
         </Tile>
         <Tile
           label="Plekken verkocht"
@@ -181,7 +204,7 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
         </Tile>
       </div>
 
-      <Section title="Groei per maand" note="Omzet per maand op de maand van de zondag, sinds de Sunday Socials (augustus 2026), met het doel uit het plan naar €10.000 per maand.">
+      <Section title="Groei per maand" note="Omzet per maand sinds de Sunday Socials (augustus 2026): tickets op de maand van de zondag, lidmaatschappen op de maand van betaling. Met het doel uit het plan naar €10.000 per maand.">
         <div className="rounded-xl border border-border-subtle bg-beige/60 p-4">
           <div className="flex h-48 items-end gap-2">
             {data.months.map((m) => (
@@ -190,10 +213,21 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
                   <div className="absolute inset-x-0 border-t-2 border-dashed border-red-700/60" style={{ bottom: `${(m.targetCents / maxRevenue) * 100}%` }} />
                 ) : null}
                 <div
-                  className={`rounded-t ${m.month === data.month ? "bg-burgundy" : m.future ? "border border-dashed border-burgundy/50 bg-burgundy/15" : "bg-burgundy/45"}`}
+                  className="flex flex-col justify-end"
                   style={{ height: `${(m.revenueCents / maxRevenue) * 100}%`, minHeight: m.revenueCents > 0 ? 2 : 0 }}
-                  title={`${monthName(m.month)}: ${euro(m.revenueCents)}${m.future ? " al verkocht" : ""}, ${m.seats} plekken${m.targetCents !== null ? `, doel ${euro(m.targetCents)}` : ""}`}
-                />
+                  title={`${monthName(m.month)}: ${euro(m.revenueCents)}${m.future ? " al verkocht" : ""} (tickets ${euro(m.ticketCents)}, leden ${euro(m.membershipCents)}), ${m.seats} plekken${m.targetCents !== null ? `, doel ${euro(m.targetCents)}` : ""}`}
+                >
+                  {m.membershipCents > 0 ? (
+                    <div
+                      className={`rounded-t ${m.month === data.month ? "bg-amber-500" : "bg-amber-500/55"}`}
+                      style={{ height: `${(m.membershipCents / m.revenueCents) * 100}%`, minHeight: 2 }}
+                    />
+                  ) : null}
+                  <div
+                    className={`${m.membershipCents > 0 ? "" : "rounded-t"} ${m.month === data.month ? "bg-burgundy" : m.future ? "border border-dashed border-burgundy/50 bg-burgundy/15" : "bg-burgundy/45"}`}
+                    style={{ height: `${m.revenueCents > 0 ? (m.ticketCents / m.revenueCents) * 100 : 0}%` }}
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -207,8 +241,13 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
           </div>
           <p className="mt-3 flex items-center gap-4 text-xs text-wine/55">
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-burgundy" /> Omzet
+              <span className="h-2.5 w-2.5 rounded-sm bg-burgundy" /> Tickets
             </span>
+            {hasMembershipRevenue ? (
+              <span className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-amber-500" /> Lidmaatschappen
+              </span>
+            ) : null}
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-burgundy/50 bg-burgundy/15" /> Al verkocht voor komende maanden
             </span>

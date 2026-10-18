@@ -2,13 +2,15 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { monthlyTargetCents } from "@/lib/admin/monthly-target";
+import { MEMBERSHIP_PLANS } from "@/lib/membership/plans";
 import { getFunnelPeople } from "@/lib/posthog/admin-stats";
 import type { FunnelStep } from "@/lib/posthog/admin-stats";
 
-/** Everything on the Board page for one month. Money in cents. Revenue
- * counts by the month the Sunday takes place (like the target in the
- * founder's doc); ad cost per ticket and ROAS count by booking date, the
- * same days the ad money was spent. */
+/** Everything on the Board page for one month. Money in cents. Revenue has
+ * two streams, always shown apart: tickets count by the month the Sunday
+ * takes place (like the target in the founder's doc), memberships by the
+ * month the invoice was paid. Ad cost per ticket and ROAS count by booking
+ * date, the same days the ad money was spent. */
 
 const SUNDAYS = `('${SUNDAY_SOCIAL_TYPE}', '${JOUW_TAFEL_TYPE}')`;
 const PAID = `b.payment_status = 'paid' and b.lifecycle_status in ('active', 'transferred')`;
@@ -17,7 +19,16 @@ const PAID = `b.payment_status = 'paid' and b.lifecycle_status in ('active', 'tr
 const SINCE = "2026-08-01";
 
 /** future: a month still to come; its bar is what is already sold. */
-export type MonthPoint = { month: string; revenueCents: number; seats: number; targetCents: number | null; future: boolean };
+export type MonthPoint = {
+  month: string;
+  /** Tickets plus memberships. */
+  revenueCents: number;
+  ticketCents: number;
+  membershipCents: number;
+  seats: number;
+  targetCents: number | null;
+  future: boolean;
+};
 export type Kpi = { value: number | null; previous: number | null };
 export type ChannelRow = { channel: string; bookings: number; seats: number; revenueCents: number; spendCents: number | null };
 export type CityRow = {
@@ -37,8 +48,14 @@ export type BoardData = {
   previousMonth: string;
   isCurrentMonth: boolean;
   kpis: {
+    /** Tickets plus memberships; the target counts against this. */
     revenueCents: Kpi;
+    ticketRevenueCents: Kpi;
+    membershipRevenueCents: Kpi;
     targetCents: number | null;
+    /** Monthly recurring revenue at the end of the month (today for the running month). */
+    mrrCents: Kpi;
+    members: { active: Kpi; new: number; churned: number };
     seats: Kpi;
     projectedSeats: number | null;
     guests: Kpi;
@@ -103,13 +120,53 @@ export async function getBoardData(month: string): Promise<BoardData> {
     where ${sql.raw(PAID)} and e.starts_at >= ${`${first}-01`}::date and e.starts_at < ${`${shiftMonth(last, 1)}-01`}::date
     group by 1`);
   const byMonth = new Map(monthRows.map((r) => [r.month, r]));
+
+  // ---- membership revenue by the month it was paid (table may not exist yet)
+  const paymentRows = await q<{ month: string; cents: number }>(sql`
+    select to_char(paid_at at time zone ${tz}, 'YYYY-MM') as month, sum(amount_cents)::int as cents
+    from membership_payments group by 1`).catch(() => [] as { month: string; cents: number }[]);
+  const membershipByMonth = new Map(paymentRows.map((r) => [r.month, r.cents]));
+
   const months: MonthPoint[] = Array.from({ length: monthCount }, (_, i) => {
     const key = shiftMonth(first, i);
     const r = byMonth.get(key);
-    return { month: key, revenueCents: r?.revenue ?? 0, seats: r?.seats ?? 0, targetCents: monthlyTargetCents(key), future: key > month };
+    const ticketCents = r?.revenue ?? 0;
+    const membershipCents = membershipByMonth.get(key) ?? 0;
+    return {
+      month: key,
+      revenueCents: ticketCents + membershipCents,
+      ticketCents,
+      membershipCents,
+      seats: r?.seats ?? 0,
+      targetCents: monthlyTargetCents(key),
+      future: key > month,
+    };
   });
   const cur = byMonth.get(month);
   const before = byMonth.get(prev);
+  const curMembership = membershipByMonth.get(month) ?? 0;
+  const prevMembership = membershipByMonth.get(prev) ?? 0;
+
+  // ---- members and MRR. A membership counts from created_at until it is
+  // canceled (updated_at of a canceled row); MRR is each plan's monthly price.
+  const mrrCase = sql.raw(
+    `case plan ${Object.values(MEMBERSHIP_PLANS)
+      .map((p) => `when '${p.id}' then ${p.monthlyCents}`)
+      .join(" ")} else 0 end`,
+  );
+  const membersAt = async (at: string) => {
+    const [row] = await q<{ active: number; mrr: number }>(sql`
+      select count(*)::int as active, coalesce(sum(${mrrCase}), 0)::int as mrr
+      from memberships
+      where created_at < ${at}::timestamptz and (status <> 'canceled' or updated_at >= ${at}::timestamptz)`);
+    return row ?? { active: 0, mrr: 0 };
+  };
+  const membersEnd = await membersAt(isCurrentMonth ? new Date().toISOString() : `${nextStart} 00:00 Europe/Amsterdam`);
+  const membersStart = await membersAt(`${monthStart} 00:00 Europe/Amsterdam`);
+  const [memberMoves] = await q<{ new_members: number; churned: number }>(sql`
+    select count(*) filter (where created_at >= ${`${monthStart} 00:00 Europe/Amsterdam`}::timestamptz and created_at < ${`${nextStart} 00:00 Europe/Amsterdam`}::timestamptz)::int as new_members,
+           count(*) filter (where status = 'canceled' and updated_at >= ${`${monthStart} 00:00 Europe/Amsterdam`}::timestamptz and updated_at < ${`${nextStart} 00:00 Europe/Amsterdam`}::timestamptz)::int as churned
+    from memberships`);
 
   // ---- per-month facts for this month and the one before
   const facts = async (start: string, end: string) => {
@@ -379,8 +436,16 @@ export async function getBoardData(month: string): Promise<BoardData> {
     previousMonth: prev,
     isCurrentMonth: isCurrent,
     kpis: {
-      revenueCents: { value: cur?.revenue ?? 0, previous: before?.revenue ?? 0 },
+      revenueCents: { value: (cur?.revenue ?? 0) + curMembership, previous: (before?.revenue ?? 0) + prevMembership },
+      ticketRevenueCents: { value: cur?.revenue ?? 0, previous: before?.revenue ?? 0 },
+      membershipRevenueCents: { value: curMembership, previous: prevMembership },
       targetCents: monthlyTargetCents(month),
+      mrrCents: { value: membersEnd.mrr, previous: membersStart.mrr },
+      members: {
+        active: { value: membersEnd.active, previous: membersStart.active },
+        new: memberMoves?.new_members ?? 0,
+        churned: memberMoves?.churned ?? 0,
+      },
       seats: { value: cur?.seats ?? 0, previous: before?.seats ?? 0 },
       projectedSeats: projected,
       guests: { value: f.guests, previous: fp.guests },

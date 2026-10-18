@@ -359,6 +359,22 @@ export const emailLog = pgTable(
   }),
 );
 
+/** One row per paid membership invoice (Stripe invoice.paid, drizzle/0046).
+ * Membership revenue counts from here, by the day it was paid. */
+export const membershipPayments = pgTable("membership_payments", {
+  stripeInvoiceId: text("stripe_invoice_id").primaryKey(),
+  stripeSubscriptionId: text("stripe_subscription_id").notNull(),
+  email: text("email"),
+  amountCents: integer("amount_cents").notNull(),
+  currency: text("currency").notNull().default("eur"),
+  paidAt: timestamp("paid_at", { withTimezone: true }).notNull(),
+  periodStart: timestamp("period_start", { withTimezone: true }),
+  periodEnd: timestamp("period_end", { withTimezone: true }),
+  /** "stripe" (webhook) or "backfill" (entered by hand from the plan price). */
+  source: text("source").notNull().default("stripe"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Meta ad spend per campaign per day (drizzle/0043), for the Board page.
  * Filled from Meta by hand, not by the app. */
 export const adSpendDaily = pgTable(

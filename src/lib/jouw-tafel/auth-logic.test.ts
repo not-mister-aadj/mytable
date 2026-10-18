@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   classifySendCodeError,
+  codeCooldownLeftMs,
   classifyVerifyCodeError,
   isGoogleSignInAllowed,
   isInAppBrowser,
@@ -121,4 +122,14 @@ test("maps Supabase errors", () => {
   assert.equal(classifyVerifyCodeError({ status: 403 }), "wrong_or_expired");
   assert.equal(classifyVerifyCodeError({ code: "over_request_rate_limit", status: 429 }), "rate_limited");
   assert.equal(classifyVerifyCodeError({ message: "Failed to fetch" }), "other");
+});
+
+test("a new code waits a minute after the last one", () => {
+  const now = 1_000_000_000;
+  assert.equal(codeCooldownLeftMs(null, now), 0);
+  assert.equal(codeCooldownLeftMs(now - 10_000, now), 50_000);
+  assert.equal(codeCooldownLeftMs(now - 60_000, now), 0);
+  assert.equal(codeCooldownLeftMs(now - 120_000, now), 0);
+  // A clock that jumped back never blocks for more than a minute.
+  assert.equal(codeCooldownLeftMs(now + 600_000, now), 0);
 });

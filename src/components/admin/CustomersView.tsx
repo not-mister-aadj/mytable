@@ -1,7 +1,8 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CONCEPT_FILTER_OPTIONS,
   ConceptBadge,
@@ -25,8 +26,18 @@ import {
   GENDER_LABELS,
   TICKET_PRICE_LABELS,
 } from "@/lib/priority-list-labels";
-import { CustomersCharts } from "@/components/admin/customers-list/CustomersCharts";
-import { CustomerCampaignPanel } from "@/components/admin/customers-list/CustomerCampaignPanel";
+
+// Charts and the mail panel only load when they are opened.
+const CustomersCharts = dynamic(
+  () => import("@/components/admin/customers-list/CustomersCharts").then((m) => m.CustomersCharts),
+  { loading: () => <div className="h-64 animate-pulse rounded-2xl bg-beige" /> },
+);
+const CustomerCampaignPanel = dynamic(() =>
+  import("@/components/admin/customers-list/CustomerCampaignPanel").then((m) => m.CustomerCampaignPanel),
+);
+
+/** Rows shown at first and added per step while scrolling. */
+const PAGE_SIZE = 50;
 
 type FilterKey =
   | "all"
@@ -161,26 +172,6 @@ function downloadCsv(csv: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function KpiCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">
-        {label}
-      </p>
-      <p className="mt-2 font-serif text-3xl text-burgundy">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-wine/55">{hint}</p> : null}
-    </div>
-  );
-}
-
 const selectClass =
   "rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40";
 
@@ -232,6 +223,8 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [chartsOpen, setChartsOpen] = useState(false);
   const [mailOpen, setMailOpen] = useState(false);
+  // Stays mounted after the first open, so a running send keeps its progress.
+  const [mailUsed, setMailUsed] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -299,6 +292,31 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
     () => [...filtered].sort((a, b) => compareRows(a, b, sortKey, sortDir)),
     [filtered, sortKey, sortDir],
   );
+
+  // Back to the first page whenever the filtered or sorted list changes.
+  const [page, setPage] = useState({ list: sorted, count: PAGE_SIZE });
+  const visibleCount = page.list === sorted ? page.count : PAGE_SIZE;
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
+  const showMore = () => setPage({ list: sorted, count: visibleCount + PAGE_SIZE });
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const showMoreRef = useRef(showMore);
+  useEffect(() => {
+    showMoreRef.current = showMore;
+  });
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) showMoreRef.current();
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, visibleCount]);
 
   function handleSort(key: SortKey) {
     if (key === sortKey) {
@@ -417,30 +435,8 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
           Klanten
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Iedereen die zich aanmeldde of boekte, op basis van e-mailadres. De
-          cijfers hieronder tellen alleen kopers.
+          Iedereen die zich aanmeldde of boekte, op basis van e-mailadres.
         </p>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <KpiCard label="Totaal klanten" value={String(data.kpis.totalCustomers)} />
-        <KpiCard
-          label="Betalende klanten"
-          value={String(data.kpis.payingCustomers)}
-        />
-        <KpiCard
-          label="Terugkerende gasten"
-          value={String(data.kpis.repeatCustomers)}
-        />
-        <KpiCard
-          label="Totale omzet"
-          value={formatMoney(data.kpis.totalRevenueCents, "EUR", "nl")}
-        />
-        <KpiCard
-          label="Gem. besteding"
-          value={formatMoney(data.kpis.avgSpendPerCustomerCents, "EUR", "nl")}
-          hint="Per betalende klant"
-        />
       </div>
 
       <div className="space-y-4">
@@ -613,7 +609,10 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
           </button>
           <button
             type="button"
-            onClick={() => setMailOpen(true)}
+            onClick={() => {
+              setMailUsed(true);
+              setMailOpen(true);
+            }}
             disabled={sorted.length === 0}
             className="rounded-full bg-burgundy px-4 py-2 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-50"
           >
@@ -622,11 +621,13 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
         </div>
       </div>
 
-      <CustomerCampaignPanel
-        open={mailOpen}
-        rows={sorted}
-        onClose={() => setMailOpen(false)}
-      />
+      {mailUsed ? (
+        <CustomerCampaignPanel
+          open={mailOpen}
+          rows={sorted}
+          onClose={() => setMailOpen(false)}
+        />
+      ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-border-subtle/80 bg-beige/50 shadow-[0_12px_40px_rgba(43,13,18,0.05)]">
         {sorted.length === 0 ? (
@@ -671,7 +672,7 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((row) => (
+                {visible.map((row) => (
                   <tr
                     key={row.id}
                     className="group border-b border-border-subtle/50 transition hover:bg-cream/70"
@@ -720,6 +721,23 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
                 ))}
               </tbody>
             </table>
+            <div
+              ref={sentinelRef}
+              className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-wine/60"
+            >
+              <span>
+                {visible.length} van {sorted.length} klanten
+              </span>
+              {hasMore ? (
+                <button
+                  type="button"
+                  onClick={showMore}
+                  className="rounded-full border border-border-subtle bg-cream px-4 py-1.5 text-sm font-medium text-wine transition hover:border-burgundy/40 hover:text-burgundy"
+                >
+                  Toon meer
+                </button>
+              ) : null}
+            </div>
           </div>
         )}
       </div>

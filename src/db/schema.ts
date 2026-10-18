@@ -332,6 +332,8 @@ export const emailLog = pgTable(
     toEmail: text("to_email").notNull(),
     emailNormalized: text("email_normalized").notNull(),
     subject: text("subject").notNull(),
+    /** Sender as given to Resend, e.g. "MyTable <info@mytable.club>" (drizzle/0044). */
+    fromEmail: text("from_email"),
     html: text("html"),
     resendId: text("resend_id"),
     /** "app" (sent by the site), "script" (sent by hand) or "resend_import". */

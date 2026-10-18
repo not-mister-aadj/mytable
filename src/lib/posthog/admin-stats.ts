@@ -164,3 +164,32 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary | null> {
     funnel7d,
   };
 }
+
+/** Unique people per step of the booking funnel between two moments, for
+ * the Board page. Null when PostHog isn't connected. */
+export async function getFunnelPeople(sinceIso: string, untilIso: string): Promise<FunnelStep[] | null> {
+  if (!isPostHogAdminConfigured()) return null;
+  const range = `timestamp >= toDateTime('${sinceIso.replace(/'/g, "")}') and timestamp < toDateTime('${untilIso.replace(/'/g, "")}')`;
+  const people = (events: string[]) =>
+    hogqlQuery(`select count(distinct person_id) from events where event in (${eventInList(events)}) and ${range}`, parseCount);
+  const [visitors, eventViews, checkout, paid] = await Promise.all([
+    people(["$pageview", "page_viewed"]),
+    hogqlQuery(
+      `select count(distinct person_id) from events where ${range} and (event in (${eventInList([
+        "event_detail_viewed",
+        "event_page_viewed",
+        "table_page_viewed",
+        "quiz_choose_viewed",
+      ])}) or (event = '$pageview' and properties.$pathname like '%/sunday-social/%/%'))`,
+      parseCount,
+    ),
+    people(["checkout_started", "booking_started"]),
+    people(["booking_paid", "payment_completed"]),
+  ]);
+  return [
+    { label: "Bezoekers", count: visitors },
+    { label: "Bekeken een zondag", count: eventViews },
+    { label: "Begonnen met boeken", count: checkout },
+    { label: "Betaald", count: paid },
+  ];
+}

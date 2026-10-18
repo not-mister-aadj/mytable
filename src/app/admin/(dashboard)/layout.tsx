@@ -32,7 +32,7 @@ const NAV: NavDef[] = [
     label: "Groei",
     path: "/analytics",
     children: [
-      { label: "Analytics", path: "/analytics" },
+      { label: "Board", path: "/analytics" },
       { label: "Outreach", path: "/outreach" },
     ],
   },

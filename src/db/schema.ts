@@ -346,6 +346,20 @@ export const emailLog = pgTable(
   }),
 );
 
+/** Meta ad spend per campaign per day (drizzle/0043), for the Board page.
+ * Filled from Meta by hand, not by the app. */
+export const adSpendDaily = pgTable(
+  "ad_spend_daily",
+  {
+    day: date("day").notNull(),
+    campaignId: text("campaign_id").notNull(),
+    campaignName: text("campaign_name").notNull(),
+    spendCents: integer("spend_cents").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({ pk: primaryKey({ columns: [table.day, table.campaignId] }) }),
+);
+
 export const bookingEvents = pgTable("booking_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   bookingId: uuid("booking_id")

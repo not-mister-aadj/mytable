@@ -231,13 +231,17 @@ export async function saveSundayTableIntroConversationStyle(
 
 const TOKEN_PURPOSE = "sunday_table_intro";
 
-function getTokenSecret(): Uint8Array {
-  const raw =
+/** Signing keys, first one signs. INTRO_TOKEN_SECRET is a key of its own that
+ * is also known outside the server, so hand-sent mails can carry the same
+ * one-click link; links signed with the general secret keep working. */
+function getTokenSecrets(): Uint8Array[] {
+  const general =
     process.env.REVIEW_TOKEN_SECRET?.trim() ||
     process.env.CRON_SECRET?.trim() ||
     process.env.AUTH_SECRET?.trim();
-  if (!raw) throw new Error("REVIEW_TOKEN_SECRET or CRON_SECRET is required");
-  return new TextEncoder().encode(raw);
+  const keys = [process.env.INTRO_TOKEN_SECRET?.trim(), general].filter((key): key is string => Boolean(key));
+  if (keys.length === 0) throw new Error("INTRO_TOKEN_SECRET, REVIEW_TOKEN_SECRET or CRON_SECRET is required");
+  return keys.map((key) => new TextEncoder().encode(key));
 }
 
 /** Link token for the reminder email, so the intro page opens without login
@@ -247,15 +251,18 @@ export async function signSundayTableIntroToken(bookingId: string): Promise<stri
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${60 * 24 * 60 * 60}s`)
-    .sign(getTokenSecret());
+    .sign(getTokenSecrets()[0]!);
 }
 
 export async function verifySundayTableIntroToken(token: string): Promise<string | null> {
-  try {
-    const { payload } = await jwtVerify(token, getTokenSecret());
-    if (payload.purpose !== TOKEN_PURPOSE) return null;
-    return typeof payload.bookingId === "string" ? payload.bookingId : null;
-  } catch {
-    return null;
+  for (const secret of getTokenSecrets()) {
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.purpose !== TOKEN_PURPOSE) return null;
+      return typeof payload.bookingId === "string" ? payload.bookingId : null;
+    } catch {
+      // Not this key: try the next one.
+    }
   }
+  return null;
 }

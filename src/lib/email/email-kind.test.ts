@@ -11,6 +11,11 @@ test("subjects of our own mails get their short name", () => {
   assert.equal(emailKind("Sunday Social geannuleerd: Utrecht · zondag 22 november"), "Annulering");
   assert.equal(emailKind("Verplaatst: Sunday Social (MT-1A2B3C4D)"), "Verplaatst");
   assert.equal(emailKind("Je staat op de lijst voor Rotterdam"), "Wachtlijst");
+  assert.equal(emailKind("Je uitnodiging: middag met wijn op 1 november"), "Uitnodiging");
+  assert.equal(emailKind("Your invitation to a cosy Sunday afternoon with wine"), "Uitnodiging");
+  assert.equal(emailKind("Zondag 25 oktober: een tafel voor je bij Juni"), "Uitnodiging");
+  assert.equal(emailKind("Je inlogcode: 123456"), "Inlogcode");
+  assert.equal(emailKind("Vanaf 4 november 2026 kun je weer boeken"), "Boeken open");
 });
 
 test("a preview prefix is ignored and unknown subjects stay generic", () => {

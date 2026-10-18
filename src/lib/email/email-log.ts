@@ -1,7 +1,7 @@
-import { eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
-import { emailLog } from "@/db/schema";
-import { normalizeEmail } from "@/lib/customers/normalize";
+import { customers, emailLog } from "@/db/schema";
+import { customerDisplayName, normalizeEmail } from "@/lib/customers/normalize";
 import { emailKind } from "@/lib/email/email-kind";
 
 export type EmailLogSource = "app" | "script" | "resend_import";
@@ -72,4 +72,44 @@ export async function getLoggedEmailHtml(id: string): Promise<{ subject: string;
     .where(eq(emailLog.id, id))
     .limit(1);
   return row ?? null;
+}
+
+export type EmailLogListRow = {
+  id: string;
+  to: string;
+  subject: string;
+  kind: string;
+  sentAt: string;
+  hasHtml: boolean;
+  customerId: string | null;
+  name: string | null;
+};
+
+/** Every logged email, newest first, without the mail itself (for the admin E-mails page). */
+export async function getEmailLogList(): Promise<EmailLogListRow[]> {
+  if (!isDbConfigured()) return [];
+  const rows = await getDb()
+    .select({
+      id: emailLog.id,
+      to: emailLog.toEmail,
+      subject: emailLog.subject,
+      sentAt: emailLog.sentAt,
+      hasHtml: sql<boolean>`${emailLog.html} is not null`,
+      customerId: customers.id,
+      firstName: customers.firstName,
+      lastName: customers.lastName,
+    })
+    .from(emailLog)
+    .leftJoin(customers, eq(customers.emailNormalized, emailLog.emailNormalized))
+    .orderBy(desc(emailLog.sentAt));
+  return rows.map((row) => ({
+    id: row.id,
+    to: row.to,
+    subject: row.subject,
+    kind: emailKind(row.subject),
+    sentAt: row.sentAt.toISOString(),
+    hasHtml: row.hasHtml,
+    customerId: row.customerId,
+    name: row.customerId ? customerDisplayName(row.firstName, row.lastName, row.to) : null,
+  }));
 }

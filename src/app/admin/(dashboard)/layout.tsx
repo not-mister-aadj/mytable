@@ -26,6 +26,7 @@ const NAV: NavDef[] = [
       { label: "Klanten", path: "/customers" },
       { label: "Wachtlijst", path: "/priority-list" },
       { label: "Wachtlijstantwoorden", path: "/customers/antwoorden" },
+      { label: "E-mails", path: "/emails" },
     ],
   },
   {

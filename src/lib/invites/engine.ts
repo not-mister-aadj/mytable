@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { inviteClicks, inviteSends, inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
@@ -438,16 +438,9 @@ export async function sendDueInvites(now: Date = new Date()): Promise<{ sent: nu
   const db = getDb();
   const approval = needsApproval(settings, now);
   const cap = dailyCap(settings, now);
-  const today = dayOf(now);
-  const sentToday = (
-    await db
-      .select({ sentAt: inviteSends.sentAt })
-      .from(inviteSends)
-      .where(eq(inviteSends.status, "sent"))
-  ).filter((s) => s.sentAt && dayOf(s.sentAt) === today).length;
-  if (sentToday >= cap) return { sent: 0, skipped: 0, failed: 0 };
 
-  const due = await db
+  // Runs every minute: usually nothing is due, so that is checked first.
+  const dueAll = await db
     .select()
     .from(inviteSends)
     .where(
@@ -457,8 +450,18 @@ export async function sendDueInvites(now: Date = new Date()): Promise<{ sent: nu
       ),
     )
     .orderBy(inviteSends.scheduledFor)
-    .limit(cap - sentToday);
-  if (due.length === 0) return { sent: 0, skipped: 0, failed: 0 };
+    .limit(cap);
+  if (dueAll.length === 0) return { sent: 0, skipped: 0, failed: 0 };
+
+  const today = dayOf(now);
+  const sentToday = (
+    await db
+      .select({ sentAt: inviteSends.sentAt })
+      .from(inviteSends)
+      .where(and(eq(inviteSends.status, "sent"), gte(inviteSends.sentAt, new Date(now.getTime() - DAY))))
+  ).filter((s) => s.sentAt && dayOf(s.sentAt) === today).length;
+  if (sentToday >= cap) return { sent: 0, skipped: 0, failed: 0 };
+  const due = dueAll.slice(0, cap - sentToday);
 
   const [people, events, history] = await Promise.all([loadPeople(), loadInviteEvents(now), loadHistory()]);
   const byEmail = new Map(people.map((p) => [p.email, p]));

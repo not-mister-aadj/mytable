@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/index";
 import { inviteSends } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
+import { planInvites } from "@/lib/invites/engine";
 import { amsterdamParts } from "@/lib/invites/logic";
 import { getInviteSettings, saveInviteSettings } from "@/lib/invites/settings";
 
@@ -24,6 +25,8 @@ export async function startInvites(): Promise<void> {
     startedAt: now.toISOString(),
     approveUntil: new Date(now.getTime() + 14 * DAY).toISOString(),
   });
+  // The daily planning runs at 06:00; the first list is made right away.
+  await planInvites();
   done();
 }
 

@@ -14,8 +14,12 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/invites",
-      "schedule": "*/15 * * * *"
+      "path": "/api/cron/invites-plan",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/invites-send",
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/sunday-table-intro-requests",

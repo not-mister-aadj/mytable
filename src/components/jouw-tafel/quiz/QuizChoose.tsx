@@ -197,9 +197,9 @@ function ChooseFilters({
       <div
         role="group"
         aria-label={copy.citiesAria}
-        className="-mx-5 mt-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-4"
       >
-        <div className="mx-auto flex w-max gap-1.5">
+        <div className="flex flex-wrap justify-center gap-1.5">
         {cities.map((city) => {
           const on = isChosen(city);
           return (
@@ -537,7 +537,7 @@ export function QuizChoose({
               {cardCopy.shortPeople}
               <span aria-hidden className="mx-2 text-gold">·</span>
               {cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))}
-              <span aria-hidden className="mx-2 text-gold">·</span>
+              <br />
             </>
           ) : null}
           <button

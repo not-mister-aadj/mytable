@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { getDb, isDbConfigured } from "@/db/index";
 import { inviteSubscribers } from "@/db/schema";
 import { isValidLocale, jouwTafelPath, type Locale } from "@/i18n/config";
 import type { CityPref } from "@/lib/invites/logic";
-import { supportedCity } from "@/lib/jouw-tafel/logic";
+import { citiesForEmail } from "@/lib/invites/cities";
 import { saveInvitePrefs } from "./actions";
 
 type Props = {
@@ -45,10 +45,7 @@ export default async function InvitePrefsPage({ params, searchParams }: Props) {
   const db = getDb();
   const [sub] = await db.select().from(inviteSubscribers).where(eq(inviteSubscribers.token, token)).limit(1);
   if (!sub) notFound();
-  const rows = (await db.execute(sql`
-    select distinct city from waitlist_signups where lower(email) = ${sub.emailNormalized}
-  `)) as unknown as Array<{ city: string }>;
-  const cities: string[] = [...new Set(rows.map((r) => supportedCity(r.city) as string | null).filter((c): c is string => Boolean(c)))].sort();
+  const cities = await citiesForEmail(sub.emailNormalized);
   const prefs = (sub.cityPrefs ?? {}) as Record<string, CityPref>;
   const copy = COPY[locale as Locale];
   const query = await searchParams;

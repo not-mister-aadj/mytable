@@ -11,10 +11,59 @@ export type CityPref = "all" | "less" | "none";
 /** Earliest and latest minute of the day a mail may go out. */
 export const SEND_WINDOW = { start: 8 * 60, end: 21 * 60 + 30 };
 
-/** True between 08:00 and 21:30 Amsterdam: the only time a mail goes out. */
+/** Easter Sunday (Gregorian, anonymous algorithm) as YYYY-MM-DD. */
+function easterSunday(year: number): string {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function shiftDay(day: string, days: number): string {
+  return new Date(new Date(`${day}T12:00:00Z`).getTime() + days * DAY).toISOString().slice(0, 10);
+}
+
+/**
+ * Days nobody gets an invite (Amsterdam dates): Dutch public holidays plus
+ * Good Friday, Christmas Eve and New Year's Eve.
+ */
+export function isNoMailDay(day: string): boolean {
+  const year = Number(day.slice(0, 4));
+  const easter = easterSunday(year);
+  const kingsDay = new Date(`${year}-04-27T12:00:00Z`).getUTCDay() === 0 ? `${year}-04-26` : `${year}-04-27`;
+  const days = new Set([
+    `${year}-01-01`,
+    shiftDay(easter, -2),
+    easter,
+    shiftDay(easter, 1),
+    kingsDay,
+    `${year}-05-05`,
+    shiftDay(easter, 39),
+    shiftDay(easter, 49),
+    shiftDay(easter, 50),
+    `${year}-12-24`,
+    `${year}-12-25`,
+    `${year}-12-26`,
+    `${year}-12-31`,
+  ]);
+  return days.has(day);
+}
+
+/** True between 08:00 and 21:30 Amsterdam on a normal day: the only time a mail goes out. */
 export function isInSendWindow(date: Date): boolean {
-  const { minutes } = amsterdamParts(date);
-  return minutes >= SEND_WINDOW.start && minutes <= SEND_WINDOW.end;
+  const { minutes, day } = amsterdamParts(date);
+  return minutes >= SEND_WINDOW.start && minutes <= SEND_WINDOW.end && !isNoMailDay(day);
 }
 /** Few seats left (9 or fewer): the mail says how many. */
 export const SEATS_LEFT_SHOWN = 9;
@@ -78,17 +127,25 @@ function clampToWindow(minutes: number): number {
 /**
  * The first moment at or after `after` on the weekday and at the time of
  * day someone signed up (Amsterdam), moved into the send window. With
- * `anyDay` the weekday does not matter (a follow-up).
+ * `anyDay` the weekday does not matter (a follow-up). When that day is a
+ * holiday, the mail moves to the next normal day, same time.
  */
 export function nextSlot(after: Date, signedUpAt: Date, seed: string, anyDay = false): Date {
   const signup = amsterdamParts(signedUpAt);
   const minutes = clampToWindow(clampToWindow(signup.minutes) + jitterMinutes(seed));
   const start = amsterdamParts(after).day;
-  for (let i = 0; i < 15; i++) {
-    const day = new Date(new Date(`${start}T12:00:00Z`).getTime() + i * DAY).toISOString().slice(0, 10);
+  let moved = false;
+  for (let i = 0; i < 21; i++) {
+    const day = shiftDay(start, i);
     const candidate = amsterdamToUtc(day, minutes);
     if (candidate.getTime() < after.getTime()) continue;
-    if (anyDay || amsterdamParts(candidate).weekday === signup.weekday) return candidate;
+    const fits = anyDay || moved || amsterdamParts(candidate).weekday === signup.weekday;
+    if (!fits) continue;
+    if (isNoMailDay(day)) {
+      moved = true;
+      continue;
+    }
+    return candidate;
   }
   return amsterdamToUtc(start, minutes);
 }

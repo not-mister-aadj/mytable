@@ -1,6 +1,6 @@
 import { desc, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { events, inviteClicks, inviteSends } from "@/db/schema";
+import { events, inviteClicks, inviteRuns, inviteSends } from "@/db/schema";
 import { followedCities, loadPeople, personEngagement } from "@/lib/invites/engine";
 import { amsterdamParts, dailyCap, ENGAGE_DAYS } from "@/lib/invites/logic";
 import { getInviteSettings, needsApproval, type InviteSettings } from "@/lib/invites/settings";
@@ -22,6 +22,21 @@ export type InviteRow = {
   skipReason: string | null;
   clicked: boolean;
   booked: boolean;
+  locale: string;
+  postponed: boolean;
+};
+
+export type InviteRunRow = {
+  id: string;
+  kind: string;
+  dryRun: boolean;
+  startedAt: string;
+  planned: number;
+  sent: number;
+  skipped: number;
+  failed: number;
+  error: string | null;
+  details: Array<{ email: string; status: string; reason?: string }>;
 };
 
 export type InviteEventRow = { label: string; startsAt: string; invited: number; clicked: number; booked: number };
@@ -38,6 +53,7 @@ export type InvitePersonRow = {
 
 export type InvitesDashboard = {
   settings: InviteSettings;
+  now: string;
   approval: boolean;
   cap: number;
   sentToday: number;
@@ -45,6 +61,9 @@ export type InvitesDashboard = {
   waitingApprovalToday: number;
   queue: InviteRow[];
   sent: InviteRow[];
+  runs: InviteRunRow[];
+  /** Due now and allowed to go out (approved, or queued when no approval). */
+  dueNow: number;
   perEvent: InviteEventRow[];
   people: InvitePersonRow[];
   health: { sent7: number; bounced7: number; spam7: number };
@@ -98,6 +117,8 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
       skipReason: s.skipReason,
       clicked: (clicksBySend.get(s.id) ?? []).length > 0,
       booked,
+      locale: s.locale,
+      postponed: Boolean(s.postponedAt),
     };
   };
 
@@ -164,9 +185,34 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
       `)) as unknown as Array<{ last_event: string | null }>)
     : [];
 
+  const runs = await db
+    .select()
+    .from(inviteRuns)
+    .orderBy(desc(inviteRuns.startedAt))
+    .limit(60)
+    .catch(() => [] as Array<typeof inviteRuns.$inferSelect>);
+  const approval = needsApproval(settings, now);
+  const dueNow = sends.filter(
+    (s) => (s.status === "approved" || (!approval && s.status === "queued")) && s.scheduledFor.getTime() <= now.getTime(),
+  ).length;
+
   return {
     settings,
-    approval: needsApproval(settings, now),
+    now: now.toISOString(),
+    runs: runs.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      dryRun: r.dryRun,
+      startedAt: r.startedAt.toISOString(),
+      planned: r.planned,
+      sent: r.sent,
+      skipped: r.skipped,
+      failed: r.failed,
+      error: r.error,
+      details: r.details ?? [],
+    })),
+    dueNow,
+    approval,
     cap: dailyCap(settings, now),
     sentToday: sends.filter((s) => s.status === "sent" && s.sentAt && dayOf(s.sentAt) === today).length,
     plannedToday: queue.filter((s) => dayOf(new Date(s.scheduledFor)) === today).length,

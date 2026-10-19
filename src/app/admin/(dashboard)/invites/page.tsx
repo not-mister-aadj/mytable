@@ -4,7 +4,8 @@ import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, resolveHostname } from "@/lib/admin-url";
 import { getInvitesDashboard, type InviteRow } from "@/lib/admin/invites-data";
-import { approveToday, saveInviteSettingsForm, skipInvite, startInvites, togglePause } from "./actions";
+import { InviteQueue } from "@/components/admin/InviteQueue";
+import { approveToday, saveInviteSettingsForm, startInvites, togglePause } from "./actions";
 
 type Props = { searchParams: Promise<{ tab?: string }> };
 
@@ -13,6 +14,7 @@ const TABS = [
   ["verstuurd", "Verstuurd"],
   ["events", "Per event"],
   ["mensen", "Mensen"],
+  ["log", "Log"],
   ["instellingen", "Instellingen"],
 ] as const;
 
@@ -51,6 +53,26 @@ function Status({ row }: { row: InviteRow }) {
   return <span className="text-xs text-wine/60">{row.status === "approved" ? "Goedgekeurd" : "Wacht"}</span>;
 }
 
+const RUN_STATUS: Record<string, string> = { sent: "verstuurd", skipped: "overgeslagen", failed: "mislukt", invite: "uitnodiging", nudge: "herinnering", checkin: "nog interesse?" };
+
+function CapBar({ sent, cap }: { sent: number; cap: number }) {
+  const pct = cap ? Math.min(100, Math.round((sent / cap) * 100)) : 0;
+  const tone = pct >= 90 ? "bg-red-600" : pct >= 75 ? "bg-amber-500" : "bg-emerald-600";
+  return (
+    <div className="mt-2 w-64">
+      <div className="flex justify-between text-xs text-wine/55">
+        <span>Vandaag verstuurd</span>
+        <span className="tabular-nums">
+          {sent} / {cap}
+        </span>
+      </div>
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-cream">
+        <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default async function InvitesPage({ searchParams }: Props) {
   await requireAdmin();
   if (!isDbConfigured()) return <p>Database niet geconfigureerd.</p>;
@@ -67,9 +89,11 @@ export default async function InvitesPage({ searchParams }: Props) {
         <div>
           <h1 className="font-serif text-3xl text-burgundy">Uitnodigingen</h1>
           <p className="mt-1 text-sm text-wine/60">
-            {!s.enabled ? "Uit" : s.paused ? "Gepauzeerd" : d.approval ? "Goedkeuren" : "Automatisch"} · vandaag {d.sentToday} van {d.cap} verstuurd ·{" "}
-            {d.plannedToday} gepland
+            {!s.enabled ? "Uit" : s.paused ? "Gepauzeerd" : d.approval ? "Goedkeuren" : "Automatisch"} · {d.plannedToday} gepland vandaag
+            {d.dueNow > 0 && !s.paused ? ` · ${d.dueNow} gaan nu uit` : ""}
           </p>
+          {s.paused && s.pausedReason ? <p className="mt-1 text-sm text-red-700">Vanzelf gepauzeerd: {s.pausedReason}</p> : null}
+          <CapBar sent={d.sentToday} cap={d.cap} />
         </div>
         <div className="flex flex-wrap gap-2">
           {!s.enabled ? (
@@ -107,52 +131,7 @@ export default async function InvitesPage({ searchParams }: Props) {
         ))}
       </nav>
 
-      {tab === "wachtrij" ? (
-        <div className={`${card} overflow-x-auto`}>
-          <table className="w-full min-w-[800px] text-sm">
-            <thead>
-              <tr className="border-b border-border-subtle/80 bg-cream/60">
-                <th className={th}>Wanneer</th>
-                <th className={th}>Wie</th>
-                <th className={th}>Soort</th>
-                <th className={th}>Events</th>
-                <th className={th}>Status</th>
-                <th className={th} />
-              </tr>
-            </thead>
-            <tbody>
-              {d.queue.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-wine/50">
-                    Niets gepland
-                  </td>
-                </tr>
-              ) : null}
-              {d.queue.map((r) => (
-                <tr key={r.id} className="border-b border-border-subtle/50">
-                  <td className={`${td} whitespace-nowrap text-wine/70`}>{when(r.scheduledFor)}</td>
-                  <td className={td}>
-                    <p className="font-medium text-wine">{r.name ?? r.email}</p>
-                    <p className="text-xs text-wine/50">{r.cities.join(", ")}</p>
-                    <Preview row={r} />
-                  </td>
-                  <td className={`${td} text-wine/70`}>{KIND[r.kind]}</td>
-                  <td className={`${td} text-wine/70`}>{r.events.join(" · ") || "–"}</td>
-                  <td className={td}>
-                    <Status row={r} />
-                  </td>
-                  <td className={td}>
-                    <form action={skipInvite}>
-                      <input type="hidden" name="id" value={r.id} />
-                      <button className="text-xs text-burgundy hover:underline">Overslaan</button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+      {tab === "wachtrij" ? <InviteQueue rows={d.queue} approval={d.approval} now={d.now} /> : null}
 
       {tab === "verstuurd" ? (
         <div className={`${card} overflow-x-auto`}>
@@ -257,6 +236,61 @@ export default async function InvitesPage({ searchParams }: Props) {
                   <td className={`${td} text-wine/70`}>{when(p.lastClick)}</td>
                   <td className={`${td} text-wine/70`}>{when(p.lastBooking)}</td>
                   <td className={`${td} text-wine/70`}>{when(p.next)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
+      {tab === "log" ? (
+        <div className={`${card} overflow-x-auto`}>
+          <table className="w-full min-w-[700px] text-sm">
+            <thead>
+              <tr className="border-b border-border-subtle/80 bg-cream/60">
+                <th className={th}>Wanneer</th>
+                <th className={th}>Ronde</th>
+                <th className={`${th} text-right`}>Gepland</th>
+                <th className={`${th} text-right`}>Verstuurd</th>
+                <th className={`${th} text-right`}>Overgeslagen</th>
+                <th className={`${th} text-right`}>Mislukt</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.runs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-wine/50">
+                    Nog geen rondes
+                  </td>
+                </tr>
+              ) : null}
+              {d.runs.map((r) => (
+                <tr key={r.id} className="border-b border-border-subtle/50">
+                  <td className={`${td} whitespace-nowrap text-wine/70`}>{when(r.startedAt)}</td>
+                  <td className={td}>
+                    <p className="text-wine">
+                      {r.kind === "plan" ? "Plannen" : "Versturen"}
+                      {r.dryRun ? <span className="ml-1.5 text-xs text-wine/45">proef</span> : null}
+                    </p>
+                    {r.error ? <p className="text-xs text-red-700">{r.error}</p> : null}
+                    {r.details.length > 0 ? (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-xs text-burgundy">{r.details.length} mails</summary>
+                        <ul className="mt-2 space-y-0.5 text-xs text-wine/70">
+                          {r.details.map((x, i) => (
+                            <li key={i}>
+                              {x.email} · {RUN_STATUS[x.status] ?? x.status}
+                              {x.reason ? `: ${x.reason}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : null}
+                  </td>
+                  <td className={`${td} text-right tabular-nums`}>{r.planned || "–"}</td>
+                  <td className={`${td} text-right tabular-nums`}>{r.sent || "–"}</td>
+                  <td className={`${td} text-right tabular-nums`}>{r.skipped || "–"}</td>
+                  <td className={`${td} text-right tabular-nums ${r.failed ? "text-red-700" : ""}`}>{r.failed || "–"}</td>
                 </tr>
               ))}
             </tbody>

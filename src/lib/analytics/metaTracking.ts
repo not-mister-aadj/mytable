@@ -150,7 +150,7 @@ export function trackMetaQuizLead(input: { userId: string; city: string }): void
 
 /** New account only — funnel signal that registration precedes Purchase. */
 export function trackMetaCompleteRegistration(user: User): void {
-  if (!isLikelyNewAuthUser(user.created_at)) return;
+  if (!isLikelyNewAuthUser(user.created_at) && user.user_metadata?.silent !== true) return;
   const provider =
     typeof user.app_metadata?.provider === "string"
       ? user.app_metadata.provider

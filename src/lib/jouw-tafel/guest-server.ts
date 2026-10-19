@@ -6,6 +6,7 @@ import { jouwTafelGuests, waitlistSignups } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
+import { ensureAccountInBackground } from "@/lib/auth/ensure-auth-user-for-email";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { QUIZ_LEAD_SENT_KEY, QUIZ_METADATA_KEY, hasAnyAnswer, sanitizeQuizState, type QuizState } from "@/lib/jouw-tafel/quiz-logic";
 
@@ -79,6 +80,7 @@ export async function createGuest(input: { email: string; locale: Locale }): Pro
     .insert(jouwTafelGuests)
     .values({ email: input.email.trim().toLowerCase(), locale: input.locale })
     .returning();
+  ensureAccountInBackground({ email: input.email, source: "quiz", locale: input.locale });
   return toGuest(row);
 }
 
@@ -102,11 +104,15 @@ export async function saveGuestState(
     .where(eq(jouwTafelGuests.id, id));
 }
 
-/** True when this address already belongs to an account (they log in). */
+/** True when this address already belongs to an account (they log in).
+ * A background account they never logged into does not count: they stay a guest. */
 export async function emailHasAccount(email: string): Promise<boolean> {
   if (!isDbConfigured()) return false;
   const rows = (await getDb().execute(sql`
-    select 1 as x from auth.users where lower(email) = ${email.trim().toLowerCase()} limit 1
+    select 1 as x from auth.users
+    where lower(email) = ${email.trim().toLowerCase()}
+      and coalesce(raw_user_meta_data->>'silent', 'false') <> 'true'
+    limit 1
   `)) as unknown as Array<{ x: number }>;
   return rows.length > 0;
 }

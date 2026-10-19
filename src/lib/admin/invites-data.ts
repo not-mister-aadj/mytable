@@ -64,6 +64,8 @@ export type InvitesDashboard = {
   runs: InviteRunRow[];
   /** Due now and allowed to go out (approved, or queued when no approval). */
   dueNow: number;
+  /** Due now if it were automatic (queued or approved). */
+  dueIfAuto: number;
   perEvent: InviteEventRow[];
   people: InvitePersonRow[];
   health: { sent7: number; bounced7: number; spam7: number };
@@ -191,7 +193,7 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
     .orderBy(desc(inviteRuns.startedAt))
     .limit(60)
     .catch(() => [] as Array<typeof inviteRuns.$inferSelect>);
-  const approval = needsApproval(settings, now);
+  const approval = needsApproval(settings);
   const dueNow = sends.filter(
     (s) => (s.status === "approved" || (!approval && s.status === "queued")) && s.scheduledFor.getTime() <= now.getTime(),
   ).length;
@@ -212,6 +214,7 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
       details: r.details ?? [],
     })),
     dueNow,
+    dueIfAuto: queue.filter((s) => Date.parse(s.scheduledFor) <= now.getTime()).length,
     approval,
     cap: dailyCap(settings, now),
     sentToday: sends.filter((s) => s.status === "sent" && s.sentAt && dayOf(s.sentAt) === today).length,

@@ -4,6 +4,7 @@ import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, resolveHostname } from "@/lib/admin-url";
 import { getInvitesDashboard, type InviteRow } from "@/lib/admin/invites-data";
+import { InviteModeSwitch } from "@/components/admin/InviteModeSwitch";
 import { InviteQueue } from "@/components/admin/InviteQueue";
 import { approveToday, saveInviteSettingsForm, startInvites, togglePause } from "./actions";
 
@@ -89,13 +90,14 @@ export default async function InvitesPage({ searchParams }: Props) {
         <div>
           <h1 className="font-serif text-3xl text-burgundy">Uitnodigingen</h1>
           <p className="mt-1 text-sm text-wine/60">
-            {!s.enabled ? "Uit" : s.paused ? "Gepauzeerd" : d.approval ? "Goedkeuren" : "Automatisch"} · {d.plannedToday} gepland vandaag
+            {!s.enabled ? "Uit" : s.paused ? "Gepauzeerd" : "Aan"} · {d.plannedToday} gepland vandaag
             {d.dueNow > 0 && !s.paused ? ` · ${d.dueNow} gaan nu uit` : ""}
           </p>
           {s.paused && s.pausedReason ? <p className="mt-1 text-sm text-red-700">Vanzelf gepauzeerd: {s.pausedReason}</p> : null}
           <CapBar sent={d.sentToday} cap={d.cap} />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <InviteModeSwitch mode={s.mode} dueNow={d.dueIfAuto} enabled={s.enabled} />
           {!s.enabled ? (
             <form action={startInvites}>
               <button className="rounded-full bg-burgundy px-4 py-2 text-sm font-medium text-cream">Start</button>
@@ -307,13 +309,6 @@ export default async function InvitesPage({ searchParams }: Props) {
           <label className="flex items-center justify-between gap-4">
             <span className="text-wine">Erbij per week</span>
             <input name="capGrowthPerWeek" type="number" min={0} defaultValue={s.capGrowthPerWeek} className="w-24 rounded-lg border border-border-subtle bg-white px-3 py-1.5 text-right" />
-          </label>
-          <label className="flex items-center justify-between gap-4">
-            <span className="text-wine">
-              Elke dag goedkeuren
-              {d.approval && s.approveUntil ? <span className="block text-xs text-wine/50">tot {when(s.approveUntil)}</span> : null}
-            </span>
-            <input name="approval" type="checkbox" defaultChecked={d.approval} className="h-4 w-4 accent-burgundy" />
           </label>
           <p className="text-xs text-wine/50">Vandaag: maximaal {d.cap}. Verzendvenster 08:00 tot 21:30. Minder vaak na 3 genegeerd, laatste vraag na 5.</p>
           <button className="rounded-full bg-burgundy px-4 py-2 text-sm font-medium text-cream">Opslaan</button>

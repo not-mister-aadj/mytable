@@ -481,7 +481,7 @@ async function pauseAfterFailure(reason: string): Promise<void> {
 
 /**
  * Sends what is due, one mail at a time, never more than today's maximum.
- * While approval is on, only approved mails go out. Each mail is claimed
+ * In manual mode only approved mails go out. Each mail is claimed
  * first (status "sending", only from queued/approved), so two rounds can
  * never send it twice. Seats and bookings are checked again right before
  * sending. A failure pauses everything and mails the team. With dryRun
@@ -492,7 +492,7 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
   const settings = await getInviteSettings();
   if (!options.dryRun && (!settings.enabled || settings.paused)) return empty;
   const db = getDb();
-  const approval = needsApproval(settings, now);
+  const approval = needsApproval(settings);
   const cap = dailyCap(settings, now);
   // A dry run shows what would go out once approved.
   const allowed: Array<"queued" | "approved"> = approval && !options.dryRun ? ["approved"] : ["queued", "approved"];

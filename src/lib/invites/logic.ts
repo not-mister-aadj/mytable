@@ -20,8 +20,8 @@ export const CHECKIN_AFTER = 5;
 export const ENGAGE_DAYS = 7;
 /** Days we wait for an answer to "still interested?" before we stop. */
 export const CHECKIN_WAIT_DAYS = 14;
-/** Invites go out from this many days before the Sunday. */
-export const INVITE_LEAD_DAYS = 31;
+/** Invites go out from this many days (six weeks) before the Sunday. */
+export const INVITE_LEAD_DAYS = 42;
 
 /** Weekday (0 = Sunday) and minute of the day in Amsterdam. */
 export function amsterdamParts(date: Date): { weekday: number; minutes: number; day: string } {

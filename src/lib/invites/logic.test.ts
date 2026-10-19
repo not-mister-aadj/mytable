@@ -7,6 +7,7 @@ import {
   inviteMail,
   inviteWhy,
   isInSendWindow,
+  isNoMailDay,
   isTestAddress,
   nextAllowedAt,
   nextSlot,
@@ -134,4 +135,15 @@ test("mails only go out between 08:00 and 21:30 Amsterdam", () => {
   assert.equal(isInSendWindow(new Date("2026-10-19T19:31:00Z")), false); // 21:31
   assert.equal(isInSendWindow(new Date("2026-10-20T05:59:00Z")), false); // 07:59
   assert.equal(isInSendWindow(new Date("2026-10-20T06:00:00Z")), true); // 08:00
+});
+
+test("no mails on holidays: they move to the next normal day", () => {
+  for (const d of ["2026-12-24", "2026-12-25", "2026-12-26", "2026-12-31", "2027-01-01", "2027-03-26", "2027-03-28", "2027-03-29", "2027-04-27", "2027-05-05", "2027-05-06", "2027-05-16", "2027-05-17", "2025-04-26"]) {
+    assert.equal(isNoMailDay(d), true, d);
+  }
+  for (const d of ["2026-10-20", "2026-12-23", "2027-04-26", "2025-04-27"]) assert.equal(isNoMailDay(d), false, d);
+  // Signed up on a Thursday; Christmas Eve 2026 is a Thursday: moved to Sunday 27 Dec (24, 25, 26 are off).
+  const at = nextSlot(new Date("2026-12-22T09:00:00Z"), new Date("2026-09-03T12:00:00Z"), "x@y.nl");
+  assert.equal(amsterdamParts(at).day, "2026-12-27");
+  assert.equal(isInSendWindow(new Date("2026-12-25T10:00:00Z")), false);
 });

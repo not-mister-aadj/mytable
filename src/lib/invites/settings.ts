@@ -12,8 +12,8 @@ export type InviteSettings = {
   pausedReason: string | null;
   /** When it was started: the daily maximum grows from here. */
   startedAt: string | null;
-  /** Until this moment every day's mails need an admin's approval. */
-  approveUntil: string | null;
+  /** "manual": every mail waits for an admin's approval. "auto": mails go out on their own. */
+  mode: "manual" | "auto";
   capStart: number;
   capGrowthPerWeek: number;
 };
@@ -25,7 +25,7 @@ export const DEFAULT_INVITE_SETTINGS: InviteSettings = {
   paused: false,
   pausedReason: null,
   startedAt: null,
-  approveUntil: null,
+  mode: "manual",
   capStart: 50,
   capGrowthPerWeek: 10,
 };
@@ -44,7 +44,7 @@ export async function saveInviteSettings(patch: Partial<InviteSettings>): Promis
   return next;
 }
 
-/** True while each day's mails wait for an admin's approval. */
-export function needsApproval(settings: InviteSettings, now: Date = new Date()): boolean {
-  return Boolean(settings.approveUntil && now.getTime() < Date.parse(settings.approveUntil));
+/** True when mails wait for an admin's approval. */
+export function needsApproval(settings: InviteSettings): boolean {
+  return settings.mode !== "auto";
 }

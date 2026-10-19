@@ -9,13 +9,12 @@ import { planInvites, sendDueInvites } from "@/lib/invites/engine";
 import { amsterdamParts } from "@/lib/invites/logic";
 import { getInviteSettings, saveInviteSettings } from "@/lib/invites/settings";
 
-const DAY = 24 * 60 * 60 * 1000;
 
 function done() {
   revalidatePath("/admin/invites");
 }
 
-/** Starts the system: two weeks of daily approval, then automatic. */
+/** Starts the system in the chosen mode (manual by default). */
 export async function startInvites(): Promise<void> {
   await requireAdmin();
   const now = new Date();
@@ -23,7 +22,6 @@ export async function startInvites(): Promise<void> {
     enabled: true,
     paused: false,
     startedAt: now.toISOString(),
-    approveUntil: new Date(now.getTime() + 14 * DAY).toISOString(),
   });
   // The daily planning runs at 06:00; the first list is made right away.
   await planInvites();
@@ -147,13 +145,13 @@ export async function saveInviteSettingsForm(formData: FormData): Promise<void> 
   await requireAdmin();
   const capStart = Math.max(1, Math.min(1000, Number(formData.get("capStart")) || 50));
   const capGrowthPerWeek = Math.max(0, Math.min(500, Number(formData.get("capGrowthPerWeek")) || 0));
-  const approval = formData.get("approval") === "on";
-  const s = await getInviteSettings();
-  const approveUntil = approval
-    ? s.approveUntil && Date.parse(s.approveUntil) > Date.now()
-      ? s.approveUntil
-      : new Date(Date.now() + 14 * DAY).toISOString()
-    : null;
-  await saveInviteSettings({ capStart, capGrowthPerWeek, approveUntil });
+  await saveInviteSettings({ capStart, capGrowthPerWeek });
+  done();
+}
+
+/** Manual: every mail waits for approval. Auto: mails go out on their own time. */
+export async function setInviteMode(mode: "manual" | "auto"): Promise<void> {
+  await requireAdmin();
+  await saveInviteSettings({ mode: mode === "auto" ? "auto" : "manual" });
   done();
 }

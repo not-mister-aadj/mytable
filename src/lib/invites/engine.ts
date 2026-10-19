@@ -104,14 +104,43 @@ function linkUrl(send: Pick<SendRow, "code">, index: number): string {
   return `${getSiteUrl().replace(/\/$/, "")}/r/${send.code}${index}`;
 }
 
-/** Everyone on the waitlist, with their cities, preferences and token. */
+/**
+ * Everyone who signed up anywhere, with their cities, preferences and token:
+ * the waitlist, paid bookings and "laat het me weten" (the city of their
+ * Sunday), quiz guests and accounts (the city they gave). The first signup
+ * sets their weekday and time.
+ */
 export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<InvitePerson[]> {
   const db = getDb();
   const rows = (await db.execute(sql`
-    select lower(w.email) as email, w.city, w.locale, w.created_at, w.preferences->>'name' as pname,
-      w.preferences->'ageRange'->>0 as age_range
-    from waitlist_signups w order by w.created_at
-  `)) as unknown as Array<{ email: string; city: string; locale: string; created_at: string | Date; pname: string | null; age_range: string | null }>;
+    select * from (
+      select lower(w.email) as email, w.city, w.locale, w.created_at, w.preferences->>'name' as pname,
+        w.preferences->'ageRange'->>0 as age_range
+      from waitlist_signups w
+      union all
+      select lower(b.email), e.city, b.locale, b.created_at, b.customer_name, null
+      from bookings b join events e on e.id = b.event_id where b.payment_status = 'paid'
+      union all
+      select lower(n.email), e.city, n.locale, n.created_at, null, null
+      from event_notify_signups n join events e on e.id = n.event_id
+      union all
+      select lower(g.email), g.state->'answers'->>'city', g.locale, g.created_at, null, null
+      from jouw_tafel_guests g where g.email is not null
+    ) s where email is not null and city is not null
+    order by created_at
+  `)) as unknown as Array<{ email: string; city: string; locale: string | null; created_at: string | Date; pname: string | null; age_range: string | null }>;
+  const accounts = (await db
+    .execute(sql`
+      select lower(email) as email,
+        coalesce(raw_user_meta_data->>'city', raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'city') as city,
+        raw_user_meta_data->>'locale' as locale, created_at, null as pname, null as age_range
+      from auth.users
+      where email is not null
+        and coalesce(raw_user_meta_data->>'city', raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'city') is not null
+    `)
+    .catch(() => [])) as unknown as typeof rows;
+  rows.push(...accounts);
+  rows.sort((x, y) => new Date(x.created_at).getTime() - new Date(y.created_at).getTime());
   const births = (await db.execute(sql`
     select lower(email) as email, max(birth_date) as d from bookings where birth_date is not null group by 1
     union all

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getDb, isDbConfigured } from "@/db/index";
 import { inviteSubscribers } from "@/db/schema";
 import type { CityPref } from "@/lib/invites/logic";
+import { supportedCity } from "@/lib/jouw-tafel/logic";
 
 const PREFS: CityPref[] = ["all", "less", "none"];
 
@@ -18,9 +19,12 @@ export async function saveInvitePrefs(formData: FormData): Promise<void> {
   if (!sub) return;
   const prefs: Record<string, CityPref> = {};
   for (const [key, value] of formData.entries()) {
-    if (!key.startsWith("city:")) continue;
     const pref = String(value) as CityPref;
-    if (PREFS.includes(pref)) prefs[key.slice(5)] = pref;
+    if (!PREFS.includes(pref)) continue;
+    if (key.startsWith("city:")) prefs[key.slice(5)] = pref;
+    // A city they did not follow yet: only kept when they want its invites.
+    const added = key.startsWith("add:") ? supportedCity(key.slice(4)) : null;
+    if (added && pref !== "none") prefs[added] = pref;
   }
   await db.update(inviteSubscribers).set({ cityPrefs: prefs, updatedAt: new Date() }).where(eq(inviteSubscribers.token, token));
   redirect(`${locale === "en" ? "/en" : ""}/uitnodigingen/${token}?opgeslagen=1`);

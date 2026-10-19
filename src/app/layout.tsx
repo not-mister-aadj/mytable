@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { ForceLightAppearance } from "@/components/ForceLightAppearance";
 import "./globals.css";
 
@@ -55,16 +55,24 @@ export const viewport: Viewport = {
   ],
 };
 
-const cormorant = Cormorant_Garamond({
+// Fonts live in the repo (src/app/fonts, OFL), so a build never depends on Google Fonts.
+const cormorant = localFont({
   variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["500", "600"],
+  display: "swap",
+  src: [
+    { path: "./fonts/cormorant-garamond-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/cormorant-garamond-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
+  src: [
+    { path: "./fonts/dm-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/dm-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/dm-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
 });
 
 export default function RootLayout({

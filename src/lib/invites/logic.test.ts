@@ -6,6 +6,7 @@ import {
   engagement,
   inviteMail,
   inviteWhy,
+  isInSendWindow,
   isTestAddress,
   nextAllowedAt,
   nextSlot,
@@ -126,4 +127,11 @@ test("the invite opens with what they look for, and reassures solo guests", () =
   assert.equal(inviteWhy(["other", "discover_wines"]), "wines");
   assert.equal(inviteWhy("just_fun"), "cosy");
   assert.equal(inviteWhy(null), null);
+});
+
+test("mails only go out between 08:00 and 21:30 Amsterdam", () => {
+  assert.equal(isInSendWindow(new Date("2026-10-19T19:13:00Z")), true); // 21:13
+  assert.equal(isInSendWindow(new Date("2026-10-19T19:31:00Z")), false); // 21:31
+  assert.equal(isInSendWindow(new Date("2026-10-20T05:59:00Z")), false); // 07:59
+  assert.equal(isInSendWindow(new Date("2026-10-20T06:00:00Z")), true); // 08:00
 });

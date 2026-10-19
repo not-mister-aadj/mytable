@@ -4,7 +4,6 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   approveInvites,
-  dryRunInvites,
   getRecipientHistory,
   postponeInvites,
   skipInvites,
@@ -62,7 +61,6 @@ export function InviteQueue({ rows, approval, now }: { rows: InviteRow[]; approv
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<Pending | null>(null);
   const [history, setHistory] = useState<{ email: string; items: RecipientHistoryItem[] | null } | null>(null);
-  const [dry, setDry] = useState<Array<{ email: string; status: string; reason?: string; subject?: string }> | null>(null);
 
   const cities = useMemo(() => [...new Set(rows.flatMap((r) => r.cities))].sort(), [rows]);
   const eventsList = useMemo(() => [...new Set(rows.flatMap((r) => r.events))].sort(), [rows]);
@@ -111,11 +109,6 @@ export function InviteQueue({ rows, approval, now }: { rows: InviteRow[]; approv
     });
   };
 
-  const openDry = () => {
-    setDry([]);
-    startTransition(async () => setDry(await dryRunInvites()));
-  };
-
   const approvable = (ids: string[]) => ids.filter((id) => rows.find((r) => r.id === id)?.status === "queued");
 
   return (
@@ -148,9 +141,6 @@ export function InviteQueue({ rows, approval, now }: { rows: InviteRow[]; approv
           <input type="checkbox" checked={onlyLater} onChange={(e) => setFilter(setOnlyLater)(e.target.checked)} className="accent-burgundy" />
           Uitgesteld
         </label>
-        <button type="button" onClick={openDry} className="ml-auto rounded-full border border-border-subtle bg-cream px-3 py-1.5 text-sm text-wine hover:border-burgundy/40">
-          Proefronde
-        </button>
       </div>
 
       {visibleSelected.length > 0 ? (
@@ -339,38 +329,6 @@ export function InviteQueue({ rows, approval, now }: { rows: InviteRow[]; approv
                       <span className="text-wine">{h.subject}</span>
                     </span>
                     <span className="whitespace-nowrap rounded-full bg-cream px-2 py-0.5 text-xs text-wine/70">{h.status}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {dry ? (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-wine/40 p-4" onClick={() => setDry(null)}>
-          <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-beige p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4">
-              <p className="font-serif text-xl text-burgundy">Proefronde</p>
-              <button type="button" onClick={() => setDry(null)} className="text-sm text-wine/60">
-                Sluiten
-              </button>
-            </div>
-            {busy && dry.length === 0 ? (
-              <p className="mt-4 text-sm text-wine/50">Bezig…</p>
-            ) : dry.length === 0 ? (
-              <p className="mt-4 text-sm text-wine/50">Nu staat er niets klaar om te versturen.</p>
-            ) : (
-              <ul className="mt-4 space-y-2 text-sm">
-                {dry.map((d, i) => (
-                  <li key={i} className="flex items-start justify-between gap-3 border-b border-border-subtle/50 pb-2">
-                    <span>
-                      <span className="block text-wine">{d.email}</span>
-                      <span className="text-xs text-wine/55">{d.subject ?? d.reason}</span>
-                    </span>
-                    <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs ${d.status === "would_send" ? "bg-emerald-50 text-emerald-800" : "bg-cream text-wine/60"}`}>
-                      {d.status === "would_send" ? "Zou uitgaan" : "Zou overslaan"}
-                    </span>
                   </li>
                 ))}
               </ul>

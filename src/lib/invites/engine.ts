@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { inviteClicks, inviteSends, inviteSubscribers } from "@/db/schema";
+import { inviteClicks, inviteRuns, inviteSends, inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
-import { getResendClient } from "@/lib/email/resend";
+import { getEmailFrom, getResendClient } from "@/lib/email/resend";
 import {
   CHECKIN_WAIT_DAYS,
   ENGAGE_DAYS,
@@ -23,7 +23,7 @@ import {
   type InviteLocale,
   type MailEvent,
 } from "@/lib/invites/logic";
-import { getInviteSettings, needsApproval } from "@/lib/invites/settings";
+import { getInviteSettings, needsApproval, saveInviteSettings } from "@/lib/invites/settings";
 import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
   bracketFromEventName,
@@ -34,6 +34,10 @@ import {
 import { emailKind } from "@/lib/email/email-kind";
 
 const DAY = 24 * 60 * 60 * 1000;
+
+function getAdminBaseUrl(): string {
+  return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://dashboard.mytable.club").replace(/\/$/, "");
+}
 const FROM = "Het MyTable-team <hallo@tafels.mytable.club>";
 const REPLY_TO = "info@mytable.club";
 /** Plans no further ahead than this. */
@@ -419,6 +423,15 @@ export async function planInvites(
     if (options.dryRun) return { planned: values.length, expired: 0, preview: values };
     await db.insert(inviteSends).values(values);
   }
+  if (!options.dryRun && (values.length > 0 || expired.length > 0)) {
+    await logRun({
+      kind: "plan",
+      startedAt: now,
+      planned: values.length,
+      skipped: expired.length,
+      details: values.map((v) => ({ email: v.emailNormalized, status: v.kind as string })),
+    });
+  }
   return { planned: values.length, expired: expired.length };
 }
 
@@ -427,31 +440,71 @@ function dayOf(date: Date): string {
   return amsterdamParts(date).day;
 }
 
+export type SendRoundResult = {
+  sent: number;
+  skipped: number;
+  failed: number;
+  details: Array<{ email: string; status: string; reason?: string; subject?: string }>;
+};
+
+/** Writes one round to invite_runs (only rounds that did something). */
+async function logRun(run: typeof inviteRuns.$inferInsert): Promise<void> {
+  await getDb()
+    .insert(inviteRuns)
+    .values(run)
+    .catch((error: unknown) => console.error("[invites] could not log run", error));
+}
+
+/** A failed send pauses everything and tells the team, once. */
+async function pauseAfterFailure(reason: string): Promise<void> {
+  const settings = await getInviteSettings();
+  if (settings.paused) return;
+  await saveInviteSettings({ paused: true, pausedReason: reason });
+  const resend = getResendClient();
+  if (!resend) return;
+  const admin = getAdminBaseUrl();
+  await resend.emails
+    .send({
+      from: getEmailFrom(),
+      to: REPLY_TO,
+      subject: "Uitnodigingen gepauzeerd: versturen mislukte",
+      text: [
+        "Het versturen van een uitnodiging mislukte, daarom zijn alle uitnodigingen gepauzeerd.",
+        "",
+        `Fout: ${reason}`,
+        "",
+        `Bekijk het en hervat in het dashboard: ${admin}/invites`,
+      ].join("\n"),
+    })
+    .catch(() => undefined);
+}
+
 /**
  * Sends what is due, one mail at a time, never more than today's maximum.
- * While approval is on, only approved mails go out. Seats and bookings are
- * checked again right before sending.
+ * While approval is on, only approved mails go out. Each mail is claimed
+ * first (status "sending", only from queued/approved), so two rounds can
+ * never send it twice. Seats and bookings are checked again right before
+ * sending. A failure pauses everything and mails the team. With dryRun
+ * nothing is claimed or sent: the result says what would go out.
  */
-export async function sendDueInvites(now: Date = new Date()): Promise<{ sent: number; skipped: number; failed: number }> {
+export async function sendDueInvites(now: Date = new Date(), options: { dryRun?: boolean } = {}): Promise<SendRoundResult> {
+  const empty: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
   const settings = await getInviteSettings();
-  if (!settings.enabled || settings.paused) return { sent: 0, skipped: 0, failed: 0 };
+  if (!options.dryRun && (!settings.enabled || settings.paused)) return empty;
   const db = getDb();
   const approval = needsApproval(settings, now);
   const cap = dailyCap(settings, now);
+  // A dry run shows what would go out once approved.
+  const allowed: Array<"queued" | "approved"> = approval && !options.dryRun ? ["approved"] : ["queued", "approved"];
 
   // Runs every minute: usually nothing is due, so that is checked first.
   const dueAll = await db
     .select()
     .from(inviteSends)
-    .where(
-      and(
-        inArray(inviteSends.status, approval ? ["approved"] : ["queued", "approved"]),
-        lte(inviteSends.scheduledFor, now),
-      ),
-    )
+    .where(and(inArray(inviteSends.status, allowed), lte(inviteSends.scheduledFor, now)))
     .orderBy(inviteSends.scheduledFor)
     .limit(cap);
-  if (dueAll.length === 0) return { sent: 0, skipped: 0, failed: 0 };
+  if (dueAll.length === 0) return empty;
 
   const today = dayOf(now);
   const sentToday = (
@@ -460,23 +513,35 @@ export async function sendDueInvites(now: Date = new Date()): Promise<{ sent: nu
       .from(inviteSends)
       .where(and(eq(inviteSends.status, "sent"), gte(inviteSends.sentAt, new Date(now.getTime() - DAY))))
   ).filter((s) => s.sentAt && dayOf(s.sentAt) === today).length;
-  if (sentToday >= cap) return { sent: 0, skipped: 0, failed: 0 };
+  if (sentToday >= cap) return empty;
   const due = dueAll.slice(0, cap - sentToday);
 
-  const [people, events, history] = await Promise.all([loadPeople(), loadInviteEvents(now), loadHistory()]);
+  const [people, events, history] = await Promise.all([loadPeople({ dryRun: options.dryRun }), loadInviteEvents(now), loadHistory()]);
   const byEmail = new Map(people.map((p) => [p.email, p]));
   const resend = getResendClient();
-  let sent = 0;
-  let skipped = 0;
-  let failed = 0;
+  const result: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
 
   for (const send of due) {
+    if (!options.dryRun) {
+      const claimed = await db
+        .update(inviteSends)
+        .set({ status: "sending" })
+        .where(and(eq(inviteSends.id, send.id), inArray(inviteSends.status, allowed)))
+        .returning({ id: inviteSends.id });
+      if (claimed.length === 0) continue;
+    }
     const person = byEmail.get(send.emailNormalized);
     const booked = new Set((history.bookings.get(send.emailNormalized) ?? []).map((b) => b.eventId));
     const stillFollowed = person ? followedCities(person) : [];
     const skip = async (reason: string) => {
-      await db.update(inviteSends).set({ status: "skipped", skipReason: reason }).where(eq(inviteSends.id, send.id));
-      skipped++;
+      if (!options.dryRun) {
+        await db
+          .update(inviteSends)
+          .set({ status: "skipped", skipReason: reason })
+          .where(and(eq(inviteSends.id, send.id), eq(inviteSends.status, "sending")));
+      }
+      result.skipped++;
+      result.details.push({ email: send.emailNormalized, status: "skipped", reason });
     };
     if (!person || person.suppressed) {
       await skip(!person ? "niet meer op de lijst" : "bounce of spam");
@@ -488,7 +553,7 @@ export async function sendDueInvites(now: Date = new Date()): Promise<{ sent: nu
     }
     const valid = send.eventIds.filter((id) => !booked.has(id) && events.some((e) => e.id === id && e.open && stillFollowed.includes(e.city)));
     if (send.kind !== "checkin" && valid.length === 0) {
-      await skip("geboekt of vol");
+      await skip("geboekt, vol of te dichtbij");
       continue;
     }
     const current = { ...send, eventIds: send.kind === "checkin" ? [] : send.eventIds.map((id) => (valid.includes(id) ? id : "")) };
@@ -497,28 +562,57 @@ export async function sendDueInvites(now: Date = new Date()): Promise<{ sent: nu
       await skip(!resend ? "mail niet ingesteld" : "niets te sturen");
       continue;
     }
-    const unsubscribe = `${getSiteUrl().replace(/\/$/, "")}/api/invites/unsubscribe?t=${person.token}`;
-    const result = await resend.emails.send({
-      from: FROM,
-      replyTo: REPLY_TO,
-      to: person.email,
-      subject: composed.subject,
-      text: composed.body,
-      headers: {
-        "List-Unsubscribe": `<${unsubscribe}>, <mailto:${REPLY_TO}?subject=Afmelden%20uitnodigingen>`,
-        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      },
-    });
-    if (result.error) {
-      await db.update(inviteSends).set({ status: "failed", skipReason: result.error.message }).where(eq(inviteSends.id, send.id));
-      failed++;
+    if (options.dryRun) {
+      result.sent++;
+      result.details.push({ email: person.email, status: "would_send", subject: composed.subject });
       continue;
+    }
+    const unsubscribe = `${getSiteUrl().replace(/\/$/, "")}/api/invites/unsubscribe?t=${person.token}`;
+    let error: string | null = null;
+    let resendId: string | null = null;
+    try {
+      const sentMail = await resend.emails.send({
+        from: FROM,
+        replyTo: REPLY_TO,
+        to: person.email,
+        subject: composed.subject,
+        text: composed.body,
+        headers: {
+          "List-Unsubscribe": `<${unsubscribe}>, <mailto:${REPLY_TO}?subject=Afmelden%20uitnodigingen>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      });
+      if (sentMail.error) error = sentMail.error.message;
+      resendId = sentMail.data?.id ?? null;
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+    if (error) {
+      await db.update(inviteSends).set({ status: "failed", skipReason: error }).where(eq(inviteSends.id, send.id));
+      result.failed++;
+      result.details.push({ email: person.email, status: "failed", reason: error });
+      await pauseAfterFailure(error);
+      break;
     }
     await db
       .update(inviteSends)
-      .set({ status: "sent", sentAt: new Date(), subject: composed.subject, body: composed.body, resendId: result.data?.id ?? null })
+      .set({ status: "sent", sentAt: new Date(), subject: composed.subject, body: composed.body, resendId })
       .where(eq(inviteSends.id, send.id));
-    sent++;
+    result.sent++;
+    result.details.push({ email: person.email, status: "sent", subject: composed.subject });
   }
-  return { sent, skipped, failed };
+
+  if (result.details.length > 0) {
+    await logRun({
+      kind: "send",
+      dryRun: Boolean(options.dryRun),
+      startedAt: now,
+      sent: result.sent,
+      skipped: result.skipped,
+      failed: result.failed,
+      error: result.details.find((d) => d.status === "failed")?.reason ?? null,
+      details: result.details.map(({ email, status, reason }) => ({ email, status, ...(reason ? { reason } : {}) })),
+    });
+  }
+  return result;
 }

@@ -8,6 +8,8 @@ export type InviteSettings = {
   enabled: boolean;
   /** Emergency stop: nothing is sent while true (planning goes on). */
   paused: boolean;
+  /** Why it paused by itself (a failed send); null when paused by hand. */
+  pausedReason: string | null;
   /** When it was started: the daily maximum grows from here. */
   startedAt: string | null;
   /** Until this moment every day's mails need an admin's approval. */
@@ -21,6 +23,7 @@ const KEY = "invites";
 export const DEFAULT_INVITE_SETTINGS: InviteSettings = {
   enabled: false,
   paused: false,
+  pausedReason: null,
   startedAt: null,
   approveUntil: null,
   capStart: 50,

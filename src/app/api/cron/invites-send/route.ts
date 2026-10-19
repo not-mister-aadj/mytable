@@ -3,7 +3,8 @@ import { isDbConfigured } from "@/db/index";
 import { isEmailConfigured } from "@/lib/email/resend";
 import { sendDueInvites } from "@/lib/invites/engine";
 
-/** Every minute: sends the invites that are due, one mail at a time. */
+/** Every minute: sends the invites that are due, one mail at a time.
+ * ?dryRun=1 shows what would go out now without sending or claiming. */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) return NextResponse.json({ error: "Cron not configured" }, { status: 503 });
@@ -13,9 +14,10 @@ export async function GET(request: Request) {
   if (!isDbConfigured() || !isEmailConfigured()) {
     return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
-  const send = await sendDueInvites().catch((error: unknown) => {
+  const dryRun = new URL(request.url).searchParams.get("dryRun") === "1";
+  const send = await sendDueInvites(new Date(), { dryRun }).catch((error: unknown) => {
     console.error("[cron] invites send failed", error);
-    return { sent: 0, skipped: 0, failed: 0 };
+    return { sent: 0, skipped: 0, failed: 0, details: [] };
   });
-  return NextResponse.json(send);
+  return NextResponse.json({ dryRun, ...send });
 }

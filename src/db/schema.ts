@@ -390,7 +390,8 @@ export const inviteSends = pgTable("invite_sends", {
   code: text("code").notNull().unique(),
   emailNormalized: text("email_normalized").notNull(),
   kind: text("kind").$type<"invite" | "nudge" | "checkin">().notNull(),
-  status: text("status").$type<"queued" | "approved" | "sent" | "skipped" | "failed">().notNull().default("queued"),
+  /** "sending" is the claim while one round sends it (drizzle/0048). */
+  status: text("status").$type<"queued" | "approved" | "sending" | "sent" | "skipped" | "failed">().notNull().default("queued"),
   scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull(),
   eventIds: text("event_ids").array().notNull().default([]),
   cities: text("cities").array().notNull().default([]),
@@ -401,8 +402,24 @@ export const inviteSends = pgTable("invite_sends", {
   skipReason: text("skip_reason"),
   resendId: text("resend_id"),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
+  /** Last time an admin moved it to later ("Later"). */
+  postponedAt: timestamp("postponed_at", { withTimezone: true }),
   sentAt: timestamp("sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** One row per plan or send round that did something (drizzle/0048). */
+export const inviteRuns = pgTable("invite_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  kind: text("kind").$type<"plan" | "send">().notNull(),
+  dryRun: boolean("dry_run").notNull().default(false),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  planned: integer("planned").notNull().default(0),
+  sent: integer("sent").notNull().default(0),
+  skipped: integer("skipped").notNull().default(0),
+  failed: integer("failed").notNull().default(0),
+  error: text("error"),
+  details: jsonb("details").$type<Array<{ email: string; status: string; reason?: string }>>().notNull().default([]),
 });
 
 export const inviteClicks = pgTable("invite_clicks", {

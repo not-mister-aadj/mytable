@@ -55,6 +55,7 @@ export default async function BookingConfirmedPage({
   // Answers already saved for this booking, so coming back to this page
   // shows them instead of an empty form.
   let savedIntro: SundayTableIntro | null = null;
+  let introReusable = false;
   // The membership offer comes before the confirmation, once per booking.
   let offer: MembershipOffer | null = null;
   // Back from Stripe after saying yes to it.
@@ -74,8 +75,9 @@ export default async function BookingConfirmedPage({
       );
       purchase = await getConfirmationPurchase(sessionId, locale as Locale);
       if (confirmation.summary?.experienceType === "sunday-table") {
-        savedIntro =
-          (await findSundayTableIntroBooking({ checkoutSessionId: sessionId }))?.intro ?? null;
+        const introBooking = await findSundayTableIntroBooking({ checkoutSessionId: sessionId });
+        savedIntro = introBooking?.intro ?? null;
+        introReusable = introBooking?.reusable ?? false;
       }
     } catch (err) {
       console.error("[confirmation page] failed to load booking status", err);
@@ -121,6 +123,7 @@ export default async function BookingConfirmedPage({
         locale={locale as Locale}
         initialSummary={confirmation.summary}
         savedIntro={savedIntro}
+        introReusable={introReusable}
         header={<Header dict={dict.header} locale={locale} />}
         footer={<Footer dict={dict.footer} locale={locale} />}
         offer={offer}

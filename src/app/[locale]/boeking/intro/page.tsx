@@ -90,6 +90,7 @@ export default async function SundayTableIntroPage({ params, searchParams }: Pro
         bookingCode={booking.reservationCode}
         seats={booking.seats}
         initial={booking.intro}
+        reusable={booking.reusable}
       />
     </IntroShell>
   );

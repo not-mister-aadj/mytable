@@ -45,6 +45,10 @@ const copy = {
     plusOnePlaceholder: "bijv. Sophie",
     plusOneHint: "Jullie zitten samen aan tafel.",
     plusOneManualHint: "Alleen invullen als je 2 tickets hebt gekocht. Jullie zitten samen aan tafel.",
+    reuseLead: "Vorige keer vulde je dit in. Gebruiken we het weer voor deze zondag?",
+    keep: "Zo laten",
+    change: "Aanpassen",
+    short: { style: "Aan tafel", askMeAbout: "Vraag me over", favoriteSpot: "Favoriete plek", wine: "Wijn", intoNow: "Into" },
   },
   en: {
     eyebrow: "Meet your table",
@@ -81,6 +85,10 @@ const copy = {
     plusOnePlaceholder: "e.g. Sophie",
     plusOneHint: "You'll sit at the same table.",
     plusOneManualHint: "Only if you bought 2 tickets. You'll sit at the same table.",
+    reuseLead: "Last time you filled this in. Shall we use it again for this Sunday?",
+    keep: "Keep it",
+    change: "Change",
+    short: { style: "At the table", askMeAbout: "Ask me about", favoriteSpot: "Favourite spot", wine: "Wine", intoNow: "Into" },
   },
 } as const;
 
@@ -134,6 +142,7 @@ export function SundayTableIntroForm({
   bookingCode,
   seats,
   initial,
+  reusable = false,
 }: {
   locale: Locale;
   city: string;
@@ -146,6 +155,8 @@ export function SundayTableIntroForm({
   /** Tickets on the booking; with 2, the buyer can name their +1. */
   seats?: number | null;
   initial?: Partial<SundayTableIntro> | null;
+  /** Answered before, not yet for this booking: offer to keep those answers first. */
+  reusable?: boolean;
 }) {
   const t = copy[locale === "en" ? "en" : "nl"];
   const manual = "manual" in auth;
@@ -215,9 +226,14 @@ export function SundayTableIntroForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reuse, setReuse] = useState(reusable && !manual);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    await submit();
+  }
+
+  async function submit() {
     if (saving) return;
     if (
       !conversationStyle &&
@@ -291,7 +307,48 @@ export function SundayTableIntroForm({
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">
           {t.eyebrow}
         </p>
-        {saved ? (
+        {reuse && !saved ? (
+          <div className="mt-2">
+            <h2 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-wine/65">{t.reuseLead}</p>
+            <dl className="mt-5 space-y-2 rounded-2xl border border-wine/10 bg-white/60 p-4 text-sm">
+              {(
+                [
+                  [t.short.style, conversationStyle ? t.styles[conversationStyle] : ""],
+                  [t.short.askMeAbout, askMeAbout],
+                  [t.short.favoriteSpot, favoriteSpot],
+                  [t.short.wine, wine ? t.wines[wine] : ""],
+                  [t.short.intoNow, intoNow],
+                ] as const
+              )
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <div key={label} className="flex gap-3">
+                    <dt className="w-28 shrink-0 text-wine/50">{label}</dt>
+                    <dd className="text-wine">{value}</dd>
+                  </div>
+                ))}
+            </dl>
+            {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void submit()}
+                className="rounded-full bg-burgundy px-5 py-3 text-sm font-semibold text-cream transition hover:bg-burgundy/90 disabled:opacity-60"
+              >
+                {saving ? t.saving : t.keep}
+              </button>
+              <button
+                type="button"
+                onClick={() => setReuse(false)}
+                className="rounded-full border border-wine/15 bg-white px-5 py-3 text-sm font-semibold text-wine transition hover:border-wine/30"
+              >
+                {t.change}
+              </button>
+            </div>
+          </div>
+        ) : saved ? (
           <div className="mt-2">
             <h2 className="font-serif text-2xl font-medium text-wine sm:text-3xl">
               {t.savedTitle}

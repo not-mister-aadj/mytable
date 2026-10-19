@@ -4,6 +4,9 @@ import { getDb } from "@/db/index";
 import { bookings, customers, events } from "@/db/schema";
 import { reservationCode } from "@/lib/booking-display";
 import { normalizeEmail } from "@/lib/customers/normalize";
+import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
+import { QUIZ_METADATA_KEY } from "@/lib/jouw-tafel/quiz-logic";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 /** "Meet your table": the short introduction a Sunday Social guest fills in
  * right after payment, or later via the reminder email. */
@@ -78,6 +81,9 @@ type IntroBooking = {
   customerName: string | null;
   intro: SundayTableIntro;
   answeredAt: Date | null;
+  /** Not answered for this booking yet, but answered before: the form first
+   * offers to keep those answers ("Zo laten" or "Aanpassen"). */
+  reusable: boolean;
 };
 
 function toIntroBooking(row: {
@@ -116,6 +122,7 @@ function toIntroBooking(row: {
       shareConsent: row.introShareConsent,
     },
     answeredAt: row.introAnsweredAt,
+    reusable: false,
   };
 }
 
@@ -261,7 +268,7 @@ async function customerIdForBooking(bookingId: string): Promise<string | null> {
   return customer?.id ?? null;
 }
 
-async function loadCustomerIntro(email: string): Promise<CustomerIntro | null> {
+export async function loadCustomerIntro(email: string): Promise<CustomerIntro | null> {
   const db = getDb();
   const [row] = await db
     .select({
@@ -303,7 +310,8 @@ export function mergeIntro(booking: SundayTableIntro, saved: CustomerIntro | nul
 
 async function withCustomerIntro(booking: IntroBooking): Promise<IntroBooking> {
   const saved = await loadCustomerIntro(booking.email).catch(() => null);
-  return { ...booking, intro: mergeIntro(booking.intro, saved) };
+  const reusable = !booking.answeredAt && Boolean(saved && hasAnyIntroAnswer({ ...saved, plusOneName: "" }));
+  return { ...booking, intro: mergeIntro(booking.intro, saved), reusable };
 }
 
 /** Saves what was filled in on the person too (same rule as the booking: an
@@ -326,6 +334,8 @@ async function saveCustomerIntro(bookingId: string, intro: SundayTableIntro): Pr
       introUpdatedAt: new Date(),
     })
     .where(eq(customers.id, customerId));
+  const booking = await findSundayTableIntroBooking({ bookingId }).catch(() => null);
+  if (booking) await syncQuizAnswers(booking.email, intro).catch(() => undefined);
 }
 
 /** A new booking starts with the answers the guest gave before: copies them
@@ -389,4 +399,69 @@ export async function verifySundayTableIntroToken(token: string): Promise<string
     }
   }
   return null;
+}
+
+/** The answers someone can change on their profile ("Aan tafel"). */
+export type PersonIntroPatch = Partial<Pick<SundayTableIntro, "conversationStyle" | "wine" | "askMeAbout" | "favoriteSpot" | "intoNow">>;
+
+/**
+ * Saves answers on the person (settings page, or the quiz for wine and
+ * conversation) and on their Sunday tables still more than a day ahead, so
+ * the seating uses them. An empty text clears that answer. With syncQuiz,
+ * wine and conversation also go into the account's quiz answers, so both
+ * places always show the same.
+ */
+export async function savePersonIntro(
+  email: string,
+  patch: PersonIntroPatch,
+  options: { syncQuiz?: boolean; shareConsent?: boolean } = {},
+): Promise<void> {
+  const db = getDb();
+  const key = normalizeEmail(email);
+  const text = (v: string | undefined) => (v === undefined ? undefined : v.trim().slice(0, MAX_ANSWER_LENGTH) || null);
+  const values = {
+    ...(patch.conversationStyle !== undefined ? { introConversationStyle: patch.conversationStyle } : {}),
+    ...(patch.wine !== undefined ? { introWine: patch.wine } : {}),
+    ...(patch.askMeAbout !== undefined ? { introAskMeAbout: text(patch.askMeAbout) } : {}),
+    ...(patch.favoriteSpot !== undefined ? { introFavoriteSpot: text(patch.favoriteSpot) } : {}),
+    ...(patch.intoNow !== undefined ? { introIntoNow: text(patch.intoNow) } : {}),
+  };
+  if (Object.keys(values).length === 0) return;
+  const [existing] = await db.select({ id: customers.id }).from(customers).where(eq(customers.emailNormalized, key)).limit(1);
+  const customerId = existing?.id ?? (await upsertCustomerFromEmail({ email: key })).id;
+  await db
+    .update(customers)
+    .set({ ...values, ...(options.shareConsent ? { introShareConsent: true } : {}), introUpdatedAt: new Date() })
+    .where(eq(customers.id, customerId));
+  await db.execute(sql`
+    update bookings b set
+      intro_conversation_style = ${"introConversationStyle" in values ? values.introConversationStyle ?? null : sql`b.intro_conversation_style`},
+      intro_wine = ${"introWine" in values ? values.introWine ?? null : sql`b.intro_wine`},
+      intro_ask_me_about = ${"introAskMeAbout" in values ? values.introAskMeAbout ?? null : sql`b.intro_ask_me_about`},
+      intro_favorite_spot = ${"introFavoriteSpot" in values ? values.introFavoriteSpot ?? null : sql`b.intro_favorite_spot`},
+      intro_into_now = ${"introIntoNow" in values ? values.introIntoNow ?? null : sql`b.intro_into_now`},
+      intro_share_consent = ${options.shareConsent ? true : sql`b.intro_share_consent`}
+    from events e
+    where e.id = b.event_id and e.experience_type = 'sunday-table' and e.starts_at > now() + interval '1 day'
+      and lower(b.email) = ${key} and b.payment_status = 'paid' and b.lifecycle_status = 'active'
+  `);
+  if (options.syncQuiz) await syncQuizAnswers(key, patch).catch(() => undefined);
+}
+
+/** Wine and conversation into the account's quiz answers (one answer for both places). */
+async function syncQuizAnswers(email: string, intro: Pick<PersonIntroPatch, "conversationStyle" | "wine">): Promise<void> {
+  if (!intro.conversationStyle && !intro.wine) return;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+  const [user] = (await getDb().execute(sql`
+    select id, raw_user_meta_data as meta from auth.users where lower(email) = ${normalizeEmail(email)} limit 1
+  `)) as unknown as Array<{ id: string; meta: Record<string, unknown> | null }>;
+  if (!user) return;
+  const meta = user.meta ?? {};
+  const quiz = (meta[QUIZ_METADATA_KEY] ?? {}) as { answers?: Record<string, unknown> } & Record<string, unknown>;
+  const answers = { ...(quiz.answers ?? {}) };
+  if (intro.conversationStyle) answers.conversation = intro.conversationStyle;
+  if (intro.wine) answers.wine = intro.wine;
+  await createSupabaseAdminClient().auth.admin.updateUserById(user.id, {
+    user_metadata: { ...meta, [QUIZ_METADATA_KEY]: { ...quiz, answers } },
+  });
 }

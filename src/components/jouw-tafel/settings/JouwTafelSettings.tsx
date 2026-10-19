@@ -71,6 +71,9 @@ export type SettingsMembership = {
 const AMSTERDAM = "Europe/Amsterdam";
 const SAVE_URL = "/api/auth/member/quiz";
 
+type IntroField = "askMeAbout" | "favoriteSpot" | "intoNow";
+export type SettingsIntro = Record<IntroField, string>;
+
 type Sheet =
   | { kind: "question"; step: QuizStepId }
   | { kind: "booking"; booking: SettingsBooking }
@@ -300,6 +303,7 @@ export function JouwTafelSettings({
   terug,
   membership = null,
   bookedNotice = false,
+  intro: initialIntro = { askMeAbout: "", favoriteSpot: "", intoNow: "" },
 }: {
   locale: Locale;
   userId: string;
@@ -313,6 +317,8 @@ export function JouwTafelSettings({
   membership?: SettingsMembership;
   /** Back from paying for a guest seat: "Je plek staat vast". */
   bookedNotice?: boolean;
+  /** The open seating answers ("Aan tafel"), saved on the person. */
+  intro?: SettingsIntro;
 }) {
   const s = getSettingsCopy(locale);
   const ms = getMembershipSettingsCopy(locale);
@@ -324,7 +330,6 @@ export function JouwTafelSettings({
   const quizRef = useRef(quiz);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [toast, setToast] = useState<string | null>(bookedNotice ? ms.bookedToast : null);
-
   async function copyEmail() {
     const ok = await copyText(companyLegal.email);
     setToast(ok ? s.emailCopied : s.emailCopyFailed(companyLegal.email));
@@ -696,6 +701,11 @@ export function JouwTafelSettings({
 
         <Group title={s.groups.tafel}>{groupRows(SETTINGS_GROUPS.tafel)}</Group>
         <Group title={s.groups.zondag}>{groupRows(SETTINGS_GROUPS.zondag)}</Group>
+        <Group title={s.groups.aanTafel} note={s.intro.note}>
+          {groupRows(SETTINGS_GROUPS.aanTafel.slice(0, 1))}
+          <IntroRows locale={locale} initial={initialIntro} onToast={setToast} />
+          {groupRows(SETTINGS_GROUPS.aanTafel.slice(1))}
+        </Group>
 
         <Group title={s.groups.notifications} note={s.notifications.note}>
           <li className={`${rowBase} cursor-default`}>
@@ -1011,5 +1021,75 @@ function RescheduleBlock({
         {copy.cancelButton}
       </button>
     </div>
+  );
+}
+
+/** The open seating answers under "Aan tafel": a row each, edited in a sheet. */
+function IntroRows({ locale, initial, onToast }: { locale: Locale; initial: SettingsIntro; onToast: (text: string) => void }) {
+  const s = getSettingsCopy(locale);
+  const [intro, setIntro] = useState<SettingsIntro>(initial);
+  const [open, setOpen] = useState<IntroField | null>(null);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function save(field: IntroField) {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/auth/member/intro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field, value: draft }),
+      });
+      if (res.ok) {
+        setIntro((current) => ({ ...current, [field]: draft.trim() }));
+        trackSettingsEvent(PostHogEvents.settingChanged, { field, locale });
+        setOpen(null);
+      }
+      onToast(res.ok ? s.saved : s.saveFailed);
+    } catch {
+      onToast(s.saveFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      {(["askMeAbout", "favoriteSpot", "intoNow"] as const).map((field) => (
+        <ButtonRow
+          key={field}
+          label={s.intro[field]}
+          value={intro[field] || s.notSet}
+          onClick={() => {
+            setDraft(intro[field]);
+            setOpen(field);
+          }}
+        />
+      ))}
+      {open ? (
+        <BottomSheet labelledBy="jt-settings-intro" title={s.intro[open]} closeLabel={s.close} onClose={() => setOpen(null)} tone="cream">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void save(open);
+            }}
+          >
+            <input
+              type="text"
+              autoFocus
+              maxLength={140}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={s.intro[`${open}Placeholder`]}
+              aria-label={s.intro[open]}
+              className="mt-4 w-full rounded-2xl border border-wine/15 bg-white px-4 py-3.5 text-[1rem] text-wine shadow-sm placeholder:text-wine/35 focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
+            />
+            <button type="submit" disabled={busy} className={`${primaryButton} mt-5`}>
+              {s.save}
+            </button>
+          </form>
+        </BottomSheet>
+      ) : null}
+    </>
   );
 }

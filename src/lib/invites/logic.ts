@@ -10,8 +10,8 @@ export type CityPref = "all" | "less" | "none";
 
 /** Earliest and latest minute of the day a mail may go out. */
 export const SEND_WINDOW = { start: 8 * 60, end: 21 * 60 + 30 };
-/** Few seats left: the mail says how many. */
-export const SEATS_LEFT_SHOWN = 10;
+/** Few seats left (9 or fewer): the mail says how many. */
+export const SEATS_LEFT_SHOWN = 9;
 /** Ignored invites in a row before we invite less often, and before we ask
  * whether they still want them. */
 export const SLOW_AFTER = 3;

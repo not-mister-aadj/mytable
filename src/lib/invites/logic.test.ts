@@ -56,7 +56,9 @@ test("ignored invites slow down, then ask, then stop", () => {
   assert.equal(engagement([sent(40), sent(70, true), sent(100), sent(130)], now).status, "active");
 });
 
-test("seats: the number only when 10 or fewer are left", () => {
+test("seats: the number only when 9 or fewer are left", () => {
+  assert.equal(scarcityLine({ capacity: 10, sold: 0, lastSoldOut: false }, "nl"), null);
+  assert.equal(scarcityLine({ capacity: 10, sold: 0, lastSoldOut: true }, "nl"), "Loopt snel vol");
   assert.equal(scarcityLine({ capacity: 20, sold: 2, lastSoldOut: false }, "nl"), null);
   assert.equal(scarcityLine({ capacity: 20, sold: 11, lastSoldOut: false }, "nl"), "Nog 9 plekken");
   assert.equal(scarcityLine({ capacity: 30, sold: 16, lastSoldOut: false }, "nl"), "Loopt snel vol");

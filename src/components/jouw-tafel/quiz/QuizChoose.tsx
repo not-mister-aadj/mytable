@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { CheckIcon, InfoIcon, PinIcon } from "@/components/jouw-tafel/icons";
+import { CheckIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
 import { QUIZ_CITIES, displayCity, sameCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
@@ -19,7 +19,7 @@ import {
   type ChooseRow,
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
-import { questionSub, questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import { questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 import { fromClientMembership, memberBookingDecision, type ClientMembership } from "@/lib/membership/logic";
 import { earlyBlocked, earlyChip } from "@/lib/membership/early-label";
 import { trackMembershipEvent } from "@/lib/posthog/analytics";
@@ -197,8 +197,9 @@ function ChooseFilters({
       <div
         role="group"
         aria-label={copy.citiesAria}
-        className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
+        className="-mx-5 mt-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
+        <div className="mx-auto flex w-max gap-1.5">
         {cities.map((city) => {
           const on = isChosen(city);
           return (
@@ -207,15 +208,15 @@ function ChooseFilters({
               type="button"
               aria-pressed={on}
               onClick={() => toggle(city)}
-              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[0.9rem] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
-                on ? chipOn : "border-wine/15 bg-white text-wine/75"
+              className={`inline-flex min-h-9 shrink-0 items-center rounded-full border px-3 text-[0.85rem] font-medium tracking-[0.01em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                on ? chipOn : "border-gold/40 bg-transparent text-wine/70 hover:border-gold/70"
               }`}
             >
-              {on ? <CheckIcon className="h-3.5 w-3.5" /> : null}
               {displayCity(city, locale)}
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );
@@ -286,8 +287,7 @@ export function QuizChoose({
   );
   // Name only chosen cities that have tables here; ours without one get a
   // line under the list.
-  const { named, noSunday } = kiesCities(cities, rows);
-  const shownCities = copy.joinCities((named.length ? named : ours).map((c) => displayCity(c, locale)));
+  const { noSunday } = kiesCities(cities, rows);
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
   const openRows = rows.filter((r) => r.kind === "open");
@@ -526,14 +526,20 @@ export function QuizChoose({
             </span>
             {copy.stopStad.otherLine(copy.joinCities(others.map((c) => displayCity(c, locale))))}
           </p>
-        ) : hasMatch ? (
-          <p className={questionSub}>{k.sub(shownCities)}</p>
-        ) : (
+        ) : hasMatch ? null : (
           <p className="mx-auto mt-3 max-w-[21rem] text-center text-[1rem] leading-relaxed text-wine/75 text-balance">
             {k.noMatch(shownCity)}
           </p>
         )}
-        <div className="mt-3 flex justify-center">
+        <p className="mt-2 text-center text-[0.85rem] leading-relaxed text-wine/60">
+          {featuredRow ? (
+            <>
+              {cardCopy.shortPeople}
+              <span aria-hidden className="mx-2 text-gold">·</span>
+              {cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))}
+              <span aria-hidden className="mx-2 text-gold">·</span>
+            </>
+          ) : null}
           <button
             ref={infoTrigger}
             type="button"
@@ -543,23 +549,12 @@ export function QuizChoose({
               setInfoOpen(true);
               handlers.onInfo();
             }}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-[0.92rem] font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+            className="inline font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
-            <InfoIcon className="h-4 w-4" />
             {k.infoLink}
           </button>
-        </div>
+        </p>
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
-        {featuredRow ? (
-          <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[0.85rem] text-wine/70">
-            {[cardCopy.shortPeople, cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))].map((line) => (
-              <li key={line} className="flex items-center gap-1.5">
-                <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-700" />
-                {line}
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </div>
 
       {citySections.map((section) => {

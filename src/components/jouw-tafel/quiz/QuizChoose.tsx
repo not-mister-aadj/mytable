@@ -394,7 +394,10 @@ export function QuizChoose({
               <DateBadge iso={event.startsAt} locale={locale} />
               <span className="min-w-0 flex-1">
                 <span className="block text-[1rem] font-semibold leading-tight text-wine">{startTime(event.startsAt, locale)}</span>
-                <span className="mt-0.5 block text-[0.85rem] leading-tight text-wine/60">{cardCopy.venueShort(revealDate(event.startsAt, locale))}</span>
+                <span className="mt-0.5 block text-[0.85rem] leading-tight text-wine/60">
+                  {row.nearby ? `${displayCity(event.city, locale)} · ` : ""}
+                  {cardCopy.venueShort(revealDate(event.startsAt, locale))}
+                </span>
                 <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
                   {chip.text}
                 </span>
@@ -418,7 +421,7 @@ export function QuizChoose({
             onClick={() => open(row)}
             className="block w-full touch-manipulation text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
-            <span className="relative block aspect-[16/6] w-full">
+            <span className="relative block aspect-[2/1] w-full">
               <Image src={photo} alt="" fill sizes="(max-width: 640px) 100vw, 420px" className="object-cover" />
               <span className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                 <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">

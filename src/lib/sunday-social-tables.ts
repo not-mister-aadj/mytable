@@ -161,6 +161,9 @@ export type SundaySocialSeriesTable = {
   /** Full, closed empty or too close to the date. */
   closed: boolean;
   venue: VenueInfo | null;
+  /** The neighbourhood while no wine bar is set yet ("De Pijp"),
+   * from events.extras.venueArea; null when not set. */
+  venueArea: string | null;
 };
 
 export async function findSundaySocialSeriesTable(
@@ -199,6 +202,7 @@ export async function findSundaySocialSeriesTable(
   );
   const venue = (await venuesByEvent([row.id])).get(row.id) ?? null;
   const heldBack = Boolean((row.extras as { comingSoon?: boolean } | null)?.comingSoon);
+  const area = (row.extras as { venueArea?: unknown } | null)?.venueArea;
   return {
     id: row.id,
     nameNl: row.nameNl,
@@ -212,5 +216,6 @@ export async function findSundaySocialSeriesTable(
     startsAt,
     closed: isNoLongerBookable({ startsAt, capacity: row.capacity, spotsSold: row.spotsSold, bookingOpensAt }, now),
     venue,
+    venueArea: typeof area === "string" && area.trim() ? area.trim() : null,
   };
 }

@@ -233,6 +233,8 @@ type SundaySocialPageData = {
   /** False while no wine bar is linked yet: the page says when it follows
    * and why, instead of naming a venue. */
   venueKnown: boolean;
+  /** The neighbourhood we choose the wine bar in, while none is set yet. */
+  venueArea: string | null;
   /** A member can book from this moment, before everyone else (ISO). */
   memberOpensAt: string | null;
   startsAt: string | null;
@@ -257,6 +259,7 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
         ticketEvent,
         comingSoon: Boolean(ticketEvent.extras?.comingSoon),
         venueKnown: true,
+        venueArea: null,
         memberOpensAt: null,
         startsAt: ticketEvent.startsAt.toISOString(),
         spotsLeft: Math.max(0, ticketEvent.capacity - ticketEvent.spotsSold),
@@ -272,12 +275,21 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
     city,
     table,
     location: {
-      venueName: series.venue?.name ?? (locale === "en" ? "Location to be announced" : "Locatie volgt"),
+      venueName:
+        series.venue?.name ??
+        (series.venueArea
+          ? locale === "en"
+            ? `A wine bar in ${series.venueArea}`
+            : `Een wijnbar in ${series.venueArea}`
+          : locale === "en"
+            ? "Location to be announced"
+            : "Locatie volgt"),
       address: series.venue?.address ?? "",
     },
     ticketEvent: series,
     comingSoon: series.comingSoon,
     venueKnown: Boolean(series.venue),
+    venueArea: series.venue ? null : series.venueArea,
     memberOpensAt: series.memberOpensAt,
     startsAt: series.startsAt,
     spotsLeft: series.closed ? 0 : Math.max(0, series.capacity - series.spotsSold),
@@ -318,7 +330,7 @@ export default async function SundayTableEventPage({ params }: Props) {
   const locale = localeParam as Locale;
   const found = await loadSundaySocial(citySlug, date, locale);
   if (!found) notFound();
-  const { city, table, location, ticketEvent, comingSoon, venueKnown, memberOpensAt, startsAt, spotsLeft } = found;
+  const { city, table, location, ticketEvent, comingSoon, venueKnown, venueArea, memberOpensAt, startsAt, spotsLeft } = found;
   // Filled a table at a time: the seats left at the table being filled
   // always show.
   const showSpotsCount = spotsLeft > 0;
@@ -415,13 +427,19 @@ export default async function SundayTableEventPage({ params }: Props) {
   const venuePending = venueKnown
     ? null
     : {
-        heading: en ? `${capitalizedDate} in ${city.name}` : `${capitalizedDate} in ${city.name}`,
-        city: city.name,
-        note: en ? `You'll hear the wine bar by ${revealDate}` : `De wijnbar hoor je uiterlijk ${revealDate}`,
+        heading: venueArea ? `${capitalizedDate} in ${venueArea}, ${city.name}` : `${capitalizedDate} in ${city.name}`,
+        city: venueArea ? `${venueArea}, ${city.name}` : city.name,
+        note: venueArea
+          ? en
+            ? `A wine bar in ${venueArea}. You'll hear which by ${revealDate}`
+            : `Een wijnbar in ${venueArea}. Welke hoor je uiterlijk ${revealDate}`
+          : en
+            ? `You'll hear the wine bar by ${revealDate}`
+            : `De wijnbar hoor je uiterlijk ${revealDate}`,
         title: en ? "Why the wine bar isn't named yet" : "Waarom de wijnbar nog niet bekend is",
         body: en
-          ? "We choose from a few wine bars in the city. Which one it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before."
-          : "We kiezen uit een paar wijnbars in de stad. Welke het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail.",
+          ? `We choose from a few wine bars in ${venueArea ?? "the city"}. Which one it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before.`
+          : `We kiezen uit een paar wijnbars in ${venueArea ?? "de stad"}. Welke het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail.`,
       };
   const pendingFaq = {
     question: en ? "Why isn't the wine bar named yet?" : "Waarom staat de wijnbar er nog niet bij?",

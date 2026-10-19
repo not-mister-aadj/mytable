@@ -10,6 +10,12 @@ export type CityPref = "all" | "less" | "none";
 
 /** Earliest and latest minute of the day a mail may go out. */
 export const SEND_WINDOW = { start: 8 * 60, end: 21 * 60 + 30 };
+
+/** True between 08:00 and 21:30 Amsterdam: the only time a mail goes out. */
+export function isInSendWindow(date: Date): boolean {
+  const { minutes } = amsterdamParts(date);
+  return minutes >= SEND_WINDOW.start && minutes <= SEND_WINDOW.end;
+}
 /** Few seats left (9 or fewer): the mail says how many. */
 export const SEATS_LEFT_SHOWN = 9;
 /** Ignored invites in a row before we invite less often, and before we ask

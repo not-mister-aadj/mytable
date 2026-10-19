@@ -10,6 +10,7 @@ import {
   INVITE_LEAD_DAYS,
   isTestAddress,
   inviteWhy,
+  isInSendWindow,
   type InviteWhy,
   amsterdamParts,
   checkinMail,
@@ -647,6 +648,8 @@ async function mailedRecently(email: string, exceptId: string, now: Date): Promi
 async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): Promise<SendRoundResult> {
   const options = { dryRun };
   const empty: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
+  // Only between 08:00 and 21:30: a mail approved late waits for the morning.
+  if (!isInSendWindow(now)) return empty;
   const startedMs = Date.now();
   const db = getDb();
   const approval = needsApproval(settings);

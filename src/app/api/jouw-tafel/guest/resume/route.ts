@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jouwTafelKiesPath, jouwTafelSignUpPath, type Locale } from "@/i18n/config";
+import { MAIL_TRACKING_PARAMS } from "@/lib/email/mail-utm";
 import { GUEST_COOKIE, getGuestById, guestCookieOptions } from "@/lib/jouw-tafel/guest-server";
 
 /**
@@ -21,6 +22,11 @@ export async function GET(request: NextRequest) {
   const [path, query] = jouwTafelKiesPath(locale).split("?");
   target.pathname = path;
   target.search = query ? `?${query}` : "";
+  // The mail's UTM tags go along, so the visit counts for that mail.
+  for (const key of MAIL_TRACKING_PARAMS) {
+    const value = request.nextUrl.searchParams.get(key);
+    if (value) target.searchParams.set(key, value);
+  }
   const response = NextResponse.redirect(target);
   response.cookies.set(GUEST_COOKIE, guest.id, guestCookieOptions);
   return response;

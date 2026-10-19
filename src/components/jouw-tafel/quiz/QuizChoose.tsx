@@ -66,23 +66,28 @@ const LADIES_PHOTOS = ["/girls-only/table-group.jpg", "/girls-only/laughing-bar.
 const CARD_COPY = {
   nl: {
     wineBarIn: (city: string) => `Een wijnbar in ${city}`,
-    people: "Aan tafel met 4 tot 6 nieuwe mensen",
     age: "Ingedeeld op leeftijd",
-    venueBy: (date: string) => `De wijnbar hoor je uiterlijk ${date}`,
-    perSeat: "per plek",
-    reserve: "Reserveer je plek",
+    reserveShort: "Reserveer",
     next: "Eerstvolgende",
+    shortPeople: "4 tot 6 nieuwe mensen",
+    priceLine: (price: string) => `${price} per plek`,
+    venueShort: (date: string) => `wijnbar bekend op ${date}`,
   },
   en: {
     wineBarIn: (city: string) => `A wine bar in ${city}`,
-    people: "At a table with 4 to 6 new people",
     age: "Seated by age",
-    venueBy: (date: string) => `You'll hear the wine bar by ${date}`,
-    perSeat: "per seat",
-    reserve: "Reserve your seat",
+    reserveShort: "Reserve",
     next: "Next up",
+    shortPeople: "4 to 6 new people",
+    priceLine: (price: string) => `${price} per seat`,
+    venueShort: (date: string) => `wine bar shared by ${date}`,
   },
 } as const;
+
+function priceText(cents: number, locale: Locale): string {
+  const price = cents / 100;
+  return Number.isInteger(price) ? `€${price}` : `€${price.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
+}
 
 /** "Zondag 8 november" / "Sunday 8 November". */
 function longDate(iso: string, locale: Locale): string {
@@ -359,70 +364,81 @@ export function QuizChoose({
 
   const cardCopy = CARD_COPY[locale === "en" ? "en" : "nl"];
   // The very next bookable Sunday stands out ("Eerstvolgende").
-  const featuredId = [...openRows]
+  const featuredRow = [...openRows]
     .filter((r) => !r.event.comingSoon && !booked[r.event.id])
-    .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt))[0]?.event.id;
+    .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt))[0];
+  const featuredId = featuredRow?.event.id;
 
-  /** A Sunday that can be booked now: a photo of a real table, the date,
-   * "a wine bar in {city}", three short reasons, the price and a button. */
+  /** A Sunday that can be booked now. The next one is a card with a photo of
+   * a real table; the ones after it are compact rows. What every Sunday has
+   * in common (table size, seating by age, price) is said once, above. */
   function bookableCard(row: ChooseRow, index: number, chip: { text: string; tone: ChipTone }) {
     const event = row.event;
     const featured = event.id === featuredId;
+    const motionProps = {
+      initial: reduceMotion ? false : { opacity: 0, y: 10 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.28, delay: reduceMotion ? 0 : 0.06 + index * 0.04, ease: [0.22, 1, 0.36, 1] as const },
+    };
+    const when = `${longDate(event.startsAt, locale)} · ${startTime(event.startsAt, locale)}`;
+    if (!featured) {
+      return (
+        <motion.li key={event.id} {...motionProps}>
+          <div className={`${rowCard} ${rowIdle}`}>
+            <button
+              type="button"
+              aria-label={`${k.selectAria}: ${shortDate(event.startsAt, locale)}`}
+              onClick={() => open(row)}
+              className="flex w-full touch-manipulation items-center gap-3.5 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+            >
+              <DateBadge iso={event.startsAt} locale={locale} />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[1rem] font-semibold leading-tight text-wine">{startTime(event.startsAt, locale)}</span>
+                <span className="mt-0.5 block text-[0.85rem] leading-tight text-wine/60">{cardCopy.venueShort(revealDate(event.startsAt, locale))}</span>
+                <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
+                  {chip.text}
+                </span>
+              </span>
+              <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-burgundy px-4 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-cream">
+                {cardCopy.reserveShort}
+              </span>
+            </button>
+          </div>
+        </motion.li>
+      );
+    }
     const photos = answers.gender === "female" && answers.tableType === "girls_only" ? LADIES_PHOTOS : TABLE_PHOTOS;
     const photo = photos[index % photos.length]!;
-    const price = event.priceCents / 100;
-    const priceLabel = Number.isInteger(price) ? `€${price}` : `€${price.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
     return (
-      <motion.li
-        key={event.id}
-        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.28, delay: reduceMotion ? 0 : 0.06 + index * 0.04, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className={`${rowCard} ${rowIdle} overflow-hidden ${featured ? "ring-1 ring-gold/60" : ""}`}>
+      <motion.li key={event.id} {...motionProps}>
+        <div className={`${rowCard} ${rowIdle} overflow-hidden ring-1 ring-gold/60`}>
           <button
             type="button"
             aria-label={`${k.selectAria}: ${shortDate(event.startsAt, locale)}`}
             onClick={() => open(row)}
             className="block w-full touch-manipulation text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
-            <span className={`relative block w-full ${featured ? "aspect-[16/9]" : "aspect-[16/7]"}`}>
+            <span className="relative block aspect-[16/6] w-full">
               <Image src={photo} alt="" fill sizes="(max-width: 640px) 100vw, 420px" className="object-cover" />
               <span className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-                {featured ? (
-                  <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">
-                    {cardCopy.next}
-                  </span>
-                ) : null}
+                <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">
+                  {cardCopy.next}
+                </span>
                 <span className="rounded-full bg-white/95 px-2.5 py-1 text-[0.72rem] font-semibold leading-none text-burgundy shadow-sm">
                   {chip.text}
                 </span>
               </span>
             </span>
-            <span className="block px-4 pb-4 pt-3.5">
-              <span className="block text-[1.05rem] font-semibold leading-tight text-wine">
-                {longDate(event.startsAt, locale)} · {startTime(event.startsAt, locale)}
-              </span>
-              <span className="mt-1 flex items-center gap-1 text-[0.92rem] text-wine/70">
-                <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                {cardCopy.wineBarIn(displayCity(event.city, locale))}
-              </span>
-              <span className="mt-3 block space-y-1">
-                {[cardCopy.people, cardCopy.age, cardCopy.venueBy(revealDate(event.startsAt, locale))].map((line) => (
-                  <span key={line} className="flex items-start gap-2 text-[0.88rem] leading-snug text-wine/75">
-                    <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />
-                    {line}
-                  </span>
-                ))}
-              </span>
-              <span className="mt-4 flex items-center justify-between gap-3">
-                <span className="shrink-0">
-                  <span className="font-serif text-2xl leading-none text-wine">{priceLabel}</span>
-                  <span className="ml-1 text-[0.82rem] text-wine/60">{cardCopy.perSeat}</span>
+            <span className="flex items-end justify-between gap-3 px-4 pb-4 pt-3">
+              <span className="min-w-0">
+                <span className="block text-[1.05rem] font-semibold leading-tight text-wine">{when}</span>
+                <span className="mt-1 flex items-center gap-1 text-[0.88rem] text-wine/65">
+                  <PinIcon className="h-3.5 w-3.5 shrink-0" />
+                  {cardCopy.wineBarIn(displayCity(event.city, locale))}, {cardCopy.venueShort(revealDate(event.startsAt, locale))}
                 </span>
-                <span className="inline-flex min-h-11 items-center justify-center rounded-full bg-burgundy px-5 text-[0.85rem] font-semibold uppercase tracking-[0.08em] text-cream">
-                  {cardCopy.reserve}
-                </span>
+              </span>
+              <span className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-burgundy px-5 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-cream">
+                {cardCopy.reserveShort}
               </span>
             </span>
           </button>
@@ -542,6 +558,16 @@ export function QuizChoose({
           </button>
         </div>
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
+        {featuredRow ? (
+          <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[0.85rem] text-wine/70">
+            {[cardCopy.shortPeople, cardCopy.age, cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))].map((line) => (
+              <li key={line} className="flex items-center gap-1.5">
+                <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-700" />
+                {line}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       {citySections.map((section) => {

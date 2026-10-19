@@ -1,9 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb, isDbConfigured } from "@/db/index";
 import { inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
-import { supportedCity } from "@/lib/jouw-tafel/logic";
+import { citiesForEmail } from "@/lib/invites/cities";
 
 /**
  * One-click unsubscribe (List-Unsubscribe-Post, RFC 8058): turns every
@@ -16,14 +16,8 @@ export async function POST(request: NextRequest) {
   const db = getDb();
   const [sub] = await db.select().from(inviteSubscribers).where(eq(inviteSubscribers.token, token)).limit(1);
   if (!sub) return NextResponse.json({ ok: false }, { status: 404 });
-  const rows = (await db.execute(sql`
-    select distinct city from waitlist_signups where lower(email) = ${sub.emailNormalized}
-  `)) as unknown as Array<{ city: string }>;
   const prefs: Record<string, "none"> = {};
-  for (const r of rows) {
-    const city = supportedCity(r.city);
-    if (city) prefs[city] = "none";
-  }
+  for (const city of await citiesForEmail(sub.emailNormalized)) prefs[city] = "none";
   await db.update(inviteSubscribers).set({ cityPrefs: prefs, updatedAt: new Date() }).where(eq(inviteSubscribers.token, token));
   return NextResponse.json({ ok: true });
 }

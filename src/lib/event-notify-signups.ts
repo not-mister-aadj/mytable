@@ -1,6 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { eventNotifySignups } from "@/db/schema";
+import { ensureAccountInBackground } from "@/lib/auth/ensure-auth-user-for-email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,6 +25,7 @@ export async function addEventNotifySignup(input: {
       locale: input.locale,
     })
     .onConflictDoNothing();
+  ensureAccountInBackground({ email: input.email, source: "notify", locale: input.locale });
 }
 
 export async function getUnnotifiedEventSignups(eventId: string) {

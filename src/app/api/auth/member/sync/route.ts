@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clearSilentFlag } from "@/lib/auth/ensure-auth-user-for-email";
 import { getMemberUser, syncMemberCustomer } from "@/lib/member-auth";
 import type { Locale } from "@/i18n/config";
 
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
       recordOnboarding,
       forceLanguage,
     });
+    await clearSilentFlag(fresh ?? user);
     return NextResponse.json({ ok: true, customerId });
   } catch (error) {
     console.error("[member sync]", error);

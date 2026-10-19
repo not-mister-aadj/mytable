@@ -3,6 +3,7 @@ import { waitlistSignups } from "@/db/schema";
 import { getDb } from "@/db/index";
 import type { WaitlistPreferences } from "@/i18n/waitlist-page.types";
 import { readAttribution } from "@/lib/analytics/attribution-server";
+import { ensureAccountInBackground } from "@/lib/auth/ensure-auth-user-for-email";
 
 /** One waitlist, one meaning — "priority_list" was retired, see drizzle/0020. */
 export async function createWaitlistSignup(input: {
@@ -51,6 +52,7 @@ export async function createWaitlistSignup(input: {
       .returning({ id: waitlistSignups.id });
 
     if (inserted) {
+      ensureAccountInBackground({ email, source: source === "jouw_tafel" ? "quiz" : "waitlist", name, city, locale });
       return { ok: true, id: inserted.id, created: true };
     }
 

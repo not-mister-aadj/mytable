@@ -402,7 +402,8 @@ export function JouwTafelAuthForm({
       requestAnimationFrame(() => codeRef.current?.select());
       return;
     }
-    const isNew = isNewAuthUser(data.user.created_at);
+    // A background account (made at signup) counts as new at its first own login.
+    const isNew = isNewAuthUser(data.user.created_at) || data.user.user_metadata?.silent === true;
     trackJouwTafelAuthEvent(PostHogEvents.authCodeVerified, { screen, is_new_user: isNew, locale });
     // Meta CompleteRegistration for new code accounts, like Google sign-ups
     // get in /auth/callback. Same event id per user, so it is never doubled.

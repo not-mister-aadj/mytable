@@ -70,7 +70,6 @@ const CARD_COPY = {
     next: "Eerstvolgende",
     shortPeople: "4 tot 6 nieuwe mensen",
     priceLine: (price: string) => `${price} per plek`,
-    venueShort: (date: string) => `wijnbar bekend op ${date}`,
   },
   en: {
     wineBarIn: (city: string) => `A wine bar in ${city}`,
@@ -78,7 +77,6 @@ const CARD_COPY = {
     next: "Next up",
     shortPeople: "4 to 6 new people",
     priceLine: (price: string) => `${price} per seat`,
-    venueShort: (date: string) => `wine bar shared by ${date}`,
   },
 } as const;
 
@@ -96,13 +94,6 @@ function longDate(iso: string, locale: Locale): string {
     month: "long",
   }).format(new Date(iso));
   return text.charAt(0).toLocaleUpperCase() + text.slice(1);
-}
-
-/** "1 nov": the venue follows 7 days before the Sunday. */
-function revealDate(iso: string, locale: Locale): string {
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { timeZone: AMSTERDAM, day: "numeric", month: "short" })
-    .format(new Date(Date.parse(iso) - 7 * 24 * 60 * 60 * 1000))
-    .replace(/\.$/, "");
 }
 
 type ChipTone = "wine" | "gold" | "grey";
@@ -394,11 +385,7 @@ export function QuizChoose({
                 <span className="block text-[1rem] font-semibold leading-tight text-wine">{startTime(event.startsAt, locale)}</span>
                 <span className="mt-0.5 flex items-center gap-1 text-[0.85rem] leading-tight text-wine/60">
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                  <span className="min-w-0">
-                    <span className="font-medium text-wine/80">{displayCity(event.city, locale)}</span>
-                    {" · "}
-                    {cardCopy.venueShort(revealDate(event.startsAt, locale))}
-                  </span>
+                  {displayCity(event.city, locale)}
                 </span>
                 <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
                   {chip.text}
@@ -439,7 +426,7 @@ export function QuizChoose({
                 <span className="block text-[1.05rem] font-semibold leading-tight text-wine">{when}</span>
                 <span className="mt-1 flex items-center gap-1 text-[0.88rem] text-wine/65">
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                  {cardCopy.wineBarIn(displayCity(event.city, locale))}, {cardCopy.venueShort(revealDate(event.startsAt, locale))}
+                  {cardCopy.wineBarIn(displayCity(event.city, locale))}
                 </span>
               </span>
               <span className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-burgundy px-5 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-cream">

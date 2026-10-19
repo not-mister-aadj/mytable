@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, eq, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { inviteClicks, inviteRuns, inviteSends, inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
@@ -23,7 +23,7 @@ import {
   type InviteLocale,
   type MailEvent,
 } from "@/lib/invites/logic";
-import { getInviteSettings, needsApproval, saveInviteSettings } from "@/lib/invites/settings";
+import { getInviteSettings, needsApproval, saveInviteSettings, type InviteSettings } from "@/lib/invites/settings";
 import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
   bracketFromEventName,
@@ -38,7 +38,8 @@ const DAY = 24 * 60 * 60 * 1000;
 function getAdminBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://dashboard.mytable.club").replace(/\/$/, "");
 }
-const FROM = "Het MyTable-team <hallo@tafels.mytable.club>";
+const FROM_ADDRESS = "hallo@tafels.mytable.club";
+const FROM = `Het MyTable-team <${FROM_ADDRESS}>`;
 const REPLY_TO = "info@mytable.club";
 /** Plans no further ahead than this. */
 const PLAN_DAYS = 7;
@@ -349,7 +350,8 @@ export async function planInvites(
     const cities = followedCities(person);
     if (cities.length === 0) continue;
     const mine = history.sends.filter((s) => s.emailNormalized === person.email);
-    if (mine.some((s) => s.status === "queued" || s.status === "approved")) continue;
+    // An uncertain mail may have gone out: nothing new until an admin settles it.
+    if (mine.some((s) => s.status === "queued" || s.status === "approved" || s.status === "sending")) continue;
 
     const booked = new Set((history.bookings.get(person.email) ?? []).map((b) => b.eventId));
     const invitedBefore = new Set(mine.filter((s) => s.status === "sent" && s.kind === "invite").flatMap((s) => s.eventIds));
@@ -421,7 +423,11 @@ export async function planInvites(
       v.body = composed?.body ?? null;
     }
     if (options.dryRun) return { planned: values.length, expired: 0, preview: values };
-    await db.insert(inviteSends).values(values);
+    // The unique index allows one open mail per address: a second planning
+    // round at the same moment cannot add another.
+    const inserted = await db.insert(inviteSends).values(values).onConflictDoNothing().returning({ email: inviteSends.emailNormalized });
+    const kept = new Set(inserted.map((r) => r.email));
+    values.splice(0, values.length, ...values.filter((v) => kept.has(v.emailNormalized)));
   }
   if (!options.dryRun && (values.length > 0 || expired.length > 0)) {
     await logRun({
@@ -488,9 +494,97 @@ async function pauseAfterFailure(reason: string): Promise<void> {
  * nothing is claimed or sent: the result says what would go out.
  */
 export async function sendDueInvites(now: Date = new Date(), options: { dryRun?: boolean } = {}): Promise<SendRoundResult> {
+  // Real mails only from production; locally and on previews it is always a dry run.
+  const dryRun = Boolean(options.dryRun) || process.env.VERCEL_ENV !== "production";
   const empty: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
   const settings = await getInviteSettings();
-  if (!options.dryRun && (!settings.enabled || settings.paused)) return empty;
+  if (dryRun) return sendRound(now, settings, true);
+  if (!settings.enabled || settings.paused) return empty;
+  // One sending round at a time.
+  if (!(await takeSendLock())) return empty;
+  try {
+    await settleUncertain(now);
+    return await sendRound(now, settings, false);
+  } finally {
+    await releaseSendLock();
+  }
+}
+
+const LOCK_KEY = "invites_send_lock";
+const ROUND_MS = 60 * 1000;
+const RECENT_MS = 3 * DAY;
+
+/** A lease in site_settings: taken when free or older than two minutes. */
+async function takeSendLock(): Promise<boolean> {
+  const rows = (await getDb().execute(sql`
+    insert into site_settings (key, value, updated_at) values (${LOCK_KEY}, '{}'::jsonb, now())
+    on conflict (key) do update set updated_at = now()
+    where site_settings.updated_at < now() - interval '2 minutes'
+    returning key
+  `)) as unknown as Array<{ key: string }>;
+  return rows.length > 0;
+}
+
+async function releaseSendLock(): Promise<void> {
+  await getDb()
+    .execute(sql`update site_settings set updated_at = now() - interval '1 day' where key = ${LOCK_KEY}`)
+    .catch(() => undefined);
+}
+
+/**
+ * Uncertain mails (still "sending" after five minutes): when email_log shows
+ * our mail to that address right after the claim, it went out. Only ever
+ * settled as sent; anything else waits for an admin.
+ */
+async function settleUncertain(now: Date): Promise<void> {
+  const db = getDb();
+  const stuck = await db
+    .select({ id: inviteSends.id, email: inviteSends.emailNormalized, claimedAt: inviteSends.claimedAt })
+    .from(inviteSends)
+    .where(and(eq(inviteSends.status, "sending"), lte(inviteSends.claimedAt, new Date(now.getTime() - 5 * 60 * 1000))));
+  for (const row of stuck) {
+    if (!row.claimedAt) continue;
+    const [found] = (await db.execute(sql`
+      select resend_id, sent_at from email_log
+      where email_normalized = ${row.email}
+        and from_email like ${`%${FROM_ADDRESS}%`}
+        and sent_at between ${new Date(row.claimedAt.getTime() - 60 * 1000)} and ${new Date(row.claimedAt.getTime() + 10 * 60 * 1000)}
+      order by sent_at limit 1
+    `)) as unknown as Array<{ resend_id: string | null; sent_at: string | Date }>;
+    if (!found) continue;
+    await db
+      .update(inviteSends)
+      .set({ status: "sent", sentAt: new Date(found.sent_at), resendId: found.resend_id })
+      .where(and(eq(inviteSends.id, row.id), eq(inviteSends.status, "sending")));
+  }
+}
+
+/** Did this address get an invite in the last three days (ours or by hand)? */
+async function mailedRecently(email: string, exceptId: string, now: Date): Promise<boolean> {
+  const since = new Date(now.getTime() - RECENT_MS);
+  const db = getDb();
+  const ours = await db
+    .select({ id: inviteSends.id })
+    .from(inviteSends)
+    .where(
+      and(
+        eq(inviteSends.emailNormalized, email),
+        sql`${inviteSends.id} <> ${exceptId}`,
+        sql`((${inviteSends.status} = 'sent' and ${inviteSends.sentAt} > ${since}) or (${inviteSends.status} = 'sending' and ${inviteSends.claimedAt} > ${since}))`,
+      ),
+    )
+    .limit(1);
+  if (ours.length > 0) return true;
+  const logged = (await db.execute(sql`
+    select subject, from_email from email_log where email_normalized = ${email} and sent_at > ${since}
+  `)) as unknown as Array<{ subject: string; from_email: string | null }>;
+  return logged.some((m) => emailKind(m.subject) === "Uitnodiging" || (m.from_email ?? "").includes(FROM_ADDRESS));
+}
+
+async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): Promise<SendRoundResult> {
+  const options = { dryRun };
+  const empty: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
+  const startedMs = Date.now();
   const db = getDb();
   const approval = needsApproval(settings);
   const cap = dailyCap(settings, now);
@@ -507,12 +601,21 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
   if (dueAll.length === 0) return empty;
 
   const today = dayOf(now);
+  // Uncertain mails count as sent.
   const sentToday = (
     await db
-      .select({ sentAt: inviteSends.sentAt })
+      .select({ sentAt: inviteSends.sentAt, claimedAt: inviteSends.claimedAt })
       .from(inviteSends)
-      .where(and(eq(inviteSends.status, "sent"), gte(inviteSends.sentAt, new Date(now.getTime() - DAY))))
-  ).filter((s) => s.sentAt && dayOf(s.sentAt) === today).length;
+      .where(
+        and(
+          inArray(inviteSends.status, ["sent", "sending"]),
+          sql`coalesce(${inviteSends.sentAt}, ${inviteSends.claimedAt}) >= ${new Date(now.getTime() - DAY)}`,
+        ),
+      )
+  ).filter((s) => {
+    const at = s.sentAt ?? s.claimedAt;
+    return at && dayOf(at) === today;
+  }).length;
   if (sentToday >= cap) return empty;
   const due = dueAll.slice(0, cap - sentToday);
 
@@ -523,9 +626,11 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
 
   for (const send of due) {
     if (!options.dryRun) {
+      // The lock lease is two minutes: a long round stops, the next one goes on.
+      if (Date.now() - startedMs > ROUND_MS) break;
       const claimed = await db
         .update(inviteSends)
-        .set({ status: "sending" })
+        .set({ status: "sending", claimedAt: new Date() })
         .where(and(eq(inviteSends.id, send.id), inArray(inviteSends.status, allowed)))
         .returning({ id: inviteSends.id });
       if (claimed.length === 0) continue;
@@ -545,6 +650,10 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
     };
     if (!person || person.suppressed) {
       await skip(!person ? "niet meer op de lijst" : "bounce of spam");
+      continue;
+    }
+    if (await mailedRecently(send.emailNormalized, send.id, now)) {
+      await skip("al gemaild in de laatste 3 dagen");
       continue;
     }
     if (stillFollowed.length === 0) {
@@ -569,23 +678,30 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
     }
     const unsubscribe = `${getSiteUrl().replace(/\/$/, "")}/api/invites/unsubscribe?t=${person.token}`;
     let error: string | null = null;
+    let uncertain: string | null = null;
     let resendId: string | null = null;
     try {
-      const sentMail = await resend.emails.send({
-        from: FROM,
-        replyTo: REPLY_TO,
-        to: person.email,
-        subject: composed.subject,
-        text: composed.body,
-        headers: {
-          "List-Unsubscribe": `<${unsubscribe}>, <mailto:${REPLY_TO}?subject=Afmelden%20uitnodigingen>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      const sentMail = await resend.emails.send(
+        {
+          from: FROM,
+          replyTo: REPLY_TO,
+          to: person.email,
+          subject: composed.subject,
+          text: composed.body,
+          headers: {
+            "List-Unsubscribe": `<${unsubscribe}>, <mailto:${REPLY_TO}?subject=Afmelden%20uitnodigingen>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
         },
-      });
+        // Resend sends one mail per key, however often it is asked.
+        { idempotencyKey: `invite-${send.id}` },
+      );
+      // Resend answered with an error: certainly not sent.
       if (sentMail.error) error = sentMail.error.message;
       resendId = sentMail.data?.id ?? null;
     } catch (e) {
-      error = e instanceof Error ? e.message : String(e);
+      // No answer: it may have gone out.
+      uncertain = e instanceof Error ? e.message : String(e);
     }
     if (error) {
       await db.update(inviteSends).set({ status: "failed", skipReason: error }).where(eq(inviteSends.id, send.id));
@@ -594,10 +710,27 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
       await pauseAfterFailure(error);
       break;
     }
-    await db
+    if (uncertain) {
+      // Stays "sending": never retried, settled by email_log or an admin.
+      await db.update(inviteSends).set({ skipReason: uncertain }).where(eq(inviteSends.id, send.id)).catch(() => undefined);
+      result.failed++;
+      result.details.push({ email: person.email, status: "uncertain", reason: uncertain });
+      await pauseAfterFailure(`onzeker of verstuurd: ${uncertain}`);
+      break;
+    }
+    const saved = await db
       .update(inviteSends)
       .set({ status: "sent", sentAt: new Date(), subject: composed.subject, body: composed.body, resendId })
-      .where(eq(inviteSends.id, send.id));
+      .where(eq(inviteSends.id, send.id))
+      .then(() => true)
+      .catch(() => false);
+    if (!saved) {
+      // Sent, but not written down: stays "sending", so it counts as sent.
+      result.sent++;
+      result.details.push({ email: person.email, status: "uncertain", reason: "verstuurd, opslaan mislukt" });
+      await pauseAfterFailure("verstuurd, maar opslaan mislukte");
+      break;
+    }
     result.sent++;
     result.details.push({ email: person.email, status: "sent", subject: composed.subject });
   }
@@ -610,7 +743,7 @@ export async function sendDueInvites(now: Date = new Date(), options: { dryRun?:
       sent: result.sent,
       skipped: result.skipped,
       failed: result.failed,
-      error: result.details.find((d) => d.status === "failed")?.reason ?? null,
+      error: result.details.find((d) => d.status === "failed" || d.status === "uncertain")?.reason ?? null,
       details: result.details.map(({ email, status, reason }) => ({ email, status, ...(reason ? { reason } : {}) })),
     });
   }

@@ -24,6 +24,7 @@ export type InviteRow = {
   booked: boolean;
   locale: string;
   postponed: boolean;
+  claimedAt: string | null;
 };
 
 export type InviteRunRow = {
@@ -60,6 +61,8 @@ export type InvitesDashboard = {
   plannedToday: number;
   waitingApprovalToday: number;
   queue: InviteRow[];
+  /** Claimed over five minutes ago and not settled: may have gone out. */
+  uncertain: InviteRow[];
   sent: InviteRow[];
   runs: InviteRunRow[];
   /** Due now and allowed to go out (approved, or queued when no approval). */
@@ -121,6 +124,7 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
       booked,
       locale: s.locale,
       postponed: Boolean(s.postponedAt),
+      claimedAt: s.claimedAt?.toISOString() ?? null,
     };
   };
 
@@ -221,6 +225,9 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
     plannedToday: queue.filter((s) => dayOf(new Date(s.scheduledFor)) === today).length,
     waitingApprovalToday: sends.filter((s) => s.status === "queued" && dayOf(s.scheduledFor) === today).length,
     queue,
+    uncertain: sends
+      .filter((s) => s.status === "sending" && s.claimedAt && now.getTime() - s.claimedAt.getTime() > 5 * 60 * 1000)
+      .map(toRow),
     sent,
     perEvent,
     people: peopleRows,

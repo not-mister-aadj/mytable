@@ -149,6 +149,22 @@ export async function saveInviteSettingsForm(formData: FormData): Promise<void> 
   done();
 }
 
+/** An uncertain mail, checked by an admin in Resend: it went out, or it did not. */
+export async function settleUncertainInvite(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const wasSent = formData.get("sent") === "1";
+  await getDb()
+    .update(inviteSends)
+    .set(
+      wasSent
+        ? { status: "sent", sentAt: sql`coalesce(${inviteSends.claimedAt}, now())` }
+        : { status: "skipped", skipReason: "niet verstuurd (gecontroleerd)" },
+    )
+    .where(and(eq(inviteSends.id, id), eq(inviteSends.status, "sending")));
+  done();
+}
+
 /** Manual: every mail waits for approval. Auto: mails go out on their own time. */
 export async function setInviteMode(mode: "manual" | "auto"): Promise<void> {
   await requireAdmin();

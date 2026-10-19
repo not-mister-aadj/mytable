@@ -6,7 +6,7 @@ import { adminPath, resolveHostname } from "@/lib/admin-url";
 import { getInvitesDashboard, type InviteRow } from "@/lib/admin/invites-data";
 import { InviteModeSwitch } from "@/components/admin/InviteModeSwitch";
 import { InviteQueue } from "@/components/admin/InviteQueue";
-import { approveToday, saveInviteSettingsForm, startInvites, togglePause } from "./actions";
+import { approveToday, saveInviteSettingsForm, settleUncertainInvite, startInvites, togglePause } from "./actions";
 
 type Props = { searchParams: Promise<{ tab?: string }> };
 
@@ -120,6 +120,37 @@ export default async function InvitesPage({ searchParams }: Props) {
           )}
         </div>
       </header>
+
+      {d.uncertain.length > 0 ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50/60 p-4 text-sm">
+          <p className="font-medium text-red-800">Onzeker of verstuurd</p>
+          <ul className="mt-2 space-y-2">
+            {d.uncertain.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3">
+                <span>
+                  <span className="font-medium text-wine">{r.name ?? r.email}</span>{" "}
+                  <span className="text-xs text-wine/55">
+                    {r.email} · {when(r.claimedAt)}
+                    {r.skipReason ? ` · ${r.skipReason}` : ""}
+                  </span>
+                </span>
+                <span className="flex gap-2">
+                  <form action={settleUncertainInvite}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <input type="hidden" name="sent" value="1" />
+                    <button className="rounded-full border border-border-subtle bg-cream px-3 py-1 text-xs text-wine">Verstuurd</button>
+                  </form>
+                  <form action={settleUncertainInvite}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <input type="hidden" name="sent" value="0" />
+                    <button className="rounded-full border border-border-subtle bg-cream px-3 py-1 text-xs text-wine">Niet verstuurd</button>
+                  </form>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <nav className="flex flex-wrap gap-1 border-b border-border-subtle text-sm">
         {TABS.map(([id, label]) => (

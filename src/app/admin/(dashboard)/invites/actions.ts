@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/index";
 import { emailLog, inviteClicks, inviteSends } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
+import { emailKind } from "@/lib/email/email-kind";
 import { planInvites } from "@/lib/invites/engine";
 import { amsterdamParts } from "@/lib/invites/logic";
 import { getInviteSettings, saveInviteSettings } from "@/lib/invites/settings";
@@ -79,9 +80,29 @@ export async function postponeInvites(ids: string[], days: number): Promise<numb
   return rows.length;
 }
 
-export type RecipientHistoryItem = { at: string; subject: string; status: string };
+export type RecipientHistoryItem = {
+  at: string;
+  /** "mail" was sent to them; "moment" is something they did (signup, ticket). */
+  type: "mail" | "moment";
+  kind: string;
+  subject: string;
+  status: string | null;
+};
 
-/** Every mail this address got (email_log), newest first, with what they did. */
+const MAIL_STATUS: Record<string, string> = {
+  delivered: "Afgeleverd",
+  opened: "Geopend",
+  clicked: "Geklikt",
+  bounced: "Bounce",
+  complained: "Spam",
+  suppressed: "Tegengehouden",
+};
+
+/**
+ * Everything this address got and did, newest first: every mail in
+ * email_log, the confirmations and intro mails the bookings recorded (also
+ * from before email_log began), and their signups and tickets.
+ */
 export async function getRecipientHistory(email: string): Promise<RecipientHistoryItem[]> {
   await requireAdmin();
   const db = getDb();
@@ -91,7 +112,7 @@ export async function getRecipientHistory(email: string): Promise<RecipientHisto
     .from(emailLog)
     .where(eq(emailLog.emailNormalized, key))
     .orderBy(desc(emailLog.sentAt))
-    .limit(30);
+    .limit(60);
   const sends = await db.select({ id: inviteSends.id, resendId: inviteSends.resendId }).from(inviteSends).where(eq(inviteSends.emailNormalized, key));
   const clicked = new Set(
     (sends.length
@@ -99,12 +120,62 @@ export async function getRecipientHistory(email: string): Promise<RecipientHisto
       : []
     ).map((c) => sends.find((x) => x.id === c.sendId)?.resendId),
   );
-  const label: Record<string, string> = { delivered: "Afgeleverd", opened: "Geopend", clicked: "Geklikt", bounced: "Bounce", complained: "Spam", suppressed: "Tegengehouden" };
-  return mails.map((m) => ({
+  const items: RecipientHistoryItem[] = mails.map((m) => ({
     at: m.at.toISOString(),
+    type: "mail",
+    kind: emailKind(m.subject),
     subject: m.subject,
-    status: m.resendId && clicked.has(m.resendId) ? "Geklikt" : label[m.lastEvent ?? ""] ?? "Verstuurd",
+    status: m.resendId && clicked.has(m.resendId) ? "Geklikt" : MAIL_STATUS[m.lastEvent ?? ""] ?? "Verstuurd",
   }));
+
+  const bookings = (await db.execute(sql`
+    select b.created_at, b.confirmation_email_sent_at, b.intro_request_sent_at, b.seats,
+      coalesce(e.name_nl, '') as event_name, e.city, e.starts_at
+    from bookings b join events e on e.id = b.event_id
+    where lower(b.email) = ${key} and b.payment_status = 'paid'
+  `)) as unknown as Array<{
+    created_at: string | Date;
+    confirmation_email_sent_at: string | Date | null;
+    intro_request_sent_at: string | Date | null;
+    seats: number;
+    event_name: string;
+    city: string;
+    starts_at: string | Date;
+  }>;
+  const day = (d: string | Date) =>
+    new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "short" }).format(new Date(d));
+  // A mail the booking recorded counts once: skip it when email_log has the same kind within ten minutes.
+  const logged = (kind: string, at: Date) =>
+    items.some((i) => i.type === "mail" && i.kind === kind && Math.abs(Date.parse(i.at) - at.getTime()) < 10 * 60 * 1000);
+  for (const b of bookings) {
+    const event = `${b.event_name || b.city} ${day(b.starts_at)}`;
+    items.push({
+      at: new Date(b.created_at).toISOString(),
+      type: "moment",
+      kind: "Ticket",
+      subject: `${b.seats > 1 ? `${b.seats} plekken` : "Plek"} gekocht · ${event} · ${b.city}`,
+      status: null,
+    });
+    if (b.confirmation_email_sent_at && !logged("Bevestiging", new Date(b.confirmation_email_sent_at))) {
+      items.push({ at: new Date(b.confirmation_email_sent_at).toISOString(), type: "mail", kind: "Bevestiging", subject: `Bevestiging · ${event}`, status: "Verstuurd" });
+    }
+    if (b.intro_request_sent_at) {
+      items.push({ at: new Date(b.intro_request_sent_at).toISOString(), type: "mail", kind: "Intro", subject: `Intro-verzoek · ${event}`, status: "Verstuurd" });
+    }
+  }
+
+  const signups = (await db.execute(sql`
+    select created_at, 'Aangemeld · wachtlijst · ' || city as subject from waitlist_signups where lower(email) = ${key}
+    union all
+    select n.created_at, 'Laat het me weten · ' || e.city from event_notify_signups n join events e on e.id = n.event_id where lower(n.email) = ${key}
+    union all
+    select created_at, 'Quiz begonnen' || coalesce(' · ' || (state->'answers'->>'city'), '') from jouw_tafel_guests where lower(email) = ${key}
+  `)) as unknown as Array<{ created_at: string | Date; subject: string }>;
+  for (const s of signups) {
+    items.push({ at: new Date(s.created_at).toISOString(), type: "moment", kind: "Aanmelding", subject: s.subject, status: null });
+  }
+
+  return items.sort((x, y) => y.at.localeCompare(x.at)).slice(0, 80);
 }
 
 /** Approves every mail planned for today (Amsterdam). */

@@ -319,16 +319,18 @@ export function InviteQueue({ rows, approval, now }: { rows: InviteRow[]; approv
             {history.items === null ? (
               <p className="mt-4 text-sm text-wine/50">Laden…</p>
             ) : history.items.length === 0 ? (
-              <p className="mt-4 text-sm text-wine/50">Nog geen mails</p>
+              <p className="mt-4 text-sm text-wine/50">Nog niets</p>
             ) : (
               <ul className="mt-4 space-y-2 text-sm">
                 {history.items.map((h, i) => (
                   <li key={i} className="flex items-start justify-between gap-3 border-b border-border-subtle/50 pb-2">
                     <span>
-                      <span className="block text-xs text-wine/50">{when(h.at)}</span>
-                      <span className="text-wine">{h.subject}</span>
+                      <span className="block text-xs text-wine/50">
+                        {when(h.at)} · {h.kind}
+                      </span>
+                      <span className={h.type === "moment" ? "text-wine/60" : "text-wine"}>{h.subject}</span>
                     </span>
-                    <span className="whitespace-nowrap rounded-full bg-cream px-2 py-0.5 text-xs text-wine/70">{h.status}</span>
+                    {h.status ? <span className="whitespace-nowrap rounded-full bg-cream px-2 py-0.5 text-xs text-wine/70">{h.status}</span> : null}
                   </li>
                 ))}
               </ul>

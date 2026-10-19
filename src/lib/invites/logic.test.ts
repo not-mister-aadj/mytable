@@ -5,6 +5,7 @@ import {
   dailyCap,
   engagement,
   inviteMail,
+  isTestAddress,
   nextAllowedAt,
   nextSlot,
   scarcityLine,
@@ -99,4 +100,13 @@ test("age groups: only left out when we know they don't fit", async () => {
   assert.equal(fitsBracket("20-39", { ageRange: "35_44", birthDate: new Date("1983-10-25T00:00:00Z") }, sunday), false);
   assert.equal(fitsBracket("20-39", { ageRange: "35_44", birthDate: new Date("1990-03-05T00:00:00Z") }, sunday), true);
   assert.equal(fitsBracket(null, { ageRange: "45_plus", birthDate: null }, sunday), true);
+});
+
+test("test signups are never invited", () => {
+  for (const e of ["testina-verify@example.com", "test-sophie-rot2@example.com", "siraaadj+test1@gmail.com", "a@b.invalid", "test1@gmail.com"]) {
+    assert.equal(isTestAddress(e), true, e);
+  }
+  for (const e of ["angeliqueraeven@gmail.com", "tessa@gmail.com", "testerman@hotmail.com", "anna@example-bakery.nl"]) {
+    assert.equal(isTestAddress(e), false, e);
+  }
 });

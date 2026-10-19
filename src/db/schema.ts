@@ -390,7 +390,10 @@ export const inviteSends = pgTable("invite_sends", {
   code: text("code").notNull().unique(),
   emailNormalized: text("email_normalized").notNull(),
   kind: text("kind").$type<"invite" | "nudge" | "checkin">().notNull(),
-  /** "sending" is the claim while one round sends it (drizzle/0048). */
+  /** "sending" is the claim while one round sends it (drizzle/0048). A
+   * "sending" row that stays is uncertain: it may have gone out, so it is
+   * never retried and blocks new mails until an admin settles it.
+   * At most one queued/approved/sending row per address (drizzle/0049). */
   status: text("status").$type<"queued" | "approved" | "sending" | "sent" | "skipped" | "failed">().notNull().default("queued"),
   scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull(),
   eventIds: text("event_ids").array().notNull().default([]),
@@ -404,6 +407,7 @@ export const inviteSends = pgTable("invite_sends", {
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   /** Last time an admin moved it to later ("Later"). */
   postponedAt: timestamp("postponed_at", { withTimezone: true }),
+  claimedAt: timestamp("claimed_at", { withTimezone: true }),
   sentAt: timestamp("sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

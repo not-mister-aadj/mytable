@@ -76,9 +76,9 @@ const selectClass =
   "rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40";
 
 /** Every email MyTable sent, with search, filters and the mail as it was sent. */
-export function EmailLogView({ rows }: { rows: EmailLogListRow[] }) {
+export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogListRow[]; initialKind?: string }) {
   const [search, setSearch] = useState("");
-  const [kind, setKind] = useState("all");
+  const [kind, setKind] = useState(initialKind);
   const [sender, setSender] = useState("all");
   const [status, setStatus] = useState("all");
   const [fromDate, setFromDate] = useState("");

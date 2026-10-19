@@ -34,7 +34,15 @@ import { getSettingsCopy, type SettingsCopy } from "@/lib/jouw-tafel/settings-co
 import { trackLanguageChanged, trackMembershipEvent, trackSettingsEvent } from "@/lib/posthog/analytics";
 import { getMembershipSettingsCopy } from "@/lib/membership/page-copy";
 import { planName } from "@/lib/membership/mail-copy";
-import { MEMBERSHIP_OPEN, formatPlanEuros, lowestMonthlyCents, type MembershipPlanId } from "@/lib/membership/plans";
+import {
+  MEMBERSHIP_AT_BOOKING,
+  MEMBERSHIP_AT_BOOKING_PLAN,
+  MEMBERSHIP_OPEN,
+  formatPlanEuros,
+  getMembershipPlan,
+  lowestMonthlyCents,
+  type MembershipPlanId,
+} from "@/lib/membership/plans";
 import { jouwTafelMembershipPath } from "@/i18n/config";
 import { PostHogEvents } from "@/lib/posthog/events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -72,6 +80,8 @@ const AMSTERDAM = "Europe/Amsterdam";
 const SAVE_URL = "/api/auth/member/quiz";
 
 type IntroField = "askMeAbout" | "favoriteSpot" | "intoNow";
+export type SettingsTab = "reserveringen" | "voorkeuren" | "account";
+const TABS: SettingsTab[] = ["reserveringen", "voorkeuren", "account"];
 export type SettingsIntro = Record<IntroField, string>;
 
 type Sheet =
@@ -304,6 +314,8 @@ export function JouwTafelSettings({
   membership = null,
   bookedNotice = false,
   intro: initialIntro = { askMeAbout: "", favoriteSpot: "", intoNow: "" },
+  memberNotice = false,
+  initialTab = "reserveringen",
 }: {
   locale: Locale;
   userId: string;
@@ -319,6 +331,9 @@ export function JouwTafelSettings({
   bookedNotice?: boolean;
   /** The open seating answers ("Aan tafel"), saved on the person. */
   intro?: SettingsIntro;
+  /** Back from "Lid worden" in Stripe: "Je bent lid". */
+  memberNotice?: boolean;
+  initialTab?: SettingsTab;
 }) {
   const s = getSettingsCopy(locale);
   const ms = getMembershipSettingsCopy(locale);
@@ -329,7 +344,8 @@ export function JouwTafelSettings({
   const [quiz, setQuiz] = useState<QuizState>(initialState);
   const quizRef = useRef(quiz);
   const [sheet, setSheet] = useState<Sheet | null>(null);
-  const [toast, setToast] = useState<string | null>(bookedNotice ? ms.bookedToast : null);
+  const [toast, setToast] = useState<string | null>(bookedNotice ? ms.bookedToast : memberNotice ? ms.welcomeToast : null);
+  const [tab, setTab] = useState<SettingsTab>(initialTab);
   async function copyEmail() {
     const ok = await copyText(companyLegal.email);
     setToast(ok ? s.emailCopied : s.emailCopyFailed(companyLegal.email));
@@ -633,7 +649,26 @@ export function JouwTafelSettings({
           <p className="mt-1 truncate text-[0.92rem] text-wine/55">{email}</p>
         </div>
 
-        {membership || MEMBERSHIP_OPEN ? (
+        <div role="tablist" aria-label={s.title} className="mt-6 grid grid-cols-3 rounded-full bg-wine/[0.05] p-1">
+          {TABS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className={`min-h-10 rounded-full px-2 text-[0.85rem] font-semibold transition ${
+                tab === id ? "bg-white text-burgundy shadow-[0_2px_8px_rgba(43,13,18,0.1)]" : "text-wine/55"
+              }`}
+            >
+              {s.tabs[id]}
+            </button>
+          ))}
+        </div>
+
+        {tab === "reserveringen" ? (
+        <>
+        {membership || MEMBERSHIP_OPEN || MEMBERSHIP_AT_BOOKING ? (
         <Group title={ms.group} note={membership ? ms.note : undefined}>
           {membership ? (
             <>
@@ -660,12 +695,14 @@ export function JouwTafelSettings({
               </li>
               <ButtonRow label={portalBusy ? ms.portalBusy : ms.portal} onClick={() => void openPortal()} />
             </>
-          ) : (
+          ) : MEMBERSHIP_OPEN ? (
             <LinkRow
               label={ms.join}
               value={ms.joinValue(`€${formatPlanEuros(lowestMonthlyCents(), locale)}`)}
               href={jouwTafelMembershipPath(locale)}
             />
+          ) : (
+            <JoinMembership locale={locale} />
           )}
         </Group>
         ) : null}
@@ -699,6 +736,11 @@ export function JouwTafelSettings({
           ) : null}
         </Group>
 
+        </>
+        ) : null}
+
+        {tab === "voorkeuren" ? (
+        <>
         <Group title={s.groups.tafel}>{groupRows(SETTINGS_GROUPS.tafel)}</Group>
         <Group title={s.groups.zondag}>{groupRows(SETTINGS_GROUPS.zondag)}</Group>
         <Group title={s.groups.aanTafel} note={s.intro.note}>
@@ -716,6 +758,12 @@ export function JouwTafelSettings({
           </li>
         </Group>
 
+        <Group title={s.groups.binnenkort}>{groupRows(SETTINGS_GROUPS.binnenkort)}</Group>
+        </>
+        ) : null}
+
+        {tab === "account" ? (
+        <>
         <Group
           title={s.groups.account}
           note={
@@ -787,8 +835,6 @@ export function JouwTafelSettings({
           </li>
         </Group>
 
-        <Group title={s.groups.binnenkort}>{groupRows(SETTINGS_GROUPS.binnenkort)}</Group>
-
         <Group title={s.groups.help}>
           <LinkRow label={s.help.faq} href={`${jouwTafelPath(locale)}#faq`} />
           <ButtonRow label={s.help.contact} value={companyLegal.email} onClick={() => void copyEmail()} />
@@ -817,6 +863,8 @@ export function JouwTafelSettings({
             </button>
           </div>
         </div>
+        </>
+        ) : null}
       </main>
 
       {sheet?.kind === "question" ? (
@@ -1088,6 +1136,58 @@ function IntroRows({ locale, initial, onToast }: { locale: Locale; initial: Sett
               {s.save}
             </button>
           </form>
+        </BottomSheet>
+      ) : null}
+    </>
+  );
+}
+
+/** "Word lid" for someone who is not a member: the "Elke zondag" plan, paid in Stripe, back here after. */
+function JoinMembership({ locale }: { locale: Locale }) {
+  const ms = getMembershipSettingsCopy(locale);
+  const s = getSettingsCopy(locale);
+  const price = `€${formatPlanEuros(getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents, locale)}`;
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function start() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/membership/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: MEMBERSHIP_AT_BOOKING_PLAN, locale, source: "settings" }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (res.ok && data.url) {
+        trackMembershipEvent(PostHogEvents.membershipCheckoutStarted, { plan: MEMBERSHIP_AT_BOOKING_PLAN, source: "settings", locale });
+        window.location.href = data.url;
+        return;
+      }
+      setError(data.error ?? ms.joinFailed);
+    } catch {
+      setError(ms.joinFailed);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <>
+      <ButtonRow label={ms.join} value={ms.joinPlanValue(price)} onClick={() => setOpen(true)} />
+      {open ? (
+        <BottomSheet labelledBy="jt-settings-join" title={ms.joinTitle} closeLabel={s.close} onClose={() => setOpen(false)} tone="cream">
+          <p className="mt-3 text-[0.95rem] leading-relaxed text-wine/75">{ms.joinBody}</p>
+          <p className="mt-4 font-serif text-[1.6rem] text-burgundy">{ms.joinPrice(price)}</p>
+          {error ? (
+            <p role="alert" className="mt-3 text-[0.9rem] font-semibold text-red-700">
+              {error}
+            </p>
+          ) : null}
+          <button type="button" onClick={() => void start()} disabled={busy} className={`${primaryButton} mt-5`}>
+            {busy ? ms.joinBusy : ms.joinCta}
+          </button>
         </BottomSheet>
       ) : null}
     </>

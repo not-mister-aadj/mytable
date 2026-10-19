@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 import { getDb } from "@/db/index";
 import { bookingEvents, bookings, events, type Event } from "@/db/schema";
-import { jouwTafelKiesPath, jouwTafelMembershipPath, termsPath, type Locale } from "@/i18n/config";
+import { jouwTafelKiesPath, jouwTafelSettingsPath, jouwTafelMembershipPath, termsPath, type Locale } from "@/i18n/config";
 import { metaContextToStripeMetadata, type MetaTrackingContext } from "@/lib/analytics/metaApiContext";
 import { onBookingCreated } from "@/lib/customers/hooks";
 import { getSiteUrl } from "@/lib/env";
@@ -16,7 +16,8 @@ import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stri
 import { isJouwTafelType, isSharedTableType } from "@/lib/event-concepts";
 import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 
-export type MembershipCheckoutSource = "page" | "kies" | "offer" | "booking";
+/** "settings": "Word lid" on the settings page, without a Sunday chosen yet. */
+export type MembershipCheckoutSource = "page" | "kies" | "offer" | "booking" | "settings";
 
 export type MembershipCheckoutInput = {
   user: { id: string; email: string };
@@ -172,6 +173,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
   // "Elke zondag" in the booking card: the same confirmation page as a
   // single seat, for the booking this Checkout pays for.
   const fromBooking = input.source === "booking" && pendingBookingId;
+  const settingsPage = `${site}${jouwTafelSettingsPath(input.locale)}`;
   const back = input.returnPath && input.returnPath.startsWith("/") && !input.returnPath.startsWith("//") ? input.returnPath : null;
   try {
     const session = await stripe.checkout.sessions.create({
@@ -197,12 +199,18 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
       },
       success_url: fromBooking
         ? `${site}/${input.locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}&lid={CHECKOUT_SESSION_ID}`
-        : confirmed ? `${confirmed}&lid={CHECKOUT_SESSION_ID}` : `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,
+        : confirmed
+          ? `${confirmed}&lid={CHECKOUT_SESSION_ID}`
+          : input.source === "settings"
+            ? `${settingsPage}?lid={CHECKOUT_SESSION_ID}`
+            : `${site}${page}?welkom=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: fromBooking && back
         ? `${site}${back}`
         : confirmed
           ? confirmed
-          : input.source === "kies" ? `${site}${jouwTafelKiesPath(input.locale)}` : `${site}${page}?plan=${input.plan}`,
+          : input.source === "settings"
+            ? settingsPage
+            : input.source === "kies" ? `${site}${jouwTafelKiesPath(input.locale)}` : `${site}${page}?plan=${input.plan}`,
     });
     if (pendingBookingId) {
       await db.update(bookings).set({ stripeCheckoutSessionId: session.id }).where(eq(bookings.id, pendingBookingId));

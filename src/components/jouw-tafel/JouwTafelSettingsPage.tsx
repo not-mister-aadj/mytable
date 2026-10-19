@@ -14,6 +14,7 @@ import {
 import type { JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 import { getSettingsCopy } from "@/lib/jouw-tafel/settings-copy";
 import { getMembershipForUser, settingsMembership } from "@/lib/membership/data";
+import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
 import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
 import { loadCustomerIntro } from "@/lib/sunday-table-intro";
 
@@ -46,6 +47,13 @@ export async function JouwTafelSettingsPage({
   // when the webhook is slower than the browser.
   const sessionId = Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id;
   const bookedNotice = searchParams.geboekt === "1";
+  // Back from "Lid worden" in Stripe: make sure the membership is there even
+  // when the webhook is slower than the browser.
+  const lidSession = Array.isArray(searchParams.lid) ? searchParams.lid[0] : searchParams.lid;
+  const memberNotice = Boolean(lidSession?.startsWith("cs_"));
+  if (memberNotice && lidSession) await tryFulfillMembershipSession(lidSession).catch(() => null);
+  const tabRaw = Array.isArray(searchParams.tab) ? searchParams.tab[0] : searchParams.tab;
+  const initialTab = tabRaw === "voorkeuren" || tabRaw === "account" ? tabRaw : "reserveringen";
   if (bookedNotice && sessionId?.startsWith("cs_")) {
     await tryFulfillCheckoutSessionSafe(sessionId, { deferEmail: true, deferSideEffects: true });
   }
@@ -84,6 +92,8 @@ export async function JouwTafelSettingsPage({
       membership={membership}
       bookedNotice={bookedNotice}
       intro={intro}
+      memberNotice={memberNotice}
+      initialTab={initialTab}
     />
   );
 }

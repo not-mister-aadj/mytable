@@ -43,6 +43,7 @@ export type SettingsCopy = {
       questions: string;
     };
   };
+  tabs: { reserveringen: string; voorkeuren: string; account: string };
   groups: { tafel: string; zondag: string; aanTafel: string; binnenkort: string; notifications: string; account: string; help: string };
   /** "Aan tafel": the seating questions, kept for every next Sunday. */
   intro: {
@@ -138,6 +139,7 @@ const nl: SettingsCopy = {
       questions: "Vragen over je reservering? Stuur ons een berichtje.",
     },
   },
+  tabs: { reserveringen: "Reserveringen", voorkeuren: "Voorkeuren", account: "Account" },
   groups: {
     tafel: "Jouw tafel",
     zondag: "Jouw zondag",
@@ -243,6 +245,7 @@ const en: SettingsCopy = {
       questions: "Questions about your booking? Send us a message.",
     },
   },
+  tabs: { reserveringen: "Reservations", voorkeuren: "Preferences", account: "Account" },
   groups: {
     tafel: "Your table",
     zondag: "Your Sunday",

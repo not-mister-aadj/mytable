@@ -5,6 +5,7 @@ import {
   dailyCap,
   engagement,
   inviteMail,
+  inviteWhy,
   isTestAddress,
   nextAllowedAt,
   nextSlot,
@@ -111,4 +112,18 @@ test("test signups are never invited", () => {
   for (const e of ["angeliqueraeven@gmail.com", "tessa@gmail.com", "testerman@hotmail.com", "anna@example-bakery.nl"]) {
     assert.equal(isTestAddress(e), false, e);
   }
+});
+
+test("the invite opens with what they look for, and reassures solo guests", () => {
+  const event = { city: "Rotterdam", startsAt: "2026-11-01T13:00:00Z", priceCents: 1000, scarcity: "Nog 8 plekken", url: "https://x/r/a1" };
+  const base = { name: "Masé", cities: ["Rotterdam"], events: [event], member: false, manageUrl: "https://x/m", locale: "nl" as const };
+  const cosy = inviteMail({ ...base, why: "cosy", solo: true }).body;
+  assert.match(cosy, /Je zocht gezellige tafels in Rotterdam\. Er staat een tafel voor je klaar:/);
+  assert.match(cosy, /Veel mensen schuiven alleen aan, net als jij\./);
+  const plain = inviteMail(base).body;
+  assert.match(plain, /Je volgt Rotterdam, dus je hoort het als eerste/);
+  assert.doesNotMatch(plain, /alleen aan/);
+  assert.equal(inviteWhy(["other", "discover_wines"]), "wines");
+  assert.equal(inviteWhy("just_fun"), "cosy");
+  assert.equal(inviteWhy(null), null);
 });

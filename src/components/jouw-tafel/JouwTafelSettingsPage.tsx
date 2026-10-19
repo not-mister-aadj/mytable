@@ -15,6 +15,7 @@ import type { JouwTafelSearchParams } from "@/lib/jouw-tafel/request-city";
 import { getSettingsCopy } from "@/lib/jouw-tafel/settings-copy";
 import { getMembershipForUser, settingsMembership } from "@/lib/membership/data";
 import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
+import { loadCustomerIntro } from "@/lib/sunday-table-intro";
 
 export function jouwTafelSettingsMetadata(locale: Locale): Metadata {
   return { title: getSettingsCopy(locale).metaTitle, robots: NO_INDEX };
@@ -49,14 +50,23 @@ export async function JouwTafelSettingsPage({
     await tryFulfillCheckoutSessionSafe(sessionId, { deferEmail: true, deferSideEffects: true });
   }
 
-  const [bookings, mailsOn, membershipRow] = await Promise.all([
+  const [bookings, mailsOn, membershipRow, savedIntro] = await Promise.all([
     getMemberBookings(user.email).catch((error: unknown) => {
       console.error("[jouw-tafel settings] loading bookings failed:", error);
       return { upcoming: [], past: [] };
     }),
     getTableMailsOn(user.email).catch(() => true),
     getMembershipForUser(user.id).catch(() => null),
+    loadCustomerIntro(user.email).catch(() => null),
   ]);
+  // One answer for wine and conversation: the seating answers fill the quiz's when it has none.
+  if (savedIntro?.conversationStyle && !state.answers.conversation) state.answers.conversation = savedIntro.conversationStyle;
+  if (savedIntro?.wine && !state.answers.wine) state.answers.wine = savedIntro.wine;
+  const intro = {
+    askMeAbout: savedIntro?.askMeAbout ?? "",
+    favoriteSpot: savedIntro?.favoriteSpot ?? "",
+    intoNow: savedIntro?.intoNow ?? "",
+  };
 
   const membership = settingsMembership(membershipRow);
 
@@ -73,6 +83,7 @@ export async function JouwTafelSettingsPage({
       terug={terug}
       membership={membership}
       bookedNotice={bookedNotice}
+      intro={intro}
     />
   );
 }

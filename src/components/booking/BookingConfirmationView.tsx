@@ -23,6 +23,8 @@ type Props = {
   initialSummary: BookingOutcomeSummary | null;
   /** "Meet your table" answers already saved for this booking, if any. */
   savedIntro?: SundayTableIntro | null;
+  /** Answered before: the intro form first offers to keep those answers. */
+  introReusable?: boolean;
   /** The site header and footer, left out while the offer shows. */
   header?: React.ReactNode;
   footer?: React.ReactNode;
@@ -44,6 +46,7 @@ export function BookingConfirmationView({
   locale,
   initialSummary,
   savedIntro = null,
+  introReusable = false,
   header = null,
   footer = null,
   offer = null,
@@ -145,6 +148,7 @@ export function BookingConfirmationView({
                 bookingCode={summary.reservationCode}
                 seats={summary.seats}
                 initial={savedIntro}
+                reusable={introReusable}
               />
             ) : null}
           </>

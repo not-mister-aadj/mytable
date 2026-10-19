@@ -43,7 +43,17 @@ export type SettingsCopy = {
       questions: string;
     };
   };
-  groups: { tafel: string; zondag: string; binnenkort: string; notifications: string; account: string; help: string };
+  groups: { tafel: string; zondag: string; aanTafel: string; binnenkort: string; notifications: string; account: string; help: string };
+  /** "Aan tafel": the seating questions, kept for every next Sunday. */
+  intro: {
+    note: string;
+    askMeAbout: string;
+    askMeAboutPlaceholder: string;
+    favoriteSpot: string;
+    favoriteSpotPlaceholder: string;
+    intoNow: string;
+    intoNowPlaceholder: string;
+  };
   rows: {
     stad: string;
     leeftijd: string;
@@ -131,6 +141,7 @@ const nl: SettingsCopy = {
   groups: {
     tafel: "Jouw tafel",
     zondag: "Jouw zondag",
+    aanTafel: "Aan tafel",
     binnenkort: "Binnenkort bij MyTable",
     notifications: "Meldingen",
     account: "Account",
@@ -149,6 +160,15 @@ const nl: SettingsCopy = {
     gesprek: "Gesprek",
     dieet: "Dieetwensen",
     formats: "Formats",
+  },
+  intro: {
+    note: "Je tafelgenoten zien dit. We gebruiken het bij elke volgende zondag.",
+    askMeAbout: "Vraag me over",
+    askMeAboutPlaceholder: "bijv. mijn reis naar Japan",
+    favoriteSpot: "Favoriete plek",
+    favoriteSpotPlaceholder: "bijv. een café, restaurant of park",
+    intoNow: "Waar ik nu into ben",
+    intoNowPlaceholder: "bijv. padel, een serie, Spaans leren",
   },
   notifications: {
     label: "Mail me over nieuwe tafels in mijn steden",
@@ -226,6 +246,7 @@ const en: SettingsCopy = {
   groups: {
     tafel: "Your table",
     zondag: "Your Sunday",
+    aanTafel: "At the table",
     binnenkort: "Coming soon at MyTable",
     notifications: "Notifications",
     account: "Account",
@@ -244,6 +265,15 @@ const en: SettingsCopy = {
     gesprek: "Conversation",
     dieet: "Dietary wishes",
     formats: "Formats",
+  },
+  intro: {
+    note: "Your table sees this. We use it for every next Sunday.",
+    askMeAbout: "Ask me about",
+    askMeAboutPlaceholder: "e.g. my trip to Japan",
+    favoriteSpot: "Favourite spot",
+    favoriteSpotPlaceholder: "e.g. a café, restaurant or park",
+    intoNow: "What I'm into right now",
+    intoNowPlaceholder: "e.g. padel, a series, learning Spanish",
   },
   notifications: {
     label: "Email me about new tables in my cities",

@@ -18,6 +18,7 @@ import {
   shouldSendQuizLead,
 } from "@/lib/jouw-tafel/quiz-logic";
 import { removeQuizWaitlistCities, upsertQuizWaitlist } from "@/lib/jouw-tafel/quiz-server";
+import { savePersonIntro } from "@/lib/sunday-table-intro";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -112,6 +113,17 @@ export async function POST(request: Request) {
       console.error("[jouw-tafel quiz] saving metadata failed:", metaError.message);
       return NextResponse.json({ error: "Could not save" }, { status: 500 });
     }
+  }
+
+  // Wine and conversation are one answer with "Aan tafel" (the seating
+  // questions): a change here goes there too.
+  const conversation = state.answers.conversation;
+  const wine = state.answers.wine && state.answers.wine !== "none" ? state.answers.wine : undefined;
+  if ((conversation && conversation !== before.answers.conversation) || (wine && wine !== before.answers.wine)) {
+    await savePersonIntro(person.email, {
+      ...(conversation && conversation !== before.answers.conversation ? { conversationStyle: conversation } : {}),
+      ...(wine && wine !== before.answers.wine ? { wine } : {}),
+    }).catch((error: unknown) => console.error("[jouw-tafel quiz] syncing table answers failed:", error));
   }
 
   let waitlist: { created: boolean } | null = null;

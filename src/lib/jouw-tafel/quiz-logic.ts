@@ -716,7 +716,9 @@ export function kiesCities(
 export const SETTINGS_GROUPS = {
   // Gender is shown under Account, locked: it is answered once in the quiz.
   tafel: ["stad", "leeftijd", "tafeltype", "taal", "gezelschap", "wie"],
-  zondag: ["zoekt", "wijn", "gesprek"],
+  zondag: ["zoekt"],
+  // Wine and conversation sit with the seating answers under "Aan tafel".
+  aanTafel: ["gesprek", "wijn"],
   binnenkort: ["formats"],
 } as const satisfies Record<string, readonly QuizStepId[]>;
 

@@ -9,7 +9,7 @@ import { captureClientSafeError } from "@/lib/membership/errors";
 import { isEmailFrozen } from "@/lib/customers/freeze";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import { isStripeConfigured } from "@/lib/stripe";
-import { MEMBERSHIP_OPEN } from "@/lib/membership/plans";
+import { MEMBERSHIP_AT_BOOKING, MEMBERSHIP_AT_BOOKING_PLAN, MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 
 const ERRORS = {
   nl: {
@@ -33,8 +33,16 @@ const ERRORS = {
  * 401 when signed out (the page then goes through sign up and back).
  */
 export async function POST(request: Request) {
+  let body: Record<string, unknown>;
+  try {
+    body = (await request.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  // "Word lid" on the settings page sells the same plan as "Elke zondag" in the booking card.
+  const fromSettings = body.source === "settings";
   // No new memberships while it is not offered.
-  if (!MEMBERSHIP_OPEN) {
+  if (!MEMBERSHIP_OPEN && !(fromSettings && MEMBERSHIP_AT_BOOKING)) {
     return NextResponse.json({ error: "Membership is not offered" }, { status: 404 });
   }
   if (!isDbConfigured() || !isStripeConfigured()) {
@@ -43,19 +51,14 @@ export async function POST(request: Request) {
   const user = await getMemberUser();
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Record<string, unknown>;
-  try {
-    body = (await request.json()) as Record<string, unknown>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
   const locale = body.locale === "en" ? "en" : "nl";
   // An account on hold (a disputed payment) cannot become a member either.
   if (await isEmailFrozen(user.email)) {
     return NextResponse.json({ error: frozenMessage(locale), code: FROZEN_ERROR_CODE }, { status: 403 });
   }
+  if (fromSettings) body.plan = MEMBERSHIP_AT_BOOKING_PLAN;
   if (!isMembershipPlanId(body.plan)) return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-  const source = body.source === "kies" ? "kies" : "page";
+  const source = fromSettings ? "settings" : body.source === "kies" ? "kies" : "page";
 
   const rawTable = body.table && typeof body.table === "object" ? (body.table as Record<string, unknown>) : null;
   const table =

@@ -440,6 +440,15 @@ export type MembershipSettingsCopy = {
   cancelSeatFailed: string;
   bookedToast: string;
   deleteMember: string;
+  /** "Word lid" from the settings page: the "Elke zondag" plan. */
+  joinPlanValue: (price: string) => string;
+  joinTitle: string;
+  joinBody: string;
+  joinPrice: (price: string) => string;
+  joinCta: string;
+  joinBusy: string;
+  joinFailed: string;
+  welcomeToast: string;
 };
 
 export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCopy {
@@ -474,6 +483,14 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
       cancelSeatFailed: "That did not work. Please try again.",
       bookedToast: "Your seat is booked.",
       deleteMember: "Your membership ends straight away and nothing is charged after that.",
+      joinPlanValue: (price) => `Every Sunday · ${price} per month`,
+      joinTitle: "Every Sunday",
+      joinBody: "Every Sunday Social in every city. You book them yourself here in your account. Cancel monthly.",
+      joinPrice: (price) => `${price} per month`,
+      joinCta: "Become a member",
+      joinBusy: "Opening",
+      joinFailed: "That did not work. Please try again.",
+      welcomeToast: "You're a member. Welcome!",
     };
   }
   return {
@@ -505,6 +522,14 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
     cancelSeatFailed: "Dat lukte niet. Probeer het nog een keer.",
     bookedToast: "Je plek staat vast.",
     deleteMember: "Je lidmaatschap stopt dan meteen en we schrijven daarna niets meer af.",
+    joinPlanValue: (price) => `Elke zondag · ${price} per maand`,
+    joinTitle: "Elke zondag",
+    joinBody: "Elke Sunday Social in alle steden. Die boek je zelf hier in je account. Maandelijks opzegbaar.",
+    joinPrice: (price) => `${price} per maand`,
+    joinCta: "Lid worden",
+    joinBusy: "Openen",
+    joinFailed: "Dat lukte niet. Probeer het nog een keer.",
+    welcomeToast: "Je bent lid. Welkom!",
   };
 }
 

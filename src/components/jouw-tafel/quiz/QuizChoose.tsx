@@ -66,7 +66,6 @@ const LADIES_PHOTOS = ["/girls-only/table-group.jpg", "/girls-only/laughing-bar.
 const CARD_COPY = {
   nl: {
     wineBarIn: (city: string) => `Een wijnbar in ${city}`,
-    age: "Ingedeeld op leeftijd",
     reserveShort: "Reserveer",
     next: "Eerstvolgende",
     shortPeople: "4 tot 6 nieuwe mensen",
@@ -75,7 +74,6 @@ const CARD_COPY = {
   },
   en: {
     wineBarIn: (city: string) => `A wine bar in ${city}`,
-    age: "Seated by age",
     reserveShort: "Reserve",
     next: "Next up",
     shortPeople: "4 to 6 new people",
@@ -563,7 +561,7 @@ export function QuizChoose({
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
         {featuredRow ? (
           <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[0.85rem] text-wine/70">
-            {[cardCopy.shortPeople, cardCopy.age, cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))].map((line) => (
+            {[cardCopy.shortPeople, cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))].map((line) => (
               <li key={line} className="flex items-center gap-1.5">
                 <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-700" />
                 {line}

@@ -224,10 +224,15 @@ export async function loadInviteEvents(now: Date = new Date()): Promise<InviteEv
     select e.id, e.city, e.starts_at, e.capacity, e.price_cents, e.extras, e.experience_type, e.name_nl,
       (select coalesce(sum(b.seats), 0) from bookings b
         where b.event_id = e.id and b.payment_status = 'paid' and b.lifecycle_status in ('active', 'transferred'))::int as sold,
-      (select p.capacity <= (select coalesce(sum(b2.seats), 0) from bookings b2
-         where b2.event_id = p.id and b2.payment_status = 'paid' and b2.lifecycle_status in ('active', 'transferred'))
-        from events p where p.city = e.city and p.workflow_status = 'published' and p.starts_at < now()
-          and p.experience_type in ('jouw-tafel', 'sunday-table')
+      -- The latest edition before this one in the city that was held, or is
+      -- already sold out while still to come: was it full?
+      (select p.sold >= p.capacity from (
+          select p.starts_at, p.capacity, (select coalesce(sum(b2.seats), 0) from bookings b2
+            where b2.event_id = p.id and b2.payment_status = 'paid' and b2.lifecycle_status in ('active', 'transferred')) as sold
+          from events p where p.city = e.city and p.id <> e.id and p.workflow_status = 'published'
+            and p.experience_type in ('jouw-tafel', 'sunday-table') and p.starts_at < e.starts_at
+        ) p
+        where p.starts_at < now() or p.sold >= p.capacity
         order by p.starts_at desc limit 1) as last_sold_out
     from events e
     where e.workflow_status = 'published' and e.experience_type in ('jouw-tafel', 'sunday-table')

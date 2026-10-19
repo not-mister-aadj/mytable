@@ -14,6 +14,19 @@ import type { FunnelStep } from "@/lib/posthog/admin-stats";
 
 const SUNDAYS = `('${SUNDAY_SOCIAL_TYPE}', '${JOUW_TAFEL_TYPE}')`;
 const PAID = `b.payment_status = 'paid' and b.lifecycle_status in ('active', 'transferred')`;
+/** Everyone who signed up anywhere, one row per email, city and moment (test addresses left out). */
+const PEOPLE = String.raw`(
+  select email, city, at from (
+    select lower(email) as email, city, created_at as at from waitlist_signups
+    union all select lower(b.email), e.city, b.created_at from bookings b join events e on e.id = b.event_id where b.payment_status = 'paid'
+    union all select lower(n.email), e.city, n.created_at from event_notify_signups n join events e on e.id = n.event_id
+    union all select lower(email), state->'answers'->>'city', created_at from jouw_tafel_guests where email is not null
+    union all select lower(email), coalesce(raw_user_meta_data->>'city', raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'city'), created_at
+      from auth.users where email is not null
+  ) s
+  where email !~ '@example\.(com|org|net)$' and email !~ '\.(invalid|test|example|localhost)$'
+    and split_part(email, '@', 1) !~ '(\+test|^test[-._+0-9])'
+)`;
 /** Unit economics and cohorts start with the Sunday Socials (August 2026);
  * the June and July tastings were a different product at €49. */
 const SINCE = "2026-08-01";
@@ -221,13 +234,14 @@ export async function getBoardData(month: string): Promise<BoardData> {
     return r ? ratio(r.repeaters, r.total) : null;
   };
 
-  // ---- waitlist
+  // ---- everyone who signed up anywhere, counted from their first signup
   const [wl] = await q<{ total: number; new_month: number; new_prev: number }>(sql`
-    select count(distinct lower(email))::int as total,
-           count(distinct lower(email)) filter (where created_at >= ${monthStart}::date and created_at < ${nextStart}::date)::int as new_month,
-           count(distinct lower(email)) filter (where created_at >= ${prevStart}::date and created_at < least(${monthStart}::date,
+    with firsts as (select email, min(at) as created_at from ${sql.raw(PEOPLE)} p group by 1)
+    select count(*)::int as total,
+           count(*) filter (where created_at >= ${monthStart}::date and created_at < ${nextStart}::date)::int as new_month,
+           count(*) filter (where created_at >= ${prevStart}::date and created_at < least(${monthStart}::date,
              ${prevStart}::date + (now() - ${monthStart}::date)))::int as new_prev
-    from waitlist_signups where created_at < ${nextStart}::date`);
+    from firsts where created_at < ${nextStart}::date`);
 
   // ---- ad spend (by spend date) vs tickets booked (by booking date)
   const spendRows = await q<{ month: string; spend: number }>(sql`
@@ -349,7 +363,7 @@ export async function getBoardData(month: string): Promise<BoardData> {
       (select coalesce(sum(capacity), 0) from events e where e.city = ci.city and e.workflow_status = 'published' and e.experience_type in ${sql.raw(SUNDAYS)} and e.starts_at < now())::int as held_capacity,
       (select coalesce(sum(b.seats), 0) from bookings b join events e on e.id = b.event_id where e.city = ci.city and e.experience_type in ${sql.raw(SUNDAYS)} and ${sql.raw(PAID)})::int as seats,
       (select coalesce(sum(b.amount_cents), 0) from bookings b join events e on e.id = b.event_id where e.city = ci.city and e.experience_type in ${sql.raw(SUNDAYS)} and ${sql.raw(PAID)})::int as revenue,
-      (select count(distinct lower(w.email)) from waitlist_signups w where lower(w.city) = lower(ci.city))::int as waitlist,
+      (select count(distinct p.email) from ${sql.raw(PEOPLE)} p where lower(p.city) = lower(ci.city))::int as waitlist,
       n.starts_at as next_at, n.spots_sold as next_sold, n.capacity as next_capacity
     from cities ci
     left join lateral (select starts_at, spots_sold, capacity from events e where e.city = ci.city and e.workflow_status = 'published'

@@ -375,6 +375,43 @@ export const membershipPayments = pgTable("membership_payments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Automatic invites (drizzle/0047): who follows which cities how often, 
+ * every planned or sent invite, and the clicks on their links. */
+export const inviteSubscribers = pgTable("invite_subscribers", {
+  emailNormalized: text("email_normalized").primaryKey(),
+  token: text("token").notNull().unique(),
+  cityPrefs: jsonb("city_prefs").$type<Record<string, "all" | "less" | "none">>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const inviteSends = pgTable("invite_sends", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  emailNormalized: text("email_normalized").notNull(),
+  kind: text("kind").$type<"invite" | "nudge" | "checkin">().notNull(),
+  status: text("status").$type<"queued" | "approved" | "sent" | "skipped" | "failed">().notNull().default("queued"),
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull(),
+  eventIds: text("event_ids").array().notNull().default([]),
+  cities: text("cities").array().notNull().default([]),
+  isMember: boolean("is_member").notNull().default(false),
+  locale: text("locale").notNull().default("nl"),
+  subject: text("subject"),
+  body: text("body"),
+  skipReason: text("skip_reason"),
+  resendId: text("resend_id"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const inviteClicks = pgTable("invite_clicks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sendId: uuid("send_id").notNull().references(() => inviteSends.id, { onDelete: "cascade" }),
+  eventId: text("event_id"),
+  clickedAt: timestamp("clicked_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Meta ad spend per campaign per day (drizzle/0043), for the Board page.
  * Filled from Meta by hand, not by the app. */
 export const adSpendDaily = pgTable(

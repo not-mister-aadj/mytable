@@ -1,0 +1,100 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { eq, sql } from "drizzle-orm";
+import { notFound } from "next/navigation";
+import { Logo } from "@/components/Logo";
+import { getDb, isDbConfigured } from "@/db/index";
+import { inviteSubscribers } from "@/db/schema";
+import { isValidLocale, jouwTafelPath, type Locale } from "@/i18n/config";
+import type { CityPref } from "@/lib/invites/logic";
+import { supportedCity } from "@/lib/jouw-tafel/logic";
+import { saveInvitePrefs } from "./actions";
+
+type Props = {
+  params: Promise<{ locale: string; token: string }>;
+  searchParams: Promise<{ opgeslagen?: string; bevestigd?: string }>;
+};
+
+export const metadata: Metadata = { title: "Uitnodigingen | MyTable", robots: { index: false, follow: false } };
+
+const COPY = {
+  nl: {
+    title: "Je uitnodigingen",
+    intro: "Kies per stad hoe vaak je een uitnodiging wilt voor een zondagmiddag met wijn.",
+    options: { all: "Elke keer", less: "Minder vaak", none: "Niet meer" } as Record<CityPref, string>,
+    save: "Opslaan",
+    saved: "Opgeslagen. Je krijgt alleen nog uitnodigingen zoals je hier kiest.",
+    confirmed: "Dank je! Je blijft uitnodigingen krijgen.",
+    none: "Je volgt nog geen steden.",
+  },
+  en: {
+    title: "Your invites",
+    intro: "Choose per city how often you'd like an invite for a Sunday afternoon with wine.",
+    options: { all: "Every time", less: "Less often", none: "No more" } as Record<CityPref, string>,
+    save: "Save",
+    saved: "Saved. You'll only get invites the way you chose here.",
+    confirmed: "Thank you! You'll keep getting our invites.",
+    none: "You don't follow any cities yet.",
+  },
+};
+
+/** /uitnodigingen/{token}: the link in every invite, no login needed. */
+export default async function InvitePrefsPage({ params, searchParams }: Props) {
+  const { locale, token } = await params;
+  if (!isValidLocale(locale) || !isDbConfigured()) notFound();
+  const db = getDb();
+  const [sub] = await db.select().from(inviteSubscribers).where(eq(inviteSubscribers.token, token)).limit(1);
+  if (!sub) notFound();
+  const rows = (await db.execute(sql`
+    select distinct city from waitlist_signups where lower(email) = ${sub.emailNormalized}
+  `)) as unknown as Array<{ city: string }>;
+  const cities: string[] = [...new Set(rows.map((r) => supportedCity(r.city) as string | null).filter((c): c is string => Boolean(c)))].sort();
+  const prefs = (sub.cityPrefs ?? {}) as Record<string, CityPref>;
+  const copy = COPY[locale as Locale];
+  const query = await searchParams;
+
+  return (
+    <div className="flex min-h-[100svh] flex-col bg-cream text-wine">
+      <header className="flex h-16 items-center px-5 sm:px-8">
+        <Link href={jouwTafelPath(locale as Locale)} aria-label="MyTable">
+          <Logo priority />
+        </Link>
+      </header>
+      <main className="flex flex-1 justify-center px-4 pb-16 pt-4 sm:items-center">
+        <div className="h-fit w-full max-w-md rounded-[1.75rem] border border-wine/8 bg-white/70 px-6 py-8 shadow-[0_24px_60px_rgba(43,13,18,0.1)] sm:px-8">
+          <span aria-hidden className="block h-px w-12 bg-gold" />
+          <h1 className="mt-6 font-serif text-3xl text-burgundy">{copy.title}</h1>
+          <p className="mt-2 text-sm text-wine/70">{copy.intro}</p>
+          {query.bevestigd ? <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{copy.confirmed}</p> : null}
+          {query.opgeslagen ? <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{copy.saved}</p> : null}
+          {cities.length === 0 ? (
+            <p className="mt-6 text-sm text-wine/60">{copy.none}</p>
+          ) : (
+            <form action={saveInvitePrefs} className="mt-6 space-y-5">
+              <input type="hidden" name="token" value={token} />
+              <input type="hidden" name="locale" value={locale} />
+              {cities.map((city) => (
+                <fieldset key={city}>
+                  <legend className="font-medium text-wine">{city}</legend>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(["all", "less", "none"] as CityPref[]).map((pref) => (
+                      <label key={pref} className="cursor-pointer">
+                        <input type="radio" name={`city:${city}`} value={pref} defaultChecked={(prefs[city] ?? "all") === pref} className="peer sr-only" />
+                        <span className="block rounded-full border border-wine/15 px-2 py-2 text-center text-sm text-wine/70 peer-checked:border-burgundy peer-checked:bg-burgundy peer-checked:text-cream">
+                          {copy.options[pref]}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+              <button type="submit" className="w-full rounded-full bg-burgundy px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-cream">
+                {copy.save}
+              </button>
+            </form>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}

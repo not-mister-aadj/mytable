@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/index";
 import { emailLog, inviteClicks, inviteSends } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
-import { planInvites, sendDueInvites } from "@/lib/invites/engine";
+import { planInvites } from "@/lib/invites/engine";
 import { amsterdamParts } from "@/lib/invites/logic";
 import { getInviteSettings, saveInviteSettings } from "@/lib/invites/settings";
 
@@ -105,13 +105,6 @@ export async function getRecipientHistory(email: string): Promise<RecipientHisto
     subject: m.subject,
     status: m.resendId && clicked.has(m.resendId) ? "Geklikt" : label[m.lastEvent ?? ""] ?? "Verstuurd",
   }));
-}
-
-/** What would go out right now, without sending or claiming anything. */
-export async function dryRunInvites(): Promise<Array<{ email: string; status: string; reason?: string; subject?: string }>> {
-  await requireAdmin();
-  const result = await sendDueInvites(new Date(), { dryRun: true });
-  return result.details;
 }
 
 /** Approves every mail planned for today (Amsterdam). */

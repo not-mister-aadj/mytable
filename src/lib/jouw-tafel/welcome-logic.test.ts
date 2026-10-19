@@ -15,8 +15,8 @@ function ev(city: string, partial: Partial<QuizEvent> = {}): QuizEvent {
   };
 }
 
-test("due 30 minutes after the quiz, only after deploy, not years back", () => {
-  assert.equal(isAccountWelcomeDue(NOW - 31 * MIN, NOW, SINCE), true);
+test("due 15 minutes after the quiz, only after deploy, not years back", () => {
+  assert.equal(isAccountWelcomeDue(NOW - 16 * MIN, NOW, SINCE), true);
   assert.equal(isAccountWelcomeDue(NOW - ACCOUNT_WELCOME_DELAY_MS + 1, NOW, SINCE), false);
   assert.equal(isAccountWelcomeDue(Date.parse("2026-10-04T12:00:00Z"), Date.parse("2026-10-05T12:00:00Z"), SINCE), false);
   assert.equal(isAccountWelcomeDue(NOW - 3 * 24 * 60 * MIN, NOW, SINCE), false);

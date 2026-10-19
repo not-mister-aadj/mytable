@@ -232,6 +232,14 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
     if (r.age_range) p.ageRange = r.age_range;
   }
 
+  // Cities they added themselves on the settings page count as followed.
+  for (const p of people.values()) {
+    for (const [city, pref] of Object.entries(p.prefs)) {
+      const known = supportedCity(city);
+      if (known && pref !== "none" && !p.cities.includes(known)) p.cities.push(known);
+    }
+  }
+
   // Everyone needs a token for the link to their city settings.
   const missing = [...people.values()].filter((p) => !p.token);
   for (const p of missing) p.token = token();

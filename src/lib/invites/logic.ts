@@ -367,3 +367,10 @@ export function fitsBracket(
   if (bracket === "20-39") return person.ageRange !== "45_plus";
   return person.ageRange !== "18_24" && person.ageRange !== "25_34";
 }
+
+/** Test signups (example domains, reserved TLDs, "+test", "test-..."): never invited. */
+export function isTestAddress(email: string): boolean {
+  const [local = "", domain = ""] = email.toLowerCase().split("@");
+  if (/^example\.(com|org|net)$/.test(domain) || /\.(invalid|test|example|localhost)$/.test(domain)) return true;
+  return local.includes("+test") || /^test[-._+0-9]/.test(local);
+}

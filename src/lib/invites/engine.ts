@@ -8,6 +8,7 @@ import {
   CHECKIN_WAIT_DAYS,
   ENGAGE_DAYS,
   INVITE_LEAD_DAYS,
+  isTestAddress,
   amsterdamParts,
   checkinMail,
   dailyCap,
@@ -149,6 +150,7 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
 
   const people = new Map<string, InvitePerson>();
   for (const r of rows) {
+    if (isTestAddress(r.email)) continue;
     const city = supportedCity(r.city);
     if (!city) continue;
     let p = people.get(r.email);

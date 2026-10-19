@@ -191,7 +191,7 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
         <Tile label="ROAS" value={k.roas.value === null ? "–" : `${k.roas.value.toFixed(2)}×`} sub="Omzet uit boekingen deze maand per €1 aan advertenties.">
           {data.hasAdSpend ? <Delta kpi={k.roas} good="up" format="x" /> : null}
         </Tile>
-        <Tile label="Wachtlijst" value={k.waitlistTotal.toLocaleString("nl-NL")} sub={`${k.waitlistNew.value} nieuw deze maand.`}>
+        <Tile label="Op de lijst" value={k.waitlistTotal.toLocaleString("nl-NL")} sub={`${k.waitlistNew.value} nieuw deze maand.`}>
           <Delta kpi={k.waitlistNew} good="up" format="count" label={data.isCurrentMonth ? "vs zelfde dagen vorige maand" : "vs vorige maand"} />
         </Tile>
         <Tile label="Steden" value={`${k.cities.planned}`} sub={`Steden met een zondag deze maand, ${k.cities.held} al geweest.`} />
@@ -372,7 +372,7 @@ export function BoardView({ data, monthHref }: { data: BoardData; monthHref: (mo
                 <th className="px-4 py-2.5 text-right font-medium">Plekken</th>
                 <th className="px-4 py-2.5 text-right font-medium">Vulgraad</th>
                 <th className="px-4 py-2.5 text-right font-medium">Omzet</th>
-                <th className="px-4 py-2.5 text-right font-medium">Wachtlijst</th>
+                <th className="px-4 py-2.5 text-right font-medium">Op de lijst</th>
                 <th className="px-4 py-2.5 font-medium">Volgende zondag</th>
               </tr>
             </thead>

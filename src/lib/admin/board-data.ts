@@ -310,7 +310,12 @@ export async function getBoardData(month: string): Promise<BoardData> {
   for (const r of channelRows) {
     const meta = r.channel === "meta";
     const hit = meta ? spendFor(r.campaign) : undefined;
-    const label = meta ? `Meta: ${hit?.name ?? r.campaign ?? "onbekende campagne"}` : r.channel;
+    // Mail per kind of mail ("E-mail: welkom", see src/lib/email/mail-utm.ts).
+    const label = meta
+      ? `Meta: ${hit?.name ?? r.campaign ?? "onbekende campagne"}`
+      : r.channel === "E-mail" && r.campaign
+        ? `E-mail: ${r.campaign}`
+        : r.channel;
     const row = channelMap.get(label) ?? { channel: label, bookings: 0, seats: 0, revenueCents: 0, spendCents: meta ? (hit?.spend ?? null) : null };
     row.bookings += r.bookings;
     row.seats += r.seats;

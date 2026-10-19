@@ -34,6 +34,7 @@ const NAV: NavDef[] = [
     path: "/analytics",
     children: [
       { label: "Board", path: "/analytics" },
+      { label: "Uitnodigingen", path: "/invites" },
       { label: "Outreach", path: "/outreach" },
     ],
   },

@@ -392,9 +392,13 @@ export function QuizChoose({
               <DateBadge iso={event.startsAt} locale={locale} />
               <span className="min-w-0 flex-1">
                 <span className="block text-[1rem] font-semibold leading-tight text-wine">{startTime(event.startsAt, locale)}</span>
-                <span className="mt-0.5 block text-[0.85rem] leading-tight text-wine/60">
-                  {row.nearby ? `${displayCity(event.city, locale)} · ` : ""}
-                  {cardCopy.venueShort(revealDate(event.startsAt, locale))}
+                <span className="mt-0.5 flex items-center gap-1 text-[0.85rem] leading-tight text-wine/60">
+                  <PinIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="min-w-0">
+                    <span className="font-medium text-wine/80">{displayCity(event.city, locale)}</span>
+                    {" · "}
+                    {cardCopy.venueShort(revealDate(event.startsAt, locale))}
+                  </span>
                 </span>
                 <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
                   {chip.text}

@@ -210,6 +210,55 @@ const SIGN_OFF: Record<InviteLocale, string> = {
 };
 
 /** The invite: one Sunday, or several under each other (soonest first). */
+/** What they told us they look for (signup or quiz), as one code. */
+export type InviteWhy = "cosy" | "places" | "wines" | "flavours" | "treat" | "new_city" | "no_organise";
+
+const WHY_CODES: Record<string, InviteWhy> = {
+  just_fun: "cosy",
+  cosy: "cosy",
+  discover_places: "places",
+  places: "places",
+  discover_wines: "wines",
+  wines: "wines",
+  discover_flavours: "flavours",
+  treat: "treat",
+  new_city: "new_city",
+  no_organise: "no_organise",
+};
+
+/** Their first answer we know to "why", from a signup or quiz value (string or list). */
+export function inviteWhy(value: unknown): InviteWhy | null {
+  const list = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+  for (const v of list) {
+    const code = typeof v === "string" ? WHY_CODES[v] : undefined;
+    if (code) return code;
+  }
+  return null;
+}
+
+/** The opening line that says back what they were looking for. */
+function whyLine(why: InviteWhy, cities: string, locale: InviteLocale): string {
+  const nl: Record<InviteWhy, string> = {
+    cosy: `Je zocht gezellige tafels in ${cities}.`,
+    places: `Je wilde nieuwe plekken in ${cities} ontdekken.`,
+    wines: `Je wilde nieuwe wijnen proeven in ${cities}.`,
+    flavours: `Je wilde nieuwe smaken ontdekken in ${cities}.`,
+    treat: `Je wilde jezelf eens trakteren in ${cities}.`,
+    new_city: `Je bent nieuw in ${cities} en wilde mensen leren kennen.`,
+    no_organise: "Je wilde aanschuiven zonder zelf iets te regelen.",
+  };
+  const en: Record<InviteWhy, string> = {
+    cosy: `You were looking for good company at the table in ${cities}.`,
+    places: `You wanted to discover new places in ${cities}.`,
+    wines: `You wanted to taste new wines in ${cities}.`,
+    flavours: `You wanted to discover new flavours in ${cities}.`,
+    treat: `You wanted to treat yourself in ${cities}.`,
+    new_city: `You're new in ${cities} and wanted to meet people.`,
+    no_organise: "You wanted to join a table without organising anything yourself.",
+  };
+  return (locale === "en" ? en : nl)[why];
+}
+
 export function inviteMail(input: {
   name: string | null;
   cities: string[];
@@ -217,6 +266,8 @@ export function inviteMail(input: {
   member: boolean;
   manageUrl: string;
   locale: InviteLocale;
+  why?: InviteWhy | null;
+  solo?: boolean;
 }): { subject: string; body: string } {
   const { locale } = input;
   const en = locale === "en";
@@ -238,8 +289,13 @@ export function inviteMail(input: {
 
   const hi = input.name ? (en ? `Hi ${input.name},` : `Hoi ${input.name},`) : en ? "Hi," : "Hoi,";
   const cities = joinList(input.cities, locale);
-  const intro =
-    events.length === 1
+  const intro = input.why
+    ? `${whyLine(input.why, cities, locale)} ${
+        events.length === 1
+          ? en ? "There's a table waiting for you:" : "Er staat een tafel voor je klaar:"
+          : en ? "These are the Sundays you can join:" : "Deze zondagen kun je aanschuiven:"
+      }`
+    : events.length === 1
       ? en
         ? `You follow ${cities}, so you hear it first: there's a table waiting for you again.`
         : `Je volgt ${cities}, dus je hoort het als eerste: er staat weer een tafel voor je klaar.`
@@ -255,9 +311,10 @@ export function inviteMail(input: {
       e.url,
     ].join("\n"),
   );
+  const solo = input.solo ? (en ? " Many people come on their own, just like you." : " Veel mensen schuiven alleen aan, net als jij.") : "";
   const about = en
-    ? `You'll sit with four to six people at a good wine bar. You'll hear which bar a week before.${samePrice ? ` A seat is ${euro(first.priceCents)}.` : ""}`
-    : `Je schuift aan bij vier tot zes mensen in een goede wijnbar. Welke bar het wordt, hoor je een week van tevoren.${samePrice ? ` Een plek kost ${euro(first.priceCents)}.` : ""}`;
+    ? `You'll sit with four to six people at a good wine bar.${solo} You'll hear which bar a week before.${samePrice ? ` A seat is ${euro(first.priceCents)}.` : ""}`
+    : `Je zit met vier tot zes mensen aan tafel in een goede wijnbar.${solo} Welke bar het wordt, hoor je een week van tevoren.${samePrice ? ` Een plek kost ${euro(first.priceCents)}.` : ""}`;
   const member = input.member
     ? en
       ? "As a member you hear this 48 hours before everyone else."

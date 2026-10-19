@@ -9,6 +9,8 @@ import {
   ENGAGE_DAYS,
   INVITE_LEAD_DAYS,
   isTestAddress,
+  inviteWhy,
+  type InviteWhy,
   amsterdamParts,
   checkinMail,
   dailyCap,
@@ -65,6 +67,10 @@ export type InvitePerson = {
   birthDate: Date | null;
   /** Hand-sent invitations (email_log), for the monthly maximum. */
   manualInvites: Date[];
+  /** What they look for (latest signup or quiz that says), for the opening line. */
+  why: InviteWhy | null;
+  /** They said they come on their own. */
+  solo: boolean;
 };
 
 export type InviteEvent = {
@@ -115,25 +121,38 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
   const rows = (await db.execute(sql`
     select * from (
       select lower(w.email) as email, w.city, w.locale, w.created_at, w.preferences->>'name' as pname,
-        w.preferences->'ageRange'->>0 as age_range
+        w.preferences->'ageRange'->>0 as age_range, w.preferences->'why' as why,
+        coalesce(w.preferences->'company' @> '"solo"'::jsonb, false) as solo
       from waitlist_signups w
       union all
-      select lower(b.email), e.city, b.locale, b.created_at, b.customer_name, null
+      select lower(b.email), e.city, b.locale, b.created_at, b.customer_name, null, null, false
       from bookings b join events e on e.id = b.event_id where b.payment_status = 'paid'
       union all
-      select lower(n.email), e.city, n.locale, n.created_at, null, null
+      select lower(n.email), e.city, n.locale, n.created_at, null, null, null, false
       from event_notify_signups n join events e on e.id = n.event_id
       union all
-      select lower(g.email), g.state->'answers'->>'city', g.locale, g.created_at, null, null
+      select lower(g.email), g.state->'answers'->>'city', g.locale, g.created_at, null, null, g.state->'answers'->'why',
+        coalesce(g.state->'answers'->>'companion' = 'alone', false)
       from jouw_tafel_guests g where g.email is not null
     ) s where email is not null and city is not null
     order by created_at
-  `)) as unknown as Array<{ email: string; city: string; locale: string | null; created_at: string | Date; pname: string | null; age_range: string | null }>;
+  `)) as unknown as Array<{
+    email: string;
+    city: string;
+    locale: string | null;
+    created_at: string | Date;
+    pname: string | null;
+    age_range: string | null;
+    why: unknown;
+    solo: boolean;
+  }>;
   const accounts = (await db
     .execute(sql`
       select lower(email) as email,
         coalesce(raw_user_meta_data->>'city', raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'city') as city,
-        raw_user_meta_data->>'locale' as locale, created_at, null as pname, null as age_range
+        raw_user_meta_data->>'locale' as locale, created_at, null as pname, null as age_range,
+        raw_user_meta_data->'jouw_tafel_quiz'->'answers'->'why' as why,
+        coalesce(raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'companion' = 'alone', false) as solo
       from auth.users
       where email is not null
         and coalesce(raw_user_meta_data->>'city', raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'city') is not null
@@ -198,9 +217,15 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
         ageRange: null,
         birthDate: birthBy.get(r.email) ?? null,
         manualInvites: manualBy.get(r.email) ?? [],
+        why: null,
+        solo: false,
       };
       people.set(r.email, p);
     }
+    // Rows come oldest first: the latest answer wins.
+    const why = inviteWhy(r.why);
+    if (why) p.why = why;
+    if (r.solo) p.solo = true;
     if (!p.cities.includes(city)) p.cities.push(city);
     p.locale = r.locale === "en" ? "en" : "nl";
     if (r.age_range) p.ageRange = r.age_range;
@@ -352,6 +377,8 @@ export function composeSend(send: SendRow, person: InvitePerson, events: InviteE
     member: person.member,
     manageUrl: manageUrl(person),
     locale,
+    why: person.why,
+    solo: person.solo,
   });
 }
 

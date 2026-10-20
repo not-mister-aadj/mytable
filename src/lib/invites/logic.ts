@@ -360,8 +360,8 @@ export function inviteMail(input: {
       }`
     : events.length === 1
       ? en
-        ? `You follow ${cities}, so you hear it first: there's a table waiting for you again.`
-        : `Je volgt ${cities}, dus je hoort het als eerste: er staat weer een tafel voor je klaar.`
+        ? `You follow ${cities}, so you hear it first: there's a table waiting for you.`
+        : `Je volgt ${cities}, dus je hoort het als eerste: er staat een tafel voor je klaar.`
       : en
         ? `You follow ${cities}. This is where you can reserve your seat:`
         : `Je volgt ${cities}. Hier kun je je plek reserveren:`;

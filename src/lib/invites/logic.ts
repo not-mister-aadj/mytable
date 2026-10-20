@@ -352,19 +352,17 @@ export function inviteMail(input: {
 
   const hi = input.name ? (en ? `Hi ${input.name},` : `Hoi ${input.name},`) : en ? "Hi," : "Hoi,";
   const cities = joinList(input.cities, locale);
-  const intro = input.why
-    ? `${whyLine(input.why, cities, locale)} ${
-        events.length === 1
-          ? en ? "There's a table waiting for you:" : "Er staat een tafel voor je klaar:"
-          : en ? "These are the Sundays you can join:" : "Deze zondagen kun je aanschuiven:"
-      }`
-    : events.length === 1
-      ? en
-        ? `You follow ${cities}, so you hear it first: there's a table waiting for you.`
-        : `Je volgt ${cities}, dus je hoort het als eerste: er staat een tafel voor je klaar.`
-      : en
-        ? `You follow ${cities}. This is where you can reserve your seat:`
-        : `Je volgt ${cities}. Hier kun je je plek reserveren:`;
+  // Without an answer to "why": what MyTable is for them, in one warm line.
+  const opening = input.why
+    ? whyLine(input.why, cities, locale)
+    : en
+      ? `You follow MyTable in ${cities} for good company over a glass of wine.`
+      : `Je volgt MyTable in ${cities} voor gezellige wijntafels.`;
+  const intro = `${opening} ${
+    events.length === 1
+      ? en ? "There's a table waiting for you:" : "Er staat een tafel voor je klaar:"
+      : en ? "These are the Sundays you can join:" : "Deze zondagen kun je aanschuiven:"
+  }`;
   const samePrice = events.every((e) => e.priceCents === first.priceCents);
   const blocks = events.map((e) =>
     [

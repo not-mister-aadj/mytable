@@ -123,7 +123,7 @@ test("the invite opens with what they look for, and reassures solo guests", () =
   assert.match(cosy, /Je zocht gezellige tafels in Rotterdam\. Er staat een tafel voor je klaar:/);
   assert.match(cosy, /Veel mensen schuiven alleen aan, net als jij\./);
   const plain = inviteMail(base).body;
-  assert.match(plain, /Je volgt Rotterdam, dus je hoort het als eerste/);
+  assert.match(plain, /Je volgt MyTable in Rotterdam voor gezellige wijntafels\. Er staat een tafel voor je klaar:/);
   assert.doesNotMatch(plain, /alleen aan/);
   assert.equal(inviteWhy(["other", "discover_wines"]), "wines");
   assert.equal(inviteWhy("just_fun"), "cosy");

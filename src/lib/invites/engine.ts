@@ -620,7 +620,7 @@ async function settleUncertain(now: Date): Promise<void> {
       select resend_id, sent_at from email_log
       where email_normalized = ${row.email}
         and from_email like ${`%${FROM_ADDRESS}%`}
-        and sent_at between ${new Date(row.claimedAt.getTime() - 60 * 1000)} and ${new Date(row.claimedAt.getTime() + 10 * 60 * 1000)}
+        and sent_at between ${new Date(row.claimedAt.getTime() - 60 * 1000).toISOString()}::timestamptz and ${new Date(row.claimedAt.getTime() + 10 * 60 * 1000).toISOString()}::timestamptz
       order by sent_at limit 1
     `)) as unknown as Array<{ resend_id: string | null; sent_at: string | Date }>;
     if (!found) continue;
@@ -642,13 +642,13 @@ async function mailedRecently(email: string, exceptId: string, now: Date): Promi
       and(
         eq(inviteSends.emailNormalized, email),
         sql`${inviteSends.id} <> ${exceptId}`,
-        sql`((${inviteSends.status} = 'sent' and ${inviteSends.sentAt} > ${since}) or (${inviteSends.status} = 'sending' and ${inviteSends.claimedAt} > ${since}))`,
+        sql`((${inviteSends.status} = 'sent' and ${inviteSends.sentAt} > ${since.toISOString()}::timestamptz) or (${inviteSends.status} = 'sending' and ${inviteSends.claimedAt} > ${since.toISOString()}::timestamptz))`,
       ),
     )
     .limit(1);
   if (ours.length > 0) return true;
   const logged = (await db.execute(sql`
-    select subject, from_email from email_log where email_normalized = ${email} and sent_at > ${since}
+    select subject, from_email from email_log where email_normalized = ${email} and sent_at > ${since.toISOString()}::timestamptz
   `)) as unknown as Array<{ subject: string; from_email: string | null }>;
   return logged.some((m) => emailKind(m.subject) === "Uitnodiging" || (m.from_email ?? "").includes(FROM_ADDRESS));
 }
@@ -683,7 +683,7 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       .where(
         and(
           inArray(inviteSends.status, ["sent", "sending"]),
-          sql`coalesce(${inviteSends.sentAt}, ${inviteSends.claimedAt}) >= ${new Date(now.getTime() - DAY)}`,
+          sql`coalesce(${inviteSends.sentAt}, ${inviteSends.claimedAt}) >= ${new Date(now.getTime() - DAY).toISOString()}::timestamptz`,
         ),
       )
   ).filter((s) => {

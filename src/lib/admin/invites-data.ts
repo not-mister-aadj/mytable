@@ -133,7 +133,11 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
     .filter((s) => s.status === "queued" || s.status === "approved")
     .sort((a, b) => a.scheduledFor.getTime() - b.scheduledFor.getTime())
     .map(toRow);
-  const sent = sends.filter((s) => s.status === "sent" || s.status === "skipped" || s.status === "failed").slice(0, 300).map(toRow);
+  // Replaced by a newer plan ("opnieuw gepland"): never a mail, so not listed.
+  const sent = sends
+    .filter((s) => s.status === "sent" || s.status === "failed" || (s.status === "skipped" && s.skipReason !== "opnieuw gepland"))
+    .slice(0, 300)
+    .map(toRow);
 
   const perEvent: InviteEventRow[] = eventRows
     .map((e) => {

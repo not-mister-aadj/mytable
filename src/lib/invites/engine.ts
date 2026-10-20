@@ -409,7 +409,7 @@ export async function planInvites(
     ? []
     : await db
         .update(inviteSends)
-        .set({ status: "skipped", skipReason: "niet goedgekeurd" })
+        .set({ status: "skipped", skipReason: "niet goedgekeurd", handledAt: new Date() })
         .where(and(eq(inviteSends.status, "queued"), lte(inviteSends.scheduledFor, new Date(now.getTime() - 20 * 60 * 60 * 1000))))
         .returning({ id: inviteSends.id });
 
@@ -626,7 +626,7 @@ async function settleUncertain(now: Date): Promise<void> {
     if (!found) continue;
     await db
       .update(inviteSends)
-      .set({ status: "sent", sentAt: new Date(found.sent_at), resendId: found.resend_id })
+      .set({ status: "sent", sentAt: new Date(found.sent_at), handledAt: new Date(found.sent_at), resendId: found.resend_id })
       .where(and(eq(inviteSends.id, row.id), eq(inviteSends.status, "sending")));
   }
 }
@@ -716,7 +716,7 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       if (!options.dryRun) {
         await db
           .update(inviteSends)
-          .set({ status: "skipped", skipReason: reason })
+          .set({ status: "skipped", skipReason: reason, handledAt: new Date() })
           .where(and(eq(inviteSends.id, send.id), eq(inviteSends.status, "sending")));
       }
       result.skipped++;
@@ -778,7 +778,7 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       uncertain = e instanceof Error ? e.message : String(e);
     }
     if (error) {
-      await db.update(inviteSends).set({ status: "failed", skipReason: error }).where(eq(inviteSends.id, send.id));
+      await db.update(inviteSends).set({ status: "failed", skipReason: error, handledAt: new Date() }).where(eq(inviteSends.id, send.id));
       result.failed++;
       result.details.push({ email: person.email, status: "failed", reason: error });
       await pauseAfterFailure(error);
@@ -794,7 +794,7 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     }
     const saved = await db
       .update(inviteSends)
-      .set({ status: "sent", sentAt: new Date(), subject: composed.subject, body: composed.body, resendId })
+      .set({ status: "sent", sentAt: new Date(), handledAt: new Date(), subject: composed.subject, body: composed.body, resendId })
       .where(eq(inviteSends.id, send.id))
       .then(() => true)
       .catch(() => false);

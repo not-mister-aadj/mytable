@@ -171,7 +171,7 @@ export default async function InvitesPage({ searchParams }: Props) {
           <table className="w-full min-w-[800px] text-sm">
             <thead>
               <tr className="border-b border-border-subtle/80 bg-cream/60">
-                <th className={th}>Verstuurd</th>
+                <th className={th}>Wanneer</th>
                 <th className={th}>Wie</th>
                 <th className={th}>Soort</th>
                 <th className={th}>Events</th>
@@ -188,7 +188,7 @@ export default async function InvitesPage({ searchParams }: Props) {
               ) : null}
               {d.sent.map((r) => (
                 <tr key={r.id} className="border-b border-border-subtle/50">
-                  <td className={`${td} whitespace-nowrap text-wine/70`}>{when(r.sentAt ?? r.scheduledFor)}</td>
+                  <td className={`${td} whitespace-nowrap text-wine/70`}>{when(r.handledAt)}</td>
                   <td className={td}>
                     <p className="font-medium text-wine">{r.name ?? r.email}</p>
                     <p className="text-xs text-wine/50">{r.email}</p>

@@ -13,6 +13,8 @@ export type InviteRow = {
   status: string;
   scheduledFor: string;
   sentAt: string | null;
+  /** When it was sent, failed or skipped. */
+  handledAt: string | null;
   email: string;
   name: string | null;
   cities: string[];
@@ -113,6 +115,7 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
       status: s.status,
       scheduledFor: s.scheduledFor.toISOString(),
       sentAt: at?.toISOString() ?? null,
+      handledAt: (s.handledAt ?? s.sentAt)?.toISOString() ?? null,
       email: s.emailNormalized,
       name: personBy.get(s.emailNormalized)?.name ?? null,
       cities: s.cities,
@@ -134,8 +137,10 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
     .sort((a, b) => a.scheduledFor.getTime() - b.scheduledFor.getTime())
     .map(toRow);
   // Replaced by a newer plan ("opnieuw gepland"): never a mail, so not listed.
+  // Newest action first; rows from before handled_at existed go last.
   const sent = sends
     .filter((s) => s.status === "sent" || s.status === "failed" || (s.status === "skipped" && s.skipReason !== "opnieuw gepland"))
+    .sort((a, b) => ((b.handledAt ?? b.sentAt)?.getTime() ?? 0) - ((a.handledAt ?? a.sentAt)?.getTime() ?? 0))
     .slice(0, 300)
     .map(toRow);
 

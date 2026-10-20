@@ -55,7 +55,7 @@ export async function skipInvites(ids: string[]): Promise<number> {
   if (ids.length === 0) return 0;
   const rows = await getDb()
     .update(inviteSends)
-    .set({ status: "skipped", skipReason: "overgeslagen door admin" })
+    .set({ status: "skipped", skipReason: "overgeslagen door admin", handledAt: new Date() })
     .where(and(inArray(inviteSends.id, ids), inArray(inviteSends.status, ["queued", "approved"])))
     .returning({ id: inviteSends.id });
   done();
@@ -200,7 +200,7 @@ export async function skipInvite(formData: FormData): Promise<void> {
   if (!id) return;
   await getDb()
     .update(inviteSends)
-    .set({ status: "skipped", skipReason: "overgeslagen door admin" })
+    .set({ status: "skipped", skipReason: "overgeslagen door admin", handledAt: new Date() })
     .where(and(eq(inviteSends.id, id), inArray(inviteSends.status, ["queued", "approved"])));
   done();
 }
@@ -222,8 +222,8 @@ export async function settleUncertainInvite(formData: FormData): Promise<void> {
     .update(inviteSends)
     .set(
       wasSent
-        ? { status: "sent", sentAt: sql`coalesce(${inviteSends.claimedAt}, now())` }
-        : { status: "skipped", skipReason: "niet verstuurd (gecontroleerd)" },
+        ? { status: "sent", sentAt: sql`coalesce(${inviteSends.claimedAt}, now())`, handledAt: new Date() }
+        : { status: "skipped", skipReason: "niet verstuurd (gecontroleerd)", handledAt: new Date() },
     )
     .where(and(eq(inviteSends.id, id), eq(inviteSends.status, "sending")));
   done();

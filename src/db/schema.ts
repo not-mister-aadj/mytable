@@ -409,6 +409,8 @@ export const inviteSends = pgTable("invite_sends", {
   postponedAt: timestamp("postponed_at", { withTimezone: true }),
   claimedAt: timestamp("claimed_at", { withTimezone: true }),
   sentAt: timestamp("sent_at", { withTimezone: true }),
+  /** When it was sent, failed or skipped (drizzle/0050). */
+  handledAt: timestamp("handled_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -251,6 +251,10 @@ export function InviteQueue({ rows, approval, now }: { rows: InviteRow[]; approv
                   <p className="text-xs text-wine/50">
                     {r.cities.join(", ")} · {r.locale.toUpperCase()}
                   </p>
+                  <p className={`text-xs ${r.ignored >= 3 ? "text-amber-700" : "text-wine/50"}`}>
+                    {r.invitesBefore === 0 ? "Eerste mail" : `${r.invitesBefore + 1}e mail`}
+                    {r.ignored > 0 ? ` · ${r.ignored}× genegeerd` : ""}
+                  </p>
                   <div className="mt-1 flex gap-3 text-xs">
                     <button type="button" onClick={() => openHistory(r.email)} className="text-burgundy hover:underline">
                       Geschiedenis

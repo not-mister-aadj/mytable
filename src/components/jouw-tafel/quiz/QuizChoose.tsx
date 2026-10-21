@@ -182,18 +182,7 @@ function ChooseFilters({
             })}
           </div>
           {ladies ? (
-            <>
-              <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 text-[0.85rem] text-wine/75">
-                <input
-                  type="checkbox"
-                  checked={Boolean(answers.mixedFallback)}
-                  onChange={(e) => onAnswers({ mixedFallback: e.target.checked })}
-                  className="h-[18px] w-[18px] rounded accent-[#7a3d4a]"
-                />
-                {copy.mixedFallback}
-              </label>
-              <p className="mx-auto mt-2 max-w-sm text-center text-[0.8rem] leading-snug text-rose-deep/80">{copy.ladiesNotYet}</p>
-            </>
+            <p className="mx-auto mt-3 max-w-sm text-center text-[0.8rem] leading-snug text-rose-deep/80">{copy.ladiesNotYet}</p>
           ) : null}
         </>
       ) : null}

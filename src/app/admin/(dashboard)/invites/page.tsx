@@ -6,6 +6,18 @@ import { adminPath, resolveHostname } from "@/lib/admin-url";
 import { getInvitesDashboard, type InviteRow } from "@/lib/admin/invites-data";
 import { InviteModeSwitch } from "@/components/admin/InviteModeSwitch";
 import { InviteQueue } from "@/components/admin/InviteQueue";
+import { InviteRulesInfo, type InviteRulesSection } from "@/components/admin/InviteRulesInfo";
+import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
+import { MIN_DAYS_BEFORE, NUDGE_AFTER_DAYS, NUDGE_UNTIL_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
+import {
+  CHECKIN_AFTER,
+  CHECKIN_WAIT_DAYS,
+  ENGAGE_DAYS,
+  INVITE_LEAD_DAYS,
+  SEATS_LEFT_SHOWN,
+  SEND_WINDOW,
+  SLOW_AFTER,
+} from "@/lib/invites/logic";
 import { approveToday, saveInviteSettingsForm, settleUncertainInvite, startInvites, togglePause } from "./actions";
 
 type Props = { searchParams: Promise<{ tab?: string }> };
@@ -74,6 +86,110 @@ function CapBar({ sent, cap }: { sent: number; cap: number }) {
   );
 }
 
+const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+
+/** Every rule, read from the same constants the planner and sender use. */
+type PeopleCounts = { total: number; never: number; once: number; twice: number; slow: number; checkin: number; stopped: number; unsubscribed: number; bounced: number };
+
+/** How many people are at each step, from the Mensen list. */
+function peopleCounts(people: Array<{ status: string; ignored: number }>): PeopleCounts {
+  const c: PeopleCounts = { total: people.length, never: 0, once: 0, twice: 0, slow: 0, checkin: 0, stopped: 0, unsubscribed: 0, bounced: 0 };
+  for (const p of people) {
+    if (p.status === "Afgemeld") c.unsubscribed++;
+    else if (p.status === "Bounce/spam") c.bounced++;
+    else if (p.status === "Gestopt") c.stopped++;
+    else if (p.status === "Slapend") c.checkin++;
+    else if (p.status === "Afwachtend") c.slow++;
+    else if (p.ignored >= 2) c.twice++;
+    else if (p.ignored === 1) c.once++;
+    else c.never++;
+  }
+  return c;
+}
+
+const n = (count: number) => (count === 1 ? "1 persoon" : `${count} mensen`);
+
+function rulesSections(capStart: number, capGrowth: number, capToday: number, c: PeopleCounts): InviteRulesSection[] {
+  return [
+    {
+      title: "Hoe vaak",
+      lines: [
+        "Hoogstens 1 uitnodiging per 30 dagen per persoon.",
+        "Meer dan 2 steden: hoogstens 2 per maand, minstens 10 dagen ertussen.",
+        "Met de hand verstuurde uitnodigingen tellen mee.",
+      ],
+    },
+    {
+      title: "Minder na geen reactie",
+      lines: [
+        `Genegeerd = geen klik en geen boeking binnen ${ENGAGE_DAYS} dagen.`,
+        `Klik of boeking: teller terug naar 0. Nu nooit genegeerd: ${n(c.never)}.`,
+        `1 of 2 keer op rij genegeerd: gewoon ritme. Nu: ${n(c.once)} 1 keer, ${n(c.twice)} 2 keer.`,
+        `${SLOW_AFTER} keer op rij genegeerd: hoogstens 1 per 60 dagen. Nu: ${n(c.slow)}.`,
+        `${CHECKIN_AFTER} keer op rij genegeerd: één mail "Nog interesse?". Nu: ${n(c.checkin)}.`,
+        `Daarop binnen ${CHECKIN_WAIT_DAYS} dagen geen klik: gestopt, tot ze zelf weer iets doen. Nu: ${n(c.stopped)}.`,
+      ],
+    },
+    {
+      title: "Zelf gekozen",
+      lines: [
+        "Link onderaan elke mail: per stad Elke keer, Minder vaak of Niet.",
+        "Minder vaak = hoogstens 1 per 60 dagen (als alle steden op Minder vaak staan).",
+        `Niet = geen uitnodigingen voor die stad. Afmelden in Gmail zet alle steden op Niet. Nu overal Niet: ${n(c.unsubscribed)}.`,
+        "Steden toevoegen kan op dezelfde pagina.",
+      ],
+    },
+    {
+      title: "Herinnering na een klik",
+      lines: [`Klik zonder boeking: ${NUDGE_AFTER_DAYS} dagen later één herinnering voor die zondag, tot ${NUDGE_UNTIL_DAYS} dagen na de klik.`],
+    },
+    {
+      title: "Wie",
+      lines: [
+        "Iedereen die zich ergens aanmeldde: wachtlijst, ticket, \"laat het me weten\", quiz, account.",
+        `Niet: testadressen, bounce of spam (${n(c.bounced)}), wie overal Niet koos.`,
+        `Nu op de lijst met een stad: ${n(c.total)}.`,
+        "Een event valt af als ze het al boekten, al voor dat event zijn uitgenodigd of niet in de leeftijdsgroep passen (alleen als hun leeftijd bekend is).",
+      ],
+    },
+    {
+      title: "Welke zondagen",
+      lines: [
+        `Vanaf ${INVITE_LEAD_DAYS / 7} weken voor de zondag, nooit voordat het event opengaat. Leden ${EARLY_ACCESS_HOURS} uur eerder.`,
+        `Minstens ${MIN_DAYS_BEFORE} dagen voor de zondag, alleen met plekken vrij.`,
+        "Meerdere zondagen in één mail, de eerste bovenaan.",
+      ],
+    },
+    {
+      title: "Wanneer",
+      lines: [
+        "Op de weekdag en rond het tijdstip waarop iemand zich aanmeldde, met een paar minuten variatie.",
+        `Alleen tussen ${clock(SEND_WINDOW.start)} en ${clock(SEND_WINDOW.end)}, nooit op feestdagen (ook Goede Vrijdag, 24 en 31 december).`,
+        `Elke ochtend om 06:00 wordt de wachtrij voor de komende ${PLAN_DAYS} dagen gemaakt.`,
+        "Handmatig: alleen goedgekeurde mails gaan uit. Niet goedgekeurd: vervalt 20 uur na het tijdstip, volgende ochtend opnieuw gepland.",
+        "Automatisch: elke mail gaat op zijn tijdstip uit.",
+      ],
+    },
+    {
+      title: "Inhoud",
+      lines: [
+        "Platte tekst van Het MyTable-team <hallo@tafels.mytable.club>, antwoorden naar info@mytable.club.",
+        "Eerste zin uit wat ze zoeken (wachtlijst of quiz); wie alleen komt krijgt \"Veel mensen schuiven alleen aan\".",
+        `"Nog X plekken" vanaf ${SEATS_LEFT_SHOWN} over. Anders "Loopt snel vol" bij meer dan de helft verkocht of een uitverkochte vorige editie. Anders niets.`,
+        "Geen namen van bars.",
+      ],
+    },
+    {
+      title: "Grenzen en veiligheid",
+      lines: [
+        `Hoogstens ${capToday} mails vandaag (start ${capStart}, +${capGrowth} per week).`,
+        "Per persoon hoogstens één open mail, en nooit een uitnodiging als ze in de laatste 3 dagen al een kregen.",
+        "Elke mail wordt maar één keer verstuurd. Een mislukte mail pauzeert alles en mailt het team.",
+      ],
+    },
+  ];
+}
+
 export default async function InvitesPage({ searchParams }: Props) {
   await requireAdmin();
   if (!isDbConfigured()) return <p>Database niet geconfigureerd.</p>;
@@ -83,12 +199,16 @@ export default async function InvitesPage({ searchParams }: Props) {
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
   const d = await getInvitesDashboard();
   const s = d.settings;
+  const counts = peopleCounts(d.people);
 
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-burgundy">Uitnodigingen</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-serif text-3xl text-burgundy">Uitnodigingen</h1>
+            <InviteRulesInfo sections={rulesSections(s.capStart, s.capGrowthPerWeek, d.cap, counts)} />
+          </div>
           <p className="mt-1 text-sm text-wine/60">
             {!s.enabled ? "Uit" : s.paused ? "Gepauzeerd" : "Aan"} · {d.plannedToday} gepland vandaag
             {d.dueNow > 0 && !s.paused ? ` · ${d.dueNow} gaan nu uit` : ""}
@@ -243,6 +363,25 @@ export default async function InvitesPage({ searchParams }: Props) {
       ) : null}
 
       {tab === "mensen" ? (
+        <>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {(
+            [
+              ["Nooit genegeerd", counts.never],
+              ["1 keer", counts.once],
+              ["2 keer", counts.twice],
+              ["Afwachtend", counts.slow],
+              ["Slapend", counts.checkin],
+              ["Gestopt", counts.stopped],
+              ["Afgemeld", counts.unsubscribed],
+              ["Bounce/spam", counts.bounced],
+            ] as const
+          ).map(([label, value]) => (
+            <span key={label} className="rounded-full border border-border-subtle bg-cream px-3 py-1 text-wine/70">
+              {label} <span className="font-semibold tabular-nums text-wine">{value}</span>
+            </span>
+          ))}
+        </div>
         <div className={`${card} overflow-x-auto`}>
           <table className="w-full min-w-[900px] text-sm">
             <thead>
@@ -274,6 +413,7 @@ export default async function InvitesPage({ searchParams }: Props) {
             </tbody>
           </table>
         </div>
+        </>
       ) : null}
 
       {tab === "log" ? (

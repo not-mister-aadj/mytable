@@ -26,6 +26,10 @@ export type InviteRow = {
   booked: boolean;
   locale: string;
   postponed: boolean;
+  /** Invites they had before this one (ours and by hand). */
+  invitesBefore: number;
+  /** Invites ignored in a row (no click, no booking within ENGAGE_DAYS). */
+  ignored: number;
   claimedAt: string | null;
 };
 
@@ -104,6 +108,12 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
   const bookingsBy = new Map<string, Array<{ eventId: string; at: Date }>>();
   for (const b of bookings) bookingsBy.set(b.email, [...(bookingsBy.get(b.email) ?? []), { eventId: b.event_id, at: new Date(b.created_at) }]);
 
+  const history = { sends, clicksBySend, bookings: bookingsBy };
+  const ignoredBy = new Map<string, number>();
+  const ignoredFor = (email: string) => {
+    if (!ignoredBy.has(email)) ignoredBy.set(email, personEngagement(email, history, now).ignored);
+    return ignoredBy.get(email)!;
+  };
   const toRow = (s: (typeof sends)[number]): InviteRow => {
     const at = s.sentAt;
     const booked = Boolean(
@@ -127,6 +137,10 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
       booked,
       locale: s.locale,
       postponed: Boolean(s.postponedAt),
+      invitesBefore:
+        sends.filter((o) => o.emailNormalized === s.emailNormalized && o.status === "sent" && o.id !== s.id && (!s.sentAt || (o.sentAt && o.sentAt < s.sentAt))).length +
+        (personBy.get(s.emailNormalized)?.manualInvites.length ?? 0),
+      ignored: ignoredFor(s.emailNormalized),
       claimedAt: s.claimedAt?.toISOString() ?? null,
     };
   };
@@ -160,7 +174,6 @@ export async function getInvitesDashboard(): Promise<InvitesDashboard> {
     .filter((r) => r.invited > 0)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
-  const history = { sends, clicksBySend, bookings: bookingsBy };
   const peopleRows: InvitePersonRow[] = people
     .filter((p) => p.cities.length > 0)
     .map((p) => {

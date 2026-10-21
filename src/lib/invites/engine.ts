@@ -52,6 +52,8 @@ export const MIN_DAYS_BEFORE = 3;
 /** Clicked, not booked: the follow-up comes this many days after the click. */
 export const NUDGE_AFTER_DAYS = 3;
 export const NUDGE_UNTIL_DAYS = 10;
+/** No invite in the first this many days after someone first signed up. */
+export const NEW_SIGNUP_WAIT_DAYS = 14;
 
 export type InvitePerson = {
   email: string;
@@ -477,7 +479,8 @@ export async function planInvites(
     );
     if (candidates.length === 0) continue;
     const earliest = Math.min(...candidates.map((e) => inviteFrom(e, person.member).getTime()));
-    const at = nextSlot(new Date(Math.max(now.getTime(), allowed?.getTime() ?? 0, earliest)), person.signedUpAt, person.email);
+    const settled = person.signedUpAt.getTime() + NEW_SIGNUP_WAIT_DAYS * DAY;
+    const at = nextSlot(new Date(Math.max(now.getTime(), allowed?.getTime() ?? 0, earliest, settled)), person.signedUpAt, person.email);
     if (at.getTime() > horizon) continue;
     const included = candidates
       .filter((e) => inviteFrom(e, person.member).getTime() <= at.getTime())

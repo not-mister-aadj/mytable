@@ -8,7 +8,7 @@ import { InviteModeSwitch } from "@/components/admin/InviteModeSwitch";
 import { InviteQueue } from "@/components/admin/InviteQueue";
 import { InviteRulesInfo, type InviteRulesSection } from "@/components/admin/InviteRulesInfo";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
-import { MIN_DAYS_BEFORE, NUDGE_AFTER_DAYS, NUDGE_UNTIL_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
+import { MIN_DAYS_BEFORE, NEW_SIGNUP_WAIT_DAYS, NUDGE_AFTER_DAYS, NUDGE_UNTIL_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
 import {
   CHECKIN_AFTER,
   CHECKIN_WAIT_DAYS,
@@ -117,6 +117,7 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number, c:
         "Hoogstens 1 uitnodiging per 30 dagen per persoon.",
         "Meer dan 2 steden: hoogstens 2 per maand, minstens 10 dagen ertussen.",
         "Met de hand verstuurde uitnodigingen tellen mee.",
+        `De eerste uitnodiging pas ${NEW_SIGNUP_WAIT_DAYS} dagen na de eerste aanmelding.`,
       ],
     },
     {

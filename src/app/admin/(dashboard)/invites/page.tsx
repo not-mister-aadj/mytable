@@ -89,7 +89,27 @@ function CapBar({ sent, cap }: { sent: number; cap: number }) {
 const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 
 /** Every rule, read from the same constants the planner and sender use. */
-function rulesSections(capStart: number, capGrowth: number, capToday: number): InviteRulesSection[] {
+type PeopleCounts = { total: number; never: number; once: number; twice: number; slow: number; checkin: number; stopped: number; unsubscribed: number; bounced: number };
+
+/** How many people are at each step, from the Mensen list. */
+function peopleCounts(people: Array<{ status: string; ignored: number }>): PeopleCounts {
+  const c: PeopleCounts = { total: people.length, never: 0, once: 0, twice: 0, slow: 0, checkin: 0, stopped: 0, unsubscribed: 0, bounced: 0 };
+  for (const p of people) {
+    if (p.status === "Afgemeld") c.unsubscribed++;
+    else if (p.status === "Bounce/spam") c.bounced++;
+    else if (p.status === "Gestopt") c.stopped++;
+    else if (p.status === "Slapend") c.checkin++;
+    else if (p.status === "Afwachtend") c.slow++;
+    else if (p.ignored >= 2) c.twice++;
+    else if (p.ignored === 1) c.once++;
+    else c.never++;
+  }
+  return c;
+}
+
+const n = (count: number) => (count === 1 ? "1 persoon" : `${count} mensen`);
+
+function rulesSections(capStart: number, capGrowth: number, capToday: number, c: PeopleCounts): InviteRulesSection[] {
   return [
     {
       title: "Hoe vaak",
@@ -103,10 +123,11 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number): I
       title: "Minder na geen reactie",
       lines: [
         `Genegeerd = geen klik en geen boeking binnen ${ENGAGE_DAYS} dagen.`,
-        "Klik of boeking: teller terug naar 0.",
-        `${SLOW_AFTER} keer op rij genegeerd: hoogstens 1 per 60 dagen.`,
-        `${CHECKIN_AFTER} keer op rij genegeerd: één mail "Nog interesse?".`,
-        `Daarop binnen ${CHECKIN_WAIT_DAYS} dagen geen klik: gestopt, tot ze zelf weer iets doen.`,
+        `Klik of boeking: teller terug naar 0. Nu nooit genegeerd: ${n(c.never)}.`,
+        `1 of 2 keer op rij genegeerd: gewoon ritme. Nu: ${n(c.once)} 1 keer, ${n(c.twice)} 2 keer.`,
+        `${SLOW_AFTER} keer op rij genegeerd: hoogstens 1 per 60 dagen. Nu: ${n(c.slow)}.`,
+        `${CHECKIN_AFTER} keer op rij genegeerd: één mail "Nog interesse?". Nu: ${n(c.checkin)}.`,
+        `Daarop binnen ${CHECKIN_WAIT_DAYS} dagen geen klik: gestopt, tot ze zelf weer iets doen. Nu: ${n(c.stopped)}.`,
       ],
     },
     {
@@ -114,7 +135,7 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number): I
       lines: [
         "Link onderaan elke mail: per stad Elke keer, Minder vaak of Niet.",
         "Minder vaak = hoogstens 1 per 60 dagen (als alle steden op Minder vaak staan).",
-        "Niet = geen uitnodigingen voor die stad. Afmelden in Gmail zet alle steden op Niet.",
+        `Niet = geen uitnodigingen voor die stad. Afmelden in Gmail zet alle steden op Niet. Nu overal Niet: ${n(c.unsubscribed)}.`,
         "Steden toevoegen kan op dezelfde pagina.",
       ],
     },
@@ -126,7 +147,8 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number): I
       title: "Wie",
       lines: [
         "Iedereen die zich ergens aanmeldde: wachtlijst, ticket, \"laat het me weten\", quiz, account.",
-        "Niet: testadressen, bounce of spam, wie overal Niet koos.",
+        `Niet: testadressen, bounce of spam (${n(c.bounced)}), wie overal Niet koos.`,
+        `Nu op de lijst met een stad: ${n(c.total)}.`,
         "Een event valt af als ze het al boekten, al voor dat event zijn uitgenodigd of niet in de leeftijdsgroep passen (alleen als hun leeftijd bekend is).",
       ],
     },
@@ -177,6 +199,7 @@ export default async function InvitesPage({ searchParams }: Props) {
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
   const d = await getInvitesDashboard();
   const s = d.settings;
+  const counts = peopleCounts(d.people);
 
   return (
     <div className="space-y-6">
@@ -184,7 +207,7 @@ export default async function InvitesPage({ searchParams }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-serif text-3xl text-burgundy">Uitnodigingen</h1>
-            <InviteRulesInfo sections={rulesSections(s.capStart, s.capGrowthPerWeek, d.cap)} />
+            <InviteRulesInfo sections={rulesSections(s.capStart, s.capGrowthPerWeek, d.cap, counts)} />
           </div>
           <p className="mt-1 text-sm text-wine/60">
             {!s.enabled ? "Uit" : s.paused ? "Gepauzeerd" : "Aan"} · {d.plannedToday} gepland vandaag
@@ -340,6 +363,25 @@ export default async function InvitesPage({ searchParams }: Props) {
       ) : null}
 
       {tab === "mensen" ? (
+        <>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {(
+            [
+              ["Nooit genegeerd", counts.never],
+              ["1 keer", counts.once],
+              ["2 keer", counts.twice],
+              ["Afwachtend", counts.slow],
+              ["Slapend", counts.checkin],
+              ["Gestopt", counts.stopped],
+              ["Afgemeld", counts.unsubscribed],
+              ["Bounce/spam", counts.bounced],
+            ] as const
+          ).map(([label, value]) => (
+            <span key={label} className="rounded-full border border-border-subtle bg-cream px-3 py-1 text-wine/70">
+              {label} <span className="font-semibold tabular-nums text-wine">{value}</span>
+            </span>
+          ))}
+        </div>
         <div className={`${card} overflow-x-auto`}>
           <table className="w-full min-w-[900px] text-sm">
             <thead>
@@ -371,6 +413,7 @@ export default async function InvitesPage({ searchParams }: Props) {
             </tbody>
           </table>
         </div>
+        </>
       ) : null}
 
       {tab === "log" ? (

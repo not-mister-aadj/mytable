@@ -53,7 +53,7 @@ export const MIN_DAYS_BEFORE = 3;
 export const NUDGE_AFTER_DAYS = 3;
 export const NUDGE_UNTIL_DAYS = 10;
 /** No invite in the first this many days after someone first signed up. */
-export const NEW_SIGNUP_WAIT_DAYS = 14;
+export const NEW_SIGNUP_WAIT_DAYS = 7;
 
 export type InvitePerson = {
   email: string;

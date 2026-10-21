@@ -147,7 +147,7 @@ export type QuizCopy = {
     /** On a table this person already has a seat at. */
     booked: (seats: number) => string;
     /** The filters on top: cities and, for women, mixed or ladies only. */
-    filters: { citiesAria: string; tableAria: string; mixed: string; ladies: string; mixedFallback: string };
+    filters: { citiesAria: string; tableAria: string; mixed: string; ladies: string; mixedFallback: string; ladiesNotYet: string };
     /** Under the subtitle when she prefers a women-only table. */
     /** Our chosen cities without a table on the list (joined; n of them). */
     noSunday: (cities: string, n: number) => string;
@@ -385,6 +385,7 @@ const nl: QuizCopy = {
       mixed: "Mixed table",
       ladies: "Ladies only",
       mixedFallback: "Een mixed table als het niet lukt",
+      ladiesNotYet: "Ladies only tafels hebben we nog niet. Kiezen genoeg vrouwen ervoor, dan starten we ermee en hoor jij het als eerste.",
     },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
@@ -613,6 +614,7 @@ const en: QuizCopy = {
       mixed: "Mixed table",
       ladies: "Ladies only",
       mixedFallback: "A mixed table if it doesn't work out",
+      ladiesNotYet: "We don't have ladies only tables yet. If enough women ask for them, we'll start, and you'll be the first to know.",
     },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,

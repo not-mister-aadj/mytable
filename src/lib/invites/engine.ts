@@ -46,12 +46,12 @@ const FROM_ADDRESS = "hallo@tafels.mytable.club";
 const FROM = `Het MyTable-team <${FROM_ADDRESS}>`;
 const REPLY_TO = "info@mytable.club";
 /** Plans no further ahead than this. */
-const PLAN_DAYS = 7;
+export const PLAN_DAYS = 7;
 /** An invite is not sent for a Sunday closer than this. */
-const MIN_DAYS_BEFORE = 3;
+export const MIN_DAYS_BEFORE = 3;
 /** Clicked, not booked: the follow-up comes this many days after the click. */
-const NUDGE_AFTER_DAYS = 3;
-const NUDGE_UNTIL_DAYS = 10;
+export const NUDGE_AFTER_DAYS = 3;
+export const NUDGE_UNTIL_DAYS = 10;
 
 export type InvitePerson = {
   email: string;

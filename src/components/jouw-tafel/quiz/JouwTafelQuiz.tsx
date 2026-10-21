@@ -791,7 +791,7 @@ export function JouwTafelQuiz({
         step={step}
         chapterFill={chapterFill}
         progress={progress}
-        canGoBack={previousStep(step, answers) !== null && step !== "zoeken"}
+        canGoBack={previousStep(step, answers) !== null && step !== "zoeken" && step !== "kies"}
         onBack={goBack}
         avatar={
           guest ? null : (

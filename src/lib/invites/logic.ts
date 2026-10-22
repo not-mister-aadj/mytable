@@ -470,7 +470,7 @@ export function nudgeMail(input: {
         : `Op ${date}${sameTime ? " rond deze tijd" : ` om ${at}`}`;
     opening = en
       ? [`It's Sunday, ${now}. ${when} you could be at a table in ${event.city} with ${company}.`, "", `${enjoy} ${seats}`]
-      : [`Het is zondag, ${now}. ${when} zit je in ${event.city} aan tafel, met ${company}.`, "", `${enjoy} ${seats}`];
+      : [`Het is zondag, ${now}. ${when} kun je in ${event.city} aan tafel zitten met ${company}.`, "", `${enjoy} ${seats}`];
   }
   const subject = capital(eventDateLabel(event.startsAt, locale));
   const body = [

@@ -167,11 +167,11 @@ const ev = (startsAt: string, scarcity: string | null = null) => ({ city: "Amste
 test("the reminder says it is 14:00 and when the table is", () => {
   const m = nudgeMail({ ...base, event: ev("2026-11-15T13:00:00Z"), soldOut: null });
   assert.equal(m.subject, "Zondag 15 november, 14:00");
-  assert.match(m.body, /Het is zondag, 14:00\. Op zondag 15 november rond deze tijd zit je in Amsterdam aan tafel, met 4 tot 6 nieuwe mensen en een glas wijn\./);
+  assert.match(m.body, /Het is zondag, 14:00\. Op zondag 15 november rond deze tijd kun je in Amsterdam aan tafel zitten met 4 tot 6 nieuwe mensen en een glas wijn\./);
   assert.match(m.body, /We denken dat dit echt iets voor jou is\. Er is nog plek\./);
   assert.doesNotMatch(m.body, /keek|looked/);
   const nextWeek = nudgeMail({ ...base, event: ev("2026-11-08T13:00:00Z", "Nog 4 plekken"), soldOut: null });
-  assert.match(nextWeek.body, /Volgende week om deze tijd zit je in Amsterdam aan tafel/);
+  assert.match(nextWeek.body, /Volgende week om deze tijd kun je in Amsterdam aan tafel zitten/);
   assert.match(nextWeek.body, /Nog 4 plekken\./);
 });
 

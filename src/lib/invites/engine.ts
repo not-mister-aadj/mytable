@@ -49,9 +49,6 @@ const REPLY_TO = "info@mytable.club";
 export const PLAN_DAYS = 7;
 /** An invite is not sent for a Sunday closer than this. */
 export const MIN_DAYS_BEFORE = 3;
-/** Clicked, not booked: the follow-up comes this many days after the click. */
-export const NUDGE_AFTER_DAYS = 3;
-export const NUDGE_UNTIL_DAYS = 10;
 /** No invite in the first this many days after someone first signed up. */
 export const NEW_SIGNUP_WAIT_DAYS = 7;
 
@@ -395,8 +392,8 @@ export function composeSend(send: SendRow, person: InvitePerson, events: InviteE
 
 /**
  * Plans each person's next mail (at most one waiting per person), within
- * the coming PLAN_DAYS: an invite on their own weekday and time, a
- * follow-up for a click without a booking, or the "still interested?" mail.
+ * the coming PLAN_DAYS: an invite on their own weekday and time, or the
+ * "still interested?" mail. No follow-up after a click (21 Oct 2026).
  */
 export async function planInvites(
   now: Date = new Date(),
@@ -429,28 +426,12 @@ export async function planInvites(
 
     const booked = new Set((history.bookings.get(person.email) ?? []).map((b) => b.eventId));
     const invitedBefore = new Set(mine.filter((s) => s.status === "sent" && s.kind === "invite").flatMap((s) => s.eventIds));
-    const nudgedBefore = new Set(mine.filter((s) => s.kind === "nudge").flatMap((s) => s.eventIds));
     const base = {
       emailNormalized: person.email,
       cities,
       isMember: person.member,
       locale: person.locale,
     };
-
-    // Clicked an invite, did not book that Sunday: one follow-up.
-    const clicked = mine
-      .filter((s) => s.status === "sent" && s.kind === "invite")
-      .flatMap((s) => (history.clicksBySend.get(s.id) ?? []).map((c) => ({ ...c, send: s })))
-      .filter((c) => c.eventId && !booked.has(c.eventId) && !nudgedBefore.has(c.eventId))
-      .filter((c) => now.getTime() - c.at.getTime() < NUDGE_UNTIL_DAYS * DAY);
-    const nudgeFor = clicked.map((c) => ({ c, e: events.find((e) => e.id === c.eventId && e.open) })).find((x) => x.e);
-    if (nudgeFor?.e) {
-      const at = nextSlot(new Date(Math.max(now.getTime(), nudgeFor.c.at.getTime() + NUDGE_AFTER_DAYS * DAY)), person.signedUpAt, `${person.email}:n`, true);
-      if (at.getTime() <= horizon) {
-        values.push({ ...base, code: code(), kind: "nudge", scheduledFor: at, eventIds: [nudgeFor.e.id] });
-        continue;
-      }
-    }
 
     const interest = personEngagement(person.email, history, now);
     if (interest.status === "stopped") continue;

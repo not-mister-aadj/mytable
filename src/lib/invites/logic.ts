@@ -400,25 +400,83 @@ export function inviteMail(input: {
   return { subject, body };
 }
 
-/** One follow-up for someone who clicked an invite but did not book. */
+/** The click reminder goes out on a Sunday at this minute (14:00, when the tables start). */
+export const NUDGE_SEND_MINUTES = 14 * 60;
+
+/** The first Sunday at `minutes` (Amsterdam) at or after `after`, skipping holidays. */
+export function nextSundayAt(after: Date, minutes: number = NUDGE_SEND_MINUTES): Date | null {
+  const start = amsterdamParts(after).day;
+  for (let i = 0; i < 28; i++) {
+    const day = shiftDay(start, i);
+    const candidate = amsterdamToUtc(day, minutes);
+    if (candidate.getTime() < after.getTime()) continue;
+    if (amsterdamParts(candidate).weekday !== 0 || isNoMailDay(day)) continue;
+    return candidate;
+  }
+  return null;
+}
+
+/** "zondag 15 november" / "Sunday 15 November" */
+function sundayDate(startsAt: string, locale: InviteLocale): string {
+  const d = new Date(startsAt);
+  return locale === "en"
+    ? new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(d)
+    : new Intl.DateTimeFormat("nl-NL", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(d);
+}
+
+/** "14:00" / "2pm": the time part of eventDateLabel. */
+function clockLabel(startsAt: string, locale: InviteLocale): string {
+  return eventDateLabel(startsAt, locale).split(", ").pop() ?? "";
+}
+
+/**
+ * The Sunday 14:00 reminder after a click without a booking. `event` is the
+ * Sunday they clicked, or, when that one sold out (`soldOut` is its date),
+ * the next one in the same city. `sentAt` is the Sunday it goes out.
+ */
 export function nudgeMail(input: {
   name: string | null;
   cities: string[];
   event: MailEvent;
+  soldOut: string | null;
+  sentAt: Date;
   manageUrl: string;
   locale: InviteLocale;
 }): { subject: string; body: string } {
   const { locale, event } = input;
   const en = locale === "en";
-  const day = eventDateLabel(event.startsAt, locale).split(",")[0];
-  const subject = en ? `Still room on ${day}` : `Nog plek op ${day.toLowerCase()}`;
   const hi = input.name ? (en ? `Hi ${input.name},` : `Hoi ${input.name},`) : en ? "Hi," : "Hoi,";
+  const now = clockLabel(input.sentAt.toISOString(), locale);
+  const at = clockLabel(event.startsAt, locale);
+  const date = sundayDate(event.startsAt, locale);
+  const company = en ? "4 to 6 new people and a glass of wine" : "4 tot 6 nieuwe mensen en een glas wijn";
+  const enjoy = en ? "We think you'd really enjoy it." : "We denken dat dit echt iets voor jou is.";
+  const seats = event.scarcity ? `${event.scarcity}.` : en ? "There's still room." : "Er is nog plek.";
+  let opening: string[];
+  if (input.soldOut) {
+    const full = sundayDate(input.soldOut, locale);
+    opening = en
+      ? [`It's Sunday, ${now}. The Sunday Social on ${full} in ${event.city} is full, every table is taken.`, "", `The next Sunday Social is on ${date}, at ${at}. With ${company}. ${enjoy} ${event.scarcity ? `${event.scarcity}.` : ""}`.trim()]
+      : [`Het is zondag, ${now}. De Sunday Social van ${full} in ${event.city} zit vol, alle tafels zijn bezet.`, "", `De volgende Sunday Social is op ${date}, om ${at}. Met ${company}. ${enjoy} ${event.scarcity ? `${event.scarcity}.` : ""}`.trim()];
+  } else {
+    const nextWeek = amsterdamParts(new Date(event.startsAt)).day === shiftDay(amsterdamParts(input.sentAt).day, 7);
+    const sameTime = at === now;
+    const when = nextWeek
+      ? en
+        ? sameTime ? "This time next week" : `Next Sunday at ${at}`
+        : sameTime ? "Volgende week om deze tijd" : `Volgende week zondag om ${at}`
+      : en
+        ? `On ${date}${sameTime ? ", around this time," : ` at ${at},`}`
+        : `Op ${date}${sameTime ? " rond deze tijd" : ` om ${at}`}`;
+    opening = en
+      ? [`It's Sunday, ${now}. ${when} you could be at a table in ${event.city} with ${company}.`, "", `${enjoy} ${seats}`]
+      : [`Het is zondag, ${now}. ${when} zit je in ${event.city} aan tafel, met ${company}.`, "", `${enjoy} ${seats}`];
+  }
+  const subject = capital(eventDateLabel(event.startsAt, locale));
   const body = [
     hi,
     "",
-    en
-      ? `You had a look at ${day} in ${event.city}. ${event.scarcity ? `${event.scarcity}.` : "There is still room."}`
-      : `Je keek naar ${day.toLowerCase()} in ${event.city}. ${event.scarcity ? `${event.scarcity}.` : "Er is nog plek."}`,
+    ...opening,
     "",
     `${en ? "Reserve your seat" : "Reserveer je plek"}: ${event.url}`,
     "",

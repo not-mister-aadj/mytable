@@ -20,6 +20,7 @@ import {
   inviteMail,
   nextAllowedAt,
   nextSlot,
+  nextSundayAt,
   nudgeMail,
   scarcityLine,
   type CityPref,
@@ -51,6 +52,10 @@ export const PLAN_DAYS = 7;
 export const MIN_DAYS_BEFORE = 3;
 /** No invite in the first this many days after someone first signed up. */
 export const NEW_SIGNUP_WAIT_DAYS = 7;
+/** A click older than this gets no reminder any more. */
+export const NUDGE_UNTIL_DAYS = 14;
+/** A reminder that could not go out within this long after 14:00 is dropped (its text says "it's 14:00"). */
+const NUDGE_LATE_MS = 2 * 60 * 60 * 1000;
 
 export type InvitePerson = {
   email: string;
@@ -364,20 +369,59 @@ function mailEvent(e: InviteEvent, send: Pick<SendRow, "code">, index: number, l
   };
 }
 
-/** Subject and text for a planned or due send, with the seats of now. */
-export function composeSend(send: SendRow, person: InvitePerson, events: InviteEvent[]): { subject: string; body: string } | null {
+/**
+ * The Sunday a click reminder is about: the clicked one while it has seats,
+ * or, once it sold out, the next open one in that city. Booked Sundays and
+ * cities they no longer follow do not count.
+ */
+export function nudgeTarget(
+  clickedId: string,
+  events: InviteEvent[],
+  skip: { booked: Set<string>; cities: string[] },
+): { event: InviteEvent; soldOut: InviteEvent | null } | null {
+  const clicked = events.find((e) => e.id === clickedId);
+  if (!clicked || skip.booked.has(clicked.id) || !skip.cities.includes(clicked.city)) return null;
+  if (clicked.open) return { event: clicked, soldOut: null };
+  if (clicked.sold < clicked.capacity) return null;
+  const next = events
+    .filter((e) => e.open && e.city === clicked.city && e.startsAt > clicked.startsAt && !skip.booked.has(e.id))
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0];
+  return next ? { event: next, soldOut: clicked } : null;
+}
+
+/** Subject and text for a planned or due send, with the seats of now.
+ * `eventIds` is set when a reminder moved on to the next Sunday. */
+export function composeSend(
+  send: SendRow,
+  person: InvitePerson,
+  events: InviteEvent[],
+  booked: Set<string> = new Set(),
+): { subject: string; body: string; eventIds?: string[] } | null {
   const locale: InviteLocale = send.locale === "en" ? "en" : "nl";
   const cities = followedCities(person).length > 0 ? followedCities(person) : person.cities;
   if (send.kind === "checkin") {
     return checkinMail({ name: person.name, cities, stayUrl: linkUrl(send, 0), manageUrl: manageUrl(person), locale });
   }
+  if (send.kind === "nudge") {
+    const clickedId = send.eventIds[0];
+    const target = clickedId ? nudgeTarget(clickedId, events, { booked, cities: followedCities(person) }) : null;
+    if (!target) return null;
+    const eventIds = target.soldOut ? [target.soldOut.id, target.event.id] : [target.event.id];
+    const mail = nudgeMail({
+      name: person.name,
+      cities,
+      event: mailEvent(target.event, send, eventIds.length, locale),
+      soldOut: target.soldOut?.startsAt ?? null,
+      sentAt: send.scheduledFor,
+      manageUrl: manageUrl(person),
+      locale,
+    });
+    return { ...mail, eventIds };
+  }
   const list = send.eventIds
     .map((id, i) => ({ e: events.find((x) => x.id === id), i: i + 1 }))
     .filter((x): x is { e: InviteEvent; i: number } => Boolean(x.e && x.e.open));
   if (list.length === 0) return null;
-  if (send.kind === "nudge") {
-    return nudgeMail({ name: person.name, cities, event: mailEvent(list[0]!.e, send, list[0]!.i, locale), manageUrl: manageUrl(person), locale });
-  }
   return inviteMail({
     name: person.name,
     cities,
@@ -392,8 +436,9 @@ export function composeSend(send: SendRow, person: InvitePerson, events: InviteE
 
 /**
  * Plans each person's next mail (at most one waiting per person), within
- * the coming PLAN_DAYS: an invite on their own weekday and time, or the
- * "still interested?" mail. No follow-up after a click (21 Oct 2026).
+ * the coming PLAN_DAYS: an invite on their own weekday and time, a
+ * reminder on the Sunday after a click without a booking (14:00), or the
+ * "still interested?" mail.
  */
 export async function planInvites(
   now: Date = new Date(),
@@ -432,6 +477,27 @@ export async function planInvites(
       isMember: person.member,
       locale: person.locale,
     };
+
+    // Clicked a Sunday in an invite and did not book it: one reminder, on the
+    // first Sunday at 14:00 a day after the click and three days after any mail.
+    // Reminders turned off by hand (22 Oct 2026, "herinnering uit") do not count.
+    const reminded = new Set(mine.filter((s) => s.kind === "nudge" && s.skipReason !== "herinnering uit").map((s) => s.eventIds[0]));
+    const lastMail = Math.max(0, ...mine.filter((s) => s.sentAt).map((s) => s.sentAt!.getTime()), ...person.manualInvites.map((d) => d.getTime()));
+    const click = mine
+      .filter((s) => s.status === "sent" && s.kind === "invite")
+      .flatMap((s) => history.clicksBySend.get(s.id) ?? [])
+      .filter((c) => c.eventId && !booked.has(c.eventId) && !reminded.has(c.eventId))
+      .filter((c) => now.getTime() - c.at.getTime() < NUDGE_UNTIL_DAYS * DAY)
+      .sort((a, b) => b.at.getTime() - a.at.getTime())[0];
+    const clickedEvent = click?.eventId ? events.find((e) => e.id === click.eventId) : undefined;
+    if (click && clickedEvent && cities.includes(clickedEvent.city)) {
+      const at = nextSundayAt(new Date(Math.max(now.getTime(), click.at.getTime() + DAY, lastMail + 3 * DAY)));
+      const farEnough = !clickedEvent.open || (at && Date.parse(clickedEvent.startsAt) - at.getTime() >= MIN_DAYS_BEFORE * DAY);
+      if (at && at.getTime() <= horizon && farEnough) {
+        values.push({ ...base, code: code(), kind: "nudge", scheduledFor: at, eventIds: [clickedEvent.id] });
+        continue;
+      }
+    }
 
     const interest = personEngagement(person.email, history, now);
     if (interest.status === "stopped") continue;
@@ -718,13 +784,21 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       await skip("volgt geen steden meer");
       continue;
     }
+    if (send.kind === "nudge" && now.getTime() - send.scheduledFor.getTime() > NUDGE_LATE_MS) {
+      await skip("herinnering te laat");
+      continue;
+    }
     const valid = send.eventIds.filter((id) => !booked.has(id) && events.some((e) => e.id === id && e.open && stillFollowed.includes(e.city)));
-    if (send.kind !== "checkin" && valid.length === 0) {
+    if (send.kind === "invite" && valid.length === 0) {
       await skip("geboekt, vol of te dichtbij");
       continue;
     }
-    const current = { ...send, eventIds: send.kind === "checkin" ? [] : send.eventIds.map((id) => (valid.includes(id) ? id : "")) };
-    const composed = composeSend(current, person, events);
+    const current = send.kind === "invite" ? { ...send, eventIds: send.eventIds.map((id) => (valid.includes(id) ? id : "")) } : send;
+    const composed = composeSend(current, person, events, booked);
+    if (send.kind === "nudge" && !composed) {
+      await skip("geboekt, vol of te dichtbij");
+      continue;
+    }
     if (!composed || !resend) {
       await skip(!resend ? "mail niet ingesteld" : "niets te sturen");
       continue;
@@ -778,7 +852,7 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     }
     const saved = await db
       .update(inviteSends)
-      .set({ status: "sent", sentAt: new Date(), handledAt: new Date(), subject: composed.subject, body: composed.body, resendId })
+      .set({ status: "sent", sentAt: new Date(), handledAt: new Date(), subject: composed.subject, body: composed.body, resendId, ...(composed.eventIds ? { eventIds: composed.eventIds } : {}) })
       .where(eq(inviteSends.id, send.id))
       .then(() => true)
       .catch(() => false);

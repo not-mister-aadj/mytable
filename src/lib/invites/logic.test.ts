@@ -11,6 +11,8 @@ import {
   isTestAddress,
   nextAllowedAt,
   nextSlot,
+  nextSundayAt,
+  nudgeMail,
   scarcityLine,
 } from "./logic";
 
@@ -146,4 +148,38 @@ test("no mails on holidays: they move to the next normal day", () => {
   const at = nextSlot(new Date("2026-12-22T09:00:00Z"), new Date("2026-09-03T12:00:00Z"), "x@y.nl");
   assert.equal(amsterdamParts(at).day, "2026-12-27");
   assert.equal(isInSendWindow(new Date("2026-12-25T10:00:00Z")), false);
+});
+
+test("the click reminder is on the next Sunday at 14:00, also over the clock change", () => {
+  // Thursday 22 October 2026, 15:00 Amsterdam.
+  const at = nextSundayAt(new Date("2026-10-22T13:00:00Z"))!;
+  assert.equal(at.toISOString(), "2026-10-25T13:00:00.000Z"); // 14:00 after winter time starts
+  // On a Sunday after 14:00: the Sunday after.
+  assert.equal(nextSundayAt(new Date("2026-11-01T14:00:00Z"))!.toISOString(), "2026-11-08T13:00:00.000Z");
+  // Easter Sunday is no mail day: a week later.
+  assert.equal(amsterdamParts(nextSundayAt(new Date("2027-03-25T12:00:00Z"))!).day, "2027-04-04");
+});
+
+const sunday = new Date("2026-11-01T13:00:00Z"); // Sunday 1 November, 14:00
+const base = { name: "Chris", cities: ["Amsterdam"], manageUrl: "https://x/u", locale: "nl" as const, sentAt: sunday };
+const ev = (startsAt: string, scarcity: string | null = null) => ({ city: "Amsterdam", startsAt, priceCents: 1000, scarcity, url: "https://x/r/abc1" });
+
+test("the reminder says it is 14:00 and when the table is", () => {
+  const m = nudgeMail({ ...base, event: ev("2026-11-15T13:00:00Z"), soldOut: null });
+  assert.equal(m.subject, "Zondag 15 november, 14:00");
+  assert.match(m.body, /Het is zondag, 14:00\. Op zondag 15 november rond deze tijd kun je in Amsterdam aan tafel zitten met 4 tot 6 nieuwe mensen en een glas wijn\./);
+  assert.match(m.body, /We denken dat dit echt iets voor jou is\. Er is nog plek\./);
+  assert.doesNotMatch(m.body, /keek|looked/);
+  const nextWeek = nudgeMail({ ...base, event: ev("2026-11-08T13:00:00Z", "Nog 4 plekken"), soldOut: null });
+  assert.match(nextWeek.body, /Volgende week om deze tijd kun je in Amsterdam aan tafel zitten/);
+  assert.match(nextWeek.body, /Nog 4 plekken\./);
+});
+
+test("a sold-out Sunday points to the next Sunday Social", () => {
+  const m = nudgeMail({ ...base, event: ev("2026-11-29T13:00:00Z"), soldOut: "2026-11-15T13:00:00Z" });
+  assert.equal(m.subject, "Zondag 29 november, 14:00");
+  assert.match(m.body, /De Sunday Social van zondag 15 november in Amsterdam zit vol, alle tafels zijn bezet\./);
+  assert.match(m.body, /De volgende Sunday Social is op zondag 29 november, om 14:00\./);
+  const en = nudgeMail({ ...base, locale: "en", event: ev("2026-11-29T13:00:00Z"), soldOut: "2026-11-15T13:00:00Z" });
+  assert.match(en.body, /It's Sunday, 2pm\. The Sunday Social on Sunday 15 November in Amsterdam is full, every table is taken\./);
 });

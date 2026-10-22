@@ -8,7 +8,7 @@ import { InviteModeSwitch } from "@/components/admin/InviteModeSwitch";
 import { InviteQueue } from "@/components/admin/InviteQueue";
 import { InviteRulesInfo, type InviteRulesSection } from "@/components/admin/InviteRulesInfo";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
-import { MIN_DAYS_BEFORE, NEW_SIGNUP_WAIT_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
+import { MIN_DAYS_BEFORE, NEW_SIGNUP_WAIT_DAYS, NUDGE_UNTIL_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
 import {
   CHECKIN_AFTER,
   CHECKIN_WAIT_DAYS,
@@ -142,7 +142,11 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number, c:
     },
     {
       title: "Herinnering na een klik",
-      lines: ["Geen herinnering na een klik zonder boeking."],
+      lines: [
+        "Klik zonder boeking: één herinnering, de eerste zondag om 14:00 (minstens een dag na de klik en drie dagen na de vorige mail).",
+        "Is die zondag dan vol, dan noemt de mail de volgende Sunday Social in die stad. Is er geen, dan gaat er niets.",
+        `Kliks ouder dan ${NUDGE_UNTIL_DAYS} dagen krijgen geen herinnering meer.`,
+      ],
     },
     {
       title: "Wie",

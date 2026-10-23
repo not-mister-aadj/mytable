@@ -4,6 +4,7 @@ import {
   type BookingConfirmationEmailProps,
 } from "@/emails/BookingConfirmationEmail";
 import { bookings, events, venues } from "@/db/schema";
+import { bookingIcsAttachment, type BookingIcsInput } from "@/lib/booking-calendar";
 import { getDb } from "@/db/index";
 import { onEmailSent } from "@/lib/customers/hooks";
 import type { Booking, Event } from "@/db/schema";
@@ -45,8 +46,10 @@ function validateProps(props: BookingConfirmationEmailProps): void {
   }
 }
 
+/** `calendar` attaches an invite for the guest's calendar. */
 export async function sendBookingConfirmationEmail(
   props: BookingConfirmationEmailProps,
+  calendar?: Omit<BookingIcsInput, "organizerEmail">,
 ): Promise<EmailSendResult> {
   validateProps(props);
 
@@ -81,6 +84,7 @@ export async function sendBookingConfirmationEmail(
     headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
+    attachments: calendar ? [bookingIcsAttachment({ ...calendar, organizerEmail: getEmailReplyTo() })] : undefined,
   });
 
   if (error) {
@@ -116,7 +120,20 @@ export async function sendBookingConfirmationForPaidBooking(
   }
 
   const props = await buildBookingConfirmationEmailProps(booking, event, venue);
-  const result = await sendBookingConfirmationEmail(props);
+  const result = await sendBookingConfirmationEmail(props, {
+    bookingId: booking.id,
+    bookingCode: props.bookingCode,
+    eventName: props.eventName,
+    city: event.city,
+    startsAt: new Date(event.startsAt),
+    endsAt: event.endsAt ? new Date(event.endsAt) : null,
+    attendeeEmail: props.customerEmail,
+    attendeeName: props.customerName,
+    locale: props.locale,
+    isSundayTable: props.isSundayTable,
+    location: [props.venueName, props.startLocation].filter((v) => v?.trim()).join(", ") || undefined,
+    eventUrl: props.eventUrl,
+  });
 
   if (result.ok && result.id !== "already-sent" && !options?.force) {
     await db

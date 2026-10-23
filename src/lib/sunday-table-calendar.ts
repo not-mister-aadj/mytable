@@ -30,7 +30,7 @@ export function toIcsUtc(date: Date): string {
   );
 }
 
-function escapeIcsText(value: string): string {
+export function escapeIcsText(value: string): string {
   return value
     .replace(/\\/g, "\\\\")
     .replace(/;/g, "\\;")
@@ -38,7 +38,7 @@ function escapeIcsText(value: string): string {
     .replace(/\n/g, "\\n");
 }
 
-function foldIcsLine(line: string): string {
+export function foldIcsLine(line: string): string {
   const limit = 75;
   if (line.length <= limit) return line;
   const parts: string[] = [];

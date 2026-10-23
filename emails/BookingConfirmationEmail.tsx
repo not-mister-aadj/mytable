@@ -173,6 +173,18 @@ export function BookingConfirmationEmail({
             title: aloneOrTogetherTitle,
             description: aloneOrTogether,
           },
+          {
+            icon: "calendar" as const,
+            title: en ? "In your calendar" : "In je agenda",
+            description:
+              isSundayTable && !venueKnown
+                ? en
+                  ? "The invite is attached to this email. Once the venue is set, we'll send it again with the address."
+                  : "De uitnodiging zit bij deze mail. Staat de locatie vast, dan sturen we hem opnieuw met het adres."
+                : en
+                  ? "The invite is attached to this email."
+                  : "De uitnodiging zit bij deze mail.",
+          },
           isSundayTable
             ? {
                 icon: "mail" as const,

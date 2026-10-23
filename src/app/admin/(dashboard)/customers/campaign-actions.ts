@@ -21,7 +21,7 @@ import {
   type CampaignMailContent,
 } from "@/lib/email/campaign-mail";
 
-const DEFAULT_CAMPAIGN_EMAIL_FROM = "Het MyTable-team <hallo@tafels.mytable.club>";
+const DEFAULT_CAMPAIGN_EMAIL_FROM = "MyTable <hallo@tafels.mytable.club>";
 const CAMPAIGN_SEND_PAUSE_MS = 600;
 
 function getCampaignEmailFrom(): string {

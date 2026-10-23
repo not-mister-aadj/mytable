@@ -178,7 +178,7 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number, c:
     {
       title: "Inhoud",
       lines: [
-        "Platte tekst van Het MyTable-team <hallo@tafels.mytable.club>, antwoorden naar info@mytable.club.",
+        "Platte tekst van MyTable <hallo@tafels.mytable.club>, antwoorden naar info@mytable.club.",
         "Eerste zin uit wat ze zoeken (wachtlijst of quiz); wie alleen komt krijgt \"Veel mensen schuiven alleen aan\".",
         `"Nog X plekken" vanaf ${SEATS_LEFT_SHOWN} over. Anders "Loopt snel vol" bij meer dan de helft verkocht of een uitverkochte vorige editie. Anders niets.`,
         "Geen namen van bars.",

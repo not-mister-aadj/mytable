@@ -44,7 +44,7 @@ function getAdminBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://dashboard.mytable.club").replace(/\/$/, "");
 }
 const FROM_ADDRESS = "hallo@tafels.mytable.club";
-const FROM = `Het MyTable-team <${FROM_ADDRESS}>`;
+const FROM = `MyTable <${FROM_ADDRESS}>`;
 const REPLY_TO = "info@mytable.club";
 /** Plans no further ahead than this. */
 export const PLAN_DAYS = 7;

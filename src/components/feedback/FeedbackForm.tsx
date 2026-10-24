@@ -184,11 +184,11 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
           {state.mood === "good" || (happy && page.member) ? <NextSunday page={page} t={t} /> : null}
         </section>
         {happy && !page.member ? (
-          <section className="overflow-hidden rounded-3xl border border-gold/30 bg-wine px-6 py-7 text-cream sm:px-8">
-            <h2 className="font-serif text-2xl">{t.offerTitle}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-cream/80">{t.offerBody}</p>
+          <section className={card}>
+            <h2 className="font-serif text-2xl text-wine sm:text-3xl">{t.offerTitle}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-wine/70">{t.offerBody}</p>
             <div className={`mt-6 grid gap-3 ${page.next ? "sm:grid-cols-2" : ""}`}>
-              <div className="flex flex-col rounded-2xl bg-cream p-5 text-wine">
+              <div className="flex flex-col rounded-2xl bg-white p-5 text-wine ring-2 ring-burgundy shadow-[0_10px_30px_rgba(90,15,27,0.10)]">
                 <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.memberCardTitle}</p>
                 <p className="mt-1 font-serif text-2xl">{t.memberPrice}</p>
                 <ul className="mt-3 flex-1 space-y-1.5 text-sm">
@@ -207,25 +207,25 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                 ) : null}
                 <Link
                   href={page.next && alsoBook ? withTicket("elke-zondag") : page.joinPath}
-                  className="mt-4 rounded-full bg-burgundy px-5 py-2.5 text-center text-sm font-semibold text-cream"
+                  className="mt-4 rounded-full bg-burgundy px-5 py-2.5 text-center text-sm font-semibold text-cream transition hover:bg-wine"
                 >
                   {t.offerCtaNoDate}
                 </Link>
               </div>
               {page.next ? (
-                <div className="flex flex-col rounded-2xl bg-cream/10 p-5 ring-1 ring-cream/20">
+                <div className="flex flex-col rounded-2xl bg-white/60 p-5 text-wine ring-1 ring-wine/10">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.singleCardTitle}</p>
                   <p className="mt-1 font-serif text-2xl">{t.singlePrice}</p>
-                  <p className="mt-3 flex-1 text-sm text-cream/80">
+                  <p className="mt-3 flex-1 text-sm text-wine/75">
                     {page.city}
                     <br />
                     {page.next.label}
                     <br />
-                    <span className="text-cream/60">{t.seats(page.next.seatsLeft)}</span>
+                    <span className="text-wine/50">{t.seats(page.next.seatsLeft)}</span>
                   </p>
                   <Link
                     href={withTicket("deze-zondag")}
-                    className="mt-4 rounded-full px-5 py-2.5 text-center text-sm font-semibold text-cream ring-1 ring-cream/40 hover:ring-cream/70"
+                    className="mt-4 rounded-full bg-white px-5 py-2.5 text-center text-sm font-semibold text-burgundy ring-1 ring-burgundy/40 transition hover:ring-burgundy"
                   >
                     {t.reserve}
                   </Link>

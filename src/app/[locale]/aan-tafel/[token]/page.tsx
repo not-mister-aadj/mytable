@@ -66,9 +66,9 @@ const COPY = {
     picksLabel: "Onze aanraders",
     picksTitle: (venue: string) => `Wat wij zouden bestellen bij ${venue}`,
     picksLead: (venue: string) =>
-      `We hebben bij ${venue} geproefd en met de sommeliers ter plekke gepraat. Dit zijn onze keuzes. Geen verplichting: je bestelt en betaalt zelf, en het team van ${venue} helpt je ook graag kiezen.`,
+      `We hebben bij ${venue} geproefd. Dit zijn onze keuzes. Geen verplichting: je bestelt en betaalt zelf, en het team van ${venue} helpt je ook graag kiezen.`,
     picksSoon: (venue: string) => `Zondagochtend staan hier onze wijn- en hapjesaanraders voor ${venue}.`,
-    goesWith: "Past bij",
+    goesWith: "Wij zouden erbij nemen",
     tableDrinks: "Jullie tafel drinkt graag",
     askTeam: (venue: string) => `Vraag het team van ${venue} wat zij vandaag zouden schenken, ze helpen je graag kiezen.`,
     footer: "Deze pagina is alleen voor jouw tafel en verdwijnt zondag om 18:00.",
@@ -123,9 +123,9 @@ const COPY = {
     picksLabel: "Our picks",
     picksTitle: (venue: string) => `What we'd order at ${venue}`,
     picksLead: (venue: string) =>
-      `We tasted at ${venue} and talked to the sommeliers there. These are our picks. No obligation: you order and pay yourself, and the ${venue} team is happy to help you choose too.`,
+      `We tasted at ${venue}. These are our picks. No obligation: you order and pay yourself, and the ${venue} team is happy to help you choose too.`,
     picksSoon: (venue: string) => `On Sunday morning you'll find our wine and food picks for ${venue} here.`,
-    goesWith: "Goes with",
+    goesWith: "We'd order it with",
     tableDrinks: "Your table likes",
     askTeam: (venue: string) => `Ask the ${venue} team what they'd pour today, they're happy to help you choose.`,
     footer: "This page is only for your table and disappears on Sunday at 6 PM.",
@@ -141,6 +141,7 @@ const KIND_DOT: Record<PickKind, string> = {
   bubbles: "bg-[#e9d79a]",
   white: "bg-[#f1e8c4]",
   rose: "bg-[#e8b4b0]",
+  sweet: "bg-[#d9a441]",
   red: "bg-burgundy",
   food: "bg-gold",
 };
@@ -381,10 +382,12 @@ function Pick({ p, n, t }: { p: VenuePick; n: number; t: Copy }) {
         ) : null}
         {p.why ? <p className="mt-3 text-sm leading-relaxed text-wine/80">{p.why}</p> : null}
         {p.goesWith ? (
-          <p className="mt-2 text-sm text-wine">
-            <span className="text-wine/50">{t.goesWith} </span>
-            {p.goesWith}
-          </p>
+          <div className="mt-3 rounded-xl bg-white/70 px-3.5 py-2.5 ring-1 ring-wine/10">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">
+              {t.goesWith}
+            </p>
+            <p className="mt-0.5 font-serif text-base text-wine">{p.goesWith}</p>
+          </div>
         ) : null}
       </div>
     </li>

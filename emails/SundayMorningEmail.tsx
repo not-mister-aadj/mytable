@@ -28,8 +28,8 @@ export function SundayMorningEmail(p: SundayMorningEmailProps) {
         headline={nl ? `Vandaag bij ${p.venueName}` : `Today at ${p.venueName}`}
         body={
           nl
-            ? `Om ${p.time} staat je tafel klaar, groep ${p.groupNumber}. We hebben bij ${p.venueName} geproefd en met de sommeliers gepraat. Onze aanraders staan nu op je tafelpagina.`
-            : `Your table is ready at ${p.time}, group ${p.groupNumber}. We tasted at ${p.venueName} and talked to the sommeliers. Our picks are on your table page now.`
+            ? `Om ${p.time} staat je tafel klaar, groep ${p.groupNumber}. We hebben bij ${p.venueName} geproefd. Onze aanraders staan nu op je tafelpagina.`
+            : `Your table is ready at ${p.time}, group ${p.groupNumber}. We tasted at ${p.venueName}. Our picks are on your table page now.`
         }
       />
       {p.pickNames.length > 0 ? (

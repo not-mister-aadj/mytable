@@ -33,6 +33,12 @@ const COPY = {
     offerCta: "Word lid en reserveer",
     offerCtaNoDate: "Word lid",
     memberOnly: "Alleen lid worden",
+    memberCardTitle: "Lid worden",
+    memberPrice: "€10 per maand",
+    memberPoints: ["Kies wie je terugziet", "Elke Sunday Social, alle 5 steden", "Maandelijks opzegbaar"],
+    alsoBook: (date: string) => `Reserveer ${date} meteen`,
+    singleCardTitle: "Alleen de volgende keer",
+    singlePrice: "€10 eenmalig",
     singleSeat: "of reserveer alleen deze zondag",
     nextTitle: "Je volgende zondag",
     seats: (n: number) => `nog ${n} ${n === 1 ? "plek" : "plekken"}`,
@@ -71,6 +77,12 @@ const COPY = {
     offerCta: "Become a member and reserve",
     offerCtaNoDate: "Become a member",
     memberOnly: "Just become a member",
+    memberCardTitle: "Become a member",
+    memberPrice: "€10 a month",
+    memberPoints: ["Choose who you see again", "Every Sunday Social, all 5 cities", "Cancel monthly"],
+    alsoBook: (date: string) => `Reserve ${date} right away`,
+    singleCardTitle: "Just the next one",
+    singlePrice: "€10 one time",
     singleSeat: "or reserve just this Sunday",
     nextTitle: "Your next Sunday",
     seats: (n: number) => `${n} ${n === 1 ? "seat" : "seats"} left`,
@@ -138,6 +150,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
   const [error, setError] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [cropping, setCropping] = useState<File | null>(null);
+  const [alsoBook, setAlsoBook] = useState(true);
   const [pending, start] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -174,38 +187,51 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
           <section className="overflow-hidden rounded-3xl border border-gold/30 bg-wine px-6 py-7 text-cream sm:px-8">
             <h2 className="font-serif text-2xl">{t.offerTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-cream/80">{t.offerBody}</p>
-            <p className="mt-3 text-xs text-cream/60">{t.offerSmall}</p>
-            {page.next ? (
-              <div className="mt-5 rounded-2xl bg-cream/10 px-4 py-3 ring-1 ring-cream/20">
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.nextTitle}</p>
-                <p className="font-serif text-lg">
-                  {page.city} · {page.next.label}
-                </p>
-                <p className="text-xs text-cream/70">{t.seats(page.next.seatsLeft)}</p>
-              </div>
-            ) : null}
-            <div className="mt-5 flex flex-wrap gap-2">
-              {page.next ? (
-                <Link href={withTicket("elke-zondag")} className="rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-wine">
-                  {t.offerCta}
+            <div className={`mt-6 grid gap-3 ${page.next ? "sm:grid-cols-2" : ""}`}>
+              <div className="flex flex-col rounded-2xl bg-cream p-5 text-wine">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.memberCardTitle}</p>
+                <p className="mt-1 font-serif text-2xl">{t.memberPrice}</p>
+                <ul className="mt-3 flex-1 space-y-1.5 text-sm">
+                  {t.memberPoints.map((point) => (
+                    <li key={point} className="flex gap-2">
+                      <span aria-hidden className="text-gold">✓</span>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                {page.next ? (
+                  <label className="mt-4 flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={alsoBook} onChange={(e) => setAlsoBook(e.target.checked)} className="accent-burgundy" />
+                    {t.alsoBook(page.next.shortLabel)}
+                  </label>
+                ) : null}
+                <Link
+                  href={page.next && alsoBook ? withTicket("elke-zondag") : page.joinPath}
+                  className="mt-4 rounded-full bg-burgundy px-5 py-2.5 text-center text-sm font-semibold text-cream"
+                >
+                  {t.offerCtaNoDate}
                 </Link>
+              </div>
+              {page.next ? (
+                <div className="flex flex-col rounded-2xl bg-cream/10 p-5 ring-1 ring-cream/20">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.singleCardTitle}</p>
+                  <p className="mt-1 font-serif text-2xl">{t.singlePrice}</p>
+                  <p className="mt-3 flex-1 text-sm text-cream/80">
+                    {page.city}
+                    <br />
+                    {page.next.label}
+                    <br />
+                    <span className="text-cream/60">{t.seats(page.next.seatsLeft)}</span>
+                  </p>
+                  <Link
+                    href={withTicket("deze-zondag")}
+                    className="mt-4 rounded-full px-5 py-2.5 text-center text-sm font-semibold text-cream ring-1 ring-cream/40 hover:ring-cream/70"
+                  >
+                    {t.reserve}
+                  </Link>
+                </div>
               ) : null}
-              <Link
-                href={page.joinPath}
-                className={
-                  page.next
-                    ? "rounded-full px-5 py-2.5 text-sm font-semibold text-cream ring-1 ring-cream/40 hover:ring-cream/70"
-                    : "rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-wine"
-                }
-              >
-                {page.next ? t.memberOnly : t.offerCtaNoDate}
-              </Link>
             </div>
-            {page.next ? (
-              <Link href={withTicket("deze-zondag")} className="mt-3 block text-sm text-cream/75 underline-offset-4 hover:underline">
-                {t.singleSeat}
-              </Link>
-            ) : null}
           </section>
         ) : null}
       </div>

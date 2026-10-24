@@ -74,7 +74,7 @@ export type FeedbackPage = {
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
   tablemates: { bookingId: string; firstName: string }[];
   /** The next bookable Sunday Social in their city. */
-  next: { label: string; seatsLeft: number; path: string } | null;
+  next: { label: string; shortLabel: string; seatsLeft: number; path: string } | null;
   /** Where "no next Sunday" points. */
   cityPath: string;
   /** "Alleen lid worden": log in, then "Word lid" in the settings. */
@@ -167,6 +167,11 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
               weekday: "long",
               day: "numeric",
               month: "long",
+              timeZone: "Europe/Amsterdam",
+            }).format(nextEvent.startsAt),
+            shortLabel: new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
+              day: "numeric",
+              month: "short",
               timeZone: "Europe/Amsterdam",
             }).format(nextEvent.startsAt),
             seatsLeft: Math.max(0, nextEvent.capacity - nextEvent.spotsSold),

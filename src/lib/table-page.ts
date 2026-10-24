@@ -253,3 +253,19 @@ export async function savePlusOneAnswers(bookingId: string, answers: PlusOneAnsw
 export async function shareTablePageIntro(bookingId: string): Promise<void> {
   await getDb().update(bookings).set({ introShareConsent: true }).where(eq(bookings.id, bookingId));
 }
+
+/** The +1's answers were only for the table page: once it has closed they
+ * are wiped (daily cron). Returns how many bookings were cleared. */
+export async function clearPlusOneAnswersAfterSunday(now = new Date()): Promise<number> {
+  const rows = await getDb()
+    .update(bookings)
+    .set({ introPlusOne: null })
+    .where(
+      and(
+        sql`${bookings.introPlusOne} is not null`,
+        sql`${bookings.eventId} in (select id from events where starts_at < ${new Date(now.getTime() - OPEN_AFTER_START_MS).toISOString()}::timestamptz)`,
+      ),
+    )
+    .returning({ id: bookings.id });
+  return rows.length;
+}

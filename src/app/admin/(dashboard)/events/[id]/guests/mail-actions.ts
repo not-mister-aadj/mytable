@@ -40,11 +40,11 @@ export async function previewSundayMailAction(
     return { ok: false, error: `${guest.firstName || "Deze gast"} heeft nog geen groep.` };
   }
   const mail = await buildSundayMail(ctx, kind, guest);
-  const html = mail.text
+  const html = mail.html ?? (mail.text
     ? `<pre style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;white-space:pre-wrap;padding:24px">${mail.text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")}</pre>`
-    : (await renderEmailForDelivery(mail.element!)).html;
+    : (await renderEmailForDelivery(mail.element!)).html);
   return { ok: true, subject: mail.subject, html };
 }
 

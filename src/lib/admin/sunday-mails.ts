@@ -217,7 +217,7 @@ export async function buildSundayMail(
       : 0;
     return {
       subject: nl ? "Hoe was het vanmiddag?" : "How was this afternoon?",
-      text: feedbackText({
+      ...feedbackMail({
         locale,
         firstName: guest.firstName,
         venueName: venue.name,
@@ -260,12 +260,31 @@ export async function buildSundayMail(
 
 /** A Sunday mail: designed (element), or plain text from a person-like sender
  * (lands in the inbox rather than Promotions). */
-export type SundayMail = { subject: string; element?: ReactElement; text?: string; from?: string };
+export type SundayMail = { subject: string; element?: ReactElement; text?: string; html?: string; from?: string };
 
 const PLAIN_FROM = "MyTable <hallo@tafels.mytable.club>";
 
 const NL_NUMBERS = ["nul", "één", "twee", "drie", "vier", "vijf", "zes", "zeven", "acht", "negen", "tien"];
 const EN_NUMBERS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+
+const escapeHtml = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** The 20:00 feedback mail: reads like a personal mail (no logo, no layout),
+ * with one simple button, and the same as plain text. */
+export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): { text: string; html: string } {
+  const text = feedbackText(p);
+  const nl = p.locale === "nl";
+  const [before, after] = text.split(`${p.url}\n`);
+  const para = (block: string) =>
+    block
+      .trim()
+      .split("\n\n")
+      .map((b) => `<p style="margin:0 0 16px">${escapeHtml(b).replace(/\n/g, "<br>")}</p>`)
+      .join("");
+  const button = `<p style="margin:4px 0 24px"><a href="${escapeHtml(p.url)}" style="display:inline-block;background:#5a0f1b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${nl ? "Vertel hoe het was" : "Tell us how it was"}</a></p>`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before!)}${button}${para(after!)}</div>`;
+  return { text, html };
+}
 
 /** The 20:00 feedback mail as plain text, with the real number of new people at their table. */
 export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): string {
@@ -320,6 +339,7 @@ export async function sendSundayMail(to: string, mail: SundayMail, scheduledAt?:
       to,
       subject,
       text: mail.text,
+      ...(mail.html ? { html: mail.html } : {}),
       ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
     });
     return error ? null : (data?.id ?? "sent");

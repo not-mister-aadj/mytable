@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
+  cancelScheduledSundayMailAction,
   previewSundayMailAction,
+  scheduleSundayMailAction,
   sendSundayMailAction,
   sendSundayMailTestAction,
 } from "@/app/admin/(dashboard)/events/[id]/guests/mail-actions";
@@ -19,6 +21,9 @@ export type MailGuest = {
 };
 
 type Kind = "location" | "saturday" | "morning";
+
+/** A planned send: when ("za 24 okt, 16:00") and for how many guests. */
+export type MailPlan = { label: string; count: number } | null;
 
 const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   location: {
@@ -44,16 +49,21 @@ export function SundayMailsPanel({
   eventId,
   guests,
   blockers,
+  plans,
+  defaultTimes,
 }: {
   eventId: string;
   guests: MailGuest[];
   blockers: Record<Kind, string | null>;
+  plans: { saturday: MailPlan; morning: MailPlan };
+  /** "YYYY-MM-DDTHH:mm" in Amsterdam: Saturday 16:00, Sunday 08:30. */
+  defaultTimes: { saturday: string; morning: string };
 }) {
   return (
     <div className="space-y-6">
       <MailCard kind="location" eventId={eventId} guests={guests} blocker={blockers.location} />
-      <MailCard kind="saturday" eventId={eventId} guests={guests} blocker={blockers.saturday} />
-      <MailCard kind="morning" eventId={eventId} guests={guests} blocker={blockers.morning} />
+      <MailCard kind="saturday" eventId={eventId} guests={guests} blocker={blockers.saturday} plan={plans.saturday} defaultTime={defaultTimes.saturday} />
+      <MailCard kind="morning" eventId={eventId} guests={guests} blocker={blockers.morning} plan={plans.morning} defaultTime={defaultTimes.morning} />
     </div>
   );
 }
@@ -63,11 +73,15 @@ function MailCard({
   eventId,
   guests,
   blocker,
+  plan = null,
+  defaultTime,
 }: {
   kind: Kind;
   eventId: string;
   guests: MailGuest[];
   blocker: string | null;
+  plan?: MailPlan;
+  defaultTime?: string;
 }) {
   const router = useRouter();
   const copy = COPY[kind];
@@ -79,6 +93,8 @@ function MailCard({
   const [preview, setPreview] = useState<{ subject: string; html: string } | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [planning, setPlanning] = useState(false);
+  const [planAt, setPlanAt] = useState(defaultTime ?? "");
   const [pending, start] = useTransition();
 
   const run = (fn: () => Promise<{ ok: true; message: string } | { ok: false; error: string }>) =>
@@ -106,19 +122,37 @@ function MailCard({
         </div>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
-            guests.length > 0 && sent === guests.length
+            plan
+              ? "bg-sky-50 text-sky-900 ring-sky-200/80"
+              : guests.length > 0 && sent === guests.length
               ? "bg-emerald-50 text-emerald-800 ring-emerald-200/70"
               : sent > 0
                 ? "bg-amber-50 text-amber-900 ring-amber-200/80"
                 : "bg-wine/[0.05] text-wine/60 ring-border-subtle"
           }`}
         >
-          {sent} van {guests.length} verstuurd
+          {plan ? `${plan.count} ingepland` : `${sent} van ${guests.length} verstuurd`}
         </span>
       </div>
       <p className="mt-2 max-w-prose text-sm text-wine/65">{copy.what}</p>
 
-      {missing.length > 0 && sent > 0 ? (
+      {plan ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">
+          <span>
+            Ingepland: <strong>{plan.label}</strong> · {plan.count} {plan.count === 1 ? "gast" : "gasten"}
+          </span>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => run(() => cancelScheduledSundayMailAction(eventId, kind))}
+            className="rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-900 transition hover:border-sky-500 disabled:opacity-50"
+          >
+            Annuleren
+          </button>
+        </div>
+      ) : null}
+
+      {missing.length > 0 && sent > 0 && !plan ? (
         <p className="mt-2 text-sm text-wine/60">Nog niet: {missing.map((g) => g.name).join(", ")}</p>
       ) : null}
 
@@ -155,7 +189,7 @@ function MailCard({
         >
           Test naar mij
         </button>
-        {missing.length > 0 ? (
+        {missing.length > 0 && !plan ? (
           confirming ? (
             <>
               <button
@@ -180,7 +214,43 @@ function MailCard({
               onClick={() => setConfirming(true)}
               className="rounded-full bg-burgundy px-4 py-1.5 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-40"
             >
-              Verstuur naar {missing.length} {missing.length === 1 ? "gast" : "gasten"}
+              Verstuur nu naar {missing.length} {missing.length === 1 ? "gast" : "gasten"}
+            </button>
+          )
+        ) : null}
+        {defaultTime && missing.length > 0 && !plan ? (
+          planning ? (
+            <>
+              <input
+                type="datetime-local"
+                value={planAt}
+                onChange={(e) => setPlanAt(e.target.value)}
+                aria-label="Verzendmoment"
+                className="rounded-full border border-border-subtle bg-cream px-3 py-1.5 text-sm text-wine"
+              />
+              <button
+                type="button"
+                disabled={pending || !planAt}
+                onClick={() => {
+                  setPlanning(false);
+                  run(() => scheduleSundayMailAction(eventId, kind, planAt));
+                }}
+                className="rounded-full bg-burgundy px-4 py-1.5 text-sm font-medium text-cream transition hover:bg-burgundy/90 disabled:opacity-50"
+              >
+                Plan in voor {missing.length}
+              </button>
+              <button type="button" onClick={() => setPlanning(false)} className="px-2 text-sm text-wine/60 hover:text-wine">
+                Annuleren
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              disabled={pending || Boolean(blocker)}
+              onClick={() => setPlanning(true)}
+              className="rounded-full border border-burgundy/40 bg-cream px-4 py-1.5 text-sm font-medium text-burgundy transition hover:bg-burgundy/5 disabled:opacity-40"
+            >
+              Inplannen
             </button>
           )
         ) : null}

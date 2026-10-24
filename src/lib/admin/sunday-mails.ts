@@ -12,6 +12,7 @@ import { signSundayTableIntroToken } from "@/lib/sunday-table-intro";
 import { tablePageUrl } from "@/lib/table-page";
 import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 import { venueTransit } from "@/lib/venue-about";
+import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
 
 /** The mails sent from a Sunday's page in admin: the location a week
  * before, on Saturday the group with a link to the table page, and on
@@ -35,6 +36,9 @@ type Guest = {
   sentMorning: boolean;
 };
 
+/** A mail handed to Resend with a send time, per guest (events.extras.mailSchedule). */
+export type ScheduledMail = { at: string; ids: { bookingId: string; resendId: string }[] };
+
 export type SundayMailContext = {
   eventId: string;
   city: string;
@@ -42,6 +46,8 @@ export type SundayMailContext = {
   venue: { name: string; area: string | null; address: string; descriptionNl: string | null; descriptionEn: string | null } | null;
   /** The picks of the Sunday's (first) venue. */
   picks: VenuePick[];
+  /** Mails waiting at Resend for their send time. */
+  schedule: Partial<Record<SundayMailKind, ScheduledMail>>;
   guests: Guest[];
 };
 
@@ -131,6 +137,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
     startsAt: event.startsAt,
     venue: venue && venue.address ? { ...venue, address: venue.address } : null,
     picks: parseVenuePicks(venue?.picks),
+    schedule: parseSchedule(event.extras?.mailSchedule),
     guests,
   };
 }
@@ -227,10 +234,36 @@ export async function buildSundayMail(
   };
 }
 
-export async function sendRendered(to: string, subject: string, element: ReactElement): Promise<boolean> {
+/** Sends now, or at `scheduledAt`; the Resend id, or null when it failed. */
+export async function sendRendered(to: string, subject: string, element: ReactElement, scheduledAt?: Date): Promise<string | null> {
   const resend = getResendClient();
-  if (!resend) return false;
+  if (!resend) return null;
   const { html, text } = await renderEmailForDelivery(element);
-  const { error } = await resend.emails.send({ from: getEmailFrom(), replyTo: getEmailReplyTo(), to, subject, html, text });
-  return !error;
+  const { data, error } = await resend.emails.send({
+    from: getEmailFrom(),
+    replyTo: getEmailReplyTo(),
+    to,
+    subject,
+    html,
+    text,
+    ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
+  });
+  return error ? null : (data?.id ?? "sent");
+}
+
+function parseSchedule(raw: unknown): SundayMailContext["schedule"] {
+  if (!raw || typeof raw !== "object") return {};
+  const out: SundayMailContext["schedule"] = {};
+  for (const kind of ["saturday", "morning"] as const) {
+    const item = (raw as Record<string, unknown>)[kind] as ScheduledMail | undefined;
+    if (item && typeof item.at === "string" && Array.isArray(item.ids)) out[kind] = item;
+  }
+  return out;
+}
+
+/** The suggested send time: Saturday 16:00 for the group mail, Sunday 08:30
+ * for the picks (Amsterdam). */
+export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning"): Date {
+  const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
+  return kind === "saturday" ? amsterdamDateTime(y, m, d - 1, 16, 0) : amsterdamDateTime(y, m, d, 8, 30);
 }

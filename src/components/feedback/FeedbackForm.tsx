@@ -8,7 +8,7 @@ import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
 const COPY = {
   nl: {
     title: (venue: string) => `Hoe was je middag bij ${venue}?`,
-    moods: { great: "Geweldig", good: "Leuk", meh: "Niet echt", bad: "Helemaal niet" } as Record<Mood, string>,
+    moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
     venue: (venue: string) => `En hoe was ${venue}?`,
     highlight: "Wat maakte je middag?",
     highlightHint: "Met wie je praatte, wat je dronk, wat je verraste.",
@@ -43,7 +43,7 @@ const COPY = {
   },
   en: {
     title: (venue: string) => `How was your afternoon at ${venue}?`,
-    moods: { great: "Amazing", good: "Nice", meh: "Not really", bad: "Not at all" } as Record<Mood, string>,
+    moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
     venue: (venue: string) => `And how was ${venue}?`,
     highlight: "What made your afternoon?",
     highlightHint: "Who you talked to, what you drank, what surprised you.",
@@ -111,7 +111,7 @@ function Faces({ value, onPick, labels, size }: { value: Mood | null; onPick: (m
           }`}
         >
           <Face mood={m} size={size} />
-          <span className="text-xs font-medium text-wine/80">{labels[m]}</span>
+          <span className={`text-xs transition ${value === m ? "font-semibold text-wine" : "text-wine/45"}`}>{labels[m]}</span>
         </button>
       ))}
     </div>

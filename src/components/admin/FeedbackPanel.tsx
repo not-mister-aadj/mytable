@@ -23,8 +23,8 @@ export type FeedbackRow = {
 const MOOD: Record<string, { label: string; dot: string }> = {
   great: { label: "Geweldig", dot: "bg-[#1f9d55]" },
   good: { label: "Leuk", dot: "bg-[#8cc795]" },
-  meh: { label: "Niet echt", dot: "bg-[#e9a2a2]" },
-  bad: { label: "Helemaal niet", dot: "bg-[#d64550]" },
+  meh: { label: "Matig", dot: "bg-[#e9a2a2]" },
+  bad: { label: "Niet leuk", dot: "bg-[#d64550]" },
 };
 
 function MoodChip({ mood }: { mood: string | null }) {

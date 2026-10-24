@@ -10,8 +10,9 @@ const COPY = {
     title: (venue: string) => `Hoe was je middag bij ${venue}?`,
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
     venue: (venue: string) => `En hoe was ${venue}?`,
-    highlight: "Wat maakte je middag?",
-    highlightHint: "Met wie je praatte, wat je dronk, wat je verraste.",
+    highlight: "Wat zou je zeggen tegen iemand die twijfelt om te komen?",
+    highlightHint: "Met jouw woorden schuiven er nog meer leuke mensen aan tafel.",
+    highlightPlaceholder: "Bijvoorbeeld: met wie je praatte, wat je verraste, hoe je je voelde na afloop",
     improve: "Wat kan beter?",
     improveHint: "Alleen voor ons, we lezen alles.",
     quote: "Mogen we je woorden gebruiken op onze site of social media?",
@@ -45,8 +46,9 @@ const COPY = {
     title: (venue: string) => `How was your afternoon at ${venue}?`,
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
     venue: (venue: string) => `And how was ${venue}?`,
-    highlight: "What made your afternoon?",
-    highlightHint: "Who you talked to, what you drank, what surprised you.",
+    highlight: "What would you tell someone who's unsure about coming?",
+    highlightHint: "Your words bring even more lovely people to the table.",
+    highlightPlaceholder: "For example: who you talked to, what surprised you, how you felt afterwards",
     improve: "What could be better?",
     improveHint: "Only for us, we read everything.",
     quote: "May we use your words on our site or social media?",
@@ -201,6 +203,7 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
                 rows={3}
                 className={field}
                 value={state.highlight}
+                placeholder={t.highlightPlaceholder}
                 onChange={(e) => setState((s) => ({ ...s, highlight: e.target.value }))}
                 onBlur={(e) => save({ highlight: e.target.value })}
               />

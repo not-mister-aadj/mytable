@@ -57,8 +57,8 @@ export function EmailHero({ greeting, headline, body, warmLine }: Props) {
           <Text
             style={{
               fontFamily: emailFonts.serif,
-              fontSize: "14px",
-              lineHeight: "22px",
+              fontSize: "16px",
+              lineHeight: "24px",
               fontStyle: "italic",
               color: emailBrand.burgundy,
               margin: 0,

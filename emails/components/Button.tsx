@@ -24,7 +24,7 @@ export function Button({
         backgroundColor: isPrimary ? emailBrand.burgundy : emailBrand.card,
         color: isPrimary ? "#FFFFFF" : emailBrand.burgundy,
         fontFamily: emailFonts.sans,
-        fontSize: "15px",
+        fontSize: "16px",
         fontWeight: 600,
         letterSpacing: "0.02em",
         textDecoration: "none",

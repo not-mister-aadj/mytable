@@ -43,7 +43,7 @@ export const emailSpacing = {
 
 export const emailType = {
   label: {
-    fontSize: "9px",
+    fontSize: "11px",
     fontWeight: 600 as const,
     letterSpacing: "0.13em",
     textTransform: "uppercase" as const,
@@ -51,7 +51,7 @@ export const emailType = {
     margin: "0 0 5px",
   },
   sectionLabel: {
-    fontSize: "9px",
+    fontSize: "11px",
     fontWeight: 600 as const,
     letterSpacing: "0.15em",
     textTransform: "uppercase" as const,
@@ -59,18 +59,18 @@ export const emailType = {
     margin: "0 0 8px",
   },
   body: {
+    fontSize: "16px",
+    lineHeight: "25px",
+    color: emailBrand.mutedText,
+  },
+  bodySmall: {
     fontSize: "14px",
     lineHeight: "22px",
     color: emailBrand.mutedText,
   },
-  bodySmall: {
-    fontSize: "13px",
-    lineHeight: "20px",
-    color: emailBrand.mutedText,
-  },
   value: {
-    fontSize: "13px",
-    lineHeight: "18px",
+    fontSize: "15px",
+    lineHeight: "21px",
     fontWeight: 600 as const,
     color: emailBrand.darkText,
     margin: 0,

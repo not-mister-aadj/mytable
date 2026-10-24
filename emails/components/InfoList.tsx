@@ -50,9 +50,9 @@ export function InfoList({
             <Column style={{ verticalAlign: "top" }}>
               <Text
                 style={{
-                  fontSize: "14px",
+                  fontSize: "16px",
                   fontWeight: 600,
-                  lineHeight: "20px",
+                  lineHeight: "22px",
                   color: emailBrand.darkText,
                   margin: "0 0 3px",
                 }}

@@ -164,7 +164,7 @@ export default async function TablePageRoute({ params }: Props) {
           {page ? <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} /> : <Invalid t={t} locale={locale} />}
         </div>
       </main>
-      <Footer dict={dict.footer} locale={locale} />
+      <Footer dict={dict.footer} locale={locale} showFormats={false} />
     </>
   );
 }

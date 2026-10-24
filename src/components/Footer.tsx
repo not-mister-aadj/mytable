@@ -22,12 +22,15 @@ interface FooterProps {
   locale: Locale;
   /** Blog + city links for SEO (landing, blog, and city pages). */
   showSeoLinks?: boolean;
+  /** The links to the other formats; off where guests should stay (table page). */
+  showFormats?: boolean;
 }
 
 export function Footer({
   dict,
   locale,
   showSeoLinks = false,
+  showFormats = true,
 }: FooterProps) {
   const home = localePath(locale);
   const year = new Date().getFullYear();
@@ -57,6 +60,7 @@ export function Footer({
           </p>
         </div>
 
+        {showFormats ? (
         <nav
           aria-label={isEn ? "Formats" : "Formats"}
           className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
@@ -71,6 +75,7 @@ export function Footer({
             </Link>
           ))}
         </nav>
+        ) : null}
 
         <p className="mt-6 text-center text-sm text-wine/60">
           <a

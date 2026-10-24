@@ -2,7 +2,7 @@
  * belong to the venue, so every Sunday there shows the same ones. Pure and
  * client-safe. */
 
-export const PICK_KINDS = ["bubbles", "white", "red", "rose", "food"] as const;
+export const PICK_KINDS = ["bubbles", "white", "red", "rose", "sweet", "food"] as const;
 export type PickKind = (typeof PICK_KINDS)[number];
 
 export const PICK_KIND_LABEL: Record<PickKind, string> = {
@@ -10,6 +10,7 @@ export const PICK_KIND_LABEL: Record<PickKind, string> = {
   white: "Wit",
   red: "Rood",
   rose: "Rosé",
+  sweet: "Zoet",
   food: "Om te delen",
 };
 

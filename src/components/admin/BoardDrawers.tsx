@@ -238,8 +238,8 @@ function PicksForm({ eventId, venue, onClose, onSaved }: {
                 <textarea rows={3} className={input} value={p.why} onChange={(e) => update(i, { why: e.target.value })} placeholder="Droog en fris, met een beetje brioche." />
               </label>
               <label className="block text-xs font-medium text-wine/60 sm:col-span-2">
-                Past bij
-                <input className={input} value={p.goesWith} onChange={(e) => update(i, { goesWith: e.target.value })} placeholder="Olijven en de gefrituurde hapjes" />
+                Bijpassende spijs
+                <input className={input} value={p.goesWith} onChange={(e) => update(i, { goesWith: e.target.value })} placeholder="Pastel de bacalhau" />
               </label>
             </div>
           </li>

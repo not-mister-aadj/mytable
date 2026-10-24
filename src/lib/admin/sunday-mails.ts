@@ -3,7 +3,6 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { SundayLocationEmail } from "@/emails/SundayLocationEmail";
-import { SundayMorningEmail } from "@/emails/SundayMorningEmail";
 import { SundaySaturdayEmail } from "@/emails/SundaySaturdayEmail";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
@@ -55,11 +54,15 @@ export type SundayMailContext = {
 };
 
 const LOCATION_SENT = sql.raw(
-  `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%')`,
+  `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%' or subject ilike '%volgende week zondag%' or subject ilike '%next sunday at%')`,
 );
 const SATURDAY_SENT = sql.raw(`(subject ilike '%groep %' or subject ilike '%group %')`);
-const MORNING_SENT = sql.raw(`(subject ilike '%aanraders%' or subject ilike '%our picks%')`);
-const FEEDBACK_SENT = sql.raw(`(subject ilike '%hoe was je middag%' or subject ilike '%how was your afternoon%')`);
+const MORNING_SENT = sql.raw(
+  `(subject ilike '%aanraders%' or subject ilike '%our picks%' or (subject ilike 'vanmiddag bij%') or (subject ilike 'this afternoon at%'))`,
+);
+const FEEDBACK_SENT = sql.raw(
+  `(subject ilike '%hoe was je middag%' or subject ilike '%how was your afternoon%' or subject ilike '%hoe was het vanmiddag%' or subject ilike '%how was this afternoon%')`,
+);
 
 function firstSentence(text: string | null | undefined): string | null {
   const t = text?.trim();
@@ -191,7 +194,7 @@ export async function buildSundayMail(
   const url = await introUrl(guest.bookingId, locale);
   if (kind === "location") {
     return {
-      subject: nl ? `Volgende week zondag: je Sunday Social bij ${venue.name}` : `Next Sunday: your Sunday Social at ${venue.name}`,
+      subject: nl ? `Volgende week zondag bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}` : `Next Sunday at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`,
       element: SundayLocationEmail({
         locale,
         firstName: guest.firstName || undefined,
@@ -216,7 +219,7 @@ export async function buildSundayMail(
       ? ctx.guests.filter((g) => g.groupId === guest.groupId && g.bookingId !== guest.bookingId).reduce((n, g) => n + g.seats, 0)
       : 0;
     return {
-      subject: nl ? "Hoe was het vanmiddag?" : "How was this afternoon?",
+      subject: nl ? `Hoe was het vanmiddag bij ${venue.name}? · ${shortDate(ctx.startsAt, locale)}` : `How was this afternoon at ${venue.name}? · ${shortDate(ctx.startsAt, locale)}`,
       ...feedbackMail({
         locale,
         firstName: guest.firstName,
@@ -230,20 +233,26 @@ export async function buildSundayMail(
   const tableUrl = await tablePageUrl(guest.bookingId, locale);
   if (kind === "morning") {
     return {
-      subject: nl ? `Vandaag bij ${venue.name}: onze aanraders` : `Today at ${venue.name}: our picks`,
-      element: SundayMorningEmail({
+      subject: nl ? `Vanmiddag bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}` : `This afternoon at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`,
+      ...morningMail({
         locale,
-        firstName: guest.firstName || undefined,
-        groupNumber: guest.groupNumber ?? 0,
-        venueName: venue.name,
+        firstName: guest.firstName,
         time: time(ctx.startsAt),
-        pickNames: ctx.picks.map((pick) => pick.name),
-        tableUrl,
+        venueName: venue.name,
+        address: venue.address,
+        mapsUrl: mapsUrl(venue.name, venue.address),
+        transit: venueTransit(venue.name, locale),
+        groupNumber: guest.groupNumber,
+        picks: ctx.picks.map((pick) => pick.name),
+        url: tableUrl,
       }),
+      from: PLAIN_FROM,
     };
   }
   return {
-    subject: nl ? `Morgen bij ${venue.name}: je zit in groep ${guest.groupNumber}` : `Tomorrow at ${venue.name}: you're in group ${guest.groupNumber}`,
+    subject: nl
+      ? `Morgen bij ${venue.name}: je zit in groep ${guest.groupNumber} · ${shortDate(ctx.startsAt, locale)}`
+      : `Tomorrow at ${venue.name}: you're in group ${guest.groupNumber} · ${shortDate(ctx.startsAt, locale)}`,
     element: SundaySaturdayEmail({
       locale,
       firstName: guest.firstName || undefined,
@@ -269,21 +278,84 @@ const EN_NUMBERS = ["no", "one", "two", "three", "four", "five", "six", "seven",
 
 const escapeHtml = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** The 20:00 feedback mail: reads like a personal mail (no logo, no layout),
- * with one simple button, and the same as plain text. */
-export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): { text: string; html: string } {
-  const text = feedbackText(p);
-  const nl = p.locale === "nl";
-  const [before, after] = text.split(`${p.url}\n`);
+/** "zo 25 okt" / "Sun 25 Oct": in every subject, so each edition is its own thread. */
+export function shortDate(d: Date, locale: "nl" | "en"): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Amsterdam",
+  })
+    .format(d)
+    .replace(/\./g, "")
+    .replace(",", "");
+}
+
+/**
+ * A mail that reads like a personal one (no logo, no layout): the plain text,
+ * and an HTML version where the line with `url` becomes one simple button and
+ * "Label: https://…" lines become links. Lands in the inbox, not Promotions.
+ */
+export function buttonMail(text: string, url: string, label: string): { text: string; html: string } {
+  const [before, after = ""] = text.split(`${url}\n`);
+  const line = (l: string) => {
+    const m = /^(.+?): (https?:\/\/\S+)$/.exec(l);
+    return m ? `<a href="${escapeHtml(m[2]!)}" style="color:#5a0f1b">${escapeHtml(m[1]!)}</a>` : escapeHtml(l);
+  };
   const para = (block: string) =>
     block
       .trim()
       .split("\n\n")
-      .map((b) => `<p style="margin:0 0 16px">${escapeHtml(b).replace(/\n/g, "<br>")}</p>`)
+      .filter(Boolean)
+      .map((b) => `<p style="margin:0 0 16px">${b.split("\n").map(line).join("<br>")}</p>`)
       .join("");
-  const button = `<p style="margin:4px 0 24px"><a href="${escapeHtml(p.url)}" style="display:inline-block;background:#5a0f1b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${nl ? "Vertel hoe het was" : "Tell us how it was"}</a></p>`;
-  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before!)}${button}${para(after!)}</div>`;
+  const button = `<p style="margin:4px 0 24px"><a href="${escapeHtml(url)}" style="display:inline-block;background:#5a0f1b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${escapeHtml(label)}</a></p>`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before!)}${button}${para(after)}</div>`;
   return { text, html };
+}
+
+/** The 20:00 feedback mail, with one button. */
+export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): { text: string; html: string } {
+  return buttonMail(feedbackText(p), p.url, p.locale === "nl" ? "Vertel hoe het was" : "Tell us how it was");
+}
+
+/** Sunday 08:30: when, where, the group, and a taste of our picks; one button to the table page. */
+export function morningMail(p: {
+  locale: "nl" | "en";
+  firstName: string;
+  time: string;
+  venueName: string;
+  address: string;
+  mapsUrl: string;
+  transit: string | null;
+  groupNumber: number | null;
+  picks: string[];
+  url: string;
+}): { text: string; html: string } {
+  const nl = p.locale === "nl";
+  const hi = nl ? `Goedemorgen${p.firstName ? ` ${p.firstName}` : ""},` : `Good morning${p.firstName ? ` ${p.firstName}` : ""},`;
+  const first = p.picks[0];
+  const last = p.picks.length > 1 ? p.picks[p.picks.length - 1] : null;
+  const taste = first && last
+    ? nl
+      ? `We hebben bij ${p.venueName} geproefd en ${NL_NUMBERS[p.picks.length] ?? p.picks.length} aanraders gekozen, van de ${first} tot de ${last}. Op je tafelpagina lees je waarom we ze kozen en wat je erbij bestelt.`
+      : `We tasted at ${p.venueName} and chose ${EN_NUMBERS[p.picks.length] ?? p.picks.length} picks, from the ${first} to the ${last}. On your table page you'll read why we chose them and what to order with them.`
+    : nl
+      ? "Op je tafelpagina zie je wie er bij je aan tafel zitten."
+      : "On your table page you'll see who's at your table.";
+  const where = [
+    nl ? `Adres: ${p.address}` : `Address: ${p.address}`,
+    `Route: ${p.mapsUrl}`,
+    ...(p.transit ? [p.transit + "."] : []),
+    ...(p.groupNumber !== null
+      ? [nl ? `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${p.groupNumber}.` : `When you arrive, say you're with MyTable, group ${p.groupNumber}.`]
+      : []),
+  ].join("\n");
+  const text = (nl
+    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, "", where, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
+    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, "", where, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
+  ).join("\n");
+  return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks");
 }
 
 /** The 20:00 feedback mail as plain text, with the real number of new people at their table. */

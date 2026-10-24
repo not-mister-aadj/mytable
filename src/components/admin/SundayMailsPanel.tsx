@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
-  cancelScheduledSundayMailAction,
   previewSundayMailAction,
   scheduleSundayMailAction,
   sendSundayMailAction,
@@ -141,14 +140,6 @@ function MailCard({
           <span>
             Ingepland: <strong>{plan.label}</strong> · {plan.count} {plan.count === 1 ? "gast" : "gasten"}
           </span>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => run(() => cancelScheduledSundayMailAction(eventId, kind))}
-            className="rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-900 transition hover:border-sky-500 disabled:opacity-50"
-          >
-            Annuleren
-          </button>
         </div>
       ) : null}
 

@@ -961,3 +961,30 @@ export type OutreachTemplate = typeof outreachTemplates.$inferSelect;
 export type OutreachMessage = typeof outreachMessages.$inferSelect;
 export type OutreachEvent = typeof outreachEvents.$inferSelect;
 export type OutreachActivity = typeof outreachActivities.$inferSelect;
+
+/** Feedback after a Sunday Social, one per booking (drizzle/0053). Moods are
+ * "great" | "good" | "meh" | "bad"; want_to_see holds booking ids (members). */
+export const bookingFeedback = pgTable("booking_feedback", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  bookingId: uuid("booking_id")
+    .notNull()
+    .unique()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  venueId: uuid("venue_id").references(() => venues.id, { onDelete: "set null" }),
+  mood: text("mood"),
+  venueMood: text("venue_mood"),
+  highlight: text("highlight"),
+  improve: text("improve"),
+  quoteConsent: boolean("quote_consent").notNull().default(false),
+  photoUrl: text("photo_url"),
+  contactOk: boolean("contact_ok").notNull().default(false),
+  wantToSee: jsonb("want_to_see").$type<string[]>().notNull().default([]),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type BookingFeedback = typeof bookingFeedback.$inferSelect;

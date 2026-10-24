@@ -20,7 +20,7 @@ import { amsterdamDateTime } from "@/lib/sunday-wine-table";
 type Result = { ok: true; message: string } | { ok: false; error: string };
 
 function isKind(value: string): value is SundayMailKind {
-  return value === "location" || value === "saturday" || value === "morning";
+  return value === "location" || value === "saturday" || value === "morning" || value === "feedback";
 }
 
 /** The mail as one guest would get it. */
@@ -67,7 +67,7 @@ export async function sendSundayMailAction(eventId: string, kind: string): Promi
   const blocker = mailBlocker(ctx, kind);
   if (blocker) return { ok: false, error: blocker };
   if (kind !== "location" && ctx.schedule[kind]) return { ok: false, error: "Deze mail staat ingepland. Annuleer die eerst." };
-  const todo = ctx.guests.filter((g) => !(kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : g.sentMorning));
+  const todo = ctx.guests.filter((g) => !sentFor(g, kind));
   if (todo.length === 0) return { ok: true, message: "Iedereen heeft deze mail al." };
   let sent = 0;
   const failed: string[] = [];
@@ -83,7 +83,11 @@ export async function sendSundayMailAction(eventId: string, kind: string): Promi
     : { ok: true, message: `Verstuurd naar ${sent} ${sent === 1 ? "gast" : "gasten"}.` };
 }
 
-async function setSchedule(eventId: string, kind: "saturday" | "morning", value: ScheduledMail | null) {
+function sentFor(g: { sentLocation: boolean; sentSaturday: boolean; sentMorning: boolean; sentFeedback: boolean }, kind: SundayMailKind) {
+  return kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : kind === "morning" ? g.sentMorning : g.sentFeedback;
+}
+
+async function setSchedule(eventId: string, kind: "saturday" | "morning" | "feedback", value: ScheduledMail | null) {
   await getDb()
     .update(events)
     .set({
@@ -100,18 +104,19 @@ async function setSchedule(eventId: string, kind: "saturday" | "morning", value:
  * time (`local` is "YYYY-MM-DDTHH:mm" in Amsterdam). */
 export async function scheduleSundayMailAction(eventId: string, kind: string, local: string): Promise<Result> {
   await requireAdmin();
-  if (kind !== "saturday" && kind !== "morning") return { ok: false, error: "Alleen de zaterdag- en ochtendmail kun je inplannen." };
+  if (kind !== "saturday" && kind !== "morning" && kind !== "feedback") return { ok: false, error: "Deze mail kun je niet inplannen." };
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local);
   if (!m) return { ok: false, error: "Kies een datum en tijd." };
   const at = amsterdamDateTime(Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4]), Number(m[5]));
   const ctx = await loadSundayMailContext(eventId);
   if (!ctx) return { ok: false, error: "Zondag niet gevonden." };
   if (at.getTime() < Date.now() + 2 * 60_000) return { ok: false, error: "Kies een tijd in de toekomst." };
-  if (at.getTime() >= ctx.startsAt.getTime()) return { ok: false, error: "Kies een tijd voor de zondag begint." };
+  if (kind !== "feedback" && at.getTime() >= ctx.startsAt.getTime()) return { ok: false, error: "Kies een tijd voor de zondag begint." };
+  if (kind === "feedback" && at.getTime() < ctx.startsAt.getTime()) return { ok: false, error: "Kies een tijd na de zondag." };
   if (ctx.schedule[kind]) return { ok: false, error: "Deze mail staat al ingepland." };
   const blocker = mailBlocker(ctx, kind);
   if (blocker) return { ok: false, error: blocker };
-  const todo = ctx.guests.filter((g) => !(kind === "saturday" ? g.sentSaturday : g.sentMorning));
+  const todo = ctx.guests.filter((g) => !sentFor(g, kind));
   if (todo.length === 0) return { ok: true, message: "Iedereen heeft deze mail al." };
   const ids: ScheduledMail["ids"] = [];
   const failed: string[] = [];
@@ -135,7 +140,7 @@ export async function scheduleSundayMailAction(eventId: string, kind: string, lo
 /** Takes a planned mail back from Resend, for everyone. */
 export async function cancelScheduledSundayMailAction(eventId: string, kind: string): Promise<Result> {
   await requireAdmin();
-  if (kind !== "saturday" && kind !== "morning") return { ok: false, error: "Onbekende mail." };
+  if (kind !== "saturday" && kind !== "morning" && kind !== "feedback") return { ok: false, error: "Onbekende mail." };
   const ctx = await loadSundayMailContext(eventId);
   const planned = ctx?.schedule[kind];
   if (!planned) return { ok: true, message: "Er stond niets ingepland." };

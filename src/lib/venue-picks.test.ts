@@ -23,10 +23,10 @@ test("tags and mail line", () => {
   assert.equal(pickLine(p), "Grüner Veltliner, bij kaasplank");
 });
 
-test("picks show from 09:00 Amsterdam on the day itself", () => {
+test("picks show from 08:00 Amsterdam on the day itself", () => {
   const sunday = new Date("2026-10-25T13:00:00Z"); // 14:00 winter time
   assert.equal(picksVisible(sunday, Date.parse("2026-10-24T20:00:00Z")), false); // Saturday evening
-  assert.equal(picksVisible(sunday, Date.parse("2026-10-25T07:59:00Z")), false); // 08:59
-  assert.equal(picksVisible(sunday, Date.parse("2026-10-25T08:00:00Z")), true); // 09:00
+  assert.equal(picksVisible(sunday, Date.parse("2026-10-25T06:59:00Z")), false); // 07:59
+  assert.equal(picksVisible(sunday, Date.parse("2026-10-25T07:00:00Z")), true); // 08:00
   assert.equal(picksVisible(sunday, Date.parse("2026-10-26T08:00:00Z")), true); // after
 });

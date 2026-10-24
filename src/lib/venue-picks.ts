@@ -61,8 +61,8 @@ export function pickTags(p: VenuePick): string[] {
     .filter(Boolean);
 }
 
-/** Picks show from 09:00 on the day itself (Amsterdam), so the morning mail
- * brings something new. */
+/** Picks show from 08:00 on the day itself (Amsterdam), just before the
+ * 08:30 morning mail, so that mail brings something new. */
 export function picksVisible(startsAt: Date, now: number): boolean {
   const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(startsAt);
   const nowDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(new Date(now));
@@ -71,5 +71,5 @@ export function picksVisible(startsAt: Date, now: number): boolean {
   const hour = Number(
     new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", hour: "2-digit", hourCycle: "h23" }).format(new Date(now)),
   );
-  return hour >= 9;
+  return hour >= 8;
 }

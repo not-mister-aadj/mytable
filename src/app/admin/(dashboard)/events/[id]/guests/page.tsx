@@ -9,7 +9,7 @@ import { events } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, getSiteUrl, resolveHostname } from "@/lib/admin-url";
-import { loadSundayMailContext, mailBlocker } from "@/lib/admin/sunday-mails";
+import { defaultScheduleAt, loadSundayMailContext, mailBlocker, type ScheduledMail } from "@/lib/admin/sunday-mails";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 import { getEventTicketsData } from "@/lib/event-tickets-data";
@@ -152,6 +152,11 @@ async function MailsTab({ eventId }: { eventId: string }) {
     <SundayMailsPanel
       eventId={eventId}
       blockers={{ location: mailBlocker(ctx, "location"), saturday: mailBlocker(ctx, "saturday"), morning: mailBlocker(ctx, "morning") }}
+      plans={{ saturday: planOf(ctx.schedule.saturday), morning: planOf(ctx.schedule.morning) }}
+      defaultTimes={{
+        saturday: localInput(defaultScheduleAt(ctx.startsAt, "saturday")),
+        morning: localInput(defaultScheduleAt(ctx.startsAt, "morning")),
+      }}
       guests={ctx.guests.map((g) => ({
         bookingId: g.bookingId,
         name: g.firstName || g.email,
@@ -163,6 +168,32 @@ async function MailsTab({ eventId }: { eventId: string }) {
       }))}
     />
   );
+}
+
+/** "2026-10-24T16:00" in Amsterdam, for a datetime-local field. */
+function localInput(d: Date) {
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+  return parts.replace(" ", "T");
+}
+
+function planOf(plan: ScheduledMail | undefined) {
+  if (!plan) return null;
+  const label = new Intl.DateTimeFormat("nl-NL", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Amsterdam",
+  }).format(new Date(plan.at));
+  return { label, count: plan.ids.length };
 }
 
 function SettingsTab({

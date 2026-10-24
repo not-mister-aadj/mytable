@@ -35,7 +35,7 @@ const COPY = {
     groupHint: (n: number, venue: string) => `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${n}. Het team van ${venue} wijst je je tafel.`,
     notSeated: "We delen de tafels nog in. Kijk later vandaag nog eens.",
     otherGroups: (venue: string) =>
-      `Er kunnen meer MyTable-groepen bij ${venue} zijn, soms aan één lange tafel. Klets gerust met iedereen: we komen allemaal voor de gezelligheid en de wijn.`,
+      `Er kunnen meer MyTable-groepen bij ${venue} zijn. Soms deel je een lange tafel met een andere groep. Klets gerust met iedereen: we komen allemaal voor de gezelligheid en de wijn.`,
     you: "jij",
     plusOne: (name: string) => `komt met ${name}`,
     pending: { today: "Leer je vandaag kennen", tomorrow: "Leer je morgen kennen", later: "Leer je zondag kennen" },
@@ -90,7 +90,7 @@ const COPY = {
     groupHint: (n: number, venue: string) => `When you arrive, say you're with MyTable, group ${n}. The ${venue} team will show you to your table.`,
     notSeated: "We're still putting the tables together. Check back later today.",
     otherGroups: (venue: string) =>
-      `There may be more MyTable groups at ${venue}, sometimes at one long table. Feel free to chat with everyone: we're all there for good company and good wine.`,
+      `There may be more MyTable groups at ${venue}. Sometimes you'll share a long table with another group. Feel free to chat with everyone: we're all there for good company and good wine.`,
     you: "you",
     plusOne: (name: string) => `with ${name}`,
     pending: { today: "You'll meet today", tomorrow: "You'll meet tomorrow", later: "You'll meet on Sunday" },

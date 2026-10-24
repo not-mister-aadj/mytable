@@ -41,8 +41,8 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
         headline={nl ? `Morgen bij ${p.venueName}` : `Tomorrow at ${p.venueName}`}
         body={
           nl
-            ? `Om ${p.time} staat je tafel klaar. Wie er bij je aan tafel zitten, zie je op je tafelpagina. Morgenochtend zetten we daar ook onze aanraders van de kaart.`
-            : `Your table is ready at ${p.time}. You'll see who's at your table on your table page. Tomorrow morning we'll add our picks from the menu there too.`
+            ? `Om ${p.time} staat je tafel klaar. Wie er bij je aan tafel zitten, zie je via de knop "Bekijk je tafel" onderaan deze mail. Morgenochtend zetten we daar ook onze aanraders van de kaart.`
+            : `Your table is ready at ${p.time}. You'll see who's at your table via the "See your table" button at the bottom of this email. Tomorrow morning we'll add our picks from the menu there too.`
         }
       />
 
@@ -74,11 +74,6 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
       </EmailCard>
 
       <CTASection
-        helperText={
-          nl
-            ? "Je tafelgenoten, wat ze over zichzelf vertellen en morgen onze aanraders. De pagina verdwijnt zondag om 18:00."
-            : "Your tablemates, what they share about themselves and tomorrow our picks. The page disappears on Sunday at 6 PM."
-        }
         href={p.tableUrl}
         label={nl ? "Bekijk je tafel →" : "See your table →"}
       />

@@ -10,7 +10,7 @@ import {
   buildSundayMail,
   loadSundayMailContext,
   mailBlocker,
-  sendRendered,
+  sendSundayMail,
   type ScheduledMail,
   type SundayMailKind,
 } from "@/lib/admin/sunday-mails";
@@ -40,7 +40,11 @@ export async function previewSundayMailAction(
     return { ok: false, error: `${guest.firstName || "Deze gast"} heeft nog geen groep.` };
   }
   const mail = await buildSundayMail(ctx, kind, guest);
-  const { html } = await renderEmailForDelivery(mail.element);
+  const html = mail.html ?? (mail.text
+    ? `<pre style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;white-space:pre-wrap;padding:24px">${mail.text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")}</pre>`
+    : (await renderEmailForDelivery(mail.element!)).html);
   return { ok: true, subject: mail.subject, html };
 }
 
@@ -54,7 +58,7 @@ export async function sendSundayMailTestAction(eventId: string, kind: string, bo
   if (!guest) return { ok: false, error: "Nog geen gasten." };
   if (kind !== "location" && guest.groupNumber === null) return { ok: false, error: "Deze gast heeft nog geen groep." };
   const mail = await buildSundayMail(ctx, kind, guest);
-  const ok = await sendRendered(user.email!, `[Test: mail van ${guest.firstName || "gast"}] ${mail.subject}`, mail.element);
+  const ok = await sendSundayMail(user.email!, mail, undefined, `[Test: mail van ${guest.firstName || "gast"}] ${mail.subject}`);
   return ok ? { ok: true, message: `Test verstuurd naar ${user.email}.` } : { ok: false, error: "Versturen lukte niet." };
 }
 
@@ -73,7 +77,7 @@ export async function sendSundayMailAction(eventId: string, kind: string): Promi
   const failed: string[] = [];
   for (const guest of todo) {
     const mail = await buildSundayMail(ctx, kind, guest);
-    if (await sendRendered(guest.email, mail.subject, mail.element)) sent++;
+    if (await sendSundayMail(guest.email, mail)) sent++;
     else failed.push(guest.firstName || guest.email);
   }
   revalidatePath(`/admin/events/${eventId}/guests`);
@@ -122,7 +126,7 @@ export async function scheduleSundayMailAction(eventId: string, kind: string, lo
   const failed: string[] = [];
   for (const guest of todo) {
     const mail = await buildSundayMail(ctx, kind, guest);
-    const resendId = await sendRendered(guest.email, mail.subject, mail.element, at);
+    const resendId = await sendSundayMail(guest.email, mail, at);
     if (resendId) ids.push({ bookingId: guest.bookingId, resendId });
     else failed.push(guest.firstName || guest.email);
   }

@@ -3,7 +3,6 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { SundayLocationEmail } from "@/emails/SundayLocationEmail";
-import { SundayFeedbackEmail } from "@/emails/SundayFeedbackEmail";
 import { SundayMorningEmail } from "@/emails/SundayMorningEmail";
 import { SundaySaturdayEmail } from "@/emails/SundaySaturdayEmail";
 import { normalizeEmail } from "@/lib/customers/normalize";
@@ -29,6 +28,7 @@ type Guest = {
   firstName: string;
   locale: "nl" | "en";
   plusOneName: string | null;
+  seats: number;
   groupId: string | null;
   groupNumber: number | null;
   /** The open questions are still empty. */
@@ -127,6 +127,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       firstName: b.customerName?.trim().split(/\s+/)[0] || "",
       locale: b.locale === "en" ? "en" : "nl",
       plusOneName: b.seats >= 2 ? b.introPlusOneName?.trim() || null : null,
+      seats: b.seats,
       groupId: b.groupId,
       groupNumber: b.groupId ? (numberById.get(b.groupId) ?? null) : null,
       needsIntro: !open,
@@ -183,7 +184,7 @@ export async function buildSundayMail(
   ctx: SundayMailContext,
   kind: SundayMailKind,
   guest: Guest,
-): Promise<{ subject: string; element: ReactElement }> {
+): Promise<SundayMail> {
   const venue = ctx.venue!;
   const locale = guest.locale;
   const nl = locale === "nl";
@@ -210,14 +211,20 @@ export async function buildSundayMail(
     };
   }
   if (kind === "feedback") {
+    // The people at their table they didn't know: the group minus their own booking (and +1).
+    const others = guest.groupId
+      ? ctx.guests.filter((g) => g.groupId === guest.groupId && g.bookingId !== guest.bookingId).reduce((n, g) => n + g.seats, 0)
+      : 0;
     return {
-      subject: nl ? `Hoe was je middag bij ${venue.name}?` : `How was your afternoon at ${venue.name}?`,
-      element: SundayFeedbackEmail({
+      subject: nl ? "Hoe was het vanmiddag?" : "How was this afternoon?",
+      ...feedbackMail({
         locale,
-        firstName: guest.firstName || undefined,
+        firstName: guest.firstName,
         venueName: venue.name,
-        feedbackUrl: await feedbackUrl(guest.bookingId, locale),
+        others,
+        url: await feedbackUrl(guest.bookingId, locale),
       }),
+      from: PLAIN_FROM,
     };
   }
   const tableUrl = await tablePageUrl(guest.bookingId, locale);
@@ -249,6 +256,95 @@ export async function buildSundayMail(
       tableUrl,
     }),
   };
+}
+
+/** A Sunday mail: designed (element), or plain text from a person-like sender
+ * (lands in the inbox rather than Promotions). */
+export type SundayMail = { subject: string; element?: ReactElement; text?: string; html?: string; from?: string };
+
+const PLAIN_FROM = "MyTable <hallo@tafels.mytable.club>";
+
+const NL_NUMBERS = ["nul", "één", "twee", "drie", "vier", "vijf", "zes", "zeven", "acht", "negen", "tien"];
+const EN_NUMBERS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+
+const escapeHtml = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** The 20:00 feedback mail: reads like a personal mail (no logo, no layout),
+ * with one simple button, and the same as plain text. */
+export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): { text: string; html: string } {
+  const text = feedbackText(p);
+  const nl = p.locale === "nl";
+  const [before, after] = text.split(`${p.url}\n`);
+  const para = (block: string) =>
+    block
+      .trim()
+      .split("\n\n")
+      .map((b) => `<p style="margin:0 0 16px">${escapeHtml(b).replace(/\n/g, "<br>")}</p>`)
+      .join("");
+  const button = `<p style="margin:4px 0 24px"><a href="${escapeHtml(p.url)}" style="display:inline-block;background:#5a0f1b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${nl ? "Vertel hoe het was" : "Tell us how it was"}</a></p>`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before!)}${button}${para(after!)}</div>`;
+  return { text, html };
+}
+
+/** The 20:00 feedback mail as plain text, with the real number of new people at their table. */
+export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): string {
+  const nl = p.locale === "nl";
+  const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
+  const word = (nl ? NL_NUMBERS : EN_NUMBERS)[p.others] ?? String(p.others);
+  const opening =
+    p.others >= 2
+      ? nl
+        ? `Je zat vanmiddag bij ${p.venueName} met ${word} mensen die je nog niet kende. Hoe was dat?`
+        : `This afternoon at ${p.venueName} you sat with ${word} people you hadn't met before. How was it?`
+      : nl
+        ? `Je zat vanmiddag aan tafel bij ${p.venueName}. Hoe was het?`
+        : `This afternoon you were at the table at ${p.venueName}. How was it?`;
+  return nl
+    ? [
+        hi,
+        "",
+        opening,
+        "",
+        "We lezen elk antwoord, en we gebruiken ze om de volgende tafels nog beter in te delen. Klikte het met iemand aan tafel? Vertel het ons, dan zetten we jullie een volgende keer misschien weer samen.",
+        "",
+        "Eén tik is genoeg:",
+        p.url,
+        "",
+        "Tot een volgende keer,",
+        "Het MyTable-team",
+      ].join("\n")
+    : [
+        hi,
+        "",
+        opening,
+        "",
+        "We read every answer, and we use them to put the next tables together even better. Did you click with someone at your table? Tell us, and we might seat you together again another time.",
+        "",
+        "One tap is enough:",
+        p.url,
+        "",
+        "See you next time,",
+        "The MyTable team",
+      ].join("\n");
+}
+
+/** Sends a Sunday mail now, or at `scheduledAt`; the Resend id, or null. */
+export async function sendSundayMail(to: string, mail: SundayMail, scheduledAt?: Date, subject = mail.subject): Promise<string | null> {
+  if (mail.text) {
+    const resend = getResendClient();
+    if (!resend) return null;
+    const { data, error } = await resend.emails.send({
+      from: mail.from ?? getEmailFrom(),
+      replyTo: getEmailReplyTo(),
+      to,
+      subject,
+      text: mail.text,
+      ...(mail.html ? { html: mail.html } : {}),
+      ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
+    });
+    return error ? null : (data?.id ?? "sent");
+  }
+  return sendRendered(to, subject, mail.element!, scheduledAt);
 }
 
 /** Sends now, or at `scheduledAt`; the Resend id, or null when it failed. */

@@ -86,6 +86,7 @@ export function EditOwnIntro({
   seats,
   intro,
   label,
+  closeLabel,
 }: {
   locale: Locale;
   city: string;
@@ -94,6 +95,7 @@ export function EditOwnIntro({
   seats: number;
   intro: SundayTableIntro;
   label: string;
+  closeLabel: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -105,7 +107,15 @@ export function EditOwnIntro({
     );
   }
   return (
-    <div className="-mx-4 mt-4 sm:-mx-6">
+    <div className="relative -mx-4 mt-4 sm:-mx-6">
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        aria-label={closeLabel}
+        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl leading-none text-wine/60 shadow-sm ring-1 ring-wine/10 transition hover:text-burgundy"
+      >
+        ×
+      </button>
       <SundayTableIntroForm
         locale={locale}
         city={city}

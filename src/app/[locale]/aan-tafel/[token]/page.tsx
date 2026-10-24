@@ -260,6 +260,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
                       seats={page.me.plusOneName !== null || page.me.plusOne ? 2 : 1}
                       intro={page.me.intro}
                       label={t.editOwn}
+                      closeLabel={t.plusOneEdit.cancel}
                     />
                   ) : m.bookingId === `${page.bookingId}+1` && page.me.plusOne ? (
                     <PlusOneEditor

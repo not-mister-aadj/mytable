@@ -160,6 +160,8 @@ export const customers = pgTable(
     lastName: text("last_name"),
     phone: text("phone"),
     preferredCity: text("preferred_city"),
+    /** Profile photo: from the account settings or added with feedback (drizzle/0053). */
+    photoUrl: text("photo_url"),
     /** Where they came from when the customer was created, set once. */
     attribution: jsonb("attribution").$type<Attribution>(),
     language: text("language"),

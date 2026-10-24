@@ -316,6 +316,7 @@ export function JouwTafelSettings({
   intro: initialIntro = { askMeAbout: "", favoriteSpot: "", intoNow: "" },
   memberNotice = false,
   initialTab = "reserveringen",
+  photoUrl = null,
 }: {
   locale: Locale;
   userId: string;
@@ -334,6 +335,8 @@ export function JouwTafelSettings({
   /** Back from "Lid worden" in Stripe: "Je bent lid". */
   memberNotice?: boolean;
   initialTab?: SettingsTab;
+  /** Their profile photo, shown next to their words when we quote them. */
+  photoUrl?: string | null;
 }) {
   const s = getSettingsCopy(locale);
   const ms = getMembershipSettingsCopy(locale);
@@ -745,6 +748,7 @@ export function JouwTafelSettings({
         <Group title={s.groups.zondag}>{groupRows(SETTINGS_GROUPS.zondag)}</Group>
         <Group title={s.groups.aanTafel} note={s.intro.note}>
           {groupRows(SETTINGS_GROUPS.aanTafel.slice(0, 1))}
+          <ProfilePhotoRow locale={locale} initial={photoUrl} onToast={setToast} />
           <IntroRows locale={locale} initial={initialIntro} onToast={setToast} />
           {groupRows(SETTINGS_GROUPS.aanTafel.slice(1))}
         </Group>
@@ -1139,6 +1143,52 @@ function IntroRows({ locale, initial, onToast }: { locale: Locale; initial: Sett
         </BottomSheet>
       ) : null}
     </>
+  );
+}
+
+/** "Profielfoto": tap to pick a photo, saved on the person right away. */
+function ProfilePhotoRow({ locale, initial, onToast }: { locale: Locale; initial: string | null; onToast: (text: string) => void }) {
+  const s = getSettingsCopy(locale);
+  const [url, setUrl] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const label = locale === "en" ? "Profile photo" : "Profielfoto";
+
+  async function upload(file: File) {
+    setBusy(true);
+    try {
+      const form = new FormData();
+      form.set("photo", file);
+      const res = await fetch("/api/auth/member/photo", { method: "POST", body: form });
+      const data = (await res.json().catch(() => ({}))) as { url?: string };
+      if (res.ok && data.url) setUrl(data.url);
+      onToast(res.ok ? s.saved : s.saveFailed);
+    } catch {
+      onToast(s.saveFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li>
+      <button type="button" disabled={busy} onClick={() => fileRef.current?.click()} className={`${rowBase} w-full text-left`}>
+        <span className="min-w-0 flex-1 text-[0.98rem] font-medium leading-snug text-wine">{label}</span>
+        {url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-wine/10" />
+        ) : (
+          <span className="shrink-0 text-sm text-wine/50">{busy ? "…" : s.notSet}</span>
+        )}
+      </button>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])}
+      />
+    </li>
   );
 }
 

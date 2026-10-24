@@ -7,6 +7,7 @@ import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { getRunningMembershipByEmail, membershipSnapshot } from "@/lib/membership/data";
 import { isActiveMember } from "@/lib/membership/logic";
 import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
+import { getProfilePhoto } from "@/lib/profile-photo";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
 
@@ -68,6 +69,8 @@ export type FeedbackPage = {
   city: string;
   venueName: string | null;
   member: boolean;
+  /** Their profile photo; when there is one we don't ask for it again. */
+  profilePhoto: string | null;
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
   tablemates: { bookingId: string; firstName: string }[];
   /** The next bookable Sunday Social in their city. */
@@ -116,7 +119,10 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
         .orderBy(asc(bookings.createdAt))
     : [];
 
-  const membership = await getRunningMembershipByEmail(booking.email).catch(() => null);
+  const [membership, profilePhoto] = await Promise.all([
+    getRunningMembershipByEmail(booking.email).catch(() => null),
+    getProfilePhoto(booking.email).catch(() => null),
+  ]);
   const [nextEvent] = await db
     .select()
     .from(events)
@@ -141,6 +147,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     city: event.city,
     venueName: venue?.name ?? null,
     member: isActiveMember(membershipSnapshot(membership)),
+    profilePhoto,
     tablemates: mates.filter((m) => m.id !== booking.id).map((m) => ({ bookingId: m.id, firstName: firstName(m.name) || "Gast" })),
     next:
       nextEvent && nextPath

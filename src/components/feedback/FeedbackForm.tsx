@@ -21,6 +21,7 @@ const COPY = {
     photo: "Voeg een profielfoto toe",
     photoHint: "Een foto van jezelf, naast je woorden.",
     photoChange: "Andere foto",
+    photoUsed: "We zetten je profielfoto bij je woorden.",
     photoBusy: "Uploaden…",
     share: "Ken je iemand die dit ook leuk zou vinden?",
     shareButton: "Deel MyTable",
@@ -57,6 +58,7 @@ const COPY = {
     photo: "Add a profile photo",
     photoHint: "A photo of yourself, next to your words.",
     photoChange: "Other photo",
+    photoUsed: "We'll put your profile photo next to your words.",
     photoBusy: "Uploading…",
     share: "Know someone who would like this too?",
     shareButton: "Share MyTable",
@@ -248,7 +250,14 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
                   </button>
                 ))}
               </div>
-              {state.quoteConsent ? (
+              {state.quoteConsent && page.profilePhoto && !state.photoUrl ? (
+                <div className="mt-4 flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={page.profilePhoto} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-gold/40" />
+                  <span className="text-xs text-wine/55">{t.photoUsed}</span>
+                </div>
+              ) : null}
+              {state.quoteConsent && (!page.profilePhoto || state.photoUrl) ? (
                 <div className="mt-4 flex items-center gap-4">
                   {state.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element

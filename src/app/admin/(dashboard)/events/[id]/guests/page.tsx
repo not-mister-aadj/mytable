@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -6,7 +6,7 @@ import { EventGuestsView } from "@/components/admin/EventGuestsView";
 import { JouwTafelBoard } from "@/components/admin/JouwTafelBoard";
 import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
 import { SundayMailsPanel } from "@/components/admin/SundayMailsPanel";
-import { bookingFeedback, bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
+import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, getSiteUrl, resolveHostname } from "@/lib/admin-url";
@@ -184,10 +184,11 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
   const db = getDb();
   const [rows, guests, venue] = await Promise.all([
     db
-      .select({ f: bookingFeedback, name: bookings.customerName, email: bookings.email, group: eventGroups.number })
+      .select({ f: bookingFeedback, name: bookings.customerName, email: bookings.email, group: eventGroups.number, profilePhoto: customers.photoUrl })
       .from(bookingFeedback)
       .innerJoin(bookings, eq(bookings.id, bookingFeedback.bookingId))
       .leftJoin(eventGroups, eq(eventGroups.id, bookings.groupId))
+      .leftJoin(customers, sql`${customers.emailNormalized} = lower(trim(${bookings.email}))`)
       .where(eq(bookingFeedback.eventId, eventId)),
     db
       .select({ id: bookings.id, name: bookings.customerName })
@@ -218,7 +219,7 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
           highlight: r.f.highlight,
           improve: r.f.improve,
           quoteConsent: r.f.quoteConsent,
-          photoUrl: r.f.photoUrl,
+          photoUrl: r.profilePhoto ?? r.f.photoUrl,
           contactOk: r.f.contactOk,
           email: r.email,
           wantToSee: (r.f.wantToSee ?? []).map((id) => nameOf.get(id) ?? "?"),

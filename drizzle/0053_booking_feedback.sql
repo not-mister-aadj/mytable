@@ -17,3 +17,6 @@ CREATE TABLE IF NOT EXISTS booking_feedback (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS booking_feedback_event_idx ON booking_feedback (event_id);
+
+-- A person's profile photo (account settings, or added with their feedback).
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS photo_url text;

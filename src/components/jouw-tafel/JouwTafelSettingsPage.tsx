@@ -16,6 +16,7 @@ import { getSettingsCopy } from "@/lib/jouw-tafel/settings-copy";
 import { getMembershipForUser, settingsMembership } from "@/lib/membership/data";
 import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
 import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
+import { getProfilePhoto } from "@/lib/profile-photo";
 import { loadCustomerIntro } from "@/lib/sunday-table-intro";
 
 export function jouwTafelSettingsMetadata(locale: Locale): Metadata {
@@ -58,7 +59,7 @@ export async function JouwTafelSettingsPage({
     await tryFulfillCheckoutSessionSafe(sessionId, { deferEmail: true, deferSideEffects: true });
   }
 
-  const [bookings, mailsOn, membershipRow, savedIntro] = await Promise.all([
+  const [bookings, mailsOn, membershipRow, savedIntro, photoUrl] = await Promise.all([
     getMemberBookings(user.email).catch((error: unknown) => {
       console.error("[jouw-tafel settings] loading bookings failed:", error);
       return { upcoming: [], past: [] };
@@ -66,6 +67,7 @@ export async function JouwTafelSettingsPage({
     getTableMailsOn(user.email).catch(() => true),
     getMembershipForUser(user.id).catch(() => null),
     loadCustomerIntro(user.email).catch(() => null),
+    getProfilePhoto(user.email).catch(() => null),
   ]);
   // One answer for wine and conversation: the seating answers fill the quiz's when it has none.
   if (savedIntro?.conversationStyle && !state.answers.conversation) state.answers.conversation = savedIntro.conversationStyle;
@@ -92,6 +94,7 @@ export async function JouwTafelSettingsPage({
       membership={membership}
       bookedNotice={bookedNotice}
       intro={intro}
+      photoUrl={photoUrl}
       memberNotice={memberNotice}
       initialTab={initialTab}
     />

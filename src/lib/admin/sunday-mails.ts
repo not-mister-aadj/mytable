@@ -3,12 +3,14 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { SundayLocationEmail } from "@/emails/SundayLocationEmail";
+import { SundayFeedbackEmail } from "@/emails/SundayFeedbackEmail";
 import { SundayMorningEmail } from "@/emails/SundayMorningEmail";
 import { SundaySaturdayEmail } from "@/emails/SundaySaturdayEmail";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
 import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/resend";
 import { signSundayTableIntroToken } from "@/lib/sunday-table-intro";
+import { feedbackUrl } from "@/lib/feedback";
 import { tablePageUrl } from "@/lib/table-page";
 import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 import { venueTransit } from "@/lib/venue-about";
@@ -17,7 +19,7 @@ import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
 /** The mails sent from a Sunday's page in admin: the location a week
  * before, on Saturday the group with a link to the table page, and on
  * Sunday morning our picks. */
-export type SundayMailKind = "location" | "saturday" | "morning";
+export type SundayMailKind = "location" | "saturday" | "morning" | "feedback";
 
 const SITE = "https://www.mytable.club";
 
@@ -34,6 +36,7 @@ type Guest = {
   sentLocation: boolean;
   sentSaturday: boolean;
   sentMorning: boolean;
+  sentFeedback: boolean;
 };
 
 /** A mail handed to Resend with a send time, per guest (events.extras.mailSchedule). */
@@ -56,6 +59,7 @@ const LOCATION_SENT = sql.raw(
 );
 const SATURDAY_SENT = sql.raw(`(subject ilike '%groep %' or subject ilike '%group %')`);
 const MORNING_SENT = sql.raw(`(subject ilike '%aanraders%' or subject ilike '%our picks%')`);
+const FEEDBACK_SENT = sql.raw(`(subject ilike '%hoe was je middag%' or subject ilike '%how was your afternoon%')`);
 
 function firstSentence(text: string | null | undefined): string | null {
   const t = text?.trim();
@@ -107,10 +111,11 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
           ).map((r) => r.email_normalized),
         )
       : new Set<string>();
-  const [locationSent, saturdaySent, morningSent] = await Promise.all([
+  const [locationSent, saturdaySent, morningSent, feedbackSent] = await Promise.all([
     sent(LOCATION_SENT, 10),
     sent(SATURDAY_SENT, 4),
     sent(MORNING_SENT, 2),
+    sent(FEEDBACK_SENT, 2),
   ]);
 
   const guests: Guest[] = rows.map((b) => {
@@ -128,6 +133,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       sentLocation: locationSent.has(key),
       sentSaturday: saturdaySent.has(key),
       sentMorning: morningSent.has(key),
+      sentFeedback: feedbackSent.has(key),
     };
   });
 
@@ -203,6 +209,17 @@ export async function buildSundayMail(
       }),
     };
   }
+  if (kind === "feedback") {
+    return {
+      subject: nl ? `Hoe was je middag bij ${venue.name}?` : `How was your afternoon at ${venue.name}?`,
+      element: SundayFeedbackEmail({
+        locale,
+        firstName: guest.firstName || undefined,
+        venueName: venue.name,
+        feedbackUrl: await feedbackUrl(guest.bookingId, locale),
+      }),
+    };
+  }
   const tableUrl = await tablePageUrl(guest.bookingId, locale);
   if (kind === "morning") {
     return {
@@ -254,16 +271,17 @@ export async function sendRendered(to: string, subject: string, element: ReactEl
 function parseSchedule(raw: unknown): SundayMailContext["schedule"] {
   if (!raw || typeof raw !== "object") return {};
   const out: SundayMailContext["schedule"] = {};
-  for (const kind of ["saturday", "morning"] as const) {
+  for (const kind of ["saturday", "morning", "feedback"] as const) {
     const item = (raw as Record<string, unknown>)[kind] as ScheduledMail | undefined;
     if (item && typeof item.at === "string" && Array.isArray(item.ids)) out[kind] = item;
   }
   return out;
 }
 
-/** The suggested send time: Saturday 14:00 (24 hours before) for the group mail, Sunday 08:30
+/** The suggested send time: Saturday 14:00 (24 hours before) for the group mail, Sunday 20:00 for the feedback, Sunday 08:30
  * for the picks (Amsterdam). */
-export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning"): Date {
+export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning" | "feedback"): Date {
   const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
+  if (kind === "feedback") return amsterdamDateTime(y, m, d, 20, 0);
   return kind === "saturday" ? amsterdamDateTime(y, m, d - 1, 14, 0) : amsterdamDateTime(y, m, d, 8, 30);
 }

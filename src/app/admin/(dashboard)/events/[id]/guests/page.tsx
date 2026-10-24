@@ -1,11 +1,12 @@
-import { eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { EventGuestsView } from "@/components/admin/EventGuestsView";
 import { JouwTafelBoard } from "@/components/admin/JouwTafelBoard";
+import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
 import { SundayMailsPanel } from "@/components/admin/SundayMailsPanel";
-import { events } from "@/db/schema";
+import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, getSiteUrl, resolveHostname } from "@/lib/admin-url";
@@ -23,6 +24,7 @@ const TABS = [
   { id: "gasten", label: "Gasten" },
   { id: "tafelindeling", label: "Tafelindeling" },
   { id: "mails", label: "Mails" },
+  { id: "feedback", label: "Feedback" },
   { id: "instellingen", label: "Instellingen" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
@@ -96,6 +98,7 @@ export default async function EventGuestsPage({ params, searchParams }: Props) {
       {tab === "gasten" ? <GuestsTab eventId={id} event={event} /> : null}
       {tab === "tafelindeling" ? <SeatingTab eventId={id} hostname={hostname} publicUrl={publicUrl} /> : null}
       {tab === "mails" ? <MailsTab eventId={id} /> : null}
+      {tab === "feedback" ? <FeedbackTab eventId={id} /> : null}
       {tab === "instellingen" ? (
         <SettingsTab
           eventId={id}
@@ -151,11 +154,17 @@ async function MailsTab({ eventId }: { eventId: string }) {
   return (
     <SundayMailsPanel
       eventId={eventId}
-      blockers={{ location: mailBlocker(ctx, "location"), saturday: mailBlocker(ctx, "saturday"), morning: mailBlocker(ctx, "morning") }}
-      plans={{ saturday: planOf(ctx.schedule.saturday), morning: planOf(ctx.schedule.morning) }}
+      blockers={{
+        location: mailBlocker(ctx, "location"),
+        saturday: mailBlocker(ctx, "saturday"),
+        morning: mailBlocker(ctx, "morning"),
+        feedback: mailBlocker(ctx, "feedback"),
+      }}
+      plans={{ saturday: planOf(ctx.schedule.saturday), morning: planOf(ctx.schedule.morning), feedback: planOf(ctx.schedule.feedback) }}
       defaultTimes={{
         saturday: localInput(defaultScheduleAt(ctx.startsAt, "saturday")),
         morning: localInput(defaultScheduleAt(ctx.startsAt, "morning")),
+        feedback: localInput(defaultScheduleAt(ctx.startsAt, "feedback")),
       }}
       guests={ctx.guests.map((g) => ({
         bookingId: g.bookingId,
@@ -165,7 +174,57 @@ async function MailsTab({ eventId }: { eventId: string }) {
         sentLocation: g.sentLocation,
         sentSaturday: g.sentSaturday,
         sentMorning: g.sentMorning,
+        sentFeedback: g.sentFeedback,
       }))}
+    />
+  );
+}
+
+async function FeedbackTab({ eventId }: { eventId: string }) {
+  const db = getDb();
+  const [rows, guests, venue] = await Promise.all([
+    db
+      .select({ f: bookingFeedback, name: bookings.customerName, email: bookings.email, group: eventGroups.number, profilePhoto: customers.photoUrl })
+      .from(bookingFeedback)
+      .innerJoin(bookings, eq(bookings.id, bookingFeedback.bookingId))
+      .leftJoin(eventGroups, eq(eventGroups.id, bookings.groupId))
+      .leftJoin(customers, sql`${customers.emailNormalized} = lower(trim(${bookings.email}))`)
+      .where(eq(bookingFeedback.eventId, eventId)),
+    db
+      .select({ id: bookings.id, name: bookings.customerName })
+      .from(bookings)
+      .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid"), eq(bookings.lifecycleStatus, "active"))),
+    db
+      .select({ name: venues.name })
+      .from(eventVenues)
+      .innerJoin(venues, eq(venues.id, eventVenues.venueId))
+      .where(eq(eventVenues.eventId, eventId))
+      .orderBy(asc(eventVenues.position))
+      .limit(1),
+  ]);
+  const nameOf = new Map(guests.map((g) => [g.id, g.name?.trim().split(/\s+/)[0] ?? "Gast"]));
+  return (
+    <FeedbackPanel
+      eventId={eventId}
+      venueName={venue[0]?.name ?? null}
+      guests={guests.length}
+      rows={rows
+        .filter((r) => r.f.mood)
+        .map((r) => ({
+          id: r.f.id,
+          name: r.name?.trim() || r.email,
+          group: r.group ?? null,
+          mood: r.f.mood,
+          venueMood: r.f.venueMood,
+          highlight: r.f.highlight,
+          improve: r.f.improve,
+          quoteConsent: r.f.quoteConsent,
+          photoUrl: r.profilePhoto ?? r.f.photoUrl,
+          contactOk: r.f.contactOk,
+          email: r.email,
+          wantToSee: (r.f.wantToSee ?? []).map((id) => nameOf.get(id) ?? "?"),
+          used: Boolean(r.f.usedAt),
+        }))}
     />
   );
 }

@@ -17,9 +17,10 @@ export type MailGuest = {
   sentLocation: boolean;
   sentSaturday: boolean;
   sentMorning: boolean;
+  sentFeedback: boolean;
 };
 
-type Kind = "location" | "saturday" | "morning";
+type Kind = "location" | "saturday" | "morning" | "feedback";
 
 /** A planned send: when ("za 24 okt, 14:00") and for how many guests. */
 export type MailPlan = { label: string; count: number; bookingIds: string[] } | null;
@@ -40,6 +41,11 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
     when: "Zondagochtend",
     what: "Onze aanraders van de zaak, met een link naar de tafelpagina waar staat waarom we ze kozen.",
   },
+  feedback: {
+    title: "Feedbackmail",
+    when: "Zondagavond",
+    what: "Hoe was je middag: vier gezichtjes, een open vraag, en bij een geweldige middag het lidmaatschap en de volgende zondag.",
+  },
 };
 
 /** The Sunday's guest mails: preview as any guest, test to yourself, then
@@ -54,15 +60,16 @@ export function SundayMailsPanel({
   eventId: string;
   guests: MailGuest[];
   blockers: Record<Kind, string | null>;
-  plans: { saturday: MailPlan; morning: MailPlan };
-  /** "YYYY-MM-DDTHH:mm" in Amsterdam: Saturday 14:00, Sunday 08:30. */
-  defaultTimes: { saturday: string; morning: string };
+  plans: { saturday: MailPlan; morning: MailPlan; feedback: MailPlan };
+  /** "YYYY-MM-DDTHH:mm" in Amsterdam: Saturday 14:00, Sunday 08:30, Sunday 20:00. */
+  defaultTimes: { saturday: string; morning: string; feedback: string };
 }) {
   return (
     <div className="space-y-6">
       <MailCard kind="location" eventId={eventId} guests={guests} blocker={blockers.location} />
       <MailCard kind="saturday" eventId={eventId} guests={guests} blocker={blockers.saturday} plan={plans.saturday} defaultTime={defaultTimes.saturday} />
       <MailCard kind="morning" eventId={eventId} guests={guests} blocker={blockers.morning} plan={plans.morning} defaultTime={defaultTimes.morning} />
+      <MailCard kind="feedback" eventId={eventId} guests={guests} blocker={blockers.feedback} plan={plans.feedback} defaultTime={defaultTimes.feedback} />
     </div>
   );
 }
@@ -84,7 +91,8 @@ function MailCard({
 }) {
   const router = useRouter();
   const copy = COPY[kind];
-  const sentOf = (g: MailGuest) => (kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : g.sentMorning);
+  const sentOf = (g: MailGuest) =>
+    kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : kind === "morning" ? g.sentMorning : g.sentFeedback;
   const sent = guests.filter(sentOf).length;
   const missing = guests.filter((g) => !sentOf(g));
 

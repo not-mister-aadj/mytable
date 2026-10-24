@@ -142,7 +142,7 @@ export function BookingConfirmationEmail({
       {memberIncluded ? (
         <EmailCard>
           <Text style={emailType.sectionLabel}>{en ? "Your membership" : "Je lidmaatschap"}</Text>
-          <Text style={{ ...emailType.value, fontSize: "15px", margin: "0 0 6px" }}>
+          <Text style={{ ...emailType.value, fontSize: "16px", margin: "0 0 6px" }}>
             {en ? "Included in your membership" : "Inbegrepen in je lidmaatschap"}
           </Text>
           {memberGuest ? (

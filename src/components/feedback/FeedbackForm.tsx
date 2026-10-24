@@ -24,9 +24,6 @@ const COPY = {
     photoChange: "Andere foto",
     photoUsed: "We zetten je profielfoto bij je woorden.",
     photoBusy: "Uploaden…",
-    share: "Ken je iemand die dit ook leuk zou vinden?",
-    shareButton: "Deel MyTable",
-    copied: "Link gekopieerd",
     wantTitle: "Wie wil je vaker zien?",
     membersOnly: "Alleen voor leden",
     wantNote: "Leden kiezen wie ze terugzien. Niemand ziet wat jij aanvinkt.",
@@ -61,9 +58,6 @@ const COPY = {
     photoChange: "Other photo",
     photoUsed: "We'll put your profile photo next to your words.",
     photoBusy: "Uploading…",
-    share: "Know someone who would like this too?",
-    shareButton: "Share MyTable",
-    copied: "Link copied",
     wantTitle: "Who would you like to see again?",
     membersOnly: "Members only",
     wantNote: "Members choose who they see again. Nobody sees what you tick.",
@@ -128,13 +122,12 @@ const field =
   "mt-2 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 text-sm text-wine shadow-sm placeholder:text-wine/35 focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10";
 const label = "block font-serif text-lg text-wine";
 
-export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; token: string; shareUrl: string }) {
+export function FeedbackForm({ page, token }: { page: FeedbackPage; token: string }) {
   const t = COPY[page.locale];
   const venue = page.venueName ?? page.city;
   const [state, setState] = useState<FeedbackState>(page.saved);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [cropping, setCropping] = useState<File | null>(null);
   const [pending, start] = useTransition();
@@ -150,20 +143,6 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
 
   const happy = state.mood === "great";
   const okish = state.mood === "great" || state.mood === "good";
-
-  async function share() {
-    const data = { title: "MyTable Sunday Social", url: shareUrl };
-    try {
-      if (navigator.share) {
-        await navigator.share(data);
-        return;
-      }
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-    } catch {
-      // Closed the share sheet: nothing to do.
-    }
-  }
 
   async function upload(file: File) {
     setUploading(true);
@@ -290,19 +269,6 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
                   />
                 </div>
               ) : null}
-            </div>
-          ) : null}
-
-          {happy ? (
-            <div>
-              <span className={label}>{t.share}</span>
-              <button
-                type="button"
-                onClick={share}
-                className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-wine ring-1 ring-wine/15 transition hover:ring-wine/30"
-              >
-                {copied ? t.copied : t.shareButton}
-              </button>
             </div>
           ) : null}
 

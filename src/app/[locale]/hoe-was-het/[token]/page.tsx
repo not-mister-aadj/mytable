@@ -6,7 +6,6 @@ import { Footer } from "@/components/Footer";
 import { FeedbackForm } from "@/components/feedback/FeedbackForm";
 import { isValidLocale, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { getSiteUrl } from "@/lib/env";
 import { loadFeedbackPage, verifyFeedbackToken } from "@/lib/feedback";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +34,7 @@ export default async function FeedbackRoute({ params }: Props) {
       <main className="bg-beige pb-16 pt-28 sm:pt-36">
         <div className="mx-auto max-w-2xl px-5 sm:px-8">
           {page ? (
-            <FeedbackForm page={page} token={token} shareUrl={`${getSiteUrl().replace(/\/$/, "")}${page.cityPath}`} />
+            <FeedbackForm page={page} token={token} />
           ) : (
             <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-8 text-center sm:px-8">
               <h1 className="font-serif text-2xl text-wine">{locale === "en" ? "This link doesn't work" : "Deze link werkt niet"}</h1>

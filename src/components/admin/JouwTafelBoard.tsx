@@ -13,7 +13,7 @@ import {
   setGroupsFinalAction,
 } from "@/app/admin/(dashboard)/jouw-tafel/[id]/actions";
 import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
-import { GROUP_TARGET, ageBand, groupLabel, groupWarning, tableLanguage } from "@/lib/jouw-tafel/groups-logic";
+import { GROUP_TARGET, groupLabel, groupWarning, tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import type { BoardGuest, EventBoard } from "@/lib/jouw-tafel/groups-server";
 
 const UNASSIGNED = "unassigned";
@@ -114,7 +114,6 @@ export function JouwTafelBoard({
   }
 
   function guestCard(g: BoardGuest) {
-    const band = ageBand(g.age);
     const current = groupOf(g) ?? UNASSIGNED;
     return (
       <li
@@ -129,6 +128,7 @@ export function JouwTafelBoard({
           className="text-left text-sm font-semibold text-wine underline-offset-4 hover:text-burgundy hover:underline"
         >
           {g.name}
+          {g.age !== null ? <span className="font-normal">, {g.age}</span> : null}
           {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.plusOneName ?? g.seats - 1}</span> : null}
         </button>
         {g.ladies ? (
@@ -148,7 +148,6 @@ export function JouwTafelBoard({
           </span>
           <span className="rounded-full bg-cream px-2 py-0.5">{g.member ? "Lid" : "Ticket"}</span>
           {g.firstTime ? <span className="rounded-full bg-cream px-2 py-0.5">Eerste keer</span> : null}
-          {band ? <span className="rounded-full bg-cream px-2 py-0.5">{band}</span> : null}
           {g.agePreference ? (
             <span className="rounded-full bg-cream px-2 py-0.5">
               {g.agePreference === "similar" ? "Rond eigen leeftijd" : "Alle leeftijden"}

@@ -21,7 +21,7 @@ export type MailGuest = {
 
 type Kind = "location" | "saturday" | "morning";
 
-/** A planned send: when ("za 24 okt, 16:00") and for how many guests. */
+/** A planned send: when ("za 24 okt, 14:00") and for how many guests. */
 export type MailPlan = { label: string; count: number } | null;
 
 const COPY: Record<Kind, { title: string; when: string; what: string }> = {
@@ -55,7 +55,7 @@ export function SundayMailsPanel({
   guests: MailGuest[];
   blockers: Record<Kind, string | null>;
   plans: { saturday: MailPlan; morning: MailPlan };
-  /** "YYYY-MM-DDTHH:mm" in Amsterdam: Saturday 16:00, Sunday 08:30. */
+  /** "YYYY-MM-DDTHH:mm" in Amsterdam: Saturday 14:00, Sunday 08:30. */
   defaultTimes: { saturday: string; morning: string };
 }) {
   return (

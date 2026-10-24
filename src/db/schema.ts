@@ -260,6 +260,8 @@ export const bookings = pgTable("bookings", {
   introConversationStyle: text("intro_conversation_style"),
   /** First name of the +1 on a 2-ticket booking (drizzle/0029). */
   introPlusOneName: text("intro_plus_one_name"),
+  /** The +1's answers, given by the booker, only for the table page (drizzle/0052). */
+  introPlusOne: jsonb("intro_plus_one").$type<Record<string, string>>(),
   introShareConsent: boolean("intro_share_consent").notNull().default(false),
   introAnsweredAt: timestamp("intro_answered_at", { withTimezone: true }),
   introRequestSentAt: timestamp("intro_request_sent_at", { withTimezone: true }),

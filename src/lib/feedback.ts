@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookingFeedback, bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
-import type { Locale } from "@/i18n/config";
+import { jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { getRunningMembershipByEmail, membershipSnapshot } from "@/lib/membership/data";
 import { isActiveMember } from "@/lib/membership/logic";
@@ -75,8 +75,10 @@ export type FeedbackPage = {
   tablemates: { bookingId: string; firstName: string }[];
   /** The next bookable Sunday Social in their city. */
   next: { label: string; seatsLeft: number; path: string } | null;
-  /** Where "Deel MyTable" and "no next Sunday" point. */
+  /** Where "no next Sunday" points. */
   cityPath: string;
+  /** "Alleen lid worden": log in, then "Word lid" in the settings. */
+  joinPath: string;
   saved: FeedbackState;
 };
 
@@ -123,7 +125,10 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     getRunningMembershipByEmail(booking.email).catch(() => null),
     getProfilePhoto(booking.email).catch(() => null),
   ]);
-  const [nextEvent] = await db
+  // "Sunday Social · 35+": the next one never has another age group.
+  const bracket = (name: string) => /·\s*(\d{2}\s*[-+]\s*\d{0,2}\+?)\s*$/.exec(name)?.[1]?.replace(/\s/g, "") ?? null;
+  const ownBracket = bracket(event.nameNl);
+  const candidates = await db
     .select()
     .from(events)
     .where(
@@ -136,7 +141,13 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
       ),
     )
     .orderBy(asc(events.startsAt))
-    .limit(1);
+    .limit(8);
+  // A date with another age group is skipped as a whole: its page shows that one.
+  const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(d);
+  const otherDays = new Set(
+    candidates.filter((e) => ownBracket && bracket(e.nameNl) && bracket(e.nameNl) !== ownBracket).map((e) => day(e.startsAt)),
+  );
+  const nextEvent = candidates.find((e) => !otherDays.has(day(e.startsAt)));
   const nextPath = nextEvent ? sundaySocialDatePath(locale as Locale, { city: nextEvent.city, startsAt: nextEvent.startsAt }) : null;
 
   const [saved] = await db.select().from(bookingFeedback).where(eq(bookingFeedback.bookingId, booking.id)).limit(1);
@@ -163,6 +174,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
           }
         : null,
     cityPath: tablePageAfterPath(locale as Locale, event.city),
+    joinPath: `${jouwTafelLogInPath(locale as Locale)}?naar=${encodeURIComponent(jouwTafelSettingsPath(locale as Locale))}`,
     saved: saved
       ? {
           mood: isMood(saved.mood) ? saved.mood : null,

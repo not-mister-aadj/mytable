@@ -27,9 +27,13 @@ const COPY = {
     wantTitle: "Wie wil je vaker zien?",
     membersOnly: "Alleen voor leden",
     wantNote: "Leden kiezen wie ze terugzien. Niemand ziet wat jij aanvinkt.",
-    offerTitle: "Kom elke zondag terug",
-    offerBody: "Als lid schuif je voor €10 per maand aan bij elke Sunday Social, in alle 5 steden. En je kiest wie je terugziet.",
-    offerCta: "Word lid",
+    offerTitle: "Klikte het aan tafel? Zie ze terug.",
+    offerBody: "Als lid kies je wie je vaker wilt zien. Kiezen jullie elkaar, dan zetten we jullie een volgende keer weer samen aan tafel.",
+    offerSmall: "€10 per maand · elke Sunday Social in alle 5 steden · maandelijks opzegbaar",
+    offerCta: "Word lid en reserveer",
+    offerCtaNoDate: "Word lid",
+    memberOnly: "Alleen lid worden",
+    singleSeat: "of reserveer alleen deze zondag",
     nextTitle: "Je volgende zondag",
     seats: (n: number) => `nog ${n} ${n === 1 ? "plek" : "plekken"}`,
     reserve: "Reserveer",
@@ -61,9 +65,13 @@ const COPY = {
     wantTitle: "Who would you like to see again?",
     membersOnly: "Members only",
     wantNote: "Members choose who they see again. Nobody sees what you tick.",
-    offerTitle: "Come back every Sunday",
-    offerBody: "As a member you join every Sunday Social for €10 a month, in all 5 cities. And you choose who you see again.",
-    offerCta: "Become a member",
+    offerTitle: "Clicked at the table? See them again.",
+    offerBody: "As a member you choose who you'd like to see more of. If you choose each other, we'll seat you together again another time.",
+    offerSmall: "€10 a month · every Sunday Social in all 5 cities · cancel monthly",
+    offerCta: "Become a member and reserve",
+    offerCtaNoDate: "Become a member",
+    memberOnly: "Just become a member",
+    singleSeat: "or reserve just this Sunday",
     nextTitle: "Your next Sunday",
     seats: (n: number) => `${n} ${n === 1 ? "seat" : "seats"} left`,
     reserve: "Reserve",
@@ -155,11 +163,52 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
   }
 
   if (sent) {
+    const withTicket = (ticket: "elke-zondag" | "deze-zondag") => (page.next ? `${page.next.path}?ticket=${ticket}#boeken` : page.cityPath);
     return (
-      <section className={`${card} text-center`}>
-        <p className="font-serif text-2xl text-wine">{okish ? t.thanks : t.thanksSorry}</p>
-        <NextSunday page={page} t={t} />
-      </section>
+      <div className="space-y-5">
+        <section className={`${card} text-center`}>
+          <p className="font-serif text-2xl text-wine">{okish ? t.thanks : t.thanksSorry}</p>
+          {state.mood === "good" || (happy && page.member) ? <NextSunday page={page} t={t} /> : null}
+        </section>
+        {happy && !page.member ? (
+          <section className="overflow-hidden rounded-3xl border border-gold/30 bg-wine px-6 py-7 text-cream sm:px-8">
+            <h2 className="font-serif text-2xl">{t.offerTitle}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-cream/80">{t.offerBody}</p>
+            <p className="mt-3 text-xs text-cream/60">{t.offerSmall}</p>
+            {page.next ? (
+              <div className="mt-5 rounded-2xl bg-cream/10 px-4 py-3 ring-1 ring-cream/20">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.nextTitle}</p>
+                <p className="font-serif text-lg">
+                  {page.city} · {page.next.label}
+                </p>
+                <p className="text-xs text-cream/70">{t.seats(page.next.seatsLeft)}</p>
+              </div>
+            ) : null}
+            <div className="mt-5 flex flex-wrap gap-2">
+              {page.next ? (
+                <Link href={withTicket("elke-zondag")} className="rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-wine">
+                  {t.offerCta}
+                </Link>
+              ) : null}
+              <Link
+                href={page.joinPath}
+                className={
+                  page.next
+                    ? "rounded-full px-5 py-2.5 text-sm font-semibold text-cream ring-1 ring-cream/40 hover:ring-cream/70"
+                    : "rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-wine"
+                }
+              >
+                {page.next ? t.memberOnly : t.offerCtaNoDate}
+              </Link>
+            </div>
+            {page.next ? (
+              <Link href={withTicket("deze-zondag")} className="mt-3 block text-sm text-cream/75 underline-offset-4 hover:underline">
+                {t.singleSeat}
+              </Link>
+            ) : null}
+          </section>
+        ) : null}
+      </div>
     );
   }
 
@@ -335,37 +384,6 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         />
       ) : null}
 
-      {happy && !page.member ? (
-        <section className="overflow-hidden rounded-3xl border border-gold/30 bg-wine px-6 py-7 text-cream sm:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">MyTable</p>
-          <h2 className="mt-2 font-serif text-2xl">{t.offerTitle}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-cream/80">{t.offerBody}</p>
-          {page.next ? (
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-cream/10 px-4 py-3 ring-1 ring-cream/20">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.nextTitle}</p>
-                <p className="font-serif text-lg">
-                  {page.city} · {page.next.label}
-                </p>
-                <p className="text-xs text-cream/70">{t.seats(page.next.seatsLeft)}</p>
-              </div>
-              <Link href={page.next.path} className="rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-wine">
-                {t.offerCta}
-              </Link>
-            </div>
-          ) : (
-            <Link href={page.cityPath} className="mt-5 inline-flex rounded-full bg-cream px-5 py-2.5 text-sm font-semibold text-wine">
-              {t.offerCta}
-            </Link>
-          )}
-        </section>
-      ) : null}
-
-      {state.mood === "good" || (happy && page.member) ? (
-        <section className={card}>
-          <NextSunday page={page} t={t} />
-        </section>
-      ) : null}
     </div>
   );
 }

@@ -29,6 +29,7 @@ const COPY = {
     transit: "Bereikbaar",
     language: "Taal",
     languages: { nl: "Nederlands", en: "Nederlands en Engels" },
+    englishOk: "Iedereen aan deze tafel gaf aan dat Engels ook prima is.",
     until: "tot",
     yourTable: "Jouw tafel",
     group: (n: number) => `Groep ${n}`,
@@ -85,6 +86,7 @@ const COPY = {
     transit: "Getting there",
     language: "Language",
     languages: { nl: "Dutch", en: "Dutch and English" },
+    englishOk: "Everyone at your table said English is fine.",
     until: "to",
     yourTable: "Your table",
     group: (n: number) => `Group ${n}`,
@@ -208,7 +210,13 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
             />
           ) : null}
           {page.venue?.transit ? <Row label={t.transit} value={page.venue.transit} /> : null}
-          {page.groupNumber !== null ? <Row label={t.language} value={t.languages[page.language]} /> : null}
+          {page.groupNumber !== null ? (
+            <Row
+              label={t.language}
+              value={t.languages[page.language]}
+              note={page.language === "en" ? t.englishOk : undefined}
+            />
+          ) : null}
         </dl>
         {mapsUrl ? (
           <a
@@ -383,7 +391,7 @@ function Pick({ p, n, t }: { p: VenuePick; n: number; t: Copy }) {
   );
 }
 
-function Row({ label, value, href }: { label: string; value: string; href?: string }) {
+function Row({ label, value, href, note }: { label: string; value: string; href?: string; note?: string }) {
   return (
     <div className="flex gap-3">
       <dt className="w-28 shrink-0 text-wine/50">{label}</dt>
@@ -395,6 +403,7 @@ function Row({ label, value, href }: { label: string; value: string; href?: stri
         ) : (
           value
         )}
+        {note ? <span className="mt-0.5 block text-xs text-wine/55">{note}</span> : null}
       </dd>
     </div>
   );

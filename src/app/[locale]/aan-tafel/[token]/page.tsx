@@ -66,7 +66,7 @@ const COPY = {
     picksLabel: "Onze aanraders",
     picksTitle: (venue: string) => `Wat wij zouden bestellen bij ${venue}`,
     picksLead: (venue: string) =>
-      `We hebben bij ${venue} geproefd en met de sommeliers ter plekke gepraat. Dit zijn onze keuzes. Geen verplichting: je bestelt en betaalt zelf, en het team van ${venue} helpt je ook graag kiezen.`,
+      `We hebben bij ${venue} geproefd. Dit zijn onze keuzes. Geen verplichting: je bestelt en betaalt zelf, en het team van ${venue} helpt je ook graag kiezen.`,
     picksSoon: (venue: string) => `Zondagochtend staan hier onze wijn- en hapjesaanraders voor ${venue}.`,
     goesWith: "Past bij",
     tableDrinks: "Jullie tafel drinkt graag",
@@ -123,7 +123,7 @@ const COPY = {
     picksLabel: "Our picks",
     picksTitle: (venue: string) => `What we'd order at ${venue}`,
     picksLead: (venue: string) =>
-      `We tasted at ${venue} and talked to the sommeliers there. These are our picks. No obligation: you order and pay yourself, and the ${venue} team is happy to help you choose too.`,
+      `We tasted at ${venue}. These are our picks. No obligation: you order and pay yourself, and the ${venue} team is happy to help you choose too.`,
     picksSoon: (venue: string) => `On Sunday morning you'll find our wine and food picks for ${venue} here.`,
     goesWith: "Goes with",
     tableDrinks: "Your table likes",

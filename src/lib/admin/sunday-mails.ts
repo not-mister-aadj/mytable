@@ -305,26 +305,26 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "We lezen elk antwoord, en we gebruiken ze om de volgende tafels nog beter in te delen. Eén tik is genoeg:",
+        "We lezen elk antwoord, en we gebruiken ze om de volgende tafels nog beter in te delen. Klikte het met iemand aan tafel? Vertel het ons, dan zetten we jullie een volgende keer misschien weer samen.",
+        "",
+        "Eén tik is genoeg:",
         p.url,
         "",
         "Tot een volgende keer,",
         "Het MyTable-team",
-        "",
-        "PS Klikte het met iemand aan tafel? Vertel het ons, dan zetten we jullie een volgende keer misschien weer samen.",
       ].join("\n")
     : [
         hi,
         "",
         opening,
         "",
-        "We read every answer, and we use them to put the next tables together even better. One tap is enough:",
+        "We read every answer, and we use them to put the next tables together even better. Did you click with someone at your table? Tell us, and we might seat you together again another time.",
+        "",
+        "One tap is enough:",
         p.url,
         "",
         "See you next time,",
         "The MyTable team",
-        "",
-        "PS Did you click with someone at your table? Tell us, and we might seat you together again another time.",
       ].join("\n");
 }
 

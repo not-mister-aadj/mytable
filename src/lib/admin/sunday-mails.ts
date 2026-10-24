@@ -261,9 +261,9 @@ function parseSchedule(raw: unknown): SundayMailContext["schedule"] {
   return out;
 }
 
-/** The suggested send time: Saturday 16:00 for the group mail, Sunday 08:30
+/** The suggested send time: Saturday 14:00 (24 hours before) for the group mail, Sunday 08:30
  * for the picks (Amsterdam). */
 export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning"): Date {
   const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
-  return kind === "saturday" ? amsterdamDateTime(y, m, d - 1, 16, 0) : amsterdamDateTime(y, m, d, 8, 30);
+  return kind === "saturday" ? amsterdamDateTime(y, m, d - 1, 14, 0) : amsterdamDateTime(y, m, d, 8, 30);
 }

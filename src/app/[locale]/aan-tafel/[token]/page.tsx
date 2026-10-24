@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
+import { EditOwnIntro, PlusOneEditor, TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
 import { isValidLocale, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { reservationCode } from "@/lib/booking-display";
@@ -27,14 +27,32 @@ const COPY = {
     when: "Wanneer",
     where: "Waar",
     transit: "Bereikbaar",
+    language: "Taal",
+    languages: { nl: "Nederlands", en: "Nederlands en Engels" },
     until: "tot",
     yourTable: "Jouw tafel",
     group: (n: number) => `Groep ${n}`,
     groupHint: (n: number, venue: string) => `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${n}. Het team van ${venue} wijst je je tafel.`,
     notSeated: "We delen de tafels nog in. Kijk later vandaag nog eens.",
+    yourGroup: (n: number) => `Jouw groep, groep ${n}, met een korte kennismaking`,
+    otherGroups: (venue: string) =>
+      `Er kunnen meer MyTable-groepen bij ${venue} zijn. Soms deel je een lange tafel met een andere groep. Klets gerust met iedereen: we komen allemaal voor de gezelligheid en de wijn.`,
     you: "jij",
     plusOne: (name: string) => `komt met ${name}`,
-    pending: "Intro volgt nog",
+    pending: { today: "Leer je vandaag kennen", tomorrow: "Leer je morgen kennen", later: "Leer je zondag kennen" },
+    editOwn: "Pas je antwoorden aan",
+    plusOneEdit: {
+      open: (name: string) => `Vertel iets over ${name}`,
+      edit: (name: string) => `Pas aan wat je over ${name} vertelt`,
+      note: "Alleen voor deze pagina, voor jullie tafel.",
+      askMeAbout: "Waar mogen mensen naar vragen?",
+      favoriteSpot: "Favoriete plek in de stad",
+      intoNow: "Waar is diegene nu into?",
+      wine: "Rood, wit of bubbels?",
+      save: "Opslaan",
+      cancel: "Annuleren",
+      error: "Dat lukte niet. Probeer het opnieuw.",
+    },
     labels: { askMeAbout: "Vraag me over", favoriteSpot: "Favoriete plek", intoNow: "Into", wine: "Wijn" },
     wine: { red: "Rood", white: "Wit", bubbles: "Bubbels" } as Record<IntroWine, string>,
     introLead: "Vul eerst je intro in. Daarna zie je wie er aan je tafel zitten.",
@@ -48,7 +66,7 @@ const COPY = {
     picksTitle: (venue: string) => `Wat wij zouden bestellen bij ${venue}`,
     picksLead: (venue: string) =>
       `We hebben bij ${venue} geproefd en met de sommeliers ter plekke gepraat. Dit zijn onze keuzes. Geen verplichting: je bestelt en betaalt zelf, en het team van ${venue} helpt je ook graag kiezen.`,
-    picksSoon: (venue: string) => `Zondagochtend staan hier onze wijn- en hapjesaanraders voor ${venue}, met waarom we ze kozen en waar ze bij passen.`,
+    picksSoon: (venue: string) => `Zondagochtend staan hier onze wijn- en hapjesaanraders voor ${venue}.`,
     goesWith: "Past bij",
     tableDrinks: "Jullie tafel drinkt graag",
     askTeam: (venue: string) => `Vraag het team van ${venue} wat zij vandaag zouden schenken, ze helpen je graag kiezen.`,
@@ -65,14 +83,32 @@ const COPY = {
     when: "When",
     where: "Where",
     transit: "Getting there",
+    language: "Language",
+    languages: { nl: "Dutch", en: "Dutch and English" },
     until: "to",
     yourTable: "Your table",
     group: (n: number) => `Group ${n}`,
     groupHint: (n: number, venue: string) => `When you arrive, say you're with MyTable, group ${n}. The ${venue} team will show you to your table.`,
     notSeated: "We're still putting the tables together. Check back later today.",
+    yourGroup: (n: number) => `Your group, group ${n}, with a short introduction`,
+    otherGroups: (venue: string) =>
+      `There may be more MyTable groups at ${venue}. Sometimes you'll share a long table with another group. Feel free to chat with everyone: we're all there for good company and good wine.`,
     you: "you",
     plusOne: (name: string) => `with ${name}`,
-    pending: "Intro coming soon",
+    pending: { today: "You'll meet today", tomorrow: "You'll meet tomorrow", later: "You'll meet on Sunday" },
+    editOwn: "Change your answers",
+    plusOneEdit: {
+      open: (name: string) => `Tell us about ${name}`,
+      edit: (name: string) => `Change what you share about ${name}`,
+      note: "Only for this page, for your table.",
+      askMeAbout: "What can people ask about?",
+      favoriteSpot: "Favourite spot in the city",
+      intoNow: "What are they into right now?",
+      wine: "Red, white or bubbles?",
+      save: "Save",
+      cancel: "Cancel",
+      error: "That didn't work. Please try again.",
+    },
     labels: { askMeAbout: "Ask me about", favoriteSpot: "Favourite spot", intoNow: "Into", wine: "Wine" },
     wine: { red: "Red", white: "White", bubbles: "Bubbles" } as Record<IntroWine, string>,
     introLead: "Fill in your intro first. Then you'll see who's at your table.",
@@ -86,7 +122,7 @@ const COPY = {
     picksTitle: (venue: string) => `What we'd order at ${venue}`,
     picksLead: (venue: string) =>
       `We tasted at ${venue} and talked to the sommeliers there. These are our picks. No obligation: you order and pay yourself, and the ${venue} team is happy to help you choose too.`,
-    picksSoon: (venue: string) => `On Sunday morning you'll find our wine and food picks for ${venue} here, with why we chose them and what they go with.`,
+    picksSoon: (venue: string) => `On Sunday morning you'll find our wine and food picks for ${venue} here.`,
     goesWith: "Goes with",
     tableDrinks: "Your table likes",
     askTeam: (venue: string) => `Ask the ${venue} team what they'd pour today, they're happy to help you choose.`,
@@ -128,7 +164,7 @@ export default async function TablePageRoute({ params }: Props) {
           {page ? <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} /> : <Invalid t={t} locale={locale} />}
         </div>
       </main>
-      <Footer dict={dict.footer} locale={locale} />
+      <Footer dict={dict.footer} locale={locale} showFormats={false} />
     </>
   );
 }
@@ -150,6 +186,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
   const day = new Intl.DateTimeFormat(intl, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" }).format(page.startsAt);
   const hm = (d: Date) => new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(d);
   const end = new Date(page.startsAt.getTime() + 3 * 60 * 60 * 1000);
+  const introToken = await signSundayTableIntroToken(page.bookingId);
   const heading = page.day === "today" ? t.today : page.day === "tomorrow" ? t.tomorrow : t.later;
   const venueName = page.venue?.name ?? page.city;
   const mapsUrl = page.venue?.address
@@ -171,6 +208,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
             />
           ) : null}
           {page.venue?.transit ? <Row label={t.transit} value={page.venue.transit} /> : null}
+          {page.groupNumber !== null ? <Row label={t.language} value={t.languages[page.language]} /> : null}
         </dl>
         {mapsUrl ? (
           <a
@@ -188,7 +226,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
         <TableIntroGate
           locale={locale}
           city={page.city}
-          introToken={await signSundayTableIntroToken(page.bookingId)}
+          introToken={introToken}
           bookingCode={reservationCode(page.bookingId)}
           seats={page.me.plusOneName ? 2 : 1}
           lead={t.introLead}
@@ -200,6 +238,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
             <>
               <h2 className="mt-2 font-serif text-2xl font-medium text-wine sm:text-3xl">{t.group(page.groupNumber)}</h2>
               <p className="mt-2 text-sm leading-relaxed text-wine/70">{t.groupHint(page.groupNumber, venueName)}</p>
+              <p className="mt-2 text-sm leading-relaxed text-wine/70">{t.otherGroups(venueName)}</p>
             </>
           ) : (
             <p className="mt-3 text-sm text-wine/70">{t.notSeated}</p>
@@ -207,11 +246,38 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           {page.groupNumber === null ? null : !page.me.shared ? (
             <TableShareGate token={token} copy={t.share} />
           ) : (
-            <ul className="mt-5 space-y-3">
+            <>
+            <p className="mt-6 border-t border-wine/10 pt-5 font-serif text-lg text-wine">{t.yourGroup(page.groupNumber)}</p>
+            <ul className="mt-3 space-y-3">
               {page.mates.map((m, i) => (
-                <Mate key={m.bookingId} m={m} you={i === 0} t={t} />
+                <Mate key={m.bookingId} m={m} you={i === 0} t={t} day={page.day}>
+                  {i === 0 ? (
+                    <EditOwnIntro
+                      locale={locale}
+                      city={page.city}
+                      introToken={introToken}
+                      bookingCode={reservationCode(page.bookingId)}
+                      seats={page.me.plusOneName !== null || page.me.plusOne ? 2 : 1}
+                      intro={page.me.intro}
+                      label={t.editOwn}
+                      closeLabel={t.plusOneEdit.cancel}
+                    />
+                  ) : m.bookingId === `${page.bookingId}+1` && page.me.plusOne ? (
+                    <PlusOneEditor
+                      token={token}
+                      answers={page.me.plusOne}
+                      copy={{
+                        ...t.plusOneEdit,
+                        open: t.plusOneEdit.open(m.firstName || "je +1"),
+                        edit: t.plusOneEdit.edit(m.firstName || "je +1"),
+                        wines: t.wine,
+                      }}
+                    />
+                  ) : null}
+                </Mate>
               ))}
             </ul>
+            </>
           )}
         </section>
       )}
@@ -223,7 +289,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
   );
 }
 
-function Mate({ m, you, t }: { m: TableMate; you: boolean; t: Copy }) {
+function Mate({ m, you, t, day, children }: { m: TableMate; you: boolean; t: Copy; day: TablePage["day"]; children?: React.ReactNode }) {
   const a = m.answers;
   const rows: [string, string][] = [];
   if (a?.askMeAbout) rows.push([t.labels.askMeAbout, a.askMeAbout]);
@@ -233,7 +299,7 @@ function Mate({ m, you, t }: { m: TableMate; you: boolean; t: Copy }) {
   return (
     <li className="rounded-2xl border border-wine/10 bg-white/60 p-4">
       <p className="font-serif text-lg text-wine">
-        {m.firstName}
+        {m.firstName || "+1"}
         {you ? <span className="ml-2 align-middle font-sans text-xs font-medium text-gold">{t.you}</span> : null}
         {m.withName ? <span className="ml-2 align-middle font-sans text-xs text-wine/50">{t.plusOne(m.withName)}</span> : null}
       </p>
@@ -243,9 +309,10 @@ function Mate({ m, you, t }: { m: TableMate; you: boolean; t: Copy }) {
             <Row key={label} label={label} value={value} />
           ))}
         </dl>
-      ) : m.withName ? null : (
-        <p className="mt-1 text-sm text-wine/50">{t.pending}</p>
+      ) : you ? null : (
+        <p className="mt-1 text-sm text-wine/50">{t.pending[day]}</p>
       )}
+      {children}
     </li>
   );
 }

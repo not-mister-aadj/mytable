@@ -9,6 +9,7 @@ import {
   nextGroupNumber,
   parseMonthKey,
   shiftMonth,
+  tableLanguage,
 } from "./groups-logic";
 
 test("group label and numbering", () => {
@@ -59,4 +60,11 @@ test("age bands", () => {
   assert.equal(ageBand(null), null);
   assert.equal(ageBand(38), "35-44");
   assert.equal(ageBand(61), "55+");
+});
+
+test("tableLanguage: English once someone prefers it, a clash with someone who prefers Dutch", () => {
+  assert.deepEqual(tableLanguage(["both_fine", null, "prefer_dutch"]), { language: "nl", clash: false });
+  assert.deepEqual(tableLanguage(["both_fine", "prefer_english"]), { language: "en", clash: false });
+  assert.deepEqual(tableLanguage(["english", "dutch"]), { language: "en", clash: true });
+  assert.deepEqual(tableLanguage([]), { language: "nl", clash: false });
 });

@@ -21,6 +21,17 @@ export function groupWarning(seats: number): "too_small" | "too_big" | null {
   return null;
 }
 
+/**
+ * The language of a table from what its guests chose: English as soon as
+ * someone prefers it (everyone else there is fine with it), else Dutch.
+ * `clash` when someone prefers English and someone else Dutch.
+ */
+export function tableLanguage(prefs: readonly (string | null)[]): { language: "nl" | "en"; clash: boolean } {
+  const english = prefs.some((p) => p === "prefer_english" || p === "english");
+  const dutch = prefs.some((p) => p === "prefer_dutch" || p === "dutch");
+  return { language: english ? "en" : "nl", clash: english && dutch };
+}
+
 /** The next free group number for a venue within an event. */
 export function nextGroupNumber(existing: readonly number[]): number {
   let n = 1;

@@ -1,10 +1,11 @@
 import { SignJWT, jwtVerify } from "jose";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { hasSundaySocialCityPage, sundaySocialSlugFromCity } from "@/lib/sunday-social-cities";
-import { getTokenSecrets, isIntroWine, type IntroWine } from "@/lib/sunday-table-intro";
+import { getTokenSecrets, isIntroConversationStyle, isIntroWine, type IntroWine, type SundayTableIntro } from "@/lib/sunday-table-intro";
+import { tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import { venueTransit } from "@/lib/venue-about";
 import { parseVenuePicks, picksVisible, type VenuePick } from "@/lib/venue-picks";
 
@@ -78,7 +79,18 @@ export type TablePage = {
   day: "today" | "tomorrow" | "later";
   venue: { name: string; address: string | null; transit: string | null } | null;
   groupNumber: number | null;
-  me: { firstName: string; plusOneName: string | null; answered: boolean; shared: boolean };
+  /** English as soon as someone at the table prefers it. */
+  language: "nl" | "en";
+  me: {
+    firstName: string;
+    plusOneName: string | null;
+    answered: boolean;
+    shared: boolean;
+    /** What they filled in, to edit it on the page. */
+    intro: SundayTableIntro;
+    /** Their +1's answers as they gave them (2 seats only). */
+    plusOne: PlusOneAnswers | null;
+  };
   /** Including the visitor (first) and any +1s. Empty until they are seated. */
   mates: TableMate[];
   /** Null before 09:00 on the day; [] when the venue has none. */
@@ -86,6 +98,23 @@ export type TablePage = {
   /** What the table likes to drink, for when there are no picks. */
   wines: Record<IntroWine, number>;
 };
+
+export type PlusOneAnswers = { askMeAbout?: string; favoriteSpot?: string; intoNow?: string; wine?: IntroWine };
+
+/** The +1's answers from the booking, cleaned. */
+export function parsePlusOneAnswers(raw: unknown): PlusOneAnswers {
+  if (!raw || typeof raw !== "object") return {};
+  const r = raw as Record<string, unknown>;
+  const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 140) : undefined);
+  return {
+    askMeAbout: text(r.askMeAbout),
+    favoriteSpot: text(r.favoriteSpot),
+    intoNow: text(r.intoNow),
+    wine: isIntroWine(r.wine) ? r.wine : undefined,
+  };
+}
+
+const hasAny = (a: PlusOneAnswers) => Boolean(a.askMeAbout || a.favoriteSpot || a.intoNow || a.wine);
 
 const dayKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(d);
 
@@ -158,8 +187,17 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
   const wines: Record<IntroWine, number> = { red: 0, white: 0, bubbles: 0 };
   for (const b of ordered) {
     mates.push({ bookingId: b.id, firstName: firstName(b.customerName) || "Gast", answers: sharedAnswers(b) });
-    const plusOne = b.seats >= 2 ? b.introPlusOneName?.trim() : "";
-    if (plusOne) mates.push({ bookingId: `${b.id}+1`, firstName: plusOne, withName: firstName(b.customerName), answers: null });
+    // A +1 shows with their name, or without one as "+1".
+    if (b.seats >= 2) {
+      const plusOne = parsePlusOneAnswers(b.introPlusOne);
+      mates.push({
+        bookingId: `${b.id}+1`,
+        firstName: b.introPlusOneName?.trim() || "",
+        withName: firstName(b.customerName) || "Gast",
+        // Shown to the table on the same terms as the booker's own answers.
+        answers: (b.id === booking.id || sharedAnswers(b)) && hasAny(plusOne) ? plusOne : null,
+      });
+    }
     if (isIntroWine(b.introWine)) wines[b.introWine] += 1;
   }
 
@@ -179,16 +217,36 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
           : "later",
     venue: venue ? { name: venue.name, address: venue.address, transit: venueTransit(venue.name, locale) } : null,
     groupNumber: group?.number ?? null,
+    language: tableLanguage(tableRows.map((b) => b.tableLanguagePreference)).language,
     me: {
       firstName: firstName(booking.customerName),
       plusOneName: booking.seats >= 2 ? booking.introPlusOneName?.trim() || null : null,
       answered: answered(booking),
       shared: answered(booking) && booking.introShareConsent,
+      intro: {
+        conversationStyle: isIntroConversationStyle(booking.introConversationStyle) ? booking.introConversationStyle : null,
+        askMeAbout: booking.introAskMeAbout ?? "",
+        favoriteSpot: booking.introFavoriteSpot ?? "",
+        wine: isIntroWine(booking.introWine) ? booking.introWine : null,
+        intoNow: booking.introIntoNow ?? "",
+        plusOneName: booking.introPlusOneName ?? "",
+        shareConsent: booking.introShareConsent,
+      },
+      plusOne: booking.seats >= 2 ? parsePlusOneAnswers(booking.introPlusOne) : null,
     },
     mates: group ? mates : [],
     picks: picksVisible(event.startsAt, now) ? parseVenuePicks(venue?.picks) : null,
     wines,
   };
+}
+
+/** The booker's answers for their +1: on this booking only, for the table page. */
+export async function savePlusOneAnswers(bookingId: string, answers: PlusOneAnswers): Promise<void> {
+  const clean = parsePlusOneAnswers(answers);
+  await getDb()
+    .update(bookings)
+    .set({ introPlusOne: hasAny(clean) ? (clean as Record<string, string>) : null })
+    .where(and(eq(bookings.id, bookingId), sql`${bookings.seats} >= 2`));
 }
 
 /** The visitor shares answers they gave before without sharing. */

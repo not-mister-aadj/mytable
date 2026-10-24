@@ -27,6 +27,8 @@ const COPY = {
     when: "Wanneer",
     where: "Waar",
     transit: "Bereikbaar",
+    language: "Taal",
+    languages: { nl: "Nederlands", en: "Nederlands en Engels" },
     until: "tot",
     yourTable: "Jouw tafel",
     group: (n: number) => `Groep ${n}`,
@@ -65,6 +67,8 @@ const COPY = {
     when: "When",
     where: "Where",
     transit: "Getting there",
+    language: "Language",
+    languages: { nl: "Dutch", en: "Dutch and English" },
     until: "to",
     yourTable: "Your table",
     group: (n: number) => `Group ${n}`,
@@ -171,6 +175,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
             />
           ) : null}
           {page.venue?.transit ? <Row label={t.transit} value={page.venue.transit} /> : null}
+          {page.groupNumber !== null ? <Row label={t.language} value={t.languages[page.language]} /> : null}
         </dl>
         {mapsUrl ? (
           <a
@@ -233,7 +238,7 @@ function Mate({ m, you, t }: { m: TableMate; you: boolean; t: Copy }) {
   return (
     <li className="rounded-2xl border border-wine/10 bg-white/60 p-4">
       <p className="font-serif text-lg text-wine">
-        {m.firstName}
+        {m.firstName || "+1"}
         {you ? <span className="ml-2 align-middle font-sans text-xs font-medium text-gold">{t.you}</span> : null}
         {m.withName ? <span className="ml-2 align-middle font-sans text-xs text-wine/50">{t.plusOne(m.withName)}</span> : null}
       </p>

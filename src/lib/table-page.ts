@@ -5,6 +5,7 @@ import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema"
 import { sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { hasSundaySocialCityPage, sundaySocialSlugFromCity } from "@/lib/sunday-social-cities";
 import { getTokenSecrets, isIntroWine, type IntroWine } from "@/lib/sunday-table-intro";
+import { tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import { venueTransit } from "@/lib/venue-about";
 import { parseVenuePicks, picksVisible, type VenuePick } from "@/lib/venue-picks";
 
@@ -78,6 +79,8 @@ export type TablePage = {
   day: "today" | "tomorrow" | "later";
   venue: { name: string; address: string | null; transit: string | null } | null;
   groupNumber: number | null;
+  /** English as soon as someone at the table prefers it. */
+  language: "nl" | "en";
   me: { firstName: string; plusOneName: string | null; answered: boolean; shared: boolean };
   /** Including the visitor (first) and any +1s. Empty until they are seated. */
   mates: TableMate[];
@@ -158,8 +161,10 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
   const wines: Record<IntroWine, number> = { red: 0, white: 0, bubbles: 0 };
   for (const b of ordered) {
     mates.push({ bookingId: b.id, firstName: firstName(b.customerName) || "Gast", answers: sharedAnswers(b) });
-    const plusOne = b.seats >= 2 ? b.introPlusOneName?.trim() : "";
-    if (plusOne) mates.push({ bookingId: `${b.id}+1`, firstName: plusOne, withName: firstName(b.customerName), answers: null });
+    // A +1 shows with their name, or without one as "+1".
+    if (b.seats >= 2) {
+      mates.push({ bookingId: `${b.id}+1`, firstName: b.introPlusOneName?.trim() || "", withName: firstName(b.customerName) || "Gast", answers: null });
+    }
     if (isIntroWine(b.introWine)) wines[b.introWine] += 1;
   }
 
@@ -179,6 +184,7 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
           : "later",
     venue: venue ? { name: venue.name, address: venue.address, transit: venueTransit(venue.name, locale) } : null,
     groupNumber: group?.number ?? null,
+    language: tableLanguage(tableRows.map((b) => b.tableLanguagePreference)).language,
     me: {
       firstName: firstName(booking.customerName),
       plusOneName: booking.seats >= 2 ? booking.introPlusOneName?.trim() || null : null,

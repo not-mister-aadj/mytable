@@ -13,7 +13,7 @@ import {
   setGroupsFinalAction,
 } from "@/app/admin/(dashboard)/jouw-tafel/[id]/actions";
 import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
-import { GROUP_TARGET, ageBand, groupLabel, groupWarning } from "@/lib/jouw-tafel/groups-logic";
+import { GROUP_TARGET, ageBand, groupLabel, groupWarning, tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import type { BoardGuest, EventBoard } from "@/lib/jouw-tafel/groups-server";
 
 const UNASSIGNED = "unassigned";
@@ -129,7 +129,7 @@ export function JouwTafelBoard({
           className="text-left text-sm font-semibold text-wine underline-offset-4 hover:text-burgundy hover:underline"
         >
           {g.name}
-          {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.seats - 1}</span> : null}
+          {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.plusOneName ?? g.seats - 1}</span> : null}
         </button>
         {g.ladies ? (
           <p className="mt-1">
@@ -196,6 +196,16 @@ export function JouwTafelBoard({
           {warning === "too_big" ? " · te groot" : warning === "too_small" ? " · te klein" : ""}
         </p>
         {ladies > 0 ? <p className="text-xs font-semibold text-rose-deep">{ladies} ladies only</p> : null}
+        {id !== UNASSIGNED && guests.length > 0 ? (
+          (() => {
+            const lang = tableLanguage(guests.map((g) => g.language));
+            return lang.clash ? (
+              <p className="text-xs font-semibold text-burgundy">⚠ Taal botst</p>
+            ) : (
+              <p className="text-xs text-wine/55">Tafeltaal: {lang.language === "en" ? "Engels" : "Nederlands"}</p>
+            );
+          })()
+        ) : null}
         <ul className="mt-3 flex min-h-16 flex-col gap-2">{guests.map(guestCard)}</ul>
       </div>
     );

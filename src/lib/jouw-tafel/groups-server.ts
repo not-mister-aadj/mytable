@@ -7,6 +7,7 @@ import { QUIZ_METADATA_KEY, ageFromBirthDate, girlsOnlyWish, sanitizeQuizState }
 import { calendarState, monthGrid, type CalendarState } from "@/lib/jouw-tafel/groups-logic";
 import { seriesStartsAt } from "@/lib/jouw-tafel/series-server";
 import { bookingOpensOverride, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
+import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 
 // ---------------------------------------------------------------- calendar
 
@@ -122,6 +123,18 @@ export type BoardGuest = {
    * does not work out; null without the wish. */
   ladies: "strict" | "mixed_ok" | null;
   groupId: string | null;
+  email: string;
+  plusOneName: string | null;
+  /** The "meet your table" answers, all of them (admin only). */
+  intro: {
+    answered: boolean;
+    shared: boolean;
+    conversationStyle: string | null;
+    askMeAbout: string | null;
+    favoriteSpot: string | null;
+    intoNow: string | null;
+    wine: string | null;
+  };
 };
 
 export type BoardGroup = { id: string; venueId: string; number: number };
@@ -140,8 +153,10 @@ export type EventBoard = {
     openedEarly: boolean;
     /** Everyone (not just members) can book it now. */
     openForEveryone: boolean;
+    /** Within two days: a venue without picks needs them now. */
+    picksDueSoon: boolean;
   };
-  venues: { id: string; name: string; address: string | null }[];
+  venues: { id: string; name: string; address: string | null; picks: VenuePick[] }[];
   groups: BoardGroup[];
   guests: BoardGuest[];
   /** Venues in the same city that can still be added. */
@@ -159,6 +174,14 @@ type GuestRow = {
   table_language_preference: string | null;
   birth_date: string | null;
   age_preference: string | null;
+  intro_plus_one_name: string | null;
+  intro_conversation_style: string | null;
+  intro_ask_me_about: string | null;
+  intro_favorite_spot: string | null;
+  intro_into_now: string | null;
+  intro_wine: string | null;
+  intro_share_consent: boolean;
+  intro_answered_at: string | null;
   earlier: number;
   quiz: unknown;
 };
@@ -176,7 +199,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
 
   const [linked, groupRows, guestRows, cityVenues] = await Promise.all([
     db
-      .select({ id: venues.id, name: venues.name, address: venues.address })
+      .select({ id: venues.id, name: venues.name, address: venues.address, picks: venues.picks })
       .from(eventVenues)
       .innerJoin(venues, eq(eventVenues.venueId, venues.id))
       .where(eq(eventVenues.eventId, eventId))
@@ -189,6 +212,8 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
     db.execute(sql`
       select b.id, b.customer_name, b.email, b.seats, b.membership_id, b.group_id, b.dietary_notes,
              b.table_language_preference, b.birth_date::text as birth_date, b.age_preference,
+             b.intro_plus_one_name, b.intro_conversation_style, b.intro_ask_me_about, b.intro_favorite_spot,
+             b.intro_into_now, b.intro_wine, b.intro_share_consent, b.intro_answered_at::text as intro_answered_at,
              (select count(*) from bookings p join events pe on pe.id = p.event_id
                where lower(p.email) = lower(b.email) and p.payment_status = 'paid'
                  and pe.starts_at < ${event.startsAt.toISOString()}::timestamptz)::int as earlier,
@@ -232,6 +257,26 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       dietary: g.dietary_notes?.trim() || null,
       ladies: girlsOnlyWish(answers),
       groupId: g.group_id,
+      email: g.email,
+      plusOneName: g.seats >= 2 ? g.intro_plus_one_name?.trim() || null : null,
+      intro: (() => {
+        const text = (v: string | null) => v?.trim() || null;
+        const answered = Boolean(
+          g.intro_answered_at ||
+            g.intro_wine ||
+            g.intro_conversation_style ||
+            [g.intro_ask_me_about, g.intro_favorite_spot, g.intro_into_now].some((v) => v?.trim()),
+        );
+        return {
+          answered,
+          shared: answered && g.intro_share_consent,
+          conversationStyle: g.intro_conversation_style,
+          askMeAbout: text(g.intro_ask_me_about),
+          favoriteSpot: text(g.intro_favorite_spot),
+          intoNow: text(g.intro_into_now),
+          wine: g.intro_wine,
+        };
+      })(),
     };
   });
 
@@ -250,6 +295,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       ),
       finalAt: event.groupsFinalAt?.toISOString() ?? null,
       openedEarly: Boolean(bookingOpensOverride(event.extras)),
+      picksDueSoon: event.startsAt.getTime() - now < 2 * 86_400_000,
       openForEveryone:
         !event.extras?.comingSoon &&
         now >= Math.max(
@@ -257,7 +303,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
           event.membersOnlyUntil?.getTime() ?? 0,
         ),
     },
-    venues: linked,
+    venues: linked.map((v) => ({ ...v, picks: parseVenuePicks(v.picks) })),
     groups: groupRows,
     guests,
     venueChoices: cityVenues.filter((v) => !linkedIds.has(v.id)),

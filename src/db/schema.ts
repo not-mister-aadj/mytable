@@ -65,6 +65,8 @@ export const venues = pgTable("venues", {
   galleryMeta: jsonb("gallery_meta").$type<Record<string, unknown>[]>(),
   latitude: text("latitude"),
   longitude: text("longitude"),
+  /** Our picks from the menu, shown on the guests' table page (drizzle/0051). */
+  picks: jsonb("picks").$type<unknown[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

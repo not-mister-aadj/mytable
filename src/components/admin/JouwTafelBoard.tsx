@@ -12,6 +12,7 @@ import {
   removeGroupAction,
   setGroupsFinalAction,
 } from "@/app/admin/(dashboard)/jouw-tafel/[id]/actions";
+import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
 import { GROUP_TARGET, ageBand, groupLabel, groupWarning } from "@/lib/jouw-tafel/groups-logic";
 import type { BoardGuest, EventBoard } from "@/lib/jouw-tafel/groups-server";
 
@@ -46,11 +47,14 @@ export function JouwTafelBoard({
   board,
   calendarHref,
   tablePageHref,
+  tablePages = {},
   embedded = false,
 }: {
   board: EventBoard;
   calendarHref: string;
   tablePageHref: string;
+  /** Each guest's own table page, by booking id. */
+  tablePages?: Record<string, string>;
   /** Shown as a tab on the Sunday page, which has its own heading. */
   embedded?: boolean;
 }) {
@@ -61,6 +65,8 @@ export function JouwTafelBoard({
   const [moved, setMoved] = useState<Record<string, string | null>>({});
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [newVenue, setNewVenue] = useState(board.venueChoices[0]?.id ?? "");
+  const [openGuest, setOpenGuest] = useState<string | null>(null);
+  const [openVenue, setOpenVenue] = useState<string | null>(null);
   const { event } = board;
 
   const groupOf = (g: BoardGuest) => (g.bookingId in moved ? moved[g.bookingId] : g.groupId);
@@ -117,10 +123,14 @@ export function JouwTafelBoard({
         onDragStart={(e) => e.dataTransfer.setData("text/plain", g.bookingId)}
         className="cursor-grab rounded-xl border border-border-subtle/80 bg-white p-3 shadow-[0_1px_3px_rgba(43,13,18,0.05)] active:cursor-grabbing"
       >
-        <p className="text-sm font-semibold text-wine">
+        <button
+          type="button"
+          onClick={() => setOpenGuest(g.bookingId)}
+          className="text-left text-sm font-semibold text-wine underline-offset-4 hover:text-burgundy hover:underline"
+        >
           {g.name}
           {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.seats - 1}</span> : null}
-        </p>
+        </button>
         {g.ladies ? (
           <p className="mt-1">
             <span className="rounded-full bg-rose/20 px-2 py-0.5 text-[11px] font-semibold text-rose-deep">
@@ -129,6 +139,13 @@ export function JouwTafelBoard({
           </p>
         ) : null}
         <p className="mt-1 flex flex-wrap gap-1 text-[11px] text-wine/60">
+          <span
+            className={`rounded-full px-2 py-0.5 ${
+              !g.intro.answered ? "bg-amber-50 text-amber-900" : g.intro.shared ? "bg-emerald-50 text-emerald-800" : "bg-cream"
+            }`}
+          >
+            {!g.intro.answered ? "Intro open" : g.intro.shared ? "Intro ✓" : "Intro niet gedeeld"}
+          </span>
           <span className="rounded-full bg-cream px-2 py-0.5">{g.member ? "Lid" : "Ticket"}</span>
           {g.firstTime ? <span className="rounded-full bg-cream px-2 py-0.5">Eerste keer</span> : null}
           {band ? <span className="rounded-full bg-cream px-2 py-0.5">{band}</span> : null}
@@ -137,7 +154,7 @@ export function JouwTafelBoard({
               {g.agePreference === "similar" ? "Rond eigen leeftijd" : "Alle leeftijden"}
             </span>
           ) : null}
-          {g.language ? <span className="rounded-full bg-cream px-2 py-0.5">{g.language}</span> : null}
+          {g.language ? <span className="rounded-full bg-cream px-2 py-0.5">{languageLabel(g.language)}</span> : null}
           {g.dietary ? <span className="rounded-full bg-cream px-2 py-0.5">{g.dietary}</span> : null}
         </p>
         <select
@@ -288,6 +305,17 @@ export function JouwTafelBoard({
                   {venue.address ? <p className="text-xs text-wine/50">{venue.address}</p> : null}
                 </div>
                 <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setOpenVenue(venue.id)}
+                    className={
+                      venue.picks.length === 0 && event.picksDueSoon
+                        ? "inline-flex min-h-9 items-center rounded-full border border-burgundy/50 bg-burgundy/10 px-3.5 text-xs font-semibold text-burgundy transition hover:bg-burgundy/15"
+                        : ghost
+                    }
+                  >
+                    Aanraders {venue.picks.length > 0 ? `· ${venue.picks.length}` : "· –"}
+                  </button>
                   <button type="button" className={ghost} disabled={pending} onClick={() => run(() => addGroupAction(event.id, venue.id))}>
                     + Groep
                   </button>
@@ -329,6 +357,23 @@ export function JouwTafelBoard({
       </div>
 
       {board.guests.length === 0 ? <p className="text-sm text-wine/55">Nog geen boekingen.</p> : null}
+
+      <GuestDrawer
+        guest={board.guests.find((g) => g.bookingId === openGuest) ?? null}
+        groupLabel={(() => {
+          const g = board.guests.find((x) => x.bookingId === openGuest);
+          const id = g ? groupOf(g) : null;
+          return groupOptions.find((o) => o.id === id)?.label ?? null;
+        })()}
+        tablePageHref={openGuest ? (tablePages[openGuest] ?? null) : null}
+        onClose={() => setOpenGuest(null)}
+      />
+      <VenuePicksDrawer
+        eventId={event.id}
+        venue={board.venues.find((v) => v.id === openVenue) ?? null}
+        onClose={() => setOpenVenue(null)}
+        onSaved={() => router.refresh()}
+      />
     </div>
   );
 }

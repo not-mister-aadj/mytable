@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { PhotoCropper } from "@/components/PhotoCropper";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
 import { JouwTafelLogoutButton } from "@/components/jouw-tafel/JouwTafelLogoutButton";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
@@ -1151,6 +1152,7 @@ function ProfilePhotoRow({ locale, initial, onToast }: { locale: Locale; initial
   const s = getSettingsCopy(locale);
   const [url, setUrl] = useState(initial);
   const [busy, setBusy] = useState(false);
+  const [cropping, setCropping] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const label = locale === "en" ? "Profile photo" : "Profielfoto";
 
@@ -1186,8 +1188,22 @@ function ProfilePhotoRow({ locale, initial, onToast }: { locale: Locale; initial
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
-        onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])}
+        onChange={(e) => {
+          if (e.target.files?.[0]) setCropping(e.target.files[0]);
+          e.target.value = "";
+        }}
       />
+      {cropping ? (
+        <PhotoCropper
+          file={cropping}
+          locale={locale === "en" ? "en" : "nl"}
+          onCancel={() => setCropping(null)}
+          onDone={(f) => {
+            setCropping(null);
+            void upload(f);
+          }}
+        />
+      ) : null}
     </li>
   );
 }

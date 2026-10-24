@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { PhotoCropper } from "@/components/PhotoCropper";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
 
 const COPY = {
@@ -135,6 +136,7 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropping, setCropping] = useState<File | null>(null);
   const [pending, start] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -281,7 +283,10 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     className="hidden"
-                    onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setCropping(e.target.files[0]);
+                      e.target.value = "";
+                    }}
                   />
                 </div>
               ) : null}
@@ -350,6 +355,18 @@ export function FeedbackForm({ page, token, shareUrl }: { page: FeedbackPage; to
             {error ? <span className="text-sm text-red-800">{t.error}</span> : null}
           </div>
         </section>
+      ) : null}
+
+      {cropping ? (
+        <PhotoCropper
+          file={cropping}
+          locale={page.locale}
+          onCancel={() => setCropping(null)}
+          onDone={(f) => {
+            setCropping(null);
+            void upload(f);
+          }}
+        />
       ) : null}
 
       {happy && !page.member ? (

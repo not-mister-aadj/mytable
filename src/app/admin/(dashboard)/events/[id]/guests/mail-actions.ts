@@ -88,7 +88,8 @@ async function setSchedule(eventId: string, kind: "saturday" | "morning", value:
     .update(events)
     .set({
       extras: value
-        ? sql`jsonb_set(coalesce(${events.extras}, '{}'::jsonb), ${`{mailSchedule,${kind}}`}::text[], ${JSON.stringify(value)}::jsonb, true)`
+        ? sql`coalesce(${events.extras}, '{}'::jsonb) || jsonb_build_object('mailSchedule',
+            coalesce(${events.extras} -> 'mailSchedule', '{}'::jsonb) || jsonb_build_object(${kind}::text, ${JSON.stringify(value)}::jsonb))`
         : sql`coalesce(${events.extras}, '{}'::jsonb) #- ${`{mailSchedule,${kind}}`}::text[]`,
       updatedAt: new Date(),
     })

@@ -22,7 +22,7 @@ export type MailGuest = {
 type Kind = "location" | "saturday" | "morning";
 
 /** A planned send: when ("za 24 okt, 14:00") and for how many guests. */
-export type MailPlan = { label: string; count: number } | null;
+export type MailPlan = { label: string; count: number; bookingIds: string[] } | null;
 
 const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   location: {
@@ -103,9 +103,10 @@ function MailCard({
       router.refresh();
     });
 
-  const showPreview = () =>
+  const showPreview = (bookingId = previewFor) =>
     start(async () => {
-      const result = await previewSundayMailAction(eventId, kind, previewFor);
+      setPreviewFor(bookingId);
+      const result = await previewSundayMailAction(eventId, kind, bookingId);
       if (result.ok) {
         setPreview({ subject: result.subject, html: result.html });
         setMessage(null);
@@ -143,9 +144,36 @@ function MailCard({
         </div>
       ) : null}
 
-      {missing.length > 0 && sent > 0 && !plan ? (
-        <p className="mt-2 text-sm text-wine/60">Nog niet: {missing.map((g) => g.name).join(", ")}</p>
-      ) : null}
+      <ul className="mt-4 divide-y divide-border-subtle/70 overflow-hidden rounded-lg border border-border-subtle bg-cream/70">
+        {guests.map((g) => {
+          const planned = plan?.bookingIds.includes(g.bookingId);
+          const status = sentOf(g) && !planned ? "Verstuurd" : planned ? `Ingepland ${plan!.label}` : "Nog niet";
+          return (
+            <li key={g.bookingId} className={`flex items-center gap-3 px-3 py-2 text-sm ${previewFor === g.bookingId && preview ? "bg-burgundy/5" : ""}`}>
+              <span className="min-w-0 flex-1 truncate text-wine">
+                {g.name}
+                {kind !== "location" && g.groupNumber !== null ? <span className="text-wine/50"> · groep {g.groupNumber}</span> : null}
+                {kind === "location" && g.needsIntro ? <span className="text-wine/50"> · vragen open</span> : null}
+              </span>
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                  status === "Verstuurd" ? "bg-emerald-50 text-emerald-800" : planned ? "bg-sky-50 text-sky-900" : "bg-wine/[0.05] text-wine/60"
+                }`}
+              >
+                {status}
+              </span>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => showPreview(g.bookingId)}
+                className="shrink-0 text-xs font-semibold text-burgundy hover:underline disabled:opacity-40"
+              >
+                Bekijk
+              </button>
+            </li>
+          );
+        })}
+      </ul>
 
       {blocker ? <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">{blocker}</p> : null}
 
@@ -167,7 +195,7 @@ function MailCard({
         <button
           type="button"
           disabled={pending || guests.length === 0}
-          onClick={showPreview}
+          onClick={() => showPreview()}
           className="rounded-full border border-border-subtle bg-cream px-3.5 py-1.5 text-sm font-medium text-wine transition hover:border-burgundy/30 disabled:opacity-40"
         >
           Voorbeeld

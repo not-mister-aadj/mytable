@@ -183,8 +183,9 @@ function localInput(d: Date) {
   return parts.replace(" ", "T");
 }
 
+/** A planned send still to come; once its time has passed it counts as sent. */
 function planOf(plan: ScheduledMail | undefined) {
-  if (!plan) return null;
+  if (!plan || Date.parse(plan.at) <= Date.now()) return null;
   const label = new Intl.DateTimeFormat("nl-NL", {
     weekday: "short",
     day: "numeric",
@@ -193,7 +194,7 @@ function planOf(plan: ScheduledMail | undefined) {
     minute: "2-digit",
     timeZone: "Europe/Amsterdam",
   }).format(new Date(plan.at));
-  return { label, count: plan.ids.length };
+  return { label, count: plan.ids.length, bookingIds: plan.ids.map((i) => i.bookingId) };
 }
 
 function SettingsTab({

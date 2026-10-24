@@ -40,6 +40,10 @@
     {
       "path": "/api/cron/table-page-cleanup",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/email-volume",
+      "schedule": "50 * * * *"
     }
   ]
 }

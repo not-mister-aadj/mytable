@@ -4,6 +4,7 @@ import { adminPath } from "@/lib/admin-url";
 import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getTodayData, type TodoItem, type UpcomingSunday } from "@/lib/admin/today-data";
+import { EMAIL_DAY_LIMIT, EMAIL_DAY_WARN, emailVolume } from "@/lib/email/volume";
 
 /** "Vandaag": what needs doing this week, the coming Sundays and the month. */
 export default async function AdminTodayPage() {
@@ -18,7 +19,8 @@ export default async function AdminTodayPage() {
   const href = (path: string) => adminPath(path, hostname);
   const eventHref = (id: string, tab?: string) => href(`/events/${id}/guests${tab ? `?tab=${tab}` : ""}`);
 
-  const data = await getTodayData(eventHref);
+  const [data, volume] = await Promise.all([getTodayData(eventHref), emailVolume().catch(() => [])]);
+  const busy = volume.filter((v) => v.count >= EMAIL_DAY_WARN);
   const todayLabel = new Intl.DateTimeFormat("nl-NL", {
     weekday: "long",
     day: "numeric",
@@ -32,6 +34,17 @@ export default async function AdminTodayPage() {
         <p className="text-sm capitalize text-wine/55">{todayLabel}</p>
         <h1 className="mt-1 font-serif text-3xl text-burgundy">Vandaag</h1>
       </header>
+
+      {busy.length > 0 ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {busy
+            .map(
+              (v, i) =>
+                `${i === 0 && v.day === volume[0]?.day ? "Vandaag" : "Morgen"} ${v.count} mails · Resend-limiet ${EMAIL_DAY_LIMIT} per dag`,
+            )
+            .join(" · ")}
+        </p>
+      ) : null}
 
       <section aria-labelledby="todo-title">
         <h2 id="todo-title" className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">

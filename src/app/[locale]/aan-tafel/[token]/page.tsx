@@ -34,6 +34,7 @@ const COPY = {
     group: (n: number) => `Groep ${n}`,
     groupHint: (n: number, venue: string) => `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${n}. Het team van ${venue} wijst je je tafel.`,
     notSeated: "We delen de tafels nog in. Kijk later vandaag nog eens.",
+    yourGroup: (n: number) => `Jouw groep, groep ${n}, met een korte kennismaking`,
     otherGroups: (venue: string) =>
       `Er kunnen meer MyTable-groepen bij ${venue} zijn. Soms deel je een lange tafel met een andere groep. Klets gerust met iedereen: we komen allemaal voor de gezelligheid en de wijn.`,
     you: "jij",
@@ -89,6 +90,7 @@ const COPY = {
     group: (n: number) => `Group ${n}`,
     groupHint: (n: number, venue: string) => `When you arrive, say you're with MyTable, group ${n}. The ${venue} team will show you to your table.`,
     notSeated: "We're still putting the tables together. Check back later today.",
+    yourGroup: (n: number) => `Your group, group ${n}, with a short introduction`,
     otherGroups: (venue: string) =>
       `There may be more MyTable groups at ${venue}. Sometimes you'll share a long table with another group. Feel free to chat with everyone: we're all there for good company and good wine.`,
     you: "you",
@@ -244,7 +246,9 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           {page.groupNumber === null ? null : !page.me.shared ? (
             <TableShareGate token={token} copy={t.share} />
           ) : (
-            <ul className="mt-5 space-y-3">
+            <>
+            <p className="mt-6 border-t border-wine/10 pt-5 font-serif text-lg text-wine">{t.yourGroup(page.groupNumber)}</p>
+            <ul className="mt-3 space-y-3">
               {page.mates.map((m, i) => (
                 <Mate key={m.bookingId} m={m} you={i === 0} t={t} day={page.day}>
                   {i === 0 ? (
@@ -272,6 +276,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
                 </Mate>
               ))}
             </ul>
+            </>
           )}
         </section>
       )}

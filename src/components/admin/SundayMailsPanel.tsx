@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   previewSundayMailAction,
-  saveSundayPicksAction,
   sendSundayMailAction,
   sendSundayMailTestAction,
 } from "@/app/admin/(dashboard)/events/[id]/guests/mail-actions";
@@ -16,9 +15,10 @@ export type MailGuest = {
   needsIntro: boolean;
   sentLocation: boolean;
   sentSaturday: boolean;
+  sentMorning: boolean;
 };
 
-type Kind = "location" | "saturday";
+type Kind = "location" | "saturday" | "morning";
 
 const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   location: {
@@ -29,7 +29,12 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   saturday: {
     title: "Zaterdagmail",
     when: "De dag ervoor",
-    what: "Het groepsnummer om bij binnenkomst te zeggen, wie er aan tafel zitten (met wat ze delen) en onze aanraders van de kaart.",
+    what: "Het groepsnummer om bij binnenkomst te zeggen en een link naar de tafelpagina: wie er aan tafel zitten en wat ze delen.",
+  },
+  morning: {
+    title: "Ochtendmail",
+    when: "Zondagochtend",
+    what: "Onze aanraders van de zaak, met een link naar de tafelpagina waar staat waarom we ze kozen.",
   },
 };
 
@@ -38,18 +43,17 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
 export function SundayMailsPanel({
   eventId,
   guests,
-  picks,
   blockers,
 }: {
   eventId: string;
   guests: MailGuest[];
-  picks: string;
   blockers: Record<Kind, string | null>;
 }) {
   return (
     <div className="space-y-6">
       <MailCard kind="location" eventId={eventId} guests={guests} blocker={blockers.location} />
-      <MailCard kind="saturday" eventId={eventId} guests={guests} blocker={blockers.saturday} initialPicks={picks} />
+      <MailCard kind="saturday" eventId={eventId} guests={guests} blocker={blockers.saturday} />
+      <MailCard kind="morning" eventId={eventId} guests={guests} blocker={blockers.morning} />
     </div>
   );
 }
@@ -59,23 +63,20 @@ function MailCard({
   eventId,
   guests,
   blocker,
-  initialPicks,
 }: {
   kind: Kind;
   eventId: string;
   guests: MailGuest[];
   blocker: string | null;
-  initialPicks?: string;
 }) {
   const router = useRouter();
   const copy = COPY[kind];
-  const sentOf = (g: MailGuest) => (kind === "location" ? g.sentLocation : g.sentSaturday);
+  const sentOf = (g: MailGuest) => (kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : g.sentMorning);
   const sent = guests.filter(sentOf).length;
   const missing = guests.filter((g) => !sentOf(g));
 
   const [previewFor, setPreviewFor] = useState(guests[0]?.bookingId ?? "");
   const [preview, setPreview] = useState<{ subject: string; html: string } | null>(null);
-  const [picks, setPicks] = useState(initialPicks ?? "");
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [pending, start] = useTransition();
@@ -89,7 +90,7 @@ function MailCard({
 
   const showPreview = () =>
     start(async () => {
-      const result = await previewSundayMailAction(eventId, kind, previewFor, kind === "saturday" ? picks : undefined);
+      const result = await previewSundayMailAction(eventId, kind, previewFor);
       if (result.ok) {
         setPreview({ subject: result.subject, html: result.html });
         setMessage(null);
@@ -121,30 +122,6 @@ function MailCard({
         <p className="mt-2 text-sm text-wine/60">Nog niet: {missing.map((g) => g.name).join(", ")}</p>
       ) : null}
 
-      {kind === "saturday" ? (
-        <div className="mt-4">
-          <label htmlFor={`picks-${eventId}`} className="text-sm font-medium text-wine">
-            Onze aanraders
-          </label>
-          <p className="text-xs text-wine/50">Eén per regel, bijvoorbeeld &quot;Wit: Grüner Veltliner van ...&quot;.</p>
-          <textarea
-            id={`picks-${eventId}`}
-            value={picks}
-            onChange={(e) => setPicks(e.target.value)}
-            rows={4}
-            className="mt-2 w-full rounded-xl border border-border-subtle bg-cream px-3 py-2 text-sm text-wine outline-none focus:border-burgundy/35 focus:ring-2 focus:ring-burgundy/10"
-          />
-          <button
-            type="button"
-            disabled={pending || picks === (initialPicks ?? "")}
-            onClick={() => run(() => saveSundayPicksAction(eventId, picks))}
-            className="mt-2 rounded-full border border-border-subtle bg-cream px-3.5 py-1.5 text-sm font-medium text-wine transition hover:border-burgundy/30 disabled:opacity-40"
-          >
-            Aanraders opslaan
-          </button>
-        </div>
-      ) : null}
-
       {blocker ? <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">{blocker}</p> : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -157,7 +134,7 @@ function MailCard({
           {guests.map((g) => (
             <option key={g.bookingId} value={g.bookingId}>
               Als {g.name}
-              {kind === "saturday" && g.groupNumber !== null ? ` (groep ${g.groupNumber})` : ""}
+              {kind !== "location" && g.groupNumber !== null ? ` (groep ${g.groupNumber})` : ""}
               {kind === "location" && g.needsIntro ? " (vragen open)" : ""}
             </option>
           ))}

@@ -143,6 +143,7 @@ export function SundayTableIntroForm({
   seats,
   initial,
   reusable = false,
+  onSaved,
 }: {
   locale: Locale;
   city: string;
@@ -157,6 +158,8 @@ export function SundayTableIntroForm({
   initial?: Partial<SundayTableIntro> | null;
   /** Answered before, not yet for this booking: offer to keep those answers first. */
   reusable?: boolean;
+  /** Called once the answers are saved (the table page then shows the table). */
+  onSaved?: () => void;
 }) {
   const t = copy[locale === "en" ? "en" : "nl"];
   const manual = "manual" in auth;
@@ -289,6 +292,7 @@ export function SundayTableIntroForm({
         locale,
       });
       setSaved(true);
+      onSaved?.();
     } catch {
       setError(t.error);
     } finally {

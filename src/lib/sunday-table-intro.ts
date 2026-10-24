@@ -368,7 +368,7 @@ const TOKEN_PURPOSE = "sunday_table_intro";
 /** Signing keys, first one signs. INTRO_TOKEN_SECRET is a key of its own that
  * is also known outside the server, so hand-sent mails can carry the same
  * one-click link; links signed with the general secret keep working. */
-function getTokenSecrets(): Uint8Array[] {
+export function getTokenSecrets(): Uint8Array[] {
   const general =
     process.env.REVIEW_TOKEN_SECRET?.trim() ||
     process.env.CRON_SECRET?.trim() ||

@@ -51,7 +51,7 @@ type VenueCoreRow = {
 
 function withOptionalVenueFields(
   row: VenueCoreRow,
-  extra?: Partial<Pick<Venue, "imageMeta" | "galleryMeta" | "latitude" | "longitude">>,
+  extra?: Partial<Pick<Venue, "imageMeta" | "galleryMeta" | "latitude" | "longitude" | "picks">>,
 ): Venue {
   return {
     ...row,
@@ -59,6 +59,7 @@ function withOptionalVenueFields(
     galleryMeta: extra?.galleryMeta ?? null,
     latitude: extra?.latitude ?? null,
     longitude: extra?.longitude ?? null,
+    picks: extra?.picks ?? [],
   };
 }
 

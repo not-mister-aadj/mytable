@@ -7,6 +7,7 @@ import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema"
 import { requireAdmin } from "@/lib/admin-auth";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { nextGroupNumber } from "@/lib/jouw-tafel/groups-logic";
+import { parseVenuePicks } from "@/lib/venue-picks";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 
 /** Groups work the same for every Sunday: a series table and a hand-made one. */
@@ -153,5 +154,13 @@ export async function openForEveryoneNowAction(eventId: string) {
     .where(eq(events.id, eventId))
     .returning();
   revalidateEventPaths(row);
+  refresh(eventId);
+}
+
+/** Our picks for a venue: shown on the table page of every Sunday there. */
+export async function saveVenuePicksAction(eventId: string, venueId: string, picks: unknown) {
+  await requireAdmin();
+  const clean = parseVenuePicks(picks);
+  await getDb().update(venues).set({ picks: clean }).where(eq(venues.id, venueId));
   refresh(eventId);
 }

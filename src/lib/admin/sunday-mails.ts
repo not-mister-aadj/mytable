@@ -3,16 +3,20 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { SundayLocationEmail } from "@/emails/SundayLocationEmail";
-import { SundaySaturdayEmail, type SundayTablemate } from "@/emails/SundaySaturdayEmail";
+import { SundayMorningEmail } from "@/emails/SundayMorningEmail";
+import { SundaySaturdayEmail } from "@/emails/SundaySaturdayEmail";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
 import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/resend";
 import { signSundayTableIntroToken } from "@/lib/sunday-table-intro";
+import { tablePageUrl } from "@/lib/table-page";
+import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 import { venueTransit } from "@/lib/venue-about";
 
-/** The two mails sent from a Sunday's page in admin: the location a week
- * before, and on Saturday the group, the tablemates and our picks. */
-export type SundayMailKind = "location" | "saturday";
+/** The mails sent from a Sunday's page in admin: the location a week
+ * before, on Saturday the group with a link to the table page, and on
+ * Sunday morning our picks. */
+export type SundayMailKind = "location" | "saturday" | "morning";
 
 const SITE = "https://www.mytable.club";
 
@@ -26,9 +30,9 @@ type Guest = {
   groupNumber: number | null;
   /** The open questions are still empty. */
   needsIntro: boolean;
-  shared: SundayTablemate["answers"];
   sentLocation: boolean;
   sentSaturday: boolean;
+  sentMorning: boolean;
 };
 
 export type SundayMailContext = {
@@ -36,7 +40,8 @@ export type SundayMailContext = {
   city: string;
   startsAt: Date;
   venue: { name: string; area: string | null; address: string; descriptionNl: string | null; descriptionEn: string | null } | null;
-  picks: string;
+  /** The picks of the Sunday's (first) venue. */
+  picks: VenuePick[];
   guests: Guest[];
 };
 
@@ -44,6 +49,7 @@ const LOCATION_SENT = sql.raw(
   `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%')`,
 );
 const SATURDAY_SENT = sql.raw(`(subject ilike '%groep %' or subject ilike '%group %')`);
+const MORNING_SENT = sql.raw(`(subject ilike '%aanraders%' or subject ilike '%our picks%')`);
 
 function firstSentence(text: string | null | undefined): string | null {
   const t = text?.trim();
@@ -63,6 +69,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       address: venues.address,
       descriptionNl: venues.descriptionNl,
       descriptionEn: venues.descriptionEn,
+      picks: venues.picks,
     })
     .from(eventVenues)
     .innerJoin(venues, eq(venues.id, eventVenues.venueId))
@@ -94,20 +101,14 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
           ).map((r) => r.email_normalized),
         )
       : new Set<string>();
-  const [locationSent, saturdaySent] = await Promise.all([sent(LOCATION_SENT, 10), sent(SATURDAY_SENT, 4)]);
+  const [locationSent, saturdaySent, morningSent] = await Promise.all([
+    sent(LOCATION_SENT, 10),
+    sent(SATURDAY_SENT, 4),
+    sent(MORNING_SENT, 2),
+  ]);
 
   const guests: Guest[] = rows.map((b) => {
     const open = [b.introAskMeAbout, b.introFavoriteSpot, b.introIntoNow].some((v) => v?.trim());
-    const wine: "red" | "white" | "bubbles" | undefined =
-      b.introWine === "red" || b.introWine === "white" || b.introWine === "bubbles" ? b.introWine : undefined;
-    const shared: SundayTablemate["answers"] = b.introShareConsent
-      ? {
-          askMeAbout: b.introAskMeAbout?.trim() || undefined,
-          favoriteSpot: b.introFavoriteSpot?.trim() || undefined,
-          intoNow: b.introIntoNow?.trim() || undefined,
-          wine,
-        }
-      : null;
     const key = normalizeEmail(b.email);
     return {
       bookingId: b.id,
@@ -118,19 +119,18 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       groupId: b.groupId,
       groupNumber: b.groupId ? (numberById.get(b.groupId) ?? null) : null,
       needsIntro: !open,
-      shared: shared && Object.values(shared).some(Boolean) ? shared : null,
       sentLocation: locationSent.has(key),
       sentSaturday: saturdaySent.has(key),
+      sentMorning: morningSent.has(key),
     };
   });
 
-  const picks = typeof event.extras?.mailPicks === "string" ? event.extras.mailPicks : "";
   return {
     eventId,
     city: event.city,
     startsAt: event.startsAt,
     venue: venue && venue.address ? { ...venue, address: venue.address } : null,
-    picks,
+    picks: parseVenuePicks(venue?.picks),
     guests,
   };
 }
@@ -154,18 +154,12 @@ const dateLabel = (d: Date, locale: "nl" | "en") =>
     timeZone: "Europe/Amsterdam",
   }).format(d);
 
-export function picksList(picks: string): string[] {
-  return picks
-    .split("\n")
-    .map((line) => line.replace(/^[-·•*\s]+/, "").trim())
-    .filter(Boolean);
-}
-
 /** Why a mail can't go out yet for this Sunday; null when it can. */
 export function mailBlocker(ctx: SundayMailContext, kind: SundayMailKind): string | null {
   if (!ctx.venue) return "Deze zondag heeft nog geen locatie met adres.";
   if (ctx.guests.length === 0) return "Nog geen gasten.";
-  if (kind === "saturday") {
+  if (kind === "morning" && ctx.picks.length === 0) return `${ctx.venue.name} heeft nog geen aanraders. Vul ze in bij Tafelindeling.`;
+  if (kind === "saturday" || kind === "morning") {
     const without = ctx.guests.filter((g) => g.groupNumber === null).length;
     if (without > 0) return `${without} ${without === 1 ? "gast heeft" : "gasten hebben"} nog geen groep. Deel ze eerst in bij Tafelindeling.`;
   }
@@ -176,7 +170,6 @@ export async function buildSundayMail(
   ctx: SundayMailContext,
   kind: SundayMailKind,
   guest: Guest,
-  picks = ctx.picks,
 ): Promise<{ subject: string; element: ReactElement }> {
   const venue = ctx.venue!;
   const locale = guest.locale;
@@ -203,11 +196,20 @@ export async function buildSundayMail(
       }),
     };
   }
-  const mates: SundayTablemate[] = [];
-  for (const other of ctx.guests) {
-    if (other.groupId !== guest.groupId || other.bookingId === guest.bookingId) continue;
-    mates.push({ name: other.firstName || "Gast", answers: other.shared });
-    if (other.plusOneName) mates.push({ name: other.plusOneName, withName: other.firstName, answers: null });
+  const tableUrl = await tablePageUrl(guest.bookingId, locale);
+  if (kind === "morning") {
+    return {
+      subject: nl ? `Vandaag bij ${venue.name}: onze aanraders` : `Today at ${venue.name}: our picks`,
+      element: SundayMorningEmail({
+        locale,
+        firstName: guest.firstName || undefined,
+        groupNumber: guest.groupNumber ?? 0,
+        venueName: venue.name,
+        time: time(ctx.startsAt),
+        pickNames: ctx.picks.map((pick) => pick.name),
+        tableUrl,
+      }),
+    };
   }
   return {
     subject: nl ? `Morgen bij ${venue.name}: je zit in groep ${guest.groupNumber}` : `Tomorrow at ${venue.name}: you're in group ${guest.groupNumber}`,
@@ -220,9 +222,7 @@ export async function buildSundayMail(
       address: venue.address,
       mapsUrl: mapsUrl(venue.name, venue.address),
       time: time(ctx.startsAt),
-      tablemates: mates,
-      picks: picksList(picks),
-      introUrl: url,
+      tableUrl,
     }),
   };
 }

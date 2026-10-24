@@ -14,6 +14,7 @@ import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 import { getEventTicketsData } from "@/lib/event-tickets-data";
 import { loadEventBoard } from "@/lib/jouw-tafel/groups-server";
+import { tablePageUrl } from "@/lib/table-page";
 import { setCapacityAction } from "./settings-actions";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> };
@@ -130,9 +131,13 @@ async function GuestsTab({ eventId, event }: { eventId: string; event: typeof ev
 async function SeatingTab({ eventId, hostname, publicUrl }: { eventId: string; hostname: string; publicUrl: string }) {
   const board = await loadEventBoard(eventId);
   if (!board) return <p className="text-sm text-wine/60">Deze zondag heeft geen tafelindeling.</p>;
+  const tablePages = Object.fromEntries(
+    await Promise.all(board.guests.map(async (g) => [g.bookingId, await tablePageUrl(g.bookingId, "nl", getSiteUrl())] as const)),
+  );
   return (
     <JouwTafelBoard
       board={board}
+      tablePages={tablePages}
       embedded
       calendarHref={adminPath(`/jouw-tafel/kalender?maand=${board.event.startsAt.slice(0, 7)}`, hostname)}
       tablePageHref={publicUrl}
@@ -146,8 +151,7 @@ async function MailsTab({ eventId }: { eventId: string }) {
   return (
     <SundayMailsPanel
       eventId={eventId}
-      picks={ctx.picks}
-      blockers={{ location: mailBlocker(ctx, "location"), saturday: mailBlocker(ctx, "saturday") }}
+      blockers={{ location: mailBlocker(ctx, "location"), saturday: mailBlocker(ctx, "saturday"), morning: mailBlocker(ctx, "morning") }}
       guests={ctx.guests.map((g) => ({
         bookingId: g.bookingId,
         name: g.firstName || g.email,
@@ -155,6 +159,7 @@ async function MailsTab({ eventId }: { eventId: string }) {
         needsIntro: g.needsIntro,
         sentLocation: g.sentLocation,
         sentSaturday: g.sentSaturday,
+        sentMorning: g.sentMorning,
       }))}
     />
   );

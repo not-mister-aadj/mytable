@@ -74,11 +74,6 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
       </EmailCard>
 
       <CTASection
-        helperText={
-          nl
-            ? "Je tafelgenoten, wat ze over zichzelf vertellen en morgen onze aanraders. De pagina verdwijnt zondag om 18:00."
-            : "Your tablemates, what they share about themselves and tomorrow our picks. The page disappears on Sunday at 6 PM."
-        }
         href={p.tableUrl}
         label={nl ? "Bekijk je tafel →" : "See your table →"}
       />

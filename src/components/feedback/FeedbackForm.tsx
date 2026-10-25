@@ -51,7 +51,6 @@ const COPY = {
     thanksSorry: "Dank je dat je het eerlijk zegt.",
     sorryBody:
       "Niet elke tafel klikt meteen, dat hoort erbij. Elke Sunday Social zit je met andere mensen, en met wat je ons net vertelde delen we je de volgende keer beter in.",
-    contactSoon: "We nemen deze week contact met je op.",
     error: "Opslaan lukte niet. Probeer het opnieuw.",
   },
   en: {
@@ -98,7 +97,6 @@ const COPY = {
     thanksSorry: "Thank you for being honest.",
     sorryBody:
       "Not every table clicks straight away, that's part of it. Every Sunday Social you sit with different people, and with what you just told us we'll seat you better next time.",
-    contactSoon: "We'll get in touch with you this week.",
     error: "Saving didn't work. Please try again.",
   },
 } as const;
@@ -188,7 +186,6 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         <section className={`${card} text-center`}>
           <p className="font-serif text-2xl text-wine">{okish ? t.thanks : t.thanksSorry}</p>
           {!okish ? <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-wine/70">{t.sorryBody}</p> : null}
-          {state.mood === "bad" && state.contactOk ? <p className="mt-3 text-sm font-medium text-wine">{t.contactSoon}</p> : null}
           {state.mood === "good" || state.mood === "meh" || (happy && page.member) ? <NextSunday page={page} t={t} /> : null}
         </section>
         {happy && !page.member ? (

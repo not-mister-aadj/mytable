@@ -234,6 +234,7 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
           email: r.email,
           wantToSee: (r.f.wantToSee ?? []).map((id) => nameOf.get(id) ?? "?"),
           used: Boolean(r.f.usedAt),
+          completed: Boolean(r.f.completedAt),
         }))}
     />
   );

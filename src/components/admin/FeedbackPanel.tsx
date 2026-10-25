@@ -21,6 +21,8 @@ export type FeedbackRow = {
   email: string;
   wantToSee: string[];
   used: boolean;
+  /** Reached the last screen (saw the next Sunday or the offer). */
+  completed: boolean;
 };
 
 const MOOD: Record<string, { label: string; dot: string }> = {
@@ -166,6 +168,7 @@ export function FeedbackPanel({
                 ) : (
                   <span className="rounded-full bg-wine/[0.05] px-3 py-1 text-wine/50">Niet citeren</span>
                 )}
+                {!r.completed ? <span className="rounded-full bg-wine/[0.05] px-3 py-1 text-wine/50">Niet afgemaakt</span> : null}
                 {r.contactOk ? <span className="rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-900">Wil contact · {r.email}</span> : null}
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
-import { bookFreeSeatAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
 import { PhotoCropper } from "@/components/PhotoCropper";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
 
@@ -48,6 +48,11 @@ const COPY = {
     missingTitle: "Was er iemand van je groep niet?",
     missingHint: "Tik wie er niet was. Alleen voor ons.",
     save: "Versturen",
+    next: "Volgende",
+    skip: "Overslaan",
+    back: "Terug",
+    everyoneThere: "Iedereen was er",
+    wantLater: "Klikte het met iemand? Als lid kies je wie je terugziet.",
     saving: "Bezig…",
     thanks: "Dank je! We lezen alles.",
     thanksSorry: "Dank je dat je het eerlijk zegt.",
@@ -103,6 +108,11 @@ const COPY = {
     missingTitle: "Was anyone from your group not there?",
     missingHint: "Tap who wasn't there. Only for us.",
     save: "Send",
+    next: "Next",
+    skip: "Skip",
+    back: "Back",
+    everyoneThere: "Everyone was there",
+    wantLater: "Clicked with someone? As a member you choose who you see again.",
     saving: "Saving…",
     thanks: "Thank you! We read everything.",
     thanksSorry: "Thank you for being honest.",
@@ -162,13 +172,31 @@ function Faces({ value, onPick, labels, size }: { value: Mood | null; onPick: (m
 const card = "rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20px_50px_rgba(43,13,18,0.06)] sm:px-8";
 const field =
   "mt-2 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 text-sm text-wine shadow-sm placeholder:text-wine/35 focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10";
-const label = "block font-serif text-lg text-wine";
+
+type Step = "mood" | "venue" | "highlight" | "improve" | "quote" | "missing";
+
+/** One question per screen: which ones depend on the first answer. */
+function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
+  const okish = mood === "great" || mood === "good";
+  return [
+    "mood",
+    "venue",
+    ...(okish ? (["highlight"] as const) : []),
+    ...(mood && mood !== "great" ? (["improve"] as const) : []),
+    ...(mood === "great" ? (["quote"] as const) : []),
+    ...(hasMates ? (["missing"] as const) : []),
+  ];
+}
 
 export function FeedbackForm({ page, token }: { page: FeedbackPage; token: string }) {
   const t = COPY[page.locale];
   const venue = page.venueName ?? page.city;
   const [state, setState] = useState<FeedbackState>(page.saved);
-  const [sent, setSent] = useState(false);
+  // Back on the page after finishing (for instance as a new member): the last screen.
+  const [sent, setSent] = useState(page.saved.completed);
+  const [step, setStep] = useState(0);
+  // "Liever niet" is the default in the data; show a choice only once made.
+  const [quotePicked, setQuotePicked] = useState(page.saved.quoteConsent);
   const [error, setError] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [cropping, setCropping] = useState<File | null>(null);
@@ -184,8 +212,25 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     });
   };
 
-  const happy = state.mood === "great";
   const okish = state.mood === "great" || state.mood === "good";
+  const hasMates = page.tablemates.length > 0;
+  const steps = stepsFor(state.mood, hasMates);
+  const current = steps[Math.min(step, steps.length - 1)]!;
+  const last = step >= steps.length - 1;
+
+  const finish = () =>
+    start(async () => {
+      const r = await completeFeedbackAction(token, state);
+      if (r.ok) setSent(true);
+      else setError(true);
+    });
+  const next = () => (last ? finish() : setStep((n) => n + 1));
+  // A tap answers the question: a moment to see it, then on.
+  const pickAndGo = (patch: Partial<FeedbackState>) => {
+    save(patch);
+    const at = step;
+    window.setTimeout(() => setStep((n) => (n === at ? n + 1 : n)), 280);
+  };
 
   async function upload(file: File) {
     setUploading(true);
@@ -197,6 +242,29 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     else setError(true);
   }
 
+  const toggle = (key: "wantToSee" | "missing", id: string) =>
+    save({ [key]: state[key].includes(id) ? state[key].filter((x) => x !== id) : [...state[key], id] } as Partial<FeedbackState>);
+
+  const chips = (key: "wantToSee" | "missing", enabled = true) => (
+    <div className={`mt-4 flex flex-wrap gap-2 ${enabled ? "" : "pointer-events-none opacity-45"}`}>
+      {page.tablemates.map((m) => {
+        const on = state[key].includes(m.bookingId);
+        return (
+          <button
+            key={m.bookingId}
+            type="button"
+            disabled={!enabled}
+            onClick={() => toggle(key, m.bookingId)}
+            className={`rounded-full px-3.5 py-1.5 text-sm transition ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
+          >
+            {on && key === "wantToSee" ? "✓ " : ""}
+            {m.firstName}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   if (sent) {
     const withTicket = (ticket: "elke-zondag" | "deze-zondag") => (page.next ? `${page.next.path}?ticket=${ticket}#boeken` : page.cityPath);
     return (
@@ -206,14 +274,27 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
           {!okish ? <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-wine/70">{t.sorryBody}</p> : null}
           {!okish && page.freeSeat && (page.freeSeat.booked || page.freeSeat.options.length > 0) ? (
             <FreeSeat page={page} token={token} t={t} />
-          ) : state.mood === "good" || state.mood === "meh" || (happy && page.member) ? (
+          ) : state.mood === "meh" || (okish && page.member) ? (
             <NextSunday page={page} t={t} />
           ) : null}
         </section>
-        {happy && !page.member ? (
+        {okish && page.member && hasMates ? (
+          <section className={card}>
+            <h2 className="font-serif text-2xl text-wine">{t.wantTitle}</h2>
+            <p className="mt-1 text-xs text-wine/50">{t.wantNote}</p>
+            {chips("wantToSee")}
+          </section>
+        ) : null}
+        {okish && !page.member ? (
           <section className={card}>
             <h2 className="font-serif text-2xl text-wine sm:text-3xl">{t.offerTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-wine/70">{t.offerBody}</p>
+            {hasMates ? (
+              <div className="mt-4">
+                <span className="text-xs font-semibold text-wine/50">🔒 {t.membersOnly}</span>
+                {chips("wantToSee", false)}
+              </div>
+            ) : null}
             <div className={`mt-6 grid gap-3 ${page.next ? "sm:grid-cols-2" : ""}`}>
               <div className="flex flex-col rounded-2xl bg-white p-5 text-wine ring-2 ring-burgundy shadow-[0_10px_30px_rgba(90,15,27,0.10)]">
                 <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.memberCardTitle}</p>
@@ -265,68 +346,98 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     );
   }
 
+  const textStep = (key: "highlight" | "improve", title: string, hint: string, placeholder?: string) => (
+    <>
+      <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{title}</h1>
+      <p className="mt-1 text-sm text-wine/55">{hint}</p>
+      <textarea
+        rows={4}
+        className={field}
+        value={state[key]}
+        placeholder={placeholder}
+        onChange={(e) => setState((s) => ({ ...s, [key]: e.target.value }))}
+      />
+      {key === "improve" && state.mood === "bad" ? (
+        <label className="mt-4 flex items-start gap-3 text-sm text-wine">
+          <input type="checkbox" className="mt-1" checked={state.contactOk} onChange={(e) => save({ contactOk: e.target.checked })} />
+          {t.contact}
+        </label>
+      ) : null}
+      {nav({ primary: state[key].trim() ? (last ? t.save : t.next) : t.skip, primaryStyle: state[key].trim() ? "solid" : "ghost", onPrimary: () => {
+          save({ [key]: state[key] } as Partial<FeedbackState>);
+          next();
+        } })}
+    </>
+  );
+
+  const nav = ({ primary, onPrimary, primaryStyle = "solid" }: { primary: string; onPrimary: () => void; primaryStyle?: "solid" | "ghost" }) => {
+    return (
+      <div className="mt-6 flex items-center gap-4">
+        <button
+          type="button"
+          disabled={pending && last}
+          onClick={onPrimary}
+          className={`rounded-full px-6 py-3 text-sm font-semibold transition disabled:opacity-60 ${
+            primaryStyle === "solid" ? "bg-burgundy text-cream hover:bg-burgundy/90" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-wine/30"
+          }`}
+        >
+          {pending && last ? t.saving : primary}
+        </button>
+        {step > 0 ? (
+          <button type="button" onClick={() => setStep((n) => n - 1)} className="text-sm text-wine/55 hover:text-wine">
+            {t.back}
+          </button>
+        ) : null}
+        {error ? <span className="text-sm text-red-800">{t.error}</span> : null}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-5">
       <section className={card}>
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">Sunday Social {page.city}</p>
-        <h1 className="mt-2 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title(venue)}</h1>
-        <Faces value={state.mood} onPick={(m) => save({ mood: m })} labels={t.moods} />
-      </section>
-
-      {state.mood ? (
-        <section className={`${card} space-y-6`}>
-          <div>
-            <span className={label}>{t.venue(venue)}</span>
-            <Faces value={state.venueMood} onPick={(m) => save({ venueMood: m })} labels={t.moods} size={40} />
-          </div>
-
-          {okish ? (
-            <label className="block">
-              <span className={label}>{t.highlight}</span>
-              <span className="block text-xs text-wine/50">{t.highlightHint}</span>
-              <textarea
-                rows={3}
-                className={field}
-                value={state.highlight}
-                placeholder={t.highlightPlaceholder}
-                onChange={(e) => setState((s) => ({ ...s, highlight: e.target.value }))}
-                onBlur={(e) => save({ highlight: e.target.value })}
-              />
-            </label>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">Sunday Social {page.city}</p>
+          {state.mood ? (
+            <span className="text-xs text-wine/45">
+              {step + 1}/{steps.length}
+            </span>
           ) : null}
+        </div>
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-wine/10">
+          <div className="h-full rounded-full bg-burgundy transition-all" style={{ width: `${((step + 1) / (state.mood ? steps.length : 5)) * 100}%` }} />
+        </div>
 
-          {state.mood !== "great" ? (
-            <label className="block">
-              <span className={label}>{t.improve}</span>
-              <span className="block text-xs text-wine/50">{t.improveHint}</span>
-              <textarea
-                rows={3}
-                className={field}
-                value={state.improve}
-                onChange={(e) => setState((s) => ({ ...s, improve: e.target.value }))}
-                onBlur={(e) => save({ improve: e.target.value })}
-              />
-            </label>
-          ) : null}
-
-          {state.mood === "bad" ? (
-            <label className="flex items-start gap-3 text-sm text-wine">
-              <input type="checkbox" className="mt-1" checked={state.contactOk} onChange={(e) => save({ contactOk: e.target.checked })} />
-              {t.contact}
-            </label>
-          ) : null}
-
-          {happy ? (
-            <div>
-              <span className={label}>{t.quote}</span>
-              <div className="mt-3 flex gap-2">
+        <div className="mt-6">
+          {current === "mood" ? (
+            <>
+              <h1 className="font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title(venue)}</h1>
+              <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} />
+            </>
+          ) : current === "venue" ? (
+            <>
+              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.venue(venue)}</h1>
+              <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.moods} />
+              {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
+            </>
+          ) : current === "highlight" ? (
+            textStep("highlight", t.highlight, t.highlightHint, t.highlightPlaceholder)
+          ) : current === "improve" ? (
+            textStep("improve", t.improve, t.improveHint)
+          ) : current === "quote" ? (
+            <>
+              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.quote}</h1>
+              <div className="mt-4 flex gap-2">
                 {[true, false].map((v) => (
                   <button
                     key={String(v)}
                     type="button"
-                    onClick={() => save({ quoteConsent: v })}
+                    onClick={() => {
+                      setQuotePicked(true);
+                      save({ quoteConsent: v });
+                    }}
                     className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                      state.quoteConsent === v ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-wine/30"
+                      quotePicked && state.quoteConsent === v ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-wine/30"
                     }`}
                   >
                     {v ? t.yes : t.no}
@@ -371,81 +482,18 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                   />
                 </div>
               ) : null}
-            </div>
-          ) : null}
-
-          {okish && page.tablemates.length > 0 ? (
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <span className={label}>{t.wantTitle}</span>
-                {!page.member ? <span className="shrink-0 text-xs font-semibold text-wine/50">🔒 {t.membersOnly}</span> : null}
-              </div>
-              <div className={`mt-3 flex flex-wrap gap-2 ${page.member ? "" : "pointer-events-none opacity-45"}`}>
-                {page.tablemates.map((m) => {
-                  const on = state.wantToSee.includes(m.bookingId);
-                  return (
-                    <button
-                      key={m.bookingId}
-                      type="button"
-                      disabled={!page.member}
-                      onClick={() =>
-                        save({ wantToSee: on ? state.wantToSee.filter((id) => id !== m.bookingId) : [...state.wantToSee, m.bookingId] })
-                      }
-                      className={`rounded-full px-3.5 py-1.5 text-sm transition ${
-                        on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"
-                      }`}
-                    >
-                      {on ? "✓ " : ""}
-                      {m.firstName}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2 text-xs text-wine/50">{t.wantNote}</p>
-            </div>
-          ) : null}
-
-          {page.tablemates.length > 0 ? (
-            <div>
-              <span className={label}>{t.missingTitle}</span>
-              <span className="block text-xs text-wine/50">{t.missingHint}</span>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {page.tablemates.map((m) => {
-                  const on = state.missing.includes(m.bookingId);
-                  return (
-                    <button
-                      key={m.bookingId}
-                      type="button"
-                      onClick={() => save({ missing: on ? state.missing.filter((id) => id !== m.bookingId) : [...state.missing, m.bookingId] })}
-                      className={`rounded-full px-3.5 py-1.5 text-sm transition ${on ? "bg-wine text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
-                    >
-                      {m.firstName}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="flex items-center gap-3 pt-1">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() =>
-                start(async () => {
-                  const r = await saveFeedbackAction(token, state);
-                  if (r.ok) setSent(true);
-                  else setError(true);
-                })
-              }
-              className="rounded-full bg-burgundy px-6 py-3 text-sm font-semibold text-cream transition hover:bg-burgundy/90 disabled:opacity-60"
-            >
-              {pending ? t.saving : t.save}
-            </button>
-            {error ? <span className="text-sm text-red-800">{t.error}</span> : null}
-          </div>
-        </section>
-      ) : null}
+              {nav({ primary: last ? t.save : t.next, onPrimary: next })}
+            </>
+          ) : (
+            <>
+              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.missingTitle}</h1>
+              <p className="mt-1 text-sm text-wine/55">{t.missingHint}</p>
+              {chips("missing")}
+              {nav({ primary: state.missing.length > 0 ? t.save : t.everyoneThere, onPrimary: next })}
+            </>
+          )}
+        </div>
+      </section>
 
       {cropping ? (
         <PhotoCropper
@@ -458,7 +506,6 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
           }}
         />
       ) : null}
-
     </div>
   );
 }

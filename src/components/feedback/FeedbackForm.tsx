@@ -374,7 +374,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
             </div>
           ) : null}
 
-          {happy && page.tablemates.length > 0 ? (
+          {okish && page.tablemates.length > 0 ? (
             <div>
               <div className="flex items-center justify-between gap-3">
                 <span className={label}>{t.wantTitle}</span>

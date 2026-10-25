@@ -1,6 +1,6 @@
 "use server";
 
-import { saveFeedback, verifyFeedbackToken, type FeedbackState } from "@/lib/feedback";
+import { completeFeedback, saveFeedback, verifyFeedbackToken, type FeedbackState } from "@/lib/feedback";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings } from "@/db/schema";
@@ -14,6 +14,16 @@ export async function saveFeedbackAction(token: string, input: Partial<FeedbackS
   const { photoUrl: _ignored, ...rest } = input;
   void _ignored;
   await saveFeedback(bookingId, rest);
+  return { ok: true };
+}
+
+/** The last screen: everything saved, and marked as complete. */
+export async function completeFeedbackAction(token: string, input: Partial<FeedbackState>): Promise<{ ok: boolean }> {
+  const bookingId = await verifyFeedbackToken(token);
+  if (!bookingId) return { ok: false };
+  const { photoUrl: _ignored, ...rest } = input;
+  void _ignored;
+  await completeFeedback(bookingId, rest);
   return { ok: true };
 }
 

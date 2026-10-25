@@ -62,6 +62,8 @@ export type FeedbackState = {
   wantToSee: string[];
   /** Tablemates who weren't there, as they saw it. */
   missing: string[];
+  /** Reached the last screen (read-only here; set by completeFeedback). */
+  completed: boolean;
 };
 
 export type FeedbackPage = {
@@ -98,7 +100,7 @@ const FREE_SEAT_OPTIONS = 3;
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 
 function emptyState(): FeedbackState {
-  return { mood: null, venueMood: null, highlight: "", improve: "", quoteConsent: false, photoUrl: null, contactOk: false, wantToSee: [], missing: [] };
+  return { mood: null, venueMood: null, highlight: "", improve: "", quoteConsent: false, photoUrl: null, contactOk: false, wantToSee: [], missing: [], completed: false };
 }
 
 export async function loadFeedbackPage(bookingId: string, now = Date.now()): Promise<FeedbackPage | null> {
@@ -265,6 +267,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
           contactOk: saved.contactOk,
           wantToSee: Array.isArray(saved.wantToSee) ? saved.wantToSee : [],
           missing: Array.isArray(saved.missing) ? saved.missing : [],
+          completed: Boolean(saved.completedAt),
         }
       : emptyState(),
   };
@@ -299,4 +302,13 @@ export async function saveFeedback(bookingId: string, input: Partial<FeedbackSta
     .insert(bookingFeedback)
     .values({ bookingId, eventId: booking!.eventId, venueId, ...values })
     .onConflictDoUpdate({ target: bookingFeedback.bookingId, set: { ...values, updatedAt: new Date() } });
+}
+
+/** The last screen was reached: saves the answers and marks it complete once. */
+export async function completeFeedback(bookingId: string, input: Partial<FeedbackState>): Promise<void> {
+  await saveFeedback(bookingId, input);
+  await getDb()
+    .update(bookingFeedback)
+    .set({ completedAt: sql`coalesce(${bookingFeedback.completedAt}, now())` })
+    .where(eq(bookingFeedback.bookingId, bookingId));
 }

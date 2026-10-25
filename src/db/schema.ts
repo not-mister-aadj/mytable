@@ -991,6 +991,8 @@ export const bookingFeedback = pgTable("booking_feedback", {
   /** Tablemates they say weren't there (booking ids, drizzle/0055). */
   missing: jsonb("missing").$type<string[]>().notNull().default([]),
   usedAt: timestamp("used_at", { withTimezone: true }),
+  /** Reached the last screen of the feedback page (drizzle/0056). */
+  completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

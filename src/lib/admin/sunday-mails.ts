@@ -375,16 +375,15 @@ export function morningMail(p: {
   return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks");
 }
 
-/** The 20:00 feedback mail as plain text, with the real number of new people at their table. */
+/** The 20:00 feedback mail as plain text. No count of tablemates: a cancellation or no-show after planning would make it wrong. */
 export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): string {
   const nl = p.locale === "nl";
   const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
-  const word = (nl ? NL_NUMBERS : EN_NUMBERS)[p.others] ?? String(p.others);
   const opening =
     p.others >= 2
       ? nl
-        ? `Je zat vanmiddag bij ${p.venueName} met ${word} mensen die je nog niet kende. Hoe was dat?`
-        : `This afternoon at ${p.venueName} you sat with ${word} people you hadn't met before. How was it?`
+        ? `Vanmiddag schoof je bij ${p.venueName} aan bij een tafel vol nieuwe gezichten. Hoe was dat?`
+        : `This afternoon at ${p.venueName} you joined a table full of new faces. How was it?`
       : nl
         ? `Je zat vanmiddag aan tafel bij ${p.venueName}. Hoe was het?`
         : `This afternoon you were at the table at ${p.venueName}. How was it?`;

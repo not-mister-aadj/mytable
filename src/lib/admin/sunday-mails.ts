@@ -67,11 +67,15 @@ const FEEDBACK_SENT = sql.raw(
   `(subject ilike '%hoe was je middag%' or subject ilike '%how was your afternoon%' or subject ilike '%hoe was het vanmiddag%' or subject ilike '%how was this afternoon%')`,
 );
 
-function firstSentence(text: string | null | undefined): string | null {
+/** "Juni is de eerste wijn- en kaasbar van Rotterdam.": the venue
+ * description's opening, up to the first comma or full stop. */
+function shortIntro(text: string | null | undefined): string | null {
   const t = text?.trim();
   if (!t) return null;
   const m = t.match(/^.+?[.!?](\s|$)/);
-  return (m ? m[0] : t).trim();
+  const sentence = (m ? m[0] : t).trim();
+  const clause = sentence.split(/,\s/)[0]!.replace(/[.!?]$/, "");
+  return `${clause}.`;
 }
 
 export async function loadSundayMailContext(eventId: string): Promise<SundayMailContext | null> {
@@ -220,7 +224,7 @@ export async function buildSundayMail(
         time: time(ctx.startsAt),
         venueName: venue.name,
         area: venue.area,
-        venueIntro: firstSentence(nl ? venue.descriptionNl : venue.descriptionEn ?? venue.descriptionNl),
+        venueIntro: shortIntro(nl ? venue.descriptionNl : venue.descriptionEn ?? venue.descriptionNl),
         city: ctx.city,
         address: venue.address,
         transit: venueTransit(venue.name, locale),

@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/config";
@@ -75,6 +75,10 @@ export type TablePage = {
   closesAt: Date;
   /** Past 18:00 on the Sunday: the page sends people on. */
   closed: boolean;
+  /** The afternoon has begun: no more cancelling. */
+  started: boolean;
+  /** They cancelled on this page ("Kun je toch niet?"). */
+  cancelled: boolean;
   /** The Sunday is today, tomorrow or later (Amsterdam). */
   day: "today" | "tomorrow" | "later";
   venue: { name: string; address: string | null; transit: string | null } | null;
@@ -177,6 +181,7 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
             eq(bookings.groupId, group.id),
             eq(bookings.paymentStatus, "paid"),
             inArray(bookings.lifecycleStatus, ["active"]),
+            isNull(bookings.cancelledLateAt),
           ),
         )
         .orderBy(asc(bookings.createdAt))
@@ -209,6 +214,8 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
     startsAt: event.startsAt,
     closesAt: tablePageClosesAt(event.startsAt),
     closed: now >= tablePageClosesAt(event.startsAt).getTime(),
+    started: now >= event.startsAt.getTime(),
+    cancelled: Boolean(booking.cancelledLateAt),
     day:
       dayKey(event.startsAt) === dayKey(new Date(now))
         ? "today"

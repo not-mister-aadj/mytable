@@ -175,6 +175,7 @@ async function MailsTab({ eventId }: { eventId: string }) {
         sentSaturday: g.sentSaturday,
         sentMorning: g.sentMorning,
         sentFeedback: g.sentFeedback,
+        noShow: g.noShow,
       }))}
     />
   );

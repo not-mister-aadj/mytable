@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
+import { cancelLateAction, savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { Locale } from "@/i18n/config";
 import type { IntroWine, SundayTableIntro } from "@/lib/sunday-table-intro";
@@ -222,5 +222,62 @@ export function PlusOneEditor({
       </div>
       {error ? <p className="text-sm text-red-800">{copy.error}</p> : null}
     </div>
+  );
+}
+
+/** "Kun je toch niet?": a small link; the explanation and the choice in a pop-up. */
+export function CancelLate({
+  token,
+  copy,
+}: {
+  token: string;
+  copy: { open: string; title: string; body: string; confirm: string; keep: string; error: string };
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState(false);
+  const [pending, start] = useTransition();
+  return (
+    <>
+      <p className="px-1">
+        <button type="button" onClick={() => setOpen(true)} className="text-xs text-wine/50 underline underline-offset-4 hover:text-burgundy">
+          {copy.open}
+        </button>
+      </p>
+      {open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={copy.title}
+          className="fixed inset-0 z-50 flex items-end justify-center bg-wine/40 p-4 sm:items-center"
+          onClick={() => !pending && setOpen(false)}
+        >
+          <div className="w-full max-w-md rounded-3xl bg-cream px-6 py-6 shadow-xl sm:px-8" onClick={(e) => e.stopPropagation()}>
+            <p className="font-serif text-2xl text-wine">{copy.title}</p>
+            <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.body}</p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() =>
+                  start(async () => {
+                    const result = await cancelLateAction(token);
+                    if (result.ok) router.refresh();
+                    else setError(true);
+                  })
+                }
+                className="rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream transition hover:bg-burgundy/90 disabled:opacity-60"
+              >
+                {copy.confirm}
+              </button>
+              <button type="button" disabled={pending} onClick={() => setOpen(false)} className="text-sm text-wine/60 hover:text-wine">
+                {copy.keep}
+              </button>
+            </div>
+            {error ? <p className="mt-3 text-sm text-red-800">{copy.error}</p> : null}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

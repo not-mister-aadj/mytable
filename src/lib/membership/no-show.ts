@@ -1,6 +1,7 @@
 import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookingEvents, bookings, events, memberships } from "@/db/schema";
+import { dropPlannedMailsFor } from "@/lib/admin/sunday-mails";
 import { logCustomerActivity } from "@/lib/customers/activities";
 import { CustomerActivityTypes } from "@/lib/customers/types";
 import { noShowOutcome, type NoShowOutcome } from "@/lib/membership/logic";
@@ -70,6 +71,8 @@ export async function markNoShow(input: { bookingId: string; by: string; now?: D
   });
 
   if (result.alreadyMarked) return { ok: true, outcome: null, mailed: false };
+  // Not there: no "Hoe was het vanmiddag?" either.
+  await dropPlannedMailsFor(row.event.id, row.booking.id, ["feedback"]).catch(() => undefined);
   if (!result.outcome || !result.membershipId) return { ok: true, outcome: null, mailed: false };
 
   const [membership] = await db.select().from(memberships).where(eq(memberships.id, result.membershipId)).limit(1);

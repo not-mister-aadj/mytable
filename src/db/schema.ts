@@ -276,6 +276,10 @@ export const bookings = pgTable("bookings", {
   }),
   /** Admin "Niet gekomen" (drizzle/0031). */
   noShowAt: timestamp("no_show_at", { withTimezone: true }),
+  /** "Kun je toch niet?" on the table page: seat stays paid and taken (drizzle/0054). */
+  cancelledLateAt: timestamp("cancelled_late_at", { withTimezone: true }),
+  /** Our own note on that cancellation. */
+  cancelNote: text("cancel_note"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

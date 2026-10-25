@@ -180,12 +180,14 @@ export function SundayTableBookingCard({
   const planCopy = PLAN_COPY[locale === "en" ? "en" : "nl"];
   const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>(null);
   // From the feedback page: "?ticket=elke-zondag" or "?ticket=deze-zondag"
-  // comes with that ticket already chosen.
+  // comes with that ticket already chosen, "&plekken=2" with a +1.
   useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get("ticket");
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get("ticket");
     const plan: TicketPlan | null = wanted === "elke-zondag" ? "monthly" : wanted === "deze-zondag" ? "single" : null;
     if (plan) queueMicrotask(() => setTicketPlan(plan));
-  }, []);
+    if (params.get("plekken") === "2" && spotsLeft >= 2) queueMicrotask(() => setSeats(2));
+  }, [spotsLeft]);
   /** Two steps for someone who is not a member: 1. which ticket and how
    * many, 2. their details. A member goes straight to 2. */
   const [step, setStep] = useState<1 | 2>(1);

@@ -169,11 +169,11 @@ export const termsNl: LegalDocumentContent = {
       ],
     },
     {
-      title: "8. Niet gezellig? Volgende op ons",
+      title: "8. Niet gezellig? Je volgende ticket is op ons",
       blocks: [
         {
           type: "p",
-          text: "Vond je je Sunday Table niet gezellig, laat het ons dan binnen 2 dagen na de tafel weten via {{email}}, met je reserveringscode. Je krijgt dan een gratis plek aan een volgende Sunday Table.",
+          text: "Vond je je Sunday Social niet gezellig, geef dat dan aan op de feedbackpagina die je na afloop per mail krijgt. Je kunt daar direct een gratis ticket boeken voor een van de volgende Sunday Socials in jouw stad.",
         },
         {
           type: "p",
@@ -183,9 +183,8 @@ export const termsNl: LegalDocumentContent = {
           type: "ul",
           items: [
             "je was aanwezig bij de tafel (bij niet komen opdagen geldt deze regeling niet);",
-            "je kunt deze regeling één keer per persoon gebruiken;",
-            "de gratis plek is 6 maanden geldig, voor een Sunday Table naar keuze, zolang er plek is;",
-            "de gratis plek is persoonlijk en kan niet worden ingewisseld voor geld of worden overgedragen.",
+            "het geldt alleen bij je eerste negatieve ervaring en je boekt het ticket direct op die pagina;",
+            "het ticket is persoonlijk en kan niet worden ingewisseld voor geld of worden overgedragen.",
           ],
         },
         {

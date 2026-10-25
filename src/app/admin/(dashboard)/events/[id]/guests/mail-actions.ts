@@ -3,13 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin-auth";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
-import { eq, inArray, sql } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { emailLog, events } from "@/db/schema";
+import { emailLog } from "@/db/schema";
 import {
   buildSundayMail,
   loadSundayMailContext,
   mailBlocker,
+  mailRecipients,
+  saveSchedule as setSchedule,
   sendSundayMail,
   type ScheduledMail,
   type SundayMailKind,
@@ -71,7 +73,7 @@ export async function sendSundayMailAction(eventId: string, kind: string): Promi
   const blocker = mailBlocker(ctx, kind);
   if (blocker) return { ok: false, error: blocker };
   if (kind !== "location" && ctx.schedule[kind]) return { ok: false, error: "Deze mail staat ingepland. Annuleer die eerst." };
-  const todo = ctx.guests.filter((g) => !sentFor(g, kind));
+  const todo = mailRecipients(ctx, kind).filter((g) => !sentFor(g, kind));
   if (todo.length === 0) return { ok: true, message: "Iedereen heeft deze mail al." };
   let sent = 0;
   const failed: string[] = [];
@@ -91,19 +93,6 @@ function sentFor(g: { sentLocation: boolean; sentSaturday: boolean; sentMorning:
   return kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : kind === "morning" ? g.sentMorning : g.sentFeedback;
 }
 
-async function setSchedule(eventId: string, kind: "saturday" | "morning" | "feedback", value: ScheduledMail | null) {
-  await getDb()
-    .update(events)
-    .set({
-      extras: value
-        ? sql`coalesce(${events.extras}, '{}'::jsonb) || jsonb_build_object('mailSchedule',
-            coalesce(${events.extras} -> 'mailSchedule', '{}'::jsonb) || jsonb_build_object(${kind}::text, ${JSON.stringify(value)}::jsonb))`
-        : sql`coalesce(${events.extras}, '{}'::jsonb) #- ${`{mailSchedule,${kind}}`}::text[]`,
-      updatedAt: new Date(),
-    })
-    .where(eq(events.id, eventId));
-}
-
 /** Hands the mail to Resend for every guest who hasn't had it, with a send
  * time (`local` is "YYYY-MM-DDTHH:mm" in Amsterdam). */
 export async function scheduleSundayMailAction(eventId: string, kind: string, local: string): Promise<Result> {
@@ -120,7 +109,7 @@ export async function scheduleSundayMailAction(eventId: string, kind: string, lo
   if (ctx.schedule[kind]) return { ok: false, error: "Deze mail staat al ingepland." };
   const blocker = mailBlocker(ctx, kind);
   if (blocker) return { ok: false, error: blocker };
-  const todo = ctx.guests.filter((g) => !sentFor(g, kind));
+  const todo = mailRecipients(ctx, kind).filter((g) => !sentFor(g, kind));
   if (todo.length === 0) return { ok: true, message: "Iedereen heeft deze mail al." };
   const ids: ScheduledMail["ids"] = [];
   const failed: string[] = [];

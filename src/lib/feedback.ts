@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookingFeedback, bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
@@ -128,7 +128,15 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     ? await db
         .select({ id: bookings.id, name: bookings.customerName })
         .from(bookings)
-        .where(and(eq(bookings.groupId, group.id), eq(bookings.paymentStatus, "paid"), eq(bookings.lifecycleStatus, "active")))
+        .where(
+          and(
+            eq(bookings.groupId, group.id),
+            eq(bookings.paymentStatus, "paid"),
+            eq(bookings.lifecycleStatus, "active"),
+            isNull(bookings.cancelledLateAt),
+            isNull(bookings.noShowAt),
+          ),
+        )
         .orderBy(asc(bookings.createdAt))
     : [];
 

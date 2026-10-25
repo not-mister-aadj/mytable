@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
+import { saveCancelNote } from "@/lib/late-cancel";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { nextGroupNumber } from "@/lib/jouw-tafel/groups-logic";
 import { parseVenuePicks } from "@/lib/venue-picks";
@@ -162,5 +163,12 @@ export async function saveVenuePicksAction(eventId: string, venueId: string, pic
   await requireAdmin();
   const clean = parseVenuePicks(picks);
   await getDb().update(venues).set({ picks: clean }).where(eq(venues.id, venueId));
+  refresh(eventId);
+}
+
+/** Our note on a guest's cancellation. */
+export async function saveCancelNoteAction(eventId: string, bookingId: string, note: string) {
+  await requireAdmin();
+  await saveCancelNote(bookingId, note);
   refresh(eventId);
 }

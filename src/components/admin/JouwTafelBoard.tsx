@@ -10,6 +10,7 @@ import {
   openForEveryoneNowAction,
   removeEventVenueAction,
   removeGroupAction,
+  saveCancelNoteAction,
   setGroupsFinalAction,
 } from "@/app/admin/(dashboard)/jouw-tafel/[id]/actions";
 import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
@@ -25,6 +26,8 @@ const ghost =
 const field = "rounded-full border border-border-subtle bg-cream px-3 py-1.5 text-sm text-wine outline-none focus:border-burgundy/40";
 
 /** "zondag 1 november om 14:00". */
+const MAIL_NAMES: Record<string, string> = { saturday: "zaterdagmail", morning: "ochtendmail", feedback: "feedbackmail" };
+
 function formatWhen(iso: string) {
   return new Intl.DateTimeFormat("nl-NL", {
     weekday: "long",
@@ -72,7 +75,9 @@ export function JouwTafelBoard({
   const groupOf = (g: BoardGuest) => (g.bookingId in moved ? moved[g.bookingId] : g.groupId);
   const venueName = useMemo(() => new Map(board.venues.map((v) => [v.id, v.name])), [board.venues]);
   const groupOptions = board.groups.map((g) => ({ id: g.id, label: groupLabel(venueName.get(g.venueId) ?? "Zaak", g.number) }));
-  const byGroup = (groupId: string | null) => board.guests.filter((g) => (groupOf(g) ?? null) === groupId);
+  const coming = board.guests.filter((g) => !g.cancelled);
+  const cancelled = board.guests.filter((g) => g.cancelled);
+  const byGroup = (groupId: string | null) => coming.filter((g) => (groupOf(g) ?? null) === groupId);
   const seatsIn = (groupId: string | null) => byGroup(groupId).reduce((n, g) => n + g.seats, 0);
   const unassignedSeats = seatsIn(null);
 
@@ -364,6 +369,46 @@ export function JouwTafelBoard({
           );
         })}
       </div>
+
+      {cancelled.length > 0 ? (
+        <section className="rounded-2xl border border-border-subtle/60 p-4">
+          <p className="font-serif text-lg text-burgundy">Afgemeld</p>
+          <ul className="mt-3 space-y-3">
+            {cancelled.map((g) => (
+              <li key={g.bookingId} className="rounded-xl bg-white p-3 ring-1 ring-border-subtle/60">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOpenGuest(g.bookingId)}
+                    className="text-left text-sm font-semibold text-wine underline-offset-4 hover:text-burgundy hover:underline"
+                  >
+                    {g.name}
+                    {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.plusOneName ?? g.seats - 1}</span> : null}
+                  </button>
+                  <span className="text-xs text-wine/55">
+                    {formatWhen(g.cancelled!.at)}
+                    {g.groupId ? ` · was ${groupOptions.find((o) => o.id === g.groupId)?.label ?? "ingedeeld"}` : ""}
+                  </span>
+                </div>
+                {g.cancelled!.plannedMails.length > 0 ? (
+                  <p className="mt-1 text-xs font-medium text-amber-900">
+                    Nog ingepland bij Resend: {g.cancelled!.plannedMails.map((k) => MAIL_NAMES[k] ?? k).join(", ")}
+                  </p>
+                ) : null}
+                <textarea
+                  rows={2}
+                  defaultValue={g.cancelled!.note}
+                  placeholder="Notitie"
+                  onBlur={(e) => {
+                    if (e.target.value !== g.cancelled!.note) run(() => saveCancelNoteAction(event.id, g.bookingId, e.target.value));
+                  }}
+                  className="mt-2 w-full rounded-lg border border-border-subtle bg-cream px-2.5 py-1.5 text-sm text-wine"
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {board.guests.length === 0 ? <p className="text-sm text-wine/55">Nog geen boekingen.</p> : null}
 

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
+import { cancelLateAction, savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { Locale } from "@/i18n/config";
 import type { IntroWine, SundayTableIntro } from "@/lib/sunday-table-intro";
@@ -222,5 +222,54 @@ export function PlusOneEditor({
       </div>
       {error ? <p className="text-sm text-red-800">{copy.error}</p> : null}
     </div>
+  );
+}
+
+/** "Kun je toch niet?": cancel for this afternoon, with a confirm step. */
+export function CancelLate({
+  token,
+  copy,
+}: {
+  token: string;
+  copy: { open: string; title: string; body: string; confirm: string; keep: string; error: string };
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState(false);
+  const [pending, start] = useTransition();
+  if (!open) {
+    return (
+      <p className="px-1">
+        <button type="button" onClick={() => setOpen(true)} className="text-xs text-wine/50 underline underline-offset-4 hover:text-burgundy">
+          {copy.open}
+        </button>
+      </p>
+    );
+  }
+  return (
+    <section className="rounded-3xl border border-wine/15 bg-white px-6 py-6 sm:px-8">
+      <p className="font-serif text-xl text-wine">{copy.title}</p>
+      <p className="mt-2 text-sm text-wine/70">{copy.body}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              const result = await cancelLateAction(token);
+              if (result.ok) router.refresh();
+              else setError(true);
+            })
+          }
+          className="rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream transition hover:bg-burgundy/90 disabled:opacity-60"
+        >
+          {copy.confirm}
+        </button>
+        <button type="button" onClick={() => setOpen(false)} className="text-sm text-wine/60 hover:text-wine">
+          {copy.keep}
+        </button>
+      </div>
+      {error ? <p className="mt-3 text-sm text-red-800">{copy.error}</p> : null}
+    </section>
   );
 }

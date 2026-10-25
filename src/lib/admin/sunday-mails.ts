@@ -1,7 +1,8 @@
 import type { ReactElement } from "react";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { Resend } from "resend";
 import { getDb } from "@/db/index";
-import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
+import { bookings, emailLog, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { SundayLocationEmail } from "@/emails/SundayLocationEmail";
 import { SundaySaturdayEmail } from "@/emails/SundaySaturdayEmail";
 import { normalizeEmail } from "@/lib/customers/normalize";
@@ -36,6 +37,8 @@ type Guest = {
   sentSaturday: boolean;
   sentMorning: boolean;
   sentFeedback: boolean;
+  /** Marked "Niet gekomen": no feedback mail. */
+  noShow: boolean;
 };
 
 /** A mail handed to Resend with a send time, per guest (events.extras.mailSchedule). */
@@ -93,7 +96,15 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
   const rows = await db
     .select()
     .from(bookings)
-    .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid"), eq(bookings.lifecycleStatus, "active")))
+    .where(
+      and(
+        eq(bookings.eventId, eventId),
+        eq(bookings.paymentStatus, "paid"),
+        eq(bookings.lifecycleStatus, "active"),
+        // Cancelled on the table page: no more Sunday mails.
+        isNull(bookings.cancelledLateAt),
+      ),
+    )
     .orderBy(asc(bookings.createdAt));
   const groupIds = [...new Set(rows.map((r) => r.groupId).filter((id): id is string => Boolean(id)))];
   const groups = groupIds.length
@@ -138,6 +149,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       sentSaturday: saturdaySent.has(key),
       sentMorning: morningSent.has(key),
       sentFeedback: feedbackSent.has(key),
+      noShow: Boolean(b.noShowAt),
     };
   });
 
@@ -170,6 +182,11 @@ const dateLabel = (d: Date, locale: "nl" | "en") =>
     month: "long",
     timeZone: "Europe/Amsterdam",
   }).format(d);
+
+/** Who gets this mail: everyone, except a no-show for the feedback mail. */
+export function mailRecipients(ctx: SundayMailContext, kind: SundayMailKind): Guest[] {
+  return kind === "feedback" ? ctx.guests.filter((g) => !g.noShow) : ctx.guests;
+}
 
 /** Why a mail can't go out yet for this Sunday; null when it can. */
 export function mailBlocker(ctx: SundayMailContext, kind: SundayMailKind): string | null {
@@ -216,7 +233,7 @@ export async function buildSundayMail(
   if (kind === "feedback") {
     // The people at their table they didn't know: the group minus their own booking (and +1).
     const others = guest.groupId
-      ? ctx.guests.filter((g) => g.groupId === guest.groupId && g.bookingId !== guest.bookingId).reduce((n, g) => n + g.seats, 0)
+      ? ctx.guests.filter((g) => g.groupId === guest.groupId && g.bookingId !== guest.bookingId && !g.noShow).reduce((n, g) => n + g.seats, 0)
       : 0;
     return {
       subject: nl ? `Hoe was het vanmiddag bij ${venue.name}? · ${shortDate(ctx.startsAt, locale)}` : `How was this afternoon at ${venue.name}? · ${shortDate(ctx.startsAt, locale)}`,
@@ -434,6 +451,66 @@ export async function sendRendered(to: string, subject: string, element: ReactEl
     ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
   });
   return error ? null : (data?.id ?? "sent");
+}
+
+export async function saveSchedule(eventId: string, kind: "saturday" | "morning" | "feedback", value: ScheduledMail | null) {
+  await getDb()
+    .update(events)
+    .set({
+      extras: value
+        ? sql`coalesce(${events.extras}, '{}'::jsonb) || jsonb_build_object('mailSchedule',
+            coalesce(${events.extras} -> 'mailSchedule', '{}'::jsonb) || jsonb_build_object(${kind}::text, ${JSON.stringify(value)}::jsonb))`
+        : sql`coalesce(${events.extras}, '{}'::jsonb) #- ${`{mailSchedule,${kind}}`}::text[]`,
+      updatedAt: new Date(),
+    })
+    .where(eq(events.id, eventId));
+}
+
+/** Resend can only take a planned mail back with a full-access key. */
+function cancellingResend(): Resend | null {
+  const key = process.env.RESEND_FULL_ACCESS_API_KEY?.trim() || process.env.RESEND_READ_API_KEY?.trim();
+  return key ? new Resend(key) : null;
+}
+
+type PlannedKind = "saturday" | "morning" | "feedback";
+
+/**
+ * Takes one guest's planned Sunday mails back from Resend (after a
+ * cancellation or a no-show). Returns the kinds still planned for them:
+ * without a full-access key, or when Resend refused.
+ */
+export async function dropPlannedMailsFor(
+  eventId: string,
+  bookingId: string,
+  kinds: PlannedKind[] = ["saturday", "morning", "feedback"],
+): Promise<PlannedKind[]> {
+  const [event] = await getDb().select({ extras: events.extras }).from(events).where(eq(events.id, eventId)).limit(1);
+  const schedule = parseSchedule(event?.extras?.mailSchedule);
+  const resend = cancellingResend();
+  const left: PlannedKind[] = [];
+  for (const kind of kinds) {
+    const planned = schedule[kind];
+    const mine = planned?.ids.find((i) => i.bookingId === bookingId);
+    if (!planned || !mine || Date.parse(planned.at) <= Date.now()) continue;
+    const cancelled = resend ? !(await resend.emails.cancel(mine.resendId)).error : false;
+    if (!cancelled) {
+      left.push(kind);
+      continue;
+    }
+    await getDb().delete(emailLog).where(eq(emailLog.resendId, mine.resendId));
+    const ids = planned.ids.filter((i) => i.resendId !== mine.resendId);
+    await saveSchedule(eventId, kind, ids.length ? { ...planned, ids } : null);
+  }
+  return left;
+}
+
+/** The kinds still planned at Resend for one guest. */
+export function plannedFor(raw: unknown, bookingId: string, now = Date.now()): PlannedKind[] {
+  const schedule = parseSchedule(raw);
+  return (["saturday", "morning", "feedback"] as const).filter((kind) => {
+    const planned = schedule[kind];
+    return planned && Date.parse(planned.at) > now && planned.ids.some((i) => i.bookingId === bookingId);
+  });
 }
 
 function parseSchedule(raw: unknown): SundayMailContext["schedule"] {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { EditOwnIntro, PlusOneEditor, TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
+import { CancelLate, EditOwnIntro, PlusOneEditor, TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
 import { isValidLocale, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { reservationCode } from "@/lib/booking-display";
@@ -76,6 +76,17 @@ const COPY = {
     invalidTitle: "Deze link werkt niet",
     invalidBody: "Misschien is hij niet helemaal meegekomen. Open hem opnieuw vanuit je mail.",
     invalidCta: "Naar Sunday Social",
+    cancel: {
+      open: "Kun je toch niet?",
+      title: "Afmelden voor deze middag?",
+      body: "Je ticket wordt niet terugbetaald. Zo weten wij en je tafel dat je er niet bij bent.",
+      confirm: "Ja, ik kan niet",
+      keep: "Toch komen",
+      error: "Dat lukte niet. Probeer het opnieuw.",
+    },
+    cancelledTitle: "Je hebt je afgemeld",
+    cancelledBody: "Jammer dat je er deze keer niet bij kunt zijn. Hopelijk tot een volgende keer.",
+    cancelledCta: "Bekijk de Sunday Socials",
   },
   en: {
     today: "At the table today",
@@ -133,6 +144,17 @@ const COPY = {
     invalidTitle: "This link doesn't work",
     invalidBody: "It may not have come through completely. Open it again from your email.",
     invalidCta: "To Sunday Social",
+    cancel: {
+      open: "Can't make it after all?",
+      title: "Cancel for this afternoon?",
+      body: "Your ticket is not refunded. This way we and your table know you won't be there.",
+      confirm: "Yes, I can't come",
+      keep: "I'll come after all",
+      error: "That didn't work. Please try again.",
+    },
+    cancelledTitle: "You've cancelled",
+    cancelledBody: "A shame you can't make it this time. Hopefully see you another time.",
+    cancelledCta: "See the Sunday Socials",
   },
 } as const;
 type Copy = (typeof COPY)["nl"] | (typeof COPY)["en"];
@@ -164,11 +186,29 @@ export default async function TablePageRoute({ params }: Props) {
       <Header dict={dict.header} locale={locale} />
       <main className="bg-beige pb-16 pt-28 sm:pt-36">
         <div className="mx-auto max-w-2xl space-y-5 px-5 sm:px-8">
-          {page ? <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} /> : <Invalid t={t} locale={locale} />}
+          {!page ? (
+            <Invalid t={t} locale={locale} />
+          ) : page.cancelled ? (
+            <Cancelled t={t} href={tablePageAfterPath(locale, page.city)} />
+          ) : (
+            <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} />
+          )}
         </div>
       </main>
       <Footer dict={dict.footer} locale={locale} showFormats={false} />
     </>
+  );
+}
+
+function Cancelled({ t, href }: { t: Copy; href: string }) {
+  return (
+    <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-8 text-center sm:px-8">
+      <h1 className="font-serif text-2xl text-wine">{t.cancelledTitle}</h1>
+      <p className="mt-2 text-sm text-wine/70">{t.cancelledBody}</p>
+      <Link href={href} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
+        {t.cancelledCta}
+      </Link>
+    </section>
   );
 }
 
@@ -294,6 +334,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
       <Picks page={page} venueName={venueName} t={t} />
 
       <p className="px-1 text-xs text-wine/50">{t.footer}</p>
+      {!page.started ? <CancelLate token={token} copy={t.cancel} /> : null}
     </>
   );
 }

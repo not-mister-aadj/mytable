@@ -18,6 +18,7 @@ export type MailGuest = {
   sentSaturday: boolean;
   sentMorning: boolean;
   sentFeedback: boolean;
+  noShow: boolean;
 };
 
 type Kind = "location" | "saturday" | "morning" | "feedback";
@@ -77,7 +78,7 @@ export function SundayMailsPanel({
 function MailCard({
   kind,
   eventId,
-  guests,
+  guests: all,
   blocker,
   plan = null,
   defaultTime,
@@ -91,6 +92,7 @@ function MailCard({
 }) {
   const router = useRouter();
   const copy = COPY[kind];
+  const guests = kind === "feedback" ? all.filter((g) => !g.noShow) : all;
   const sentOf = (g: MailGuest) =>
     kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : kind === "morning" ? g.sentMorning : g.sentFeedback;
   const sent = guests.filter(sentOf).length;

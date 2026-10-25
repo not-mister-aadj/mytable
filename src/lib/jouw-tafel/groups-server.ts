@@ -1,4 +1,5 @@
 import { and, asc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { plannedFor } from "@/lib/admin/sunday-mails";
 import { getDb } from "@/db/index";
 import { eventGroups, eventVenues, events, jouwTafelPauses, venues } from "@/db/schema";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
@@ -125,6 +126,9 @@ export type BoardGuest = {
   groupId: string | null;
   email: string;
   plusOneName: string | null;
+  /** Cancelled on the table page: when, our note, and the Sunday mails
+   * still planned for them at Resend. Null when they are coming. */
+  cancelled: { at: string; note: string; plannedMails: string[] } | null;
   /** The "meet your table" answers, all of them (admin only). */
   intro: {
     answered: boolean;
@@ -182,6 +186,8 @@ type GuestRow = {
   intro_wine: string | null;
   intro_share_consent: boolean;
   intro_answered_at: string | null;
+  cancelled_late_at: string | null;
+  cancel_note: string | null;
   earlier: number;
   quiz: unknown;
 };
@@ -214,6 +220,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
              b.table_language_preference, b.birth_date::text as birth_date, b.age_preference,
              b.intro_plus_one_name, b.intro_conversation_style, b.intro_ask_me_about, b.intro_favorite_spot,
              b.intro_into_now, b.intro_wine, b.intro_share_consent, b.intro_answered_at::text as intro_answered_at,
+             to_char(b.cancelled_late_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as cancelled_late_at, b.cancel_note,
              (select count(*) from bookings p join events pe on pe.id = p.event_id
                where lower(p.email) = lower(b.email) and p.payment_status = 'paid'
                  and pe.starts_at < ${event.startsAt.toISOString()}::timestamptz)::int as earlier,
@@ -259,6 +266,9 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       groupId: g.group_id,
       email: g.email,
       plusOneName: g.seats >= 2 ? g.intro_plus_one_name?.trim() || null : null,
+      cancelled: g.cancelled_late_at
+        ? { at: g.cancelled_late_at, note: g.cancel_note ?? "", plannedMails: plannedFor(event.extras?.mailSchedule, g.id, now) }
+        : null,
       intro: (() => {
         const text = (v: string | null) => v?.trim() || null;
         const answered = Boolean(

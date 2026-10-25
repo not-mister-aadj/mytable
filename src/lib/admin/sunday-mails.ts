@@ -187,6 +187,19 @@ const dateLabel = (d: Date, locale: "nl" | "en") =>
     timeZone: "Europe/Amsterdam",
   }).format(d);
 
+/**
+ * A booking made after the Sunday's location mail went out gets that mail as
+ * its confirmation (with "Je plek staat"), instead of the general one that
+ * says the location follows. Null when the location mail hasn't gone yet.
+ */
+export async function locationMailAsConfirmation(eventId: string, bookingId: string): Promise<SundayMail | null> {
+  const ctx = await loadSundayMailContext(eventId);
+  if (!ctx?.venue) return null;
+  const guest = ctx.guests.find((g) => g.bookingId === bookingId);
+  if (!guest || !ctx.guests.some((g) => g.sentLocation && g.bookingId !== bookingId)) return null;
+  return buildSundayMail(ctx, "location", guest, true);
+}
+
 /** Who gets this mail: everyone, except a no-show for the feedback mail. */
 export function mailRecipients(ctx: SundayMailContext, kind: SundayMailKind): Guest[] {
   return kind === "feedback" ? ctx.guests.filter((g) => !g.noShow) : ctx.guests;
@@ -208,6 +221,8 @@ export async function buildSundayMail(
   ctx: SundayMailContext,
   kind: SundayMailKind,
   guest: Guest,
+  /** Location mail as the confirmation of a booking made after it went out. */
+  booked = false,
 ): Promise<SundayMail> {
   const venue = ctx.venue!;
   const locale = guest.locale;
@@ -215,9 +230,16 @@ export async function buildSundayMail(
   const url = await introUrl(guest.bookingId, locale);
   if (kind === "location") {
     return {
-      subject: nl ? `Volgende week zondag bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}` : `Next Sunday at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`,
+      subject: booked
+        ? nl
+          ? `Bevestigd: je Sunday Social bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
+          : `Confirmed: your Sunday Social at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
+        : nl
+          ? `Volgende week zondag bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
+          : `Next Sunday at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`,
       element: SundayLocationEmail({
         locale,
+        booked,
         firstName: guest.firstName || undefined,
         plusOneName: guest.plusOneName,
         dateLabel: dateLabel(ctx.startsAt, locale),

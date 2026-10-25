@@ -32,6 +32,8 @@ export type SundayLocationEmailProps = {
   answered: boolean;
   /** "MT-…": the form behind introUrl asks for it, with the booking email. */
   bookingCode?: string;
+  /** Booked after the location mail went out: this is their confirmation. */
+  booked?: boolean;
   email?: string;
 };
 
@@ -97,13 +99,25 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
     <EmailLayout
       preview={
         nl
-          ? `Volgende week zondag om ${p.time}: je Sunday Social is bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
-          : `Next Sunday at ${p.time}: your Sunday Social is at ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
+          ? p.booked
+            ? `Je plek staat: ${p.dateLabel} om ${p.time} bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
+            : `Volgende week zondag om ${p.time}: je Sunday Social is bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
+          : p.booked
+            ? `You're booked: ${p.dateLabel} at ${p.time} at ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
+            : `Next Sunday at ${p.time}: your Sunday Social is at ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
       }
     >
       <EmailHero
         greeting={greeting}
-        headline={nl ? `Volgende week zondag bij ${p.venueName}` : `Next Sunday at ${p.venueName}`}
+        headline={
+          p.booked
+            ? nl
+              ? `Je plek staat, tot zondag bij ${p.venueName}`
+              : `You're booked, see you Sunday at ${p.venueName}`
+            : nl
+              ? `Volgende week zondag bij ${p.venueName}`
+              : `Next Sunday at ${p.venueName}`
+        }
         body={
           nl
             ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`

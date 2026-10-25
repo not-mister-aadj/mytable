@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { eq, and, isNull } from "drizzle-orm";
 import {
   BookingConfirmationEmail,
@@ -46,10 +47,12 @@ function validateProps(props: BookingConfirmationEmailProps): void {
   }
 }
 
-/** `calendar` attaches an invite for the guest's calendar. */
+/** `calendar` attaches an invite for the guest's calendar; `instead` sends
+ * another mail (a Sunday's location mail) as the confirmation. */
 export async function sendBookingConfirmationEmail(
   props: BookingConfirmationEmailProps,
   calendar?: Omit<BookingIcsInput, "organizerEmail">,
+  instead?: { subject: string; element: ReactElement },
 ): Promise<EmailSendResult> {
   validateProps(props);
 
@@ -64,7 +67,7 @@ export async function sendBookingConfirmationEmail(
   }
 
   const { html, text } = await renderEmailForDelivery(
-    BookingConfirmationEmail(props),
+    instead?.element ?? BookingConfirmationEmail(props),
   );
 
   const bcc = getBookingConfirmationBcc().filter(
@@ -76,11 +79,13 @@ export async function sendBookingConfirmationEmail(
     replyTo: getEmailReplyTo(),
     to: props.customerEmail,
     bcc: bcc.length > 0 ? bcc : undefined,
-    subject: bookingConfirmationSubject(
-      props.bookingCode,
-      props.eventName,
-      props.locale === "en" ? "en" : "nl",
-    ),
+    subject:
+      instead?.subject ??
+      bookingConfirmationSubject(
+        props.bookingCode,
+        props.eventName,
+        props.locale === "en" ? "en" : "nl",
+      ),
     headers: bookingEmailHeaders(props.bookingCode),
     html,
     text,
@@ -120,6 +125,15 @@ export async function sendBookingConfirmationForPaidBooking(
   }
 
   const props = await buildBookingConfirmationEmailProps(booking, event, venue);
+  // A Sunday Social whose location mail already went out: that mail is the confirmation.
+  const location = props.isSundayTable
+    ? await import("@/lib/admin/sunday-mails")
+        .then((m) => m.locationMailAsConfirmation(event.id, booking.id))
+        .catch((error) => {
+          console.error("[email] location mail as confirmation failed", error);
+          return null;
+        })
+    : null;
   const result = await sendBookingConfirmationEmail(props, {
     bookingId: booking.id,
     bookingCode: props.bookingCode,
@@ -133,7 +147,7 @@ export async function sendBookingConfirmationForPaidBooking(
     isSundayTable: props.isSundayTable,
     location: [props.venueName, props.startLocation].filter((v) => v?.trim()).join(", ") || undefined,
     eventUrl: props.eventUrl,
-  });
+  }, location?.element ? { subject: location.subject, element: location.element } : undefined);
 
   if (result.ok && result.id !== "already-sent" && !options?.force) {
     await db

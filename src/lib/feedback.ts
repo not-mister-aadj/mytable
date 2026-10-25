@@ -75,12 +75,23 @@ export type FeedbackPage = {
   tablemates: { bookingId: string; firstName: string }[];
   /** The next bookable Sunday Social in their city. */
   next: { label: string; shortLabel: string; seatsLeft: number; path: string } | null;
+  /** "De volgende is op ons" after Matig or Niet leuk: the dates they can
+   * book for free on the page, or the one they already booked. Null when
+   * it doesn't apply (no-show, used before). */
+  freeSeat: { options: FreeSeatOption[]; booked: string | null } | null;
   /** Where "no next Sunday" points. */
   cityPath: string;
   /** "Alleen lid worden": log in, then "Word lid" in the settings. */
   joinPath: string;
   saved: FeedbackState;
 };
+
+export type FreeSeatOption = { eventId: string; label: string; seatsLeft: number };
+
+/** admin_notes on a free seat booked from the feedback page; also how we
+ * know someone used it (once per person). */
+export const FREE_SEAT_NOTE = "Op ons (feedback)";
+const FREE_SEAT_OPTIONS = 3;
 
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 
@@ -147,10 +158,62 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
   const otherDays = new Set(
     candidates.filter((e) => ownBracket && bracket(e.nameNl) && bracket(e.nameNl) !== ownBracket).map((e) => day(e.startsAt)),
   );
-  const nextEvent = candidates.find((e) => !otherDays.has(day(e.startsAt)));
+  const open = candidates.filter((e) => !otherDays.has(day(e.startsAt)));
+  const nextEvent = open[0];
   const nextPath = nextEvent ? sundaySocialDatePath(locale as Locale, { city: nextEvent.city, startsAt: nextEvent.startsAt }) : null;
 
   const [saved] = await db.select().from(bookingFeedback).where(eq(bookingFeedback.bookingId, booking.id)).limit(1);
+  const longLabel = (d: Date) =>
+    new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" }).format(d);
+
+  // Free seat: only for who came, and only after their first Matig or Niet
+  // leuk (an earlier one, or a free seat used before, rules it out).
+  const [earlierBad] = await db
+    .select({ id: bookingFeedback.bookingId })
+    .from(bookingFeedback)
+    .innerJoin(bookings, eq(bookings.id, bookingFeedback.bookingId))
+    .where(
+      and(
+        sql`lower(${bookings.email}) = lower(${booking.email})`,
+        sql`${bookingFeedback.bookingId} <> ${booking.id}`,
+        inArray(bookingFeedback.mood, ["meh", "bad"]),
+        sql`${bookingFeedback.createdAt} < coalesce((select created_at from booking_feedback where booking_id = ${booking.id}), now())`,
+      ),
+    )
+    .limit(1);
+  const [used] = await db
+    .select({ startsAt: events.startsAt, city: events.city })
+    .from(bookings)
+    .innerJoin(events, eq(events.id, bookings.eventId))
+    .where(
+      and(
+        sql`lower(${bookings.email}) = lower(${booking.email})`,
+        eq(bookings.adminNotes, FREE_SEAT_NOTE),
+        eq(bookings.paymentStatus, "paid"),
+      ),
+    )
+    .limit(1);
+  const ownBookings = new Set(
+    (
+      await db
+        .select({ eventId: bookings.eventId })
+        .from(bookings)
+        .where(and(sql`lower(${bookings.email}) = lower(${booking.email})`, eq(bookings.paymentStatus, "paid")))
+    ).map((b) => b.eventId),
+  );
+  const freeSeat = used
+    ? used.startsAt.getTime() > now
+      ? { options: [], booked: `${used.city} · ${longLabel(used.startsAt)}` }
+      : null
+    : booking.noShowAt || earlierBad
+      ? null
+      : {
+          options: open
+            .filter((e) => !ownBookings.has(e.id))
+            .slice(0, FREE_SEAT_OPTIONS)
+            .map((e) => ({ eventId: e.id, label: `${e.city} · ${longLabel(e.startsAt)}`, seatsLeft: Math.max(0, e.capacity - e.spotsSold) })),
+          booked: null,
+        };
   return {
     bookingId: booking.id,
     locale,
@@ -178,6 +241,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
             path: nextPath,
           }
         : null,
+    freeSeat,
     cityPath: tablePageAfterPath(locale as Locale, event.city),
     joinPath: `${jouwTafelLogInPath(locale as Locale)}?naar=${encodeURIComponent(jouwTafelSettingsPath(locale as Locale))}`,
     saved: saved

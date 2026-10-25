@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings } from "@/db/schema";
 import { setProfilePhoto } from "@/lib/profile-photo";
+import { bookFreeSeatAfterFeedback, type FreeSeatResult } from "@/lib/feedback-free-seat";
 
 /** Saves the answers given so far, only for the booking in the link. */
 export async function saveFeedbackAction(token: string, input: Partial<FeedbackState>): Promise<{ ok: boolean }> {
@@ -28,4 +29,11 @@ export async function uploadFeedbackPhotoAction(token: string, form: FormData): 
   const result = await setProfilePhoto(booking.email, file);
   if (result.ok) await saveFeedback(bookingId, { photoUrl: result.url });
   return result;
+}
+
+/** "De volgende is op ons": the free seat after Matig or Niet leuk. */
+export async function bookFreeSeatAction(token: string, eventId: string): Promise<FreeSeatResult> {
+  const bookingId = await verifyFeedbackToken(token);
+  if (!bookingId) return { ok: false, error: "not_allowed" };
+  return bookFreeSeatAfterFeedback(bookingId, eventId);
 }

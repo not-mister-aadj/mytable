@@ -37,6 +37,9 @@ const COPY = {
     memberPrice: "€10 per maand",
     memberPoints: ["Kies wie je terugziet", "Elke Sunday Social, alle 5 steden", "Maandelijks opzegbaar"],
     alsoBook: (date: string) => `Reserveer ${date} meteen`,
+    plusOne: "Ik neem iemand mee (+1)",
+    plusOneMember: "je gast gratis",
+    plusOnePrice: "€20 voor jullie twee",
     singleCardTitle: "Alleen de volgende keer",
     singlePrice: "€10 eenmalig",
     singleSeat: "of reserveer alleen deze zondag",
@@ -97,6 +100,9 @@ const COPY = {
     memberPrice: "€10 a month",
     memberPoints: ["Choose who you see again", "Every Sunday Social, all 5 cities", "Cancel monthly"],
     alsoBook: (date: string) => `Reserve ${date} right away`,
+    plusOne: "I'm bringing someone (+1)",
+    plusOneMember: "your guest free",
+    plusOnePrice: "€20 for the two of you",
     singleCardTitle: "Just the next one",
     singlePrice: "€10 one time",
     singleSeat: "or reserve just this Sunday",
@@ -201,6 +207,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
   const [uploading, setUploading] = useState(false);
   const [cropping, setCropping] = useState<File | null>(null);
   const [alsoBook, setAlsoBook] = useState(true);
+  const [plusOne, setPlusOne] = useState(false);
   const [pending, start] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -266,7 +273,8 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
   );
 
   if (sent) {
-    const withTicket = (ticket: "elke-zondag" | "deze-zondag") => (page.next ? `${page.next.path}?ticket=${ticket}#boeken` : page.cityPath);
+    const withTicket = (ticket: "elke-zondag" | "deze-zondag") =>
+      page.next ? `${page.next.path}?ticket=${ticket}${plusOne ? "&plekken=2" : ""}#boeken` : page.cityPath;
     return (
       <div className="space-y-5">
         <section className={`${card} text-center`}>
@@ -295,10 +303,17 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                 {chips("wantToSee", false)}
               </div>
             ) : null}
-            <div className={`mt-6 grid gap-3 ${page.next ? "sm:grid-cols-2" : ""}`}>
+            {page.next && page.next.seatsLeft >= 2 ? (
+              <label className="mt-6 flex items-center gap-2 text-sm text-wine">
+                <input type="checkbox" checked={plusOne} onChange={(e) => setPlusOne(e.target.checked)} className="accent-burgundy" />
+                {t.plusOne}
+              </label>
+            ) : null}
+            <div className={`mt-4 grid gap-3 ${page.next ? "sm:grid-cols-2" : ""}`}>
               <div className="flex flex-col rounded-2xl bg-white p-5 text-wine ring-2 ring-burgundy shadow-[0_10px_30px_rgba(90,15,27,0.10)]">
                 <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.memberCardTitle}</p>
                 <p className="mt-1 font-serif text-2xl">{t.memberPrice}</p>
+                {plusOne && alsoBook && page.next ? <p className="text-xs font-semibold text-burgundy">+1 · {t.plusOneMember}</p> : null}
                 <ul className="mt-3 flex-1 space-y-1.5 text-sm">
                   {t.memberPoints.map((point) => (
                     <li key={point} className="flex gap-2">
@@ -323,7 +338,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
               {page.next ? (
                 <div className="flex flex-col rounded-2xl bg-white/60 p-5 text-wine ring-1 ring-wine/10">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.singleCardTitle}</p>
-                  <p className="mt-1 font-serif text-2xl">{t.singlePrice}</p>
+                  <p className="mt-1 font-serif text-2xl">{plusOne ? t.plusOnePrice : t.singlePrice}</p>
                   <p className="mt-3 flex-1 text-sm text-wine/75">
                     {page.city}
                     <br />

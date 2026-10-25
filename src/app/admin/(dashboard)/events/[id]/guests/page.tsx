@@ -192,7 +192,7 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
       .leftJoin(customers, sql`${customers.emailNormalized} = lower(trim(${bookings.email}))`)
       .where(eq(bookingFeedback.eventId, eventId)),
     db
-      .select({ id: bookings.id, name: bookings.customerName })
+      .select({ id: bookings.id, name: bookings.customerName, noShowAt: bookings.noShowAt })
       .from(bookings)
       .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid"), eq(bookings.lifecycleStatus, "active"))),
     db
@@ -204,11 +204,20 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
       .limit(1),
   ]);
   const nameOf = new Map(guests.map((g) => [g.id, g.name?.trim().split(/\s+/)[0] ?? "Gast"]));
+  // "Was er iemand niet?": per guest, who said they weren't there.
+  const reportedBy = new Map<string, string[]>();
+  for (const r of rows) {
+    for (const id of r.f.missing ?? []) reportedBy.set(id, [...(reportedBy.get(id) ?? []), r.name?.trim().split(/\s+/)[0] ?? "Gast"]);
+  }
+  const missing = guests
+    .filter((g) => reportedBy.has(g.id))
+    .map((g) => ({ bookingId: g.id, name: g.name?.trim() || "Gast", by: reportedBy.get(g.id)!, noShow: Boolean(g.noShowAt) }));
   return (
     <FeedbackPanel
       eventId={eventId}
       venueName={venue[0]?.name ?? null}
       guests={guests.length}
+      missing={missing}
       rows={rows
         .filter((r) => r.f.mood)
         .map((r) => ({

@@ -79,7 +79,7 @@ const COPY = {
     cancel: {
       open: "Kun je toch niet?",
       title: "Afmelden voor deze middag?",
-      body: "Je ticket wordt niet terugbetaald. Wel weten we zo dat je er niet bij bent, en kunnen we de andere gasten nog opnieuw indelen. Wie niet komt zonder af te melden, zetten we in de toekomst misschien niet meer aan tafel.",
+      body: "Je ticket wordt niet terugbetaald. Wel weten we zo dat je er niet bij bent, en kunnen we de andere gasten nog opnieuw indelen mocht dat nodig zijn. Wie niet komt zonder af te melden, zetten we in de toekomst misschien niet meer aan tafel.",
       confirm: "Ja, ik kan niet",
       keep: "Toch komen",
       error: "Dat lukte niet. Probeer het opnieuw.",
@@ -147,7 +147,7 @@ const COPY = {
     cancel: {
       open: "Can't make it after all?",
       title: "Cancel for this afternoon?",
-      body: "Your ticket is not refunded. But this way we know you won't be there, and we can still rearrange the other guests. If you don't show up without cancelling, we may not seat you at a table in the future.",
+      body: "Your ticket is not refunded. But this way we know you won't be there, and we can still rearrange the other guests if needed. If you don't show up without cancelling, we may not seat you at a table in the future.",
       confirm: "Yes, I can't come",
       keep: "I'll come after all",
       error: "That didn't work. Please try again.",

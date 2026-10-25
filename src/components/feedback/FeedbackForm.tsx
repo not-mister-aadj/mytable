@@ -45,6 +45,8 @@ const COPY = {
     reserve: "Reserveer",
     noNext: "Bekijk de Sunday Socials",
     contact: "Mogen we contact met je opnemen om het goed te maken?",
+    missingTitle: "Was er iemand van je groep niet?",
+    missingHint: "Tik wie er niet was. Alleen voor ons.",
     save: "Versturen",
     saving: "Bezig…",
     thanks: "Dank je! We lezen alles.",
@@ -98,6 +100,8 @@ const COPY = {
     reserve: "Reserve",
     noNext: "See the Sunday Socials",
     contact: "May we contact you to make it right?",
+    missingTitle: "Was anyone from your group not there?",
+    missingHint: "Tap who wasn't there. Only for us.",
     save: "Send",
     saving: "Saving…",
     thanks: "Thank you! We read everything.",
@@ -370,7 +374,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
             </div>
           ) : null}
 
-          {happy && page.tablemates.length > 0 ? (
+          {okish && page.tablemates.length > 0 ? (
             <div>
               <div className="flex items-center justify-between gap-3">
                 <span className={label}>{t.wantTitle}</span>
@@ -398,6 +402,28 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                 })}
               </div>
               <p className="mt-2 text-xs text-wine/50">{t.wantNote}</p>
+            </div>
+          ) : null}
+
+          {page.tablemates.length > 0 ? (
+            <div>
+              <span className={label}>{t.missingTitle}</span>
+              <span className="block text-xs text-wine/50">{t.missingHint}</span>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {page.tablemates.map((m) => {
+                  const on = state.missing.includes(m.bookingId);
+                  return (
+                    <button
+                      key={m.bookingId}
+                      type="button"
+                      onClick={() => save({ missing: on ? state.missing.filter((id) => id !== m.bookingId) : [...state.missing, m.bookingId] })}
+                      className={`rounded-full px-3.5 py-1.5 text-sm transition ${on ? "bg-wine text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
+                    >
+                      {m.firstName}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ) : null}
 

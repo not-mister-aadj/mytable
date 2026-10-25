@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { setFeedbackUsedAction } from "@/app/admin/(dashboard)/events/[id]/guests/feedback-actions";
+import { markBookingNoShowAction } from "@/app/admin/(dashboard)/events/actions";
+
+export type MissingGuest = { bookingId: string; name: string; by: string[]; noShow: boolean };
 
 export type FeedbackRow = {
   id: string;
@@ -39,7 +42,19 @@ function MoodChip({ mood }: { mood: string | null }) {
 }
 
 /** Everything guests said about one Sunday, quotes they let us use first. */
-export function FeedbackPanel({ eventId, venueName, rows, guests }: { eventId: string; venueName: string | null; rows: FeedbackRow[]; guests: number }) {
+export function FeedbackPanel({
+  eventId,
+  venueName,
+  rows,
+  guests,
+  missing,
+}: {
+  eventId: string;
+  venueName: string | null;
+  rows: FeedbackRow[];
+  guests: number;
+  missing: MissingGuest[];
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const count = (key: "mood" | "venueMood", v: string) => rows.filter((r) => r[key] === v).length;
@@ -47,6 +62,38 @@ export function FeedbackPanel({ eventId, venueName, rows, guests }: { eventId: s
 
   return (
     <div className="space-y-5">
+      {missing.length > 0 ? (
+        <section className="rounded-xl border border-border-subtle bg-beige/60 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-wine/45">Niet gezien</p>
+          <ul className="mt-2 space-y-2">
+            {missing.map((m) => (
+              <li key={m.bookingId} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="text-wine">
+                  <span className="font-semibold">{m.name}</span>
+                  <span className="text-wine/55"> · volgens {m.by.join(", ")}</span>
+                </span>
+                {m.noShow ? (
+                  <span className="rounded-full bg-wine/[0.05] px-3 py-1 text-xs text-wine/60">Niet gekomen ✓</span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() =>
+                      start(async () => {
+                        await markBookingNoShowAction(m.bookingId);
+                        router.refresh();
+                      })
+                    }
+                    className="rounded-full bg-burgundy px-3 py-1 text-xs font-semibold text-cream hover:bg-burgundy/90"
+                  >
+                    Niet gekomen
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-border-subtle bg-beige/60 p-4">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-wine/45">Ingevuld</p>

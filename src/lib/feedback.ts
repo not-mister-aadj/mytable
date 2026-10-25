@@ -60,6 +60,8 @@ export type FeedbackState = {
   photoUrl: string | null;
   contactOk: boolean;
   wantToSee: string[];
+  /** Tablemates who weren't there, as they saw it. */
+  missing: string[];
 };
 
 export type FeedbackPage = {
@@ -96,7 +98,7 @@ const FREE_SEAT_OPTIONS = 3;
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 
 function emptyState(): FeedbackState {
-  return { mood: null, venueMood: null, highlight: "", improve: "", quoteConsent: false, photoUrl: null, contactOk: false, wantToSee: [] };
+  return { mood: null, venueMood: null, highlight: "", improve: "", quoteConsent: false, photoUrl: null, contactOk: false, wantToSee: [], missing: [] };
 }
 
 export async function loadFeedbackPage(bookingId: string, now = Date.now()): Promise<FeedbackPage | null> {
@@ -262,6 +264,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
           photoUrl: saved.photoUrl,
           contactOk: saved.contactOk,
           wantToSee: Array.isArray(saved.wantToSee) ? saved.wantToSee : [],
+          missing: Array.isArray(saved.missing) ? saved.missing : [],
         }
       : emptyState(),
   };
@@ -287,6 +290,7 @@ export async function saveFeedback(bookingId: string, input: Partial<FeedbackSta
     ...(input.quoteConsent !== undefined ? { quoteConsent: Boolean(input.quoteConsent) } : {}),
     ...(input.contactOk !== undefined ? { contactOk: Boolean(input.contactOk) } : {}),
     ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
+    ...(input.missing !== undefined ? { missing: (input.missing ?? []).filter((id) => allowed.has(id)) } : {}),
     ...(input.wantToSee !== undefined && page.member
       ? { wantToSee: (input.wantToSee ?? []).filter((id) => allowed.has(id)) }
       : {}),

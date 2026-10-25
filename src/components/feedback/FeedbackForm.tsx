@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
-import { saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { bookFreeSeatAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
 import { PhotoCropper } from "@/components/PhotoCropper";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
 
@@ -48,7 +48,16 @@ const COPY = {
     save: "Versturen",
     saving: "Bezig…",
     thanks: "Dank je! We lezen alles.",
-    thanksSorry: "Dank je dat je het eerlijk zegt. We lezen alles en nemen het mee.",
+    thanksSorry: "Dank je dat je het eerlijk zegt.",
+    sorryBody:
+      "Niet elke tafel klikt meteen, dat hoort erbij. Elke Sunday Social zit je met andere mensen, en met wat je ons net vertelde delen we je de volgende keer beter in.",
+    freeTitle: "Je volgende ticket is op ons",
+    freeBody: "Boek hier gratis je ticket voor de volgende Sunday Social.",
+    freeCta: "Reserveer gratis",
+    freeSmall: "Alleen als je nu hier boekt · eenmalig · voor jezelf",
+    freeDone: (label: string) => `Je gratis ticket staat: ${label}. De bevestiging komt in je mail.`,
+    freeBooked: (label: string) => `Je gratis ticket staat al: ${label}.`,
+    freeFull: "Die datum is net vol. Kies een andere.",
     error: "Opslaan lukte niet. Probeer het opnieuw.",
   },
   en: {
@@ -92,7 +101,16 @@ const COPY = {
     save: "Send",
     saving: "Saving…",
     thanks: "Thank you! We read everything.",
-    thanksSorry: "Thank you for being honest. We read everything and take it with us.",
+    thanksSorry: "Thank you for being honest.",
+    sorryBody:
+      "Not every table clicks straight away, that's part of it. Every Sunday Social you sit with different people, and with what you just told us we'll seat you better next time.",
+    freeTitle: "Your next ticket is on us",
+    freeBody: "Book your ticket for the next Sunday Social here, for free.",
+    freeCta: "Book for free",
+    freeSmall: "Only when you book here now · one time only · for yourself",
+    freeDone: (label: string) => `Your free ticket is booked: ${label}. The confirmation is on its way to your inbox.`,
+    freeBooked: (label: string) => `Your free ticket is already booked: ${label}.`,
+    freeFull: "That date just filled up. Pick another one.",
     error: "Saving didn't work. Please try again.",
   },
 } as const;
@@ -181,7 +199,12 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
       <div className="space-y-5">
         <section className={`${card} text-center`}>
           <p className="font-serif text-2xl text-wine">{okish ? t.thanks : t.thanksSorry}</p>
-          {state.mood === "good" || (happy && page.member) ? <NextSunday page={page} t={t} /> : null}
+          {!okish ? <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-wine/70">{t.sorryBody}</p> : null}
+          {!okish && page.freeSeat && (page.freeSeat.booked || page.freeSeat.options.length > 0) ? (
+            <FreeSeat page={page} token={token} t={t} />
+          ) : state.mood === "good" || state.mood === "meh" || (happy && page.member) ? (
+            <NextSunday page={page} t={t} />
+          ) : null}
         </section>
         {happy && !page.member ? (
           <section className={card}>
@@ -410,6 +433,50 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         />
       ) : null}
 
+    </div>
+  );
+}
+
+function FreeSeat({ page, token, t }: { page: FeedbackPage; token: string; t: (typeof COPY)["nl"] | (typeof COPY)["en"] }) {
+  const options = page.freeSeat?.options ?? [];
+  const [pick, setPick] = useState(options[0]?.eventId ?? "");
+  const [done, setDone] = useState<string | null>(page.freeSeat?.booked ? t.freeBooked(page.freeSeat.booked) : null);
+  const [full, setFull] = useState<string[]>([]);
+  const [error, setError] = useState(false);
+  const [pending, start] = useTransition();
+  if (done) return <p className="mx-auto mt-5 max-w-md rounded-2xl bg-white/70 px-4 py-3 text-sm font-medium text-wine ring-1 ring-wine/10">{done}</p>;
+  const left = options.filter((o) => !full.includes(o.eventId));
+  return (
+    <div className="mt-6 rounded-2xl bg-white p-5 text-left ring-2 ring-burgundy shadow-[0_10px_30px_rgba(90,15,27,0.10)]">
+      <p className="font-serif text-2xl text-wine">{t.freeTitle}</p>
+      <p className="mt-1 text-sm text-wine/70">{t.freeBody}</p>
+      <div className="mt-4 space-y-2">
+        {left.map((o) => (
+          <label key={o.eventId} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 ring-1 ring-wine/10 has-[:checked]:ring-burgundy">
+            <input type="radio" name="free-seat" className="accent-burgundy" checked={pick === o.eventId} onChange={() => setPick(o.eventId)} />
+            <span className="flex-1 text-sm text-wine">{o.label}</span>
+            <span className="text-xs text-wine/50">{t.seats(o.seatsLeft)}</span>
+          </label>
+        ))}
+      </div>
+      {full.length > 0 ? <p className="mt-2 text-sm text-red-800">{t.freeFull}</p> : null}
+      <button
+        type="button"
+        disabled={pending || !left.some((o) => o.eventId === pick)}
+        onClick={() =>
+          start(async () => {
+            const r = await bookFreeSeatAction(token, pick);
+            if (r.ok) setDone(t.freeDone(r.label));
+            else if (r.error === "capacity") setFull((f) => [...f, pick]);
+            else setError(true);
+          })
+        }
+        className="mt-4 w-full rounded-full bg-burgundy px-5 py-3 text-sm font-semibold text-cream transition hover:bg-wine disabled:opacity-60"
+      >
+        {pending ? t.saving : t.freeCta}
+      </button>
+      {error ? <p className="mt-2 text-sm text-red-800">{t.error}</p> : null}
+      <p className="mt-3 text-center text-xs text-wine/50">{t.freeSmall}</p>
     </div>
   );
 }

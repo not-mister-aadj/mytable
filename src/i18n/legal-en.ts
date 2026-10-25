@@ -169,11 +169,11 @@ export const termsEn: LegalDocumentContent = {
       ],
     },
     {
-      title: "8. Not your kind of table? The next one is on us",
+      title: "8. Not your kind of table? Your next ticket is on us",
       blocks: [
         {
           type: "p",
-          text: "If you did not enjoy your Sunday Table, let us know within 2 days after the table via {{email}}, with your booking code. You then receive a free seat at a future Sunday Table.",
+          text: "If you did not enjoy your Sunday Social, say so on the feedback page you receive by email afterwards. You can book a free ticket there right away for one of the next Sunday Socials in your city.",
         },
         {
           type: "p",
@@ -183,9 +183,8 @@ export const termsEn: LegalDocumentContent = {
           type: "ul",
           items: [
             "you attended the table (this does not apply if you did not show up);",
-            "you can use this once per person;",
-            "the free seat is valid for 6 months, for a Sunday Table of your choice, subject to availability;",
-            "the free seat is personal and cannot be exchanged for money or transferred.",
+            "it only applies to your first negative experience, and you book the ticket right away on that page;",
+            "the ticket is personal and cannot be exchanged for money or transferred.",
           ],
         },
         {

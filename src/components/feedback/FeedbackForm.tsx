@@ -51,8 +51,8 @@ const COPY = {
     thanksSorry: "Dank je dat je het eerlijk zegt.",
     sorryBody:
       "Niet elke tafel klikt meteen, dat hoort erbij. Elke Sunday Social zit je met andere mensen, en met wat je ons net vertelde delen we je de volgende keer beter in.",
-    freeTitle: "De volgende is op ons",
-    freeBody: "Boek hier je volgende Sunday Social, gratis.",
+    freeTitle: "Je volgende plek is op ons",
+    freeBody: "Boek hier gratis je plek aan de volgende Sunday Social. Wat je eet en drinkt, bestel je zoals altijd zelf.",
     freeCta: "Reserveer gratis",
     freeSmall: "Alleen als je nu hier boekt · eenmalig · voor jezelf",
     freeDone: (label: string) => `Je gratis plek staat: ${label}. De bevestiging komt in je mail.`,
@@ -104,8 +104,8 @@ const COPY = {
     thanksSorry: "Thank you for being honest.",
     sorryBody:
       "Not every table clicks straight away, that's part of it. Every Sunday Social you sit with different people, and with what you just told us we'll seat you better next time.",
-    freeTitle: "The next one is on us",
-    freeBody: "Book your next Sunday Social here, for free.",
+    freeTitle: "Your next seat is on us",
+    freeBody: "Book your seat at the next Sunday Social here, for free. Food and drinks you order yourself, as always.",
     freeCta: "Book for free",
     freeSmall: "Only when you book here now · one time only · for yourself",
     freeDone: (label: string) => `Your free seat is booked: ${label}. The confirmation is on its way to your inbox.`,

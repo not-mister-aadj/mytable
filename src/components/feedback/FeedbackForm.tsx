@@ -179,6 +179,18 @@ const card = "rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20p
 const field =
   "mt-2 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 text-sm text-wine shadow-sm placeholder:text-wine/35 focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10";
 
+/** Links from the last screen carry where they came from, so a booking made
+ * after the feedback shows as "feedback" in the sources (utm_content: which button). */
+function fromFeedback(href: string, content: string): string {
+  const [rest, hash] = href.split("#");
+  const url = new URL(rest!, "https://www.mytable.club");
+  url.searchParams.set("utm_source", "mytable");
+  url.searchParams.set("utm_medium", "feedback");
+  url.searchParams.set("utm_campaign", "feedback");
+  url.searchParams.set("utm_content", content);
+  return `${url.pathname}${url.search}${hash ? `#${hash}` : ""}`;
+}
+
 type Step = "mood" | "venue" | "highlight" | "improve" | "quote" | "missing";
 
 /** One question per screen: which ones depend on the first answer. */
@@ -274,7 +286,10 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
 
   if (sent) {
     const withTicket = (ticket: "elke-zondag" | "deze-zondag") =>
-      page.next ? `${page.next.path}?ticket=${ticket}${plusOne ? "&plekken=2" : ""}#boeken` : page.cityPath;
+      fromFeedback(
+        page.next ? `${page.next.path}?ticket=${ticket}${plusOne ? "&plekken=2" : ""}#boeken` : page.cityPath,
+        ticket === "elke-zondag" ? "lid-en-reserveer" : "eenmalig",
+      );
     return (
       <div className="space-y-5">
         <section className={`${card} text-center`}>
@@ -329,7 +344,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                   </label>
                 ) : null}
                 <Link
-                  href={page.next && alsoBook ? withTicket("elke-zondag") : page.joinPath}
+                  href={page.next && alsoBook ? withTicket("elke-zondag") : fromFeedback(page.joinPath, "lid")}
                   className="mt-4 rounded-full bg-burgundy px-5 py-2.5 text-center text-sm font-semibold text-cream transition hover:bg-wine"
                 >
                   {t.offerCtaNoDate}
@@ -572,7 +587,7 @@ function FreeSeat({ page, token, t }: { page: FeedbackPage; token: string; t: (t
 function NextSunday({ page, t }: { page: FeedbackPage; t: (typeof COPY)["nl"] | (typeof COPY)["en"] }) {
   if (!page.next) {
     return (
-      <Link href={page.cityPath} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
+      <Link href={fromFeedback(page.cityPath, "steden")} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
         {t.noNext}
       </Link>
     );
@@ -587,7 +602,7 @@ function NextSunday({ page, t }: { page: FeedbackPage; t: (typeof COPY)["nl"] | 
           </p>
           <p className="text-xs text-wine/55">{t.seats(page.next.seatsLeft)}</p>
         </div>
-        <Link href={page.next.path} className="rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
+        <Link href={fromFeedback(page.next.path, "volgende")} className="rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
           {t.reserve}
         </Link>
       </div>

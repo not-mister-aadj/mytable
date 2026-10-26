@@ -305,6 +305,7 @@ export async function getBoardData(month: string): Promise<BoardData> {
     select
       case
         when coalesce(utm_medium, last->>'medium') = 'paid' or coalesce(utm_source, last->>'source') in ('fb', 'ig', 'facebook', 'instagram') then 'meta'
+        when utm_medium = 'feedback' then 'Feedback'
         when coalesce(utm_medium, last->>'medium') = 'email' then 'E-mail'
         when last->>'referrer' is not null and last->>'referrer' not ilike '%accounts.google%' then 'Organisch'
         else 'Direct of onbekend'

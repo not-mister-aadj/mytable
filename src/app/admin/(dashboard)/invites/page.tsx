@@ -8,7 +8,7 @@ import { InviteModeSwitch } from "@/components/admin/InviteModeSwitch";
 import { InviteQueue } from "@/components/admin/InviteQueue";
 import { InviteRulesInfo, type InviteRulesSection } from "@/components/admin/InviteRulesInfo";
 import { EARLY_ACCESS_HOURS } from "@/lib/membership/logic";
-import { MIN_DAYS_BEFORE, NEW_SIGNUP_WAIT_DAYS, NUDGE_UNTIL_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
+import { AFTER_SUNDAY_DAYS, MIN_DAYS_BEFORE, NEW_SIGNUP_WAIT_DAYS, NUDGE_UNTIL_DAYS, PLAN_DAYS } from "@/lib/invites/engine";
 import {
   CHECKIN_AFTER,
   CHECKIN_WAIT_DAYS,
@@ -149,12 +149,21 @@ function rulesSections(capStart: number, capGrowth: number, capToday: number, c:
       ],
     },
     {
+      title: "Rond een geboekte zondag",
+      lines: [
+        "Een Sunday Social nog te gaan: geen uitnodigingen tot na die zondag. Een ingeplande vervalt (\"eerst hun geboekte zondag\").",
+        `Na hun zondag: de volgende uitnodiging binnen ${AFTER_SUNDAY_DAYS} dagen, op hun eigen weekdag en tijd, ook buiten het gewone ritme. Een zondag waarvoor ze al waren uitgenodigd mag dan opnieuw.`,
+        "Afgemeld op de tafelpagina of niet gekomen telt niet als hun zondag.",
+        "Leden: gewoon uitnodigingen, ook met een geboekte zondag.",
+      ],
+    },
+    {
       title: "Wie",
       lines: [
         "Iedereen die zich ergens aanmeldde: wachtlijst, ticket, \"laat het me weten\", quiz, account.",
         `Niet: testadressen, bounce of spam (${n(c.bounced)}), wie overal Niet koos.`,
         `Nu op de lijst met een stad: ${n(c.total)}.`,
-        "Een event valt af als ze het al boekten, al voor dat event zijn uitgenodigd of niet in de leeftijdsgroep passen (alleen als hun leeftijd bekend is).",
+        "Een event valt af als ze het al boekten, al voor dat event zijn uitgenodigd (behalve na hun zondag) of niet in de leeftijdsgroep passen (alleen als hun leeftijd bekend is).",
       ],
     },
     {

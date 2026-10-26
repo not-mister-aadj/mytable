@@ -320,33 +320,60 @@ function inviteFrom(e: InviteEvent, member: boolean): Date {
 type History = {
   sends: SendRow[];
   clicksBySend: Map<string, Array<{ eventId: string | null; at: Date }>>;
-  bookings: Map<string, Array<{ eventId: string; at: Date }>>;
+  bookings: Map<string, BookingRef[]>;
 };
+
+/** `at` is when they booked; `attends`: still coming (not cancelled on the
+ * table page, not marked as a no-show). */
+type BookingRef = { eventId: string; at: Date; startsAt: Date; attends: boolean };
+
+/** After their Sunday Social the next invite comes in the week after it. */
+export const AFTER_SUNDAY_DAYS = 7;
+
+/** The Sunday they still have to go to, or null (members don't count: they
+ * book ahead and may hear about other Sundays meanwhile). */
+export function upcomingSunday(bookings: BookingRef[], now: Date): Date | null {
+  const next = bookings.filter((b) => b.attends && b.startsAt.getTime() > now.getTime()).sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[0];
+  return next?.startsAt ?? null;
+}
+
+/** Their most recent Sunday Social that took place, or null. */
+export function lastSundayAttended(bookings: BookingRef[], now: Date): Date | null {
+  const last = bookings.filter((b) => b.attends && b.startsAt.getTime() <= now.getTime()).sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())[0];
+  return last?.startsAt ?? null;
+}
 
 async function loadHistory(): Promise<History> {
   const db = getDb();
   const sends = await db.select().from(inviteSends).catch(() => [] as SendRow[]);
   const clicks = await db.select().from(inviteClicks).catch(() => [] as Array<typeof inviteClicks.$inferSelect>);
   const bookingRows = (await db.execute(sql`
-    select lower(email) as email, event_id, created_at from bookings where payment_status = 'paid'
-  `)) as unknown as Array<{ email: string; event_id: string; created_at: string | Date }>;
+    select lower(b.email) as email, b.event_id, b.created_at, e.starts_at,
+           (b.lifecycle_status = 'active' and b.cancelled_late_at is null and b.no_show_at is null) as attends
+    from bookings b join events e on e.id = b.event_id
+    where b.payment_status = 'paid'
+  `)) as unknown as Array<{ email: string; event_id: string; created_at: string | Date; starts_at: string | Date; attends: boolean }>;
   const clicksBySend = new Map<string, Array<{ eventId: string | null; at: Date }>>();
   for (const c of clicks) {
     const list = clicksBySend.get(c.sendId) ?? [];
     list.push({ eventId: c.eventId, at: c.clickedAt });
     clicksBySend.set(c.sendId, list);
   }
-  const bookings = new Map<string, Array<{ eventId: string; at: Date }>>();
+  const bookings = new Map<string, BookingRef[]>();
   for (const b of bookingRows) {
     const list = bookings.get(b.email) ?? [];
-    list.push({ eventId: b.event_id, at: new Date(b.created_at) });
+    list.push({ eventId: b.event_id, at: new Date(b.created_at), startsAt: new Date(b.starts_at), attends: Boolean(b.attends) });
     bookings.set(b.email, list);
   }
   return { sends, clicksBySend, bookings };
 }
 
 /** Interest of one person from their sent invites, clicks and bookings. */
-export function personEngagement(email: string, history: History, now: Date): Engagement {
+export function personEngagement(
+  email: string,
+  history: Pick<History, "sends" | "clicksBySend"> & { bookings: Map<string, Array<{ eventId: string; at: Date }>> },
+  now: Date,
+): Engagement {
   const sent = history.sends
     .filter((s) => s.emailNormalized === email && s.status === "sent" && s.sentAt)
     .map((s) => {
@@ -468,8 +495,12 @@ export async function planInvites(
     const mine = history.sends.filter((s) => s.emailNormalized === person.email);
     // An uncertain mail may have gone out: nothing new until an admin settles it.
     if (mine.some((s) => s.status === "queued" || s.status === "approved" || s.status === "sending")) continue;
+    const myBookings = history.bookings.get(person.email) ?? [];
+    // A Sunday still to come: nothing new until after it (the feedback mail
+    // that evening offers the next one). Not for members.
+    if (!person.member && upcomingSunday(myBookings, now)) continue;
 
-    const booked = new Set((history.bookings.get(person.email) ?? []).map((b) => b.eventId));
+    const booked = new Set(myBookings.map((b) => b.eventId));
     const invitedBefore = new Set(mine.filter((s) => s.status === "sent" && s.kind === "invite").flatMap((s) => s.eventIds));
     const base = {
       emailNormalized: person.email,
@@ -515,13 +546,21 @@ export async function planInvites(
     if (interest.status === "checkin" && lastCheckin && now.getTime() - lastCheckin.getTime() < CHECKIN_WAIT_DAYS * DAY) continue;
 
     const slowed = interest.status === "slow" || cities.every((c) => person.prefs[c] === "less");
-    const allowed = nextAllowedAt(sentDates, cities.length, slowed);
+    // Just went to a Sunday Social (no invite since): the next one in the week
+    // after it, on their own weekday, whatever the monthly rhythm says.
+    const lastSunday = lastSundayAttended(myBookings, now);
+    const afterSunday =
+      lastSunday && now.getTime() - lastSunday.getTime() < 2 * AFTER_SUNDAY_DAYS * DAY && sentDates.every((d) => d.getTime() < lastSunday.getTime())
+        ? lastSunday
+        : null;
+    const allowed = afterSunday ? new Date(afterSunday.getTime() + DAY) : nextAllowedAt(sentDates, cities.length, slowed);
     const candidates = events.filter(
       (e) =>
         e.open &&
         cities.includes(e.city) &&
         !booked.has(e.id) &&
-        !invitedBefore.has(e.id) &&
+        // After their Sunday a date they heard about before may come again.
+        (Boolean(afterSunday) || !invitedBefore.has(e.id)) &&
         fitsBracket(e.bracket, person, e.startsAt),
     );
     if (candidates.length === 0) continue;
@@ -760,7 +799,8 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       if (claimed.length === 0) continue;
     }
     const person = byEmail.get(send.emailNormalized);
-    const booked = new Set((history.bookings.get(send.emailNormalized) ?? []).map((b) => b.eventId));
+    const sendBookings = history.bookings.get(send.emailNormalized) ?? [];
+    const booked = new Set(sendBookings.map((b) => b.eventId));
     const stillFollowed = person ? followedCities(person) : [];
     const skip = async (reason: string) => {
       if (!options.dryRun) {
@@ -774,6 +814,10 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     };
     if (!person || person.suppressed) {
       await skip(!person ? "niet meer op de lijst" : "bounce of spam");
+      continue;
+    }
+    if (!person.member && upcomingSunday(sendBookings, now)) {
+      await skip("eerst hun geboekte zondag");
       continue;
     }
     if (await mailedRecently(send.emailNormalized, send.id, now)) {

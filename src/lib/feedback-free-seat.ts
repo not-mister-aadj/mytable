@@ -49,7 +49,15 @@ export async function bookFreeSeatAfterFeedback(bookingId: string, eventId: stri
         adminNotes: FREE_SEAT_NOTE,
       })
       .returning();
-    await tx.insert(bookingEvents).values({ bookingId: booking!.id, type: "feedback_free_seat", payload: { fromBookingId: bookingId } });
+    await tx.insert(bookingEvents).values([
+      { bookingId: booking!.id, type: "feedback_free_seat", payload: { fromBookingId: bookingId } },
+      // Same source as the links on the feedback page.
+      {
+        bookingId: booking!.id,
+        type: "checkout_utm",
+        payload: { utm_source: "mytable", utm_medium: "feedback", utm_campaign: "feedback", utm_content: "gratis" },
+      },
+    ]);
     return { booking: booking!, event: ev };
   });
   if (!result) return { ok: false, error: "capacity" };

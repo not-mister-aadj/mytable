@@ -318,6 +318,8 @@ export const memberships = pgTable(
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     cancelEmailSentFor: timestamp("cancel_email_sent_for", { withTimezone: true }),
     metaSubscribeSentAt: timestamp("meta_subscribe_sent_at", { withTimezone: true }),
+    /** Given for free by hand (drizzle/0057): no Stripe, no end date. */
+    complimentary: boolean("complimentary").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

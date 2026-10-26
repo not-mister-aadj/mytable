@@ -73,6 +73,7 @@ export type SettingsMembership = {
     | { kind: "renews"; date: string; cents: number }
     | { kind: "ends"; date: string }
     | { kind: "past_due" }
+    | { kind: "free" }
     | { kind: "none" };
   blockedUntil: string | null;
 } | null;
@@ -424,6 +425,25 @@ export function JouwTafelSettings({
     }
   }
 
+  // A free membership: "Afmelden" ends it here, there is no Stripe portal.
+  const [confirmFreeEnd, setConfirmFreeEnd] = useState(false);
+  const [endingFree, setEndingFree] = useState(false);
+  async function endFreeMembership() {
+    if (endingFree) return;
+    setEndingFree(true);
+    try {
+      const res = await fetch("/api/membership/end-free", { method: "POST" });
+      if (!res.ok) throw new Error(String(res.status));
+      setConfirmFreeEnd(false);
+      setToast(ms.freeEndDone);
+      router.refresh();
+    } catch {
+      setToast(ms.portalFailed);
+    } finally {
+      setEndingFree(false);
+    }
+  }
+
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   async function cancelSeat(booking: SettingsBooking) {
@@ -673,8 +693,43 @@ export function JouwTafelSettings({
         {tab === "reserveringen" ? (
         <>
         {membership || MEMBERSHIP_OPEN || MEMBERSHIP_AT_BOOKING ? (
-        <Group title={ms.group} note={membership ? ms.note : undefined}>
-          {membership ? (
+        <Group title={ms.group} note={membership && membership.summary.kind !== "free" ? ms.note : undefined}>
+          {membership?.summary.kind === "free" ? (
+            <>
+              <li className={`${rowBase} cursor-default`}>
+                <RowContent label={ms.freePlan} value={null} />
+              </li>
+              <li className={`${rowBase} cursor-default`}>
+                <span className="text-[0.92rem] leading-snug text-wine/70">
+                  {ms.freeSummary}
+                  {membership.blockedUntil ? (
+                    <span className="mt-1 block text-wine/70">{ms.blocked(fullDate(membership.blockedUntil, locale))}</span>
+                  ) : null}
+                </span>
+              </li>
+              {confirmFreeEnd ? (
+                <li className="px-4 py-4">
+                  <p className="font-serif text-[1.1rem] text-wine">{ms.freeEndTitle}</p>
+                  <p className="mt-1 text-[0.9rem] leading-snug text-wine/65">{ms.freeEndBody}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      disabled={endingFree}
+                      onClick={() => void endFreeMembership()}
+                      className="rounded-full bg-burgundy px-5 py-2.5 text-[0.9rem] font-semibold text-cream disabled:opacity-60"
+                    >
+                      {endingFree ? ms.freeEndBusy : ms.freeEndConfirm}
+                    </button>
+                    <button type="button" onClick={() => setConfirmFreeEnd(false)} className="text-[0.9rem] text-wine/60">
+                      {ms.freeEndKeep}
+                    </button>
+                  </div>
+                </li>
+              ) : (
+                <ButtonRow label={ms.freeEnd} onClick={() => setConfirmFreeEnd(true)} />
+              )}
+            </>
+          ) : membership ? (
             <>
               <LinkRow
                 label={ms.plan}

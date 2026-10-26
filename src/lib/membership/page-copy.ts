@@ -423,6 +423,16 @@ export type MembershipSettingsCopy = {
   blocked: (date: string) => string;
   portal: string;
   portalBusy: string;
+  /** A free membership (given by hand). */
+  freePlan: string;
+  freeSummary: string;
+  freeEnd: string;
+  freeEndTitle: string;
+  freeEndBody: string;
+  freeEndConfirm: string;
+  freeEndKeep: string;
+  freeEndBusy: string;
+  freeEndDone: string;
   portalFailed: string;
   note: string;
   memberSeat: string;
@@ -466,6 +476,15 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
       blocked: (date) => `You can book again from ${date}.`,
       portal: "Payment details and cancelling",
       portalBusy: "Opening",
+      freePlan: "Free membership",
+      freeSummary: "Every Sunday Social for free, no end date",
+      freeEnd: "End my membership",
+      freeEndTitle: "End your membership?",
+      freeEndBody: "Your free membership stops straight away. Sundays you already booked stay booked.",
+      freeEndConfirm: "Yes, end it",
+      freeEndKeep: "Keep it",
+      freeEndBusy: "Ending",
+      freeEndDone: "Your membership has ended.",
       portalFailed: "That did not work. Please try again.",
       note: "Cancelling takes effect at the end of the period you paid for.",
       memberSeat: "Included in your membership",
@@ -505,6 +524,15 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
     blocked: (date) => `Je kunt weer boeken vanaf ${date}.`,
     portal: "Betaalgegevens en opzeggen",
     portalBusy: "Openen",
+    freePlan: "Gratis lidmaatschap",
+    freeSummary: "Elke Sunday Social gratis, zonder einddatum",
+    freeEnd: "Afmelden",
+    freeEndTitle: "Afmelden voor je lidmaatschap?",
+    freeEndBody: "Je gratis lidmaatschap stopt dan meteen. Zondagen die je al geboekt hebt, blijven staan.",
+    freeEndConfirm: "Ja, afmelden",
+    freeEndKeep: "Lid blijven",
+    freeEndBusy: "Afmelden",
+    freeEndDone: "Je bent afgemeld.",
     portalFailed: "Dat lukte niet. Probeer het nog een keer.",
     note: "Opzeggen gaat in aan het einde van de periode die je hebt betaald.",
     memberSeat: "Inbegrepen in je lidmaatschap",

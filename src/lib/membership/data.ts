@@ -271,11 +271,15 @@ export function settingsMembership(row: Membership | null, now: number = Date.no
     | { kind: "renews"; date: string; cents: number }
     | { kind: "ends"; date: string }
     | { kind: "past_due" }
+    | { kind: "free" }
     | { kind: "none" };
   blockedUntil: string | null;
 } | null {
   const snapshot = membershipSnapshot(row);
   if (!snapshot || snapshot.status === "canceled") return null;
+  const blockedUntil =
+    snapshot.bookingBlockedUntil && snapshot.bookingBlockedUntil.getTime() > now ? snapshot.bookingBlockedUntil.toISOString() : null;
+  if (row?.complimentary) return { plan: snapshot.plan, summary: { kind: "free" }, blockedUntil };
   const summary = membershipSummary(snapshot, nextChargeCents(snapshot.plan), now);
   if (summary.kind === "none") return null;
   return {
@@ -286,9 +290,18 @@ export function settingsMembership(row: Membership | null, now: number = Date.no
         : summary.kind === "ends"
           ? { kind: "ends", date: summary.date.toISOString() }
           : summary,
-    blockedUntil:
-      snapshot.bookingBlockedUntil && snapshot.bookingBlockedUntil.getTime() > now
-        ? snapshot.bookingBlockedUntil.toISOString()
-        : null,
+    blockedUntil,
   };
+}
+
+/** Ends a free membership straight away (the person's own "Afmelden"). Only
+ * for complimentary ones: paid ones end through Stripe. */
+export async function endComplimentaryMembership(email: string): Promise<boolean> {
+  const row = await getRunningMembershipByEmail(email);
+  if (!row || !row.complimentary) return false;
+  await getDb()
+    .update(memberships)
+    .set({ status: "canceled", cancelAtPeriodEnd: false, currentPeriodEnd: new Date(), updatedAt: new Date() })
+    .where(eq(memberships.id, row.id));
+  return true;
 }

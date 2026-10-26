@@ -163,9 +163,9 @@ export async function getBoardData(month: string): Promise<BoardData> {
   // ---- members and MRR. A membership counts from created_at until it is
   // canceled (updated_at of a canceled row); MRR is each plan's monthly price.
   const mrrCase = sql.raw(
-    `case plan ${Object.values(MEMBERSHIP_PLANS)
+    `case when complimentary then 0 else case plan ${Object.values(MEMBERSHIP_PLANS)
       .map((p) => `when '${p.id}' then ${p.monthlyCents}`)
-      .join(" ")} else 0 end`,
+      .join(" ")} else 0 end end`,
   );
   const membersAt = async (at: string) => {
     const [row] = await q<{ active: number; mrr: number }>(sql`

@@ -22,6 +22,8 @@ export type BookingMovedEmailProps = {
   eventUrl: string;
   /** The customer moved it themselves ("Je hebt je boeking verzet"). */
   selfService?: boolean;
+  /** The new table's venue is not set yet: it is shared 7 days before. */
+  locationLater?: boolean;
 };
 
 export function BookingMovedEmail({
@@ -39,6 +41,7 @@ export function BookingMovedEmail({
   bookingCode,
   eventUrl,
   selfService = false,
+  locationLater = false,
 }: BookingMovedEmailProps) {
   const en = locale === "en";
   const greeting = customerName
@@ -112,6 +115,11 @@ export function BookingMovedEmail({
         {en
           ? "You do not need to do anything else. Your seat moved with you to the new table."
           : "Je hoeft verder niets te doen. Je plek is automatisch meegenomen naar de nieuwe tafel."}
+        {locationLater
+          ? en
+            ? ` You will hear the venue in ${newCity} from us at the latest 7 days beforehand.`
+            : ` De locatie in ${newCity} hoor je uiterlijk 7 dagen van tevoren van ons.`
+          : null}
       </Text>
 
       <CTASection

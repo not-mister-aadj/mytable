@@ -169,6 +169,14 @@ export async function buildBookingMovedEmailProps(
   const oldEnds = oldEvent.endsAt ? new Date(oldEvent.endsAt) : null;
   const newStarts = new Date(newEvent.startsAt);
   const newEnds = newEvent.endsAt ? new Date(newEvent.endsAt) : null;
+  // A shared table whose venue is not set yet: the mail says when it comes.
+  const newContext = isSundaySocialType(newEvent.experienceType)
+    ? await buildSundayTableEmailContext(newEvent, locale)
+    : isJouwTafelType(newEvent.experienceType)
+      ? await buildSeriesTableEmailContext(newEvent, locale).catch(() => null)
+      : null;
+  const locationLater =
+    isSharedTableType(newEvent.experienceType) && !(newContext?.venueName?.trim() || newContext?.startLocation?.trim());
 
   return {
     locale,
@@ -185,5 +193,6 @@ export async function buildBookingMovedEmailProps(
     seats: booking.seats,
     bookingCode: reservationCode(booking.id),
     eventUrl: buildEventUrl(newEvent, locale),
+    locationLater,
   };
 }

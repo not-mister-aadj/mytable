@@ -61,12 +61,12 @@ async function loadPublishedExperiences(
   return fetchFromCatalog(locale);
 }
 
-function cachePublishedExperiences(
+async function cachePublishedExperiences(
   locale: Locale,
   scope: "landing" | "agenda",
   whereClause: ReturnType<typeof publishedLandingEventsWhere>,
-) {
-  return unstable_cache(
+): Promise<EnrichedExperience[]> {
+  const cached = await unstable_cache(
     async () => loadPublishedExperiences(locale, whereClause),
     ["published-experiences", scope, locale],
     {
@@ -74,6 +74,11 @@ function cachePublishedExperiences(
       tags: [PUBLISHED_EVENTS_CACHE_TAG, `${PUBLISHED_EVENTS_CACHE_TAG}:${scope}`],
     },
   )();
+  // A cold start once handed back a cache entry that was not a list
+  // ("items is not iterable"); load straight from the source instead.
+  if (Array.isArray(cached)) return cached;
+  const fresh = await loadPublishedExperiences(locale, whereClause);
+  return Array.isArray(fresh) ? fresh : [];
 }
 
 /** Landing page: open for booking, not closed. */

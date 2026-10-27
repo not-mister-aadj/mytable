@@ -10,6 +10,10 @@ const IN_APP_BROWSER_ERROR_PATTERNS = [
   /sendJsBlockingTimeMessage/i,
   /sendPageHideMessage/i,
   /navigation_performance_logger/i,
+  // Meta's in-app browser scripts (Facebook, Instagram): `window._META.IABInnerFrame`
+  // and the `logLoginFormFocused` bridge call.
+  /IABInnerFrame/,
+  /logLoginFormFocused/,
 ];
 
 function isInAppBrowserNoise(event: Sentry.ErrorEvent): boolean {
@@ -50,6 +54,8 @@ Sentry.init({
     "Error invoking postMessage: Java object is gone",
     /webkit\.messageHandlers/i,
     /Java object is gone/i,
+    // Microsoft Outlook Safe Links opening a link from a mail to scan it.
+    /Object Not Found Matching Id:\d+, MethodName:\w+, ParamCount:\d+/,
   ],
 
   beforeSend(event) {

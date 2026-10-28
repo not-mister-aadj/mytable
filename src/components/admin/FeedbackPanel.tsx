@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { setFeedbackUsedAction } from "@/app/admin/(dashboard)/events/[id]/guests/feedback-actions";
 import { markBookingNoShowAction } from "@/app/admin/(dashboard)/events/actions";
+import { DISLIKED_LABELS, LIKED_LABELS, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
 
 export type MissingGuest = { bookingId: string; name: string; by: string[]; noShow: boolean };
 
@@ -13,7 +14,9 @@ export type FeedbackRow = {
   group: number | null;
   mood: string | null;
   venueMood: string | null;
+  liked: LikedReason[];
   highlight: string | null;
+  disliked: DislikedReason[];
   improve: string | null;
   quoteConsent: boolean;
   photoUrl: string | null;
@@ -31,6 +34,30 @@ const MOOD: Record<string, { label: string; dot: string }> = {
   meh: { label: "Matig", dot: "bg-[#e9a2a2]" },
   bad: { label: "Niet leuk", dot: "bg-[#d64550]" },
 };
+
+/** How often each reason was tapped, most first. */
+function ReasonCounts({ title, counts }: { title: string; counts: [string, number][] }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-beige/60 p-4">
+      <p className="text-xs font-medium uppercase tracking-[0.08em] text-wine/45">{title}</p>
+      <div className="mt-2 space-y-1 text-sm">
+        {counts.length === 0 ? <span className="text-wine/40">–</span> : null}
+        {counts.map(([label, n]) => (
+          <div key={label} className="flex justify-between gap-3">
+            <span className="text-wine">{label}</span>
+            <span className="tabular-nums text-wine/70">{n}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function tally<K extends string>(lists: K[][], labels: Record<K, string>): [string, number][] {
+  const n = new Map<K, number>();
+  for (const list of lists) for (const k of list) n.set(k, (n.get(k) ?? 0) + 1);
+  return [...n].sort((a, b) => b[1] - a[1]).map(([k, c]) => [labels[k] ?? k, c]);
+}
 
 function MoodChip({ mood }: { mood: string | null }) {
   const m = mood ? MOOD[mood] : null;
@@ -61,6 +88,8 @@ export function FeedbackPanel({
   const [pending, start] = useTransition();
   const count = (key: "mood" | "venueMood", v: string) => rows.filter((r) => r[key] === v).length;
   const sorted = [...rows].sort((a, b) => Number(b.quoteConsent) - Number(a.quoteConsent));
+  const likedCounts = tally(rows.map((r) => r.liked), LIKED_LABELS.nl);
+  const dislikedCounts = tally(rows.map((r) => r.disliked), DISLIKED_LABELS.nl);
 
   return (
     <div className="space-y-5">
@@ -126,6 +155,12 @@ export function FeedbackPanel({
           </div>
         </div>
       </div>
+      {likedCounts.length > 0 || dislikedCounts.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ReasonCounts title="Leuk aan" counts={likedCounts} />
+          <ReasonCounts title="Kan beter" counts={dislikedCounts} />
+        </div>
+      ) : null}
 
       {sorted.length === 0 ? <p className="text-sm text-wine/55">Nog geen feedback.</p> : null}
       <ul className="space-y-3">
@@ -165,14 +200,24 @@ export function FeedbackPanel({
                   >
                     {r.used ? "Gebruikt ✓" : "Gebruiken"}
                   </button>
-                ) : (
-                  <span className="rounded-full bg-wine/[0.05] px-3 py-1 text-wine/50">Niet citeren</span>
-                )}
+                ) : null}
                 {!r.completed ? <span className="rounded-full bg-wine/[0.05] px-3 py-1 text-wine/50">Niet afgemaakt</span> : null}
                 {r.contactOk ? <span className="rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-900">Wil contact · {r.email}</span> : null}
               </div>
             </div>
-            {r.highlight ? <p className="mt-3 text-sm text-wine">“{r.highlight}”</p> : null}
+            {r.liked.length > 0 ? (
+              <p className="mt-3 text-sm text-wine">
+                <span className="font-medium text-wine/50">Leuk: </span>
+                {r.liked.map((k) => LIKED_LABELS.nl[k]).join(", ")}
+              </p>
+            ) : null}
+            {r.highlight ? <p className="mt-2 text-sm text-wine">“{r.highlight}”</p> : null}
+            {r.disliked.length > 0 ? (
+              <p className="mt-2 text-sm text-wine/70">
+                <span className="font-medium text-wine/50">Kan beter: </span>
+                {r.disliked.map((k) => DISLIKED_LABELS.nl[k]).join(", ")}
+              </p>
+            ) : null}
             {r.improve ? (
               <p className="mt-2 text-sm text-wine/70">
                 <span className="font-medium text-wine/50">Beter: </span>

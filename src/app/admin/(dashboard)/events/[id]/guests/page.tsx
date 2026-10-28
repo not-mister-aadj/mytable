@@ -1,4 +1,5 @@
 import { and, asc, eq, sql } from "drizzle-orm";
+import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown } from "@/lib/feedback-reasons";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -226,7 +227,9 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
           group: r.group ?? null,
           mood: r.f.mood,
           venueMood: r.f.venueMood,
+          liked: onlyKnown(LIKED_REASONS, r.f.liked),
           highlight: r.f.highlight,
+          disliked: onlyKnown(DISLIKED_REASONS, r.f.disliked),
           improve: r.f.improve,
           quoteConsent: r.f.quoteConsent,
           photoUrl: r.profilePhoto ?? r.f.photoUrl,

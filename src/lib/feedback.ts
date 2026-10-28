@@ -7,15 +7,15 @@ import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { getRunningMembershipByEmail, membershipSnapshot } from "@/lib/membership/data";
 import { isActiveMember } from "@/lib/membership/logic";
 import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
-import { getProfilePhoto } from "@/lib/profile-photo";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
+import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
 
 /**
  * "Hoe was je middag?": the page behind the 20:00 mail on the Sunday itself,
  * one signed link per booking. Four faces first; what follows depends on
- * them (a quote with photo and the membership for a great afternoon, only
- * "what can be better" for a bad one).
+ * them ("what made it good" for a good afternoon, "what can be better" for
+ * anything short of great), each as reasons to tap plus an open field.
  */
 
 const TOKEN_PURPOSE = "feedback";
@@ -54,10 +54,12 @@ export async function feedbackUrl(bookingId: string, locale: "nl" | "en", base =
 export type FeedbackState = {
   mood: Mood | null;
   venueMood: Mood | null;
+  /** Reasons tapped for "wat maakte het zo leuk", plus their own words. */
+  liked: LikedReason[];
   highlight: string;
+  /** Reasons tapped for "wat kan beter", plus their own words. */
+  disliked: DislikedReason[];
   improve: string;
-  quoteConsent: boolean;
-  photoUrl: string | null;
   contactOk: boolean;
   wantToSee: string[];
   /** Tablemates who weren't there, as they saw it. */
@@ -73,8 +75,6 @@ export type FeedbackPage = {
   city: string;
   venueName: string | null;
   member: boolean;
-  /** Their profile photo; when there is one we don't ask for it again. */
-  profilePhoto: string | null;
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
   tablemates: { bookingId: string; firstName: string }[];
   /** The next bookable Sunday Social in their city. */
@@ -100,7 +100,7 @@ const FREE_SEAT_OPTIONS = 3;
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 
 function emptyState(): FeedbackState {
-  return { mood: null, venueMood: null, highlight: "", improve: "", quoteConsent: false, photoUrl: null, contactOk: false, wantToSee: [], missing: [], completed: false };
+  return { mood: null, venueMood: null, liked: [], highlight: "", disliked: [], improve: "", contactOk: false, wantToSee: [], missing: [], completed: false };
 }
 
 export async function loadFeedbackPage(bookingId: string, now = Date.now()): Promise<FeedbackPage | null> {
@@ -144,10 +144,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
         .orderBy(asc(bookings.createdAt))
     : [];
 
-  const [membership, profilePhoto] = await Promise.all([
-    getRunningMembershipByEmail(booking.email).catch(() => null),
-    getProfilePhoto(booking.email).catch(() => null),
-  ]);
+  const membership = await getRunningMembershipByEmail(booking.email).catch(() => null);
   // "Sunday Social · 35+": the next one never has another age group.
   const bracket = (name: string) => /·\s*(\d{2}\s*[-+]\s*\d{0,2}\+?)\s*$/.exec(name)?.[1]?.replace(/\s/g, "") ?? null;
   const ownBracket = bracket(event.nameNl);
@@ -233,7 +230,6 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     city: event.city,
     venueName: venue?.name ?? null,
     member: isActiveMember(membershipSnapshot(membership)),
-    profilePhoto,
     tablemates: mates.filter((m) => m.id !== booking.id).map((m) => ({ bookingId: m.id, firstName: firstName(m.name) || "Gast" })),
     next:
       nextEvent && nextPath
@@ -260,10 +256,10 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
       ? {
           mood: isMood(saved.mood) ? saved.mood : null,
           venueMood: isMood(saved.venueMood) ? saved.venueMood : null,
+          liked: onlyKnown(LIKED_REASONS, saved.liked),
           highlight: saved.highlight ?? "",
+          disliked: onlyKnown(DISLIKED_REASONS, saved.disliked),
           improve: saved.improve ?? "",
-          quoteConsent: saved.quoteConsent,
-          photoUrl: saved.photoUrl,
           contactOk: saved.contactOk,
           wantToSee: Array.isArray(saved.wantToSee) ? saved.wantToSee : [],
           missing: Array.isArray(saved.missing) ? saved.missing : [],
@@ -288,11 +284,11 @@ export async function saveFeedback(bookingId: string, input: Partial<FeedbackSta
   const values = {
     ...(input.mood !== undefined ? { mood: isMood(input.mood) ? input.mood : null } : {}),
     ...(input.venueMood !== undefined ? { venueMood: isMood(input.venueMood) ? input.venueMood : null } : {}),
+    ...(input.liked !== undefined ? { liked: onlyKnown(LIKED_REASONS, input.liked) } : {}),
     ...(input.highlight !== undefined ? { highlight: text(input.highlight, 1000) || null } : {}),
+    ...(input.disliked !== undefined ? { disliked: onlyKnown(DISLIKED_REASONS, input.disliked) } : {}),
     ...(input.improve !== undefined ? { improve: text(input.improve, 1000) || null } : {}),
-    ...(input.quoteConsent !== undefined ? { quoteConsent: Boolean(input.quoteConsent) } : {}),
     ...(input.contactOk !== undefined ? { contactOk: Boolean(input.contactOk) } : {}),
-    ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
     ...(input.missing !== undefined ? { missing: (input.missing ?? []).filter((id) => allowed.has(id)) } : {}),
     ...(input.wantToSee !== undefined && page.member
       ? { wantToSee: (input.wantToSee ?? []).filter((id) => allowed.has(id)) }

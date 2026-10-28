@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { monthlyTargetCents } from "@/lib/admin/monthly-target";
+import { LOCATION_SUBJECT_SQL } from "@/lib/admin/sunday-mails";
 
 /** Everything the "Vandaag" page shows, in one round of queries. */
 
@@ -39,7 +40,6 @@ export type TodayData = {
   recentBookings: Array<{ id: string; name: string; city: string; startsAt: string; createdAt: string; seats: number }>;
 };
 
-const LOCATION_SUBJECT = `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%')`;
 const SATURDAY_SUBJECT = `(subject ilike '%groep %' or subject ilike '%group %' or subject ilike '%aanraders%' or subject ilike '%our picks%')`;
 
 function amsterdamDay(date: Date): string {
@@ -74,7 +74,7 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
       count(b.id) filter (where coalesce(nullif(trim(b.intro_ask_me_about), ''), nullif(trim(b.intro_favorite_spot), ''), nullif(trim(b.intro_into_now), '')) is null)::int as questions_open,
       count(b.id) filter (where exists (
         select 1 from email_log l where l.email_normalized = lower(trim(b.email))
-          and l.sent_at > e.starts_at - interval '10 days' and ${LOCATION_SUBJECT}))::int as location_sent,
+          and l.sent_at > e.starts_at - interval '10 days' and ${LOCATION_SUBJECT_SQL}))::int as location_sent,
       count(b.id) filter (where exists (
         select 1 from email_log l where l.email_normalized = lower(trim(b.email))
           and l.sent_at > e.starts_at - interval '4 days' and ${SATURDAY_SUBJECT}))::int as saturday_sent,

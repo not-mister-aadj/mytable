@@ -18,17 +18,16 @@ const COPY = {
     improveHint: "Tik aan wat klopt, meer mag ook. Alleen voor ons, we lezen alles.",
     more: "Vertel er iets meer over (mag ook leeg)",
     wantTitle: "Wie wil je vaker zien?",
-    membersOnly: "Alleen voor leden",
-    wantNote: "Leden kiezen wie ze terugzien. Niemand ziet wat jij aanvinkt.",
-    offerTitle: "Klikte het aan tafel? Zie ze terug.",
-    offerBody: "Als lid kies je wie je vaker wilt zien. Kiezen jullie elkaar, dan zetten we jullie een volgende keer weer samen aan tafel.",
+    wantNote: "Kiezen jullie elkaar, dan is de kans groter dat we jullie weer bij elkaar zetten. Niemand ziet wat je aanvinkt.",
+    offerTitle: "Klikte het aan tafel? Kom vaker.",
+    offerBody: "Als lid ben je elke Sunday Social welkom, in alle 5 steden, en boek je nieuwe data als eerste.",
     offerSmall: "€10 per maand · elke Sunday Social in alle 5 steden · maandelijks opzegbaar",
     offerCta: "Word lid en reserveer",
     offerCtaNoDate: "Word lid",
     memberOnly: "Alleen lid worden",
     memberCardTitle: "Lid worden",
     memberPrice: "€10 per maand",
-    memberPoints: ["Kies wie je terugziet", "Elke Sunday Social, alle 5 steden", "Maandelijks opzegbaar"],
+    memberPoints: ["Als eerste boeken bij nieuwe data", "Elke Sunday Social, alle 5 steden", "Maandelijks opzegbaar"],
     alsoBook: (date: string) => `Reserveer ${date} meteen`,
     plusOne: "Ik neem iemand mee (+1)",
     plusOneMember: "je gast gratis",
@@ -48,7 +47,6 @@ const COPY = {
     skip: "Overslaan",
     back: "Terug",
     everyoneThere: "Iedereen was er",
-    wantLater: "Klikte het met iemand? Als lid kies je wie je terugziet.",
     saving: "Bezig…",
     thanks: "Dank je! We lezen alles.",
     thanksSorry: "Dank je dat je het eerlijk zegt.",
@@ -74,17 +72,16 @@ const COPY = {
     improveHint: "Tap what fits, more than one is fine. Only for us, we read everything.",
     more: "Tell us a bit more (optional)",
     wantTitle: "Who would you like to see again?",
-    membersOnly: "Members only",
-    wantNote: "Members choose who they see again. Nobody sees what you tick.",
-    offerTitle: "Clicked at the table? See them again.",
-    offerBody: "As a member you choose who you'd like to see more of. If you choose each other, we'll seat you together again another time.",
+    wantNote: "If you choose each other, we're more likely to seat you together again. Nobody sees what you tick.",
+    offerTitle: "Clicked at the table? Come more often.",
+    offerBody: "As a member you're welcome at every Sunday Social, in all 5 cities, and you book new dates first.",
     offerSmall: "€10 a month · every Sunday Social in all 5 cities · cancel monthly",
     offerCta: "Become a member and reserve",
     offerCtaNoDate: "Become a member",
     memberOnly: "Just become a member",
     memberCardTitle: "Become a member",
     memberPrice: "€10 a month",
-    memberPoints: ["Choose who you see again", "Every Sunday Social, all 5 cities", "Cancel monthly"],
+    memberPoints: ["Book new dates first", "Every Sunday Social, all 5 cities", "Cancel monthly"],
     alsoBook: (date: string) => `Reserve ${date} right away`,
     plusOne: "I'm bringing someone (+1)",
     plusOneMember: "your guest free",
@@ -104,7 +101,6 @@ const COPY = {
     skip: "Skip",
     back: "Back",
     everyoneThere: "Everyone was there",
-    wantLater: "Clicked with someone? As a member you choose who you see again.",
     saving: "Saving…",
     thanks: "Thank you! We read everything.",
     thanksSorry: "Thank you for being honest.",
@@ -177,7 +173,7 @@ function fromFeedback(href: string, content: string): string {
   return `${url.pathname}${url.search}${hash ? `#${hash}` : ""}`;
 }
 
-type Step = "mood" | "venue" | "liked" | "improve" | "missing";
+type Step = "mood" | "venue" | "liked" | "improve" | "want" | "missing";
 
 /** One question per screen: which ones depend on the first answer. */
 function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
@@ -187,6 +183,7 @@ function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
     "venue",
     ...(okish ? (["liked"] as const) : []),
     ...(mood && mood !== "great" ? (["improve"] as const) : []),
+    ...(okish && hasMates ? (["want"] as const) : []),
     ...(hasMates ? (["missing"] as const) : []),
   ];
 }
@@ -236,15 +233,14 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
   const toggle = (key: "wantToSee" | "missing", id: string) =>
     save({ [key]: state[key].includes(id) ? state[key].filter((x) => x !== id) : [...state[key], id] } as Partial<FeedbackState>);
 
-  const chips = (key: "wantToSee" | "missing", enabled = true) => (
-    <div className={`mt-4 flex flex-wrap gap-2 ${enabled ? "" : "pointer-events-none opacity-45"}`}>
+  const chips = (key: "wantToSee" | "missing") => (
+    <div className="mt-4 flex flex-wrap gap-2">
       {page.tablemates.map((m) => {
         const on = state[key].includes(m.bookingId);
         return (
           <button
             key={m.bookingId}
             type="button"
-            disabled={!enabled}
             onClick={() => toggle(key, m.bookingId)}
             className={`rounded-full px-3.5 py-1.5 text-sm transition ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
           >
@@ -273,23 +269,10 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
             <NextSunday page={page} t={t} />
           ) : null}
         </section>
-        {okish && page.member && hasMates ? (
-          <section className={card}>
-            <h2 className="font-serif text-2xl text-wine">{t.wantTitle}</h2>
-            <p className="mt-1 text-xs text-wine/50">{t.wantNote}</p>
-            {chips("wantToSee")}
-          </section>
-        ) : null}
         {okish && !page.member ? (
           <section className={card}>
             <h2 className="font-serif text-2xl text-wine sm:text-3xl">{t.offerTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-wine/70">{t.offerBody}</p>
-            {hasMates ? (
-              <div className="mt-4">
-                <span className="text-xs font-semibold text-wine/50">🔒 {t.membersOnly}</span>
-                {chips("wantToSee", false)}
-              </div>
-            ) : null}
             {page.next && page.next.seatsLeft >= 2 ? (
               <label className="mt-6 flex items-center gap-2 text-sm text-wine">
                 <input type="checkbox" checked={plusOne} onChange={(e) => setPlusOne(e.target.checked)} className="accent-burgundy" />
@@ -452,6 +435,13 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
             </>
           ) : current === "liked" || current === "improve" ? (
             reasonStep(current)
+          ) : current === "want" ? (
+            <>
+              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.wantTitle}</h1>
+              <p className="mt-1 text-sm text-wine/55">{t.wantNote}</p>
+              {chips("wantToSee")}
+              {nav({ primary: state.wantToSee.length > 0 ? (last ? t.save : t.next) : t.skip, primaryStyle: state.wantToSee.length > 0 ? "solid" : "ghost", onPrimary: next })}
+            </>
           ) : (
             <>
               <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.missingTitle}</h1>

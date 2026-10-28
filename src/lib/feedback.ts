@@ -272,7 +272,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 /** Saves what is given so far (the page saves after each answer). Want-to-see
- * only for members, and only people at their own table. */
+ * and missing only name people at their own table. */
 export async function saveFeedback(bookingId: string, input: Partial<FeedbackState>): Promise<void> {
   const page = await loadFeedbackPage(bookingId);
   if (!page) throw new Error("Booking not found");
@@ -290,9 +290,7 @@ export async function saveFeedback(bookingId: string, input: Partial<FeedbackSta
     ...(input.improve !== undefined ? { improve: text(input.improve, 1000) || null } : {}),
     ...(input.contactOk !== undefined ? { contactOk: Boolean(input.contactOk) } : {}),
     ...(input.missing !== undefined ? { missing: (input.missing ?? []).filter((id) => allowed.has(id)) } : {}),
-    ...(input.wantToSee !== undefined && page.member
-      ? { wantToSee: (input.wantToSee ?? []).filter((id) => allowed.has(id)) }
-      : {}),
+    ...(input.wantToSee !== undefined ? { wantToSee: (input.wantToSee ?? []).filter((id) => allowed.has(id)) } : {}),
   };
   await getDb()
     .insert(bookingFeedback)

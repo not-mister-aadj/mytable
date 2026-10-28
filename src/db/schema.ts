@@ -992,6 +992,10 @@ export const bookingFeedback = pgTable("booking_feedback", {
   wantToSee: jsonb("want_to_see").$type<string[]>().notNull().default([]),
   /** Tablemates they say weren't there (booking ids, drizzle/0055). */
   missing: jsonb("missing").$type<string[]>().notNull().default([]),
+  /** Reasons tapped for "wat maakte het zo leuk" / "wat kan beter"
+   * (keys from src/lib/feedback-reasons.ts, drizzle/0058). */
+  liked: jsonb("liked").$type<string[]>().notNull().default([]),
+  disliked: jsonb("disliked").$type<string[]>().notNull().default([]),
   usedAt: timestamp("used_at", { withTimezone: true }),
   /** Reached the last screen of the feedback page (drizzle/0056). */
   completedAt: timestamp("completed_at", { withTimezone: true }),

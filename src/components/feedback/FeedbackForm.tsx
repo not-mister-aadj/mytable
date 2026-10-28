@@ -1,29 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useTransition } from "react";
-import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
-import { PhotoCropper } from "@/components/PhotoCropper";
+import { useMemo, useState, useTransition } from "react";
+import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
+import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFor } from "@/lib/feedback-reasons";
 
 const COPY = {
   nl: {
     title: (venue: string) => `Hoe was je middag bij ${venue}?`,
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
     venue: (venue: string) => `En hoe was ${venue}?`,
-    highlight: "Wat zou je zeggen tegen iemand die twijfelt om te komen?",
-    highlightHint: "Met jouw woorden schuiven er nog meer leuke mensen aan tafel.",
-    highlightPlaceholder: "Bijvoorbeeld: hoe je je voelde toen je binnenkwam en hoe na afloop, met wie je praatte, wat je verraste",
+    liked: "Wat maakte het zo leuk?",
+    likedGood: "Wat vond je het leukst?",
     improve: "Wat kan beter?",
-    improveHint: "Alleen voor ons, we lezen alles.",
-    quote: "Mogen we je woorden gebruiken op onze site of social media?",
-    yes: "Ja, graag",
-    no: "Liever niet",
-    photo: "Voeg een profielfoto toe",
-    photoHint: "Een foto van jezelf, naast je woorden.",
-    photoChange: "Andere foto",
-    photoUsed: "We zetten je profielfoto bij je woorden.",
-    photoBusy: "Uploaden…",
+    pickHint: "Tik aan wat klopt, meer mag ook.",
+    improveHint: "Tik aan wat klopt, meer mag ook. Alleen voor ons, we lezen alles.",
+    more: "Vertel er iets meer over (mag ook leeg)",
     wantTitle: "Wie wil je vaker zien?",
     membersOnly: "Alleen voor leden",
     wantNote: "Leden kiezen wie ze terugzien. Niemand ziet wat jij aanvinkt.",
@@ -74,19 +67,12 @@ const COPY = {
     title: (venue: string) => `How was your afternoon at ${venue}?`,
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
     venue: (venue: string) => `And how was ${venue}?`,
-    highlight: "What would you tell someone who's unsure about coming?",
-    highlightHint: "Your words bring even more lovely people to the table.",
-    highlightPlaceholder: "For example: how you felt walking in and how afterwards, who you talked to, what surprised you",
+    liked: "What made it so good?",
+    likedGood: "What did you like most?",
     improve: "What could be better?",
-    improveHint: "Only for us, we read everything.",
-    quote: "May we use your words on our site or social media?",
-    yes: "Yes, please",
-    no: "Rather not",
-    photo: "Add a profile photo",
-    photoHint: "A photo of yourself, next to your words.",
-    photoChange: "Other photo",
-    photoUsed: "We'll put your profile photo next to your words.",
-    photoBusy: "Uploading…",
+    pickHint: "Tap what fits, more than one is fine.",
+    improveHint: "Tap what fits, more than one is fine. Only for us, we read everything.",
+    more: "Tell us a bit more (optional)",
     wantTitle: "Who would you like to see again?",
     membersOnly: "Members only",
     wantNote: "Members choose who they see again. Nobody sees what you tick.",
@@ -191,7 +177,7 @@ function fromFeedback(href: string, content: string): string {
   return `${url.pathname}${url.search}${hash ? `#${hash}` : ""}`;
 }
 
-type Step = "mood" | "venue" | "highlight" | "improve" | "quote" | "missing";
+type Step = "mood" | "venue" | "liked" | "improve" | "missing";
 
 /** One question per screen: which ones depend on the first answer. */
 function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
@@ -199,9 +185,8 @@ function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
   return [
     "mood",
     "venue",
-    ...(okish ? (["highlight"] as const) : []),
+    ...(okish ? (["liked"] as const) : []),
     ...(mood && mood !== "great" ? (["improve"] as const) : []),
-    ...(mood === "great" ? (["quote"] as const) : []),
     ...(hasMates ? (["missing"] as const) : []),
   ];
 }
@@ -213,15 +198,12 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
   // Back on the page after finishing (for instance as a new member): the last screen.
   const [sent, setSent] = useState(page.saved.completed);
   const [step, setStep] = useState(0);
-  // "Liever niet" is the default in the data; show a choice only once made.
-  const [quotePicked, setQuotePicked] = useState(page.saved.quoteConsent);
   const [error, setError] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [cropping, setCropping] = useState<File | null>(null);
   const [alsoBook, setAlsoBook] = useState(true);
   const [plusOne, setPlusOne] = useState(false);
   const [pending, start] = useTransition();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const likedOrder = useMemo(() => orderFor(LIKED_REASONS, page.bookingId), [page.bookingId]);
+  const dislikedOrder = useMemo(() => orderFor(DISLIKED_REASONS, page.bookingId), [page.bookingId]);
 
   const save = (patch: Partial<FeedbackState>) => {
     setState((s) => ({ ...s, ...patch }));
@@ -250,16 +232,6 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     const at = step;
     window.setTimeout(() => setStep((n) => (n === at ? n + 1 : n)), 280);
   };
-
-  async function upload(file: File) {
-    setUploading(true);
-    const form = new FormData();
-    form.set("photo", file);
-    const r = await uploadFeedbackPhotoAction(token, form);
-    setUploading(false);
-    if (r.ok) setState((s) => ({ ...s, photoUrl: r.url }));
-    else setError(true);
-  }
 
   const toggle = (key: "wantToSee" | "missing", id: string) =>
     save({ [key]: state[key].includes(id) ? state[key].filter((x) => x !== id) : [...state[key], id] } as Partial<FeedbackState>);
@@ -376,29 +348,57 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     );
   }
 
-  const textStep = (key: "highlight" | "improve", title: string, hint: string, placeholder?: string) => (
-    <>
-      <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{title}</h1>
-      <p className="mt-1 text-sm text-wine/55">{hint}</p>
-      <textarea
-        rows={4}
-        className={field}
-        value={state[key]}
-        placeholder={placeholder}
-        onChange={(e) => setState((s) => ({ ...s, [key]: e.target.value }))}
-      />
-      {key === "improve" && state.mood === "bad" ? (
-        <label className="mt-4 flex items-start gap-3 text-sm text-wine">
-          <input type="checkbox" className="mt-1" checked={state.contactOk} onChange={(e) => save({ contactOk: e.target.checked })} />
-          {t.contact}
+  const reasonStep = (kind: "liked" | "improve") => {
+    const listKey = kind === "liked" ? "liked" : "disliked";
+    const textKey = kind === "liked" ? "highlight" : "improve";
+    const order: readonly string[] = kind === "liked" ? likedOrder : dislikedOrder;
+    const labels: Record<string, string> = kind === "liked" ? LIKED_LABELS[page.locale] : DISLIKED_LABELS[page.locale];
+    const picked: readonly string[] = state[listKey];
+    const answered = picked.length > 0 || state[textKey].trim() !== "";
+    const title = kind === "improve" ? t.improve : state.mood === "good" ? t.likedGood : t.liked;
+    return (
+      <>
+        <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-wine/55">{kind === "improve" ? t.improveHint : t.pickHint}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {order.map((key) => {
+            const on = picked.includes(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={on}
+                onClick={() => save({ [listKey]: on ? picked.filter((k) => k !== key) : [...picked, key] } as Partial<FeedbackState>)}
+                className={`rounded-full px-3.5 py-2 text-sm transition ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-wine/30"}`}
+              >
+                {on ? "✓ " : ""}
+                {labels[key]}
+              </button>
+            );
+          })}
+        </div>
+        <label className="mt-5 block text-sm text-wine/70">
+          {t.more}
+          <textarea
+            rows={3}
+            className={field}
+            value={state[textKey]}
+            onChange={(e) => setState((s) => ({ ...s, [textKey]: e.target.value }))}
+          />
         </label>
-      ) : null}
-      {nav({ primary: state[key].trim() ? (last ? t.save : t.next) : t.skip, primaryStyle: state[key].trim() ? "solid" : "ghost", onPrimary: () => {
-          save({ [key]: state[key] } as Partial<FeedbackState>);
-          next();
-        } })}
-    </>
-  );
+        {kind === "improve" && state.mood === "bad" ? (
+          <label className="mt-4 flex items-start gap-3 text-sm text-wine">
+            <input type="checkbox" className="mt-1" checked={state.contactOk} onChange={(e) => save({ contactOk: e.target.checked })} />
+            {t.contact}
+          </label>
+        ) : null}
+        {nav({ primary: answered ? (last ? t.save : t.next) : t.skip, primaryStyle: answered ? "solid" : "ghost", onPrimary: () => {
+            save({ [textKey]: state[textKey] } as Partial<FeedbackState>);
+            next();
+          } })}
+      </>
+    );
+  };
 
   const nav = ({ primary, onPrimary, primaryStyle = "solid" }: { primary: string; onPrimary: () => void; primaryStyle?: "solid" | "ghost" }) => {
     return (
@@ -450,70 +450,8 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
               <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.moods} />
               {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
             </>
-          ) : current === "highlight" ? (
-            textStep("highlight", t.highlight, t.highlightHint, t.highlightPlaceholder)
-          ) : current === "improve" ? (
-            textStep("improve", t.improve, t.improveHint)
-          ) : current === "quote" ? (
-            <>
-              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.quote}</h1>
-              <div className="mt-4 flex gap-2">
-                {[true, false].map((v) => (
-                  <button
-                    key={String(v)}
-                    type="button"
-                    onClick={() => {
-                      setQuotePicked(true);
-                      save({ quoteConsent: v });
-                    }}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                      quotePicked && state.quoteConsent === v ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-wine/30"
-                    }`}
-                  >
-                    {v ? t.yes : t.no}
-                  </button>
-                ))}
-              </div>
-              {state.quoteConsent && page.profilePhoto && !state.photoUrl ? (
-                <div className="mt-4 flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={page.profilePhoto} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-gold/40" />
-                  <span className="text-xs text-wine/55">{t.photoUsed}</span>
-                </div>
-              ) : null}
-              {state.quoteConsent && (!page.profilePhoto || state.photoUrl) ? (
-                <div className="mt-4 flex items-center gap-4">
-                  {state.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={state.photoUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-gold/40" />
-                  ) : (
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-wine/30 ring-1 ring-wine/10">+</span>
-                  )}
-                  <div>
-                    <button
-                      type="button"
-                      disabled={uploading}
-                      onClick={() => fileRef.current?.click()}
-                      className="text-sm font-semibold text-burgundy hover:underline disabled:opacity-50"
-                    >
-                      {uploading ? t.photoBusy : state.photoUrl ? t.photoChange : t.photo}
-                    </button>
-                    <span className="block text-xs text-wine/50">{t.photoHint}</span>
-                  </div>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) setCropping(e.target.files[0]);
-                      e.target.value = "";
-                    }}
-                  />
-                </div>
-              ) : null}
-              {nav({ primary: last ? t.save : t.next, onPrimary: next })}
-            </>
+          ) : current === "liked" || current === "improve" ? (
+            reasonStep(current)
           ) : (
             <>
               <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.missingTitle}</h1>
@@ -525,17 +463,6 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         </div>
       </section>
 
-      {cropping ? (
-        <PhotoCropper
-          file={cropping}
-          locale={page.locale}
-          onCancel={() => setCropping(null)}
-          onDone={(f) => {
-            setCropping(null);
-            void upload(f);
-          }}
-        />
-      ) : null}
     </div>
   );
 }

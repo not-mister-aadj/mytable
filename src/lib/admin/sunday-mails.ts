@@ -56,9 +56,9 @@ export type SundayMailContext = {
   guests: Guest[];
 };
 
-const LOCATION_SENT = sql.raw(
-  `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%' or subject ilike '%volgende week zondag%' or subject ilike '%next sunday at%')`,
-);
+/** Which sent mails count as the location mail; the Vandaag page counts with it too. */
+export const LOCATION_SUBJECT_SQL = `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%' or subject ilike '%volgende week zondag%' or subject ilike '%next sunday at%')`;
+const LOCATION_SENT = sql.raw(LOCATION_SUBJECT_SQL);
 const SATURDAY_SENT = sql.raw(`(subject ilike '%groep %' or subject ilike '%group %')`);
 const MORNING_SENT = sql.raw(
   `(subject ilike '%aanraders%' or subject ilike '%our picks%' or (subject ilike 'vanmiddag bij%') or (subject ilike 'this afternoon at%'))`,

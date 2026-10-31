@@ -5,6 +5,8 @@ import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getVenueById } from "@/lib/venues";
 import { getVenueVisits } from "@/lib/venue-visits";
+import { notesForVenue } from "@/lib/admin/venue-notes";
+import { VenueNotesPanel } from "@/components/admin/VenueNotesPanel";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -62,7 +64,7 @@ export default async function AdminVenueDetailPage({ params }: Props) {
   const venue = await getVenueById(id);
   if (!venue) notFound();
 
-  const { totals, buyers, events } = await getVenueVisits(id);
+  const [{ totals, buyers, events }, notes] = await Promise.all([getVenueVisits(id), notesForVenue(id)]);
 
   return (
     <div className="space-y-8">
@@ -115,6 +117,12 @@ export default async function AdminVenueDetailPage({ params }: Props) {
         Telt betaalde, actieve boekingen van events die aan deze venue gekoppeld
         zijn. Een +1 telt mee als gast, maar staat bij de koper.
       </p>
+
+      <VenueNotesPanel
+        notes={notes}
+        venues={[{ id: venue.id, name: venue.name }]}
+        show="sunday"
+      />
 
       <section className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">

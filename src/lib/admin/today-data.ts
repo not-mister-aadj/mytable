@@ -1,5 +1,6 @@
-import { sql } from "drizzle-orm";
+import { notInArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
+import { adminTodos } from "@/db/schema";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { monthlyTargetCents } from "@/lib/admin/monthly-target";
 import { LOCATION_SUBJECT_SQL } from "@/lib/admin/sunday-mails";
@@ -10,7 +11,10 @@ export type UpcomingSunday = {
   id: string;
   city: string;
   startsAt: string;
-  venueName: string | null;
+  /** The bars linked to this Sunday, in order. */
+  venueNames: string[];
+  /** The newest note about this Sunday's bar. */
+  lastNote: { body: string; createdAt: string } | null;
   capacity: number;
   seatsSold: number;
   guests: number;
@@ -31,11 +35,15 @@ export type TodoItem = {
   title: string;
   detail: string;
   href: string;
+  /** When this item first came up (ISO). */
+  since: string;
 };
 
 export type TodayData = {
   sundays: UpcomingSunday[];
   todos: TodoItem[];
+  /** Clicked away and unchanged since. */
+  dismissed: TodoItem[];
   month: { label: string; revenueCents: number; seats: number; targetCents: number | null };
   recentBookings: Array<{ id: string; name: string; city: string; startsAt: string; createdAt: string; seats: number }>;
 };
@@ -58,7 +66,9 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     id: string;
     city: string;
     starts_at: Date;
-    venue_name: string | null;
+    venue_names: string[] | null;
+    last_note: string | null;
+    last_note_at: Date | null;
     capacity: number;
     seats_sold: number;
     guests: number;
@@ -68,7 +78,9 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     notify_waiting: number;
   }>(sql.raw(`
     select e.id, e.city, e.starts_at, e.capacity,
-      (select v.name from event_venues ev join venues v on v.id = ev.venue_id where ev.event_id = e.id order by ev.position limit 1) as venue_name,
+      (select array_agg(v.name order by ev.position) from event_venues ev join venues v on v.id = ev.venue_id where ev.event_id = e.id) as venue_names,
+      (select n.body from venue_notes n where n.event_id = e.id order by n.created_at desc limit 1) as last_note,
+      (select max(n.created_at) from venue_notes n where n.event_id = e.id) as last_note_at,
       coalesce(sum(b.seats), 0)::int as seats_sold,
       count(b.id)::int as guests,
       count(b.id) filter (where coalesce(nullif(trim(b.intro_ask_me_about), ''), nullif(trim(b.intro_favorite_spot), ''), nullif(trim(b.intro_into_now), '')) is null)::int as questions_open,
@@ -93,7 +105,8 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     id: r.id,
     city: r.city,
     startsAt: new Date(r.starts_at).toISOString(),
-    venueName: r.venue_name,
+    venueNames: r.venue_names ?? [],
+    lastNote: r.last_note && r.last_note_at ? { body: r.last_note, createdAt: new Date(r.last_note_at).toISOString() } : null,
     capacity: r.capacity,
     seatsSold: r.seats_sold,
     guests: r.guests,
@@ -104,7 +117,7 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     daysUntil: daysBetween(today, amsterdamDay(new Date(r.starts_at))),
   }));
 
-  const todos: TodoItem[] = [];
+  const todos: Omit<TodoItem, "since">[] = [];
   const dayLabel = (s: UpcomingSunday) =>
     `${s.city}, ${new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(s.startsAt))}`;
 
@@ -192,6 +205,15 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
 
   const order = { urgent: 0, soon: 1, info: 2 } as const;
   todos.sort((a, b) => order[a.tone] - order[b.tone]);
+  // Remember when each item came up; items that went away start over if they return.
+  const keys = todos.map((t) => t.key);
+  if (keys.length > 0) {
+    await db.insert(adminTodos).values(keys.map((key) => ({ key }))).onConflictDoNothing();
+  }
+  await db.delete(adminTodos).where(keys.length > 0 ? notInArray(adminTodos.key, keys) : undefined);
+  const seen = new Map((await db.select().from(adminTodos)).map((r) => [r.key, r]));
+  const items: TodoItem[] = todos.map((t) => ({ ...t, since: (seen.get(t.key)?.firstSeenAt ?? now).toISOString() }));
+  const isDismissed = (t: TodoItem) => seen.get(t.key)?.dismissedDetail === t.detail;
 
   const monthKey = today.slice(0, 7);
   const [month] = await db.execute<{ revenue: number; seats: number }>(sql`
@@ -208,7 +230,8 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
 
   return {
     sundays,
-    todos,
+    todos: items.filter((t) => !isDismissed(t)),
+    dismissed: items.filter(isDismissed),
     month: {
       label: new Intl.DateTimeFormat("nl-NL", { month: "long", timeZone: "UTC" }).format(new Date(`${monthKey}-15T12:00:00Z`)),
       revenueCents: month?.revenue ?? 0,

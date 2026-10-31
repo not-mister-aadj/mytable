@@ -455,9 +455,13 @@ export function morningMail(p: {
       ? [nl ? `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${p.groupNumber}.` : `When you arrive, say you're with MyTable, group ${p.groupNumber}.`]
       : []),
   ].join("\n");
+  // Sets the expectation: a slow start is normal, not a failed table.
+  const ice = nl
+    ? "Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken."
+    : "To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass.";
   const text = (nl
-    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, "", where, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
-    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, "", where, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
+    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, "", where, "", ice, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
+    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, "", where, "", ice, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
   ).join("\n");
   return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks");
 }

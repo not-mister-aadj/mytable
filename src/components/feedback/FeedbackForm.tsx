@@ -8,9 +8,13 @@ import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFo
 
 const COPY = {
   nl: {
-    title: (venue: string) => `Hoe was je middag bij ${venue}?`,
+    tableKicker: "Je tafel",
+    title: "Hoe was het gezelschap?",
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
-    venue: (venue: string) => `En hoe was ${venue}?`,
+    venueKicker: "De bar",
+    venue: (venue: string) => `En ${venue} zelf?`,
+    venueHint: "De plek, de wijn, de bediening.",
+    venueMoods: { great: "Hier wil ik terug", good: "Fijne plek", meh: "Gaat wel", bad: "Niet mijn plek" } as Record<Mood, string>,
     liked: "Wat maakte het zo leuk?",
     likedGood: "Wat vond je het leukst?",
     improve: "Wat kan beter?",
@@ -62,9 +66,13 @@ const COPY = {
     error: "Opslaan lukte niet. Probeer het opnieuw.",
   },
   en: {
-    title: (venue: string) => `How was your afternoon at ${venue}?`,
+    tableKicker: "Your table",
+    title: "How was the company?",
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
-    venue: (venue: string) => `And how was ${venue}?`,
+    venueKicker: "The bar",
+    venue: (venue: string) => `And ${venue} itself?`,
+    venueHint: "The place, the wine, the service.",
+    venueMoods: { great: "I'd go back", good: "Nice place", meh: "It was okay", bad: "Not for me" } as Record<Mood, string>,
     liked: "What made it so good?",
     likedGood: "What did you like most?",
     improve: "What could be better?",
@@ -175,15 +183,16 @@ function fromFeedback(href: string, content: string): string {
 
 type Step = "mood" | "venue" | "liked" | "improve" | "want" | "missing";
 
-/** One question per screen: which ones depend on the first answer. */
+/** One question per screen: which ones depend on the first answer. Who
+ * they'd like to see again comes right after, before anyone drops off. */
 function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
   const okish = mood === "great" || mood === "good";
   return [
     "mood",
+    ...(mood && mood !== "bad" && hasMates ? (["want"] as const) : []),
     "venue",
     ...(okish ? (["liked"] as const) : []),
     ...(mood && mood !== "great" ? (["improve"] as const) : []),
-    ...(okish && hasMates ? (["want"] as const) : []),
     ...(hasMates ? (["missing"] as const) : []),
   ];
 }
@@ -295,7 +304,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                 {page.next ? (
                   <label className="mt-4 flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={alsoBook} onChange={(e) => setAlsoBook(e.target.checked)} className="accent-burgundy" />
-                    {t.alsoBook(page.next.shortLabel)}
+                    {t.alsoBook(page.next.city === page.city ? page.next.shortLabel : `${page.next.shortLabel} (${page.next.city})`)}
                   </label>
                 ) : null}
                 <Link
@@ -310,7 +319,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.singleCardTitle}</p>
                   <p className="mt-1 font-serif text-2xl">{plusOne ? t.plusOnePrice : t.singlePrice}</p>
                   <p className="mt-3 flex-1 text-sm text-wine/75">
-                    {page.city}
+                    {page.next.city}
                     <br />
                     {page.next.label}
                     <br />
@@ -424,13 +433,16 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         <div className="mt-6">
           {current === "mood" ? (
             <>
-              <h1 className="font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title(venue)}</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.tableKicker}</p>
+              <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title}</h1>
               <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} />
             </>
           ) : current === "venue" ? (
             <>
-              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.venue(venue)}</h1>
-              <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.moods} />
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.venueKicker}</p>
+              <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.venue(venue)}</h1>
+              <p className="mt-1 text-sm text-wine/55">{t.venueHint}</p>
+              <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.venueMoods} />
               {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
             </>
           ) : current === "liked" || current === "improve" ? (
@@ -515,7 +527,7 @@ function NextSunday({ page, t }: { page: FeedbackPage; t: (typeof COPY)["nl"] | 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-wine/10">
         <div>
           <p className="font-serif text-lg text-wine">
-            {page.city} · {page.next.label}
+            {page.next.city} · {page.next.label}
           </p>
           <p className="text-xs text-wine/55">{t.seats(page.next.seatsLeft)}</p>
         </div>

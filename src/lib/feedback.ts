@@ -1,12 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { bookingFeedback, bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
+import { bookingFeedback, bookings, eventGroups, eventVenues, events, inviteSubscribers, venues } from "@/db/schema";
 import { jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { getRunningMembershipByEmail, membershipSnapshot } from "@/lib/membership/data";
 import { isActiveMember } from "@/lib/membership/logic";
 import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
+import { citiesForEmail } from "@/lib/invites/cities";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
@@ -77,8 +78,8 @@ export type FeedbackPage = {
   member: boolean;
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
   tablemates: { bookingId: string; firstName: string }[];
-  /** The next bookable Sunday Social in their city. */
-  next: { label: string; shortLabel: string; seatsLeft: number; path: string } | null;
+  /** The next bookable Sunday Social in this city, or else in another city they follow. */
+  next: { city: string; label: string; shortLabel: string; seatsLeft: number; path: string } | null;
   /** "De volgende is op ons" after Matig or Niet leuk: the dates they can
    * book for free on the page, or the one they already booked. Null when
    * it doesn't apply (no-show, used before). */
@@ -148,26 +149,43 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
   // "Sunday Social · 35+": the next one never has another age group.
   const bracket = (name: string) => /·\s*(\d{2}\s*[-+]\s*\d{0,2}\+?)\s*$/.exec(name)?.[1]?.replace(/\s/g, "") ?? null;
   const ownBracket = bracket(event.nameNl);
-  const candidates = await db
-    .select()
-    .from(events)
-    .where(
-      and(
-        sql`lower(${events.city}) = lower(${event.city})`,
-        inArray(events.experienceType, [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE]),
-        eq(events.workflowStatus, "published"),
-        gt(events.startsAt, new Date(now)),
-        sql`${events.spotsSold} < ${events.capacity}`,
-      ),
-    )
-    .orderBy(asc(events.startsAt))
-    .limit(8);
-  // A date with another age group is skipped as a whole: its page shows that one.
   const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(d);
-  const otherDays = new Set(
-    candidates.filter((e) => ownBracket && bracket(e.nameNl) && bracket(e.nameNl) !== ownBracket).map((e) => day(e.startsAt)),
-  );
-  const open = candidates.filter((e) => !otherDays.has(day(e.startsAt)));
+  const openIn = async (cities: string[]) => {
+    const candidates = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          inArray(sql`lower(${events.city})`, cities.map((c) => c.toLowerCase())),
+          inArray(events.experienceType, [JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE]),
+          eq(events.workflowStatus, "published"),
+          gt(events.startsAt, new Date(now)),
+          sql`${events.spotsSold} < ${events.capacity}`,
+        ),
+      )
+      .orderBy(asc(events.startsAt))
+      .limit(8 * cities.length);
+    // A date with another age group is skipped as a whole: its page shows that one.
+    const key = (e: { city: string; startsAt: Date }) => `${e.city.toLowerCase()} ${day(e.startsAt)}`;
+    const otherDays = new Set(
+      candidates.filter((e) => ownBracket && bracket(e.nameNl) && bracket(e.nameNl) !== ownBracket).map(key),
+    );
+    return candidates.filter((e) => !otherDays.has(key(e)));
+  };
+  // The next one where they just were; else the first in another city they
+  // follow (not one they turned off in their invite settings).
+  const followed = async () => {
+    const [sub] = await db
+      .select({ prefs: inviteSubscribers.cityPrefs })
+      .from(inviteSubscribers)
+      .where(eq(inviteSubscribers.emailNormalized, booking.email.trim().toLowerCase()))
+      .limit(1);
+    return (await citiesForEmail(booking.email)).filter(
+      (c) => c.toLowerCase() !== event.city.toLowerCase() && sub?.prefs[c] !== "none",
+    );
+  };
+  const here = await openIn([event.city]);
+  const open = here.length ? here : await followed().then((cities) => (cities.length ? openIn(cities) : []));
   const nextEvent = open[0];
   const nextPath = nextEvent ? sundaySocialDatePath(locale as Locale, { city: nextEvent.city, startsAt: nextEvent.startsAt }) : null;
 
@@ -234,6 +252,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     next:
       nextEvent && nextPath
         ? {
+            city: nextEvent.city,
             label: new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
               weekday: "long",
               day: "numeric",

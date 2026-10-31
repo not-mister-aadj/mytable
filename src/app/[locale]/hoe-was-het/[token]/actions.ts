@@ -2,6 +2,7 @@
 
 import { completeFeedback, saveFeedback, verifyFeedbackToken, type FeedbackState } from "@/lib/feedback";
 import { bookFreeSeatAfterFeedback, type FreeSeatResult } from "@/lib/feedback-free-seat";
+import { saveFeedbackReport, type ReportInput } from "@/lib/feedback-report";
 
 /** Saves the answers given so far, only for the booking in the link. */
 export async function saveFeedbackAction(token: string, input: Partial<FeedbackState>): Promise<{ ok: boolean }> {
@@ -24,4 +25,11 @@ export async function bookFreeSeatAction(token: string, eventId: string): Promis
   const bookingId = await verifyFeedbackToken(token);
   if (!bookingId) return { ok: false, error: "not_allowed" };
   return bookFreeSeatAfterFeedback(bookingId, eventId);
+}
+
+/** "Laat het ons weten": something that wasn't okay, only for us. */
+export async function submitReportAction(token: string, input: ReportInput): Promise<{ ok: boolean }> {
+  const bookingId = await verifyFeedbackToken(token);
+  if (!bookingId) return { ok: false };
+  return { ok: await saveFeedbackReport(bookingId, input) };
 }

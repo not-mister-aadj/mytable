@@ -68,6 +68,8 @@ export async function bookAsMember(input: {
   name: string;
   seats: 1 | 2;
   locale: Locale;
+  /** The language of mails and pages for this booking (communicationLocale). */
+  bookingLocale?: Locale;
   dietaryNotes: string | null;
   tableLanguagePreference: string;
   birthDate?: string | null;
@@ -119,7 +121,7 @@ export async function bookAsMember(input: {
       customerName: input.name || null,
       seats: input.seats,
       amountCents,
-      locale: input.locale,
+      locale: input.bookingLocale ?? input.locale,
       dietaryNotes: input.dietaryNotes,
       seatingPreference: "join_others",
       tableLanguagePreference: input.tableLanguagePreference,

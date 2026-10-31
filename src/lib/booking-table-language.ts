@@ -34,6 +34,15 @@ export function isTableLanguagePreference(
   );
 }
 
+/** The language we mail and show pages in: English for "prefer English",
+ * Dutch for "prefer Dutch", and for "both fine" (or no answer) the language
+ * of the site they booked on. */
+export function communicationLocale(preference: unknown, siteLocale: Locale): Locale {
+  if (preference === "prefer_english") return "en";
+  if (preference === "prefer_dutch") return "nl";
+  return siteLocale;
+}
+
 export function formatTableLanguagePreference(
   preference: TableLanguagePreference,
   locale: Locale,

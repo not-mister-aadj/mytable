@@ -19,6 +19,8 @@ const MOOD: Record<string, { label: string; dot: string }> = {
   bad: { label: "Niet leuk", dot: "bg-[#d64550]" },
 };
 
+const VENUE_LABEL: Record<string, string> = { great: "Hier wil ik terug", good: "Fijne plek", meh: "Gaat wel", bad: "Niet mijn plek" };
+
 const pct = (n: number, of: number) => (of > 0 ? `${Math.round((n / of) * 100)}%` : "-");
 
 function filterHref(periode: FeedbackPeriod, stad: string | null) {
@@ -92,7 +94,7 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
                 <th className="px-4 py-2.5">Gezelschap</th>
                 <th className="px-4 py-2.5">Bar</th>
                 <th className="px-4 py-2.5">Wil terugzien</th>
-                <th className="px-4 py-2.5">Leuk</th>
+                <th className="px-4 py-2.5">Wat was leuk</th>
                 <th className="px-4 py-2.5">Kan beter</th>
               </tr>
             </thead>
@@ -175,13 +177,13 @@ function ScoreTable({ title, first, rows }: { title: string; first: string; rows
   );
 }
 
-function Mood({ mood }: { mood: string | null }) {
+function Mood({ mood, venue }: { mood: string | null; venue?: boolean }) {
   if (!mood) return <span className="text-wine/35">-</span>;
   const m = MOOD[mood];
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
       <span className={`h-2 w-2 rounded-full ${m?.dot ?? "bg-wine/30"}`} />
-      {m?.label ?? mood}
+      {(venue ? VENUE_LABEL[mood] : m?.label) ?? mood}
     </span>
   );
 }
@@ -213,7 +215,7 @@ function AnswerRow({ r }: { r: FeedbackListRow }) {
         <Mood mood={r.mood} />
       </td>
       <td className="px-4 py-3">
-        <Mood mood={r.venueMood} />
+        <Mood mood={r.venueMood} venue />
       </td>
       <td className="px-4 py-3 text-wine/80">{r.wants.length ? r.wants.join(", ") : <span className="text-wine/35">-</span>}</td>
       <td className="max-w-[260px] px-4 py-3 text-wine/80">

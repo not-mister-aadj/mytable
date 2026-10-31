@@ -8,17 +8,18 @@ const MOOD: Record<string, { label: string; dot: string }> = {
   meh: { label: "Matig", dot: "bg-[#e9a2a2]" },
   bad: { label: "Niet leuk", dot: "bg-[#d64550]" },
 };
+const VENUE_LABEL: Record<string, string> = { great: "Hier wil ik terug", good: "Fijne plek", meh: "Gaat wel", bad: "Niet mijn plek" };
 const SCORE = { great: 4, good: 3, meh: 2, bad: 1 } as const;
 
 const day = (iso: string) =>
   new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", year: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(iso));
 
-function MoodDot({ mood }: { mood: string | null }) {
+function MoodDot({ mood, venue }: { mood: string | null; venue?: boolean }) {
   if (!mood) return <span className="text-wine/35">-</span>;
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
       <span className={`h-2 w-2 rounded-full ${MOOD[mood]?.dot ?? "bg-wine/30"}`} />
-      {MOOD[mood]?.label ?? mood}
+      {(venue ? VENUE_LABEL[mood] : MOOD[mood]?.label) ?? mood}
     </span>
   );
 }
@@ -87,7 +88,7 @@ export function TableHistoryPanel({ history, email }: { history: TableHistory; e
                     {v.group !== null ? <span className="text-wine/45"> · groep {v.group}</span> : null}
                   </td>
                   <td className="py-2 pr-4">{v.noShow ? <span className="text-red-800">Niet gekomen</span> : <MoodDot mood={v.mood} />}</td>
-                  <td className="py-2">{v.noShow ? null : <MoodDot mood={v.venueMood} />}</td>
+                  <td className="py-2">{v.noShow ? null : <MoodDot mood={v.venueMood} venue />}</td>
                 </tr>
               ))}
             </tbody>

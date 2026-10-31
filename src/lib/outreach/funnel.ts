@@ -9,23 +9,12 @@ export type FunnelStage = {
   hint: string;
 };
 
-export type StepStats = {
-  step: number;
-  sent: number;
-  delivered: number;
-  opened: number;
-  clicked: number;
-  /** Replies that arrived while this was the last mail sent. */
-  replies: number;
-};
-
 export type OutreachFunnel = {
   total: number;
   mailed: number;
   stages: FunnelStage[];
   bounced: number;
   unsubscribed: number;
-  steps: StepStats[];
   /** True until a webhook event has ever landed — the rates mean nothing yet. */
   awaitingTracking: boolean;
 };
@@ -35,13 +24,8 @@ const INTERESTED_STATUSES = ["interested", "meeting", "partner"];
 /**
  * The funnel is measured against the prospects we mailed, not the whole list:
  * an open rate over venues that never got a mail is a meaningless number.
- * Replies are attributed to the step a prospect had reached, which is exact —
- * the sequence stops the moment a reply is logged.
  */
-export function buildOutreachFunnel(
-  rows: OutreachProspectRow[],
-  sequenceLength: number,
-): OutreachFunnel {
+export function buildOutreachFunnel(rows: OutreachProspectRow[]): OutreachFunnel {
   const mailedRows = rows.filter((row) => row.messageCount > 0);
   const mailed = mailedRows.length;
   const rate = (count: number) => (mailed > 0 ? count / mailed : 0);
@@ -111,31 +95,12 @@ export function buildOutreachFunnel(
     });
   }
 
-  const steps: StepStats[] = [];
-  for (let step = 1; step <= Math.max(sequenceLength, 1); step += 1) {
-    const withStep = rows
-      .map((row) => row.steps.find((entry) => entry.step === step))
-      .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
-    if (withStep.length === 0) continue;
-    steps.push({
-      step,
-      sent: withStep.length,
-      delivered: withStep.filter((entry) => entry.deliveredAt).length,
-      opened: withStep.filter((entry) => entry.openedAt).length,
-      clicked: withStep.filter((entry) => entry.clickCount > 0).length,
-      replies: rows.filter(
-        (row) => row.replyCount > 0 && row.sequenceStep === step,
-      ).length,
-    });
-  }
-
   return {
     total: rows.length,
     mailed,
     stages,
     bounced: rows.filter((row) => row.bouncedCount > 0).length,
     unsubscribed: rows.filter((row) => row.status === "unsubscribed").length,
-    steps,
     awaitingTracking: mailed > 0 && delivered === 0 && opened === 0,
   };
 }

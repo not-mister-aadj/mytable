@@ -15,13 +15,11 @@ import type { OutreachTemplateRow } from "@/lib/outreach/templates-data";
 import {
   importProspectsCsvAction,
   sendCustomMailAction,
-  sendSequenceAction,
   sendTemplateToManyAction,
 } from "@/app/admin/(dashboard)/outreach/actions";
 import { OutreachStatusPill } from "@/components/admin/outreach/OutreachStatusPill";
 import { CustomMailFields } from "@/components/admin/outreach/CustomMailFields";
 import { OutreachFunnelPanel } from "@/components/admin/outreach/OutreachFunnelPanel";
-import { OutreachStepDots } from "@/components/admin/outreach/OutreachStepDots";
 import { buildOutreachFunnel } from "@/lib/outreach/funnel";
 import {
   VENUE_TYPES,
@@ -30,12 +28,11 @@ import {
   type VenueType,
 } from "@/lib/outreach/venue-type";
 
-type FilterKey = "all" | "todo" | "due" | "waiting" | "replied" | "won";
+type FilterKey = "all" | "todo" | "waiting" | "replied" | "won";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "Alles" },
   { key: "todo", label: "Nog niet gemaild" },
-  { key: "due", label: "Opvolgen" },
   { key: "waiting", label: "Wacht op antwoord" },
   { key: "replied", label: "Geantwoord" },
   { key: "won", label: "Partner" },
@@ -49,19 +46,12 @@ function formatDate(iso: string | null): string {
   }).format(new Date(iso));
 }
 
-function isDue(row: OutreachProspectRow): boolean {
-  if (!row.nextFollowUpAt) return false;
-  return new Date(row.nextFollowUpAt).getTime() <= Date.now();
-}
-
 function matchesFilter(row: OutreachProspectRow, filter: FilterKey): boolean {
   switch (filter) {
     case "todo":
       return row.messageCount === 0 && row.status === "new";
-    case "due":
-      return isDue(row);
     case "waiting":
-      return row.status === "contacted" && !isDue(row);
+      return row.status === "contacted";
     case "replied":
       return ["replied", "interested", "meeting"].includes(row.status);
     case "won":
@@ -90,13 +80,12 @@ function MapPinIcon() {
   );
 }
 
-type SortKey = "name" | "recent" | "engagement" | "due";
+type SortKey = "name" | "recent" | "engagement";
 
 const SORT_LABELS: Record<SortKey, string> = {
   name: "Naam A–Z",
   recent: "Laatst gemaild",
   engagement: "Meeste reactie",
-  due: "Opvolgen eerst",
 };
 
 function time(iso: string | null): number {
@@ -112,11 +101,6 @@ const SORTERS: Record<
   // Antwoorden wegen zwaarder dan opens: dat is het signaal dat telt.
   engagement: (a, b) =>
     b.replyCount * 100 + b.openedCount - (a.replyCount * 100 + a.openedCount),
-  due: (a, b) => {
-    const aDue = a.nextFollowUpAt ? time(a.nextFollowUpAt) : Infinity;
-    const bDue = b.nextFollowUpAt ? time(b.nextFollowUpAt) : Infinity;
-    return aDue - bDue;
-  },
 };
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
@@ -148,7 +132,7 @@ export function OutreachView({
   const [typeFilter, setTypeFilter] = useState<"all" | VenueType>("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("name");
-  const [sendMode, setSendMode] = useState<"next" | "template" | "custom">("next");
+  const [sendMode, setSendMode] = useState<"template" | "custom">("template");
   const [bulkTemplateId, setBulkTemplateId] = useState(templates[0]?.id ?? "");
   const [customSubject, setCustomSubject] = useState("");
   const [customBody, setCustomBody] = useState(OUTREACH_MANUAL_MAIL_DRAFT);
@@ -190,10 +174,6 @@ export function OutreachView({
     return [...rows].sort(SORTERS[sort]);
   }, [prospects, filter, statusFilter, cityFilter, typeFilter, search, sort]);
 
-  const sequenceLength = templates.filter(
-    (template) => template.kind === "sequence" && template.isActive,
-  ).length;
-
   /** The "what do I do next" numbers; the funnel below carries the rates. */
   const stats = useMemo(() => {
     const todo = prospects.filter(
@@ -201,16 +181,12 @@ export function OutreachView({
     );
     return {
       todo: todo.length,
-      due: prospects.filter(isDue).length,
       noEmail: prospects.filter((row) => !row.email).length,
       replied: prospects.filter((row) => row.replyCount > 0).length,
     };
   }, [prospects]);
 
-  const funnel = useMemo(
-    () => buildOutreachFunnel(filtered, sequenceLength),
-    [filtered, sequenceLength],
-  );
+  const funnel = useMemo(() => buildOutreachFunnel(filtered), [filtered]);
 
   const selectable = filtered.filter((row) => Boolean(row.email));
   const allSelected =
@@ -244,11 +220,9 @@ export function OutreachView({
       return;
     }
     const question =
-      sendMode === "next"
-        ? `Volgende stap versturen naar ${count}?\n\nZaken die al de hele sequence hebben gehad worden overgeslagen.`
-        : sendMode === "template"
-          ? `"${chosenTemplate?.name}" versturen naar ${count}?`
-          : `Je eigen mail "${customSubject.trim()}" versturen naar ${count}?`;
+      sendMode === "template"
+        ? `"${chosenTemplate?.name}" versturen naar ${count}?`
+        : `Je eigen mail "${customSubject.trim()}" versturen naar ${count}?`;
     if (
       !confirm(
         `${question}\n\nDit stuurt echte mail. Afgemelde zaken en bounces worden altijd overgeslagen.`,
@@ -260,15 +234,13 @@ export function OutreachView({
     setMessage(null);
     startTransition(async () => {
       const result =
-        sendMode === "next"
-          ? await sendSequenceAction(ids)
-          : sendMode === "template"
-            ? await sendTemplateToManyAction(ids, bulkTemplateId)
-            : await sendCustomMailAction({
-                prospectIds: ids,
-                subject: customSubject,
-                body: customBody,
-              });
+        sendMode === "template"
+          ? await sendTemplateToManyAction(ids, bulkTemplateId)
+          : await sendCustomMailAction({
+              prospectIds: ids,
+              subject: customSubject,
+              body: customBody,
+            });
       if (result.error) {
         setMessage(result.error);
         return;
@@ -313,11 +285,6 @@ export function OutreachView({
           <h1 className="mt-2 font-serif text-3xl text-burgundy sm:text-4xl">
             Outreach
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-            Elke wijnbar en elk restaurant dat we benaderen, met wat er verstuurd
-            is, of het geopend werd en wat ze antwoordden. Selecteer zaken en stuur
-            de volgende stap van de sequence.
-          </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2.5">
           <button
@@ -359,7 +326,7 @@ export function OutreachView({
           <p className="text-sm text-wine/70">
             Plak de inhoud van een prospect-CSV (kolommen: naam, categorie, adres,
             google maps, website, email, telefoon, rating, reviews). Bestaande zaken
-            worden bijgewerkt — status, sequence en notities blijven staan.
+            worden bijgewerkt; status en notities blijven staan.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm text-wine/70">
@@ -392,16 +359,11 @@ export function OutreachView({
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Nog te mailen"
           value={String(stats.todo)}
           hint="met e-mailadres"
-        />
-        <StatCard
-          label="Opvolgen nu"
-          value={String(stats.due)}
-          hint="wachttijd verstreken"
         />
         <StatCard
           label="Antwoorden"
@@ -513,12 +475,11 @@ export function OutreachView({
           <select
             value={sendMode}
             onChange={(event) =>
-              setSendMode(event.target.value as "next" | "template" | "custom")
+              setSendMode(event.target.value as "template" | "custom")
             }
             className="rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
             aria-label="Wat versturen"
           >
-            <option value="next">Volgende stap van de sequence</option>
             <option value="template">Een specifiek template</option>
             <option value="custom">Eigen mail</option>
           </select>
@@ -546,7 +507,6 @@ export function OutreachView({
           </button>
           <span className="text-xs text-wine/50">
             {filtered.length} van {prospects.length} zaken
-            {sequenceLength > 0 ? ` · sequence van ${sequenceLength} mails` : ""}
           </span>
         </div>
 
@@ -614,17 +574,8 @@ export function OutreachView({
                   </a>
                 ) : null}
                 <OutreachStatusPill status={row.status} />
-                <span
-                  className="flex items-center gap-2"
-                  title={`${row.sequenceStep} van ${sequenceLength || "?"} mails verstuurd`}
-                >
-                  <OutreachStepDots
-                    steps={row.steps}
-                    sequenceLength={sequenceLength}
-                  />
-                  <span className="text-wine/50">
-                    {row.lastSentAt ? formatDate(row.lastSentAt) : "—"}
-                  </span>
+                <span className="text-wine/50" title="Laatst gemaild">
+                  {formatDate(row.lastSentAt)}
                 </span>
                 {row.openedCount > 0 ? (
                   <span className="text-burgundy" title="Geopende mails">
@@ -642,11 +593,6 @@ export function OutreachView({
                 {row.bouncedCount > 0 ? (
                   <span className="text-red-700" title="Bounces">
                     bounce
-                  </span>
-                ) : null}
-                {isDue(row) ? (
-                  <span className="rounded-full border border-burgundy/30 bg-burgundy/[0.06] px-2 py-0.5 font-medium text-burgundy">
-                    Opvolgen
                   </span>
                 ) : null}
               </div>

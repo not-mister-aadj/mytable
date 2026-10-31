@@ -4,7 +4,7 @@
  *   npx tsx scripts/import-prospects.ts tmp/prospects-rotterdam.csv Rotterdam
  *
  * Bestaande zaken (zelfde stad + naam) worden bijgewerkt met nieuwe
- * contactgegevens; status, sequence en notities blijven staan.
+ * contactgegevens; status en notities blijven staan.
  */
 import { config } from "dotenv";
 import { readFileSync } from "node:fs";

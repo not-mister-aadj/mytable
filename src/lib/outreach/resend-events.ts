@@ -163,12 +163,11 @@ export async function applyResendOutreachEvent(
           complainedAt: isBounce ? undefined : occurredAt,
         })
         .where(eq(outreachMessages.id, message.id));
-      // A hard bounce or a spam complaint ends the sequence for this venue.
+      // A hard bounce or a spam complaint means no more mail for this venue.
       await db
         .update(outreachProspects)
         .set({
           status: isBounce ? "bounced" : "unsubscribed",
-          nextFollowUpAt: null,
           lastActivityAt: occurredAt,
           updatedAt: new Date(),
         })

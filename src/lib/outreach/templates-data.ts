@@ -1,14 +1,16 @@
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { outreachTemplates, type OutreachTemplate } from "@/db/schema";
+import {
+  toOutreachTemplateKind,
+  type OutreachTemplateKind,
+} from "@/lib/outreach/constants";
 
 export type OutreachTemplateRow = {
   id: string;
   key: string;
   name: string;
-  kind: string;
-  step: number | null;
-  delayDays: number;
+  kind: OutreachTemplateKind;
   subject: string;
   body: string;
   attachmentPath: string | null;
@@ -22,9 +24,7 @@ function mapTemplate(row: OutreachTemplate): OutreachTemplateRow {
     id: row.id,
     key: row.key,
     name: row.name,
-    kind: row.kind,
-    step: row.step,
-    delayDays: row.delayDays,
+    kind: toOutreachTemplateKind(row.kind),
     subject: row.subject,
     body: row.body,
     attachmentPath: row.attachmentPath,
@@ -39,7 +39,7 @@ export async function getOutreachTemplates(): Promise<OutreachTemplateRow[]> {
   const rows = await getDb()
     .select()
     .from(outreachTemplates)
-    .orderBy(asc(outreachTemplates.kind), asc(outreachTemplates.step));
+    .orderBy(asc(outreachTemplates.kind), asc(outreachTemplates.name));
   return rows.map(mapTemplate);
 }
 
@@ -59,8 +59,6 @@ export type SaveOutreachTemplateInput = {
   key: string;
   name: string;
   kind: string;
-  step: number | null;
-  delayDays: number;
   subject: string;
   body: string;
   attachmentPath: string | null;
@@ -75,9 +73,8 @@ export async function saveOutreachTemplate(
   const values = {
     key: input.key.trim(),
     name: input.name.trim(),
-    kind: input.kind,
-    step: input.kind === "sequence" ? input.step : null,
-    delayDays: input.delayDays,
+    kind: toOutreachTemplateKind(input.kind),
+    step: null,
     subject: input.subject.trim(),
     body: input.body,
     attachmentPath: input.attachmentPath,
@@ -103,111 +100,4 @@ export async function saveOutreachTemplate(
 
 export async function deleteOutreachTemplate(id: string): Promise<void> {
   await getDb().delete(outreachTemplates).where(eq(outreachTemplates.id, id));
-}
-
-/**
- * The live outreach copy. It reads as a reservation request, not a pitch: the
- * opening question carries the time, the number of tables and the number of
- * people, so a host can answer it the way any reservation gets answered.
- * All three mails share one subject line, minus the "Re:", so the follow-ups
- * land in the same conversation as the first mail.
- */
-export const DEFAULT_OUTREACH_TEMPLATES: SaveOutreachTemplateInput[] = [
-  {
-    key: "venue-step-1",
-    name: "1. Eerste mail",
-    kind: "sequence",
-    step: 1,
-    delayDays: 0,
-    subject: "tafels reserveren zondag 18 of 25 oktober",
-    body: `Hi {{naam}},
-
-We willen graag een paar tafels bij jullie reserveren op zondag 18 of 25 oktober, in een van jullie daluren. Hebben jullie op een van die dagen plek?
-
-Het gaat om een groepje van MyTable, waarmee we vaker beginnende wijnliefhebbers samenbrengen op zondagmiddag. Iedereen bestelt en betaalt zelf van de kaart, net als jullie gewone gasten.
-
-Met vriendelijke groet,
-Dj
-www.mytable.club
-instagram.com/mytable.club`,
-    attachmentPath: null,
-    attachmentName: null,
-    // Campaign paused on 15 September 2026: enough venues replied.
-    isActive: false,
-  },
-  {
-    key: "venue-step-2",
-    name: "2. Opvolging",
-    kind: "sequence",
-    step: 2,
-    delayDays: 4,
-    subject: "Re: tafels reserveren zondag 18 of 25 oktober",
-    body: `Hi {{naam}},
-
-Ik wilde even checken of een paar tafels op zondag 18 of 25 oktober bij jullie mogelijk zijn, in een van jullie daluren.
-
-Of kan ik dit beter met iemand anders binnen jullie team bespreken?
-
-Met vriendelijke groet,
-Dj
-www.mytable.club
-instagram.com/mytable.club`,
-    attachmentPath: null,
-    attachmentName: null,
-    // Campaign paused on 15 September 2026: enough venues replied.
-    isActive: false,
-  },
-  {
-    key: "venue-step-3",
-    name: "3. Laatste mail",
-    kind: "sequence",
-    step: 3,
-    delayDays: 7,
-    subject: "Re: tafels reserveren zondag 18 of 25 oktober",
-    body: `Hi {{naam}},
-
-Ik stuur hierover nog een laatste berichtje. Staan jullie open voor een paar tafels op zondag 18 of 25 oktober?
-
-Als het niet past, is dat natuurlijk ook helemaal goed.
-
-Met vriendelijke groet,
-Dj
-www.mytable.club
-instagram.com/mytable.club`,
-    attachmentPath: null,
-    attachmentName: null,
-    // Campaign paused on 15 September 2026: enough venues replied.
-    isActive: false,
-  },
-];
-
-/** Inserts the starter templates once; never overwrites edited copy. */
-export async function ensureDefaultOutreachTemplates(): Promise<void> {
-  const db = getDb();
-  const existing = await db
-    .select({ key: outreachTemplates.key })
-    .from(outreachTemplates);
-  const known = new Set(existing.map((row) => row.key));
-  const missing = DEFAULT_OUTREACH_TEMPLATES.filter((row) => !known.has(row.key));
-  if (missing.length === 0) return;
-
-  // ON CONFLICT: two requests can both see a key as missing — a first page
-  // load racing a second, or a read that came back incomplete while the
-  // database was timing out. Either way the row exists; a duplicate is not an
-  // error worth failing the whole dashboard over.
-  await db
-    .insert(outreachTemplates)
-    .values(
-      missing.map((row) => ({
-        key: row.key,
-        name: row.name,
-        kind: row.kind,
-        step: row.step,
-        delayDays: row.delayDays,
-        subject: row.subject,
-        body: row.body,
-        isActive: row.isActive,
-      })),
-    )
-    .onConflictDoNothing();
 }

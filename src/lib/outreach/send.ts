@@ -5,7 +5,6 @@ import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/rese
 import { createSupabaseAdminClient, MEDIA_BUCKET } from "@/lib/supabase/admin";
 import {
   OUTREACH_MANUAL_MAIL_KEY,
-  OUTREACH_STOPPED_STATUSES,
   type OutreachStatus,
 } from "@/lib/outreach/constants";
 import {
@@ -41,7 +40,6 @@ export type OutreachSendTarget = {
   website: string | null;
   email: string | null;
   status: OutreachStatus;
-  sequenceStep: number;
 };
 
 export type OutreachSendResult =
@@ -81,22 +79,18 @@ function attachmentUrl(path: string): string {
   return publicUrl;
 }
 
-/**
- * What gets sent: a stored template, or a mail written by hand in the
- * dashboard. Only a sequence template moves a prospect along the sequence.
- */
+/** What gets sent: a stored template, or a mail written by hand in the dashboard. */
 export type OutreachMailSource = Pick<
   OutreachTemplateRow,
-  "key" | "kind" | "step" | "subject" | "body" | "attachmentPath" | "attachmentName"
+  "key" | "kind" | "subject" | "body" | "attachmentPath" | "attachmentName"
 > & { id: string | null };
 
-/** A hand-written mail: no template row, no step, never part of the sequence. */
+/** A hand-written mail: no template row behind it. */
 export function manualMailSource(subject: string, body: string): OutreachMailSource {
   return {
     id: null,
     key: OUTREACH_MANUAL_MAIL_KEY,
     kind: "other",
-    step: null,
     subject,
     body,
     attachmentPath: null,
@@ -104,18 +98,13 @@ export function manualMailSource(subject: string, body: string): OutreachMailSou
   };
 }
 
-/**
- * Send one templated mail, log it, and move the prospect one step along the
- * sequence. `nextTemplate` decides when the follow-up becomes due; pass null
- * when this was the last step.
- */
+/** Send one mail, log it, and mark the prospect as contacted. */
 export async function sendOutreachMail(input: {
   prospect: OutreachSendTarget;
   template: OutreachMailSource;
-  nextTemplate: OutreachTemplateRow | null;
   sentBy?: string | null;
 }): Promise<OutreachSendResult> {
-  const { prospect, template, nextTemplate } = input;
+  const { prospect, template } = input;
 
   if (!prospect.email) {
     return { ok: false, prospectId: prospect.id, error: "Geen e-mailadres" };
@@ -153,7 +142,7 @@ export async function sendOutreachMail(input: {
     // Deliberately no List-Unsubscribe header: mail clients turn it into an
     // "Unsubscribe" button above the message, and a reservation request typed
     // by a person never has one. A venue that is not interested replies or
-    // ignores the mail, and the sequence ends after mail 3.
+    // ignores the mail.
     tags: [{ name: "outreach_prospect", value: prospect.id }],
   });
 
@@ -165,7 +154,6 @@ export async function sendOutreachMail(input: {
       prospectId: prospect.id,
       templateId: template.id,
       templateKey: template.key,
-      step: template.step,
       toEmail: prospect.email,
       subject: mail.subject,
       bodySnapshot: mail.body,
@@ -183,7 +171,6 @@ export async function sendOutreachMail(input: {
       prospectId: prospect.id,
       templateId: template.id,
       templateKey: template.key,
-      step: template.step,
       toEmail: prospect.email,
       subject: mail.subject,
       bodySnapshot: mail.body,
@@ -194,25 +181,12 @@ export async function sendOutreachMail(input: {
     })
     .returning({ id: outreachMessages.id });
 
-  const isSequence = template.kind === "sequence";
-  const stopped = OUTREACH_STOPPED_STATUSES.includes(prospect.status);
-  const followUpAt =
-    isSequence && nextTemplate && !stopped
-      ? new Date(sentAt.getTime() + nextTemplate.delayDays * 24 * 60 * 60 * 1000)
-      : null;
-
   await db
     .update(outreachProspects)
     .set({
       status: prospect.status === "new" ? "contacted" : prospect.status,
-      sequenceStep: isSequence
-        ? Math.max(prospect.sequenceStep, template.step ?? prospect.sequenceStep)
-        : prospect.sequenceStep,
       lastContactedAt: sentAt,
       lastActivityAt: sentAt,
-      // A hand-written or one-off mail is not a step, so it must neither
-      // schedule nor cancel the next one — leave the sequence timing alone.
-      nextFollowUpAt: isSequence ? followUpAt : undefined,
       updatedAt: new Date(),
     })
     .where(eq(outreachProspects.id, prospect.id));
@@ -227,7 +201,6 @@ export async function sendOutreachBatch(
   items: {
     prospect: OutreachSendTarget;
     template: OutreachMailSource;
-    nextTemplate: OutreachTemplateRow | null;
   }[],
 ): Promise<OutreachSendResult[]> {
   const results: OutreachSendResult[] = [];
@@ -246,19 +219,4 @@ export async function sendOutreachBatch(
     }
   }
   return results;
-}
-
-/** The sequence template that is due next for this prospect, if any. */
-export function nextSequenceTemplate(
-  templates: OutreachTemplateRow[],
-  sequenceStep: number,
-): OutreachTemplateRow | null {
-  return (
-    templates.find(
-      (template) =>
-        template.kind === "sequence" &&
-        template.isActive &&
-        template.step === sequenceStep + 1,
-    ) ?? null
-  );
 }

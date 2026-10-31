@@ -7,7 +7,6 @@ import {
   type OutreachProspect,
 } from "@/db/schema";
 import {
-  OUTREACH_STOPPED_STATUSES,
   isOutreachStatus,
   type OutreachSentiment,
   type OutreachStatus,
@@ -34,9 +33,7 @@ export type OutreachProspectRow = {
   reviewsCount: number | null;
   contactName: string | null;
   status: OutreachStatus;
-  sequenceStep: number;
   notes: string | null;
-  nextFollowUpAt: string | null;
   lastContactedAt: string | null;
   lastActivityAt: string | null;
   createdAt: string;
@@ -49,20 +46,6 @@ export type OutreachProspectRow = {
   replyCount: number;
   lastSentAt: string | null;
   lastOpenedAt: string | null;
-  /** One entry per sequence mail that went out, oldest step first. */
-  steps: OutreachStepState[];
-};
-
-/** What happened to one mail of the sequence — drives the dots in the list. */
-export type OutreachStepState = {
-  step: number;
-  sentAt: string;
-  deliveredAt: string | null;
-  openedAt: string | null;
-  openCount: number;
-  clickCount: number;
-  bouncedAt: string | null;
-  failed: boolean;
 };
 
 export type OutreachMessageRow = {
@@ -116,10 +99,7 @@ type ProspectAggregateRow = {
   lastOpenedAt: Date | string | null;
 };
 
-function mapProspectRow(
-  row: ProspectAggregateRow,
-  steps: OutreachStepState[] = [],
-): OutreachProspectRow {
+function mapProspectRow(row: ProspectAggregateRow): OutreachProspectRow {
   const p = row.prospect;
   return {
     id: p.id,
@@ -135,9 +115,7 @@ function mapProspectRow(
     reviewsCount: p.reviewsCount,
     contactName: p.contactName,
     status: toStatus(p.status),
-    sequenceStep: p.sequenceStep,
     notes: p.notes,
-    nextFollowUpAt: iso(p.nextFollowUpAt),
     lastContactedAt: iso(p.lastContactedAt),
     lastActivityAt: iso(p.lastActivityAt),
     createdAt: iso(p.createdAt)!,
@@ -149,7 +127,6 @@ function mapProspectRow(
     replyCount: Number(row.replyCount ?? 0),
     lastSentAt: iso(row.lastSentAt),
     lastOpenedAt: iso(row.lastOpenedAt),
-    steps,
   };
 }
 
@@ -166,76 +143,18 @@ const prospectAggregateSelection = {
   lastOpenedAt: sql<Date | null>`max(${outreachMessages.lastOpenedAt})`,
 };
 
-function toStepState(message: {
-  step: number | null;
-  status: string;
-  sentAt: Date;
-  deliveredAt: Date | null;
-  firstOpenedAt: Date | null;
-  openCount: number;
-  clickCount: number;
-  bouncedAt: Date | null;
-}): OutreachStepState {
-  return {
-    step: message.step ?? 0,
-    sentAt: iso(message.sentAt)!,
-    deliveredAt: iso(message.deliveredAt),
-    openedAt: iso(message.firstOpenedAt),
-    openCount: message.openCount,
-    clickCount: message.clickCount,
-    bouncedAt: iso(message.bouncedAt),
-    failed: message.status === "failed",
-  };
-}
-
-/**
- * Per-mail state for every prospect at once. One extra query beats a lateral
- * join here: the list is a few hundred rows and the messages are far fewer.
- */
-async function getStepStatesByProspect(): Promise<Map<string, OutreachStepState[]>> {
-  const messages = await getDb()
-    .select({
-      prospectId: outreachMessages.prospectId,
-      step: outreachMessages.step,
-      status: outreachMessages.status,
-      sentAt: outreachMessages.sentAt,
-      deliveredAt: outreachMessages.deliveredAt,
-      firstOpenedAt: outreachMessages.firstOpenedAt,
-      openCount: outreachMessages.openCount,
-      clickCount: outreachMessages.clickCount,
-      bouncedAt: outreachMessages.bouncedAt,
-    })
-    .from(outreachMessages)
-    .orderBy(asc(outreachMessages.sentAt));
-
-  const byProspect = new Map<string, OutreachStepState[]>();
-  for (const message of messages) {
-    // Hand-written mails are not a step of the sequence and get no dot.
-    if (message.step === null) continue;
-    const list = byProspect.get(message.prospectId) ?? [];
-    list.push(toStepState(message));
-    byProspect.set(message.prospectId, list);
-  }
-  return byProspect;
-}
-
 export async function getOutreachProspects(): Promise<OutreachProspectRow[]> {
-  const [rows, stepsByProspect] = await Promise.all([
-    getDb()
-      .select(prospectAggregateSelection)
-      .from(outreachProspects)
-      .leftJoin(
-        outreachMessages,
-        eq(outreachMessages.prospectId, outreachProspects.id),
-      )
-      .groupBy(outreachProspects.id)
-      .orderBy(asc(outreachProspects.name)),
-    getStepStatesByProspect(),
-  ]);
+  const rows = await getDb()
+    .select(prospectAggregateSelection)
+    .from(outreachProspects)
+    .leftJoin(
+      outreachMessages,
+      eq(outreachMessages.prospectId, outreachProspects.id),
+    )
+    .groupBy(outreachProspects.id)
+    .orderBy(asc(outreachProspects.name));
 
-  return rows.map((row) =>
-    mapProspectRow(row, stepsByProspect.get(row.prospect.id) ?? []),
-  );
+  return rows.map((row) => mapProspectRow(row));
 }
 
 export async function getOutreachProspect(
@@ -269,13 +188,7 @@ export async function getOutreachProspect(
   ]);
 
   return {
-    ...mapProspectRow(
-      row,
-      [...messages]
-        .reverse()
-        .filter((message) => message.step !== null)
-        .map(toStepState),
-    ),
+    ...mapProspectRow(row),
     messages: messages.map((m) => ({
       id: m.id,
       templateKey: m.templateKey,
@@ -320,7 +233,6 @@ export async function getOutreachSendTargets(ids: string[]) {
       website: outreachProspects.website,
       email: outreachProspects.email,
       status: outreachProspects.status,
-      sequenceStep: outreachProspects.sequenceStep,
     })
     .from(outreachProspects)
     .where(inArray(outreachProspects.id, ids))
@@ -346,8 +258,7 @@ export type ImportProspectInput = {
 
 /**
  * Upsert on (city, name). Re-running an import refreshes contact details but
- * never touches status, sequence progress or notes — that is your work, not
- * the scraper's.
+ * never touches status or notes: that is your work, not the scraper's.
  */
 export async function importOutreachProspects(
   rows: ImportProspectInput[],
@@ -415,17 +326,14 @@ export async function updateOutreachProspectDetails(
     .where(eq(outreachProspects.id, id));
 }
 
-/** A stopped status also cancels the pending follow-up. */
 export async function setOutreachStatus(
   id: string,
   status: OutreachStatus,
 ): Promise<void> {
-  const stops = OUTREACH_STOPPED_STATUSES.includes(status);
   await getDb()
     .update(outreachProspects)
     .set({
       status,
-      nextFollowUpAt: stops ? null : undefined,
       lastActivityAt: new Date(),
       updatedAt: new Date(),
     })
@@ -459,12 +367,11 @@ export async function addOutreachActivity(input: {
     .set({ lastActivityAt: occurredAt, updatedAt: new Date() })
     .where(eq(outreachProspects.id, input.prospectId));
 
-  // A reply ends the sequence: nothing kills a warm lead faster than a
-  // "just checking in" landing after someone already answered.
+  // A reply moves a venue that was only mailed so far to "replied".
   if (input.type === "reply") {
     await db
       .update(outreachProspects)
-      .set({ status: "replied", nextFollowUpAt: null, updatedAt: new Date() })
+      .set({ status: "replied", updatedAt: new Date() })
       .where(
         and(
           eq(outreachProspects.id, input.prospectId),

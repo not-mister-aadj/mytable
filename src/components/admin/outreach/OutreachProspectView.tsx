@@ -78,12 +78,9 @@ function Field({
 export function OutreachProspectView({
   prospect,
   templates,
-  nextTemplateId,
 }: {
   prospect: OutreachProspectDetail;
   templates: OutreachTemplateRow[];
-  /** The sequence step that is due for this prospect, if any. */
-  nextTemplateId: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -96,9 +93,7 @@ export function OutreachProspectView({
   const [website, setWebsite] = useState(prospect.website ?? "");
   const [notes, setNotes] = useState(prospect.notes ?? "");
 
-  const [templateId, setTemplateId] = useState(
-    nextTemplateId ?? templates[0]?.id ?? "",
-  );
+  const [templateId, setTemplateId] = useState(templates[0]?.id ?? "");
   const [preview, setPreview] = useState<{ subject: string; body: string } | null>(
     null,
   );
@@ -329,7 +324,6 @@ export function OutreachProspectView({
                     {templates.map((template) => (
                       <option key={template.id} value={template.id}>
                         {template.name}
-                        {template.id === nextTemplateId ? " — nu aan de beurt" : ""}
                       </option>
                     ))}
                   </select>
@@ -388,10 +382,6 @@ export function OutreachProspectView({
 
           <section className="space-y-4 rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.03)]">
             <h2 className="font-serif text-xl text-burgundy">Antwoord loggen</h2>
-            <p className="text-sm text-wine/60">
-              Plak hun reply hierin. De sequence stopt automatisch zodra er een
-              antwoord staat.
-            </p>
             <textarea
               value={replyBody}
               onChange={(event) => setReplyBody(event.target.value)}
@@ -458,11 +448,9 @@ export function OutreachProspectView({
                         </div>
                         <p className="mt-1 text-xs text-wine/55">
                           {[
-                            mail.step
-                              ? `Stap ${mail.step}`
-                              : mail.templateKey === OUTREACH_MANUAL_MAIL_KEY
-                                ? "Eigen mail"
-                                : mail.templateKey,
+                            mail.templateKey === OUTREACH_MANUAL_MAIL_KEY
+                              ? "Eigen mail"
+                              : mail.templateKey,
                             mail.attachmentName ? `📎 ${mail.attachmentName}` : null,
                             mail.deliveredAt ? "afgeleverd" : null,
                             mail.openCount > 0
@@ -538,21 +526,9 @@ export function OutreachProspectView({
             </select>
             <dl className="space-y-1 text-xs text-wine/55">
               <div className="flex justify-between gap-2">
-                <dt>Sequence</dt>
-                <dd>Stap {prospect.sequenceStep}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
                 <dt>Laatste mail</dt>
                 <dd>
                   {prospect.lastSentAt ? formatDateTime(prospect.lastSentAt) : "—"}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt>Opvolgen op</dt>
-                <dd>
-                  {prospect.nextFollowUpAt
-                    ? formatDateTime(prospect.nextFollowUpAt)
-                    : "—"}
                 </dd>
               </div>
             </dl>

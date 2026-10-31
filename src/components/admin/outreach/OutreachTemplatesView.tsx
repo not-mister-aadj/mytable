@@ -21,8 +21,6 @@ type Draft = {
   key: string;
   name: string;
   kind: OutreachTemplateKind;
-  step: number | null;
-  delayDays: number;
   subject: string;
   body: string;
   attachmentPath: string | null;
@@ -35,9 +33,7 @@ function toDraft(template: OutreachTemplateRow): Draft {
     id: template.id,
     key: template.key,
     name: template.name,
-    kind: (template.kind as OutreachTemplateKind) ?? "sequence",
-    step: template.step,
-    delayDays: template.delayDays,
+    kind: template.kind,
     subject: template.subject,
     body: template.body,
     attachmentPath: template.attachmentPath,
@@ -46,13 +42,11 @@ function toDraft(template: OutreachTemplateRow): Draft {
   };
 }
 
-function emptyDraft(nextStep: number): Draft {
+function emptyDraft(): Draft {
   return {
-    key: `venue-step-${nextStep}`,
-    name: `${nextStep}. Nieuwe mail`,
-    kind: "sequence",
-    step: nextStep,
-    delayDays: 4,
+    key: "",
+    name: "Nieuwe mail",
+    kind: "other",
     subject: "",
     body: "",
     attachmentPath: null,
@@ -152,38 +146,6 @@ function TemplateEditor({
             ))}
           </select>
         </label>
-        {draft.kind === "sequence" ? (
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-wine/45">
-                Stap
-              </span>
-              <input
-                type="number"
-                min={1}
-                value={draft.step ?? 1}
-                onChange={(event) =>
-                  onChange({ ...draft, step: Number(event.target.value) || 1 })
-                }
-                className="mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-wine/45">
-                Wacht (dagen)
-              </span>
-              <input
-                type="number"
-                min={0}
-                value={draft.delayDays}
-                onChange={(event) =>
-                  onChange({ ...draft, delayDays: Number(event.target.value) || 0 })
-                }
-                className="mt-1 w-full rounded-xl border border-border-subtle bg-cream px-3 py-2 text-sm text-wine outline-none focus:border-burgundy/40"
-              />
-            </label>
-          </div>
-        ) : null}
       </div>
 
       <label className="block">
@@ -306,9 +268,6 @@ export function OutreachTemplatesView({
   const [message, setMessage] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
 
-  const nextStep =
-    templates.filter((template) => template.kind === "sequence").length + 1;
-
   function save(current: Draft) {
     setMessage(null);
     startTransition(async () => {
@@ -349,15 +308,10 @@ export function OutreachTemplatesView({
           <h1 className="mt-3 font-serif text-3xl text-burgundy sm:text-4xl">
             Templates
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-            De sequence loopt op stap: stap 1 gaat direct, elke volgende stap wordt
-            pas klaargezet na het aantal dagen dat je hier instelt. Antwoordt een
-            zaak, dan stopt de sequence en gebruik je het antwoord-template.
-          </p>
         </div>
         <button
           type="button"
-          onClick={() => setDraft(emptyDraft(nextStep))}
+          onClick={() => setDraft(emptyDraft())}
           className="shrink-0 rounded-full bg-burgundy px-5 py-2.5 text-sm font-medium text-cream transition hover:bg-burgundy/90"
         >
           Nieuw template
@@ -404,12 +358,7 @@ export function OutreachTemplatesView({
                   {template.name}
                 </span>
                 <span className="rounded-full border border-border-subtle px-2.5 py-0.5 text-xs text-wine/60">
-                  {OUTREACH_TEMPLATE_KIND_LABELS[
-                    template.kind as OutreachTemplateKind
-                  ] ?? template.kind}
-                  {template.kind === "sequence" && template.step
-                    ? ` ${template.step} · na ${template.delayDays} dagen`
-                    : ""}
+                  {OUTREACH_TEMPLATE_KIND_LABELS[template.kind]}
                 </span>
                 {template.attachmentName ? (
                   <span className="text-xs text-wine/55">

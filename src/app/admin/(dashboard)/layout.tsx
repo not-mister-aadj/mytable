@@ -17,6 +17,7 @@ const NAV: NavDef[] = [
       { label: "Alle zondagen", path: "/events", matchAlso: ["/sunday-tables"] },
       { label: "Boekingen", path: "/bookings" },
       { label: "Planning", path: "/jouw-tafel" },
+      { label: "Feedback", path: "/feedback" },
     ],
   },
   {

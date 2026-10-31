@@ -114,8 +114,11 @@ export function CustomerProfileView({
   waitlistAnswers,
   sentEmails,
   tablemates,
+  tableHistory,
 }: {
   profile: AdminCustomerProfile;
+  /** "Aan tafel": rendered on the server, see TableHistoryPanel. */
+  tableHistory?: React.ReactNode;
   /** Paid, active bookings as visits, see src/lib/venue-visits.ts. */
   visits: CustomerVisits;
   waitlistAnswers: CustomerWaitlistAnswers;
@@ -236,6 +239,8 @@ export function CustomerProfileView({
         />
         <KpiCard label="Wachtlijst" value={String(profile.waitlistCount)} />
       </div>
+
+      {tableHistory}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5">

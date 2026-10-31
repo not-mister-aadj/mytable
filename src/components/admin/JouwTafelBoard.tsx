@@ -16,6 +16,7 @@ import {
 import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
 import { GROUP_TARGET, groupLabel, groupWarning, tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import type { BoardGuest, EventBoard } from "@/lib/jouw-tafel/groups-server";
+import { GuestHistoryChips } from "@/components/admin/GuestHistoryChips";
 
 const UNASSIGNED = "unassigned";
 
@@ -136,6 +137,7 @@ export function JouwTafelBoard({
           {g.age !== null ? <span className="font-normal">, {g.age}</span> : null}
           {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.plusOneName ?? g.seats - 1}</span> : null}
         </button>
+        <GuestHistoryChips bookingId={g.bookingId} />
         {g.ladies ? (
           <p className="mt-1">
             <span className="rounded-full bg-rose/20 px-2 py-0.5 text-[11px] font-semibold text-rose-deep">

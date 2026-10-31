@@ -7,6 +7,8 @@ import { EventGuestsView } from "@/components/admin/EventGuestsView";
 import { JouwTafelBoard } from "@/components/admin/JouwTafelBoard";
 import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
 import { SundayMailsPanel } from "@/components/admin/SundayMailsPanel";
+import { VenueNotesPanel } from "@/components/admin/VenueNotesPanel";
+import { notesForEvent } from "@/lib/admin/venue-notes";
 import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -24,6 +26,7 @@ type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: st
 const TABS = [
   { id: "gasten", label: "Gasten" },
   { id: "tafelindeling", label: "Tafelindeling" },
+  { id: "bar", label: "Bar" },
   { id: "mails", label: "Mails" },
   { id: "feedback", label: "Feedback" },
   { id: "instellingen", label: "Instellingen" },
@@ -98,6 +101,7 @@ export default async function EventGuestsPage({ params, searchParams }: Props) {
 
       {tab === "gasten" ? <GuestsTab eventId={id} event={event} /> : null}
       {tab === "tafelindeling" ? <SeatingTab eventId={id} hostname={hostname} publicUrl={publicUrl} /> : null}
+      {tab === "bar" ? <BarTab eventId={id} hostname={hostname} seatingHref={tabHref("tafelindeling")} /> : null}
       {tab === "mails" ? <MailsTab eventId={id} /> : null}
       {tab === "feedback" ? <FeedbackTab eventId={id} /> : null}
       {tab === "instellingen" ? (
@@ -146,6 +150,46 @@ async function SeatingTab({ eventId, hostname, publicUrl }: { eventId: string; h
       calendarHref={adminPath(`/jouw-tafel/kalender?maand=${board.event.startsAt.slice(0, 7)}`, hostname)}
       tablePageHref={publicUrl}
     />
+  );
+}
+
+async function BarTab({ eventId, hostname, seatingHref }: { eventId: string; hostname: string; seatingHref: string }) {
+  const [linked, notes] = await Promise.all([
+    getDb()
+      .select({ id: venues.id, name: venues.name, address: venues.address })
+      .from(eventVenues)
+      .innerJoin(venues, eq(venues.id, eventVenues.venueId))
+      .where(eq(eventVenues.eventId, eventId))
+      .orderBy(asc(eventVenues.position)),
+    notesForEvent(eventId),
+  ]);
+  return (
+    <div className="space-y-4">
+      <section className="rounded-xl border border-border-subtle bg-beige/60 p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">Gekoppeld</h2>
+        {linked.length === 0 ? (
+          <p className="mt-2 text-sm">
+            <span className="font-medium text-amber-700">Geen bar</span>
+            <span className="text-wine/40"> · </span>
+            <Link href={seatingHref} className="text-burgundy hover:underline">
+              Koppelen in Tafelindeling
+            </Link>
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {linked.map((v) => (
+              <li key={v.id}>
+                <Link href={adminPath(`/venues/${v.id}`, hostname)} className="font-medium text-wine hover:text-burgundy hover:underline">
+                  {v.name}
+                </Link>
+                {v.address ? <span className="text-sm text-wine/55"> · {v.address}</span> : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <VenueNotesPanel notes={notes} eventId={eventId} venues={linked} show="venue" />
+    </div>
   );
 }
 

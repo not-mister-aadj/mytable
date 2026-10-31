@@ -5,6 +5,7 @@ import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getTodayData, type TodoItem, type UpcomingSunday } from "@/lib/admin/today-data";
 import { EMAIL_DAY_LIMIT, EMAIL_DAY_WARN, emailVolume } from "@/lib/email/volume";
+import { dismissTodoAction, restoreTodoAction } from "./today-actions";
 
 /** "Vandaag": what needs doing this week, the coming Sundays and the month. */
 export default async function AdminTodayPage() {
@@ -61,6 +62,7 @@ export default async function AdminTodayPage() {
             ))}
           </ul>
         )}
+        {data.dismissed.length > 0 ? <DismissedTodos todos={data.dismissed} /> : null}
       </section>
 
       <section aria-labelledby="sundays-title">
@@ -139,18 +141,41 @@ const TONE: Record<TodoItem["tone"], { dot: string; label: string }> = {
 function TodoRow({ todo }: { todo: TodoItem }) {
   const tone = TONE[todo.tone];
   return (
-    <li>
-      <Link href={todo.href} className="flex items-start gap-3 px-4 py-3 transition hover:bg-cream/70">
+    <li className="flex items-start transition hover:bg-cream/70">
+      <Link href={todo.href} className="flex min-w-0 flex-1 items-start gap-3 py-3 pl-4">
         <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${tone.dot}`} aria-label={tone.label} />
         <span className="min-w-0 flex-1">
           <span className="block font-medium text-wine">{todo.title}</span>
           <span className="block text-sm text-wine/60">{todo.detail}</span>
         </span>
-        <span aria-hidden className="mt-0.5 text-wine/30">
-          →
-        </span>
+        <span className="mt-1 shrink-0 text-xs tabular-nums text-wine/40">{shortDate(todo.since)}</span>
       </Link>
+      <form action={dismissTodoAction.bind(null, todo.key, todo.detail)}>
+        <button type="submit" aria-label="Wegklikken" title="Wegklikken" className="px-4 py-3 text-lg leading-none text-wine/30 hover:text-burgundy">
+          ×
+        </button>
+      </form>
     </li>
+  );
+}
+
+function DismissedTodos({ todos }: { todos: TodoItem[] }) {
+  return (
+    <details className="mt-2 text-sm">
+      <summary className="cursor-pointer text-wine/50 hover:text-burgundy">{todos.length} weggeklikt</summary>
+      <ul className="mt-2 divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-beige/40">
+        {todos.map((todo) => (
+          <li key={todo.key} className="flex items-center gap-3 px-4 py-2.5">
+            <span className="min-w-0 flex-1 truncate text-wine/60">{todo.title}</span>
+            <form action={restoreTodoAction.bind(null, todo.key)}>
+              <button type="submit" className="text-burgundy hover:underline">
+                Terugzetten
+              </button>
+            </form>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -176,10 +201,17 @@ function SundayCard({ sunday, href }: { sunday: UpcomingSunday; href: string }) 
         <p className="font-medium text-wine">{sunday.city}</p>
         <p className="text-xs text-wine/50">{when}</p>
       </div>
-      <p className="text-sm text-wine/60">
-        {date}
-        {sunday.venueName ? ` · ${sunday.venueName}` : ""}
-      </p>
+      <p className="text-sm text-wine/60">{date}</p>
+      {sunday.venueNames.length > 0 ? (
+        <p className="mt-1.5 truncate text-sm font-medium text-wine">{sunday.venueNames.join(" · ")}</p>
+      ) : (
+        <p className="mt-1.5 text-sm font-medium text-amber-700">Geen bar</p>
+      )}
+      {sunday.lastNote ? (
+        <p className="mt-0.5 truncate text-xs text-wine/55">
+          {shortDate(sunday.lastNote.createdAt)}: {sunday.lastNote.body}
+        </p>
+      ) : null}
       <div className="mt-3 flex items-center gap-2">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-wine/10">
           <div className={`h-full rounded-full ${full ? "bg-emerald-600" : "bg-burgundy/70"}`} style={{ width: `${pct}%` }} />

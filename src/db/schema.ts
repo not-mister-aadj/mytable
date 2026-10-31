@@ -1004,3 +1004,28 @@ export const bookingFeedback = pgTable("booking_feedback", {
 });
 
 export type BookingFeedback = typeof bookingFeedback.$inferSelect;
+
+/** What was agreed with a bar, optionally about one Sunday (drizzle/0059). */
+export const venueNotes = pgTable(
+  "venue_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    venueId: uuid("venue_id").references(() => venues.id, { onDelete: "cascade" }),
+    eventId: uuid("event_id").references(() => events.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    venueIdx: index("venue_notes_venue_idx").on(table.venueId, table.createdAt),
+    eventIdx: index("venue_notes_event_idx").on(table.eventId, table.createdAt),
+  }),
+);
+
+/** "Te doen" items on Vandaag: when each came up, and whether it was clicked
+ * away (back once its detail changes); drizzle/0059. */
+export const adminTodos = pgTable("admin_todos", {
+  key: text("key").primaryKey(),
+  firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  dismissedDetail: text("dismissed_detail"),
+  dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+});

@@ -57,7 +57,6 @@ const COPY = {
     },
     labels: { askMeAbout: "Vraag me over", favoriteSpot: "Favoriete plek", intoNow: "Into", wine: "Wijn" },
     wine: { red: "Rood", white: "Wit", bubbles: "Bubbels" } as Record<IntroWine, string>,
-    introLead: "Vul eerst je intro in. Daarna zie je wie er aan je tafel zitten.",
     share: {
       lead: "Deel je intro om te zien wie er aan je tafel zitten.",
       note: "Je tafelgenoten zien dan ook jouw antwoorden.",
@@ -126,7 +125,6 @@ const COPY = {
     },
     labels: { askMeAbout: "Ask me about", favoriteSpot: "Favourite spot", intoNow: "Into", wine: "Wine" },
     wine: { red: "Red", white: "White", bubbles: "Bubbles" } as Record<IntroWine, string>,
-    introLead: "Fill in your intro first. Then you'll see who's at your table.",
     share: {
       lead: "Share your intro to see who's at your table.",
       note: "Your tablemates will see your answers too.",
@@ -281,7 +279,6 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           bookingCode={reservationCode(page.bookingId)}
           seats={page.me.plusOneName ? 2 : 1}
           intro={page.me.intro}
-          lead={t.introLead}
         />
       ) : (
         <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20px_50px_rgba(43,13,18,0.06)] sm:px-8">

@@ -13,6 +13,8 @@ const copy = {
   nl: {
     eyebrow: "Meet your table",
     title: "Help ons met je tafelindeling",
+    tableTitle: "Stel je voor aan je tafel",
+    tableLead: "Vul minstens één van de drie open vragen in. Daarna zie je je groep en wie er naast je zitten. Zij zien jouw antwoorden ook.",
     lead: "We verdelen iedereen over tafels van 4 tot 6. Bij het indelen houden we rekening met je antwoorden, en de dag ervoor stellen we je tafel aan elkaar voor. Vul je niets in, dan delen we je willekeurig in.",
     style: "Aan tafel ben jij meer…",
     styles: { talker: "🗣️ De prater", listener: "👂 De luisteraar", both: "⚖️ Allebei" },
@@ -54,6 +56,8 @@ const copy = {
   en: {
     eyebrow: "Meet your table",
     title: "Help us seat you",
+    tableTitle: "Introduce yourself to your table",
+    tableLead: "Answer at least one of the three open questions. Then you'll see your group and who's sitting with you. They'll see your answers too.",
     lead: "We split everyone into tables of 4 to 6. We take your answers into account when we do, and the day before, we introduce your table to each other. Skip it, and we seat you at random.",
     style: "At the table, you are more…",
     styles: { talker: "🗣️ The talker", listener: "👂 The listener", both: "⚖️ Both" },
@@ -378,9 +382,9 @@ export function SundayTableIntroForm({
         ) : (
           <form onSubmit={handleSubmit} className="mt-2">
             <h2 className="font-serif text-2xl font-medium text-wine sm:text-3xl">
-              {t.title}
+              {needsOpenAnswer ? t.tableTitle : t.title}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-wine/65">{t.lead}</p>
+            <p className="mt-2 text-sm leading-relaxed text-wine/65">{needsOpenAnswer ? t.tableLead : t.lead}</p>
 
             {manual ? (
               <div className="mt-6 grid gap-4 rounded-2xl border border-wine/10 bg-white/60 p-4 sm:grid-cols-2">

@@ -183,15 +183,16 @@ function fromFeedback(href: string, content: string): string {
 
 type Step = "mood" | "venue" | "liked" | "improve" | "want" | "missing";
 
-/** One question per screen: which ones depend on the first answer. */
+/** One question per screen: which ones depend on the first answer. Who
+ * they'd like to see again comes right after, before anyone drops off. */
 function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
   const okish = mood === "great" || mood === "good";
   return [
     "mood",
+    ...(mood && mood !== "bad" && hasMates ? (["want"] as const) : []),
     "venue",
     ...(okish ? (["liked"] as const) : []),
     ...(mood && mood !== "great" ? (["improve"] as const) : []),
-    ...(okish && hasMates ? (["want"] as const) : []),
     ...(hasMates ? (["missing"] as const) : []),
   ];
 }

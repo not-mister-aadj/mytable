@@ -15,6 +15,7 @@ import { planPriceLine } from "@/lib/membership/mail-copy";
 import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { isJouwTafelType, isSharedTableType } from "@/lib/event-concepts";
 import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
+import { communicationLocale } from "@/lib/booking-table-language";
 
 /** "settings": "Word lid" on the settings page, without a Sunday chosen yet. */
 export type MembershipCheckoutSource = "page" | "kies" | "offer" | "booking" | "settings";
@@ -31,6 +32,8 @@ export type MembershipCheckoutInput = {
     name: string;
     dietaryNotes?: string | null;
     tableLanguagePreference?: string | null;
+    /** The language of mails and pages for this booking (communicationLocale). */
+    locale?: Locale;
     birthDate?: string | null;
     agePreference?: string | null;
     /** Logged on the pending booking (consent, utm, age check). */
@@ -95,7 +98,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         customerName: input.table.name.trim() || null,
         seats: input.table.seats,
         amountCents: guestCents,
-        locale: input.locale,
+        locale: input.table.locale ?? communicationLocale(input.table.tableLanguagePreference, input.locale),
         dietaryNotes: input.table.dietaryNotes?.trim() || null,
         seatingPreference: "join_others",
         tableLanguagePreference: input.table.tableLanguagePreference ?? "both_fine",

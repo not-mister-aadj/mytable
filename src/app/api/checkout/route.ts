@@ -22,6 +22,7 @@ import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logi
 import { isEmailFrozen } from "@/lib/customers/freeze";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
+  communicationLocale,
   isEnglishOpenForSundayTable,
   isTableLanguagePreference,
 } from "@/lib/booking-table-language";
@@ -185,6 +186,8 @@ export async function POST(request: Request) {
   )
     ? body.tableLanguagePreference
     : "both_fine";
+  // Mails and pages follow the table-language answer, not the site language.
+  const bookingLocale = communicationLocale(body.tableLanguagePreference, locale);
 
   if (!checkRateLimit(`checkout:event:${eventId}:${email}`, 5, 300_000)) {
     return NextResponse.json({ error: "Te veel pogingen." }, { status: 429 });
@@ -407,6 +410,7 @@ export async function POST(request: Request) {
         name: customerName,
         seats: memberSeats === 2 ? 2 : 1,
         locale,
+        bookingLocale,
         dietaryNotes: body.dietaryNotes?.trim() || null,
         tableLanguagePreference,
         birthDate: birthDateSent ? String(body.birthDate).trim() : null,
@@ -482,6 +486,7 @@ export async function POST(request: Request) {
           name: customerName,
           dietaryNotes: body.dietaryNotes?.trim() || null,
           tableLanguagePreference,
+          locale: bookingLocale,
           birthDate: monthlyBirthDate,
           agePreference,
           events: extraEvents,
@@ -594,7 +599,7 @@ export async function POST(request: Request) {
       customerName,
       seats,
       amountCents,
-      locale,
+      locale: bookingLocale,
       dietaryNotes: body.dietaryNotes?.trim() || null,
       birthDate: bookingBirthDate,
       agePreference,

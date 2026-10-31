@@ -54,7 +54,8 @@ export async function feedbackUrl(bookingId: string, locale: "nl" | "en", base =
 
 export type FeedbackState = {
   mood: Mood | null;
-  venueMood: Mood | null;
+  /** "En {bar} zelf?": 1 to 5 stars. */
+  venueRating: number | null;
   /** Reasons tapped for "wat maakte het zo leuk", plus their own words. */
   liked: LikedReason[];
   highlight: string;
@@ -101,7 +102,7 @@ const FREE_SEAT_OPTIONS = 3;
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 
 function emptyState(): FeedbackState {
-  return { mood: null, venueMood: null, liked: [], highlight: "", disliked: [], improve: "", contactOk: false, wantToSee: [], missing: [], completed: false };
+  return { mood: null, venueRating: null, liked: [], highlight: "", disliked: [], improve: "", contactOk: false, wantToSee: [], missing: [], completed: false };
 }
 
 export async function loadFeedbackPage(bookingId: string, now = Date.now()): Promise<FeedbackPage | null> {
@@ -275,7 +276,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     saved: saved
       ? {
           mood: isMood(saved.mood) ? saved.mood : null,
-          venueMood: isMood(saved.venueMood) ? saved.venueMood : null,
+          venueRating: stars(saved.venueRating),
           liked: onlyKnown(LIKED_REASONS, saved.liked),
           highlight: saved.highlight ?? "",
           disliked: onlyKnown(DISLIKED_REASONS, saved.disliked),
@@ -290,6 +291,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
 }
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+const stars = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v >= 1 && v <= 5 ? v : null);
 
 /** Saves what is given so far (the page saves after each answer). Want-to-see
  * and missing only name people at their own table. */
@@ -303,7 +305,7 @@ export async function saveFeedback(bookingId: string, input: Partial<FeedbackSta
   const allowed = new Set(page.tablemates.map((m) => m.bookingId));
   const values = {
     ...(input.mood !== undefined ? { mood: isMood(input.mood) ? input.mood : null } : {}),
-    ...(input.venueMood !== undefined ? { venueMood: isMood(input.venueMood) ? input.venueMood : null } : {}),
+    ...(input.venueRating !== undefined ? { venueRating: stars(input.venueRating) } : {}),
     ...(input.liked !== undefined ? { liked: onlyKnown(LIKED_REASONS, input.liked) } : {}),
     ...(input.highlight !== undefined ? { highlight: text(input.highlight, 1000) || null } : {}),
     ...(input.disliked !== undefined ? { disliked: onlyKnown(DISLIKED_REASONS, input.disliked) } : {}),

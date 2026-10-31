@@ -14,7 +14,7 @@ const COPY = {
     venueKicker: "De bar",
     venue: (venue: string) => `En ${venue} zelf?`,
     venueHint: "De plek, de wijn, de bediening.",
-    venueMoods: { great: "Hier wil ik terug", good: "Fijne plek", meh: "Gaat wel", bad: "Niet mijn plek" } as Record<Mood, string>,
+    stars: (n: number) => (n === 1 ? "1 ster" : `${n} sterren`),
     liked: "Wat maakte het zo leuk?",
     likedGood: "Wat vond je het leukst?",
     improve: "Wat kan beter?",
@@ -72,7 +72,7 @@ const COPY = {
     venueKicker: "The bar",
     venue: (venue: string) => `And ${venue} itself?`,
     venueHint: "The place, the wine, the service.",
-    venueMoods: { great: "I'd go back", good: "Nice place", meh: "It was okay", bad: "Not for me" } as Record<Mood, string>,
+    stars: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
     liked: "What made it so good?",
     likedGood: "What did you like most?",
     improve: "What could be better?",
@@ -141,6 +141,31 @@ function Face({ mood, size = 52 }: { mood: Mood; size?: number }) {
       <circle cx="15" cy="10" r="1.2" fill="#fff" />
       <path d={f.mouth} stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
     </svg>
+  );
+}
+
+/** 1 to 5 stars; the stars up to the one tapped light up. */
+function Stars({ value, onPick, label }: { value: number | null; onPick: (n: number) => void; label: (n: number) => string }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const lit = hover ?? value ?? 0;
+  return (
+    <div className="mt-4 flex gap-1" onMouseLeave={() => setHover(null)}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onPick(n)}
+          onMouseEnter={() => setHover(n)}
+          aria-label={label(n)}
+          aria-pressed={value === n}
+          className="rounded-lg p-1 transition hover:scale-110"
+        >
+          <svg viewBox="0 0 24 24" className={`h-10 w-10 transition ${n <= lit ? "fill-gold text-gold" : "fill-transparent text-wine/25"}`} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden>
+            <path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9z" />
+          </svg>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -442,7 +467,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
               <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.venueKicker}</p>
               <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.venue(venue)}</h1>
               <p className="mt-1 text-sm text-wine/55">{t.venueHint}</p>
-              <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.venueMoods} />
+              <Stars value={state.venueRating} onPick={(n) => pickAndGo({ venueRating: n })} label={t.stars} />
               {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
             </>
           ) : current === "liked" || current === "improve" ? (

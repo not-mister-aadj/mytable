@@ -2,7 +2,7 @@ import Link from "next/link";
 import { isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
-import { loadFeedbackOverview, type FeedbackListRow, type FeedbackPeriod, type Score } from "@/lib/admin/feedback-overview";
+import { avgStars, loadFeedbackOverview, nps, type FeedbackListRow, type FeedbackPeriod, type Score } from "@/lib/admin/feedback-overview";
 
 type Props = { searchParams: Promise<{ periode?: string; stad?: string }> };
 
@@ -22,6 +22,8 @@ const MOOD: Record<string, { label: string; dot: string }> = {
 const VENUE_LABEL: Record<string, string> = { great: "Hier wil ik terug", good: "Fijne plek", meh: "Gaat wel", bad: "Niet mijn plek" };
 
 const pct = (n: number, of: number) => (of > 0 ? `${Math.round((n / of) * 100)}%` : "-");
+const npsLabel = (n: number | null) => (n === null ? "-" : n > 0 ? `+${n}` : String(n));
+const starsLabel = (n: number | null) => (n === null ? "-" : `${n.toFixed(1).replace(".", ",")} ★`);
 
 function filterHref(periode: FeedbackPeriod, stad: string | null) {
   const q = new URLSearchParams();
@@ -66,11 +68,11 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
       <section className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Kpi label="Respons" value={pct(t.answered, t.mailed)} hint={`${t.answered} van ${t.mailed}`} />
         <Kpi
-          label="Gezelschap"
-          value={pct(t.tableGood, t.answered)}
-          hint={t.tableAvg !== null ? `Geweldig of leuk · gem. ${t.tableAvg.toFixed(1)}/4` : "Geweldig of leuk"}
+          label="Gezelschap NPS"
+          value={npsLabel(nps(t))}
+          hint={`${t.promoters} promoter · ${t.answered - t.promoters - t.detractors} neutraal · ${t.detractors} detractor`}
         />
-        <Kpi label="Bar" value={pct(t.venueGood, t.venueAnswered)} hint="Hier wil ik terug of fijne plek" />
+        <Kpi label="Bar" value={starsLabel(avgStars(t))} hint={`${t.venueRated} ${t.venueRated === 1 ? "beoordeling" : "beoordelingen"}`} />
         <Kpi label="Klik" value={pct(t.picked, t.answered)} hint={`${t.mutual} wederzijds`} />
         <Kpi label="Komt terug" value={pct(t.rebooked, t.rebookBase)} hint={`Boekt binnen 60 dagen · ${t.rebooked} van ${t.rebookBase}`} />
         <Kpi label="Meldingen" value={String(t.reports)} alert={t.reports > 0} />
@@ -143,14 +145,14 @@ function ScoreTable({ title, first, rows }: { title: string; first: string; rows
               <th className="px-4 py-2.5 text-right">Zondagen</th>
               <th className="px-4 py-2.5 text-right">Gasten</th>
               <th className="px-4 py-2.5 text-right">Respons</th>
-              <th className="px-4 py-2.5 text-right">Gezelschap</th>
+              <th className="px-4 py-2.5 text-right">Gezelschap NPS</th>
               <th className="px-4 py-2.5 text-right">Bar</th>
               <th className="px-4 py-2.5 text-right">Klik</th>
               <th className="px-4 py-2.5 text-right">Komt terug</th>
               <th className="px-4 py-2.5 text-right">Meldingen</th>
             </tr>
           </thead>
-          <tbody className="tabular-nums">
+          <tbody className="tabular-nums whitespace-nowrap">
             {rows.map((s) => (
               <tr key={s.key} className="border-b border-border-subtle/50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-wine">
@@ -161,10 +163,9 @@ function ScoreTable({ title, first, rows }: { title: string; first: string; rows
                 <td className="px-4 py-2.5 text-right text-wine/70">{s.guests}</td>
                 <td className="px-4 py-2.5 text-right">{pct(s.answered, s.mailed)}</td>
                 <td className="px-4 py-2.5 text-right">
-                  {pct(s.tableGood, s.answered)}
-                  {s.tableAvg !== null ? <span className="text-wine/45"> · {s.tableAvg.toFixed(1)}</span> : null}
+                  {npsLabel(nps(s))}
                 </td>
-                <td className="px-4 py-2.5 text-right">{pct(s.venueGood, s.venueAnswered)}</td>
+                <td className="px-4 py-2.5 text-right">{starsLabel(avgStars(s))}</td>
                 <td className="px-4 py-2.5 text-right">{pct(s.picked, s.answered)}</td>
                 <td className="px-4 py-2.5 text-right">{pct(s.rebooked, s.rebookBase)}</td>
                 <td className={`px-4 py-2.5 text-right ${s.reports > 0 ? "font-semibold text-red-800" : "text-wine/40"}`}>{s.reports}</td>
@@ -174,6 +175,15 @@ function ScoreTable({ title, first, rows }: { title: string; first: string; rows
         </table>
       </div>
     </section>
+  );
+}
+
+function Stars({ n }: { n: number }) {
+  return (
+    <span className="whitespace-nowrap tracking-wide" aria-label={`${n} van 5`}>
+      <span className="text-gold">{"★".repeat(n)}</span>
+      <span className="text-wine/20">{"★".repeat(5 - n)}</span>
+    </span>
   );
 }
 
@@ -215,7 +225,7 @@ function AnswerRow({ r }: { r: FeedbackListRow }) {
         <Mood mood={r.mood} />
       </td>
       <td className="px-4 py-3">
-        <Mood mood={r.venueMood} venue />
+        {r.venueRating ? <Stars n={r.venueRating} /> : <Mood mood={r.venueMood} venue />}
       </td>
       <td className="px-4 py-3 text-wine/80">{r.wants.length ? r.wants.join(", ") : <span className="text-wine/35">-</span>}</td>
       <td className="max-w-[260px] px-4 py-3 text-wine/80">

@@ -21,6 +21,7 @@ export type Visit = {
   noShow: boolean;
   mood: Mood | null;
   venueMood: Mood | null;
+  venueRating: number | null;
 };
 
 export type Link = { email: string; name: string; eventId: string; at: string };
@@ -55,10 +56,11 @@ export async function loadTableHistory(): Promise<TableHistory> {
       no_show: boolean;
       mood: Mood | null;
       venue_mood: Mood | null;
+      venue_rating: number | null;
     }>(sql`
       select b.id as booking_id, b.email, b.customer_name as name, e.id as event_id, e.starts_at, e.city,
         coalesce(fv.name, gv.name, (select v.name from event_venues ev join venues v on v.id = ev.venue_id where ev.event_id = e.id order by ev.position limit 1)) as venue,
-        g.number as group_number, b.no_show_at is not null as no_show, f.mood, f.venue_mood
+        g.number as group_number, b.no_show_at is not null as no_show, f.mood, f.venue_mood, f.venue_rating
       from bookings b
       join events e on e.id = b.event_id
       left join booking_feedback f on f.booking_id = b.id
@@ -103,6 +105,7 @@ export async function loadTableHistory(): Promise<TableHistory> {
       noShow: v.no_show,
       mood: v.mood,
       venueMood: v.venue_mood,
+      venueRating: v.venue_rating,
     });
   }
   const link = (r: { to_email: string; to_name: string | null; event_id: string; at: Date }): Link => ({

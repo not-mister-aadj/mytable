@@ -79,54 +79,6 @@ export function OutreachFunnelPanel({ funnel }: { funnel: OutreachFunnel }) {
             </p>
           ) : null}
 
-          {funnel.steps.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[420px] text-left text-xs">
-                <thead>
-                  <tr className="text-wine/45">
-                    <th className="pb-2 font-medium">Mail</th>
-                    <th className="pb-2 font-medium">Verstuurd</th>
-                    <th className="pb-2 font-medium">Afgeleverd</th>
-                    <th className="pb-2 font-medium">Geopend</th>
-                    <th className="pb-2 font-medium">Antwoorden</th>
-                  </tr>
-                </thead>
-                <tbody className="text-wine/70">
-                  {funnel.steps.map((step) => (
-                    <tr key={step.step} className="border-t border-border-subtle/60">
-                      <td className="py-2 font-medium text-burgundy">
-                        Mail {step.step}
-                      </td>
-                      <td className="py-2">{step.sent}</td>
-                      <td className="py-2">
-                        {step.delivered}
-                        <span className="ml-1 text-wine/45">
-                          {formatRate(step.delivered / step.sent)}
-                        </span>
-                      </td>
-                      <td className="py-2">
-                        {step.opened}
-                        <span className="ml-1 text-wine/45">
-                          {formatRate(step.opened / step.sent)}
-                        </span>
-                      </td>
-                      <td className="py-2">
-                        {step.replies}
-                        <span className="ml-1 text-wine/45">
-                          {formatRate(step.replies / step.sent)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="mt-2 text-[11px] text-wine/45">
-                Een antwoord telt bij de mail die als laatste verstuurd was — de
-                sequence stopt zodra iemand reageert, dus die toewijzing klopt
-                exact.
-              </p>
-            </div>
-          ) : null}
         </>
       )}
     </section>

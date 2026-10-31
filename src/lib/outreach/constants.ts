@@ -38,7 +38,7 @@ export const OUTREACH_STATUS_CLASSES: Record<OutreachStatus, string> = {
   unsubscribed: "border-wine/15 bg-wine/[0.04] text-wine/45",
 };
 
-/** Statuses that take a prospect out of the sequence for good. */
+/** Statuses after which a venue gets no more bulk mail. */
 export const OUTREACH_STOPPED_STATUSES: readonly OutreachStatus[] = [
   "replied",
   "interested",
@@ -53,17 +53,21 @@ export function isOutreachStatus(value: string): value is OutreachStatus {
   return (OUTREACH_STATUSES as readonly string[]).includes(value);
 }
 
-export const OUTREACH_TEMPLATE_KINDS = ["sequence", "reply", "other"] as const;
+export const OUTREACH_TEMPLATE_KINDS = ["other", "reply"] as const;
 export type OutreachTemplateKind = (typeof OUTREACH_TEMPLATE_KINDS)[number];
 
 export const OUTREACH_TEMPLATE_KIND_LABELS: Record<
   OutreachTemplateKind,
   string
 > = {
-  sequence: "Sequence",
-  reply: "Antwoord",
   other: "Los",
+  reply: "Antwoord",
 };
+
+/** Any other stored kind, such as the retired "sequence", counts as "other". */
+export function toOutreachTemplateKind(value: string): OutreachTemplateKind {
+  return value === "reply" ? "reply" : "other";
+}
 
 export const OUTREACH_ACTIVITY_TYPES = [
   "reply",

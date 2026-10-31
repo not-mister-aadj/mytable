@@ -405,26 +405,21 @@ export function morningMail(p: {
 export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): string {
   const nl = p.locale === "nl";
   const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
-  const opening =
-    p.others >= 2
-      ? nl
-        ? `Vanmiddag schoof je bij ${p.venueName} aan bij een tafel vol nieuwe gezichten. Hoe was dat?`
-        : `This afternoon at ${p.venueName} you joined a table full of new faces. How was it?`
-      : nl
-        ? `Je zat vanmiddag aan tafel bij ${p.venueName}. Hoe was het?`
-        : `This afternoon you were at the table at ${p.venueName}. How was it?`;
+  const opening = nl
+    ? `Hoe was je middag bij ${p.venueName}?`
+    : `How was your afternoon at ${p.venueName}?`;
   return nl
     ? [
         hi,
         "",
         opening,
         "",
-        "We lezen elk antwoord, en we gebruiken ze om de volgende tafels nog beter in te delen. Klikte het met iemand aan tafel? Vertel het ons, dan zetten we jullie een volgende keer misschien weer samen.",
+        "Was er iemand met wie het klikte? Laat het ons weten, dan zorgen we dat jullie elkaar weer tegenkomen. Of we zetten je bij mensen die op hen lijken, op een plek die bij je past.",
         "",
-        "Eén tik is genoeg:",
+        "Het duurt maar een minuutje:",
         p.url,
         "",
-        "Tot een volgende keer,",
+        "Tot een volgende zondag,",
         "Het MyTable-team",
       ].join("\n")
     : [
@@ -432,12 +427,12 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "We read every answer, and we use them to put the next tables together even better. Did you click with someone at your table? Tell us, and we might seat you together again another time.",
+        "Was there someone you clicked with? Let us know, and we'll make sure you meet again. Or we'll seat you with people like them, at a place that suits you.",
         "",
-        "One tap is enough:",
+        "It only takes a minute:",
         p.url,
         "",
-        "See you next time,",
+        "Until another Sunday,",
         "The MyTable team",
       ].join("\n");
 }

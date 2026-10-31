@@ -8,9 +8,13 @@ import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFo
 
 const COPY = {
   nl: {
-    title: (venue: string) => `Hoe was je middag bij ${venue}?`,
+    tableKicker: "Je tafel",
+    title: "Hoe was het gezelschap?",
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
-    venue: (venue: string) => `En hoe was ${venue}?`,
+    venueKicker: "De bar",
+    venue: (venue: string) => `En ${venue} zelf?`,
+    venueHint: "De plek, de wijn, de bediening.",
+    venueMoods: { great: "Hier wil ik terug", good: "Fijne plek", meh: "Gaat wel", bad: "Niet mijn plek" } as Record<Mood, string>,
     liked: "Wat maakte het zo leuk?",
     likedGood: "Wat vond je het leukst?",
     improve: "Wat kan beter?",
@@ -62,9 +66,13 @@ const COPY = {
     error: "Opslaan lukte niet. Probeer het opnieuw.",
   },
   en: {
-    title: (venue: string) => `How was your afternoon at ${venue}?`,
+    tableKicker: "Your table",
+    title: "How was the company?",
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
-    venue: (venue: string) => `And how was ${venue}?`,
+    venueKicker: "The bar",
+    venue: (venue: string) => `And ${venue} itself?`,
+    venueHint: "The place, the wine, the service.",
+    venueMoods: { great: "I'd go back", good: "Nice place", meh: "It was okay", bad: "Not for me" } as Record<Mood, string>,
     liked: "What made it so good?",
     likedGood: "What did you like most?",
     improve: "What could be better?",
@@ -424,13 +432,16 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         <div className="mt-6">
           {current === "mood" ? (
             <>
-              <h1 className="font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title(venue)}</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.tableKicker}</p>
+              <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title}</h1>
               <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} />
             </>
           ) : current === "venue" ? (
             <>
-              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.venue(venue)}</h1>
-              <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.moods} />
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.venueKicker}</p>
+              <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.venue(venue)}</h1>
+              <p className="mt-1 text-sm text-wine/55">{t.venueHint}</p>
+              <Faces value={state.venueMood} onPick={(m) => pickAndGo({ venueMood: m })} labels={t.venueMoods} />
               {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
             </>
           ) : current === "liked" || current === "improve" ? (

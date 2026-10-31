@@ -17,7 +17,6 @@ export function TableIntroGate({
   bookingCode,
   seats,
   intro,
-  lead,
 }: {
   locale: Locale;
   city: string;
@@ -25,12 +24,10 @@ export function TableIntroGate({
   bookingCode: string;
   seats: number;
   intro: SundayTableIntro;
-  lead: string;
 }) {
   const router = useRouter();
   return (
     <section>
-      <p className="mb-3 px-1 text-sm text-wine/70">{lead}</p>
       <SundayTableIntroForm
         locale={locale}
         city={city}

@@ -417,8 +417,8 @@ export function reminderMail(p: {
     : [];
   const text = (
     nl
-      ? [hi, "", `Zondag zat je bij ${p.venueName} aan tafel. Was er iemand die je graag terugziet? Laat het ons weten, dan zorgen we dat jullie elkaar weer tegenkomen.`, "", p.url, "", ...next, "Tot snel,", "Het MyTable-team"]
-      : [hi, "", `On Sunday you were at the table at ${p.venueName}. Was there someone you'd like to see again? Let us know, and we'll make sure you meet again.`, "", p.url, "", ...next, "See you soon,", "The MyTable team"]
+      ? [hi, "", `Zondag zat je bij ${p.venueName} aan tafel. Was er iemand die je graag terugziet? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen.`, "", p.url, "", ...next, "Tot snel,", "Het MyTable-team"]
+      : [hi, "", `On Sunday you were at the table at ${p.venueName}. Was there someone you'd like to see again? Let us know, and we'll do our best to make sure you meet again.`, "", p.url, "", ...next, "See you soon,", "The MyTable team"]
   ).join("\n");
   return buttonMail(text, p.url, nl ? "Kies wie je weer wilt zien" : "Choose who you'd like to see again");
 }
@@ -475,7 +475,7 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "Was er iemand met wie het klikte? Laat het ons weten, dan zorgen we dat jullie elkaar weer tegenkomen. Of we zetten je bij mensen die op hen lijken, op een plek die bij je past.",
+        "Was er iemand met wie het klikte? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen. Of we zetten je bij mensen die op hen lijken, op een plek die bij je past.",
         "",
         "Het duurt maar een minuutje:",
         p.url,
@@ -491,7 +491,7 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "Was there someone you clicked with? Let us know, and we'll make sure you meet again. Or we'll seat you with people like them, at a place that suits you.",
+        "Was there someone you clicked with? Let us know, and we'll do our best to make sure you meet again. Or we'll seat you with people like them, at a place that suits you.",
         "",
         "It only takes a minute:",
         p.url,

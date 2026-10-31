@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown } from "@/lib/feedback-reasons";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -9,7 +9,7 @@ import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
 import { SundayMailsPanel } from "@/components/admin/SundayMailsPanel";
 import { VenueNotesPanel } from "@/components/admin/VenueNotesPanel";
 import { notesForEvent } from "@/lib/admin/venue-notes";
-import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events, venues } from "@/db/schema";
+import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events, feedbackReports, venues } from "@/db/schema";
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, getSiteUrl, resolveHostname } from "@/lib/admin-url";
@@ -228,7 +228,7 @@ async function MailsTab({ eventId }: { eventId: string }) {
 
 async function FeedbackTab({ eventId }: { eventId: string }) {
   const db = getDb();
-  const [rows, guests, venue] = await Promise.all([
+  const [rows, guests, venue, reports] = await Promise.all([
     db
       .select({ f: bookingFeedback, name: bookings.customerName, email: bookings.email, group: eventGroups.number, profilePhoto: customers.photoUrl })
       .from(bookingFeedback)
@@ -247,6 +247,12 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
       .where(eq(eventVenues.eventId, eventId))
       .orderBy(asc(eventVenues.position))
       .limit(1),
+    db
+      .select({ r: feedbackReports, name: bookings.customerName, email: bookings.email })
+      .from(feedbackReports)
+      .innerJoin(bookings, eq(bookings.id, feedbackReports.bookingId))
+      .where(eq(feedbackReports.eventId, eventId))
+      .orderBy(desc(feedbackReports.createdAt)),
   ]);
   const nameOf = new Map(guests.map((g) => [g.id, g.name?.trim().split(/\s+/)[0] ?? "Gast"]));
   // "Was er iemand niet?": per guest, who said they weren't there.
@@ -263,6 +269,15 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
       venueName={venue[0]?.name ?? null}
       guests={guests.length}
       missing={missing}
+      reports={reports.map(({ r, name, email }) => ({
+        id: r.id,
+        by: name?.trim() || email,
+        email,
+        about: [...r.about.map((id) => nameOf.get(id) ?? "?"), ...(r.aboutOther ? ["iemand anders"] : [])],
+        body: r.body,
+        contactOk: r.contactOk,
+        createdAt: r.createdAt.toISOString(),
+      }))}
       rows={rows
         .filter((r) => r.f.mood)
         .map((r) => ({

@@ -1005,6 +1005,23 @@ export const bookingFeedback = pgTable("booking_feedback", {
 
 export type BookingFeedback = typeof bookingFeedback.$inferSelect;
 
+/** Something that wasn't okay, reported from the feedback mail (drizzle/0060).
+ * `about` holds booking ids of tablemates. */
+export const feedbackReports = pgTable("feedback_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  bookingId: uuid("booking_id")
+    .notNull()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  about: jsonb("about").$type<string[]>().notNull().default([]),
+  aboutOther: boolean("about_other").notNull().default(false),
+  body: text("body").notNull(),
+  contactOk: boolean("contact_ok").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** What was agreed with a bar, optionally about one Sunday (drizzle/0059). */
 export const venueNotes = pgTable(
   "venue_notes",

@@ -8,6 +8,9 @@ import { DISLIKED_LABELS, LIKED_LABELS, type DislikedReason, type LikedReason } 
 
 export type MissingGuest = { bookingId: string; name: string; by: string[]; noShow: boolean };
 
+/** "Laat het ons weten" from the feedback mail. */
+export type ReportRow = { id: string; by: string; email: string; about: string[]; body: string; contactOk: boolean; createdAt: string };
+
 export type FeedbackRow = {
   id: string;
   name: string;
@@ -77,12 +80,14 @@ export function FeedbackPanel({
   rows,
   guests,
   missing,
+  reports,
 }: {
   eventId: string;
   venueName: string | null;
   rows: FeedbackRow[];
   guests: number;
   missing: MissingGuest[];
+  reports: ReportRow[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -93,6 +98,27 @@ export function FeedbackPanel({
 
   return (
     <div className="space-y-5">
+      {reports.length > 0 ? (
+        <section className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-red-800">Meldingen</p>
+          <ul className="mt-2 space-y-3">
+            {reports.map((r) => (
+              <li key={r.id} className="text-sm">
+                <p className="text-wine">
+                  <span className="font-semibold">{r.by}</span>
+                  <span className="text-wine/55">
+                    {" "}
+                    · over {r.about.length ? r.about.join(", ") : "-"} · {r.contactOk ? "contact mag" : "geen contact"} ·{" "}
+                    {new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(r.createdAt))}
+                  </span>
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-wine/80">{r.body}</p>
+                <p className="mt-1 text-xs text-wine/55 select-all">{r.email}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {missing.length > 0 ? (
         <section className="rounded-xl border border-border-subtle bg-beige/60 p-4">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-wine/45">Niet gezien</p>

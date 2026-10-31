@@ -203,6 +203,21 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     });
   }
 
+  const reports = await db.execute<{ id: string; event_id: string; name: string | null; email: string; city: string; body: string }>(sql`
+    select r.id, r.event_id, b.customer_name as name, b.email, e.city, r.body
+    from feedback_reports r join bookings b on b.id = r.booking_id join events e on e.id = r.event_id
+    where r.created_at > now() - interval '30 days'
+    order by r.created_at desc`);
+  for (const r of reports) {
+    todos.push({
+      key: `report-${r.id}`,
+      tone: "urgent",
+      title: `Melding van ${r.name?.trim() || r.email} (${r.city})`,
+      detail: r.body.length > 90 ? `${r.body.slice(0, 90)}...` : r.body,
+      href: eventHref(r.event_id, "feedback"),
+    });
+  }
+
   const order = { urgent: 0, soon: 1, info: 2 } as const;
   todos.sort((a, b) => order[a.tone] - order[b.tone]);
   // Remember when each item came up; items that went away start over if they return.

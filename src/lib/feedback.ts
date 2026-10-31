@@ -79,7 +79,7 @@ export type FeedbackPage = {
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
   tablemates: { bookingId: string; firstName: string }[];
   /** The next bookable Sunday Social in this city, or else in another city they follow. */
-  next: { city: string; label: string; shortLabel: string; seatsLeft: number; path: string } | null;
+  next: { eventId: string; city: string; label: string; shortLabel: string; seatsLeft: number; path: string } | null;
   /** "De volgende is op ons" after Matig or Niet leuk: the dates they can
    * book for free on the page, or the one they already booked. Null when
    * it doesn't apply (no-show, used before). */
@@ -252,6 +252,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     next:
       nextEvent && nextPath
         ? {
+            eventId: nextEvent.id,
             city: nextEvent.city,
             label: new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", {
               weekday: "long",

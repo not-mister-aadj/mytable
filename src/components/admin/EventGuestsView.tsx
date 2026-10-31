@@ -22,6 +22,8 @@ import type {
 } from "@/lib/event-tickets-types";
 import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 import { EmailPreviewDialog } from "@/components/admin/EmailPreviewDialog";
+import { GuestHistoryChips, GuestHistoryContext } from "@/components/admin/GuestHistoryChips";
+import type { GuestHistory } from "@/lib/admin/table-history";
 
 type EventSummary = {
   id: string;
@@ -499,6 +501,7 @@ function GuestCard({
           </div>
           <div className="min-w-0">
             <p className="truncate font-medium text-wine">{guestLabel(ticket)}</p>
+            <GuestHistoryChips bookingId={ticket.id} />
             <p className="mt-0.5 truncate text-sm text-wine/55">{ticket.email}</p>
             <p className="mt-2 font-mono text-xs tracking-wide text-wine/45">
               {ticket.reservationCode}
@@ -563,6 +566,7 @@ function GuestTableRow({
           </div>
           <div className="min-w-0">
             <p className="font-medium text-wine">{guestLabel(ticket)}</p>
+            <GuestHistoryChips bookingId={ticket.id} />
             <p className="mt-0.5 text-xs text-wine/55">{ticket.email}</p>
             <GuestNotes ticket={ticket} />
             <GuestIntroAndMails ticket={ticket} />
@@ -618,10 +622,13 @@ export function EventGuestsView({
   event,
   tickets,
   transferTargets,
+  history,
 }: {
   event: EventSummary;
   tickets: EventTicketRow[];
   transferTargets: TransferTargetEvent[];
+  /** Labels from earlier Sundays, per booking id. */
+  history?: Record<string, GuestHistory>;
 }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -650,6 +657,7 @@ export function EventGuestsView({
   const onChanged = () => router.refresh();
 
   return (
+    <GuestHistoryContext.Provider value={history ?? {}}>
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-wine/60">
@@ -729,5 +737,6 @@ export function EventGuestsView({
       )}
 
     </div>
+    </GuestHistoryContext.Provider>
   );
 }

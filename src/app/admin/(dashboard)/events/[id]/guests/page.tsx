@@ -8,6 +8,8 @@ import { JouwTafelBoard } from "@/components/admin/JouwTafelBoard";
 import { FeedbackPanel } from "@/components/admin/FeedbackPanel";
 import { SundayMailsPanel } from "@/components/admin/SundayMailsPanel";
 import { VenueNotesPanel } from "@/components/admin/VenueNotesPanel";
+import { GuestHistoryProvider } from "@/components/admin/GuestHistoryChips";
+import { guestHistories, loadTableHistory } from "@/lib/admin/table-history";
 import { notesForEvent } from "@/lib/admin/venue-notes";
 import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events, feedbackReports, venues } from "@/db/schema";
 import { getDb } from "@/db/index";
@@ -117,8 +119,20 @@ export default async function EventGuestsPage({ params, searchParams }: Props) {
   );
 }
 
+/** Labels from earlier Sundays for every booking on this one. */
+async function historyFor(eventId: string, startsAt: Date) {
+  const [history, rows] = await Promise.all([
+    loadTableHistory(),
+    getDb()
+      .select({ bookingId: bookings.id, email: bookings.email })
+      .from(bookings)
+      .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid"))),
+  ]);
+  return guestHistories(history, eventId, startsAt, rows);
+}
+
 async function GuestsTab({ eventId, event }: { eventId: string; event: typeof events.$inferSelect }) {
-  const ticketsData = await getEventTicketsData(eventId);
+  const [ticketsData, history] = await Promise.all([getEventTicketsData(eventId), historyFor(eventId, event.startsAt)]);
   return (
     <EventGuestsView
       event={{
@@ -132,6 +146,7 @@ async function GuestsTab({ eventId, event }: { eventId: string; event: typeof ev
       }}
       tickets={ticketsData.tickets}
       transferTargets={ticketsData.transferTargets}
+      history={history}
     />
   );
 }
@@ -139,17 +154,20 @@ async function GuestsTab({ eventId, event }: { eventId: string; event: typeof ev
 async function SeatingTab({ eventId, hostname, publicUrl }: { eventId: string; hostname: string; publicUrl: string }) {
   const board = await loadEventBoard(eventId);
   if (!board) return <p className="text-sm text-wine/60">Deze zondag heeft geen tafelindeling.</p>;
-  const tablePages = Object.fromEntries(
-    await Promise.all(board.guests.map(async (g) => [g.bookingId, await tablePageUrl(g.bookingId, "nl", getSiteUrl())] as const)),
-  );
+  const [tablePages, history] = await Promise.all([
+    Promise.all(board.guests.map(async (g) => [g.bookingId, await tablePageUrl(g.bookingId, "nl", getSiteUrl())] as const)).then(Object.fromEntries),
+    historyFor(eventId, new Date(board.event.startsAt)),
+  ]);
   return (
-    <JouwTafelBoard
-      board={board}
-      tablePages={tablePages}
-      embedded
-      calendarHref={adminPath(`/jouw-tafel/kalender?maand=${board.event.startsAt.slice(0, 7)}`, hostname)}
-      tablePageHref={publicUrl}
-    />
+    <GuestHistoryProvider value={history}>
+      <JouwTafelBoard
+        board={board}
+        tablePages={tablePages}
+        embedded
+        calendarHref={adminPath(`/jouw-tafel/kalender?maand=${board.event.startsAt.slice(0, 7)}`, hostname)}
+        tablePageHref={publicUrl}
+      />
+    </GuestHistoryProvider>
   );
 }
 

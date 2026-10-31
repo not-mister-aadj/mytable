@@ -3,7 +3,8 @@ import { getDb } from "@/db/index";
 import { adminTodos } from "@/db/schema";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { monthlyTargetCents } from "@/lib/admin/monthly-target";
-import { LOCATION_SUBJECT_SQL } from "@/lib/admin/sunday-mails";
+import { LOCATION_SUBJECT_SQL, loadSundayMailContext, mailRecipients } from "@/lib/admin/sunday-mails";
+import { dueFeedbackEvents } from "@/lib/admin/auto-feedback";
 
 /** Everything the "Vandaag" page shows, in one round of queries. */
 
@@ -215,6 +216,21 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
       title: `Melding van ${r.name?.trim() || r.email} (${r.city})`,
       detail: r.body.length > 90 ? `${r.body.slice(0, 90)}...` : r.body,
       href: eventHref(r.event_id, "feedback"),
+    });
+  }
+
+  // The automatic feedback mail: still missing guests more than an hour after 20:00.
+  for (const eventId of await dueFeedbackEvents(new Date(now.getTime() - 70 * 60_000))) {
+    const ctx = await loadSundayMailContext(eventId);
+    if (!ctx || ctx.schedule.feedback) continue;
+    const open = mailRecipients(ctx, "feedback").filter((g) => !g.sentFeedback).length;
+    if (open === 0) continue;
+    todos.push({
+      key: `feedback-${eventId}`,
+      tone: "urgent",
+      title: `Feedbackmail ${ctx.city} niet verstuurd`,
+      detail: `${open} ${open === 1 ? "gast heeft" : "gasten hebben"} hem nog niet (dagelijkse mail-limiet of fout)`,
+      href: eventHref(eventId, "mails"),
     });
   }
 

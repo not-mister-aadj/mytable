@@ -44,8 +44,8 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   },
   feedback: {
     title: "Feedbackmail",
-    when: "Zondagavond",
-    what: "Hoe was je middag: vier gezichtjes, een open vraag, en bij een geweldige middag het lidmaatschap en de volgende zondag.",
+    when: "Zondag 20:00, automatisch",
+    what: "Hoe was het gezelschap, wie ze weer willen zien, hoe de bar was, en de volgende zondag. Met een link om iets te melden.",
   },
 };
 

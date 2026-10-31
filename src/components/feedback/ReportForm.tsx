@@ -9,8 +9,10 @@ const COPY = {
     kicker: "Alleen voor ons",
     title: "Laat het ons weten",
     intro: "Gebeurde er iets waar je je niet prettig bij voelde? Vertel het ons. Alleen wij lezen dit, niemand anders ziet het.",
-    who: "Over wie gaat het?",
+    who: "Over wie of wat gaat het?",
     other: "Iemand anders",
+    otherNote: "Wie was het? Bijvoorbeeld iemand van een andere tafel",
+    bar: (name: string) => `${name} (de bar)`,
     what: "Wat gebeurde er?",
     contact: "Mogen we contact met je opnemen?",
     send: "Versturen",
@@ -24,8 +26,10 @@ const COPY = {
     kicker: "Only for us",
     title: "Let us know",
     intro: "Did something happen that didn't feel right? Tell us. Only we read this, nobody else sees it.",
-    who: "Who is it about?",
+    who: "Who or what is it about?",
     other: "Someone else",
+    otherNote: "Who was it? For example someone from another table",
+    bar: (name: string) => `${name} (the bar)`,
     what: "What happened?",
     contact: "May we get in touch with you?",
     send: "Send",
@@ -43,7 +47,9 @@ const chip = (on: boolean) => `rounded-full px-3.5 py-1.5 text-sm transition ${o
 export function ReportForm({ page, token }: { page: FeedbackPage; token: string }) {
   const t = COPY[page.locale];
   const [about, setAbout] = useState<string[]>([]);
+  const [aboutVenue, setAboutVenue] = useState(false);
   const [aboutOther, setAboutOther] = useState(false);
+  const [aboutOtherNote, setAboutOtherNote] = useState("");
   const [body, setBody] = useState("");
   const [contactOk, setContactOk] = useState(true);
   const [sent, setSent] = useState(false);
@@ -53,7 +59,7 @@ export function ReportForm({ page, token }: { page: FeedbackPage; token: string 
   const toggle = (id: string) => setAbout((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]));
   const send = () =>
     start(async () => {
-      const r = await submitReportAction(token, { about, aboutOther, body, contactOk });
+      const r = await submitReportAction(token, { about, aboutVenue, aboutOther, aboutOtherNote, body, contactOk });
       if (r.ok) setSent(true);
       else setError(true);
     });
@@ -82,10 +88,25 @@ export function ReportForm({ page, token }: { page: FeedbackPage; token: string 
             {m.firstName}
           </button>
         ))}
+        {page.venueName ? (
+          <button type="button" onClick={() => setAboutVenue((v) => !v)} className={chip(aboutVenue)}>
+            {t.bar(page.venueName)}
+          </button>
+        ) : null}
         <button type="button" onClick={() => setAboutOther((v) => !v)} className={chip(aboutOther)}>
           {t.other}
         </button>
       </div>
+      {aboutOther ? (
+        <input
+          value={aboutOtherNote}
+          onChange={(e) => setAboutOtherNote(e.target.value)}
+          maxLength={200}
+          placeholder={t.otherNote}
+          aria-label={t.otherNote}
+          className="mt-3 w-full rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 text-sm text-wine shadow-sm placeholder:text-wine/35 focus:border-burgundy/40 focus:outline-none focus:ring-2 focus:ring-burgundy/10"
+        />
+      ) : null}
 
       <label className="mt-6 block text-sm font-medium text-wine">
         {t.what}

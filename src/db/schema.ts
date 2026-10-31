@@ -1020,6 +1020,9 @@ export const feedbackReports = pgTable("feedback_reports", {
     .references(() => events.id, { onDelete: "cascade" }),
   about: jsonb("about").$type<string[]>().notNull().default([]),
   aboutOther: boolean("about_other").notNull().default(false),
+  /** About the bar, and who "iemand anders" was (drizzle/0062). */
+  aboutVenue: boolean("about_venue").notNull().default(false),
+  aboutOtherNote: text("about_other_note"),
   body: text("body").notNull(),
   contactOk: boolean("contact_ok").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -6,7 +6,6 @@ import { DISLIKED_LABELS, LIKED_LABELS, type DislikedReason, type LikedReason } 
 /** The Feedback page in admin: how we score, per city and per bar, and every answer. */
 
 type Mood = "great" | "good" | "meh" | "bad";
-const SCORE: Record<Mood, number> = { great: 4, good: 3, meh: 2, bad: 1 };
 const REBOOK_DAYS = 60;
 
 export type FeedbackPeriod = "30" | "90" | "all";
@@ -17,11 +16,12 @@ export type Score = {
   /** Guests whose Sunday had the feedback mail. */
   mailed: number;
   answered: number;
-  /** Geweldig or Leuk, of who answered. */
-  tableGood: number;
-  tableAvg: number | null;
-  venueAnswered: number;
-  venueGood: number;
+  /** NPS on "Hoe was het gezelschap?": Geweldig promotes, Leuk is neutral, Matig and Niet leuk detract. */
+  promoters: number;
+  detractors: number;
+  /** Bar ratings (1 to 5 stars) and their sum, for the average. */
+  venueRated: number;
+  venueStars: number;
   /** Picked at least one tablemate. */
   picked: number;
   mutual: number;
@@ -42,6 +42,7 @@ export type FeedbackListRow = {
   group: number | null;
   mood: Mood | null;
   venueMood: Mood | null;
+  venueRating: number | null;
   wants: string[];
   liked: string[];
   disliked: string[];
@@ -70,6 +71,7 @@ type VisitRow = {
   group_number: number | null;
   mood: Mood | null;
   venue_mood: Mood | null;
+  venue_rating: number | null;
   liked: string[] | null;
   disliked: string[] | null;
   highlight: string | null;
@@ -82,7 +84,7 @@ type VisitRow = {
 };
 
 function emptyScore(): Score {
-  return { sundays: 0, guests: 0, mailed: 0, answered: 0, tableGood: 0, tableAvg: null, venueAnswered: 0, venueGood: 0, picked: 0, mutual: 0, rebookBase: 0, rebooked: 0, reports: 0 };
+  return { sundays: 0, guests: 0, mailed: 0, answered: 0, promoters: 0, detractors: 0, venueRated: 0, venueStars: 0, picked: 0, mutual: 0, rebookBase: 0, rebooked: 0, reports: 0 };
 }
 
 export async function loadFeedbackOverview(period: FeedbackPeriod, city: string | null, now = new Date()): Promise<FeedbackOverview> {
@@ -90,7 +92,7 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
   const rows = await getDb().execute<VisitRow>(sql`
     select b.id as booking_id, b.email, b.customer_name as name, c.id as customer_id, e.id as event_id, e.starts_at, e.city,
       coalesce(fv.name, gv.name, (select v.name from event_venues ev join venues v on v.id = ev.venue_id where ev.event_id = e.id order by ev.position limit 1)) as venue,
-      g.number as group_number, f.mood, f.venue_mood, f.liked, f.disliked, f.highlight, f.improve,
+      g.number as group_number, f.mood, f.venue_mood, f.venue_rating, f.liked, f.disliked, f.highlight, f.improve,
       (select array_agg(split_part(coalesce(tb.customer_name, 'Gast'), ' ', 1)) from jsonb_array_elements_text(coalesce(f.want_to_see, '[]'::jsonb)) w(id) join bookings tb on tb.id::text = w.id) as want_names,
       (select array_agg(w.id) from jsonb_array_elements_text(coalesce(f.want_to_see, '[]'::jsonb)) w(id)) as want_ids,
       exists (select 1 from email_log l where l.email_normalized = lower(trim(b.email)) and l.sent_at > e.starts_at
@@ -121,18 +123,17 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
   const tally = (list: VisitRow[]): Score => {
     const s = emptyScore();
     s.sundays = new Set(list.map((r) => r.event_id)).size;
-    let sum = 0;
     for (const r of list) {
       s.guests++;
       if (r.mailed || r.mood) s.mailed++;
       if (r.mood) {
         s.answered++;
-        sum += SCORE[r.mood];
-        if (r.mood === "great" || r.mood === "good") s.tableGood++;
+        if (r.mood === "great") s.promoters++;
+        if (r.mood === "meh" || r.mood === "bad") s.detractors++;
       }
-      if (r.venue_mood) {
-        s.venueAnswered++;
-        if (r.venue_mood === "great" || r.venue_mood === "good") s.venueGood++;
+      if (r.venue_rating) {
+        s.venueRated++;
+        s.venueStars += r.venue_rating;
       }
       if ((r.want_ids ?? []).length > 0) s.picked++;
       if (isMutual(r)) s.mutual++;
@@ -142,7 +143,6 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
       }
       s.reports += r.reports;
     }
-    s.tableAvg = s.answered ? sum / s.answered : null;
     return s;
   };
   const group = <K extends string>(by: (r: VisitRow) => K | null) => {
@@ -174,6 +174,7 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
         group: r.group_number,
         mood: r.mood,
         venueMood: r.venue_mood,
+        venueRating: r.venue_rating,
         wants: r.want_names ?? [],
         liked: (r.liked ?? []).map((k) => LIKED_LABELS.nl[k as LikedReason] ?? k),
         disliked: (r.disliked ?? []).map((k) => DISLIKED_LABELS.nl[k as DislikedReason] ?? k),
@@ -183,3 +184,11 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
       })),
   };
 }
+
+/** -100 to +100: share of promoters minus share of detractors; null without answers. */
+export function nps(s: Pick<Score, "answered" | "promoters" | "detractors">): number | null {
+  return s.answered ? Math.round(((s.promoters - s.detractors) / s.answered) * 100) : null;
+}
+
+/** Average bar stars, or null without ratings. */
+export const avgStars = (s: Pick<Score, "venueRated" | "venueStars">) => (s.venueRated ? s.venueStars / s.venueRated : null);

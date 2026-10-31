@@ -7,6 +7,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -984,6 +985,8 @@ export const bookingFeedback = pgTable("booking_feedback", {
   venueId: uuid("venue_id").references(() => venues.id, { onDelete: "set null" }),
   mood: text("mood"),
   venueMood: text("venue_mood"),
+  /** "En {bar} zelf?", 1 to 5 stars (drizzle/0061); venue_mood holds answers from before. */
+  venueRating: smallint("venue_rating"),
   highlight: text("highlight"),
   improve: text("improve"),
   quoteConsent: boolean("quote_consent").notNull().default(false),

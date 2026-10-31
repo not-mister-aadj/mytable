@@ -88,7 +88,16 @@ export function TableHistoryPanel({ history, email }: { history: TableHistory; e
                     {v.group !== null ? <span className="text-wine/45"> · groep {v.group}</span> : null}
                   </td>
                   <td className="py-2 pr-4">{v.noShow ? <span className="text-red-800">Niet gekomen</span> : <MoodDot mood={v.mood} />}</td>
-                  <td className="py-2">{v.noShow ? null : <MoodDot mood={v.venueMood} venue />}</td>
+                  <td className="py-2">
+                    {v.noShow ? null : v.venueRating ? (
+                      <span className="tracking-wide">
+                        <span className="text-gold">{"★".repeat(v.venueRating)}</span>
+                        <span className="text-wine/20">{"★".repeat(5 - v.venueRating)}</span>
+                      </span>
+                    ) : (
+                      <MoodDot mood={v.venueMood} venue />
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -17,6 +17,8 @@ export type FeedbackRow = {
   group: number | null;
   mood: string | null;
   venueMood: string | null;
+  /** 1 to 5 stars; venueMood holds answers from before the stars. */
+  venueRating: number | null;
   liked: LikedReason[];
   highlight: string | null;
   disliked: DislikedReason[];
@@ -92,6 +94,7 @@ export function FeedbackPanel({
   const router = useRouter();
   const [pending, start] = useTransition();
   const count = (key: "mood" | "venueMood", v: string) => rows.filter((r) => r[key] === v).length;
+  const rated = rows.filter((r) => r.venueRating);
   const sorted = [...rows].sort((a, b) => Number(b.quoteConsent) - Number(a.quoteConsent));
   const likedCounts = tally(rows.map((r) => r.liked), LIKED_LABELS.nl);
   const dislikedCounts = tally(rows.map((r) => r.disliked), DISLIKED_LABELS.nl);
@@ -171,14 +174,28 @@ export function FeedbackPanel({
         </div>
         <div className="rounded-xl border border-border-subtle bg-beige/60 p-4">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-wine/45">{venueName ?? "Zaak"}</p>
-          <div className="mt-2 space-y-1 text-sm">
-            {Object.keys(MOOD).map((k) => (
-              <div key={k} className="flex justify-between">
-                <MoodChip mood={k} />
-                <span className="tabular-nums text-wine/70">{count("venueMood", k)}</span>
-              </div>
-            ))}
-          </div>
+          {rated.length > 0 ? (
+            <>
+              <p className="mt-2 font-serif text-3xl text-burgundy">
+                {(rated.reduce((n, r) => n + r.venueRating!, 0) / rated.length).toFixed(1).replace(".", ",")} ★
+              </p>
+              <p className="text-xs text-wine/55">
+                {rated.length} {rated.length === 1 ? "beoordeling" : "beoordelingen"}
+              </p>
+            </>
+          ) : null}
+          {rows.some((r) => !r.venueRating && r.venueMood) ? (
+            <div className="mt-2 space-y-1 text-sm">
+              {Object.keys(MOOD).map((k) => (
+                <div key={k} className="flex justify-between">
+                  <MoodChip mood={k} />
+                  <span className="tabular-nums text-wine/70">{rows.filter((r) => !r.venueRating && r.venueMood === k).length}</span>
+                </div>
+              ))}
+            </div>
+          ) : rated.length === 0 ? (
+            <p className="mt-2 text-sm text-wine/40">-</p>
+          ) : null}
         </div>
       </div>
       {likedCounts.length > 0 || dislikedCounts.length > 0 ? (
@@ -207,7 +224,14 @@ export function FeedbackPanel({
                     <MoodChip mood={r.mood} />
                     <span className="mx-2 text-wine/25">·</span>
                     <span className="text-wine/50">zaak </span>
-                    <MoodChip mood={r.venueMood} />
+                    {r.venueRating ? (
+                      <span className="tracking-wide">
+                        <span className="text-gold">{"★".repeat(r.venueRating)}</span>
+                        <span className="text-wine/20">{"★".repeat(5 - r.venueRating)}</span>
+                      </span>
+                    ) : (
+                      <MoodChip mood={r.venueMood} />
+                    )}
                   </p>
                 </div>
               </div>

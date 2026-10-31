@@ -41,6 +41,7 @@ const COPY = {
     you: "jij",
     plusOne: (name: string) => `komt met ${name}`,
     pending: { today: "Leer je vandaag kennen", tomorrow: "Leer je morgen kennen", later: "Leer je zondag kennen" },
+    notFilled: "Nog niet ingevuld. Ziet jullie antwoorden pas als dat wel gebeurt.",
     editOwn: "Pas je antwoorden aan",
     plusOneEdit: {
       open: (name: string) => `Vertel iets over ${name}`,
@@ -109,6 +110,7 @@ const COPY = {
     you: "you",
     plusOne: (name: string) => `with ${name}`,
     pending: { today: "You'll meet today", tomorrow: "You'll meet tomorrow", later: "You'll meet on Sunday" },
+    notFilled: "Hasn't filled in yet. Sees your answers only once they do.",
     editOwn: "Change your answers",
     plusOneEdit: {
       open: (name: string) => `Tell us about ${name}`,
@@ -361,7 +363,7 @@ function Mate({ m, you, t, day, children }: { m: TableMate; you: boolean; t: Cop
           ))}
         </dl>
       ) : you ? null : (
-        <p className="mt-1 text-sm text-wine/50">{t.pending[day]}</p>
+        <p className="mt-1 text-sm text-wine/50">{m.withName ? t.pending[day] : t.notFilled}</p>
       )}
       {children}
     </li>

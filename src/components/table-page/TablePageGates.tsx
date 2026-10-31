@@ -8,13 +8,15 @@ import type { Locale } from "@/i18n/config";
 import type { IntroWine, SundayTableIntro } from "@/lib/sunday-table-intro";
 import type { PlusOneAnswers } from "@/lib/table-page";
 
-/** Not filled in yet: the intro form first, the table right after saving. */
+/** Not filled in yet (no open question answered): the intro form first, with
+ * what they did give, and the table right after saving. */
 export function TableIntroGate({
   locale,
   city,
   introToken,
   bookingCode,
   seats,
+  intro,
   lead,
 }: {
   locale: Locale;
@@ -22,6 +24,7 @@ export function TableIntroGate({
   introToken: string;
   bookingCode: string;
   seats: number;
+  intro: SundayTableIntro;
   lead: string;
 }) {
   const router = useRouter();
@@ -34,7 +37,8 @@ export function TableIntroGate({
         auth={{ token: introToken }}
         bookingCode={bookingCode}
         seats={seats}
-        initial={null}
+        initial={intro}
+        needsOpenAnswer
         onSaved={() => router.refresh()}
       />
     </section>

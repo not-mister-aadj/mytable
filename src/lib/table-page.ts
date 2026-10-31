@@ -4,7 +4,7 @@ import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { hasSundaySocialCityPage, sundaySocialSlugFromCity } from "@/lib/sunday-social-cities";
-import { getTokenSecrets, isIntroConversationStyle, isIntroWine, type IntroWine, type SundayTableIntro } from "@/lib/sunday-table-intro";
+import { getTokenSecrets, hasOpenIntroAnswer, isIntroConversationStyle, isIntroWine, type IntroWine, type SundayTableIntro } from "@/lib/sunday-table-intro";
 import { tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import { venueTransit } from "@/lib/venue-about";
 import { parseVenuePicks, picksVisible, type VenuePick } from "@/lib/venue-picks";
@@ -127,12 +127,7 @@ const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 type BookingRow = typeof bookings.$inferSelect;
 
 function answered(b: BookingRow): boolean {
-  return Boolean(
-    b.introAnsweredAt ||
-      [b.introAskMeAbout, b.introFavoriteSpot, b.introIntoNow].some((v) => v?.trim()) ||
-      b.introWine ||
-      b.introConversationStyle,
-  );
+  return hasOpenIntroAnswer({ askMeAbout: b.introAskMeAbout, favoriteSpot: b.introFavoriteSpot, intoNow: b.introIntoNow });
 }
 
 function sharedAnswers(b: BookingRow): TableMate["answers"] {

@@ -278,6 +278,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           introToken={introToken}
           bookingCode={reservationCode(page.bookingId)}
           seats={page.me.plusOneName ? 2 : 1}
+          intro={page.me.intro}
           lead={t.introLead}
         />
       ) : (

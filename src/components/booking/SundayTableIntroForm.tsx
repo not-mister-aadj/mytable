@@ -31,6 +31,7 @@ const copy = {
     savedBody: "We gebruiken je antwoorden voor de tafelindeling. De dag ervoor krijg je een mail waarin we je tafel aan elkaar voorstellen.",
     edit: "Aanpassen",
     empty: "Vul minstens één vraag in.",
+    needsOpen: "Vul minstens één van de drie open vragen in.",
     error: "Er ging iets mis. Probeer het opnieuw.",
     previewNote: "Voorbeeld: zo ziet de vragenlijst eruit na een boeking. Er wordt niets opgeslagen.",
     bookingCode: "Boekingsnummer",
@@ -71,6 +72,7 @@ const copy = {
     savedBody: "We use your answers for the seating. The day before, you'll get an email introducing your table to each other.",
     edit: "Edit",
     empty: "Fill in at least one question.",
+    needsOpen: "Fill in at least one of the three open questions.",
     error: "Something went wrong. Please try again.",
     previewNote: "Preview: this is what the questions look like after booking. Nothing is saved.",
     bookingCode: "Booking number",
@@ -143,6 +145,7 @@ export function SundayTableIntroForm({
   seats,
   initial,
   reusable = false,
+  needsOpenAnswer = false,
   onSaved,
 }: {
   locale: Locale;
@@ -158,6 +161,8 @@ export function SundayTableIntroForm({
   initial?: Partial<SundayTableIntro> | null;
   /** Answered before, not yet for this booking: offer to keep those answers first. */
   reusable?: boolean;
+  /** The table page: saving needs one of the three open questions. */
+  needsOpenAnswer?: boolean;
   /** Called once the answers are saved (the table page then shows the table). */
   onSaved?: () => void;
 }) {
@@ -247,6 +252,10 @@ export function SundayTableIntroForm({
       !plusOneName.trim()
     ) {
       setError(t.empty);
+      return;
+    }
+    if (needsOpenAnswer && ![askMeAbout, favoriteSpot, intoNow].some((v) => v.trim())) {
+      setError(t.needsOpen);
       return;
     }
     if ("preview" in auth) {

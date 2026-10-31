@@ -4,6 +4,7 @@ import { getDb } from "@/db/index";
 import { eventGroups, eventVenues, events, jouwTafelPauses, venues } from "@/db/schema";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
+import { hasOpenIntroAnswer } from "@/lib/sunday-table-intro";
 import { QUIZ_METADATA_KEY, ageFromBirthDate, girlsOnlyWish, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { calendarState, monthGrid, type CalendarState } from "@/lib/jouw-tafel/groups-logic";
 import { seriesStartsAt } from "@/lib/jouw-tafel/series-server";
@@ -271,12 +272,12 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
         : null,
       intro: (() => {
         const text = (v: string | null) => v?.trim() || null;
-        const answered = Boolean(
-          g.intro_answered_at ||
-            g.intro_wine ||
-            g.intro_conversation_style ||
-            [g.intro_ask_me_about, g.intro_favorite_spot, g.intro_into_now].some((v) => v?.trim()),
-        );
+        // The table page's rule: one open question at least.
+        const answered = hasOpenIntroAnswer({
+          askMeAbout: g.intro_ask_me_about,
+          favoriteSpot: g.intro_favorite_spot,
+          intoNow: g.intro_into_now,
+        });
         return {
           answered,
           shared: answered && g.intro_share_consent,

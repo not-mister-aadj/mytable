@@ -59,6 +59,16 @@ export function parseSundayTableIntro(raw: unknown): SundayTableIntro {
   };
 }
 
+/** At least one of the three open questions: wine and talk style alone do
+ * not count as filled in on the table page. */
+export function hasOpenIntroAnswer(intro: {
+  askMeAbout?: string | null;
+  favoriteSpot?: string | null;
+  intoNow?: string | null;
+}): boolean {
+  return [intro.askMeAbout, intro.favoriteSpot, intro.intoNow].some((v) => Boolean(v?.trim()));
+}
+
 export function hasAnyIntroAnswer(intro: SundayTableIntro): boolean {
   return Boolean(
     intro.conversationStyle ||

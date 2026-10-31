@@ -455,9 +455,13 @@ export function morningMail(p: {
       ? [nl ? `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${p.groupNumber}.` : `When you arrive, say you're with MyTable, group ${p.groupNumber}.`]
       : []),
   ].join("\n");
+  // Sets the expectation: a slow start is normal, not a failed table.
+  const ice = nl
+    ? "Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken."
+    : "To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass.";
   const text = (nl
-    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, "", where, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
-    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, "", where, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
+    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, "", where, "", ice, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
+    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, "", where, "", ice, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
   ).join("\n");
   return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks");
 }
@@ -475,12 +479,12 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "Was er iemand met wie het klikte? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen. Of we zetten je bij mensen die op hen lijken, op een plek die bij je past.",
+        "De eerste keren aan tafel met nieuwe mensen kunnen wat onwennig zijn. Daarom horen we graag met wie je het gezellig vond. Zo kunnen we bij een volgende zondag rekening houden met wie je graag terugziet en wat bij jou past. Stap voor stap bouw je zo aan je eigen wijnclub, met steeds meer bekende gezichten.",
         "",
         "Het duurt maar een minuutje:",
         p.url,
         "",
-        "Gebeurde er iets waar je je niet prettig bij voelde?",
+        "Was er iets of iemand waardoor je je niet prettig voelde?",
         `Laat het ons weten: ${p.url}/melden`,
         "",
         "Tot een volgende zondag,",
@@ -491,12 +495,12 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "Was there someone you clicked with? Let us know, and we'll do our best to make sure you meet again. Or we'll seat you with people like them, at a place that suits you.",
+        "The first few times at a table with new people can feel a little awkward. That's why we'd love to hear who you enjoyed. Then on a next Sunday we can take into account who you'd like to see again and what suits you. Step by step, you build your own wine club, with more and more familiar faces.",
         "",
         "It only takes a minute:",
         p.url,
         "",
-        "Did something happen that didn't feel right?",
+        "Was there anything or anyone that made you feel uncomfortable?",
         `Let us know: ${p.url}/melden`,
         "",
         "Until another Sunday,",

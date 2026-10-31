@@ -14,7 +14,7 @@ import { loadFeedbackPage } from "@/lib/feedback";
 const REPORT_TO = "info@mytable.club";
 const MAX_BODY = 4000;
 
-export type ReportInput = { about: string[]; aboutOther: boolean; body: string; contactOk: boolean };
+export type ReportInput = { about: string[]; aboutVenue: boolean; aboutOther: boolean; aboutOtherNote: string; body: string; contactOk: boolean };
 
 export async function saveFeedbackReport(bookingId: string, input: ReportInput): Promise<boolean> {
   const page = await loadFeedbackPage(bookingId);
@@ -36,7 +36,9 @@ export async function saveFeedbackReport(bookingId: string, input: ReportInput):
     bookingId,
     eventId: row.eventId,
     about,
+    aboutVenue: input.aboutVenue,
     aboutOther: input.aboutOther,
+    aboutOtherNote: input.aboutOther ? input.aboutOtherNote.trim().slice(0, 200) || null : null,
     body,
     contactOk: input.contactOk,
   });
@@ -44,7 +46,8 @@ export async function saveFeedbackReport(bookingId: string, input: ReportInput):
   const names = about.length
     ? (await db.select({ name: bookings.customerName }).from(bookings).where(inArray(bookings.id, about))).map((r) => r.name?.trim() || "?")
     : [];
-  if (input.aboutOther) names.push("iemand anders");
+  if (input.aboutVenue) names.push(page.venueName ?? "de bar");
+  if (input.aboutOther) names.push(input.aboutOtherNote.trim() ? `iemand anders: ${input.aboutOtherNote.trim().slice(0, 200)}` : "iemand anders");
   const day = new Intl.DateTimeFormat("nl-NL", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(row.startsAt);
   const where = `${page.venueName ?? page.city}, ${day}`;
 

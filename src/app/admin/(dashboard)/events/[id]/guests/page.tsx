@@ -294,7 +294,11 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
         id: r.id,
         by: name?.trim() || email,
         email,
-        about: [...r.about.map((id) => nameOf.get(id) ?? "?"), ...(r.aboutOther ? ["iemand anders"] : [])],
+        about: [
+          ...r.about.map((id) => nameOf.get(id) ?? "?"),
+          ...(r.aboutVenue ? [venue[0]?.name ?? "de bar"] : []),
+          ...(r.aboutOther ? [r.aboutOtherNote ? `iemand anders: ${r.aboutOtherNote}` : "iemand anders"] : []),
+        ],
         body: r.body,
         contactOk: r.contactOk,
         createdAt: r.createdAt.toISOString(),

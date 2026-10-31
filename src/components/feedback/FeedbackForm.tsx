@@ -304,7 +304,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                 {page.next ? (
                   <label className="mt-4 flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={alsoBook} onChange={(e) => setAlsoBook(e.target.checked)} className="accent-burgundy" />
-                    {t.alsoBook(page.next.shortLabel)}
+                    {t.alsoBook(page.next.city === page.city ? page.next.shortLabel : `${page.next.shortLabel} (${page.next.city})`)}
                   </label>
                 ) : null}
                 <Link
@@ -319,7 +319,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.singleCardTitle}</p>
                   <p className="mt-1 font-serif text-2xl">{plusOne ? t.plusOnePrice : t.singlePrice}</p>
                   <p className="mt-3 flex-1 text-sm text-wine/75">
-                    {page.city}
+                    {page.next.city}
                     <br />
                     {page.next.label}
                     <br />
@@ -527,7 +527,7 @@ function NextSunday({ page, t }: { page: FeedbackPage; t: (typeof COPY)["nl"] | 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-wine/10">
         <div>
           <p className="font-serif text-lg text-wine">
-            {page.city} · {page.next.label}
+            {page.next.city} · {page.next.label}
           </p>
           <p className="text-xs text-wine/55">{t.seats(page.next.seatsLeft)}</p>
         </div>

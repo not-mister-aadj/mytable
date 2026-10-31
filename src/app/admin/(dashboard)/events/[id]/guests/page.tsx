@@ -204,6 +204,7 @@ async function MailsTab({ eventId }: { eventId: string }) {
         saturday: mailBlocker(ctx, "saturday"),
         morning: mailBlocker(ctx, "morning"),
         feedback: mailBlocker(ctx, "feedback"),
+        reminder: mailBlocker(ctx, "reminder"),
       }}
       plans={{ saturday: planOf(ctx.schedule.saturday), morning: planOf(ctx.schedule.morning), feedback: planOf(ctx.schedule.feedback) }}
       defaultTimes={{
@@ -220,7 +221,9 @@ async function MailsTab({ eventId }: { eventId: string }) {
         sentSaturday: g.sentSaturday,
         sentMorning: g.sentMorning,
         sentFeedback: g.sentFeedback,
+        sentReminder: g.sentReminder,
         noShow: g.noShow,
+        feedbackDone: g.feedbackGiven || g.reported,
       }))}
     />
   );

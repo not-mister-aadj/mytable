@@ -4,7 +4,7 @@ import { adminTodos } from "@/db/schema";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { monthlyTargetCents } from "@/lib/admin/monthly-target";
 import { LOCATION_SUBJECT_SQL, loadSundayMailContext, mailRecipients } from "@/lib/admin/sunday-mails";
-import { dueFeedbackEvents } from "@/lib/admin/auto-feedback";
+import { AUTO_MAIL_KINDS, dueAutoMailEvents, sentAuto } from "@/lib/admin/auto-feedback";
 
 /** Everything the "Vandaag" page shows, in one round of queries. */
 
@@ -219,19 +219,21 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     });
   }
 
-  // The automatic feedback mail: still missing guests more than an hour after 20:00.
-  for (const eventId of await dueFeedbackEvents(new Date(now.getTime() - 70 * 60_000))) {
-    const ctx = await loadSundayMailContext(eventId);
-    if (!ctx || ctx.schedule.feedback) continue;
-    const open = mailRecipients(ctx, "feedback").filter((g) => !g.sentFeedback).length;
-    if (open === 0) continue;
-    todos.push({
-      key: `feedback-${eventId}`,
-      tone: "urgent",
-      title: `Feedbackmail ${ctx.city} niet verstuurd`,
-      detail: `${open} ${open === 1 ? "gast heeft" : "gasten hebben"} hem nog niet (dagelijkse mail-limiet of fout)`,
-      href: eventHref(eventId, "mails"),
-    });
+  // The automatic mails after a Sunday: guests still without one more than an hour after its time.
+  for (const kind of AUTO_MAIL_KINDS) {
+    for (const eventId of await dueAutoMailEvents(kind, new Date(now.getTime() - 70 * 60_000))) {
+      const ctx = await loadSundayMailContext(eventId);
+      if (!ctx || (kind === "feedback" && ctx.schedule.feedback)) continue;
+      const open = mailRecipients(ctx, kind).filter((g) => !sentAuto(kind, g)).length;
+      if (open === 0) continue;
+      todos.push({
+        key: `${kind}-${eventId}`,
+        tone: "urgent",
+        title: `${kind === "feedback" ? "Feedbackmail" : "Herinnering feedback"} ${ctx.city} niet verstuurd`,
+        detail: `${open} ${open === 1 ? "gast heeft" : "gasten hebben"} hem nog niet (dagelijkse mail-limiet of fout)`,
+        href: eventHref(eventId, "mails"),
+      });
+    }
   }
 
   const order = { urgent: 0, soon: 1, info: 2 } as const;

@@ -50,7 +50,11 @@ export type FeedbackListRow = {
   highlight: string | null;
   improve: string | null;
   reported: boolean;
+  next: NextBooking | null;
 };
+
+/** Their first booking for a later Sunday, and how it came about. */
+export type NextBooking = { startsAt: string; city: string; how: "ticket" | "member" | "free"; early: boolean };
 
 export type FeedbackOverview = {
   cities: string[];
@@ -81,6 +85,7 @@ type VisitRow = {
   want_ids: string[] | null;
   mailed: boolean;
   rebooked: boolean;
+  next: { starts_at: string; city: string; member: boolean; free: boolean; early: boolean } | null;
   reports: number;
 };
 
@@ -99,8 +104,12 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
       exists (select 1 from email_log l where l.email_normalized = lower(trim(b.email)) and l.sent_at > e.starts_at
         and (l.subject ilike 'hoe was het vanmiddag%' or l.subject ilike 'how was this afternoon%' or l.subject ilike '%hoe was je middag%' or l.subject ilike '%how was your afternoon%')) as mailed,
       exists (select 1 from bookings nb join events ne on ne.id = nb.event_id where lower(nb.email) = lower(b.email) and nb.id <> b.id
-        and nb.payment_status = 'paid' and ne.starts_at > e.starts_at and nb.created_at > e.starts_at
+        and nb.payment_status = 'paid' and ne.starts_at > e.starts_at
         and nb.created_at < e.starts_at + make_interval(days => ${REBOOK_DAYS})) as rebooked,
+      (select json_build_object('starts_at', ne.starts_at, 'city', ne.city, 'member', nb.membership_id is not null, 'free', nb.amount_cents = 0, 'early', nb.created_at < e.starts_at)
+        from bookings nb join events ne on ne.id = nb.event_id
+        where lower(nb.email) = lower(b.email) and nb.id <> b.id and nb.payment_status = 'paid' and nb.lifecycle_status = 'active' and ne.starts_at > e.starts_at
+        order by ne.starts_at limit 1) as next,
       (select count(*)::int from feedback_reports r where r.booking_id = b.id) as reports
     from bookings b
     join events e on e.id = b.event_id
@@ -181,6 +190,9 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
         highlight: r.highlight,
         improve: r.improve,
         reported: r.reports > 0,
+        next: r.next
+          ? { startsAt: new Date(r.next.starts_at).toISOString(), city: r.next.city, how: r.next.member ? "member" : r.next.free ? "free" : "ticket", early: r.next.early }
+          : null,
       })),
   };
 }

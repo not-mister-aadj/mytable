@@ -2,7 +2,7 @@ import Link from "next/link";
 import { isDbConfigured } from "@/db/index";
 import { adminPath } from "@/lib/admin-url";
 import { requireAdmin } from "@/lib/admin-auth";
-import { avgStars, loadFeedbackOverview, nps, type FeedbackListRow, type FeedbackPeriod, type Score } from "@/lib/admin/feedback-overview";
+import { avgStars, loadFeedbackOverview, nps, type FeedbackListRow, type FeedbackPeriod, type NextBooking, type Score } from "@/lib/admin/feedback-overview";
 
 type Props = { searchParams: Promise<{ periode?: string; stad?: string }> };
 
@@ -98,6 +98,7 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
                 <th className="px-4 py-2.5">Wil terugzien</th>
                 <th className="px-4 py-2.5">Wat was leuk</th>
                 <th className="px-4 py-2.5">Kan beter</th>
+                <th className="px-4 py-2.5">Komt terug</th>
               </tr>
             </thead>
             <tbody>
@@ -198,6 +199,9 @@ function Mood({ mood, venue }: { mood: string | null; venue?: boolean }) {
   );
 }
 
+const nextLabel = (n: NextBooking) =>
+  [n.how === "member" ? "lid" : n.how === "free" ? "gratis plek" : null, n.early ? "al eerder geboekt" : null].filter(Boolean).join(" · ");
+
 function AnswerRow({ r }: { r: FeedbackListRow }) {
   const day = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(r.startsAt));
   return (
@@ -237,6 +241,19 @@ function AnswerRow({ r }: { r: FeedbackListRow }) {
         {r.disliked.join(", ")}
         {r.improve ? <p className="mt-1 text-xs italic text-wine/65">&ldquo;{r.improve}&rdquo;</p> : null}
         {!r.disliked.length && !r.improve ? <span className="text-wine/35">-</span> : null}
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap">
+        {r.next ? (
+          <>
+            <p className="font-medium text-wine">
+              {new Intl.DateTimeFormat("nl-NL", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(r.next.startsAt))}
+              <span className="font-normal text-wine/60"> · {r.next.city}</span>
+            </p>
+            {nextLabel(r.next) ? <p className="text-xs text-wine/50">{nextLabel(r.next)}</p> : null}
+          </>
+        ) : (
+          <span className="text-wine/35">-</span>
+        )}
       </td>
     </tr>
   );

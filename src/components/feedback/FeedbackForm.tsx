@@ -11,6 +11,7 @@ const COPY = {
     tableKicker: "Je tafel",
     title: "Hoe was het gezelschap?",
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
+    moodEnds: { great: "Heel leuk", bad: "Zeer slecht" } as Partial<Record<Mood, string>>,
     venueKicker: "De bar",
     venue: (venue: string) => `En ${venue} zelf?`,
     venueHint: "De plek, de wijn, de bediening.",
@@ -69,6 +70,7 @@ const COPY = {
     tableKicker: "Your table",
     title: "How was the company?",
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
+    moodEnds: { great: "Really fun", bad: "Very bad" } as Partial<Record<Mood, string>>,
     venueKicker: "The bar",
     venue: (venue: string) => `And ${venue} itself?`,
     venueHint: "The place, the wine, the service.",
@@ -169,7 +171,8 @@ function Stars({ value, onPick, label }: { value: number | null; onPick: (n: num
   );
 }
 
-function Faces({ value, onPick, labels, size }: { value: Mood | null; onPick: (m: Mood) => void; labels: Record<Mood, string>; size?: number }) {
+/** Only the two outer faces get a word, so the words don't steer the answer. */
+function Faces({ value, onPick, labels, ends, size }: { value: Mood | null; onPick: (m: Mood) => void; labels: Record<Mood, string>; ends: Partial<Record<Mood, string>>; size?: number }) {
   return (
     <div className="mt-4 grid grid-cols-4 gap-2">
       {(["great", "good", "meh", "bad"] as const).map((m) => (
@@ -179,11 +182,12 @@ function Faces({ value, onPick, labels, size }: { value: Mood | null; onPick: (m
           onClick={() => onPick(m)}
           aria-pressed={value === m}
           aria-label={labels[m]}
-          className={`flex flex-col items-center rounded-2xl px-1 py-2 transition ${
+          className={`flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 transition ${
             value === m ? "scale-105 bg-white shadow-sm ring-1 ring-wine/10" : value ? "opacity-35 hover:opacity-70" : "hover:bg-white/60"
           }`}
         >
           <Face mood={m} size={size} />
+          <span className={`h-4 text-xs transition ${value === m ? "font-semibold text-wine" : "text-wine/45"}`}>{ends[m]}</span>
         </button>
       ))}
     </div>
@@ -460,7 +464,7 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
             <>
               <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.tableKicker}</p>
               <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title}</h1>
-              <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} />
+              <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} ends={t.moodEnds} />
             </>
           ) : current === "venue" ? (
             <>

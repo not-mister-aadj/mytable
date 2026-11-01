@@ -178,12 +178,12 @@ function Faces({ value, onPick, labels, size }: { value: Mood | null; onPick: (m
           type="button"
           onClick={() => onPick(m)}
           aria-pressed={value === m}
-          className={`flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 transition ${
+          aria-label={labels[m]}
+          className={`flex flex-col items-center rounded-2xl px-1 py-2 transition ${
             value === m ? "scale-105 bg-white shadow-sm ring-1 ring-wine/10" : value ? "opacity-35 hover:opacity-70" : "hover:bg-white/60"
           }`}
         >
           <Face mood={m} size={size} />
-          <span className={`text-xs transition ${value === m ? "font-semibold text-wine" : "text-wine/45"}`}>{labels[m]}</span>
         </button>
       ))}
     </div>

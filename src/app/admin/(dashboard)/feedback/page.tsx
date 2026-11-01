@@ -74,7 +74,7 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
         />
         <Kpi label="Bar" value={starsLabel(avgStars(t))} hint={`${t.venueRated} ${t.venueRated === 1 ? "beoordeling" : "beoordelingen"}`} />
         <Kpi label="Klik" value={pct(t.picked, t.answered)} hint={`${t.mutual} wederzijds`} />
-        <Kpi label="Komt terug" value={pct(t.rebooked, t.rebookBase)} hint={`Boekt binnen 60 dagen · ${t.rebooked} van ${t.rebookBase}`} />
+        <Kpi label="Komt terug" value={pct(t.rebooked, t.rebookBase)} hint={`Boekt binnen 60 dagen · ${t.rebooked} van ${t.rebookBase}${t.rebookOpen ? ` · loopt nog bij ${t.rebookOpen}` : ""}`} />
         <Kpi label="Meldingen" value={String(t.reports)} alert={t.reports > 0} />
       </section>
 

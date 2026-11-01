@@ -25,9 +25,10 @@ export type Score = {
   /** Picked at least one tablemate. */
   picked: number;
   mutual: number;
-  /** Guests whose Sunday is at least REBOOK_DAYS ago or who already rebooked; and of them who did. */
+  /** All guests, of them who booked again within REBOOK_DAYS so far, and how many are still inside that window. */
   rebookBase: number;
   rebooked: number;
+  rebookOpen: number;
   reports: number;
 };
 
@@ -84,7 +85,7 @@ type VisitRow = {
 };
 
 function emptyScore(): Score {
-  return { sundays: 0, guests: 0, mailed: 0, answered: 0, promoters: 0, detractors: 0, venueRated: 0, venueStars: 0, picked: 0, mutual: 0, rebookBase: 0, rebooked: 0, reports: 0 };
+  return { sundays: 0, guests: 0, mailed: 0, answered: 0, promoters: 0, detractors: 0, venueRated: 0, venueStars: 0, picked: 0, mutual: 0, rebookBase: 0, rebooked: 0, rebookOpen: 0, reports: 0 };
 }
 
 export async function loadFeedbackOverview(period: FeedbackPeriod, city: string | null, now = new Date()): Promise<FeedbackOverview> {
@@ -118,7 +119,7 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
   // Mutual: they picked someone at their Sunday who picked them back.
   const picksOf = new Map(scoped.map((r) => [r.booking_id, new Set(r.want_ids ?? [])]));
   const isMutual = (r: VisitRow) => (r.want_ids ?? []).some((id) => picksOf.get(id)?.has(r.booking_id));
-  const rebookReady = (r: VisitRow) => r.rebooked || new Date(r.starts_at).getTime() < now.getTime() - REBOOK_DAYS * 86_400_000;
+  const rebookOpen = (r: VisitRow) => !r.rebooked && new Date(r.starts_at).getTime() >= now.getTime() - REBOOK_DAYS * 86_400_000;
 
   const tally = (list: VisitRow[]): Score => {
     const s = emptyScore();
@@ -137,10 +138,9 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
       }
       if ((r.want_ids ?? []).length > 0) s.picked++;
       if (isMutual(r)) s.mutual++;
-      if (rebookReady(r)) {
-        s.rebookBase++;
-        if (r.rebooked) s.rebooked++;
-      }
+      s.rebookBase++;
+      if (r.rebooked) s.rebooked++;
+      if (rebookOpen(r)) s.rebookOpen++;
       s.reports += r.reports;
     }
     return s;

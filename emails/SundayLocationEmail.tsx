@@ -57,6 +57,14 @@ function AddressRow({ label, address, href }: { label: string; address: string; 
   );
 }
 
+/** " in Kralingen", or the area as written when it already says where
+ * ("aan het Victoriapark"); English leaves such a Dutch phrase out. */
+function areaPhrase(area: string | null, nl: boolean): string {
+  if (!area) return "";
+  if (/^(aan|bij|op|in|naast|tegenover)\s/i.test(area)) return nl ? ` ${area}` : "";
+  return ` in ${area}`;
+}
+
 const stepNumber = {
   display: "inline-block",
   width: "26px",
@@ -101,11 +109,11 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
       preview={
         nl
           ? p.booked
-            ? `Je plek staat: ${p.dateLabel} om ${p.time} bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
-            : `Volgende week zondag om ${p.time}: je Sunday Social is bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
+            ? `Je plek staat: ${p.dateLabel} om ${p.time} bij ${p.venueName}${areaPhrase(p.area, true)}.`
+            : `Volgende week zondag om ${p.time}: je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.`
           : p.booked
-            ? `You're booked: ${p.dateLabel} at ${p.time} at ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
-            : `Next Sunday at ${p.time}: your Sunday Social is at ${p.venueName}${p.area ? ` in ${p.area}` : ""}.`
+            ? `You're booked: ${p.dateLabel} at ${p.time} at ${p.venueName}${areaPhrase(p.area, false)}.`
+            : `Next Sunday at ${p.time}: your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.`
       }
     >
       <EmailHero
@@ -121,8 +129,8 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
         }
         body={
           nl
-            ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${p.area ? ` in ${p.area}` : ""}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`
-            : `We're looking forward to it. Your Sunday Social is at ${p.venueName}${p.area ? ` in ${p.area}` : ""}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Below you'll find where to go and how the afternoon works.`
+            ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`
+            : `We're looking forward to it. Your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Below you'll find where to go and how the afternoon works.`
         }
       />
 

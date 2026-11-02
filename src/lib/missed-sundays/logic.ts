@@ -10,7 +10,8 @@ import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
  * - No-show: the first time a warning and 1 month no booking, the second
  *   time 6 months. Members keep their own no-show rule (membership/no-show.ts).
  *
- * The mail goes out the Monday after, at 09:00; the block starts right away.
+ * The mail goes out the Monday after, at 11:00, so a move agreed on Monday
+ * morning can still take it back; the block starts right away.
  *
  * Each kind counts on its own, over the last 6 months, and only for Sundays
  * from the start of the policy on. A miss an admin struck does not count.
@@ -46,10 +47,10 @@ export function missOutcome(kind: MissKind, priorSameKind: number, member: boole
   return priorSameKind === 0 ? { kind: "warning_block", until: addMonths(now, 1) } : { kind: "block", until: addMonths(now, 6) };
 }
 
-/** The Monday after the Sunday, 09:00 Amsterdam; null once that has passed (send now). */
+/** The Monday after the Sunday, 11:00 Amsterdam; null once that has passed (send now). */
 export function missMailAt(startsAt: Date, now: Date = new Date()): Date | null {
   const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
-  const at = amsterdamDateTime(y, m, d + 1, 9, 0);
+  const at = amsterdamDateTime(y, m, d + 1, 11, 0);
   return at.getTime() > now.getTime() + 2 * 60_000 ? at : null;
 }
 

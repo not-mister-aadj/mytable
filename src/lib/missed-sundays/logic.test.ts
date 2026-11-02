@@ -23,9 +23,9 @@ test("late means under 48 hours before the start", () => {
   assert.equal(isLateCancel(new Date("2026-11-06T12:59:00Z"), start), false);
 });
 
-test("the mail waits for Monday 09:00, or goes now once that passed", () => {
+test("the mail waits for Monday 11:00, or goes now once that passed", () => {
   const start = new Date("2026-11-08T13:00:00Z");
-  assert.equal(missMailAt(start, new Date("2026-11-08T12:00:00Z"))?.toISOString(), "2026-11-09T08:00:00.000Z");
+  assert.equal(missMailAt(start, new Date("2026-11-08T12:00:00Z"))?.toISOString(), "2026-11-09T10:00:00.000Z");
   assert.equal(missMailAt(start, new Date("2026-11-10T10:00:00Z")), null);
 });
 

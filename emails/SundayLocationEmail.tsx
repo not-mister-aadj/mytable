@@ -165,11 +165,11 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
           {nl ? "Zaterdag, de dag ervoor, krijg je nog een mail met:" : "On Saturday, the day before, you'll get one more email with:"}
         </Text>
         <Text style={{ ...emailType.body, margin: "0 0 16px" }}>
-          {nl ? "· je groepsnummer, zodat de bar je de juiste tafel kan aanwijzen" : "· your group number, so the bar can show you to the right table"}
+          {nl ? "• je groepsnummer, zodat de bar je de juiste tafel kan aanwijzen" : "• your group number, so the bar can show you to the right table"}
           <br />
-          {nl ? "· wie er bij je aan tafel zitten, met wat ze over zichzelf vertellen" : "· who's at your table, with what they shared about themselves"}
+          {nl ? "• wie er bij je aan tafel zitten, met wat ze over zichzelf vertellen" : "• who's at your table, with what they shared about themselves"}
           <br />
-          {nl ? `· onze aanraders van de kaart van ${p.venueName}` : `· our picks from the ${p.venueName} menu`}
+          {nl ? `• onze aanraders van de kaart van ${p.venueName}` : `• our picks from the ${p.venueName} menu`}
         </Text>
         {!p.answered ? (
           <>

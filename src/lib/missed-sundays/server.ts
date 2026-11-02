@@ -1,6 +1,7 @@
-import { and, eq, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { Resend } from "resend";
 import { getDb, isDbConfigured } from "@/db/index";
-import { bookings, customers, events } from "@/db/schema";
+import { bookingEvents, bookings, customers, emailLog, events } from "@/db/schema";
 import { MembershipEmail } from "@/emails/MembershipEmail";
 import { logCustomerActivity } from "@/lib/customers/activities";
 import { onEmailSent } from "@/lib/customers/hooks";
@@ -8,7 +9,7 @@ import { normalizeEmail } from "@/lib/customers/normalize";
 import { CustomerActivityTypes } from "@/lib/customers/types";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
-import { sendSimpleEmail } from "@/lib/email/send-simple-email";
+import { sendRendered } from "@/lib/admin/sunday-mails";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { mailSunday } from "@/lib/membership/mail-copy";
 import {
@@ -17,6 +18,7 @@ import {
   LATE_CANCEL_HOURS,
   MISS_POLICY_START,
   MISS_WINDOW_DAYS,
+  missMailAt,
   missOutcome,
   type MissKind,
   type MissOutcome,
@@ -71,8 +73,14 @@ export async function recordMissedSunday(input: { bookingId: string; kind: MissK
   const [customer] = await db.select({ firstName: customers.firstName }).from(customers).where(eq(customers.id, customerId)).limit(1);
   const firstName = customer?.firstName ?? row.booking.customerName?.trim().split(/\s+/)[0] ?? null;
   const mail = missedSundayMail({ locale, firstName, kind: input.kind, outcome, months, member, sunday: row.event.startsAt });
-  const ok = await sendSimpleEmail({ to: row.booking.email, subject: mail.subject, element: MembershipEmail(mail.props) }).catch(() => false);
-  if (ok) await onEmailSent({ customerId, subject: `Gemiste zondag: ${mail.subject}` }).catch(() => undefined);
+  // The mail waits for the Monday morning after the Sunday; the block is already on.
+  const at = missMailAt(row.event.startsAt, now);
+  const resendId = await sendRendered(row.booking.email, mail.subject, MembershipEmail(mail.props), at ?? undefined).catch(() => null);
+  if (resendId) {
+    if (at) await db.update(emailLog).set({ sentAt: at }).where(eq(emailLog.resendId, resendId));
+    await db.insert(bookingEvents).values({ bookingId: row.booking.id, type: "missed_sunday_mail", payload: { resendId, at: at?.toISOString() ?? null } });
+    await onEmailSent({ customerId, subject: `Gemiste zondag: ${mail.subject}` }).catch(() => undefined);
+  }
   return outcome;
 }
 
@@ -111,14 +119,41 @@ export async function bookingBlockedUntil(email: string | null | undefined, now 
 }
 
 /** Admin: lift a block now. */
+/** Takes back missed-Sunday mails still waiting for Monday, for these bookings. */
+async function cancelPlannedMissMails(bookingIds: string[]): Promise<void> {
+  if (bookingIds.length === 0) return;
+  const key = process.env.RESEND_FULL_ACCESS_API_KEY?.trim() || process.env.RESEND_READ_API_KEY?.trim();
+  if (!key) return;
+  const planned = await getDb()
+    .select({ payload: bookingEvents.payload })
+    .from(bookingEvents)
+    .where(and(inArray(bookingEvents.bookingId, bookingIds), eq(bookingEvents.type, "missed_sunday_mail")))
+    .orderBy(desc(bookingEvents.createdAt));
+  const resend = new Resend(key);
+  for (const { payload } of planned) {
+    const p = payload as { resendId?: string; at?: string | null } | null;
+    if (!p?.resendId || !p.at || new Date(p.at).getTime() <= Date.now()) continue;
+    const { error } = await resend.emails.cancel(p.resendId);
+    if (!error) await getDb().delete(emailLog).where(eq(emailLog.resendId, p.resendId));
+  }
+}
+
 export async function liftBookingBlock(customerId: string): Promise<void> {
-  await getDb().update(customers).set({ bookingBlockedUntil: null, updatedAt: new Date() }).where(eq(customers.id, customerId));
+  const db = getDb();
+  await db.update(customers).set({ bookingBlockedUntil: null, updatedAt: new Date() }).where(eq(customers.id, customerId));
+  // A block mail still waiting for Monday would now be wrong.
+  const [c] = await db.select({ email: customers.emailNormalized }).from(customers).where(eq(customers.id, customerId)).limit(1);
+  if (c) {
+    const own = await db.select({ id: bookings.id }).from(bookings).where(sql`lower(trim(${bookings.email})) = ${c.email}`);
+    await cancelPlannedMissMails(own.map((b) => b.id)).catch(() => undefined);
+  }
   await logCustomerActivity({ customerId, type: CustomerActivityTypes.bookingUnblocked, title: "Mag weer boeken" });
 }
 
 /** Admin: strike one missed Sunday so it no longer counts (a block stays until lifted). */
 export async function waiveMissedSunday(bookingId: string): Promise<void> {
   await getDb().update(bookings).set({ missWaivedAt: new Date() }).where(and(eq(bookings.id, bookingId), isNull(bookings.missWaivedAt)));
+  await cancelPlannedMissMails([bookingId]).catch(() => undefined);
 }
 
 export type MissedSundayRow = { bookingId: string; kind: MissKind; startsAt: string; city: string; waived: boolean };

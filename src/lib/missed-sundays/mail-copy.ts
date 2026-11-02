@@ -44,10 +44,10 @@ export function missedSundayMail(input: {
         locale: l,
         preview: en ? `Your seat for ${day} was cancelled less than 48 hours before.` : `Je plek voor ${day} is minder dan 48 uur van tevoren afgezegd.`,
         greeting: hi,
-        headline: en ? "A shame you can't make it" : "Jammer dat je er niet bij bent",
+        headline: en ? "A shame you weren't there on Sunday" : "Jammer dat je er zondag niet bij was",
         body: en
-          ? `You cancelled your seat for ${day} less than 48 hours before. That can happen, but your table was counting on you, and this late we can't give the seat to someone else.`
-          : `Je zegde je plek voor ${day} minder dan 48 uur van tevoren af. Dat kan gebeuren, maar je tafel rekende op je, en zo laat kunnen we de plek niet meer aan iemand anders geven.`,
+          ? `You cancelled your seat for ${day} less than 48 hours before. That can happen, but your table was counting on you, and this late we couldn't give the seat to someone else.`
+          : `Je zegde je plek voor ${day} minder dan 48 uur van tevoren af. Dat kan gebeuren, maar je tafel rekende op je, en zo laat konden we de plek niet meer aan iemand anders geven.`,
         warmLine: moveLine,
         note: en
           ? `If you cancel this late again, you can't book a Sunday Social for ${months(input.months, l)}.${memberLine}`

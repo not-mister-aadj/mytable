@@ -1,7 +1,7 @@
 // Run with: npx tsx --test src/lib/missed-sundays/*.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addMonths, blockMonths, isLateCancel, missOutcome } from "./logic";
+import { addMonths, blockMonths, isLateCancel, missMailAt, missOutcome } from "./logic";
 
 const now = new Date("2026-11-08T12:00:00Z");
 
@@ -21,6 +21,12 @@ test("late means under 48 hours before the start", () => {
   const start = new Date("2026-11-08T13:00:00Z");
   assert.equal(isLateCancel(new Date("2026-11-06T13:01:00Z"), start), true);
   assert.equal(isLateCancel(new Date("2026-11-06T12:59:00Z"), start), false);
+});
+
+test("the mail waits for Monday 09:00, or goes now once that passed", () => {
+  const start = new Date("2026-11-08T13:00:00Z");
+  assert.equal(missMailAt(start, new Date("2026-11-08T12:00:00Z"))?.toISOString(), "2026-11-09T08:00:00.000Z");
+  assert.equal(missMailAt(start, new Date("2026-11-10T10:00:00Z")), null);
 });
 
 test("addMonths keeps the day where it can", () => {

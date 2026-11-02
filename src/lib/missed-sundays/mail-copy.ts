@@ -33,8 +33,8 @@ export function missedSundayMail(input: {
   const day = mailSunday(input.sunday, l);
   const hi = greeting(l, input.firstName);
   const moveLine = en
-    ? "Can't make it next time? Email us at info@mytable.club up to 48 hours before, and we'll move your seat for free."
-    : "Kun je een volgende keer niet? Mail ons tot 48 uur van tevoren op info@mytable.club, dan verplaatsen we je plek gratis.";
+    ? "Can't make it next time? Let us know as early as possible at info@mytable.club, so we can still give your seat to someone else."
+    : "Kun je een volgende keer niet? Laat het ons dan zo vroeg mogelijk weten via info@mytable.club, dan kunnen we je plek nog aan iemand anders geven.";
   const memberLine = input.member ? (en ? " Your membership continues as usual." : " Je lidmaatschap loopt gewoon door.") : "";
 
   if (outcome.kind === "warning") {

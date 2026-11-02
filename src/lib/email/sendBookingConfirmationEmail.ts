@@ -140,7 +140,8 @@ export async function sendBookingConfirmationForPaidBooking(
     eventName: props.eventName,
     city: event.city,
     startsAt: new Date(event.startsAt),
-    endsAt: event.endsAt ? new Date(event.endsAt) : null,
+    // A shared table has no set end; the calendar blocks the usual three hours.
+    endsAt: props.isSundayTable || !event.endsAt ? null : new Date(event.endsAt),
     attendeeEmail: props.customerEmail,
     attendeeName: props.customerName,
     locale: props.locale,

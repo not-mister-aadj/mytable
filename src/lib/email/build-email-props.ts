@@ -85,6 +85,16 @@ async function bookingEmailLocale(booking: Booking): Promise<Locale> {
   });
 }
 
+/** A shared table has no set end: the start and "reken op twee tot drie
+ * uur", as on the site and in the location mail. Other events: start–end. */
+function emailTime(event: Event, locale: Locale): string {
+  const startsAt = new Date(event.startsAt);
+  if (!isSharedTableType(event.experienceType)) {
+    return formatEmailTime(startsAt, event.endsAt ? new Date(event.endsAt) : null, locale);
+  }
+  return `${formatEmailTime(startsAt, null, locale)}, ${locale === "en" ? "count on two to three hours" : "reken op twee tot drie uur"}`;
+}
+
 export async function buildBookingConfirmationEmailProps(
   booking: Booking,
   event: Event,
@@ -92,7 +102,6 @@ export async function buildBookingConfirmationEmailProps(
 ): Promise<BookingConfirmationEmailProps> {
   const locale = await bookingEmailLocale(booking);
   const startsAt = new Date(event.startsAt);
-  const endsAt = event.endsAt ? new Date(event.endsAt) : null;
   // Both shared-table concepts get the "strangers at one table" wording;
   // only Sunday Social has its venue in sunday_table_locations.
   const isSundayTable = isSharedTableType(event.experienceType);
@@ -111,7 +120,7 @@ export async function buildBookingConfirmationEmailProps(
     eventName: eventDisplayName(event, locale),
     city: event.city,
     date: formatEmailDate(startsAt, locale),
-    time: formatEmailTime(startsAt, endsAt, locale),
+    time: emailTime(event, locale),
     seats: booking.seats,
     totalPaid: member.totalPaid ?? formatMoney(booking.amountCents, booking.currency, locale),
     bookingCode: reservationCode(booking.id),
@@ -166,9 +175,7 @@ export async function buildBookingMovedEmailProps(
 ): Promise<BookingMovedEmailProps> {
   const locale = await bookingEmailLocale(booking);
   const oldStarts = new Date(oldEvent.startsAt);
-  const oldEnds = oldEvent.endsAt ? new Date(oldEvent.endsAt) : null;
   const newStarts = new Date(newEvent.startsAt);
-  const newEnds = newEvent.endsAt ? new Date(newEvent.endsAt) : null;
   // A shared table whose venue is not set yet: the mail says when it comes.
   const newContext = isSundaySocialType(newEvent.experienceType)
     ? await buildSundayTableEmailContext(newEvent, locale)
@@ -185,11 +192,11 @@ export async function buildBookingMovedEmailProps(
     oldEventName: eventDisplayName(oldEvent, locale),
     oldCity: oldEvent.city,
     oldDate: formatEmailDate(oldStarts, locale),
-    oldTime: formatEmailTime(oldStarts, oldEnds, locale),
+    oldTime: emailTime(oldEvent, locale),
     newEventName: eventDisplayName(newEvent, locale),
     newCity: newEvent.city,
     newDate: formatEmailDate(newStarts, locale),
-    newTime: formatEmailTime(newStarts, newEnds, locale),
+    newTime: emailTime(newEvent, locale),
     seats: booking.seats,
     bookingCode: reservationCode(booking.id),
     eventUrl: buildEventUrl(newEvent, locale),

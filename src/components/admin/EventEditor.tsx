@@ -10,6 +10,7 @@ import {
   isValidExperienceType,
 } from "@/lib/experience-type-definitions";
 import { getEventFormDefaults } from "@/lib/experience-template-defaults";
+import { isSharedTableType } from "@/lib/event-concepts";
 import {
   createEventDirectAction,
   saveEventAction,
@@ -579,12 +580,14 @@ export function EventEditor({
                     onChange={setStartsAt}
                     required
                   />
-                  <Field
-                    label="Einde"
-                    type="datetime-local"
-                    value={endsAt}
-                    onChange={setEndsAt}
-                  />
+                  {isSharedTableType(event?.experienceType) ? null : (
+                    <Field
+                      label="Einde"
+                      type="datetime-local"
+                      value={endsAt}
+                      onChange={setEndsAt}
+                    />
+                  )}
                   <Field
                     label="Prijs (€)"
                     type="number"

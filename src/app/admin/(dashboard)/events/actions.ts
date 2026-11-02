@@ -31,6 +31,7 @@ import { applyMembersOnlyDefault } from "@/lib/membership/early-access";
 import { transferBooking } from "@/lib/booking-transfer";
 import { redirect } from "next/navigation";
 import { isSharedTableType } from "@/lib/event-concepts";
+import { SUNDAY_TABLE_DURATION_HOURS } from "@/lib/sunday-table-calendar";
 import { recordSeriesSkip } from "@/lib/jouw-tafel/series-server";
 
 export type EventFormState = {
@@ -181,6 +182,10 @@ async function applyEventUpdate(id: string, formData: FormData) {
   const experienceType: string = isSharedTableType(existing.experienceType)
     ? existing.experienceType
     : values.experienceType;
+  // A shared table always ends three hours after the start; guests are told "two to three hours".
+  const endsAt = isSharedTableType(experienceType)
+    ? new Date(values.startsAt.getTime() + SUNDAY_TABLE_DURATION_HOURS * 3600000)
+    : values.endsAt;
 
   const nextSlug = await resolveUniqueEventSlug(
     db,
@@ -194,7 +199,7 @@ async function applyEventUpdate(id: string, formData: FormData) {
 
   const [row] = await db
     .update(events)
-    .set({ ...values, experienceType, slug: nextSlug })
+    .set({ ...values, experienceType, endsAt, slug: nextSlug })
     .where(eq(events.id, id))
     .returning();
   await syncEventVenuesFromEvent(row);

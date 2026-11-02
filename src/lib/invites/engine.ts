@@ -261,12 +261,12 @@ export async function loadInviteEvents(now: Date = new Date()): Promise<InviteEv
   const rows = (await getDb().execute(sql`
     select e.id, e.city, e.starts_at, e.capacity, e.price_cents, e.extras, e.experience_type, e.name_nl,
       (select coalesce(sum(b.seats), 0) from bookings b
-        where b.event_id = e.id and b.payment_status = 'paid' and b.lifecycle_status in ('active', 'transferred'))::int as sold,
+        where b.event_id = e.id and b.payment_status = 'paid' and b.lifecycle_status = 'active')::int as sold,
       -- The latest edition before this one in the city that was held, or is
       -- already sold out while still to come: was it full?
       (select p.sold >= p.capacity from (
           select p.starts_at, p.capacity, (select coalesce(sum(b2.seats), 0) from bookings b2
-            where b2.event_id = p.id and b2.payment_status = 'paid' and b2.lifecycle_status in ('active', 'transferred')) as sold
+            where b2.event_id = p.id and b2.payment_status = 'paid' and b2.lifecycle_status = 'active') as sold
           from events p where p.city = e.city and p.id <> e.id and p.workflow_status = 'published'
             and p.experience_type in ('jouw-tafel', 'sunday-table') and p.starts_at < e.starts_at
         ) p

@@ -78,6 +78,12 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
         label={nl ? "Bekijk je tafel →" : "See your table →"}
       />
 
+      <Text style={{ ...emailType.bodySmall, margin: "0 0 18px" }}>
+        {nl
+          ? "Kun je toch niet? Zeg je plek dan meteen af op je tafelpagina, zodat je tafel het weet. Zo kort van tevoren telt dat als een gemiste zondag, maar niet komen zonder iets te zeggen weegt zwaarder."
+          : "Can't make it after all? Cancel your seat on your table page right away, so your table knows. This close to the day it counts as a missed Sunday, but not showing up without a word weighs heavier."}
+      </Text>
+
       <Text style={{ ...emailType.body, margin: "8px 0 0" }}>
         {nl ? "Tot morgen," : "See you tomorrow,"}
         <br />

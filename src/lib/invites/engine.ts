@@ -68,6 +68,8 @@ export type InvitePerson = {
   token: string;
   member: boolean;
   suppressed: boolean;
+  /** Kept from booking for a while after missed Sundays (missed-sundays/). */
+  blocked: boolean;
   ageRange: string | null;
   birthDate: Date | null;
   /** Hand-sent invitations (email_log), for the monthly maximum. */
@@ -187,11 +189,15 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
   const suppressed = (await db.execute(sql`
     select distinct email_normalized as email from email_log where last_event in ('bounced', 'complained', 'suppressed')
   `)) as unknown as Array<{ email: string }>;
+  const blocked = (await db.execute(sql`
+    select email_normalized as email from customers where booking_blocked_until > now()
+  `)) as unknown as Array<{ email: string }>;
   const subs = await db.select().from(inviteSubscribers).catch(() => [] as Array<typeof inviteSubscribers.$inferSelect>);
 
   const nameBy = new Map(names.map((n) => [n.email, n.first_name.trim().split(" ")[0] || null]));
   const memberSet = new Set(members.map((m) => m.email));
   const suppressedSet = new Set(suppressed.map((s) => s.email));
+  const blockedSet = new Set(blocked.map((b) => b.email));
   const subBy = new Map(subs.map((s) => [s.emailNormalized, s]));
   const birthBy = new Map<string, Date>();
   for (const b of births) if (b.d) birthBy.set(b.email, new Date(b.d));
@@ -219,6 +225,7 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
         token: sub?.token ?? "",
         member: memberSet.has(r.email),
         suppressed: suppressedSet.has(r.email),
+        blocked: blockedSet.has(r.email),
         ageRange: null,
         birthDate: birthBy.get(r.email) ?? null,
         manualInvites: manualBy.get(r.email) ?? [],
@@ -489,7 +496,7 @@ export async function planInvites(
   const values: Array<typeof inviteSends.$inferInsert> = [];
 
   for (const person of people) {
-    if (person.suppressed) continue;
+    if (person.suppressed || person.blocked) continue;
     const cities = followedCities(person);
     if (cities.length === 0) continue;
     const mine = history.sends.filter((s) => s.emailNormalized === person.email);
@@ -814,6 +821,10 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     };
     if (!person || person.suppressed) {
       await skip(!person ? "niet meer op de lijst" : "bounce of spam");
+      continue;
+    }
+    if (person.blocked) {
+      await skip("mag even niet boeken");
       continue;
     }
     if (!person.member && upcomingSunday(sendBookings, now)) {

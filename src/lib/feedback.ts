@@ -10,6 +10,7 @@ import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import { citiesForEmail } from "@/lib/invites/cities";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
+import { bookingBlockedUntil } from "@/lib/missed-sundays/server";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
 
 /**
@@ -229,7 +230,11 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
         .where(and(sql`lower(${bookings.email}) = lower(${booking.email})`, eq(bookings.paymentStatus, "paid")))
     ).map((b) => b.eventId),
   );
-  const freeSeat = used
+  // Kept from booking after missed Sundays: no next date and no free seat.
+  const blocked = Boolean(await bookingBlockedUntil(booking.email));
+  const freeSeat = blocked
+    ? null
+    : used
     ? used.startsAt.getTime() > now
       ? { options: [], booked: `${used.city} · ${longLabel(used.startsAt)}` }
       : null
@@ -251,7 +256,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     member: isActiveMember(membershipSnapshot(membership)),
     tablemates: mates.filter((m) => m.id !== booking.id).map((m) => ({ bookingId: m.id, firstName: firstName(m.name) || "Gast" })),
     next:
-      nextEvent && nextPath
+      !blocked && nextEvent && nextPath
         ? {
             eventId: nextEvent.id,
             city: nextEvent.city,

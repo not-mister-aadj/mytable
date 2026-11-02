@@ -32,6 +32,8 @@ import { transferBooking } from "@/lib/booking-transfer";
 import { redirect } from "next/navigation";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { SUNDAY_TABLE_DURATION_HOURS } from "@/lib/sunday-table-calendar";
+import { isLateCancel } from "@/lib/missed-sundays/logic";
+import { recordMissedSunday } from "@/lib/missed-sundays/server";
 import { recordSeriesSkip } from "@/lib/jouw-tafel/series-server";
 
 export type EventFormState = {
@@ -552,7 +554,12 @@ export async function removeBookingFromEventAction(
 
       await tx
         .update(bookings)
-        .set({ paymentStatus: "refunded", lifecycleStatus: "removed" })
+        .set({
+          paymentStatus: "refunded",
+          lifecycleStatus: "removed",
+          // Taken off less than 48 hours before a Sunday: a late cancel.
+          ...(isSharedTableType(event.experienceType) && isLateCancel(new Date(), event.startsAt) ? { cancelledLateAt: new Date() } : {}),
+        })
         .where(eq(bookings.id, bookingId));
 
       return { slug: event.slug, booking, event };
@@ -568,6 +575,9 @@ export async function removeBookingFromEventAction(
 
     await reconcileEventSpotsSold([eventId]);
     revalidateEventPaths(slug.event);
+    if (isSharedTableType(slug.event.experienceType) && isLateCancel(new Date(), slug.event.startsAt)) {
+      await recordMissedSunday({ bookingId, kind: "late" }).catch((e) => console.error("[remove booking] missed sunday failed", e));
+    }
 
     return { error: null };
   } catch (error) {

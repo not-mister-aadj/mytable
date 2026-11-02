@@ -20,6 +20,7 @@ import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { MIN_ONBOARDING_AGE, ageFromBirthDate, isAtLeastMinAge } from "@/lib/member-onboarding";
 import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { isEmailFrozen } from "@/lib/customers/freeze";
+import { bookingBlockedUntil } from "@/lib/missed-sundays/server";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
   communicationLocale,
@@ -353,6 +354,22 @@ export async function POST(request: Request) {
   // membership, until an admin releases it.
   if ((await isEmailFrozen(email)) || (await isEmailFrozen(signedInUser?.email))) {
     return NextResponse.json({ code: FROZEN_ERROR_CODE, error: frozenMessage(locale) }, { status: 403 });
+  }
+
+  // Missed Sundays (a late cancel or a no-show too many): no booking until then.
+  const missedBlock = isSundayTable ? ((await bookingBlockedUntil(email)) ?? (await bookingBlockedUntil(signedInUser?.email))) : null;
+  if (missedBlock) {
+    return NextResponse.json(
+      {
+        code: "missed_blocked",
+        until: missedBlock.toISOString(),
+        error:
+          locale === "en"
+            ? `You can book a Sunday Social again from ${openFromLabel(missedBlock, locale)}.`
+            : `Je kunt weer een Sunday Social boeken vanaf ${openFromLabel(missedBlock, locale)}.`,
+      },
+      { status: 409 },
+    );
   }
 
   if (isSundayTable && memberDecision.kind === "blocked") {

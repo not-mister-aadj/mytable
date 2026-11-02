@@ -2,6 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { dropPlannedMailsFor } from "@/lib/admin/sunday-mails";
+import { recordMissedSunday } from "@/lib/missed-sundays/server";
 
 export type LateCancelResult = { ok: true } | { ok: false; error: "not_found" | "started" };
 
@@ -30,6 +31,8 @@ export async function cancelLate(bookingId: string, now = new Date()): Promise<L
   if (!marked) return { ok: true };
   const left = await dropPlannedMailsFor(row.event.id, bookingId).catch(() => ["saturday", "morning", "feedback"]);
   await db.insert(bookingEvents).values({ bookingId, type: "cancelled_late", payload: { plannedMailsLeft: left } });
+  // Less than 48 hours before: a missed Sunday (warning, then a block).
+  await recordMissedSunday({ bookingId, kind: "late", now }).catch((e) => console.error("[late-cancel] missed sunday failed", e));
   return { ok: true };
 }
 

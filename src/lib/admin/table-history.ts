@@ -67,7 +67,7 @@ export async function loadTableHistory(): Promise<TableHistory> {
       left join venues fv on fv.id = f.venue_id
       left join event_groups g on g.id = b.group_id
       left join venues gv on gv.id = g.venue_id
-      where b.payment_status = 'paid' and b.lifecycle_status in ('active', 'transferred') and b.cancelled_late_at is null
+      where b.payment_status = 'paid' and b.lifecycle_status = 'active' and b.cancelled_late_at is null
         and e.experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
       order by e.starts_at desc`),
     db.execute<{ from_email: string; to_email: string; to_name: string | null; event_id: string; at: Date }>(sql`

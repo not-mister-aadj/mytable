@@ -11,6 +11,7 @@ export type BookingConfirmationCardProps = {
   city: string;
   date: string;
   time: string;
+  duration?: string;
   seatsLabel: string;
   totalPaid: string;
   bookingCode: string;
@@ -25,6 +26,7 @@ export function BookingConfirmationCard({
   city,
   date,
   time,
+  duration,
   seatsLabel,
   totalPaid,
   bookingCode,
@@ -61,6 +63,7 @@ export function BookingConfirmationCard({
         items={[
           { icon: "calendar", label: en ? "Date" : "Datum", value: date },
           { icon: "clock", label: en ? "Time" : "Tijd", value: time },
+          ...(duration ? [{ icon: "clock" as const, label: en ? "Duration" : "Duur", value: duration }] : []),
           { icon: "people", label: en ? "Seats" : "Plekken", value: seatsLabel },
           { icon: "card", label: en ? "Paid" : "Betaald", value: totalPaid },
         ]}

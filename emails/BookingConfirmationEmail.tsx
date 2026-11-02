@@ -15,6 +15,8 @@ export type BookingConfirmationEmailProps = {
   city: string;
   date: string;
   time: string;
+  /** "2 tot 3 uur": a shared table has no set end. */
+  duration?: string;
   seats: number;
   totalPaid: string;
   bookingCode: string;
@@ -39,6 +41,7 @@ export function BookingConfirmationEmail({
   city,
   date,
   time,
+  duration,
   seats,
   totalPaid,
   bookingCode,
@@ -130,6 +133,7 @@ export function BookingConfirmationEmail({
         city={city}
         date={date}
         time={time}
+        duration={duration}
         seatsLabel={seatsLabel}
         totalPaid={totalPaid}
         bookingCode={bookingCode}

@@ -12,6 +12,8 @@ const iconMap: Record<string, "calendar" | "clock" | "people" | "card"> = {
   Date: "calendar",
   Tijd: "clock",
   Time: "clock",
+  Duur: "clock",
+  Duration: "clock",
   Plekken: "people",
   Seats: "people",
   Tafel: "people",

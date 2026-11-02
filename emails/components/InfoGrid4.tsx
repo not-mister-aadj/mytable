@@ -12,15 +12,17 @@ export type InfoGrid4Item = {
 function InfoGrid4Cell({
   item,
   isLast = false,
+  width,
 }: {
   item: InfoGrid4Item;
   isLast?: boolean;
+  width: string;
 }) {
   return (
     <Column
       className={`email-grid-4-cell${isLast ? " email-grid-4-cell-last" : ""}`}
       style={{
-        width: "25%",
+        width,
         verticalAlign: "top",
         paddingRight: isLast ? "0" : "6px",
       }}
@@ -36,7 +38,7 @@ export function InfoGrid4({ items }: { items: InfoGrid4Item[] }) {
   return (
     <Row>
       {items.map((item, i) => (
-        <InfoGrid4Cell key={item.label} item={item} isLast={i === items.length - 1} />
+        <InfoGrid4Cell key={item.label} item={item} isLast={i === items.length - 1} width={`${100 / items.length}%`} />
       ))}
     </Row>
   );

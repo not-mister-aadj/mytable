@@ -17,6 +17,8 @@ export type BookingMovedEmailProps = {
   newCity: string;
   newDate: string;
   newTime: string;
+  /** "2 tot 3 uur": a shared table has no set end. */
+  newDuration?: string;
   seats: number;
   bookingCode: string;
   eventUrl: string;
@@ -37,6 +39,7 @@ export function BookingMovedEmail({
   newCity,
   newDate,
   newTime,
+  newDuration,
   seats,
   bookingCode,
   eventUrl,
@@ -100,6 +103,7 @@ export function BookingMovedEmail({
         rows={[
           { label: en ? "Date" : "Datum", value: newDate },
           { label: en ? "Time" : "Tijd", value: newTime },
+          ...(newDuration ? [{ label: en ? "Duration" : "Duur", value: newDuration }] : []),
           { label: en ? "Seats" : "Plekken", value: seatsLabel },
           { label: en ? "Booking code" : "Boekingscode", value: bookingCode },
         ]}

@@ -85,14 +85,17 @@ async function bookingEmailLocale(booking: Booking): Promise<Locale> {
   });
 }
 
-/** A shared table has no set end: the start and "reken op twee tot drie
- * uur", as on the site and in the location mail. Other events: start–end. */
+/** A shared table has no set end: only the start, with the duration in its
+ * own field ("2 tot 3 uur", as on the site). Other events: start–end. */
 function emailTime(event: Event, locale: Locale): string {
   const startsAt = new Date(event.startsAt);
-  if (!isSharedTableType(event.experienceType)) {
-    return formatEmailTime(startsAt, event.endsAt ? new Date(event.endsAt) : null, locale);
-  }
-  return `${formatEmailTime(startsAt, null, locale)}, ${locale === "en" ? "count on two to three hours" : "reken op twee tot drie uur"}`;
+  const endsAt = event.endsAt && !isSharedTableType(event.experienceType) ? new Date(event.endsAt) : null;
+  return formatEmailTime(startsAt, endsAt, locale);
+}
+
+function emailDuration(event: Event, locale: Locale): string | undefined {
+  if (!isSharedTableType(event.experienceType)) return undefined;
+  return locale === "en" ? "2 to 3 hours" : "2 tot 3 uur";
 }
 
 export async function buildBookingConfirmationEmailProps(
@@ -121,6 +124,7 @@ export async function buildBookingConfirmationEmailProps(
     city: event.city,
     date: formatEmailDate(startsAt, locale),
     time: emailTime(event, locale),
+    duration: emailDuration(event, locale),
     seats: booking.seats,
     totalPaid: member.totalPaid ?? formatMoney(booking.amountCents, booking.currency, locale),
     bookingCode: reservationCode(booking.id),
@@ -197,6 +201,7 @@ export async function buildBookingMovedEmailProps(
     newCity: newEvent.city,
     newDate: formatEmailDate(newStarts, locale),
     newTime: emailTime(newEvent, locale),
+    newDuration: emailDuration(newEvent, locale),
     seats: booking.seats,
     bookingCode: reservationCode(booking.id),
     eventUrl: buildEventUrl(newEvent, locale),

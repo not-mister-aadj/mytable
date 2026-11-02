@@ -283,6 +283,8 @@ export const bookings = pgTable("bookings", {
   cancelledLateAt: timestamp("cancelled_late_at", { withTimezone: true }),
   /** Our own note on that cancellation. */
   cancelNote: text("cancel_note"),
+  /** "Ja, ik kom" in the Wednesday mail (drizzle/0063). */
+  attendanceConfirmedAt: timestamp("attendance_confirmed_at", { withTimezone: true }),
   /** Admin struck this missed Sunday: it no longer counts (drizzle/0063). */
   missWaivedAt: timestamp("miss_waived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })

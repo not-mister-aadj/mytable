@@ -219,7 +219,7 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     });
   }
 
-  // The automatic mails after a Sunday: guests still without one more than an hour after its time.
+  // The automatic Sunday mails: guests still without one more than an hour after its time.
   for (const kind of AUTO_MAIL_KINDS) {
     for (const eventId of await dueAutoMailEvents(kind, new Date(now.getTime() - 70 * 60_000))) {
       const ctx = await loadSundayMailContext(eventId);
@@ -229,7 +229,7 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
       todos.push({
         key: `${kind}-${eventId}`,
         tone: "urgent",
-        title: `${kind === "feedback" ? "Feedbackmail" : "Herinnering feedback"} ${ctx.city} niet verstuurd`,
+        title: `${kind === "confirm" ? "Kom je zondag?" : kind === "feedback" ? "Feedbackmail" : "Herinnering feedback"} ${ctx.city} niet verstuurd`,
         detail: `${open} ${open === 1 ? "gast heeft" : "gasten hebben"} hem nog niet (dagelijkse mail-limiet of fout)`,
         href: eventHref(eventId, "mails"),
       });

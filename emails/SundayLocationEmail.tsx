@@ -130,8 +130,8 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
         <EmailCard style={{ backgroundColor: emailBrand.pillBg, borderLeft: `4px solid ${emailBrand.burgundy}` }}>
           <Text style={{ ...emailType.body, margin: "0 0 14px" }}>
             {nl
-              ? `Jij hebt de vragen over jezelf nog niet ingevuld. Doe je dat ${p.booked ? "voor de mail van zaterdag" : "vóór vrijdag 20:00"}, dan lezen je tafelgenoten ook iets over jou, en houden we bij het indelen rekening met je antwoorden. Het kost je een minuut.`
-              : `You haven't answered the questions about yourself yet. If you do ${p.booked ? "before Saturday's email" : "by Friday 8 pm"}, your tablemates get to read about you too, and we take your answers into account when we seat everyone. It takes a minute.`}
+              ? `Je hebt de vragen over jezelf nog niet ingevuld. Doe je dat ${p.booked ? "voor de mail van zaterdag" : "vóór vrijdag 20:00"}, dan nemen we je antwoorden mee bij het maken van de groepen. Alleen wie zelf iets deelt, leest zaterdag wat de anderen aan tafel over zichzelf vertellen. Het kost je een minuut.`
+              : `You haven't answered the questions about yourself yet. If you do ${p.booked ? "before Saturday's email" : "by Friday 8 pm"}, we'll use your answers when we put the groups together. Only those who share something themselves get to read on Saturday what the others at their table say about themselves. It takes a minute.`}
           </Text>
           {p.bookingCode ? (
             <Text style={{ ...emailType.body, margin: "0 0 18px" }}>

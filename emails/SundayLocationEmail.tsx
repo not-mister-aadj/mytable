@@ -165,7 +165,7 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
           {nl ? "Zaterdag, de dag ervoor, krijg je nog een mail met:" : "On Saturday, the day before, you'll get one more email with:"}
         </Text>
         <Text style={{ ...emailType.body, margin: "0 0 16px" }}>
-          {nl ? "· je groepsnummer, dat je bij binnenkomst zegt" : "· your group number, which you give when you arrive"}
+          {nl ? "· je groepsnummer, zodat de bar je de juiste tafel kan aanwijzen" : "· your group number, so the bar can show you to the right table"}
           <br />
           {nl ? "· wie er bij je aan tafel zitten, met wat ze over zichzelf vertellen" : "· who's at your table, with what they shared about themselves"}
           <br />

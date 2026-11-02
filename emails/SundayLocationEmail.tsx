@@ -9,7 +9,8 @@ import { emailBrand, emailFonts, emailRadii, emailType } from "./brand";
 
 /** A week before a Sunday Social, sent from the Sunday page in admin: where
  * it is, how the afternoon goes, what follows on Saturday, and a one-click
- * link to the questions (to fill in, or to change). */
+ * link to the questions (to fill in, or to change). Unanswered questions get
+ * their own coloured block right under the opening, so it isn't read past. */
 export type SundayLocationEmailProps = {
   locale: "nl" | "en";
   firstName?: string;
@@ -125,6 +126,49 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
         }
       />
 
+      {!p.answered ? (
+        <EmailCard style={{ backgroundColor: emailBrand.pillBg, borderLeft: `4px solid ${emailBrand.burgundy}` }}>
+          <Text style={{ ...emailType.body, margin: "0 0 14px" }}>
+            {nl
+              ? `Jij hebt de vragen over jezelf nog niet ingevuld. Doe je dat ${p.booked ? "voor de mail van zaterdag" : "vóór vrijdag 20:00"}, dan lezen je tafelgenoten ook iets over jou, en houden we bij het indelen rekening met je antwoorden. Het kost je een minuut.`
+              : `You haven't answered the questions about yourself yet. If you do ${p.booked ? "before Saturday's email" : "by Friday 8 pm"}, your tablemates get to read about you too, and we take your answers into account when we seat everyone. It takes a minute.`}
+          </Text>
+          {p.bookingCode ? (
+            <Text style={{ ...emailType.body, margin: "0 0 18px" }}>
+              {nl ? "Je hebt hiervoor nodig:" : "You'll need:"}
+              <br />
+              {nl ? "Boekingsnummer: " : "Booking number: "}
+              <strong>{p.bookingCode}</strong>
+              {p.email ? (
+                <>
+                  <br />
+                  {nl ? "E-mailadres: " : "Email: "}
+                  <strong>{p.email}</strong>
+                </>
+              ) : null}
+            </Text>
+          ) : null}
+          <Section>
+            <Link
+              href={p.introUrl}
+              style={{
+                display: "inline-block",
+                padding: "13px 22px",
+                borderRadius: emailRadii.pill,
+                backgroundColor: emailBrand.burgundy,
+                color: "#ffffff",
+                fontFamily: emailFonts.sans,
+                fontSize: "15px",
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              {nl ? "Vul je vragen in →" : "Answer the questions →"}
+            </Link>
+          </Section>
+        </EmailCard>
+      ) : null}
+
       <EmailCard>
         <Text style={emailType.sectionLabel}>{nl ? "Waar en wanneer" : "Where and when"}</Text>
         <Text
@@ -164,56 +208,14 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
         <Text style={{ ...emailType.body, margin: "0 0 12px" }}>
           {nl ? "Zaterdag, de dag ervoor, krijg je nog een mail met:" : "On Saturday, the day before, you'll get one more email with:"}
         </Text>
-        <Text style={{ ...emailType.body, margin: "0 0 16px" }}>
+        <Text style={{ ...emailType.body, margin: p.answered ? "0 0 16px" : 0 }}>
           {nl ? "• je groepsnummer, zodat de bar je de juiste tafel kan aanwijzen" : "• your group number, so the bar can show you to the right table"}
           <br />
           {nl ? "• wie er bij je aan tafel zitten, met wat ze over zichzelf vertellen" : "• who's at your table, with what they shared about themselves"}
           <br />
           {nl ? `• onze aanraders van de kaart van ${p.venueName}` : `• our picks from the ${p.venueName} menu`}
         </Text>
-        {!p.answered ? (
-          <>
-            <EmailDivider spacing="16px" />
-            <Text style={{ ...emailType.body, margin: "0 0 14px" }}>
-              {nl
-                ? "Jij hebt de vragen over jezelf nog niet ingevuld. Doe je dat voor die mail, dan lezen je tafelgenoten ook iets over jou, en houden we bij het indelen rekening met je antwoorden. Het kost je een minuut."
-                : "You haven't answered the questions about yourself yet. If you do before that email, your tablemates get to read about you too, and we take your answers into account when we seat everyone. It takes a minute."}
-            </Text>
-            {p.bookingCode ? (
-              <Text style={{ ...emailType.body, margin: "0 0 18px" }}>
-                {nl ? "Je hebt hiervoor nodig:" : "You'll need:"}
-                <br />
-                {nl ? "Boekingsnummer: " : "Booking number: "}
-                <strong>{p.bookingCode}</strong>
-                {p.email ? (
-                  <>
-                    <br />
-                    {nl ? "E-mailadres: " : "Email: "}
-                    <strong>{p.email}</strong>
-                  </>
-                ) : null}
-              </Text>
-            ) : null}
-            <Section>
-              <Link
-                href={p.introUrl}
-                style={{
-                  display: "inline-block",
-                  padding: "13px 22px",
-                  borderRadius: emailRadii.pill,
-                  backgroundColor: emailBrand.burgundy,
-                  color: "#ffffff",
-                  fontFamily: emailFonts.sans,
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                {nl ? "Vul je vragen in →" : "Answer the questions →"}
-              </Link>
-            </Section>
-          </>
-        ) : (
+        {p.answered ? (
           <>
             <EmailDivider spacing="16px" />
             <Text style={{ ...emailType.body, margin: "0 0 18px" }}>
@@ -240,7 +242,7 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
               </Link>
             </Section>
           </>
-        )}
+        ) : null}
       </EmailCard>
 
       <EmailCard>

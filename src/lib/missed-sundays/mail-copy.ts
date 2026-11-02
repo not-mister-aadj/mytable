@@ -82,14 +82,20 @@ export function missedSundayMail(input: {
       greeting: hi,
       headline: en ? "A break from booking" : "Even geen Sunday Social",
       body:
-        kind === "late"
+        (kind === "late"
           ? en
-            ? `You cancelled your seat for ${day} less than 48 hours before, and it wasn't the first time. So you can't book a Sunday Social for ${months(input.months, l)}. From ${until} you can again.`
-            : `Je zegde je plek voor ${day} minder dan 48 uur van tevoren af, en het was niet de eerste keer. Daarom kun je ${months(input.months, l)} geen Sunday Social boeken. Vanaf ${until} kan het weer.`
+            ? `You cancelled your seat for ${day} less than 48 hours before, and it wasn't the first time. `
+            : `Je zegde je plek voor ${day} minder dan 48 uur van tevoren af, en het was niet de eerste keer. `
           : en
-            ? `You weren't at the table on ${day}, and it wasn't the first time. So you can't book a Sunday Social for ${months(input.months, l)}. From ${until} you can again.`
-            : `Je was er ${day} niet bij, en het was niet de eerste keer. Daarom kun je ${months(input.months, l)} geen Sunday Social boeken. Vanaf ${until} kan het weer.`,
-      warmLine: (en ? "We'd love to see you at the table again after that." : "Daarna zien we je graag weer aan tafel.") + memberLine,
+            ? `You weren't at the table on ${day}, and it wasn't the first time. `
+            : `Je was er ${day} niet bij, en het was niet de eerste keer. `) +
+        (en
+          ? "At the table, people count on each other: they keep their Sunday afternoon free and look forward to meeting you. In our club we respect each other's time, and this doesn't fit with that."
+          : "Aan tafel rekenen mensen op elkaar: ze houden hun zondagmiddag vrij en kijken ernaar uit om je te ontmoeten. In onze club respecteren we elkaars tijd, en daar past dit niet bij."),
+      warmLine:
+        (en
+          ? `So you can't book a Sunday Social for the next ${months(input.months, l)}. From ${until} you're welcome to give it another try.`
+          : `Daarom kun je de komende ${months(input.months, l)} geen Sunday Social boeken. Vanaf ${until} ben je van harte welkom om het nog een keer te proberen.`) + memberLine,
       note: moveLine,
     },
   };

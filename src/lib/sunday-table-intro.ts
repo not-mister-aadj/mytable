@@ -1,9 +1,10 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import { getDb } from "@/db/index";
 import { bookings, customers, events } from "@/db/schema";
 import { reservationCode } from "@/lib/booking-display";
 import { normalizeEmail } from "@/lib/customers/normalize";
+import { SHARED_TABLE_TYPES } from "@/lib/event-concepts";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
 import { QUIZ_METADATA_KEY } from "@/lib/jouw-tafel/quiz-logic";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -168,7 +169,7 @@ export async function findSundayTableIntroBooking(
           ? eq(bookings.id, by.bookingId)
           : eq(bookings.stripeCheckoutSessionId, by.checkoutSessionId),
         eq(bookings.paymentStatus, "paid"),
-        eq(events.experienceType, "sunday-table"),
+        inArray(events.experienceType, [...SHARED_TABLE_TYPES]),
       ),
     )
     .limit(1);
@@ -202,7 +203,7 @@ export async function findSundayTableIntroBookingByCode(
         sql`replace(${bookings.id}::text, '-', '') like ${hex + "%"}`,
         sql`lower(${bookings.email}) = ${normalizedEmail}`,
         eq(bookings.paymentStatus, "paid"),
-        eq(events.experienceType, "sunday-table"),
+        inArray(events.experienceType, [...SHARED_TABLE_TYPES]),
       ),
     )
     .limit(2);
@@ -452,7 +453,7 @@ export async function savePersonIntro(
       intro_into_now = ${"introIntoNow" in values ? values.introIntoNow ?? null : sql`b.intro_into_now`},
       intro_share_consent = ${options.shareConsent ? true : sql`b.intro_share_consent`}
     from events e
-    where e.id = b.event_id and e.experience_type = 'sunday-table' and e.starts_at > now() + interval '1 day'
+    where e.id = b.event_id and e.experience_type in ('sunday-table', 'jouw-tafel') and e.starts_at > now() + interval '1 day'
       and lower(b.email) = ${key} and b.payment_status = 'paid' and b.lifecycle_status = 'active'
   `);
   if (options.syncQuiz) await syncQuizAnswers(key, patch).catch(() => undefined);

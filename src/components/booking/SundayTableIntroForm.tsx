@@ -43,6 +43,7 @@ const copy = {
     bookingNotFound: "We vinden geen boeking met dit nummer en e-mailadres. Check je bevestigingsmail.",
     bookingMissing: "Vul je boekingsnummer en e-mailadres in.",
     bookingFound: "Boeking gevonden",
+    findBooking: "Zoek mijn boeking",
     plusOneTitle: "Je komt met z'n tweeën",
     plusOneName: "Voornaam van je +1",
     plusOnePlaceholder: "bijv. Sophie",
@@ -86,6 +87,7 @@ const copy = {
     bookingNotFound: "We can't find a booking with this number and email. Check your confirmation email.",
     bookingMissing: "Fill in your booking number and email.",
     bookingFound: "Booking found",
+    findBooking: "Find my booking",
     plusOneTitle: "You're coming as two",
     plusOneName: "First name of your +1",
     plusOnePlaceholder: "e.g. Sophie",
@@ -233,6 +235,8 @@ export function SundayTableIntroForm({
       setPlusOneName((v) => v || saved.plusOneName);
     } catch {
       // Not critical: saving still checks the number and email itself.
+      // Allow another try with the same values.
+      lastLookup.current = "";
     }
   }
   const [saving, setSaving] = useState(false);
@@ -436,6 +440,18 @@ export function SundayTableIntroForm({
               </p>
             ) : null}
 
+            {/* Manual version: the questions only appear once the booking is
+                found, so nobody fills them in for a booking we can't match. */}
+            {manual && !found ? (
+              <button
+                type="button"
+                onClick={() => void lookupBooking()}
+                className="cta-lift cta-lift-burgundy mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-6 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-cream hover:bg-wine sm:w-auto"
+              >
+                {t.findBooking}
+              </button>
+            ) : (
+            <>
             <div className="mt-6 space-y-4">
               <ChoiceRow
                 label={t.style}
@@ -520,6 +536,8 @@ export function SundayTableIntroForm({
             >
               {saving ? t.saving : t.save}
             </button>
+            </>
+            )}
           </form>
         )}
       </div>

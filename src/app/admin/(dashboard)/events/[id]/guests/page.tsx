@@ -131,8 +131,22 @@ async function historyFor(eventId: string, startsAt: Date) {
   return guestHistories(history, eventId, startsAt, rows);
 }
 
+/** Logs how long one loader took, so a slow or stuck tab shows where in the logs. */
+async function timed<T>(label: string, run: () => Promise<T>): Promise<T> {
+  const started = Date.now();
+  console.info(`[guests] ${label} start`);
+  try {
+    return await run();
+  } finally {
+    console.info(`[guests] ${label} ${Date.now() - started}ms`);
+  }
+}
+
 async function GuestsTab({ eventId, event }: { eventId: string; event: typeof events.$inferSelect }) {
-  const [ticketsData, history] = await Promise.all([getEventTicketsData(eventId), historyFor(eventId, event.startsAt)]);
+  const [ticketsData, history] = await Promise.all([
+    timed("tickets", () => getEventTicketsData(eventId)),
+    timed("history", () => historyFor(eventId, event.startsAt)),
+  ]);
   return (
     <EventGuestsView
       event={{

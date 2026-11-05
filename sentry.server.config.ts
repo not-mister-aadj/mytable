@@ -10,8 +10,10 @@ Sentry.init({
 
   tracesSampleRate: 0.1,
 
-  // Attach local variable values to stack frames
-  includeLocalVariables: true,
+  // Off: capturing local variables pauses the server process in the debugger
+  // on every thrown error, and on the admin guests page that pause never ended
+  // (the function hung mid-query until Vercel killed it after 300 seconds).
+  includeLocalVariables: false,
 
   enableLogs: true,
 

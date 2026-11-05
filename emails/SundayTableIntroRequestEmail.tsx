@@ -44,8 +44,8 @@ export function SundayTableIntroRequestEmail({
       </p>
       <p style={textStyle}>
         {nl
-          ? `Op ${dateLabel} verdelen we iedereen over tafels van 4 tot 6. Bij het indelen houden we rekening met je antwoorden. Zonder antwoorden delen we je willekeurig in.`
-          : `On ${dateLabel} we split everyone into tables of 4 to 6. We take your answers into account when we do. Without them, we seat you at random.`}
+          ? `Op ${dateLabel} schuif je aan bij mensen die je nog niet kent. Bij het indelen houden we rekening met je antwoorden. Zonder antwoorden delen we je willekeurig in.`
+          : `On ${dateLabel} you join people you haven't met yet. We take your answers into account when we seat everyone. Without them, we seat you at random.`}
       </p>
       <p style={{ ...textStyle, margin: "0 0 20px" }}>
         {nl ? "Om te beginnen, aan tafel ben jij meer:" : "To start, at the table you are more:"}

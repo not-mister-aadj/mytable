@@ -27,6 +27,10 @@ const BACKLOG_AFTER_MS = 24 * 60 * 60 * 1000;
  * capped. */
 export const BACKLOG_PER_DAY = 25;
 
+/** No catch-up for a table this close: those guests get their table page
+ * (with the questions) in the mails of that week. */
+const BACKLOG_MIN_LEAD_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** Catch-up mails only go out in the day (Amsterdam, minutes since midnight). */
 const BACKLOG_FROM_MIN = 9 * 60;
 const BACKLOG_UNTIL_MIN = 21 * 60;
@@ -54,7 +58,7 @@ export async function sendSundayTableIntroRequests(
   const before = new Date(now.getTime() - GRACE_MS);
 
   const due = await db
-    .select({ id: bookings.id, confirmedAt: bookings.confirmationEmailSentAt })
+    .select({ id: bookings.id, confirmedAt: bookings.confirmationEmailSentAt, startsAt: events.startsAt })
     .from(bookings)
     .innerJoin(events, eq(events.id, bookings.eventId))
     .where(
@@ -86,9 +90,9 @@ export async function sendSundayTableIntroRequests(
 
   const results: IntroRequestResult[] = [];
 
-  for (const { id, confirmedAt } of due) {
+  for (const { id, confirmedAt, startsAt } of due) {
     const isBacklog = confirmedAt !== null && confirmedAt < backlogBefore;
-    if (isBacklog && backlogLeft <= 0) continue;
+    if (isBacklog && (backlogLeft <= 0 || startsAt.getTime() - now.getTime() < BACKLOG_MIN_LEAD_MS)) continue;
 
     // Answered before, on an earlier booking: those answers carry over and
     // the booking counts as answered, so no reminder.

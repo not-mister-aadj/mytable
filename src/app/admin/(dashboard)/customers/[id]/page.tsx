@@ -11,6 +11,8 @@ import {
 } from "@/lib/admin-customer-profile-extras";
 import { TableHistoryPanel } from "@/components/admin/TableHistoryPanel";
 import { loadTableHistory } from "@/lib/admin/table-history";
+import { InvitePausePanel } from "@/components/admin/InvitePausePanel";
+import { getInvitePause } from "@/lib/invites/pause";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 
@@ -35,11 +37,12 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  const [waitlistAnswers, sentEmails, tablemates, history] = await Promise.all([
+  const [waitlistAnswers, sentEmails, tablemates, history, invitePause] = await Promise.all([
     getCustomerWaitlistAnswers(profile.id, profile.email),
     getCustomerSentEmails(profile.id, profile.email),
     getCustomerTablemates(profile.id, profile.email),
     loadTableHistory(),
+    getInvitePause(profile.email),
   ]);
 
   void captureServerEvent(id, PostHogEvents.customerProfileViewed, {
@@ -54,7 +57,17 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
       waitlistAnswers={waitlistAnswers}
       sentEmails={sentEmails}
       tablemates={tablemates}
-      tableHistory={<TableHistoryPanel history={history} email={profile.email} />}
+      tableHistory={
+        <>
+          <InvitePausePanel
+            customerId={profile.id}
+            email={profile.email}
+            cityPrefs={invitePause.cityPrefs}
+            pausedUntil={invitePause.pausedUntil}
+          />
+          <TableHistoryPanel history={history} email={profile.email} />
+        </>
+      }
     />
   );
 }

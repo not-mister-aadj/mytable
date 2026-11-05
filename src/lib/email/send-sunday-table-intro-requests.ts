@@ -3,6 +3,7 @@ import { SundayTableIntroRequestEmail } from "@/emails/SundayTableIntroRequestEm
 import { getDb } from "@/db/index";
 import { bookings, events } from "@/db/schema";
 import { SHARED_TABLE_TYPES } from "@/lib/event-concepts";
+import { amsterdamParts } from "@/lib/invites/logic";
 import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { sundayTableIntroRequestSubject } from "@/lib/email/subjects";
 import { absoluteUrl } from "@/lib/seo/site";
@@ -25,6 +26,10 @@ const BACKLOG_AFTER_MS = 24 * 60 * 60 * 1000;
  * inside the daily mail limit next to the invites. Fresh bookings are not
  * capped. */
 export const BACKLOG_PER_DAY = 25;
+
+/** Catch-up mails only go out in the day (Amsterdam, minutes since midnight). */
+const BACKLOG_FROM_MIN = 9 * 60;
+const BACKLOG_UNTIL_MIN = 21 * 60;
 
 export type IntroRequestResult = { bookingId: string; ok: boolean };
 
@@ -75,7 +80,9 @@ export async function sendSundayTableIntroRequests(
     where intro_request_sent_at >= (date_trunc('day', ${now.toISOString()}::timestamptz at time zone 'Europe/Amsterdam') at time zone 'Europe/Amsterdam')
       and confirmation_email_sent_at < intro_request_sent_at - interval '24 hours'
   `)) as unknown as Array<{ sentToday: number }>;
-  let backlogLeft = Math.max(0, BACKLOG_PER_DAY - (sentToday ?? 0));
+  const { minutes } = amsterdamParts(now);
+  const daytime = minutes >= BACKLOG_FROM_MIN && minutes < BACKLOG_UNTIL_MIN;
+  let backlogLeft = daytime ? Math.max(0, BACKLOG_PER_DAY - (sentToday ?? 0)) : 0;
 
   const results: IntroRequestResult[] = [];
 

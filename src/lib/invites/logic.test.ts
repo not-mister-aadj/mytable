@@ -13,6 +13,8 @@ import {
   nextSlot,
   nextSundayAt,
   nudgeMail,
+  pausedFor,
+  pauseRunning,
   scarcityLine,
 } from "./logic";
 
@@ -182,4 +184,16 @@ test("a sold-out Sunday points to the next Sunday Social", () => {
   assert.match(m.body, /De volgende Sunday Social is op zondag 29 november, om 14:00\./);
   const en = nudgeMail({ ...base, locale: "en", event: ev("2026-11-29T13:00:00Z"), soldOut: "2026-11-15T13:00:00Z" });
   assert.match(en.body, /It's Sunday, 2pm\. The Sunday Social on Sunday 15 November in Amsterdam is full, every table is taken\./);
+});
+
+test("a pause until 1 February skips the January Sundays, not February", () => {
+  // Rotterdam on 24 January 2027 at 14:00 Amsterdam time is 13:00 UTC.
+  assert.equal(pausedFor("2027-02-01", "2027-01-24T13:00:00.000Z"), true);
+  assert.equal(pausedFor("2027-02-01", "2027-02-21T13:00:00.000Z"), false);
+  // The day itself is no longer paused.
+  assert.equal(pausedFor("2027-02-01", "2027-02-01T09:00:00.000Z"), false);
+  assert.equal(pausedFor(null, "2027-01-24T13:00:00.000Z"), false);
+  // While it runs check-ins wait; on 1 February it is over.
+  assert.equal(pauseRunning("2027-02-01", new Date("2027-01-15T10:00:00Z")), true);
+  assert.equal(pauseRunning("2027-02-01", new Date("2027-02-01T08:00:00Z")), false);
 });

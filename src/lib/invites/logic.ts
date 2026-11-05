@@ -99,6 +99,18 @@ export function amsterdamParts(date: Date): { weekday: number; minutes: number; 
   };
 }
 
+/** Is this Sunday within their pause (its Amsterdam day before `pausedUntil`, YYYY-MM-DD)? */
+export function pausedFor(pausedUntil: string | null, startsAt: string): boolean {
+  if (!pausedUntil) return false;
+  return amsterdamParts(new Date(startsAt)).day < pausedUntil;
+}
+
+/** Is the pause still running on this moment? */
+export function pauseRunning(pausedUntil: string | null, now: Date): boolean {
+  if (!pausedUntil) return false;
+  return amsterdamParts(now).day < pausedUntil;
+}
+
 /** The UTC moment of a wall-clock minute on an Amsterdam date (YYYY-MM-DD). */
 export function amsterdamToUtc(day: string, minutes: number): Date {
   const guess = new Date(`${day}T00:00:00Z`).getTime() + minutes * MIN;

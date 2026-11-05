@@ -22,6 +22,8 @@ import {
   nextSlot,
   nextSundayAt,
   nudgeMail,
+  pausedFor,
+  pauseRunning,
   scarcityLine,
   type CityPref,
   type Engagement,
@@ -76,6 +78,8 @@ export type InvitePerson = {
   why: InviteWhy | null;
   /** They said they come on their own. */
   solo: boolean;
+  /** No invites about Sundays before this day (YYYY-MM-DD), set in the admin. */
+  pausedUntil: string | null;
 };
 
 export type InviteEvent = {
@@ -224,6 +228,7 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
         manualInvites: manualBy.get(r.email) ?? [],
         why: null,
         solo: false,
+        pausedUntil: sub?.pausedUntil ?? null,
       };
       people.set(r.email, p);
     }
@@ -521,7 +526,7 @@ export async function planInvites(
       .filter((c) => now.getTime() - c.at.getTime() < NUDGE_UNTIL_DAYS * DAY)
       .sort((a, b) => b.at.getTime() - a.at.getTime())[0];
     const clickedEvent = click?.eventId ? events.find((e) => e.id === click.eventId) : undefined;
-    if (click && clickedEvent && cities.includes(clickedEvent.city)) {
+    if (click && clickedEvent && cities.includes(clickedEvent.city) && !pausedFor(person.pausedUntil, clickedEvent.startsAt)) {
       const at = nextSundayAt(new Date(Math.max(now.getTime(), click.at.getTime() + DAY, lastMail + 3 * DAY)));
       const farEnough = !clickedEvent.open || (at && Date.parse(clickedEvent.startsAt) - at.getTime() >= MIN_DAYS_BEFORE * DAY);
       if (at && at.getTime() <= horizon && farEnough) {
@@ -539,6 +544,8 @@ export async function planInvites(
     const lastCheckin = mine.filter((s) => s.kind === "checkin" && s.status === "sent").map((s) => s.sentAt!).sort((a, b) => b.getTime() - a.getTime())[0];
 
     if (interest.status === "checkin" && !lastCheckin) {
+      // Not while their pause runs: the invites after it ask the same.
+      if (pauseRunning(person.pausedUntil, now)) continue;
       const at = nextSlot(now, person.signedUpAt, `${person.email}:c`);
       if (at.getTime() <= horizon) values.push({ ...base, code: code(), kind: "checkin", scheduledFor: at, eventIds: [] });
       continue;
@@ -559,6 +566,7 @@ export async function planInvites(
         e.open &&
         cities.includes(e.city) &&
         !booked.has(e.id) &&
+        !pausedFor(person.pausedUntil, e.startsAt) &&
         // After their Sunday a date they heard about before may come again.
         (Boolean(afterSunday) || !invitedBefore.has(e.id)) &&
         fitsBracket(e.bracket, person, e.startsAt),
@@ -832,7 +840,15 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       await skip("herinnering te laat");
       continue;
     }
-    const valid = send.eventIds.filter((id) => !booked.has(id) && events.some((e) => e.id === id && e.open && stillFollowed.includes(e.city)));
+    if (send.kind === "checkin" && pauseRunning(person.pausedUntil, now)) {
+      await skip("pauze");
+      continue;
+    }
+    const valid = send.eventIds.filter(
+      (id) =>
+        !booked.has(id) &&
+        events.some((e) => e.id === id && e.open && stillFollowed.includes(e.city) && !pausedFor(person.pausedUntil, e.startsAt)),
+    );
     if (send.kind === "invite" && valid.length === 0) {
       await skip("geboekt, vol of te dichtbij");
       continue;
@@ -841,6 +857,11 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     const composed = composeSend(current, person, events, booked);
     if (send.kind === "nudge" && !composed) {
       await skip("geboekt, vol of te dichtbij");
+      continue;
+    }
+    const nudgeAbout = send.kind === "nudge" && composed?.eventIds ? events.find((e) => e.id === composed.eventIds!.at(-1)) : undefined;
+    if (nudgeAbout && pausedFor(person.pausedUntil, nudgeAbout.startsAt)) {
+      await skip("pauze");
       continue;
     }
     if (!composed || !resend) {

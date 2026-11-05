@@ -394,6 +394,8 @@ export const inviteSubscribers = pgTable("invite_subscribers", {
   emailNormalized: text("email_normalized").primaryKey(),
   token: text("token").notNull().unique(),
   cityPrefs: jsonb("city_prefs").$type<Record<string, "all" | "less" | "none">>().notNull().default({}),
+  /** No invites about Sundays before this day (YYYY-MM-DD), set in the admin (drizzle/0063). */
+  pausedUntil: date("paused_until"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

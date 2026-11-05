@@ -119,15 +119,18 @@ export default async function EventGuestsPage({ params, searchParams }: Props) {
   );
 }
 
-/** Labels from earlier Sundays for every booking on this one. */
+/** Labels from earlier Sundays for every booking on this one.
+ *
+ * One after the other on purpose: the pool has 3 connections, and with more
+ * queries in flight than that postgres.js pipelines them on one connection,
+ * which the Supabase transaction pooler sometimes never answers (the page then
+ * hung until Vercel's 300 s timeout). loadTableHistory alone runs 3 at once. */
 async function historyFor(eventId: string, startsAt: Date) {
-  const [history, rows] = await Promise.all([
-    loadTableHistory(),
-    getDb()
-      .select({ bookingId: bookings.id, email: bookings.email })
-      .from(bookings)
-      .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid"))),
-  ]);
+  const history = await loadTableHistory();
+  const rows = await getDb()
+    .select({ bookingId: bookings.id, email: bookings.email })
+    .from(bookings)
+    .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid")));
   return guestHistories(history, eventId, startsAt, rows);
 }
 
@@ -143,10 +146,9 @@ async function timed<T>(label: string, run: () => Promise<T>): Promise<T> {
 }
 
 async function GuestsTab({ eventId, event }: { eventId: string; event: typeof events.$inferSelect }) {
-  const [ticketsData, history] = await Promise.all([
-    timed("tickets", () => getEventTicketsData(eventId)),
-    timed("history", () => historyFor(eventId, event.startsAt)),
-  ]);
+  // Sequential, see historyFor.
+  const ticketsData = await timed("tickets", () => getEventTicketsData(eventId));
+  const history = await timed("history", () => historyFor(eventId, event.startsAt));
   return (
     <EventGuestsView
       event={{

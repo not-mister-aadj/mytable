@@ -11,6 +11,7 @@ import { MembershipOfferScreen } from "@/components/booking/MembershipOfferScree
 import { MemberWelcomeCard } from "@/components/booking/MemberWelcomeCard";
 import type { MembershipOffer } from "@/lib/membership/offer";
 import { SUNDAY_SOCIAL_CITIES } from "@/lib/sunday-social-cities";
+import { isSharedTableType } from "@/lib/event-concepts";
 import type { BookingOutcomeSummary } from "@/lib/booking-outcome-data";
 import type { SundayTableIntro } from "@/lib/sunday-table-intro";
 
@@ -140,7 +141,7 @@ export function BookingConfirmationView({
         afterSummary={
           <>
             {memberWelcome ? <MemberWelcomeCard locale={locale} /> : null}
-            {sessionId && summary?.experienceType === "sunday-table" ? (
+            {sessionId && summary && isSharedTableType(summary.experienceType) ? (
               <SundayTableIntroForm
                 locale={locale}
                 city={summary.city}

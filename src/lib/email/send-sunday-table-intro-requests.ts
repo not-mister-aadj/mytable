@@ -1,7 +1,9 @@
-import { and, eq, gt, isNotNull, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNotNull, isNull, lte, sql } from "drizzle-orm";
 import { SundayTableIntroRequestEmail } from "@/emails/SundayTableIntroRequestEmail";
 import { getDb } from "@/db/index";
 import { bookings, events } from "@/db/schema";
+import { SHARED_TABLE_TYPES } from "@/lib/event-concepts";
+import { amsterdamParts } from "@/lib/invites/logic";
 import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { sundayTableIntroRequestSubject } from "@/lib/email/subjects";
 import { absoluteUrl } from "@/lib/seo/site";
@@ -16,6 +18,23 @@ const ELIGIBLE_SINCE = new Date("2026-09-27T18:00:00.000Z");
  * the confirmation email, which goes out the moment the payment lands. */
 const GRACE_MS = 15 * 60 * 1000;
 
+/** A booking whose confirmation went out longer ago than this is a catch-up
+ * (it never got the questions), not a fresh booking. */
+const BACKLOG_AFTER_MS = 24 * 60 * 60 * 1000;
+
+/** Catch-up mails per Amsterdam day, soonest table first, so they stay well
+ * inside the daily mail limit next to the invites. Fresh bookings are not
+ * capped. */
+export const BACKLOG_PER_DAY = 25;
+
+/** No catch-up for a table this close: those guests get their table page
+ * (with the questions) in the mails of that week. */
+const BACKLOG_MIN_LEAD_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Catch-up mails only go out in the day (Amsterdam, minutes since midnight). */
+const BACKLOG_FROM_MIN = 9 * 60;
+const BACKLOG_UNTIL_MIN = 21 * 60;
+
 export type IntroRequestResult = { bookingId: string; ok: boolean };
 
 type Sender = typeof sendSimpleEmail;
@@ -25,9 +44,11 @@ function introPath(locale: "nl" | "en"): string {
 }
 
 /**
- * Emails the "introduce yourself" questions, once, to Sunday Social guests who
- * paid at least 15 minutes ago, have not answered on the confirmation page,
- * and whose table is still ahead.
+ * Emails the "introduce yourself" questions, once, to shared-table guests
+ * (Sunday Social and "Jouw tafel") who paid at least 15 minutes ago, have not
+ * answered on the confirmation page, and whose table is still ahead. Older
+ * bookings that never got it are caught up BACKLOG_PER_DAY a day, soonest
+ * table first.
  */
 export async function sendSundayTableIntroRequests(
   now: Date = new Date(),
@@ -37,13 +58,15 @@ export async function sendSundayTableIntroRequests(
   const before = new Date(now.getTime() - GRACE_MS);
 
   const due = await db
-    .select({ id: bookings.id })
+    .select({ id: bookings.id, confirmedAt: bookings.confirmationEmailSentAt, startsAt: events.startsAt })
     .from(bookings)
     .innerJoin(events, eq(events.id, bookings.eventId))
     .where(
       and(
-        eq(events.experienceType, "sunday-table"),
+        inArray(events.experienceType, [...SHARED_TABLE_TYPES]),
         gt(events.startsAt, now),
+        // Seating is done: "we take your answers into account" no longer holds.
+        isNull(events.groupsFinalAt),
         eq(bookings.paymentStatus, "paid"),
         eq(bookings.lifecycleStatus, "active"),
         isNull(bookings.introAnsweredAt),
@@ -52,11 +75,25 @@ export async function sendSundayTableIntroRequests(
         lte(bookings.confirmationEmailSentAt, before),
         gt(bookings.createdAt, ELIGIBLE_SINCE),
       ),
-    );
+    )
+    .orderBy(asc(events.startsAt), asc(bookings.createdAt));
+
+  const backlogBefore = new Date(now.getTime() - BACKLOG_AFTER_MS);
+  const [{ sentToday }] = (await db.execute(sql`
+    select count(*)::int as "sentToday" from bookings
+    where intro_request_sent_at >= (date_trunc('day', ${now.toISOString()}::timestamptz at time zone 'Europe/Amsterdam') at time zone 'Europe/Amsterdam')
+      and confirmation_email_sent_at < intro_request_sent_at - interval '24 hours'
+  `)) as unknown as Array<{ sentToday: number }>;
+  const { minutes } = amsterdamParts(now);
+  const daytime = minutes >= BACKLOG_FROM_MIN && minutes < BACKLOG_UNTIL_MIN;
+  let backlogLeft = daytime ? Math.max(0, BACKLOG_PER_DAY - (sentToday ?? 0)) : 0;
 
   const results: IntroRequestResult[] = [];
 
-  for (const { id } of due) {
+  for (const { id, confirmedAt, startsAt } of due) {
+    const isBacklog = confirmedAt !== null && confirmedAt < backlogBefore;
+    if (isBacklog && (backlogLeft <= 0 || startsAt.getTime() - now.getTime() < BACKLOG_MIN_LEAD_MS)) continue;
+
     // Answered before, on an earlier booking: those answers carry over and
     // the booking counts as answered, so no reminder.
     if (await applyCustomerIntroToBooking(id).catch(() => false)) continue;
@@ -113,6 +150,7 @@ export async function sendSundayTableIntroRequests(
         .where(eq(bookings.id, claimed.id))
         .catch(() => {});
     }
+    if (ok && isBacklog) backlogLeft -= 1;
     results.push({ bookingId: claimed.id, ok });
   }
 

@@ -20,6 +20,7 @@ import {
   type SundayTableIntro,
 } from "@/lib/sunday-table-intro";
 import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
+import { isSharedTableType } from "@/lib/event-concepts";
 import { getMembershipOffer, isOfferMembershipOf, type MembershipOffer } from "@/lib/membership/offer";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
@@ -74,7 +75,7 @@ export default async function BookingConfirmedPage({
         locale as Locale,
       );
       purchase = await getConfirmationPurchase(sessionId, locale as Locale);
-      if (confirmation.summary?.experienceType === "sunday-table") {
+      if (isSharedTableType(confirmation.summary?.experienceType)) {
         const introBooking = await findSundayTableIntroBooking({ checkoutSessionId: sessionId });
         savedIntro = introBooking?.intro ?? null;
         introReusable = introBooking?.reusable ?? false;

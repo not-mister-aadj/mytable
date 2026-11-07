@@ -6,15 +6,16 @@ import { emailVolume } from "@/lib/email/volume";
 
 /**
  * Mails after a Sunday that go by themselves, from an hourly cron: the
- * feedback mail from 20:00 (Amsterdam) that day, and on Wednesday from 08:00
- * the reminder for who didn't answer. Each to every guest who hasn't had it,
+ * feedback mail from 20:00 (Amsterdam) that day, on Tuesday from 08:00 the
+ * reminder for who didn't answer, and on Wednesday from 19:00 "Ze vonden je
+ * gezellig" for who a tablemate picked. Each to every guest who hasn't had it,
  * and only within a day of its time, so nothing old goes out. A mail planned
  * by hand wins. Above SAFE_DAY_TOTAL mails on a day the rest waits, and
  * admin shows it under Te doen.
  */
 
-export type AutoMailKind = "feedback" | "reminder";
-export const AUTO_MAIL_KINDS: AutoMailKind[] = ["feedback", "reminder"];
+export type AutoMailKind = "feedback" | "reminder" | "liked";
+export const AUTO_MAIL_KINDS: AutoMailKind[] = ["feedback", "reminder", "liked"];
 
 const SAFE_DAY_TOTAL = 90;
 const SEND_INTERVAL_MS = 600;
@@ -36,8 +37,8 @@ export async function dueAutoMailEvents(kind: AutoMailKind, now = new Date()): P
 }
 
 /** Guests of this kind still waiting for it. */
-export const sentAuto = (kind: AutoMailKind, g: { sentFeedback: boolean; sentReminder: boolean }) =>
-  kind === "feedback" ? g.sentFeedback : g.sentReminder;
+export const sentAuto = (kind: AutoMailKind, g: { sentFeedback: boolean; sentReminder: boolean; sentLiked: boolean }) =>
+  kind === "feedback" ? g.sentFeedback : kind === "reminder" ? g.sentReminder : g.sentLiked;
 
 export type AutoMailResult = { kind: AutoMailKind; eventId: string; sent: number; held: number; failed: number };
 

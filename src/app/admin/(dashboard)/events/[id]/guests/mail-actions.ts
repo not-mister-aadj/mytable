@@ -22,7 +22,7 @@ import { amsterdamDateTime } from "@/lib/sunday-wine-table";
 type Result = { ok: true; message: string } | { ok: false; error: string };
 
 function isKind(value: string): value is SundayMailKind {
-  return value === "location" || value === "saturday" || value === "morning" || value === "feedback" || value === "reminder";
+  return value === "location" || value === "saturday" || value === "morning" || value === "feedback" || value === "reminder" || value === "liked";
 }
 
 /** The mail as one guest would get it. */
@@ -89,8 +89,8 @@ export async function sendSundayMailAction(eventId: string, kind: string): Promi
     : { ok: true, message: `Verstuurd naar ${sent} ${sent === 1 ? "gast" : "gasten"}.` };
 }
 
-function sentFor(g: { sentLocation: boolean; sentSaturday: boolean; sentMorning: boolean; sentFeedback: boolean; sentReminder: boolean }, kind: SundayMailKind) {
-  return kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : kind === "morning" ? g.sentMorning : kind === "feedback" ? g.sentFeedback : g.sentReminder;
+function sentFor(g: { sentLocation: boolean; sentSaturday: boolean; sentMorning: boolean; sentFeedback: boolean; sentReminder: boolean; sentLiked: boolean }, kind: SundayMailKind) {
+  return kind === "location" ? g.sentLocation : kind === "saturday" ? g.sentSaturday : kind === "morning" ? g.sentMorning : kind === "feedback" ? g.sentFeedback : kind === "reminder" ? g.sentReminder : g.sentLiked;
 }
 
 /** Hands the mail to Resend for every guest who hasn't had it, with a send

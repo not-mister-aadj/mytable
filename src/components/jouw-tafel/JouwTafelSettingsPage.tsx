@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { JouwTafelSettings } from "@/components/jouw-tafel/settings/JouwTafelSettings";
-import { jouwTafelLogInPath, jouwTafelStartPath, type Locale } from "@/i18n/config";
+import { jouwTafelLogInPath, jouwTafelSettingsPath, jouwTafelStartPath, type Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
 import { getMemberBookings, getTableMailsOn } from "@/lib/jouw-tafel/account-server";
 import {
@@ -37,7 +37,11 @@ export async function JouwTafelSettingsPage({
   searchParams: JouwTafelSearchParams;
 }) {
   const user = await getMemberUser();
-  if (!user?.email) redirect(jouwTafelLogInPath(locale));
+  if (!user?.email) {
+    // From a mail to the Vrienden tab: back there after logging in.
+    const tab = Array.isArray(searchParams.tab) ? searchParams.tab[0] : searchParams.tab;
+    redirect(tab === "vrienden" ? `${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(`${jouwTafelSettingsPath(locale)}?tab=vrienden`)}` : jouwTafelLogInPath(locale));
+  }
 
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const state = sanitizeQuizState(meta[QUIZ_METADATA_KEY]);

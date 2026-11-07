@@ -4,7 +4,7 @@ import { sendDueAutoMails } from "@/lib/admin/auto-feedback";
 
 export const maxDuration = 300;
 
-/** Hourly (vercel.json): the feedback mail from 20:00 on each Sunday, the reminder on Wednesday from 08:00. */
+/** Hourly (vercel.json): the feedback mail from 20:00 on each Sunday, the reminder on Tuesday from 08:00, "Ze vonden je gezellig" on Wednesday from 19:00. */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) return NextResponse.json({ error: "Cron not configured" }, { status: 503 });

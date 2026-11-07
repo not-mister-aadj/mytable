@@ -14,12 +14,14 @@ import { tablePageUrl } from "@/lib/table-page";
 import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 import { venueTransit } from "@/lib/venue-about";
 import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
+import { jouwTafelSettingsPath } from "@/i18n/config";
 
 /** The mails sent from a Sunday's page in admin: the location a week
  * before, on Saturday the group with a link to the table page, and on
  * Sunday morning our picks; the feedback mail that evening and, for who
- * didn't answer it, a reminder with the next date on Wednesday. */
-export type SundayMailKind = "location" | "saturday" | "morning" | "feedback" | "reminder";
+ * didn't answer it, a reminder with the next date on Tuesday; on Wednesday
+ * evening, for who a tablemate picked, that their table enjoyed them. */
+export type SundayMailKind = "location" | "saturday" | "morning" | "feedback" | "reminder" | "liked";
 
 const SITE = "https://www.mytable.club";
 
@@ -39,6 +41,11 @@ type Guest = {
   sentMorning: boolean;
   sentFeedback: boolean;
   sentReminder: boolean;
+  sentLiked: boolean;
+  /** Tablemates who picked them to see again (never shown as a number). */
+  likedBy: number;
+  /** They picked someone themselves. */
+  pickedSomeone: boolean;
   /** Marked "Niet gekomen": no feedback mail. */
   noShow: boolean;
   /** Answered the first feedback question, or reported something: no reminder. */
@@ -72,6 +79,7 @@ const FEEDBACK_SENT = sql.raw(
   `(subject ilike '%hoe was je middag%' or subject ilike '%how was your afternoon%' or subject ilike '%hoe was het vanmiddag%' or subject ilike '%how was this afternoon%')`,
 );
 const REMINDER_SENT = sql.raw(`(subject ilike 'wie wil je terugzien%' or subject ilike 'who would you like to see again%')`);
+const LIKED_SENT = sql.raw(`(subject ilike 'ze vonden je gezellig%' or subject ilike 'they enjoyed your company%')`);
 
 /** "Juni is de eerste wijn- en kaasbar van Rotterdam.": the venue
  * description's opening, up to the first comma or full stop. */
@@ -136,12 +144,16 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
         )
       : new Set<string>();
   const ids = rows.map((r) => r.id);
-  const [locationSent, saturdaySent, morningSent, feedbackSent, reminderSent, answered, reported] = await Promise.all([
+  const [locationSent, saturdaySent, morningSent, feedbackSent, reminderSent, likedSent, picks, answered, reported] = await Promise.all([
     sent(LOCATION_SENT, 10),
     sent(SATURDAY_SENT, 4),
     sent(MORNING_SENT, 2),
     sent(FEEDBACK_SENT, 2),
     sent(REMINDER_SENT, 0),
+    sent(LIKED_SENT, 0),
+    ids.length
+      ? db.select({ id: bookingFeedback.bookingId, wantToSee: bookingFeedback.wantToSee }).from(bookingFeedback).where(inArray(bookingFeedback.bookingId, ids))
+      : [],
     ids.length
       ? db.select({ id: bookingFeedback.bookingId }).from(bookingFeedback).where(and(inArray(bookingFeedback.bookingId, ids), isNotNull(bookingFeedback.mood)))
       : [],
@@ -149,6 +161,8 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
   ]);
   const answeredIds = new Set(answered.map((r) => r.id));
   const reportedIds = new Set(reported.map((r) => r.id));
+  const picked = new Map(picks.map((p) => [p.id, Array.isArray(p.wantToSee) ? (p.wantToSee as string[]) : []]));
+  const likedBy = (id: string) => [...picked].filter(([from, to]) => from !== id && to.includes(id)).length;
 
   const guests: Guest[] = rows.map((b) => {
     const open = [b.introAskMeAbout, b.introFavoriteSpot, b.introIntoNow].some((v) => v?.trim());
@@ -168,6 +182,9 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       sentMorning: morningSent.has(key),
       sentFeedback: feedbackSent.has(key),
       sentReminder: reminderSent.has(key),
+      sentLiked: likedSent.has(key),
+      likedBy: likedBy(b.id),
+      pickedSomeone: (picked.get(b.id)?.length ?? 0) > 0,
       noShow: Boolean(b.noShowAt),
       feedbackGiven: answeredIds.has(b.id),
       reported: reportedIds.has(b.id),
@@ -218,8 +235,10 @@ export async function locationMailAsConfirmation(eventId: string, bookingId: str
 }
 
 /** Who gets this mail: everyone, except a no-show for the feedback mail;
- * the reminder only who neither answered nor reported something. */
+ * the reminder only who neither answered nor reported something; "liked"
+ * only who a tablemate picked. */
 export function mailRecipients(ctx: SundayMailContext, kind: SundayMailKind): Guest[] {
+  if (kind === "liked") return ctx.guests.filter((g) => !g.noShow && g.likedBy > 0);
   if (kind === "reminder") return ctx.guests.filter((g) => !g.noShow && !g.feedbackGiven && !g.reported);
   return kind === "feedback" ? ctx.guests.filter((g) => !g.noShow) : ctx.guests;
 }
@@ -288,6 +307,19 @@ export async function buildSundayMail(
         venueName: venue.name,
         others,
         url: await feedbackUrl(guest.bookingId, locale),
+      }),
+      from: PLAIN_FROM,
+    };
+  }
+  if (kind === "liked") {
+    return {
+      subject: nl ? "Ze vonden je gezellig zondag" : "They enjoyed your company on Sunday",
+      ...likedMail({
+        locale,
+        firstName: guest.firstName,
+        venueName: venue.name,
+        pickedSomeone: guest.pickedSomeone,
+        url: `${SITE}${jouwTafelSettingsPath(locale)}?tab=vrienden`,
       }),
       from: PLAIN_FROM,
     };
@@ -400,7 +432,59 @@ export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueN
   return buttonMail(feedbackText(p), p.url, p.locale === "nl" ? "Vertel hoe het was" : "Tell us how it was");
 }
 
-/** Wednesday 08:00, for who didn't answer: who they'd like to see again, and the next date to book. */
+/**
+ * Wednesday 19:00, for who a tablemate picked: their table enjoyed them. No
+ * names, no count, no booking button. Signed by Dj.
+ */
+export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; pickedSomeone: boolean; url: string }): { text: string; html: string } {
+  const nl = p.locale === "nl";
+  const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
+  const opening = nl
+    ? `Zondag in ${p.venueName} heb je indruk gemaakt. Aan je tafel gaven ze aan dat ze je gezellig vonden en je vaker aan tafel willen hebben.`
+    : `On Sunday at ${p.venueName} you made an impression. People at your table said they enjoyed your company and would love to have you at the table more often.`;
+  const lines = p.pickedSomeone
+    ? nl
+      ? [
+          "Jij gaf zelf ook al aan wie je graag terugziet. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
+          "",
+          "Twijfelde je nog over iemand? Tot zondag 18:00 kun je het aanpassen.",
+          "",
+          p.url,
+        ]
+      : [
+          "You already told us who you'd like to see again. If it's mutual, we'll make sure you run into each other more often.",
+          "",
+          "Still unsure about someone? You can change it until Sunday 18:00.",
+          "",
+          p.url,
+        ]
+    : nl
+      ? [
+          "Was er iemand die jij ook graag terugziet? Laat het ons weten. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
+          "",
+          p.url,
+          "",
+          "Kan tot zondag 18:00.",
+        ]
+      : [
+          "Was there someone you'd like to see again too? Let us know. If it's mutual, we'll make sure you run into each other more often.",
+          "",
+          p.url,
+          "",
+          "You can do this until Sunday 18:00.",
+        ];
+  const text = [hi, "", opening, "", ...lines, "", "Dj"].join("\n");
+  const label = p.pickedSomeone
+    ? nl
+      ? "Bekijk wie je terugziet"
+      : "See who you'd like to see again"
+    : nl
+      ? "Kies wie je terugziet"
+      : "Choose who you'd like to see again";
+  return buttonMail(text, p.url, label);
+}
+
+/** Tuesday 08:00, for who didn't answer: who they'd like to see again, and the next date to book. */
 export function reminderMail(p: {
   locale: "nl" | "en";
   firstName: string;
@@ -616,10 +700,11 @@ function parseSchedule(raw: unknown): SundayMailContext["schedule"] {
 
 /** The suggested send time: Saturday 14:00 (24 hours before) for the group mail, Sunday 20:00 for the feedback, Sunday 08:30
  * for the picks (Amsterdam). */
-export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning" | "feedback" | "reminder"): Date {
+export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning" | "feedback" | "reminder" | "liked"): Date {
   const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
   if (kind === "feedback") return amsterdamDateTime(y, m, d, 20, 0);
-  // The feedback reminder: Wednesday 08:00.
-  if (kind === "reminder") return amsterdamDateTime(y, m, d + 3, 8, 0);
+  // The feedback reminder: Tuesday 08:00. "Ze vonden je gezellig": Wednesday 19:00.
+  if (kind === "reminder") return amsterdamDateTime(y, m, d + 2, 8, 0);
+  if (kind === "liked") return amsterdamDateTime(y, m, d + 3, 19, 0);
   return kind === "saturday" ? amsterdamDateTime(y, m, d - 1, 14, 0) : amsterdamDateTime(y, m, d, 8, 30);
 }

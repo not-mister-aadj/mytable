@@ -19,12 +19,15 @@ export type MailGuest = {
   sentMorning: boolean;
   sentFeedback: boolean;
   sentReminder: boolean;
+  sentLiked: boolean;
+  /** A tablemate picked them: "Ze vonden je gezellig". */
+  liked: boolean;
   noShow: boolean;
   /** Answered the feedback or reported something: no reminder. */
   feedbackDone: boolean;
 };
 
-type Kind = "location" | "saturday" | "morning" | "feedback" | "reminder";
+type Kind = "location" | "saturday" | "morning" | "feedback" | "reminder" | "liked";
 
 /** A planned send: when ("za 24 okt, 14:00") and for how many guests. */
 export type MailPlan = { label: string; count: number; bookingIds: string[] } | null;
@@ -52,8 +55,13 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   },
   reminder: {
     title: "Herinnering feedback",
-    when: "Woensdag 08:00, automatisch",
+    when: "Dinsdag 08:00, automatisch",
     what: "Alleen voor wie de feedback nog niet invulde: wie ze weer willen zien, en de volgende datum om te boeken.",
+  },
+  liked: {
+    title: "Ze vonden je gezellig",
+    when: "Woensdag 19:00, automatisch",
+    what: "Alleen voor wie door een tafelgenoot gekozen is. Geen namen, geen aantal. Met een knop naar wie zij zelf terugzien.",
   },
 };
 
@@ -80,6 +88,7 @@ export function SundayMailsPanel({
       <MailCard kind="morning" eventId={eventId} guests={guests} blocker={blockers.morning} plan={plans.morning} defaultTime={defaultTimes.morning} />
       <MailCard kind="feedback" eventId={eventId} guests={guests} blocker={blockers.feedback} plan={plans.feedback} defaultTime={defaultTimes.feedback} />
       <MailCard kind="reminder" eventId={eventId} guests={guests} blocker={blockers.reminder} />
+      <MailCard kind="liked" eventId={eventId} guests={guests} blocker={blockers.liked} />
     </div>
   );
 }
@@ -102,7 +111,13 @@ function MailCard({
   const router = useRouter();
   const copy = COPY[kind];
   const guests =
-    kind === "feedback" ? all.filter((g) => !g.noShow) : kind === "reminder" ? all.filter((g) => !g.noShow && !g.feedbackDone) : all;
+    kind === "feedback"
+      ? all.filter((g) => !g.noShow)
+      : kind === "reminder"
+        ? all.filter((g) => !g.noShow && !g.feedbackDone)
+        : kind === "liked"
+          ? all.filter((g) => !g.noShow && g.liked)
+          : all;
   const sentOf = (g: MailGuest) =>
     kind === "location"
       ? g.sentLocation
@@ -112,7 +127,9 @@ function MailCard({
           ? g.sentMorning
           : kind === "feedback"
             ? g.sentFeedback
-            : g.sentReminder;
+            : kind === "reminder"
+              ? g.sentReminder
+              : g.sentLiked;
   const sent = guests.filter(sentOf).length;
   const missing = guests.filter((g) => !sentOf(g));
 

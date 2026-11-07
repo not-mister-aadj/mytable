@@ -229,7 +229,7 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
       todos.push({
         key: `${kind}-${eventId}`,
         tone: "urgent",
-        title: `${kind === "feedback" ? "Feedbackmail" : "Herinnering feedback"} ${ctx.city} niet verstuurd`,
+        title: `${kind === "feedback" ? "Feedbackmail" : kind === "reminder" ? "Herinnering feedback" : "Ze vonden je gezellig"} ${ctx.city} niet verstuurd`,
         detail: `${open} ${open === 1 ? "gast heeft" : "gasten hebben"} hem nog niet (dagelijkse mail-limiet of fout)`,
         href: eventHref(eventId, "mails"),
       });

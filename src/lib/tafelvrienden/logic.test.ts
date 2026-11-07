@@ -47,5 +47,5 @@ test("match mail names nobody, counts, and promises the same venue (not the same
   const one = matchMail({ name: null, cities: ["Den Haag"], event, count: 1, manageUrl: "https://x/m", locale: "en" });
   assert.match(one.body, /^Hi,/);
   assert.match(one.body, /1 person you had a good time with is coming/);
-  for (const t of [two.body, one.body]) assert.ok(!t.includes("—"));
+  for (const t of [two.body, one.body]) assert.ok(!t.includes("\u2014"));
 });

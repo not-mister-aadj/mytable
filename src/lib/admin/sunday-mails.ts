@@ -445,14 +445,14 @@ export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName
   const lines = p.pickedSomeone
     ? nl
       ? [
-          "Jij gaf zelf ook al aan wie je graag terugziet. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
+          "Jij liet ook al weten met wie je het gezellig had. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
           "",
           "Twijfelde je nog over iemand? Tot zondag 18:00 kun je het aanpassen.",
           "",
           p.url,
         ]
       : [
-          "You already told us who you'd like to see again. If it's mutual, we'll make sure you run into each other more often.",
+          "You already told us who you enjoyed the afternoon with. If it's mutual, we'll make sure you run into each other more often.",
           "",
           "Still unsure about someone? You can change it until Sunday 18:00.",
           "",
@@ -460,14 +460,14 @@ export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName
         ]
     : nl
       ? [
-          "Was er iemand die jij ook graag terugziet? Laat het ons weten. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
+          "Met wie had jij het gezellig? Laat het ons weten. Dan zorgen we dat je op een volgende zondag vaker bekende gezichten tegenkomt.",
           "",
           p.url,
           "",
           "Kan tot zondag 18:00.",
         ]
       : [
-          "Was there someone you'd like to see again too? Let us know. If it's mutual, we'll make sure you run into each other more often.",
+          "Who did you enjoy the afternoon with? Let us know. Then you'll run into more familiar faces on a next Sunday.",
           "",
           p.url,
           "",
@@ -476,11 +476,11 @@ export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName
   const text = [hi, "", opening, "", ...lines, "", "Dj"].join("\n");
   const label = p.pickedSomeone
     ? nl
-      ? "Bekijk wie je terugziet"
-      : "See who you'd like to see again"
+      ? "Bekijk met wie je het gezellig had"
+      : "See who you enjoyed the afternoon with"
     : nl
-      ? "Kies wie je terugziet"
-      : "Choose who you'd like to see again";
+      ? "Laat weten met wie het gezellig was"
+      : "Let us know who you enjoyed";
   return buttonMail(text, p.url, label);
 }
 

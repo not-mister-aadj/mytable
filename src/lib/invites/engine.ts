@@ -18,6 +18,7 @@ import {
   engagement,
   fitsBracket,
   inviteMail,
+  matchMail,
   nextAllowedAt,
   nextSlot,
   nextSundayAt,
@@ -39,6 +40,9 @@ import {
   supportedCity,
 } from "@/lib/jouw-tafel/logic";
 import { emailKind } from "@/lib/email/email-kind";
+import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
+import { MATCH_MAIL_GAP_MS } from "@/lib/tafelvrienden/logic";
+import { loadMutualMatches } from "@/lib/tafelvrienden/server";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -97,6 +101,116 @@ export type InviteEvent = {
 };
 
 type SendRow = typeof inviteSends.$inferSelect;
+
+/** Match mails wait for an admin's approval until then, whatever the invite mode. */
+export const MATCH_APPROVAL_UNTIL = new Date("2026-11-21T23:00:00.000Z");
+
+/** "Bekende gezichten" goes out this long after the booking that triggers it, so a quick cancel takes it back. */
+const MATCH_DELAY_MS = 60 * 60 * 1000;
+
+/** No match mail for a Sunday this close. */
+const MATCH_MIN_LEAD_MS = 2 * DAY;
+
+/** Mutual likes of `email` with a paid, active booking for this Sunday. */
+async function bookedMatches(email: string, eventId: string, mutual: Map<string, Set<string>>): Promise<number> {
+  const mine = mutual.get(email);
+  if (!mine || mine.size === 0) return 0;
+  const rows = (await getDb().execute(sql`
+    select distinct lower(trim(email)) as email from bookings
+    where event_id = ${eventId}::uuid and payment_status = 'paid' and lifecycle_status = 'active' and cancelled_late_at is null`)) as unknown as Array<{ email: string }>;
+  return rows.filter((r) => mine.has(r.email)).length;
+}
+
+/**
+ * Plans "bekende gezichten" mails: someone booked a Sunday (paid, last two
+ * days), and each of their mutual likes who isn't booked there gets one mail
+ * about it, once per Sunday. Replaces a planned invite or reminder (the unique
+ * index allows one open mail per address); never names anyone.
+ */
+export async function planMatchInvites(now: Date = new Date()): Promise<{ planned: number }> {
+  const settings = await getInviteSettings();
+  if (!settings.enabled) return { planned: 0 };
+  const db = getDb();
+  const recent = (await db.execute(sql`
+    select lower(trim(b.email)) as email, b.event_id, b.created_at
+    from bookings b join events e on e.id = b.event_id
+    where b.payment_status = 'paid' and b.lifecycle_status = 'active'
+      and b.created_at > ${new Date(now.getTime() - 2 * DAY).toISOString()}::timestamptz
+      and e.experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
+      and e.workflow_status = 'published'
+      and e.starts_at > ${new Date(now.getTime() + MATCH_MIN_LEAD_MS).toISOString()}::timestamptz`)) as unknown as Array<{
+    email: string;
+    event_id: string;
+    created_at: Date;
+  }>;
+  if (recent.length === 0) return { planned: 0 };
+  const mutual = await loadMutualMatches();
+  if (!recent.some((r) => (mutual.get(r.email)?.size ?? 0) > 0)) return { planned: 0 };
+
+  const [people, events] = await Promise.all([loadPeople(), loadInviteEvents(now)]);
+  const byEmail = new Map(people.map((p) => [p.email, p]));
+  const eventIds = [...new Set(recent.map((r) => r.event_id))];
+  const bookedRows = (await db.execute(sql`
+    select distinct lower(trim(email)) as email, event_id from bookings
+    where event_id in (${sql.join(eventIds.map((id) => sql`${id}::uuid`), sql`, `)}) and payment_status = 'paid' and lifecycle_status = 'active'`)) as unknown as Array<{
+    email: string;
+    event_id: string;
+  }>;
+  const booked = new Set(bookedRows.map((r) => `${r.email}|${r.event_id}`));
+  const matchRows = await db
+    .select({ email: inviteSends.emailNormalized, eventIds: inviteSends.eventIds })
+    .from(inviteSends)
+    .where(eq(inviteSends.kind, "match"));
+  const already = new Set(matchRows.flatMap((r) => r.eventIds.map((id) => `${r.email}|${id}`)));
+
+  let planned = 0;
+  const details: Array<{ email: string; status: string }> = [];
+  for (const r of recent) {
+    for (const other of mutual.get(r.email) ?? []) {
+      const pair = `${other}|${r.event_id}`;
+      if (booked.has(pair) || already.has(pair)) continue;
+      const person = byEmail.get(other);
+      const event = events.find((e) => e.id === r.event_id);
+      if (!person || person.suppressed || !event?.open || !followedCities(person).includes(event.city)) continue;
+      if (pausedFor(person.pausedUntil, event.startsAt) || !fitsBracket(event.bracket, person, event.startsAt)) continue;
+      already.add(pair);
+      const [open] = await db
+        .select({ id: inviteSends.id, kind: inviteSends.kind, status: inviteSends.status })
+        .from(inviteSends)
+        .where(and(eq(inviteSends.emailNormalized, other), inArray(inviteSends.status, ["queued", "approved", "sending"])))
+        .limit(1);
+      // One mail at a time: an uncertain send or another match mail waits.
+      if (open && (open.status === "sending" || open.kind === "match")) continue;
+      if (open) {
+        await db
+          .update(inviteSends)
+          .set({ status: "skipped", skipReason: "vervangen door bekende gezichten", handledAt: new Date() })
+          .where(and(eq(inviteSends.id, open.id), inArray(inviteSends.status, ["queued", "approved"])));
+      }
+      const at = new Date(Math.max(now.getTime(), new Date(r.created_at).getTime() + MATCH_DELAY_MS));
+      const inserted = await db
+        .insert(inviteSends)
+        .values({
+          code: code(),
+          emailNormalized: other,
+          kind: "match",
+          scheduledFor: at,
+          eventIds: [event.id],
+          cities: followedCities(person),
+          isMember: person.member,
+          locale: person.locale,
+        })
+        .onConflictDoNothing()
+        .returning({ id: inviteSends.id });
+      if (inserted.length > 0) {
+        planned++;
+        details.push({ email: other, status: "match" });
+      }
+    }
+  }
+  if (planned > 0) await logRun({ kind: "plan", startedAt: now, planned, skipped: 0, details });
+  return { planned };
+}
 
 function code(): string {
   return randomBytes(6).toString("base64url").replace(/[-_]/g, "x").slice(0, 8);
@@ -428,9 +542,16 @@ export function composeSend(
   person: InvitePerson,
   events: InviteEvent[],
   booked: Set<string> = new Set(),
+  /** "Bekende gezichten": how many mutual likes are booked on that Sunday now. */
+  matchCount = 0,
 ): { subject: string; body: string; eventIds?: string[] } | null {
   const locale: InviteLocale = send.locale === "en" ? "en" : "nl";
   const cities = followedCities(person).length > 0 ? followedCities(person) : person.cities;
+  if (send.kind === "match") {
+    const event = events.find((e) => e.id === send.eventIds[0]);
+    if (!event || !event.open || matchCount < 1) return null;
+    return matchMail({ name: person.name, cities, event: mailEvent(event, send, 1, locale), count: matchCount, manageUrl: manageUrl(person), locale });
+  }
   if (send.kind === "checkin") {
     return checkinMail({ name: person.name, cities, stayUrl: linkUrl(send, 0), manageUrl: manageUrl(person), locale });
   }
@@ -750,6 +871,24 @@ async function mailedRecently(email: string, exceptId: string, now: Date): Promi
   return logged.some((m) => emailKind(m.subject) === "Uitnodiging" || (m.from_email ?? "").includes(FROM_ADDRESS));
 }
 
+/** A "bekende gezichten" mail went to them in the last MATCH_MAIL_GAP_MS. Other mails don't count. */
+async function matchMailedRecently(email: string, exceptId: string, now: Date): Promise<boolean> {
+  const since = new Date(now.getTime() - MATCH_MAIL_GAP_MS).toISOString();
+  const rows = await getDb()
+    .select({ id: inviteSends.id })
+    .from(inviteSends)
+    .where(
+      and(
+        eq(inviteSends.emailNormalized, email),
+        eq(inviteSends.kind, "match"),
+        sql`${inviteSends.id} <> ${exceptId}`,
+        sql`((${inviteSends.status} = 'sent' and ${inviteSends.sentAt} > ${since}::timestamptz) or (${inviteSends.status} = 'sending' and ${inviteSends.claimedAt} > ${since}::timestamptz))`,
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
 async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): Promise<SendRoundResult> {
   const options = { dryRun };
   const empty: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
@@ -769,7 +908,9 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     .where(and(inArray(inviteSends.status, allowed), lte(inviteSends.scheduledFor, now)))
     .orderBy(inviteSends.scheduledFor)
     .limit(cap);
-  if (dueAll.length === 0) return empty;
+  // Match mails need an approval of their own for the first two weeks.
+  const dueReady = dueAll.filter((s) => s.kind !== "match" || s.status === "approved" || now.getTime() >= MATCH_APPROVAL_UNTIL.getTime());
+  if (dueReady.length === 0) return empty;
 
   const today = dayOf(now);
   // Uncertain mails count as sent.
@@ -788,12 +929,13 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     return at && dayOf(at) === today;
   }).length;
   if (sentToday >= cap) return empty;
-  const due = dueAll.slice(0, cap - sentToday);
+  const due = dueReady.slice(0, cap - sentToday);
 
   const [people, events, history] = await Promise.all([loadPeople({ dryRun: options.dryRun }), loadInviteEvents(now), loadHistory()]);
   const byEmail = new Map(people.map((p) => [p.email, p]));
   const resend = getResendClient();
   const result: SendRoundResult = { sent: 0, skipped: 0, failed: 0, details: [] };
+  const mutual = due.some((s) => s.kind === "match") ? await loadMutualMatches() : new Map<string, Set<string>>();
 
   for (const send of due) {
     if (!options.dryRun) {
@@ -824,12 +966,12 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       await skip(!person ? "niet meer op de lijst" : "bounce of spam");
       continue;
     }
-    if (!person.member && upcomingSunday(sendBookings, now)) {
+    if (send.kind !== "match" && !person.member && upcomingSunday(sendBookings, now)) {
       await skip("eerst hun geboekte zondag");
       continue;
     }
-    if (await mailedRecently(send.emailNormalized, send.id, now)) {
-      await skip("al gemaild in de laatste 3 dagen");
+    if (send.kind === "match" ? await matchMailedRecently(send.emailNormalized, send.id, now) : await mailedRecently(send.emailNormalized, send.id, now)) {
+      await skip(send.kind === "match" ? "al bekende gezichten gemaild in de laatste 3 dagen" : "al gemaild in de laatste 3 dagen");
       continue;
     }
     if (stillFollowed.length === 0) {
@@ -849,12 +991,17 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
         !booked.has(id) &&
         events.some((e) => e.id === id && e.open && stillFollowed.includes(e.city) && !pausedFor(person.pausedUntil, e.startsAt)),
     );
-    if (send.kind === "invite" && valid.length === 0) {
+    if ((send.kind === "invite" || send.kind === "match") && valid.length === 0) {
       await skip("geboekt, vol of te dichtbij");
       continue;
     }
+    const matchCount = send.kind === "match" ? await bookedMatches(send.emailNormalized, send.eventIds[0]!, mutual) : 0;
+    if (send.kind === "match" && matchCount === 0) {
+      await skip("bekende gezichten niet meer geboekt");
+      continue;
+    }
     const current = send.kind === "invite" ? { ...send, eventIds: send.eventIds.map((id) => (valid.includes(id) ? id : "")) } : send;
-    const composed = composeSend(current, person, events, booked);
+    const composed = composeSend(current, person, events, booked, matchCount);
     if (send.kind === "nudge" && !composed) {
       await skip("geboekt, vol of te dichtbij");
       continue;

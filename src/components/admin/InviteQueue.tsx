@@ -12,7 +12,7 @@ import {
 import type { InviteRow } from "@/lib/admin/invites-data";
 
 const TZ = "Europe/Amsterdam";
-const KIND: Record<string, string> = { invite: "Uitnodiging", nudge: "Herinnering", checkin: "Nog interesse?" };
+const KIND: Record<string, string> = { invite: "Uitnodiging", nudge: "Herinnering", checkin: "Nog interesse?", match: "Bekende gezichten" };
 const dayKey = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(iso));
 const time = (iso: string) => new Intl.DateTimeFormat("nl-NL", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 const when = (iso: string) =>

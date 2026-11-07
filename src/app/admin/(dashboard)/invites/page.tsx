@@ -31,7 +31,7 @@ const TABS = [
   ["instellingen", "Instellingen"],
 ] as const;
 
-const KIND: Record<string, string> = { invite: "Uitnodiging", nudge: "Herinnering", checkin: "Nog interesse?" };
+const KIND: Record<string, string> = { invite: "Uitnodiging", nudge: "Herinnering", checkin: "Nog interesse?", match: "Bekende gezichten" };
 
 const when = (iso: string | null) =>
   iso
@@ -66,7 +66,7 @@ function Status({ row }: { row: InviteRow }) {
   return <span className="text-xs text-wine/60">{row.status === "approved" ? "Goedgekeurd" : "Wacht"}</span>;
 }
 
-const RUN_STATUS: Record<string, string> = { sent: "verstuurd", skipped: "overgeslagen", failed: "mislukt", invite: "uitnodiging", nudge: "herinnering", checkin: "nog interesse?" };
+const RUN_STATUS: Record<string, string> = { sent: "verstuurd", skipped: "overgeslagen", failed: "mislukt", invite: "uitnodiging", nudge: "herinnering", checkin: "nog interesse?", match: "bekende gezichten" };
 
 function CapBar({ sent, cap }: { sent: number; cap: number }) {
   const pct = cap ? Math.min(100, Math.round((sent / cap) * 100)) : 0;

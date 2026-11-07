@@ -30,6 +30,10 @@
       "schedule": "*/15 * * * *"
     },
     {
+      "path": "/api/cron/invites-match",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/cron/memberships",
       "schedule": "15 * * * *"
     },

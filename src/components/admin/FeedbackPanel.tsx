@@ -9,7 +9,7 @@ import { DISLIKED_LABELS, LIKED_LABELS, type DislikedReason, type LikedReason } 
 export type MissingGuest = { bookingId: string; name: string; by: string[]; noShow: boolean };
 
 /** "Laat het ons weten" from the feedback mail. */
-export type ReportRow = { id: string; by: string; email: string; about: string[]; body: string; contactOk: boolean; createdAt: string };
+export type ReportRow = { id: string; by: string; email: string; about: string[]; body: string; contactOk: boolean; createdAt: string; withdrawnAt: string | null };
 
 export type FeedbackRow = {
   id: string;
@@ -114,6 +114,11 @@ export function FeedbackPanel({
                     · over {r.about.length ? r.about.join(", ") : "-"} · {r.contactOk ? "contact mag" : "geen contact"} ·{" "}
                     {new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(r.createdAt))}
                   </span>
+                  {r.withdrawnAt ? (
+                    <span className="ml-2 inline-flex rounded-full bg-white px-2 py-0.5 text-xs font-medium text-wine/60 ring-1 ring-inset ring-wine/15">
+                      ingetrokken {new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(r.withdrawnAt))}
+                    </span>
+                  ) : null}
                 </p>
                 <p className="mt-1 whitespace-pre-wrap text-wine/80">{r.body}</p>
                 <p className="mt-1 text-xs text-wine/55 select-all">{r.email}</p>

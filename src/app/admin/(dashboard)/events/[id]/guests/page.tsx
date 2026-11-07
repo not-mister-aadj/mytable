@@ -318,6 +318,7 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
         body: r.body,
         contactOk: r.contactOk,
         createdAt: r.createdAt.toISOString(),
+        withdrawnAt: r.withdrawnAt?.toISOString() ?? null,
       }))}
       rows={rows
         .filter((r) => r.f.mood)

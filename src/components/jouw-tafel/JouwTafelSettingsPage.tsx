@@ -18,6 +18,7 @@ import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
 import { tryFulfillCheckoutSessionSafe } from "@/lib/stripe/fulfill-checkout";
 import { getProfilePhoto } from "@/lib/profile-photo";
 import { loadCustomerIntro } from "@/lib/sunday-table-intro";
+import { loadTafelvrienden } from "@/lib/tafelvrienden/server";
 
 export function jouwTafelSettingsMetadata(locale: Locale): Metadata {
   return { title: getSettingsCopy(locale).metaTitle, robots: NO_INDEX };
@@ -54,12 +55,12 @@ export async function JouwTafelSettingsPage({
   const memberNotice = Boolean(lidSession?.startsWith("cs_"));
   if (memberNotice && lidSession) await tryFulfillMembershipSession(lidSession).catch(() => null);
   const tabRaw = Array.isArray(searchParams.tab) ? searchParams.tab[0] : searchParams.tab;
-  const initialTab = tabRaw === "voorkeuren" || tabRaw === "account" ? tabRaw : "reserveringen";
+  const initialTab = tabRaw === "voorkeuren" || tabRaw === "account" || tabRaw === "vrienden" ? tabRaw : "reserveringen";
   if (bookedNotice && sessionId?.startsWith("cs_")) {
     await tryFulfillCheckoutSessionSafe(sessionId, { deferEmail: true, deferSideEffects: true });
   }
 
-  const [bookings, mailsOn, membershipRow, savedIntro, photoUrl] = await Promise.all([
+  const [bookings, mailsOn, membershipRow, savedIntro, photoUrl, tafelvrienden] = await Promise.all([
     getMemberBookings(user.email).catch((error: unknown) => {
       console.error("[jouw-tafel settings] loading bookings failed:", error);
       return { upcoming: [], past: [] };
@@ -68,6 +69,10 @@ export async function JouwTafelSettingsPage({
     getMembershipForUser(user.id).catch(() => null),
     loadCustomerIntro(user.email).catch(() => null),
     getProfilePhoto(user.email).catch(() => null),
+    loadTafelvrienden(user.email, locale === "en" ? "en" : "nl").catch((error: unknown) => {
+      console.error("[jouw-tafel settings] loading tafelvrienden failed:", error);
+      return { recent: [], friends: [], reports: [] };
+    }),
   ]);
   // One answer for wine and conversation: the seating answers fill the quiz's when it has none.
   if (savedIntro?.conversationStyle && !state.answers.conversation) state.answers.conversation = savedIntro.conversationStyle;
@@ -97,6 +102,7 @@ export async function JouwTafelSettingsPage({
       photoUrl={photoUrl}
       memberNotice={memberNotice}
       initialTab={initialTab}
+      tafelvrienden={tafelvrienden}
     />
   );
 }

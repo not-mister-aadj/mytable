@@ -81,7 +81,8 @@ export async function loadTableHistory(): Promise<TableHistory> {
       from feedback_reports r
       join bookings fb on fb.id = r.booking_id
       cross join lateral jsonb_array_elements_text(r.about) a(id)
-      join bookings tb on tb.id::text = a.id`),
+      join bookings tb on tb.id::text = a.id
+      where r.withdrawn_at is null`),
   ]);
 
   const people: TableHistory = new Map();

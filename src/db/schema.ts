@@ -268,6 +268,8 @@ export const bookings = pgTable("bookings", {
   introShareConsent: boolean("intro_share_consent").notNull().default(false),
   introAnsweredAt: timestamp("intro_answered_at", { withTimezone: true }),
   introRequestSentAt: timestamp("intro_request_sent_at", { withTimezone: true }),
+  /** When this unfinished booking was handled by the "ging er iets mis?" mail: sent, or skipped because they paid or were mailed for that Sunday already (drizzle/0064). */
+  abandonMailSentAt: timestamp("abandon_mail_sent_at", { withTimezone: true }),
   /** Set on a member's booking (own seat free, guest at member price);
    * drizzle/0031. */
   /** The group at the table this booking sits in (drizzle/0036). */

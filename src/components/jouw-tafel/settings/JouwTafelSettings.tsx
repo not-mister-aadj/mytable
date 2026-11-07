@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PhotoCropper } from "@/components/PhotoCropper";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
+import { TafelvriendenTab } from "@/components/jouw-tafel/settings/TafelvriendenTab";
+import type { Tafelvrienden } from "@/lib/tafelvrienden/server";
 import { JouwTafelLogoutButton } from "@/components/jouw-tafel/JouwTafelLogoutButton";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { QuizQuestion, QuizScreenContext, SHEET_TITLE_ID } from "@/components/jouw-tafel/quiz/quiz-screens";
@@ -82,8 +84,8 @@ const AMSTERDAM = "Europe/Amsterdam";
 const SAVE_URL = "/api/auth/member/quiz";
 
 type IntroField = "askMeAbout" | "favoriteSpot" | "intoNow";
-export type SettingsTab = "reserveringen" | "voorkeuren" | "account";
-const TABS: SettingsTab[] = ["reserveringen", "voorkeuren", "account"];
+export type SettingsTab = "reserveringen" | "vrienden" | "voorkeuren" | "account";
+const TABS: SettingsTab[] = ["reserveringen", "vrienden", "voorkeuren", "account"];
 export type SettingsIntro = Record<IntroField, string>;
 
 type Sheet =
@@ -319,6 +321,7 @@ export function JouwTafelSettings({
   memberNotice = false,
   initialTab = "reserveringen",
   photoUrl = null,
+  tafelvrienden = { recent: [], friends: [], reports: [] },
 }: {
   locale: Locale;
   userId: string;
@@ -339,6 +342,8 @@ export function JouwTafelSettings({
   initialTab?: SettingsTab;
   /** Their profile photo, shown next to their words when we quote them. */
   photoUrl?: string | null;
+  /** Tablemates to pick this week, who they picked, what they reported. */
+  tafelvrienden?: Tafelvrienden;
 }) {
   const s = getSettingsCopy(locale);
   const ms = getMembershipSettingsCopy(locale);
@@ -673,7 +678,7 @@ export function JouwTafelSettings({
           <p className="mt-1 truncate text-[0.92rem] text-wine/55">{email}</p>
         </div>
 
-        <div role="tablist" aria-label={s.title} className="mt-6 grid grid-cols-3 rounded-full bg-wine/[0.05] p-1">
+        <div role="tablist" aria-label={s.title} className="mt-6 grid grid-cols-4 rounded-full bg-wine/[0.05] p-1">
           {TABS.map((id) => (
             <button
               key={id}
@@ -797,6 +802,8 @@ export function JouwTafelSettings({
 
         </>
         ) : null}
+
+        {tab === "vrienden" ? <TafelvriendenTab locale={locale} initial={tafelvrienden} onToast={setToast} /> : null}
 
         {tab === "voorkeuren" ? (
         <>

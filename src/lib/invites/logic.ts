@@ -181,7 +181,7 @@ export function nextAllowedAt(sentAt: Date[], followedCities: number, slowed: bo
   return new Date(last.getTime() + 30 * DAY);
 }
 
-export type SentInvite = { sentAt: Date; kind: "invite" | "checkin" | "nudge"; engaged: boolean };
+export type SentInvite = { sentAt: Date; kind: "invite" | "checkin" | "nudge" | "match"; engaged: boolean };
 export type Engagement = {
   /** Invites in a row (newest first) without a click or booking. */
   ignored: number;
@@ -189,14 +189,14 @@ export type Engagement = {
 };
 
 /**
- * How interested someone is, from their sent invites (nudges do not count).
+ * How interested someone is, from their sent invites (nudges and match mails do not count).
  * An invite counts as ignored once ENGAGE_DAYS passed without a click or a
  * booking. After CHECKIN_AFTER ignored: one "still interested?" mail; no
  * reaction within CHECKIN_WAIT_DAYS and they are stopped.
  */
 export function engagement(sent: SentInvite[], now: Date, engagedSince?: Date | null): Engagement {
   const counted = sent
-    .filter((s) => s.kind !== "nudge")
+    .filter((s) => s.kind !== "nudge" && s.kind !== "match")
     .filter((s) => !engagedSince || s.sentAt.getTime() > engagedSince.getTime())
     .sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
   let ignored = 0;
@@ -561,4 +561,49 @@ export function isTestAddress(email: string): boolean {
   const [local = "", domain = ""] = email.toLowerCase().split("@");
   if (/^example\.(com|org|net)$/.test(domain) || /\.(invalid|test|example|localhost)$/.test(domain)) return true;
   return local.includes("+test") || /^test[-._+0-9]/.test(local);
+}
+
+/**
+ * "Bekende gezichten": people they had a good time with (a mutual like) are
+ * coming to a Sunday they haven't booked. Never names anyone, only how many.
+ * Promises the same venue, not the same table.
+ */
+export function matchMail(input: {
+  name: string | null;
+  cities: string[];
+  event: MailEvent;
+  count: number;
+  manageUrl: string;
+  locale: InviteLocale;
+}): { subject: string; body: string } {
+  const { locale, event, count } = input;
+  const en = locale === "en";
+  const hi = input.name ? (en ? `Hi ${input.name},` : `Hoi ${input.name},`) : en ? "Hi," : "Hoi,";
+  const date = sundayDate(event.startsAt, locale);
+  const who = en
+    ? count === 1
+      ? "1 person you had a good time with is coming"
+      : `${count} people you had a good time with are coming`
+    : count === 1
+      ? "1 persoon met wie je het gezellig had komt"
+      : `${count} mensen met wie je het gezellig had komen`;
+  const subject = en ? `Familiar faces on ${date} in ${event.city}` : `Bekende gezichten op ${date} in ${event.city}`;
+  const body = [
+    hi,
+    "",
+    en ? `${who} to the Sunday Social in ${event.city} on ${date}.` : `${who} naar de Sunday Social in ${event.city} op ${date}.`,
+    "",
+    en
+      ? "There are still seats. Will you book too? Then we'll make sure you're at the same venue."
+      : "Er is nog plek. Boek je ook? Dan zorgen we dat je in dezelfde zaak zit.",
+    "",
+    `${en ? "Reserve your seat" : "Reserveer je plek"}: ${event.url}`,
+    "",
+    en ? "Can't make it? No problem, there are more Sundays." : "Kun je niet? Geen probleem, er komen meer zondagen.",
+    "",
+    SIGN_OFF[locale],
+    "",
+    footer(input.cities, input.manageUrl, locale),
+  ].join("\n");
+  return { subject: capital(subject), body };
 }

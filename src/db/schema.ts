@@ -406,7 +406,7 @@ export const inviteSends = pgTable("invite_sends", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: text("code").notNull().unique(),
   emailNormalized: text("email_normalized").notNull(),
-  kind: text("kind").$type<"invite" | "nudge" | "checkin">().notNull(),
+  kind: text("kind").$type<"invite" | "nudge" | "checkin" | "match">().notNull(),
   /** "sending" is the claim while one round sends it (drizzle/0048). A
    * "sending" row that stays is uncertain: it may have gone out, so it is
    * never retried and blocks new mails until an admin settles it.
@@ -1029,6 +1029,9 @@ export const feedbackReports = pgTable("feedback_reports", {
   aboutOtherNote: text("about_other_note"),
   body: text("body").notNull(),
   contactOk: boolean("contact_ok").notNull().default(false),
+  /** Withdrawn by whoever made it, on their Tafelvrienden page (drizzle/0065).
+   * Admin keeps seeing it; it no longer counts for seating or match mails. */
+  withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

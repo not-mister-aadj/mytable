@@ -14,7 +14,7 @@ test("liked mail: no names, no count, no booking button, two variants", () => {
   const fresh = likedMail({ locale: "nl", firstName: "Sophie", venueName: "Vino Victoria", pickedSomeone: false, url });
   assert.match(fresh.text, /^Hoi Sophie,\n\nZondag in Vino Victoria heb je indruk gemaakt\. Aan je tafel gaven ze aan dat ze je gezellig vonden en je vaker aan tafel willen hebben\./);
   assert.match(fresh.text, /Met wie had jij het gezellig\? Laat het ons weten\. Dan zorgen we dat je op een volgende zondag vaker bekende gezichten tegenkomt\./);
-  assert.match(fresh.text, /Kan tot zondag 18:00\.\n\nDj$/);
+  assert.match(fresh.text, /Kan tot zondag 18:00\.\n\nCheers,\nMyTable$/);
   assert.match(fresh.html, />Laat weten met wie het gezellig was</);
 
   const picked = likedMail({ locale: "nl", firstName: "Sophie", venueName: "Vino Victoria", pickedSomeone: true, url });

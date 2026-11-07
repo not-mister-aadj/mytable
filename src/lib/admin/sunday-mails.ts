@@ -434,7 +434,7 @@ export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueN
 
 /**
  * Wednesday 19:00, for who a tablemate picked: their table enjoyed them. No
- * names, no count, no booking button. Signed by Dj.
+ * names, no count, no booking button. Ends with "Cheers, MyTable".
  */
 export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; pickedSomeone: boolean; url: string }): { text: string; html: string } {
   const nl = p.locale === "nl";
@@ -473,7 +473,7 @@ export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName
           "",
           "You can do this until Sunday 18:00.",
         ];
-  const text = [hi, "", opening, "", ...lines, "", "Dj"].join("\n");
+  const text = [hi, "", opening, "", ...lines, "", "Cheers,", "MyTable"].join("\n");
   const label = p.pickedSomeone
     ? nl
       ? "Bekijk met wie je het gezellig had"

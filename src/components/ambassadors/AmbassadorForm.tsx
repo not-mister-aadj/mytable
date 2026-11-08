@@ -142,8 +142,9 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
           <Field label={t.email}>
             <input name="email" type="email" required autoComplete="email" className={input} />
           </Field>
-          <Field label={t.phone} optional={t.optional}>
-            <input name="phone" type="tel" autoComplete="tel" className={input} />
+          <Field label={t.phone}>
+            <input name="phone" type="tel" required autoComplete="tel" placeholder="06 12345678" className={input} />
+            <span className="mt-1 block text-[0.8rem] text-wine/45">{t.phoneHelp}</span>
           </Field>
           {AMBASSADOR_CITIES.length === 1 ? (
             <input type="hidden" name="city" value={AMBASSADOR_CITIES[0]} />
@@ -172,14 +173,14 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
 
       <Section title={t.sectionStudy}>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t.study} optional={t.optional}>
-            <input name="study" className={input} />
+          <Field label={t.study}>
+            <input name="study" required className={input} />
           </Field>
-          <Field label={t.institution} optional={t.optional}>
-            <input name="institution" className={input} />
+          <Field label={t.institution}>
+            <input name="institution" required className={input} />
           </Field>
-          <Field label={t.studyYear} optional={t.optional}>
-            <input name="studyYear" className={input} />
+          <Field label={t.studyYear}>
+            <input name="studyYear" required className={input} />
           </Field>
         </div>
       </Section>
@@ -222,10 +223,6 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
             <textarea name="motivationText" rows={5} maxLength={5000} placeholder={t.motivationTextPlaceholder} className={input} />
           </label>
         </div>
-
-        <Field label={t.availability} optional={t.optional}>
-          <input name="availability" placeholder={t.availabilityPlaceholder} className={input} />
-        </Field>
         <Field label={t.heardFrom} optional={t.optional}>
           <input name="heardFrom" className={input} />
         </Field>

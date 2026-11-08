@@ -3,7 +3,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { ambassadorApplications } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 import { ambassadorCopy } from "@/lib/ambassadors/copy";
-import { AMBASSADOR_BUCKET } from "@/lib/ambassadors/validate";
+import { AMBASSADOR_BUCKET, whatsappLink } from "@/lib/ambassadors/validate";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +52,25 @@ export default async function AdminAmbassadorsPage() {
                     {r.email}
                   </a>
                 </Row>
-                <Row label="Telefoon">{dash(r.phone)}</Row>
+                <Row label="Telefoon">
+                  {r.phone ? (
+                    <span className="flex flex-wrap items-center gap-2">
+                      {r.phone}
+                      {whatsappLink(r.phone) ? (
+                        <a
+                          href={whatsappLink(r.phone)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full bg-[#25D366]/15 px-2.5 py-0.5 text-xs font-semibold text-[#128C7E] hover:bg-[#25D366]/25"
+                        >
+                          WhatsApp
+                        </a>
+                      ) : null}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
+                </Row>
                 <Row label="Studie">{dash([r.study, r.institution, r.studyYear].filter(Boolean).join(", "))}</Row>
                 <Row label="Rollen">{r.roles.length > 0 ? r.roles.map((id) => roles[id as keyof typeof roles]?.title ?? id).join(", ") : "-"}</Row>
                 <Row label="Instagram">{dash(r.instagram)}</Row>
@@ -65,7 +83,6 @@ export default async function AdminAmbassadorsPage() {
                     "-"
                   )}
                 </Row>
-                <Row label="Kennismaking">{dash(r.availability)}</Row>
                 <Row label="Gevonden via">{dash(r.heardFrom)}</Row>
                 <Row label="Taal">{r.locale === "en" ? "Engels" : "Nederlands"}</Row>
                 <Row label="Document">

@@ -29,7 +29,7 @@ export type AmbassadorInput = {
   locale: "nl" | "en";
 };
 
-export type ValidationError = "required" | "motivation" | "file" | "fileSize" | "adult";
+export type ValidationError = "required" | "roles" | "motivation" | "file" | "fileSize" | "adult";
 
 const clean = (v: unknown, max = 300): string | null => {
   if (typeof v !== "string") return null;
@@ -57,6 +57,8 @@ export function parseAmbassadorForm(
   const city = AMBASSADOR_CITIES.find((c) => c === cityRaw) ?? null;
   if (!name || !email || !EMAIL.test(email) || !city) return { ok: false, error: "required" };
   if (get("adult") !== "on" && get("adult") !== "true") return { ok: false, error: "adult" };
+  const roles = [...new Set(getAll("roles").filter((r): r is AmbassadorRole => AMBASSADOR_ROLES.includes(r as AmbassadorRole)))];
+  if (roles.length === 0) return { ok: false, error: "roles" };
 
   const motivationText = clean(get("motivationText"), 5000);
   if (file) {
@@ -65,7 +67,6 @@ export function parseAmbassadorForm(
   }
   if (!file && !motivationText) return { ok: false, error: "motivation" };
 
-  const roles = getAll("roles").filter((r): r is AmbassadorRole => AMBASSADOR_ROLES.includes(r as AmbassadorRole));
   return {
     ok: true,
     input: {
@@ -76,7 +77,7 @@ export function parseAmbassadorForm(
       study: clean(get("study"), 120),
       institution: clean(get("institution"), 120),
       studyYear: clean(get("studyYear"), 40),
-      roles: [...new Set(roles)],
+      roles,
       instagram: clean(get("instagram"), 120),
       linkedin: clean(get("linkedin"), 300),
       motivationText,

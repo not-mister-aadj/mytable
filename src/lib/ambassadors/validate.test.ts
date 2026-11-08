@@ -15,7 +15,7 @@ function form(fields: Record<string, string | string[]>) {
   };
 }
 
-const base = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Rotterdam", adult: "on" };
+const base: Record<string, string | string[]> = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Rotterdam", adult: "on", roles: ["social"] };
 
 test("accepts text motivation and cleans the input", () => {
   const f = form({ ...base, motivationText: "Ik breng graag mensen samen.", roles: ["host", "fill", "host", "hack"], locale: "en" });
@@ -36,12 +36,14 @@ test("accepts a document instead of text", () => {
 });
 
 test("rejects missing fields, unknown city, no 18+, no motivation, wrong or large file", () => {
-  const cases: Array<[Record<string, string>, { name: string; size: number } | null, string]> = [
+  const cases: Array<[Record<string, string | string[]>, { name: string; size: number } | null, string]> = [
     [{ ...base, name: "" }, null, "required"],
     [{ ...base, email: "geen-mail" }, null, "required"],
     [{ ...base, city: "Groningen" }, null, "required"],
     [{ ...base, city: "Utrecht" }, null, "required"],
     [{ ...base, adult: "" }, null, "adult"],
+    [{ ...base, roles: [] }, null, "roles"],
+    [{ ...base, roles: ["hack"] }, null, "roles"],
     [base, null, "motivation"],
     [base, { name: "cv.png", size: 10 }, "file"],
     [base, { name: "brief.docx", size: MAX_MOTIVATION_BYTES + 1 }, "fileSize"],

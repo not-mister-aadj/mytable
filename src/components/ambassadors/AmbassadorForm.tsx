@@ -77,6 +77,11 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
     const file = data.get("motivationFile");
     const hasFile = file instanceof File && file.size > 0;
     if (!hasFile) data.delete("motivationFile");
+    if (data.getAll("roles").length === 0) {
+      setError(t.errors.roles);
+      captureClientEvent(PostHogEvents.ambassadorFormFailed, { locale, error: "roles" });
+      return;
+    }
     if (!hasFile && !String(data.get("motivationText") ?? "").trim()) {
       setError(t.errors.motivation);
       captureClientEvent(PostHogEvents.ambassadorFormFailed, { locale, error: "motivation" });
@@ -181,17 +186,19 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
 
       <Section title={t.sectionWhy}>
         <fieldset>
-          <legend className="text-[0.9rem] font-medium text-wine">
-            {t.roles} <span className="font-normal text-wine/45">({t.optional})</span>
-          </legend>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <legend className="text-[0.9rem] font-medium text-wine">{t.roles}</legend>
+          <p className="mt-0.5 text-[0.85rem] text-wine/55">{t.rolesHelp}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {AMBASSADOR_ROLES.map((id) => (
               <label
                 key={id}
-                className="flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-wine/15 bg-white px-4 text-[0.92rem] text-wine has-[:checked]:border-burgundy has-[:checked]:bg-burgundy/5"
+                className="flex cursor-pointer items-start gap-3 rounded-xl border border-wine/15 bg-white px-4 py-3 text-wine transition has-[:checked]:border-burgundy has-[:checked]:bg-burgundy/5"
               >
-                <input type="checkbox" name="roles" value={id} className="accent-burgundy" />
-                {copy.roles[id].title}
+                <input type="checkbox" name="roles" value={id} className="mt-1 accent-burgundy" />
+                <span>
+                  <span className="block font-semibold">{copy.roles[id].title}</span>
+                  <span className="mt-0.5 block text-[0.85rem] leading-snug text-wine/60">{copy.roles[id].body}</span>
+                </span>
               </label>
             ))}
           </div>

@@ -4,8 +4,8 @@
 
 /** For now only Rotterdam; add cities here when the programme grows. */
 export const AMBASSADOR_CITIES = ["Rotterdam"] as const;
-/** "build" is shown as Bedenken: new formats. */
-export const AMBASSADOR_ROLES = ["fill", "host", "build"] as const;
+/** "build" is shown as Bedenken: new formats. Applicants pick one or more. */
+export const AMBASSADOR_ROLES = ["fill", "host", "build", "social"] as const;
 export type AmbassadorRole = (typeof AMBASSADOR_ROLES)[number];
 
 type Item = { title: string; body: string };
@@ -55,6 +55,7 @@ export type AmbassadorCopy = {
     institution: string;
     studyYear: string;
     roles: string;
+    rolesHelp: string;
     instagram: string;
     linkedin: string;
     optional: string;
@@ -80,6 +81,7 @@ export type AmbassadorCopy = {
       file: string;
       fileSize: string;
       adult: string;
+      roles: string;
       generic: string;
       tooMany: string;
     };
@@ -108,11 +110,12 @@ const nl: AmbassadorCopy = {
     { title: "Sterk op je cv", body: "Een officiële titel, en een aanbeveling op LinkedIn als je semester erop zit." },
   ],
   rolesTitle: "Wat je doet",
-  rolesIntro: "Kies wat bij je past. Je hoeft niet alles te doen.",
+  rolesIntro: "Kies wat bij je past. Eén rol is genoeg, meer mag ook.",
   roles: {
     fill: { title: "Vullen", body: "Je maakt Rotterdam enthousiast, via je netwerk, je vereniging en je socials." },
     host: { title: "Ontvangen", body: "Je heet de gasten welkom en zorgt voor een goede start. Daarna neemt de sommelier het over." },
     build: { title: "Bedenken", body: "Je verzint nieuwe formats en zet ze mee neer. Een proeverij op het water, een wijnkelder, een plek die nog niemand kent." },
+    social: { title: "Social media", body: "Je maakt foto's en korte video's op de avond, en laat Rotterdam op Instagram en TikTok zien wat ze missen." },
   },
   semesterTitle: "Zo groei je bij MyTable",
   semester: [
@@ -167,7 +170,8 @@ const nl: AmbassadorCopy = {
     study: "Studie",
     institution: "Universiteit of hogeschool",
     studyYear: "Studiejaar",
-    roles: "Wat spreekt je aan?",
+    roles: "Welke rollen spreken je aan?",
+    rolesHelp: "Kies er één of meer.",
     instagram: "Instagram",
     linkedin: "LinkedIn",
     optional: "optioneel",
@@ -193,6 +197,7 @@ const nl: AmbassadorCopy = {
       file: "Upload een PDF of Word-bestand.",
       fileSize: "Je document is te groot. Maximaal 5 MB.",
       adult: "Je moet 18 jaar of ouder zijn.",
+      roles: "Kies minstens één rol.",
       generic: "Dat lukte niet. Probeer het later opnieuw, of mail ons op info@mytable.club.",
       tooMany: "Te veel pogingen. Probeer het over een minuut opnieuw.",
     },
@@ -221,11 +226,12 @@ const en: AmbassadorCopy = {
     { title: "Strong on your CV", body: "An official title, and a LinkedIn recommendation when your semester is done." },
   ],
   rolesTitle: "What you do",
-  rolesIntro: "Pick what suits you. You don't have to do it all.",
+  rolesIntro: "Pick what suits you. One role is enough, more is welcome.",
   roles: {
     fill: { title: "Fill", body: "You get Rotterdam excited, through your network, your student association and your socials." },
     host: { title: "Welcome", body: "You greet the guests and get things off to a good start. Then the sommelier takes over." },
     build: { title: "Create", body: "You come up with new formats and help run them. A tasting on the water, a wine cellar, a place nobody knows yet." },
+    social: { title: "Social media", body: "You shoot photos and short videos on the night, and show Rotterdam on Instagram and TikTok what they're missing." },
   },
   semesterTitle: "How you grow with MyTable",
   semester: [
@@ -280,7 +286,8 @@ const en: AmbassadorCopy = {
     study: "Study programme",
     institution: "University",
     studyYear: "Year of study",
-    roles: "What appeals to you?",
+    roles: "Which roles appeal to you?",
+    rolesHelp: "Pick one or more.",
     instagram: "Instagram",
     linkedin: "LinkedIn",
     optional: "optional",
@@ -306,6 +313,7 @@ const en: AmbassadorCopy = {
       file: "Upload a PDF or Word file.",
       fileSize: "Your document is too large. Up to 5 MB.",
       adult: "You need to be 18 or older.",
+      roles: "Pick at least one role.",
       generic: "That didn't work. Please try again later, or email us at info@mytable.club.",
       tooMany: "Too many attempts. Try again in a minute.",
     },

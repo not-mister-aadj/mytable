@@ -119,10 +119,9 @@ const nl: AmbassadorCopy = {
   },
   semesterTitle: "Zo groei je bij MyTable",
   semester: [
-    { title: "Kick-off", body: "Je leert het team en de aanpak kennen, en we maken samen een plan voor Rotterdam." },
-    { title: "Evenementen neerzetten", body: "Je helpt de Rotterdamse evenementen vol te krijgen en bent erbij op de dag zelf." },
-    { title: "Je eigen event", body: "Je bedenkt een eigen format en zet het met ons neer, van idee tot volle zaal." },
-    { title: "Doorgroeien", body: "Vind je het leuk en blink je uit? Dan kun je doorgroeien naar een betaalde rol in ons team." },
+    { title: "Ambassador", body: "Je start, leert het team kennen en schuift gratis aan bij de evenementen, wijn inbegrepen." },
+    { title: "Senior Ambassador", body: "Laat je zien wat je kunt? Dan verdien je per ticket dat via jou verkocht wordt, en per eigen event dat je neerzet." },
+    { title: "City Lead Rotterdam", body: "De beste ambassadors groeien door naar een betaalde rol in ons team." },
   ],
   whoTitle: "Wie we zoeken",
   who: [
@@ -142,7 +141,7 @@ const nl: AmbassadorCopy = {
   faq: [
     {
       q: "Is het betaald?",
-      a: "Het ambassadorschap is onbetaald. Je krijgt ervaring, gratis evenementen en een team om op te proosten. Vind je het leuk en blink je uit, dan kun je doorgroeien naar een betaalde rol.",
+      a: "Je begint onbetaald, met gratis evenementen en echte ervaring. Laat je zien wat je kunt, dan verdien je commissie per ticket en per eigen event. De beste ambassadors groeien door naar een betaalde rol in ons team.",
     },
     { q: "Hoeveel tijd kost het?", a: "Een paar uur per maand, en af en toe een avond of zondagmiddag. Op die avond zelf geniet je vooral mee." },
     { q: "En in mijn tentamenperiode?", a: "Dan organiseren we geen evenementen. Je hebt gewoon vrij." },
@@ -235,10 +234,9 @@ const en: AmbassadorCopy = {
   },
   semesterTitle: "How you grow with MyTable",
   semester: [
-    { title: "Kick-off", body: "You get to know the team and the approach, and we make a plan for Rotterdam together." },
-    { title: "Running events", body: "You help fill the Rotterdam events and you're there on the day." },
-    { title: "Your own event", body: "You come up with your own format and run it with us, from idea to full room." },
-    { title: "Growing further", body: "Enjoying it and doing great? Then you can grow into a paid role on our team." },
+    { title: "Ambassador", body: "You start, get to know the team and join the events for free, wine included." },
+    { title: "Senior Ambassador", body: "Showing what you can do? Then you earn for every ticket sold through you, and for every event of your own you run." },
+    { title: "City Lead Rotterdam", body: "The best ambassadors grow into a paid role on our team." },
   ],
   whoTitle: "Who we're looking for",
   who: [
@@ -258,7 +256,7 @@ const en: AmbassadorCopy = {
   faq: [
     {
       q: "Is it paid?",
-      a: "Being an ambassador is unpaid. You get experience, free events and a team to toast with. Enjoying it and doing great? Then you can grow into a paid role.",
+      a: "You start unpaid, with free events and real experience. Show what you can do, and you earn commission per ticket and per event of your own. The best ambassadors grow into a paid role on our team.",
     },
     { q: "How much time does it take?", a: "A few hours a month, and an evening or Sunday afternoon now and then. On the night itself, you mostly get to enjoy it." },
     { q: "What about my exam period?", a: "We don't organise events then. You simply have time off." },

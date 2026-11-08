@@ -49,6 +49,7 @@ export type AmbassadorCopy = {
     name: string;
     email: string;
     phone: string;
+    phoneHelp: string;
     city: string;
     cityPlaceholder: string;
     study: string;
@@ -65,8 +66,6 @@ export type AmbassadorCopy = {
     motivationFileHelp: string;
     motivationText: string;
     motivationTextPlaceholder: string;
-    availability: string;
-    availabilityPlaceholder: string;
     heardFrom: string;
     adult: string;
     privacy: string;
@@ -77,6 +76,7 @@ export type AmbassadorCopy = {
     doneBack: string;
     errors: {
       required: string;
+      study: string;
       motivation: string;
       file: string;
       fileSize: string;
@@ -135,7 +135,7 @@ const nl: AmbassadorCopy = {
   stepsTitle: "Zo solliciteer je",
   steps: [
     { title: "Solliciteer", body: "Vertel wie je bent en waarom je dit wilt. Het duurt een paar minuten." },
-    { title: "Kennismaken", body: "We plannen een kort gesprek met je in." },
+    { title: "Kennismaken", body: "We sturen je een WhatsApp-bericht en leren je kennen." },
     { title: "Start", body: "Je begint aan je eerste semester, met het team om je heen." },
   ],
   faqTitle: "Veelgestelde vragen",
@@ -155,7 +155,7 @@ const nl: AmbassadorCopy = {
     metaTitle: "Solliciteer als MyTable Ambassador in Rotterdam",
     eyebrow: "MyTable Ambassadors",
     title: "Solliciteer als ambassador in Rotterdam",
-    intro: "Een paar minuten. Daarna nemen we contact met je op voor een kennismaking.",
+    intro: "Een paar minuten. Daarna sturen we je een WhatsApp-bericht om kennis te maken.",
     back: "Terug naar het programma",
   },
   form: {
@@ -164,7 +164,8 @@ const nl: AmbassadorCopy = {
     sectionWhy: "Waarom jij",
     name: "Naam",
     email: "E-mail",
-    phone: "Telefoon",
+    phone: "Telefoonnummer",
+    phoneHelp: "We nemen contact met je op via WhatsApp.",
     city: "Stad",
     cityPlaceholder: "Kies je stad",
     study: "Studie",
@@ -181,18 +182,17 @@ const nl: AmbassadorCopy = {
     motivationFileHelp: "PDF of Word, maximaal 5 MB",
     motivationText: "Of schrijf het hier",
     motivationTextPlaceholder: "Wie ben je, en waarom wil je dit doen? Heb je al een idee voor een event? Vertel het ons.",
-    availability: "Wanneer kun je voor een kennismaking?",
-    availabilityPlaceholder: "Bijvoorbeeld: doordeweeks na 16:00",
     heardFrom: "Hoe heb je ons gevonden?",
     adult: "Ik ben 18 jaar of ouder",
     privacy: "We gebruiken je gegevens alleen voor je sollicitatie.",
     submit: "Verstuur sollicitatie",
     sending: "Bezig met versturen",
     doneTitle: "Dank je wel",
-    doneBody: "We hebben je sollicitatie ontvangen en nemen snel contact met je op om een kennismaking te plannen.",
+    doneBody: "We hebben je sollicitatie ontvangen en sturen je snel een WhatsApp-bericht om kennis te maken.",
     doneBack: "Terug naar het programma",
     errors: {
-      required: "Vul je naam en e-mail in.",
+      required: "Vul je naam, e-mail en telefoonnummer in.",
+      study: "Vul je studie, universiteit of hogeschool en studiejaar in.",
       motivation: "Upload een document of schrijf je motivatie.",
       file: "Upload een PDF of Word-bestand.",
       fileSize: "Je document is te groot. Maximaal 5 MB.",
@@ -251,7 +251,7 @@ const en: AmbassadorCopy = {
   stepsTitle: "How to apply",
   steps: [
     { title: "Apply", body: "Tell us who you are and why you'd like to do this. It takes a few minutes." },
-    { title: "Meet us", body: "We plan a short call with you." },
+    { title: "Meet us", body: "We send you a WhatsApp message and get to know you." },
     { title: "Start", body: "You begin your first semester, with the team around you." },
   ],
   faqTitle: "Frequently asked questions",
@@ -271,7 +271,7 @@ const en: AmbassadorCopy = {
     metaTitle: "Apply to be a MyTable Ambassador in Rotterdam",
     eyebrow: "MyTable Ambassadors",
     title: "Apply to be an ambassador in Rotterdam",
-    intro: "A few minutes. We'll then get in touch to plan a call.",
+    intro: "A few minutes. We'll then send you a WhatsApp message to get to know you.",
     back: "Back to the programme",
   },
   form: {
@@ -280,7 +280,8 @@ const en: AmbassadorCopy = {
     sectionWhy: "Why you",
     name: "Name",
     email: "Email",
-    phone: "Phone",
+    phone: "Phone number",
+    phoneHelp: "We'll get in touch via WhatsApp.",
     city: "City",
     cityPlaceholder: "Choose your city",
     study: "Study programme",
@@ -297,18 +298,17 @@ const en: AmbassadorCopy = {
     motivationFileHelp: "PDF or Word, up to 5 MB",
     motivationText: "Or write it here",
     motivationTextPlaceholder: "Who are you, and why would you like to do this? Already have an idea for an event? Tell us.",
-    availability: "When are you free for a call?",
-    availabilityPlaceholder: "For example: weekdays after 4 pm",
     heardFrom: "How did you find us?",
     adult: "I'm 18 or older",
     privacy: "We only use your details for your application.",
     submit: "Send application",
     sending: "Sending",
     doneTitle: "Thank you",
-    doneBody: "We've received your application and will get in touch soon to plan a call.",
+    doneBody: "We've received your application and will send you a WhatsApp message soon to get to know you.",
     doneBack: "Back to the programme",
     errors: {
-      required: "Fill in your name and email.",
+      required: "Fill in your name, email and phone number.",
+      study: "Fill in your study programme, university and year of study.",
       motivation: "Upload a document or write your motivation.",
       file: "Upload a PDF or Word file.",
       fileSize: "Your document is too large. Up to 5 MB.",

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MAX_MOTIVATION_BYTES, motivationExtension, parseAmbassadorForm } from "./validate";
+import { MAX_MOTIVATION_BYTES, motivationExtension, parseAmbassadorForm, whatsappLink } from "./validate";
 
 function form(fields: Record<string, string | string[]>) {
   return {
@@ -15,7 +15,7 @@ function form(fields: Record<string, string | string[]>) {
   };
 }
 
-const base: Record<string, string | string[]> = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Rotterdam", adult: "on", roles: ["social"] };
+const base: Record<string, string | string[]> = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Rotterdam", phone: "06 12345678", study: "Bedrijfskunde", institution: "Erasmus Universiteit", studyYear: "2", adult: "on", roles: ["social"] };
 
 test("accepts text motivation and cleans the input", () => {
   const f = form({ ...base, motivationText: "Ik breng graag mensen samen.", roles: ["host", "fill", "host", "hack"], locale: "en" });
@@ -26,7 +26,7 @@ test("accepts text motivation and cleans the input", () => {
   assert.equal(r.input.email, "sophie@example.nl");
   assert.deepEqual(r.input.roles, ["host", "fill"]);
   assert.equal(r.input.locale, "en");
-  assert.equal(r.input.phone, null);
+  assert.equal(r.input.phone, "06 12345678");
 });
 
 test("accepts a document instead of text", () => {
@@ -41,6 +41,11 @@ test("rejects missing fields, unknown city, no 18+, no motivation, wrong or larg
     [{ ...base, email: "geen-mail" }, null, "required"],
     [{ ...base, city: "Groningen" }, null, "required"],
     [{ ...base, city: "Utrecht" }, null, "required"],
+    [{ ...base, phone: "" }, null, "required"],
+    [{ ...base, phone: "123" }, null, "required"],
+    [{ ...base, study: "" }, null, "study"],
+    [{ ...base, institution: " " }, null, "study"],
+    [{ ...base, studyYear: "" }, null, "study"],
     [{ ...base, adult: "" }, null, "adult"],
     [{ ...base, roles: [] }, null, "roles"],
     [{ ...base, roles: ["hack"] }, null, "roles"],
@@ -60,4 +65,13 @@ test("only pdf, doc and docx", () => {
   assert.equal(motivationExtension("a.final.DOCX"), "docx");
   assert.equal(motivationExtension("a.exe"), null);
   assert.equal(motivationExtension("noext"), null);
+});
+
+test("WhatsApp links for Dutch and international numbers", () => {
+  assert.equal(whatsappLink("06 12345678"), "https://wa.me/31612345678");
+  assert.equal(whatsappLink("+31 6 1234 5678"), "https://wa.me/31612345678");
+  assert.equal(whatsappLink("0031612345678"), "https://wa.me/31612345678");
+  assert.equal(whatsappLink("+49 151 23456789"), "https://wa.me/4915123456789");
+  assert.equal(whatsappLink("123"), null);
+  assert.equal(whatsappLink(null), null);
 });

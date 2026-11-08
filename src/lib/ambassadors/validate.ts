@@ -15,11 +15,11 @@ export const MOTIVATION_TYPES: Record<string, string> = {
 export type AmbassadorInput = {
   name: string;
   email: string;
-  phone: string | null;
+  phone: string;
   city: string;
-  study: string | null;
-  institution: string | null;
-  studyYear: string | null;
+  study: string;
+  institution: string;
+  studyYear: string;
   roles: AmbassadorRole[];
   instagram: string | null;
   linkedin: string | null;
@@ -29,7 +29,7 @@ export type AmbassadorInput = {
   locale: "nl" | "en";
 };
 
-export type ValidationError = "required" | "roles" | "motivation" | "file" | "fileSize" | "adult";
+export type ValidationError = "required" | "study" | "roles" | "motivation" | "file" | "fileSize" | "adult";
 
 const clean = (v: unknown, max = 300): string | null => {
   if (typeof v !== "string") return null;
@@ -38,6 +38,15 @@ const clean = (v: unknown, max = 300): string | null => {
 };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** A wa.me link for a phone number as typed; Dutch numbers (06..., 0031...) get +31. Null when it can't be one. */
+export function whatsappLink(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  let d = phone.replace(/\D/g, "");
+  if (d.startsWith("00")) d = d.slice(2);
+  else if (d.startsWith("0")) d = `31${d.slice(1)}`;
+  return d.length >= 10 && d.length <= 15 ? `https://wa.me/${d}` : null;
+}
 
 /** The file's extension when it is one we accept, else null. */
 export function motivationExtension(fileName: string): string | null {
@@ -55,7 +64,13 @@ export function parseAmbassadorForm(
   const email = clean(get("email"), 200)?.toLowerCase() ?? null;
   const cityRaw = clean(get("city"), 60);
   const city = AMBASSADOR_CITIES.find((c) => c === cityRaw) ?? null;
-  if (!name || !email || !EMAIL.test(email) || !city) return { ok: false, error: "required" };
+  const phone = clean(get("phone"), 40);
+  const digits = phone?.replace(/\D/g, "") ?? "";
+  const study = clean(get("study"), 120);
+  const institution = clean(get("institution"), 120);
+  const studyYear = clean(get("studyYear"), 40);
+  if (!name || !email || !EMAIL.test(email) || !city || !phone || digits.length < 9 || digits.length > 15) return { ok: false, error: "required" };
+  if (!study || !institution || !studyYear) return { ok: false, error: "study" };
   if (get("adult") !== "on" && get("adult") !== "true") return { ok: false, error: "adult" };
   const roles = [...new Set(getAll("roles").filter((r): r is AmbassadorRole => AMBASSADOR_ROLES.includes(r as AmbassadorRole)))];
   if (roles.length === 0) return { ok: false, error: "roles" };
@@ -72,11 +87,11 @@ export function parseAmbassadorForm(
     input: {
       name,
       email,
-      phone: clean(get("phone"), 40),
+      phone,
       city,
-      study: clean(get("study"), 120),
-      institution: clean(get("institution"), 120),
-      studyYear: clean(get("studyYear"), 40),
+      study,
+      institution,
+      studyYear,
       roles,
       instagram: clean(get("instagram"), 120),
       linkedin: clean(get("linkedin"), 300),

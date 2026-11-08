@@ -39,6 +39,13 @@ export const PostHogEvents = {
   customerProfileViewed: "customer_profile_viewed",
   customerNoteAdded: "customer_note_added",
   sundayTableWaitlistEnriched: "sunday_table_waitlist_enriched",
+  /** Ambassadors: landing (/ambassadors) to the form (/ambassadors/aanmelden). No personal data. */
+  ambassadorCtaClicked: "ambassador_cta_clicked",
+  ambassadorFormViewed: "ambassador_form_viewed",
+  ambassadorFormStarted: "ambassador_form_started",
+  ambassadorFormSubmitted: "ambassador_form_submitted",
+  ambassadorFormFailed: "ambassador_form_failed",
+  ambassadorFormAbandoned: "ambassador_form_abandoned",
   /** "Jouw tafel" landing page (/jouw-tafel), variant B of the homepage test. */
   landingSectionViewed: "landing_section_viewed",
   landingCtaClicked: "landing_cta_clicked",

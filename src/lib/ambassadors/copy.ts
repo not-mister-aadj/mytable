@@ -1,8 +1,12 @@
-// /ambassadors page and form copy, Dutch and English. Short and calm, like the rest of the site.
+// /ambassadors (landing) and /ambassadors/aanmelden (form) copy, Dutch and English.
+// Built like the big student programmes (Bumble Honey, Red Bull Student Marketeers):
+// a clear promise, concrete perks, what you do, a semester, and one button to apply.
 
 export const AMBASSADOR_CITIES = ["Rotterdam", "Den Haag", "Utrecht", "Amsterdam", "Eindhoven"] as const;
 export const AMBASSADOR_ROLES = ["fill", "host", "build"] as const;
 export type AmbassadorRole = (typeof AMBASSADOR_ROLES)[number];
+
+type Item = { title: string; body: string };
 
 export type AmbassadorCopy = {
   metaTitle: string;
@@ -11,25 +15,35 @@ export type AmbassadorCopy = {
   title: string;
   intro: string;
   cta: string;
+  facts: string[];
   imageAlt: string;
-  whatTitle: string;
-  whatBody: string;
+  perksTitle: string;
+  perksIntro: string;
+  perks: Item[];
   rolesTitle: string;
-  roles: Record<AmbassadorRole, { title: string; body: string }>;
-  getTitle: string;
-  get: { title: string; body: string }[];
-  milestonesTitle: string;
-  milestonesBody: string;
-  milestones: string[];
+  rolesIntro: string;
+  roles: Record<AmbassadorRole, Item>;
+  semesterTitle: string;
+  semester: Item[];
   whoTitle: string;
   who: string[];
   stepsTitle: string;
-  steps: { title: string; body: string }[];
+  steps: Item[];
   faqTitle: string;
   faq: { q: string; a: string }[];
-  form: {
+  closingTitle: string;
+  closingBody: string;
+  apply: {
+    metaTitle: string;
+    eyebrow: string;
     title: string;
     intro: string;
+    back: string;
+  };
+  form: {
+    sectionYou: string;
+    sectionStudy: string;
+    sectionWhy: string;
     name: string;
     email: string;
     phone: string;
@@ -57,6 +71,7 @@ export type AmbassadorCopy = {
     sending: string;
     doneTitle: string;
     doneBody: string;
+    doneBack: string;
     errors: {
       required: string;
       motivation: string;
@@ -70,65 +85,74 @@ export type AmbassadorCopy = {
 };
 
 const nl: AmbassadorCopy = {
-  metaTitle: "Word MyTable Ambassador",
+  metaTitle: "MyTable Ambassadors | Bouw de zondag van je stad",
   metaDescription:
-    "Student en goed in mensen samenbrengen? Bouw mee aan de Sunday Socials in jouw stad, met een leuk team om je heen.",
-  eyebrow: "MyTable · Ambassadors",
-  title: "Breng mensen samen aan tafel in jouw stad",
+    "Word MyTable Ambassador naast je studie. Zet de Sunday Socials neer in jouw stad, doe echte ervaring op in events en marketing, en schuif zelf gratis aan.",
+  eyebrow: "MyTable Ambassadors",
+  title: "Bouw de zondagmiddag van jouw stad",
   intro:
-    "Word MyTable Ambassador. Je bouwt mee aan de Sunday Socials in jouw stad, met een leuk team om je heen.",
-  cta: "Meld je aan",
+    "Als MyTable Ambassador zet je samen met ons de Sunday Socials neer in jouw stad. Je doet echte ervaring op in events, marketing en community, gewoon naast je studie.",
+  cta: "Solliciteer als ambassador",
+  facts: ["Een semester", "Een paar uur per maand", "5 steden"],
   imageAlt: "Een groep aan tafel in een wijnbar, glas in de hand, in gesprek",
-  whatTitle: "Wat is MyTable",
-  whatBody:
-    "Op zondagmiddag schuif je aan bij een wijnbar in je stad, in een gezellig groepje van 4 tot 6. Wij regelen de plek en de tafel, jij hoeft niets te plannen. Je proeft nieuwe wijnen en gerechten, en ziet steeds meer bekende gezichten. We zijn er in Rotterdam, Den Haag, Utrecht, Amsterdam en Eindhoven.",
-  rolesTitle: "Wat je doet",
-  roles: {
-    fill: {
-      title: "Vullen",
-      body: "Je maakt mensen in je stad enthousiast, via je netwerk, je vereniging en je socials.",
-    },
-    host: {
-      title: "Hosten",
-      body: "Op zondag ontvang je de gasten en help je de groepjes op weg.",
-    },
-    build: {
-      title: "Bouwen",
-      body: "Je denkt mee over nieuwe wijnbars en ideeën. Als je dat leuk vindt.",
-    },
-  },
-  getTitle: "Wat je ervoor terugkrijgt",
-  get: [
-    { title: "Ervaring", body: "In events, marketing en community. Mooi voor je cv, en een aanbeveling op LinkedIn." },
-    { title: "Gratis mee", body: "Je schuift zelf aan bij de edities, wijn inbegrepen." },
-    { title: "Een leuk team", body: "Teamborrels en uitjes met de andere ambassadors." },
+  perksTitle: "Waarom ambassador",
+  perksIntro: "Je krijgt er meer voor terug dan een regel op je cv.",
+  perks: [
+    { title: "Echte ervaring", body: "Je organiseert, promoot en host zelf. Geen meeloopstage, maar resultaat dat je kunt laten zien." },
+    { title: "Jouw stad, jouw zondag", body: "Jij bepaalt mee welke wijnbars we kiezen en hoe de middagen in jouw stad eruitzien." },
+    { title: "Gratis aan tafel", body: "Je schuift zelf aan bij de edities, wijn inbegrepen." },
+    { title: "Een netwerk dat blijft", body: "Je werkt met wijnbars, met de oprichters en met ambassadors in vijf steden." },
+    { title: "Een team om op te proosten", body: "Teamborrels, en een uitje als we samen een mijlpaal halen." },
+    { title: "Sterk op je cv", body: "Een officiële titel, en een aanbeveling op LinkedIn als je semester erop zit." },
   ],
-  milestonesTitle: "Samen naar mijlpalen",
-  milestonesBody: "Haal je ze met je stad, of met alle steden samen, dan vieren we dat.",
-  milestones: ["De eerste volle editie in jouw stad", "Drie volle edities op rij", "Alle steden vol in één maand"],
+  rolesTitle: "Wat je doet",
+  rolesIntro: "Kies wat bij je past. Je hoeft niet alles te doen.",
+  roles: {
+    fill: { title: "Vullen", body: "Je maakt je stad enthousiast, via je netwerk, je vereniging en je socials." },
+    host: { title: "Hosten", body: "Op zondag ontvang je de gasten en zorg je dat iedereen zich snel thuis voelt." },
+    build: { title: "Bouwen", body: "Je scout nieuwe wijnbars en denkt mee over wat we hierna doen." },
+  },
+  semesterTitle: "Zo ziet een semester eruit",
+  semester: [
+    { title: "Kick-off", body: "Je leert het team en de aanpak kennen, en we maken samen een plan voor jouw stad." },
+    { title: "Zondagen neerzetten", body: "Je helpt de edities in jouw stad vol te krijgen en bent erbij op de dag zelf." },
+    { title: "Mijlpalen vieren", body: "Eerste volle editie, drie op rij, alle steden vol in één maand. Elke mijlpaal vieren we samen." },
+  ],
   whoTitle: "Wie we zoeken",
   who: [
     "Je studeert en bent 18 jaar of ouder",
-    "Je woont of studeert in een van onze vijf steden",
-    "Je houdt van mensen samenbrengen. Wijnkennis is niet nodig",
+    "Je woont of studeert in Rotterdam, Den Haag, Utrecht, Amsterdam of Eindhoven",
+    "Je brengt graag mensen samen en voelt je thuis in een volle zaak",
     "Je hebt een paar uur per maand, en af en toe een zondagmiddag",
+    "Wijnkennis is niet nodig. Nieuwsgierigheid wel",
   ],
-  stepsTitle: "Zo werkt het",
+  stepsTitle: "Zo solliciteer je",
   steps: [
-    { title: "Meld je aan", body: "Vertel kort wie je bent en waarom je dit wilt." },
+    { title: "Solliciteer", body: "Vertel wie je bent en waarom je dit wilt. Het duurt een paar minuten." },
     { title: "Kennismaken", body: "We plannen een kort gesprek met je in." },
-    { title: "Aan de slag", body: "Je begint voor een semester. Daarna kijken we samen verder." },
+    { title: "Start", body: "Je begint aan je eerste semester, met het team om je heen." },
   ],
-  faqTitle: "Vragen",
+  faqTitle: "Veelgestelde vragen",
   faq: [
-    { q: "Is het betaald?", a: "Nee. Je krijgt ervaring, gratis edities en een leuk team. In het gesprek vertellen we je precies wat er bij jouw rol hoort." },
-    { q: "Hoeveel tijd kost het?", a: "Een paar uur per maand, en af en toe een zondagmiddag. Jij bepaalt mee wat past naast je studie." },
-    { q: "Moet ik verstand hebben van wijn?", a: "Nee. Het gaat om de mensen. De wijn kiezen we samen met de zaak." },
-    { q: "En als ik tentamens heb?", a: "Geef het aan, dan neemt iemand anders uit het team het over." },
+    { q: "Is het betaald?", a: "Nee. Je krijgt ervaring, gratis edities en een team om op te proosten. In het gesprek vertellen we je precies wat er bij jouw rol hoort." },
+    { q: "Hoeveel tijd kost het?", a: "Een paar uur per maand, en af en toe een zondagmiddag. We plannen het rond je studie." },
+    { q: "Moet ik verstand hebben van wijn?", a: "Nee. Het gaat om de mensen en de sfeer. De wijn kiezen we samen met de zaak." },
+    { q: "Wat als ik tentamens heb?", a: "Laat het weten, dan neemt iemand anders uit het team het over." },
+    { q: "Hoe lang doe ik het?", a: "Een semester. Daarna kijken we samen of je doorgaat." },
   ],
+  closingTitle: "Klaar om je stad aan tafel te krijgen?",
+  closingBody: "Solliciteer in een paar minuten. We nemen snel contact met je op.",
+  apply: {
+    metaTitle: "Solliciteer als MyTable Ambassador",
+    eyebrow: "MyTable Ambassadors",
+    title: "Solliciteer als ambassador",
+    intro: "Een paar minuten. Daarna nemen we contact met je op voor een kennismaking.",
+    back: "Terug naar het programma",
+  },
   form: {
-    title: "Meld je aan",
-    intro: "Daarna nemen we contact met je op voor een kennismaking.",
+    sectionYou: "Over jou",
+    sectionStudy: "Je studie",
+    sectionWhy: "Waarom jij",
     name: "Naam",
     email: "E-mail",
     phone: "Telefoon",
@@ -151,11 +175,12 @@ const nl: AmbassadorCopy = {
     availabilityPlaceholder: "Bijvoorbeeld: doordeweeks na 16:00",
     heardFrom: "Hoe heb je ons gevonden?",
     adult: "Ik ben 18 jaar of ouder",
-    privacy: "We gebruiken je gegevens alleen voor je aanmelding.",
-    submit: "Verstuur aanmelding",
+    privacy: "We gebruiken je gegevens alleen voor je sollicitatie.",
+    submit: "Verstuur sollicitatie",
     sending: "Bezig met versturen",
     doneTitle: "Dank je wel",
-    doneBody: "We hebben je aanmelding ontvangen en nemen snel contact met je op om een kennismaking te plannen.",
+    doneBody: "We hebben je sollicitatie ontvangen en nemen snel contact met je op om een kennismaking te plannen.",
+    doneBack: "Terug naar het programma",
     errors: {
       required: "Vul je naam, e-mail en stad in.",
       motivation: "Upload een document of schrijf je motivatie.",
@@ -169,55 +194,74 @@ const nl: AmbassadorCopy = {
 };
 
 const en: AmbassadorCopy = {
-  metaTitle: "Become a MyTable Ambassador",
+  metaTitle: "MyTable Ambassadors | Build your city's Sunday",
   metaDescription:
-    "A student who's good at bringing people together? Help build the Sunday Socials in your city, with a fun team around you.",
-  eyebrow: "MyTable · Ambassadors",
-  title: "Bring people together at the table in your city",
-  intro: "Become a MyTable Ambassador. You help build the Sunday Socials in your city, with a fun team around you.",
-  cta: "Apply",
+    "Become a MyTable Ambassador alongside your studies. Build the Sunday Socials in your city, gain real experience in events and marketing, and join for free.",
+  eyebrow: "MyTable Ambassadors",
+  title: "Build the Sunday afternoon of your city",
+  intro:
+    "As a MyTable Ambassador, you build the Sunday Socials in your city together with us. You gain real experience in events, marketing and community, alongside your studies.",
+  cta: "Apply to be an ambassador",
+  facts: ["One semester", "A few hours a month", "5 cities"],
   imageAlt: "A group at a table in a wine bar, glass in hand, talking",
-  whatTitle: "What is MyTable",
-  whatBody:
-    "On Sunday afternoons, you sit down at a wine bar in your city, in a sociable group of 4 to 6. We arrange the place and the table, so you don't have to plan a thing. You try new wines and dishes, and see more and more familiar faces. We're in Rotterdam, The Hague, Utrecht, Amsterdam and Eindhoven.",
-  rolesTitle: "What you do",
-  roles: {
-    fill: { title: "Fill", body: "You get people in your city excited, through your network, your student association and your socials." },
-    host: { title: "Host", body: "On Sunday you welcome the guests and help the groups get going." },
-    build: { title: "Build", body: "You help think about new wine bars and ideas. If you enjoy that." },
-  },
-  getTitle: "What you get",
-  get: [
-    { title: "Experience", body: "In events, marketing and community. Great for your CV, plus a LinkedIn recommendation." },
-    { title: "Join for free", body: "You join the editions yourself, wine included." },
-    { title: "A fun team", body: "Team drinks and outings with the other ambassadors." },
+  perksTitle: "Why become an ambassador",
+  perksIntro: "You get more out of it than a line on your CV.",
+  perks: [
+    { title: "Real experience", body: "You organise, promote and host yourself. Not shadowing, but results you can show." },
+    { title: "Your city, your Sunday", body: "You help choose the wine bars and shape the afternoons in your city." },
+    { title: "A seat for free", body: "You join the editions yourself, wine included." },
+    { title: "A network that lasts", body: "You work with wine bars, with the founders and with ambassadors in five cities." },
+    { title: "A team to toast with", body: "Team drinks, and an outing when we reach a milestone together." },
+    { title: "Strong on your CV", body: "An official title, and a LinkedIn recommendation when your semester is done." },
   ],
-  milestonesTitle: "Milestones together",
-  milestonesBody: "Reach them with your city, or with all cities together, and we celebrate.",
-  milestones: ["The first sold-out edition in your city", "Three sold-out editions in a row", "Every city sold out in one month"],
+  rolesTitle: "What you do",
+  rolesIntro: "Pick what suits you. You don't have to do it all.",
+  roles: {
+    fill: { title: "Fill", body: "You get your city excited, through your network, your student association and your socials." },
+    host: { title: "Host", body: "On Sunday you welcome the guests and make sure everyone feels at home quickly." },
+    build: { title: "Build", body: "You scout new wine bars and help think about what we do next." },
+  },
+  semesterTitle: "What a semester looks like",
+  semester: [
+    { title: "Kick-off", body: "You get to know the team and the approach, and we make a plan for your city together." },
+    { title: "Running Sundays", body: "You help fill the editions in your city and you're there on the day." },
+    { title: "Celebrating milestones", body: "First sold-out edition, three in a row, every city full in one month. We celebrate each one together." },
+  ],
   whoTitle: "Who we're looking for",
   who: [
     "You're a student, 18 or older",
-    "You live or study in one of our five cities",
-    "You love bringing people together. No wine knowledge needed",
+    "You live or study in Rotterdam, The Hague, Utrecht, Amsterdam or Eindhoven",
+    "You love bringing people together and feel at home in a busy room",
     "You have a few hours a month, and a Sunday afternoon now and then",
+    "No wine knowledge needed. Curiosity is",
   ],
-  stepsTitle: "How it works",
+  stepsTitle: "How to apply",
   steps: [
-    { title: "Apply", body: "Tell us briefly who you are and why you'd like to do this." },
+    { title: "Apply", body: "Tell us who you are and why you'd like to do this. It takes a few minutes." },
     { title: "Meet us", body: "We plan a short call with you." },
-    { title: "Get started", body: "You start for one semester. After that, we look ahead together." },
+    { title: "Start", body: "You begin your first semester, with the team around you." },
   ],
-  faqTitle: "Questions",
+  faqTitle: "Frequently asked questions",
   faq: [
-    { q: "Is it paid?", a: "No. You get experience, free editions and a fun team. In the call we tell you exactly what comes with your role." },
-    { q: "How much time does it take?", a: "A few hours a month, and a Sunday afternoon now and then. You help decide what fits next to your studies." },
-    { q: "Do I need to know about wine?", a: "No. It's about the people. We choose the wine together with the venue." },
+    { q: "Is it paid?", a: "No. You get experience, free editions and a team to toast with. In the call we tell you exactly what comes with your role." },
+    { q: "How much time does it take?", a: "A few hours a month, and a Sunday afternoon now and then. We plan around your studies." },
+    { q: "Do I need to know about wine?", a: "No. It's about the people and the atmosphere. We choose the wine together with the venue." },
     { q: "What if I have exams?", a: "Let us know, and someone else on the team takes over." },
+    { q: "How long is it?", a: "One semester. After that, we decide together whether you continue." },
   ],
+  closingTitle: "Ready to bring your city to the table?",
+  closingBody: "Apply in a few minutes. We'll be in touch soon.",
+  apply: {
+    metaTitle: "Apply to be a MyTable Ambassador",
+    eyebrow: "MyTable Ambassadors",
+    title: "Apply to be an ambassador",
+    intro: "A few minutes. We'll then get in touch to plan a call.",
+    back: "Back to the programme",
+  },
   form: {
-    title: "Apply",
-    intro: "We'll then get in touch to plan a call.",
+    sectionYou: "About you",
+    sectionStudy: "Your studies",
+    sectionWhy: "Why you",
     name: "Name",
     email: "Email",
     phone: "Phone",
@@ -245,6 +289,7 @@ const en: AmbassadorCopy = {
     sending: "Sending",
     doneTitle: "Thank you",
     doneBody: "We've received your application and will get in touch soon to plan a call.",
+    doneBack: "Back to the programme",
     errors: {
       required: "Fill in your name, email and city.",
       motivation: "Upload a document or write your motivation.",

@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { getTodayData, type TodoItem, type UpcomingSunday } from "@/lib/admin/today-data";
 import { EMAIL_DAY_LIMIT, EMAIL_DAY_WARN, emailVolume } from "@/lib/email/volume";
 import { dismissTodoAction, restoreTodoAction } from "./today-actions";
+import { SundayNotes } from "@/components/admin/SundayNotes";
 
 /** "Vandaag": what needs doing this week, the coming Sundays and the month. */
 export default async function AdminTodayPage() {
@@ -193,10 +194,8 @@ function SundayCard({ sunday, href }: { sunday: UpcomingSunday; href: string }) 
   const answered = sunday.guests - sunday.questionsOpen;
 
   return (
-    <Link
-      href={href}
-      className="block rounded-xl border border-border-subtle bg-beige/60 p-4 transition hover:border-burgundy/30 hover:bg-cream/70"
-    >
+    <div className="flex flex-col overflow-hidden rounded-xl border border-border-subtle bg-beige/60 transition hover:border-burgundy/30">
+    <Link href={href} className="block p-4 transition hover:bg-cream/70">
       <div className="flex items-baseline justify-between gap-2">
         <p className="font-medium text-wine">{sunday.city}</p>
         <p className="text-xs text-wine/50">{when}</p>
@@ -207,11 +206,6 @@ function SundayCard({ sunday, href }: { sunday: UpcomingSunday; href: string }) 
       ) : (
         <p className="mt-1.5 text-sm font-medium text-amber-700">Geen bar</p>
       )}
-      {sunday.lastNote ? (
-        <p className="mt-0.5 truncate text-xs text-wine/55">
-          {shortDate(sunday.lastNote.createdAt)}: {sunday.lastNote.body}
-        </p>
-      ) : null}
       <div className="mt-3 flex items-center gap-2">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-wine/10">
           <div className={`h-full rounded-full ${full ? "bg-emerald-600" : "bg-burgundy/70"}`} style={{ width: `${pct}%` }} />
@@ -231,6 +225,8 @@ function SundayCard({ sunday, href }: { sunday: UpcomingSunday; href: string }) 
         <p className="mt-2.5 text-xs text-wine/45">Nog geen gasten</p>
       )}
     </Link>
+    <SundayNotes eventId={sunday.id} venueId={sunday.venueId} notes={sunday.notes} />
+    </div>
   );
 }
 

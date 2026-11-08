@@ -14,8 +14,10 @@ export type UpcomingSunday = {
   startsAt: string;
   /** The bars linked to this Sunday, in order. */
   venueNames: string[];
-  /** The newest note about this Sunday's bar. */
-  lastNote: { body: string; createdAt: string } | null;
+  /** The only linked bar, so a new note can be about it; null with none or several. */
+  venueId: string | null;
+  /** Every note about this Sunday, newest first. */
+  notes: Array<{ id: string; body: string; createdAt: string }>;
   capacity: number;
   seatsSold: number;
   guests: number;
@@ -68,8 +70,8 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     city: string;
     starts_at: Date;
     venue_names: string[] | null;
-    last_note: string | null;
-    last_note_at: Date | null;
+    venue_ids: string[] | null;
+    notes: Array<{ id: string; body: string; created_at: string }> | null;
     capacity: number;
     seats_sold: number;
     guests: number;
@@ -80,8 +82,9 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
   }>(sql.raw(`
     select e.id, e.city, e.starts_at, e.capacity,
       (select array_agg(v.name order by ev.position) from event_venues ev join venues v on v.id = ev.venue_id where ev.event_id = e.id) as venue_names,
-      (select n.body from venue_notes n where n.event_id = e.id order by n.created_at desc limit 1) as last_note,
-      (select max(n.created_at) from venue_notes n where n.event_id = e.id) as last_note_at,
+      (select array_agg(ev.venue_id order by ev.position) from event_venues ev where ev.event_id = e.id) as venue_ids,
+      (select json_agg(json_build_object('id', n.id, 'body', n.body, 'created_at', n.created_at) order by n.created_at desc)
+         from venue_notes n where n.event_id = e.id) as notes,
       coalesce(sum(b.seats), 0)::int as seats_sold,
       count(b.id)::int as guests,
       count(b.id) filter (where coalesce(nullif(trim(b.intro_ask_me_about), ''), nullif(trim(b.intro_favorite_spot), ''), nullif(trim(b.intro_into_now), '')) is null)::int as questions_open,
@@ -107,7 +110,8 @@ export async function getTodayData(eventHref: (id: string, tab?: string) => stri
     city: r.city,
     startsAt: new Date(r.starts_at).toISOString(),
     venueNames: r.venue_names ?? [],
-    lastNote: r.last_note && r.last_note_at ? { body: r.last_note, createdAt: new Date(r.last_note_at).toISOString() } : null,
+    venueId: r.venue_ids?.length === 1 ? r.venue_ids[0]! : null,
+    notes: (r.notes ?? []).map((n) => ({ id: n.id, body: n.body, createdAt: new Date(n.created_at).toISOString() })),
     capacity: r.capacity,
     seatsSold: r.seats_sold,
     guests: r.guests,

@@ -25,6 +25,15 @@ export async function addVenueNoteAction(eventId: string | null, venueId: string
   refresh(venue, eventId);
 }
 
+/** Changes the text of a note; an empty text leaves it as it was. */
+export async function updateVenueNoteAction(id: string, formData: FormData): Promise<void> {
+  await requireAdmin();
+  const body = String(formData.get("body") ?? "").trim().slice(0, 2000);
+  if (!UUID_RE.test(id) || !body) return;
+  const [row] = await getDb().update(venueNotes).set({ body }).where(eq(venueNotes.id, id)).returning();
+  if (row) refresh(row.venueId, row.eventId);
+}
+
 export async function deleteVenueNoteAction(id: string): Promise<void> {
   await requireAdmin();
   const [row] = await getDb().delete(venueNotes).where(eq(venueNotes.id, id)).returning();

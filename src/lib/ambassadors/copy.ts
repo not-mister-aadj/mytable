@@ -4,8 +4,8 @@
 
 /** For now only Rotterdam; add cities here when the programme grows. */
 export const AMBASSADOR_CITIES = ["Rotterdam"] as const;
-/** "build" is shown as Bedenken (new formats), "taste" as Proeven (hidden guest). */
-export const AMBASSADOR_ROLES = ["fill", "host", "build", "taste"] as const;
+/** "build" is shown as Bedenken: new formats. */
+export const AMBASSADOR_ROLES = ["fill", "host", "build"] as const;
 export type AmbassadorRole = (typeof AMBASSADOR_ROLES)[number];
 
 type Item = { title: string; body: string };
@@ -102,7 +102,7 @@ const nl: AmbassadorCopy = {
   perks: [
     { title: "Echte ervaring", body: "Je organiseert, promoot en host zelf. Geen meeloopstage, maar resultaat dat je kunt laten zien." },
     { title: "Je eigen event", body: "Heb je een idee, een bijzondere plek of een wijnmaker die je kent? Dan zetten we het samen neer." },
-    { title: "Gratis aan tafel", body: "Je schuift zelf aan bij de evenementen, wijn inbegrepen." },
+    { title: "Genieten van wat je neerzet", body: "Op de avond zelf is de sommelier de gastheer. Jij schuift aan en proeft mee, wijn inbegrepen." },
     { title: "Een netwerk dat blijft", body: "Je werkt met Rotterdamse wijnbars, wijnmakers, de oprichters en de andere ambassadors." },
     { title: "Een team om op te proosten", body: "Teamborrels, en elke maand zetten we de Ambassador van de maand in het zonnetje." },
     { title: "Sterk op je cv", body: "Een officiële titel, en een aanbeveling op LinkedIn als je semester erop zit." },
@@ -111,9 +111,8 @@ const nl: AmbassadorCopy = {
   rolesIntro: "Kies wat bij je past. Je hoeft niet alles te doen.",
   roles: {
     fill: { title: "Vullen", body: "Je maakt Rotterdam enthousiast, via je netwerk, je vereniging en je socials." },
-    host: { title: "Hosten", body: "Op de dag zelf ontvang je de gasten en zorg je dat iedereen zich snel thuis voelt." },
+    host: { title: "Ontvangen", body: "Je heet de gasten welkom en zorgt voor een goede start. Daarna neemt de sommelier het over." },
     build: { title: "Bedenken", body: "Je verzint nieuwe formats en zet ze mee neer. Een proeverij op het water, een wijnkelder, een plek die nog niemand kent." },
-    taste: { title: "Proeven", body: "Je schuift aan als gewone gast en vertelt ons daarna eerlijk hoe het was." },
   },
   semesterTitle: "Zo groei je bij MyTable",
   semester: [
@@ -142,7 +141,7 @@ const nl: AmbassadorCopy = {
       q: "Is het betaald?",
       a: "Het ambassadorschap is onbetaald. Je krijgt ervaring, gratis evenementen en een team om op te proosten. Vind je het leuk en blink je uit, dan kun je doorgroeien naar een betaalde rol.",
     },
-    { q: "Hoeveel tijd kost het?", a: "Een paar uur per maand, en af en toe een avond of zondagmiddag. We plannen het rond je studie." },
+    { q: "Hoeveel tijd kost het?", a: "Een paar uur per maand, en af en toe een avond of zondagmiddag. Op die avond zelf geniet je vooral mee." },
     { q: "En in mijn tentamenperiode?", a: "Dan organiseren we geen evenementen. Je hebt gewoon vrij." },
     { q: "Moet ik verstand hebben van wijn?", a: "Nee. Nieuwsgierigheid is genoeg. De rest leer je onderweg, van ons en van de wijnmakers." },
     { q: "Hoe lang doe ik het?", a: "We beginnen met een semester. Daarna kijken we samen hoe je verder wilt." },
@@ -216,7 +215,7 @@ const en: AmbassadorCopy = {
   perks: [
     { title: "Real experience", body: "You organise, promote and host yourself. Not shadowing, but results you can show." },
     { title: "Your own event", body: "Got an idea, a special place or a winemaker you know? We'll make it happen together." },
-    { title: "A seat for free", body: "You join the events yourself, wine included." },
+    { title: "Enjoy what you built", body: "On the night, the sommelier hosts. You take a seat and taste along, wine included." },
     { title: "A network that lasts", body: "You work with Rotterdam wine bars, winemakers, the founders and the other ambassadors." },
     { title: "A team to toast with", body: "Team drinks, and every month we put the Ambassador of the Month in the spotlight." },
     { title: "Strong on your CV", body: "An official title, and a LinkedIn recommendation when your semester is done." },
@@ -225,9 +224,8 @@ const en: AmbassadorCopy = {
   rolesIntro: "Pick what suits you. You don't have to do it all.",
   roles: {
     fill: { title: "Fill", body: "You get Rotterdam excited, through your network, your student association and your socials." },
-    host: { title: "Host", body: "On the day you welcome the guests and make sure everyone feels at home quickly." },
+    host: { title: "Welcome", body: "You greet the guests and get things off to a good start. Then the sommelier takes over." },
     build: { title: "Create", body: "You come up with new formats and help run them. A tasting on the water, a wine cellar, a place nobody knows yet." },
-    taste: { title: "Taste", body: "You join as a regular guest and tell us honestly how it was." },
   },
   semesterTitle: "How you grow with MyTable",
   semester: [
@@ -256,7 +254,7 @@ const en: AmbassadorCopy = {
       q: "Is it paid?",
       a: "Being an ambassador is unpaid. You get experience, free events and a team to toast with. Enjoying it and doing great? Then you can grow into a paid role.",
     },
-    { q: "How much time does it take?", a: "A few hours a month, and an evening or Sunday afternoon now and then. We plan around your studies." },
+    { q: "How much time does it take?", a: "A few hours a month, and an evening or Sunday afternoon now and then. On the night itself, you mostly get to enjoy it." },
     { q: "What about my exam period?", a: "We don't organise events then. You simply have time off." },
     { q: "Do I need to know about wine?", a: "No. Curiosity is enough. You'll learn the rest along the way, from us and from the winemakers." },
     { q: "How long is it?", a: "We start with one semester. After that, we look together at how you'd like to continue." },

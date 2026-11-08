@@ -115,7 +115,7 @@ const nl: AmbassadorCopy = {
     fill: { title: "Vullen", body: "Je maakt Rotterdam enthousiast, via je netwerk, je vereniging en je socials." },
     host: { title: "Ontvangen", body: "Je heet de gasten welkom en zorgt voor een goede start. Daarna neemt de sommelier het over." },
     build: { title: "Bedenken", body: "Je verzint nieuwe formats en zet ze mee neer. Een proeverij op het water, een wijnkelder, een plek die nog niemand kent." },
-    social: { title: "Social media", body: "Je maakt foto's en korte video's op de avond, en laat Rotterdam op Instagram en TikTok zien wat ze missen." },
+    social: { title: "Content", body: "Je maakt foto's en korte video's op de avond, en laat Rotterdam op Instagram en TikTok zien wat ze missen." },
   },
   semesterTitle: "Zo groei je bij MyTable",
   semester: [
@@ -231,7 +231,7 @@ const en: AmbassadorCopy = {
     fill: { title: "Fill", body: "You get Rotterdam excited, through your network, your student association and your socials." },
     host: { title: "Welcome", body: "You greet the guests and get things off to a good start. Then the sommelier takes over." },
     build: { title: "Create", body: "You come up with new formats and help run them. A tasting on the water, a wine cellar, a place nobody knows yet." },
-    social: { title: "Social media", body: "You shoot photos and short videos on the night, and show Rotterdam on Instagram and TikTok what they're missing." },
+    social: { title: "Content", body: "You shoot photos and short videos on the night, and show Rotterdam on Instagram and TikTok what they're missing." },
   },
   semesterTitle: "How you grow with MyTable",
   semester: [

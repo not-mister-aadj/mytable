@@ -87,13 +87,13 @@ export type AmbassadorCopy = {
 };
 
 const nl: AmbassadorCopy = {
-  metaTitle: "MyTable Ambassadors Rotterdam | Maak van Rotterdam een wijnstad",
+  metaTitle: "MyTable Ambassadors Rotterdam | Organiseer de wijnavonden waar Rotterdam over praat",
   metaDescription:
     "Word MyTable Ambassador in Rotterdam, naast je studie. Organiseer wijnevenementen, van onze Sunday Socials tot een proeverij op een boot, en doe echte ervaring op.",
   eyebrow: "MyTable Ambassadors · Rotterdam",
-  title: "Maak van Rotterdam een wijnstad",
+  title: "Organiseer de wijnavonden waar Rotterdam over praat",
   intro:
-    "Als MyTable Ambassador organiseer je wijnevenementen in Rotterdam. Van onze Sunday Socials tot nieuwe ideeën: een proeverij op een boot, een avond bij een wijnmaker in de kelder. Gewoon naast je studie.",
+    "Van onze Sunday Socials tot een proeverij op een boot. Jij bedenkt het, wij helpen je het neer te zetten. Gewoon naast je studie.",
   cta: "Solliciteer als ambassador",
   facts: ["Rotterdam", "Een paar uur per maand", "Vrij in tentamenperiodes"],
   imageAlt: "Een groep aan tafel in een wijnbar, glas in de hand, in gesprek",
@@ -200,13 +200,13 @@ const nl: AmbassadorCopy = {
 };
 
 const en: AmbassadorCopy = {
-  metaTitle: "MyTable Ambassadors Rotterdam | Make Rotterdam a wine city",
+  metaTitle: "MyTable Ambassadors Rotterdam | Run the wine nights Rotterdam talks about",
   metaDescription:
     "Become a MyTable Ambassador in Rotterdam, alongside your studies. Organise wine events, from our Sunday Socials to a tasting on a boat, and gain real experience.",
   eyebrow: "MyTable Ambassadors · Rotterdam",
-  title: "Make Rotterdam a wine city",
+  title: "Run the wine nights Rotterdam talks about",
   intro:
-    "As a MyTable Ambassador, you organise wine events in Rotterdam. From our Sunday Socials to new ideas: a tasting on a boat, an evening with a winemaker in the cellar. Alongside your studies.",
+    "From our Sunday Socials to a tasting on a boat. You come up with it, we help you make it happen. Alongside your studies.",
   cta: "Apply to be an ambassador",
   facts: ["Rotterdam", "A few hours a month", "Free during exam periods"],
   imageAlt: "A group at a table in a wine bar, glass in hand, talking",

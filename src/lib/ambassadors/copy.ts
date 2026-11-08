@@ -91,11 +91,11 @@ export type AmbassadorCopy = {
 const nl: AmbassadorCopy = {
   metaTitle: "MyTable Ambassadors Rotterdam | Organiseer de wijnavonden waar Rotterdam over praat",
   metaDescription:
-    "Word MyTable Ambassador in Rotterdam, naast je studie. Organiseer wijnevenementen, van onze Sunday Socials tot een proeverij op een boot, en doe echte ervaring op.",
+    "Word MyTable Ambassador in Rotterdam, naast je studie. Organiseer wijnevenementen, van Sunday Socials tot een proeverij op een boot, en doe echte ervaring op.",
   eyebrow: "MyTable Ambassadors · Rotterdam",
   title: "Organiseer de wijnavonden waar Rotterdam over praat",
   intro:
-    "Van onze Sunday Socials tot een proeverij op een boot. Jij bedenkt het, wij helpen je het neer te zetten. Gewoon naast je studie.",
+    "Van Sunday Socials tot een proeverij op een boot. Jij bedenkt het, wij helpen je het neer te zetten. Gewoon naast je studie.",
   cta: "Solliciteer als ambassador",
   facts: ["Rotterdam", "Een paar uur per maand", "Vrij in tentamenperiodes"],
   imageAlt: "Een groep aan tafel in een wijnbar, glas in de hand, in gesprek",
@@ -115,7 +115,7 @@ const nl: AmbassadorCopy = {
     fill: { title: "Vullen", body: "Je maakt Rotterdam enthousiast, via je netwerk, je vereniging en je socials." },
     host: { title: "Ontvangen", body: "Je heet de gasten welkom en zorgt voor een goede start. Daarna neemt de sommelier het over." },
     build: { title: "Bedenken", body: "Je verzint nieuwe formats en zet ze mee neer. Een proeverij op het water, een wijnkelder, een plek die nog niemand kent." },
-    social: { title: "Social media", body: "Je maakt foto's en korte video's op de avond, en laat Rotterdam op Instagram en TikTok zien wat ze missen." },
+    social: { title: "Content", body: "Je maakt foto's en korte video's op de avond, en laat Rotterdam op Instagram en TikTok zien wat ze missen." },
   },
   semesterTitle: "Zo groei je bij MyTable",
   semester: [
@@ -207,11 +207,11 @@ const nl: AmbassadorCopy = {
 const en: AmbassadorCopy = {
   metaTitle: "MyTable Ambassadors Rotterdam | Run the wine nights Rotterdam talks about",
   metaDescription:
-    "Become a MyTable Ambassador in Rotterdam, alongside your studies. Organise wine events, from our Sunday Socials to a tasting on a boat, and gain real experience.",
+    "Become a MyTable Ambassador in Rotterdam, alongside your studies. Organise wine events, from Sunday Socials to a tasting on a boat, and gain real experience.",
   eyebrow: "MyTable Ambassadors · Rotterdam",
   title: "Run the wine nights Rotterdam talks about",
   intro:
-    "From our Sunday Socials to a tasting on a boat. You come up with it, we help you make it happen. Alongside your studies.",
+    "From Sunday Socials to a tasting on a boat. You come up with it, we help you make it happen. Alongside your studies.",
   cta: "Apply to be an ambassador",
   facts: ["Rotterdam", "A few hours a month", "Free during exam periods"],
   imageAlt: "A group at a table in a wine bar, glass in hand, talking",
@@ -231,7 +231,7 @@ const en: AmbassadorCopy = {
     fill: { title: "Fill", body: "You get Rotterdam excited, through your network, your student association and your socials." },
     host: { title: "Welcome", body: "You greet the guests and get things off to a good start. Then the sommelier takes over." },
     build: { title: "Create", body: "You come up with new formats and help run them. A tasting on the water, a wine cellar, a place nobody knows yet." },
-    social: { title: "Social media", body: "You shoot photos and short videos on the night, and show Rotterdam on Instagram and TikTok what they're missing." },
+    social: { title: "Content", body: "You shoot photos and short videos on the night, and show Rotterdam on Instagram and TikTok what they're missing." },
   },
   semesterTitle: "How you grow with MyTable",
   semester: [

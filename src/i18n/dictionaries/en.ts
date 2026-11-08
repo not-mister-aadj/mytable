@@ -326,6 +326,7 @@ export const en: Dictionary = {
       experiences: "Available tables",
       howItWorks: "How it works",
       forVenues: "For venues",
+      ambassadors: "Become an ambassador",
       faq: "FAQ",
       blog: "Blog",
       instagram: "Instagram",

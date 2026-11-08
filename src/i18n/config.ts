@@ -184,6 +184,16 @@ export function chefsSpecialLpPath(locale: Locale): string {
   return locale === "en" ? "/en/chefs-special" : "/chefs-special";
 }
 
+/** Students who want to help build MyTable in their city: explanation and application. */
+export function ambassadorsPath(locale: Locale): string {
+  return locale === "en" ? "/en/ambassadors" : "/ambassadors";
+}
+
+/** The application form behind the ambassadors page. */
+export function ambassadorsApplyPath(locale: Locale): string {
+  return locale === "en" ? "/en/ambassadors/apply" : "/ambassadors/aanmelden";
+}
+
 /** Venue-facing "what's in it for you" page for the Mixer format. */
 export function voorZakenPath(locale: Locale): string {
   return locale === "en" ? "/en/voor-zaken" : "/voor-zaken";

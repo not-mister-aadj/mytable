@@ -449,6 +449,7 @@ export interface Dictionary {
       experiences: string;
       howItWorks: string;
       forVenues: string;
+      ambassadors: string;
       faq: string;
       blog: string;
       instagram: string;

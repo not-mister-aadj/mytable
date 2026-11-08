@@ -1,5 +1,6 @@
 import {
   agendaPath,
+  ambassadorsPath,
   blogCategoryPath,
   blogPath,
   blogPostPath,
@@ -133,6 +134,14 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
         images: [absoluteUrl(city.heroImage)],
       }),
     ),
+    ...pair({
+      nlPath: ambassadorsPath("nl"),
+      enPath: ambassadorsPath("en"),
+      changefreq: "monthly",
+      priority: 0.5,
+      lastmod: now,
+      images: [absoluteUrl("/girls-only/group-bar.jpg")],
+    }),
     ...pair({
       nlPath: sundayTableLpPath("nl"),
       enPath: sundayTableLpPath("en"),

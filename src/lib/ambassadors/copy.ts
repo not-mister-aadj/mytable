@@ -91,11 +91,11 @@ export type AmbassadorCopy = {
 const nl: AmbassadorCopy = {
   metaTitle: "MyTable Ambassadors Rotterdam | Organiseer de wijnavonden waar Rotterdam over praat",
   metaDescription:
-    "Word MyTable Ambassador in Rotterdam, naast je studie. Organiseer wijnevenementen, van onze Sunday Socials tot een proeverij op een boot, en doe echte ervaring op.",
+    "Word MyTable Ambassador in Rotterdam, naast je studie. Organiseer wijnevenementen, van Sunday Socials tot een proeverij op een boot, en doe echte ervaring op.",
   eyebrow: "MyTable Ambassadors · Rotterdam",
   title: "Organiseer de wijnavonden waar Rotterdam over praat",
   intro:
-    "Van onze Sunday Socials tot een proeverij op een boot. Jij bedenkt het, wij helpen je het neer te zetten. Gewoon naast je studie.",
+    "Van Sunday Socials tot een proeverij op een boot. Jij bedenkt het, wij helpen je het neer te zetten. Gewoon naast je studie.",
   cta: "Solliciteer als ambassador",
   facts: ["Rotterdam", "Een paar uur per maand", "Vrij in tentamenperiodes"],
   imageAlt: "Een groep aan tafel in een wijnbar, glas in de hand, in gesprek",
@@ -207,11 +207,11 @@ const nl: AmbassadorCopy = {
 const en: AmbassadorCopy = {
   metaTitle: "MyTable Ambassadors Rotterdam | Run the wine nights Rotterdam talks about",
   metaDescription:
-    "Become a MyTable Ambassador in Rotterdam, alongside your studies. Organise wine events, from our Sunday Socials to a tasting on a boat, and gain real experience.",
+    "Become a MyTable Ambassador in Rotterdam, alongside your studies. Organise wine events, from Sunday Socials to a tasting on a boat, and gain real experience.",
   eyebrow: "MyTable Ambassadors · Rotterdam",
   title: "Run the wine nights Rotterdam talks about",
   intro:
-    "From our Sunday Socials to a tasting on a boat. You come up with it, we help you make it happen. Alongside your studies.",
+    "From Sunday Socials to a tasting on a boat. You come up with it, we help you make it happen. Alongside your studies.",
   cta: "Apply to be an ambassador",
   facts: ["Rotterdam", "A few hours a month", "Free during exam periods"],
   imageAlt: "A group at a table in a wine bar, glass in hand, talking",

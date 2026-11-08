@@ -15,7 +15,7 @@ function form(fields: Record<string, string | string[]>) {
   };
 }
 
-const base = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Utrecht", adult: "on" };
+const base = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Rotterdam", adult: "on" };
 
 test("accepts text motivation and cleans the input", () => {
   const f = form({ ...base, motivationText: "Ik breng graag mensen samen.", roles: ["host", "fill", "host", "hack"], locale: "en" });
@@ -40,6 +40,7 @@ test("rejects missing fields, unknown city, no 18+, no motivation, wrong or larg
     [{ ...base, name: "" }, null, "required"],
     [{ ...base, email: "geen-mail" }, null, "required"],
     [{ ...base, city: "Groningen" }, null, "required"],
+    [{ ...base, city: "Utrecht" }, null, "required"],
     [{ ...base, adult: "" }, null, "adult"],
     [base, null, "motivation"],
     [base, { name: "cv.png", size: 10 }, "file"],

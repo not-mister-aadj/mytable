@@ -140,18 +140,22 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
           <Field label={t.phone} optional={t.optional}>
             <input name="phone" type="tel" autoComplete="tel" className={input} />
           </Field>
-          <Field label={t.city}>
-            <select name="city" required defaultValue="" className={input}>
-              <option value="" disabled>
-                {t.cityPlaceholder}
-              </option>
-              {AMBASSADOR_CITIES.map((c) => (
-                <option key={c} value={c}>
-                  {locale === "en" && c === "Den Haag" ? "The Hague" : c}
+          {AMBASSADOR_CITIES.length === 1 ? (
+            <input type="hidden" name="city" value={AMBASSADOR_CITIES[0]} />
+          ) : (
+            <Field label={t.city}>
+              <select name="city" required defaultValue="" className={input}>
+                <option value="" disabled>
+                  {t.cityPlaceholder}
                 </option>
-              ))}
-            </select>
-          </Field>
+                {AMBASSADOR_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
           <Field label={t.instagram} optional={t.optional}>
             <input name="instagram" placeholder="@" className={input} />
           </Field>

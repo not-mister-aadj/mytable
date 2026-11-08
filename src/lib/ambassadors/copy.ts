@@ -2,7 +2,8 @@
 // Built like the big student programmes (Bumble Honey, Red Bull Student Marketeers):
 // a clear promise, concrete perks, what you do, a semester, and one button to apply.
 
-export const AMBASSADOR_CITIES = ["Rotterdam", "Den Haag", "Utrecht", "Amsterdam", "Eindhoven"] as const;
+/** For now only Rotterdam; add cities here when the programme grows. */
+export const AMBASSADOR_CITIES = ["Rotterdam"] as const;
 export const AMBASSADOR_ROLES = ["fill", "host", "build"] as const;
 export type AmbassadorRole = (typeof AMBASSADOR_ROLES)[number];
 
@@ -85,43 +86,43 @@ export type AmbassadorCopy = {
 };
 
 const nl: AmbassadorCopy = {
-  metaTitle: "MyTable Ambassadors | Bouw de zondag van je stad",
+  metaTitle: "MyTable Ambassadors Rotterdam | Bouw de Rotterdamse zondag",
   metaDescription:
-    "Word MyTable Ambassador naast je studie. Zet de Sunday Socials neer in jouw stad, doe echte ervaring op in events en marketing, en schuif zelf gratis aan.",
-  eyebrow: "MyTable Ambassadors",
-  title: "Bouw de zondagmiddag van jouw stad",
+    "Word MyTable Ambassador in Rotterdam, naast je studie. Zet de Sunday Socials in Rotterdam neer, doe echte ervaring op in events en marketing, en schuif zelf gratis aan.",
+  eyebrow: "MyTable Ambassadors · Rotterdam",
+  title: "Bouw de zondagmiddag van Rotterdam",
   intro:
-    "Als MyTable Ambassador zet je samen met ons de Sunday Socials neer in jouw stad. Je doet echte ervaring op in events, marketing en community, gewoon naast je studie.",
+    "Als MyTable Ambassador zet je samen met ons de Sunday Socials in Rotterdam neer. Je doet echte ervaring op in events, marketing en community, gewoon naast je studie.",
   cta: "Solliciteer als ambassador",
-  facts: ["Een semester", "Een paar uur per maand", "5 steden"],
+  facts: ["Rotterdam", "Een semester", "Een paar uur per maand"],
   imageAlt: "Een groep aan tafel in een wijnbar, glas in de hand, in gesprek",
   perksTitle: "Waarom ambassador",
   perksIntro: "Je krijgt er meer voor terug dan een regel op je cv.",
   perks: [
     { title: "Echte ervaring", body: "Je organiseert, promoot en host zelf. Geen meeloopstage, maar resultaat dat je kunt laten zien." },
-    { title: "Jouw stad, jouw zondag", body: "Jij bepaalt mee welke wijnbars we kiezen en hoe de middagen in jouw stad eruitzien." },
+    { title: "Jouw Rotterdam", body: "Jij bepaalt mee welke Rotterdamse wijnbars we kiezen en hoe de middagen eruitzien." },
     { title: "Gratis aan tafel", body: "Je schuift zelf aan bij de edities, wijn inbegrepen." },
-    { title: "Een netwerk dat blijft", body: "Je werkt met wijnbars, met de oprichters en met ambassadors in vijf steden." },
+    { title: "Een netwerk dat blijft", body: "Je werkt met Rotterdamse wijnbars, met de oprichters en met de andere ambassadors." },
     { title: "Een team om op te proosten", body: "Teamborrels, en een uitje als we samen een mijlpaal halen." },
     { title: "Sterk op je cv", body: "Een officiële titel, en een aanbeveling op LinkedIn als je semester erop zit." },
   ],
   rolesTitle: "Wat je doet",
   rolesIntro: "Kies wat bij je past. Je hoeft niet alles te doen.",
   roles: {
-    fill: { title: "Vullen", body: "Je maakt je stad enthousiast, via je netwerk, je vereniging en je socials." },
+    fill: { title: "Vullen", body: "Je maakt Rotterdam enthousiast, via je netwerk, je vereniging en je socials." },
     host: { title: "Hosten", body: "Op zondag ontvang je de gasten en zorg je dat iedereen zich snel thuis voelt." },
     build: { title: "Bouwen", body: "Je scout nieuwe wijnbars en denkt mee over wat we hierna doen." },
   },
   semesterTitle: "Zo ziet een semester eruit",
   semester: [
-    { title: "Kick-off", body: "Je leert het team en de aanpak kennen, en we maken samen een plan voor jouw stad." },
-    { title: "Zondagen neerzetten", body: "Je helpt de edities in jouw stad vol te krijgen en bent erbij op de dag zelf." },
-    { title: "Mijlpalen vieren", body: "Eerste volle editie, drie op rij, alle steden vol in één maand. Elke mijlpaal vieren we samen." },
+    { title: "Kick-off", body: "Je leert het team en de aanpak kennen, en we maken samen een plan voor Rotterdam." },
+    { title: "Zondagen neerzetten", body: "Je helpt de Rotterdamse edities vol te krijgen en bent erbij op de dag zelf." },
+    { title: "Mijlpalen vieren", body: "Je eerste volle editie, drie op rij, een wachtlijst voor de volgende. Elke mijlpaal vieren we samen." },
   ],
   whoTitle: "Wie we zoeken",
   who: [
     "Je studeert en bent 18 jaar of ouder",
-    "Je woont of studeert in Rotterdam, Den Haag, Utrecht, Amsterdam of Eindhoven",
+    "Je woont of studeert in Rotterdam",
     "Je brengt graag mensen samen en voelt je thuis in een volle zaak",
     "Je hebt een paar uur per maand, en af en toe een zondagmiddag",
     "Wijnkennis is niet nodig. Nieuwsgierigheid wel",
@@ -140,12 +141,12 @@ const nl: AmbassadorCopy = {
     { q: "Wat als ik tentamens heb?", a: "Laat het weten, dan neemt iemand anders uit het team het over." },
     { q: "Hoe lang doe ik het?", a: "Een semester. Daarna kijken we samen of je doorgaat." },
   ],
-  closingTitle: "Klaar om je stad aan tafel te krijgen?",
+  closingTitle: "Klaar om Rotterdam aan tafel te krijgen?",
   closingBody: "Solliciteer in een paar minuten. We nemen snel contact met je op.",
   apply: {
-    metaTitle: "Solliciteer als MyTable Ambassador",
+    metaTitle: "Solliciteer als MyTable Ambassador in Rotterdam",
     eyebrow: "MyTable Ambassadors",
-    title: "Solliciteer als ambassador",
+    title: "Solliciteer als ambassador in Rotterdam",
     intro: "Een paar minuten. Daarna nemen we contact met je op voor een kennismaking.",
     back: "Terug naar het programma",
   },
@@ -194,43 +195,43 @@ const nl: AmbassadorCopy = {
 };
 
 const en: AmbassadorCopy = {
-  metaTitle: "MyTable Ambassadors | Build your city's Sunday",
+  metaTitle: "MyTable Ambassadors Rotterdam | Build Rotterdam's Sunday",
   metaDescription:
-    "Become a MyTable Ambassador alongside your studies. Build the Sunday Socials in your city, gain real experience in events and marketing, and join for free.",
-  eyebrow: "MyTable Ambassadors",
-  title: "Build the Sunday afternoon of your city",
+    "Become a MyTable Ambassador in Rotterdam, alongside your studies. Build the Sunday Socials in Rotterdam, gain real experience in events and marketing, and join for free.",
+  eyebrow: "MyTable Ambassadors · Rotterdam",
+  title: "Build Rotterdam's Sunday afternoon",
   intro:
-    "As a MyTable Ambassador, you build the Sunday Socials in your city together with us. You gain real experience in events, marketing and community, alongside your studies.",
+    "As a MyTable Ambassador, you build the Sunday Socials in Rotterdam together with us. You gain real experience in events, marketing and community, alongside your studies.",
   cta: "Apply to be an ambassador",
-  facts: ["One semester", "A few hours a month", "5 cities"],
+  facts: ["Rotterdam", "One semester", "A few hours a month"],
   imageAlt: "A group at a table in a wine bar, glass in hand, talking",
   perksTitle: "Why become an ambassador",
   perksIntro: "You get more out of it than a line on your CV.",
   perks: [
     { title: "Real experience", body: "You organise, promote and host yourself. Not shadowing, but results you can show." },
-    { title: "Your city, your Sunday", body: "You help choose the wine bars and shape the afternoons in your city." },
+    { title: "Your Rotterdam", body: "You help choose Rotterdam's wine bars and shape the afternoons." },
     { title: "A seat for free", body: "You join the editions yourself, wine included." },
-    { title: "A network that lasts", body: "You work with wine bars, with the founders and with ambassadors in five cities." },
+    { title: "A network that lasts", body: "You work with Rotterdam wine bars, with the founders and with the other ambassadors." },
     { title: "A team to toast with", body: "Team drinks, and an outing when we reach a milestone together." },
     { title: "Strong on your CV", body: "An official title, and a LinkedIn recommendation when your semester is done." },
   ],
   rolesTitle: "What you do",
   rolesIntro: "Pick what suits you. You don't have to do it all.",
   roles: {
-    fill: { title: "Fill", body: "You get your city excited, through your network, your student association and your socials." },
+    fill: { title: "Fill", body: "You get Rotterdam excited, through your network, your student association and your socials." },
     host: { title: "Host", body: "On Sunday you welcome the guests and make sure everyone feels at home quickly." },
     build: { title: "Build", body: "You scout new wine bars and help think about what we do next." },
   },
   semesterTitle: "What a semester looks like",
   semester: [
-    { title: "Kick-off", body: "You get to know the team and the approach, and we make a plan for your city together." },
-    { title: "Running Sundays", body: "You help fill the editions in your city and you're there on the day." },
-    { title: "Celebrating milestones", body: "First sold-out edition, three in a row, every city full in one month. We celebrate each one together." },
+    { title: "Kick-off", body: "You get to know the team and the approach, and we make a plan for Rotterdam together." },
+    { title: "Running Sundays", body: "You help fill the Rotterdam editions and you're there on the day." },
+    { title: "Celebrating milestones", body: "Your first sold-out edition, three in a row, a waiting list for the next. We celebrate each one together." },
   ],
   whoTitle: "Who we're looking for",
   who: [
     "You're a student, 18 or older",
-    "You live or study in Rotterdam, The Hague, Utrecht, Amsterdam or Eindhoven",
+    "You live or study in Rotterdam",
     "You love bringing people together and feel at home in a busy room",
     "You have a few hours a month, and a Sunday afternoon now and then",
     "No wine knowledge needed. Curiosity is",
@@ -249,12 +250,12 @@ const en: AmbassadorCopy = {
     { q: "What if I have exams?", a: "Let us know, and someone else on the team takes over." },
     { q: "How long is it?", a: "One semester. After that, we decide together whether you continue." },
   ],
-  closingTitle: "Ready to bring your city to the table?",
+  closingTitle: "Ready to bring Rotterdam to the table?",
   closingBody: "Apply in a few minutes. We'll be in touch soon.",
   apply: {
-    metaTitle: "Apply to be a MyTable Ambassador",
+    metaTitle: "Apply to be a MyTable Ambassador in Rotterdam",
     eyebrow: "MyTable Ambassadors",
-    title: "Apply to be an ambassador",
+    title: "Apply to be an ambassador in Rotterdam",
     intro: "A few minutes. We'll then get in touch to plan a call.",
     back: "Back to the programme",
   },

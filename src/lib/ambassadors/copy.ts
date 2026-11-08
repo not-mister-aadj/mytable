@@ -81,7 +81,7 @@ const nl: AmbassadorCopy = {
   imageAlt: "Een groep aan tafel in een wijnbar, glas in de hand, in gesprek",
   whatTitle: "Wat is MyTable",
   whatBody:
-    "Op zondagmiddag schuiven mensen die elkaar nog niet kennen aan bij een wijnbar, in groepjes van 4 tot 6. Rustig, gezellig en zonder gedoe. We zijn er in Rotterdam, Den Haag, Utrecht, Amsterdam en Eindhoven.",
+    "Op zondagmiddag schuif je aan bij een wijnbar in je stad, in een gezellig groepje van 4 tot 6. Wij regelen de plek en de tafel, jij hoeft niets te plannen. Je proeft nieuwe wijnen en gerechten, en ziet steeds meer bekende gezichten. We zijn er in Rotterdam, Den Haag, Utrecht, Amsterdam en Eindhoven.",
   rolesTitle: "Wat je doet",
   roles: {
     fill: {
@@ -179,7 +179,7 @@ const en: AmbassadorCopy = {
   imageAlt: "A group at a table in a wine bar, glass in hand, talking",
   whatTitle: "What is MyTable",
   whatBody:
-    "On Sunday afternoons, people who don't know each other yet sit down at a wine bar in groups of 4 to 6. Relaxed, sociable and easy. We're in Rotterdam, The Hague, Utrecht, Amsterdam and Eindhoven.",
+    "On Sunday afternoons, you sit down at a wine bar in your city, in a sociable group of 4 to 6. We arrange the place and the table, so you don't have to plan a thing. You try new wines and dishes, and see more and more familiar faces. We're in Rotterdam, The Hague, Utrecht, Amsterdam and Eindhoven.",
   rolesTitle: "What you do",
   roles: {
     fill: { title: "Fill", body: "You get people in your city excited, through your network, your student association and your socials." },

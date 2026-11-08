@@ -14,6 +14,7 @@ import {
   sundayTableLpPath,
   termsPath,
   voorZakenPath,
+  ambassadorsPath,
   wineTastingLpCityPath,
   wineTastingLpPath,
   wineWalkLpCityPath,
@@ -41,7 +42,8 @@ export type SeoPathKind =
   | "blogCategory"
   | "privacy"
   | "terms"
-  | "voorZaken";
+  | "voorZaken"
+  | "ambassadors";
 
 function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
   switch (kind) {
@@ -90,6 +92,8 @@ function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
       return termsPath(locale);
     case "voorZaken":
       return voorZakenPath(locale);
+    case "ambassadors":
+      return ambassadorsPath(locale);
   }
 }
 

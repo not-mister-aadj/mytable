@@ -1059,3 +1059,27 @@ export const adminTodos = pgTable("admin_todos", {
   dismissedDetail: text("dismissed_detail"),
   dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
 });
+
+/** Students who applied on /ambassadors (drizzle/0066). The motivation is a
+ * file in the private "ambassador-applications" bucket, or text. */
+export const ambassadorApplications = pgTable("ambassador_applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  city: text("city").notNull(),
+  study: text("study"),
+  institution: text("institution"),
+  studyYear: text("study_year"),
+  roles: jsonb("roles").$type<string[]>().notNull().default([]),
+  instagram: text("instagram"),
+  linkedin: text("linkedin"),
+  motivationText: text("motivation_text"),
+  motivationPath: text("motivation_path"),
+  motivationName: text("motivation_name"),
+  availability: text("availability"),
+  heardFrom: text("heard_from"),
+  locale: text("locale").notNull().default("nl"),
+  status: text("status").notNull().default("new"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

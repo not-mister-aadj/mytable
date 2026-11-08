@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import {
+  ambassadorsPath,
   blogPath,
   chefsSpecialLpPath,
   girlsOnlyCityPath,
@@ -145,6 +146,13 @@ export function Footer({
               className="transition-colors hover:text-wine/70"
             >
               {dict.links.forVenues}
+            </Link>
+            <span className="mx-2 text-wine/25">·</span>
+            <Link
+              href={ambassadorsPath(locale)}
+              className="transition-colors hover:text-wine/70"
+            >
+              {dict.links.ambassadors}
             </Link>
           </p>
         </div>

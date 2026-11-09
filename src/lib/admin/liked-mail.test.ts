@@ -30,3 +30,11 @@ test("liked mail: no names, no count, no booking button, two variants", () => {
     assert.ok(!m.text.includes("\u2014"));
   }
 });
+
+test("location mail: 'Aanstaande zondag' in the week itself, 'Volgende week zondag' before", async () => {
+  const { locationThisWeek } = await import("./sunday-mails");
+  const sunday = new Date("2026-11-15T13:00:00Z");
+  assert.equal(locationThisWeek(sunday, new Date("2026-11-08T09:00:00Z")), false); // Sunday a week before
+  assert.equal(locationThisWeek(sunday, new Date("2026-11-09T09:00:00Z")), true); // Monday: 6 days
+  assert.equal(locationThisWeek(sunday, new Date("2026-11-14T22:30:00Z")), true); // late Saturday
+});

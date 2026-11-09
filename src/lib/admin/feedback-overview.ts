@@ -55,6 +55,10 @@ export type FeedbackListRow = {
   highlight: string | null;
   improve: string | null;
   reported: boolean;
+  /** When they finished the form; when they started it if not finished. */
+  filledAt: string | null;
+  /** Started but not finished. */
+  filledPartly: boolean;
   next: NextBooking | null;
 };
 
@@ -94,6 +98,8 @@ type VisitRow = {
   reports: number;
   no_show: boolean;
   late_cancel: boolean;
+  filled_started: Date | null;
+  filled_done: Date | null;
 };
 
 function emptyScore(): Score {
@@ -119,7 +125,9 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
         order by ne.starts_at limit 1) as next,
       (select count(*)::int from feedback_reports r where r.booking_id = b.id) as reports,
       b.no_show_at is not null as no_show,
-      b.cancelled_late_at is not null as late_cancel
+      b.cancelled_late_at is not null as late_cancel,
+      f.created_at as filled_started,
+      f.completed_at as filled_done
     from bookings b
     join events e on e.id = b.event_id
     left join customers c on c.email_normalized = lower(trim(b.email))
@@ -207,6 +215,8 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
         highlight: r.highlight,
         improve: r.improve,
         reported: r.reports > 0,
+        filledAt: r.filled_done ? new Date(r.filled_done).toISOString() : r.filled_started ? new Date(r.filled_started).toISOString() : null,
+        filledPartly: !r.filled_done && Boolean(r.filled_started),
         next: r.next
           ? { startsAt: new Date(r.next.starts_at).toISOString(), city: r.next.city, how: r.next.member ? "member" : r.next.free ? "free" : "ticket", early: r.next.early }
           : null,

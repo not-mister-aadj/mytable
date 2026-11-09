@@ -65,7 +65,7 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
         </div>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <section className="grid gap-3 sm:grid-cols-4 lg:grid-cols-8">
         <Kpi label="Respons" value={pct(t.answered, t.mailed)} hint={`${t.answered} van ${t.mailed}`} />
         <Kpi
           label="Gezelschap NPS"
@@ -75,6 +75,8 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
         <Kpi label="Bar" value={starsLabel(avgStars(t))} hint={`${t.venueRated} ${t.venueRated === 1 ? "beoordeling" : "beoordelingen"}`} />
         <Kpi label="Klik" value={pct(t.picked, t.answered)} hint={`${t.mutual} wederzijds`} />
         <Kpi label="Komt terug" value={pct(t.rebooked, t.rebookBase)} hint={`Boekt binnen 60 dagen · ${t.rebooked} van ${t.rebookBase}${t.rebookOpen ? ` · loopt nog bij ${t.rebookOpen}` : ""}`} />
+        <Kpi label="Afgezegd" value={String(t.lateCancels)} hint={`van ${t.guests + t.lateCancels + t.noShows} geboekt`} />
+        <Kpi label="Niet gekomen" value={String(t.noShows)} hint={`van ${t.guests + t.lateCancels + t.noShows} geboekt`} alert={t.noShows > 0} />
         <Kpi label="Meldingen" value={String(t.reports)} alert={t.reports > 0} />
       </section>
 
@@ -145,6 +147,8 @@ function ScoreTable({ title, first, rows }: { title: string; first: string; rows
               <th className="px-4 py-2.5">{first}</th>
               <th className="px-4 py-2.5 text-right">Zondagen</th>
               <th className="px-4 py-2.5 text-right">Gasten</th>
+              <th className="px-4 py-2.5 text-right">Afgezegd</th>
+              <th className="px-4 py-2.5 text-right">Niet gekomen</th>
               <th className="px-4 py-2.5 text-right">Respons</th>
               <th className="px-4 py-2.5 text-right">Gezelschap NPS</th>
               <th className="px-4 py-2.5 text-right">Bar</th>
@@ -162,6 +166,8 @@ function ScoreTable({ title, first, rows }: { title: string; first: string; rows
                 </td>
                 <td className="px-4 py-2.5 text-right text-wine/70">{s.sundays}</td>
                 <td className="px-4 py-2.5 text-right text-wine/70">{s.guests}</td>
+                <td className={`px-4 py-2.5 text-right ${s.lateCancels > 0 ? "text-wine/80" : "text-wine/40"}`}>{s.lateCancels}</td>
+                <td className={`px-4 py-2.5 text-right ${s.noShows > 0 ? "font-semibold text-amber-800" : "text-wine/40"}`}>{s.noShows}</td>
                 <td className="px-4 py-2.5 text-right">{pct(s.answered, s.mailed)}</td>
                 <td className="px-4 py-2.5 text-right">
                   {npsLabel(nps(s))}

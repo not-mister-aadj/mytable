@@ -12,7 +12,12 @@ export type FeedbackPeriod = "30" | "90" | "all";
 
 export type Score = {
   sundays: number;
+  /** Guests who came (late cancellations and no-shows are counted apart and left out of every other number). */
   guests: number;
+  /** Cancelled on their table page after the free-cancel deadline. */
+  lateCancels: number;
+  /** Marked "Niet gekomen" on the Sunday's page. */
+  noShows: number;
   /** Guests whose Sunday had the feedback mail. */
   mailed: number;
   answered: number;
@@ -87,10 +92,12 @@ type VisitRow = {
   rebooked: boolean;
   next: { starts_at: string; city: string; member: boolean; free: boolean; early: boolean } | null;
   reports: number;
+  no_show: boolean;
+  late_cancel: boolean;
 };
 
 function emptyScore(): Score {
-  return { sundays: 0, guests: 0, mailed: 0, answered: 0, promoters: 0, detractors: 0, venueRated: 0, venueStars: 0, picked: 0, mutual: 0, rebookBase: 0, rebooked: 0, rebookOpen: 0, reports: 0 };
+  return { sundays: 0, guests: 0, lateCancels: 0, noShows: 0, mailed: 0, answered: 0, promoters: 0, detractors: 0, venueRated: 0, venueStars: 0, picked: 0, mutual: 0, rebookBase: 0, rebooked: 0, rebookOpen: 0, reports: 0 };
 }
 
 export async function loadFeedbackOverview(period: FeedbackPeriod, city: string | null, now = new Date()): Promise<FeedbackOverview> {
@@ -110,7 +117,9 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
         from bookings nb join events ne on ne.id = nb.event_id
         where lower(nb.email) = lower(b.email) and nb.id <> b.id and nb.payment_status = 'paid' and nb.lifecycle_status = 'active' and ne.starts_at > e.starts_at
         order by ne.starts_at limit 1) as next,
-      (select count(*)::int from feedback_reports r where r.booking_id = b.id) as reports
+      (select count(*)::int from feedback_reports r where r.booking_id = b.id) as reports,
+      b.no_show_at is not null as no_show,
+      b.cancelled_late_at is not null as late_cancel
     from bookings b
     join events e on e.id = b.event_id
     left join customers c on c.email_normalized = lower(trim(b.email))
@@ -118,7 +127,7 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
     left join venues fv on fv.id = f.venue_id
     left join event_groups g on g.id = b.group_id
     left join venues gv on gv.id = g.venue_id
-    where b.payment_status = 'paid' and b.lifecycle_status = 'active' and b.cancelled_late_at is null and b.no_show_at is null
+    where b.payment_status = 'paid' and b.lifecycle_status = 'active'
       and e.experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
       and e.starts_at < ${now.toISOString()}::timestamptz and e.starts_at >= ${since.toISOString()}::timestamptz
     order by e.starts_at desc, b.customer_name`);
@@ -126,7 +135,7 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
   const cities = [...new Set(rows.map((r) => r.city))].sort();
   const scoped = city ? rows.filter((r) => r.city === city) : rows;
   // Mutual: they picked someone at their Sunday who picked them back.
-  const picksOf = new Map(scoped.map((r) => [r.booking_id, new Set(r.want_ids ?? [])]));
+  const picksOf = new Map(scoped.filter((r) => !r.no_show && !r.late_cancel).map((r) => [r.booking_id, new Set(r.want_ids ?? [])]));
   const isMutual = (r: VisitRow) => (r.want_ids ?? []).some((id) => picksOf.get(id)?.has(r.booking_id));
   const rebookOpen = (r: VisitRow) => !r.rebooked && new Date(r.starts_at).getTime() >= now.getTime() - REBOOK_DAYS * 86_400_000;
 
@@ -134,6 +143,14 @@ export async function loadFeedbackOverview(period: FeedbackPeriod, city: string 
     const s = emptyScore();
     s.sundays = new Set(list.map((r) => r.event_id)).size;
     for (const r of list) {
+      if (r.late_cancel) {
+        s.lateCancels++;
+        continue;
+      }
+      if (r.no_show) {
+        s.noShows++;
+        continue;
+      }
       s.guests++;
       if (r.mailed || r.mood) s.mailed++;
       if (r.mood) {

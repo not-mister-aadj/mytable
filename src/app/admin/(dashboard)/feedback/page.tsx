@@ -95,6 +95,7 @@ export default async function AdminFeedbackPage({ searchParams }: Props) {
               <tr className="border-b border-border-subtle text-xs uppercase tracking-[0.06em] text-wine/50">
                 <th className="px-4 py-2.5">Zondag</th>
                 <th className="px-4 py-2.5">Gast</th>
+                <th className="px-4 py-2.5">Ingevuld</th>
                 <th className="px-4 py-2.5">Gezelschap</th>
                 <th className="px-4 py-2.5">Bar</th>
                 <th className="px-4 py-2.5">Wil terugzien</th>
@@ -230,6 +231,12 @@ function AnswerRow({ r }: { r: FeedbackListRow }) {
           <span className="font-medium text-wine">{r.name}</span>
         )}
         {r.reported ? <p className="mt-0.5 text-xs font-semibold text-red-800">Melding</p> : null}
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap text-wine/70">
+        {r.filledAt
+          ? new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(r.filledAt))
+          : "-"}
+        {r.filledPartly ? <p className="text-xs text-wine/45">niet afgerond</p> : null}
       </td>
       <td className="px-4 py-3">
         <Mood mood={r.mood} />

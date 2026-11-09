@@ -10,7 +10,9 @@ import { emailBrand, emailFonts, emailRadii, emailType } from "./brand";
 /** A week before a Sunday Social, sent from the Sunday page in admin: where
  * it is, how the afternoon goes, what follows on Saturday, and a one-click
  * link to the questions (to fill in, or to change). Unanswered questions get
- * their own coloured block right under the opening, so it isn't read past. */
+ * their own coloured block right under the opening, so it isn't read past.
+ * Sent later than the Sunday before (6 days or less), it says "Aanstaande
+ * zondag" instead of "Volgende week zondag" (see locationThisWeek). */
 export type SundayLocationEmailProps = {
   locale: "nl" | "en";
   firstName?: string;

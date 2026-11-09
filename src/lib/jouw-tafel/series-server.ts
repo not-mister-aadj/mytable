@@ -46,19 +46,20 @@ async function loadPauses(): Promise<JouwTafelPause[]> {
  * touches a table that exists, and never brings back a date an admin
  * removed. Safe to run twice at once (unique series + date).
  */
-export async function generateSeriesTables(now = new Date()): Promise<{ created: number }> {
+export async function generateSeriesTables(now = new Date(), log: (step: string) => void = () => {}): Promise<{ created: number }> {
   if (!isDbConfigured()) return { created: 0 };
   const db = getDb();
   const window = seriesWindow(amsterdamToday(now));
-  const [allSeries, pauses, skips, existing] = await Promise.all([
-    db.select().from(jouwTafelSeries).where(eq(jouwTafelSeries.active, true)),
-    loadPauses(),
-    db.select().from(jouwTafelSeriesSkips),
-    db
-      .select({ seriesId: events.seriesId, seriesDate: events.seriesDate })
-      .from(events)
-      .where(and(isNotNull(events.seriesId), gte(events.seriesDate, window.from))),
-  ]);
+  // One query at a time: the pool has 3 connections and other crons share it.
+  const allSeries = await db.select().from(jouwTafelSeries).where(eq(jouwTafelSeries.active, true));
+  log(`series ${allSeries.length}`);
+  const pauses = await loadPauses();
+  const skips = await db.select().from(jouwTafelSeriesSkips);
+  const existing = await db
+    .select({ seriesId: events.seriesId, seriesDate: events.seriesDate })
+    .from(events)
+    .where(and(isNotNull(events.seriesId), gte(events.seriesDate, window.from)));
+  log(`loaded: ${pauses.length} pauses, ${skips.length} skips, ${existing.length} tables`);
   const have = new Set(existing.map((e) => `${e.seriesId}|${e.seriesDate}`));
 
   let created = 0;
@@ -94,10 +95,14 @@ export async function generateSeriesTables(now = new Date()): Promise<{ created:
         })
         .onConflictDoNothing()
         .returning({ id: events.id });
-      if (inserted.length > 0) created += 1;
+      if (inserted.length > 0) {
+        created += 1;
+        log(`created ${series.city} ${date}`);
+      }
     }
   }
   if (created > 0) revalidateTag(PUBLISHED_EVENTS_CACHE_TAG, "max");
+  log("done");
   return { created };
 }
 

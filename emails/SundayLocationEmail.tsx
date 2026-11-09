@@ -35,6 +35,8 @@ export type SundayLocationEmailProps = {
   bookingCode?: string;
   /** Booked after the location mail went out: this is their confirmation. */
   booked?: boolean;
+  /** Sent in the week of the Sunday itself: "Aanstaande zondag" instead of "Volgende week zondag". */
+  thisWeek?: boolean;
   email?: string;
 };
 
@@ -103,6 +105,8 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
     ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},`
     : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
   const withPlusOne = Boolean(p.plusOneName);
+  const whenNl = p.thisWeek ? "Aanstaande zondag" : "Volgende week zondag";
+  const whenEn = p.thisWeek ? "This Sunday" : "Next Sunday";
 
   return (
     <EmailLayout
@@ -110,10 +114,10 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
         nl
           ? p.booked
             ? `Je plek staat: ${p.dateLabel} om ${p.time} bij ${p.venueName}${areaPhrase(p.area, true)}.`
-            : `Volgende week zondag om ${p.time}: je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.`
+            : `${whenNl} om ${p.time}: je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.`
           : p.booked
             ? `You're booked: ${p.dateLabel} at ${p.time} at ${p.venueName}${areaPhrase(p.area, false)}.`
-            : `Next Sunday at ${p.time}: your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.`
+            : `${whenEn} at ${p.time}: your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.`
       }
     >
       <EmailHero
@@ -124,8 +128,8 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
               ? `Je plek staat, tot zondag bij ${p.venueName}`
               : `You're booked, see you Sunday at ${p.venueName}`
             : nl
-              ? `Volgende week zondag bij ${p.venueName}`
-              : `Next Sunday at ${p.venueName}`
+              ? `${whenNl} bij ${p.venueName}`
+              : `${whenEn} at ${p.venueName}`
         }
         body={
           nl

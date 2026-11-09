@@ -69,7 +69,7 @@ export type SundayMailContext = {
 };
 
 /** Which sent mails count as the location mail; the Vandaag page counts with it too. */
-export const LOCATION_SUBJECT_SQL = `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%' or subject ilike '%volgende week zondag%' or subject ilike '%next sunday at%')`;
+export const LOCATION_SUBJECT_SQL = `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%' or subject ilike '%volgende week zondag%' or subject ilike '%next sunday at%' or subject ilike 'aanstaande zondag bij%' or subject ilike 'this sunday at%')`;
 const LOCATION_SENT = sql.raw(LOCATION_SUBJECT_SQL);
 const SATURDAY_SENT = sql.raw(`(subject ilike '%groep %' or subject ilike '%group %')`);
 const MORNING_SENT = sql.raw(
@@ -255,6 +255,12 @@ export function mailBlocker(ctx: SundayMailContext, kind: SundayMailKind): strin
   return null;
 }
 
+/** The Sunday is 6 days away or less (Amsterdam calendar days), so it is "this Sunday", not "next week". */
+export function locationThisWeek(startsAt: Date, now = new Date()): boolean {
+  const days = Math.round((Date.parse(`${amsterdamDateIso(startsAt)}T12:00:00Z`) - Date.parse(`${amsterdamDateIso(now)}T12:00:00Z`)) / 86_400_000);
+  return days <= 6;
+}
+
 export async function buildSundayMail(
   ctx: SundayMailContext,
   kind: SundayMailKind,
@@ -267,14 +273,16 @@ export async function buildSundayMail(
   const nl = locale === "nl";
   const url = await introUrl(guest.bookingId, locale);
   if (kind === "location") {
+    // Sent in the week of the Sunday itself (6 days or less): "Aanstaande zondag".
+    const thisWeek = locationThisWeek(ctx.startsAt);
     return {
       subject: booked
         ? nl
           ? `Bevestigd: je Sunday Social bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
           : `Confirmed: your Sunday Social at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
         : nl
-          ? `Volgende week zondag bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
-          : `Next Sunday at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`,
+          ? `${thisWeek ? "Aanstaande zondag" : "Volgende week zondag"} bij ${venue.name} · ${shortDate(ctx.startsAt, locale)}`
+          : `${thisWeek ? "This Sunday" : "Next Sunday"} at ${venue.name} · ${shortDate(ctx.startsAt, locale)}`,
       element: SundayLocationEmail({
         locale,
         booked,
@@ -291,6 +299,7 @@ export async function buildSundayMail(
         mapsUrl: mapsUrl(venue.name, venue.address),
         introUrl: url,
         answered: !guest.needsIntro,
+        thisWeek,
       }),
     };
   }

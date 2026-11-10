@@ -100,7 +100,11 @@ export async function applyResendOutreachEvent(
 
   if (!message) return false;
 
-  const occurredAt = event.created_at ? new Date(event.created_at) : new Date();
+  const parsed = event.created_at ? new Date(event.created_at) : new Date();
+  const occurredAt = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  // Inside a raw sql template a Date is sent as-is and the driver rejects it,
+  // so the coalesce() updates get the timestamp as ISO text with a cast.
+  const occurredAtSql = sql`${occurredAt.toISOString()}::timestamptz`;
 
   // Resend retries on any non-2xx; the unique index makes that a no-op.
   const inserted = await db
@@ -136,7 +140,7 @@ export async function applyResendOutreachEvent(
         .update(outreachMessages)
         .set({
           status,
-          firstOpenedAt: sql`coalesce(${outreachMessages.firstOpenedAt}, ${occurredAt})`,
+          firstOpenedAt: sql`coalesce(${outreachMessages.firstOpenedAt}, ${occurredAtSql})`,
           lastOpenedAt: occurredAt,
           openCount: sql`${outreachMessages.openCount} + 1`,
         })
@@ -147,7 +151,7 @@ export async function applyResendOutreachEvent(
         .update(outreachMessages)
         .set({
           status,
-          firstClickedAt: sql`coalesce(${outreachMessages.firstClickedAt}, ${occurredAt})`,
+          firstClickedAt: sql`coalesce(${outreachMessages.firstClickedAt}, ${occurredAtSql})`,
           clickCount: sql`${outreachMessages.clickCount} + 1`,
         })
         .where(eq(outreachMessages.id, message.id));

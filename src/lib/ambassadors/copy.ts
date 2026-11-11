@@ -4,9 +4,11 @@
 
 /** For now only Rotterdam; add cities here when the programme grows. */
 export const AMBASSADOR_CITIES = ["Rotterdam"] as const;
-/** "build" is shown as Bedenken: new formats. Applicants pick one or more. */
-export const AMBASSADOR_ROLES = ["fill", "host", "build", "social"] as const;
-export type AmbassadorRole = (typeof AMBASSADOR_ROLES)[number];
+/** The roles applicants can pick now (11 Nov 2026: two, "Verbinden" and "Content"). */
+export const AMBASSADOR_ROLES = ["fill", "social"] as const;
+/** Every role an application can carry: "host" and "build" were on the page
+ * until 11 Nov 2026 and stay readable in the admin. */
+export type AmbassadorRole = (typeof AMBASSADOR_ROLES)[number] | "host" | "build";
 
 type Item = { title: string; body: string };
 
@@ -26,6 +28,7 @@ export type AmbassadorCopy = {
   rolesIntro: string;
   roles: Record<AmbassadorRole, Item>;
   semesterTitle: string;
+  semesterIntro: string;
   semester: Item[];
   whoTitle: string;
   who: string[];
@@ -110,18 +113,19 @@ const nl: AmbassadorCopy = {
     { title: "Sterk op je cv", body: "Een officiële titel, en een aanbeveling op LinkedIn als je semester erop zit." },
   ],
   rolesTitle: "Wat je doet",
-  rolesIntro: "Kies wat bij je past. Eén rol is genoeg, meer mag ook.",
+  rolesIntro: "Kies wat bij je past. Eén rol is genoeg, allebei mag ook.",
   roles: {
-    fill: { title: "Vullen", body: "Je maakt Rotterdam enthousiast, via je netwerk, je vereniging en je socials." },
+    fill: { title: "Verbinden", body: "Je zorgt dat de evenementen vol zitten via studieverenigingen, sportclubs en je eigen netwerk. Ken je een plek die bij ons past? Dan leg jij het eerste contact." },
     host: { title: "Ontvangen", body: "Je heet de gasten welkom en zorgt voor een goede start. Daarna neemt de sommelier het over." },
     build: { title: "Bedenken", body: "Je verzint nieuwe formats en zet ze mee neer. Een proeverij op het water, een wijnkelder, een plek die nog niemand kent." },
     social: { title: "Content", body: "Je maakt foto's en korte video's op de avond, en laat Rotterdam op Instagram en TikTok zien wat ze missen." },
   },
   semesterTitle: "Zo groei je bij MyTable",
+  semesterIntro: "Iedereen begint als Ambassador. Laat je zien wat je kunt, dan groei je door.",
   semester: [
-    { title: "Ambassador", body: "Je start, leert het team kennen en schuift gratis aan bij de evenementen, wijn inbegrepen." },
-    { title: "Senior Ambassador", body: "Laat je zien wat je kunt? Dan verdien je per ticket dat via jou verkocht wordt, en per eigen event dat je neerzet." },
-    { title: "City Lead Rotterdam", body: "De beste ambassadors groeien door naar een betaalde rol in ons team." },
+    { title: "Ambassador", body: "Hier begin je. Je leert het team kennen en schuift gratis aan bij de evenementen, wijn inbegrepen." },
+    { title: "Senior Ambassador", body: "Je volgende stap. Je verdient per ticket dat via jou verkocht wordt en per eigen event dat je neerzet, en je sluit samen met ons samenwerkingen met nieuwe zaken." },
+    { title: "City Lead Rotterdam", body: "De laatste stap: een betaalde rol in ons team. Je beheert de zaken in Rotterdam." },
   ],
   whoTitle: "Wie we zoeken",
   who: [
@@ -170,8 +174,8 @@ const nl: AmbassadorCopy = {
     study: "Studie",
     institution: "Universiteit of hogeschool",
     studyYear: "Studiejaar",
-    roles: "Welke rollen spreken je aan?",
-    rolesHelp: "Kies er één of meer.",
+    roles: "Welke rol spreekt je aan?",
+    rolesHelp: "Kies er één of allebei.",
     instagram: "Instagram",
     linkedin: "LinkedIn",
     optional: "optioneel",
@@ -225,18 +229,19 @@ const en: AmbassadorCopy = {
     { title: "Strong on your CV", body: "An official title, and a LinkedIn recommendation when your semester is done." },
   ],
   rolesTitle: "What you do",
-  rolesIntro: "Pick what suits you. One role is enough, more is welcome.",
+  rolesIntro: "Pick what suits you. One role is enough, both is welcome.",
   roles: {
-    fill: { title: "Fill", body: "You get Rotterdam excited, through your network, your student association and your socials." },
+    fill: { title: "Connect", body: "You make sure the events fill up through student associations, sports clubs and your own network. Know a place that suits us? Then you make the first contact." },
     host: { title: "Welcome", body: "You greet the guests and get things off to a good start. Then the sommelier takes over." },
     build: { title: "Create", body: "You come up with new formats and help run them. A tasting on the water, a wine cellar, a place nobody knows yet." },
     social: { title: "Content", body: "You shoot photos and short videos on the night, and show Rotterdam on Instagram and TikTok what they're missing." },
   },
   semesterTitle: "How you grow with MyTable",
+  semesterIntro: "Everyone starts as an Ambassador. Show what you can do, and you grow from there.",
   semester: [
-    { title: "Ambassador", body: "You start, get to know the team and join the events for free, wine included." },
-    { title: "Senior Ambassador", body: "Showing what you can do? Then you earn for every ticket sold through you, and for every event of your own you run." },
-    { title: "City Lead Rotterdam", body: "The best ambassadors grow into a paid role on our team." },
+    { title: "Ambassador", body: "This is where you start. You get to know the team and join the events for free, wine included." },
+    { title: "Senior Ambassador", body: "Your next step. You earn for every ticket sold through you and for every event of your own you run, and you close partnerships with new venues, together with us." },
+    { title: "City Lead Rotterdam", body: "The last step: a paid role on our team. You run the venues in Rotterdam." },
   ],
   whoTitle: "Who we're looking for",
   who: [
@@ -285,8 +290,8 @@ const en: AmbassadorCopy = {
     study: "Study programme",
     institution: "University",
     studyYear: "Year of study",
-    roles: "Which roles appeal to you?",
-    rolesHelp: "Pick one or more.",
+    roles: "Which role appeals to you?",
+    rolesHelp: "Pick one or both.",
     instagram: "Instagram",
     linkedin: "LinkedIn",
     optional: "optional",

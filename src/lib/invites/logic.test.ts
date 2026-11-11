@@ -48,7 +48,7 @@ test("one invite a month, two for more than two cities, one per two months when 
 
 test("ignored invites slow down, then ask, then stop", () => {
   const now = new Date("2026-12-31T10:00:00Z");
-  const sent = (daysAgo: number, engaged = false, kind: "invite" | "checkin" = "invite") => ({
+  const sent = (daysAgo: number, engaged = false, kind: "invite" | "checkin" | "match" = "invite") => ({
     sentAt: new Date(now.getTime() - daysAgo * DAY),
     kind,
     engaged,
@@ -61,6 +61,10 @@ test("ignored invites slow down, then ask, then stop", () => {
   assert.equal(engagement([sent(20, true, "checkin"), sent(40), sent(70)], now).status, "active");
   // A click resets the count.
   assert.equal(engagement([sent(40), sent(70, true), sent(100), sent(130)], now).status, "active");
+  // A "bekende gezichten" mail: a reaction to it resets the count, no reaction never adds to it.
+  assert.equal(engagement([sent(40), sent(50, true, "match"), sent(70), sent(100), sent(130)], now).status, "active");
+  assert.equal(engagement([sent(20, false, "match"), sent(40), sent(70)], now).status, "active");
+  assert.equal(engagement([sent(20, false, "match"), sent(40), sent(70), sent(100)], now).status, "slow");
 });
 
 test("seats: the number only when 9 or fewer are left", () => {

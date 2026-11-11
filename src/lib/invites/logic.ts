@@ -189,14 +189,17 @@ export type Engagement = {
 };
 
 /**
- * How interested someone is, from their sent invites (nudges and match mails do not count).
+ * How interested someone is, from their sent invites (nudges do not count).
  * An invite counts as ignored once ENGAGE_DAYS passed without a click or a
  * booking. After CHECKIN_AFTER ignored: one "still interested?" mail; no
- * reaction within CHECKIN_WAIT_DAYS and they are stopped.
+ * reaction within CHECKIN_WAIT_DAYS and they are stopped. A "bekende
+ * gezichten" mail never counts as ignored, but a click on it or a booking
+ * after it is a reaction and resets the count (user's choice, 11 Nov 2026).
  */
 export function engagement(sent: SentInvite[], now: Date, engagedSince?: Date | null): Engagement {
   const counted = sent
-    .filter((s) => s.kind !== "nudge" && s.kind !== "match")
+    .filter((s) => s.kind !== "nudge")
+    .filter((s) => s.kind !== "match" || s.engaged)
     .filter((s) => !engagedSince || s.sentAt.getTime() > engagedSince.getTime())
     .sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
   let ignored = 0;

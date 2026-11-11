@@ -72,7 +72,7 @@ export function parseAmbassadorForm(
   if (!name || !email || !EMAIL.test(email) || !city || !phone || digits.length < 9 || digits.length > 15) return { ok: false, error: "required" };
   if (!study || !institution || !studyYear) return { ok: false, error: "study" };
   if (get("adult") !== "on" && get("adult") !== "true") return { ok: false, error: "adult" };
-  const roles = [...new Set(getAll("roles").filter((r): r is AmbassadorRole => AMBASSADOR_ROLES.includes(r as AmbassadorRole)))];
+  const roles = [...new Set(getAll("roles").filter((r): r is AmbassadorRole => (AMBASSADOR_ROLES as readonly string[]).includes(String(r))))];
   if (roles.length === 0) return { ok: false, error: "roles" };
 
   const motivationText = clean(get("motivationText"), 5000);

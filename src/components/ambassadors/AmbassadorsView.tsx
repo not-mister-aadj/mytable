@@ -85,12 +85,12 @@ export function AmbassadorsView({
         </section>
 
         <section className="mt-16">
-          <SectionTitle>{t.semesterTitle}</SectionTitle>
+          <SectionTitle intro={t.semesterIntro}>{t.semesterTitle}</SectionTitle>
           <ol className="relative mt-6 space-y-6 border-l border-burgundy/20 pl-6">
-            {t.semester.map((s) => (
+            {t.semester.map((s, i) => (
               <li key={s.title} className="relative">
                 <span aria-hidden className="absolute -left-[1.85rem] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-burgundy" />
-                <div className="font-semibold text-wine">{s.title}</div>
+                <div className="font-semibold text-wine">{i + 1} · {s.title}</div>
                 <p className="mt-1 leading-relaxed text-wine/65">{s.body}</p>
               </li>
             ))}

@@ -18,13 +18,13 @@ function form(fields: Record<string, string | string[]>) {
 const base: Record<string, string | string[]> = { name: " Sophie de Vries ", email: "Sophie@Example.nl", city: "Rotterdam", phone: "06 12345678", study: "Bedrijfskunde", institution: "Erasmus Universiteit", studyYear: "2", adult: "on", roles: ["social"] };
 
 test("accepts text motivation and cleans the input", () => {
-  const f = form({ ...base, motivationText: "Ik breng graag mensen samen.", roles: ["host", "fill", "host", "hack"], locale: "en" });
+  const f = form({ ...base, motivationText: "Ik breng graag mensen samen.", roles: ["social", "fill", "social", "host", "hack"], locale: "en" });
   const r = parseAmbassadorForm(f.get, f.getAll, null);
   assert.ok(r.ok);
   if (!r.ok) return;
   assert.equal(r.input.name, "Sophie de Vries");
   assert.equal(r.input.email, "sophie@example.nl");
-  assert.deepEqual(r.input.roles, ["host", "fill"]);
+  assert.deepEqual(r.input.roles, ["social", "fill"]);
   assert.equal(r.input.locale, "en");
   assert.equal(r.input.phone, "06 12345678");
 });

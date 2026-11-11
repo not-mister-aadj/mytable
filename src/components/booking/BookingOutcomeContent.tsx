@@ -15,6 +15,7 @@ import { NextTableConversion } from "@/components/NextTableConversion";
 import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
 import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
 import { isSharedTableType } from "@/lib/event-concepts";
+import { CopyEmailText } from "@/components/booking/CopyEmailText";
 
 type Variant = "success" | "failed" | "pending";
 
@@ -105,7 +106,13 @@ export function BookingOutcomeContent({
             {copy.headline}
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-beige/85 sm:text-lg">
-            {timedOut ? dict.pending.timeoutSubtext : copy.subtext}
+            {timedOut ? (
+              dict.pending.timeoutSubtext
+            ) : variant === "success" && isSundayTable ? (
+              <CopyEmailText text={dict.success.sharedSubtext} copiedLabel={dict.success.emailCopied} />
+            ) : (
+              copy.subtext
+            )}
           </p>
           {variant !== "pending" ? (
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

@@ -202,6 +202,11 @@ export interface BookingOutcomeLabels {
     eyebrow: string;
     headline: string;
     subtext: string;
+    /** Sunday Social / shared tables: when the venue mail comes, plus a spam tip.
+     * "{email}" is replaced by the address, which copies on click. */
+    sharedSubtext: string;
+    /** Shown briefly after the address is copied. */
+    emailCopied: string;
     primaryCta: string;
     secondaryCta: string;
   };

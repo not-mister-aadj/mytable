@@ -6,6 +6,9 @@ export const bookingOutcomeEn: BookingOutcomeLabels = {
     headline: "Your seat is waiting",
     subtext:
       "Your payment went through. You'll receive full details by email within a few minutes.",
+    sharedSubtext:
+      "Your seat is booked. Your confirmation is on its way, and a week before we'll let you know where your table is. Nothing in your inbox? Check your spam or promotions, and add {email} to your contacts.",
+    emailCopied: "Copied",
     primaryCta: "View your table",
     secondaryCta: "Browse more tables",
   },

@@ -6,6 +6,9 @@ export const bookingOutcomeNl: BookingOutcomeLabels = {
     headline: "Je tafel staat klaar",
     subtext:
       "Je betaling is verwerkt. Binnen enkele minuten ontvang je alle details per e-mail.",
+    sharedSubtext:
+      "Je plek is binnen. Je bevestiging komt zo in je mail, en een week van tevoren laten we je weten waar je aan tafel zit. Zie je niets? Kijk dan ook in je spam of promoties, en zet {email} bij je contacten.",
+    emailCopied: "Gekopieerd",
     primaryCta: "Tafel bekijken",
     secondaryCta: "Bekijk meer tafels",
   },

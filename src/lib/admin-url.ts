@@ -81,7 +81,7 @@ export function getAdminUrl(): string {
     return getLocalDevAdminUrl();
   }
   const configured = process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/$/, "");
-  if (configured) return configured;
+  if (configured) return URL.canParse(configured) ? configured : `https://${getAdminHost()}`;
   return `${getSiteUrl().replace(/\/$/, "")}/admin`;
 }
 

@@ -2,8 +2,8 @@ import { NextResponse, after } from "next/server";
 import { getDb, isDbConfigured } from "@/db/index";
 import { ambassadorApplications } from "@/db/schema";
 import { adminUrl } from "@/lib/admin-url";
-import { AMBASSADOR_BUCKET, MOTIVATION_TYPES, motivationExtension, parseAmbassadorForm } from "@/lib/ambassadors/validate";
-import { getAdminEmails } from "@/lib/env";
+import { AMBASSADOR_BUCKET, MOTIVATION_TYPES, motivationExtension, parseAmbassadorForm, type AmbassadorInput } from "@/lib/ambassadors/validate";
+import { adminMail, applicantMail, type PlainMail } from "@/lib/ambassadors/mails";
 import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/resend";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -23,7 +23,7 @@ function allowed(key: string, max = 5, windowMs = 60_000): boolean {
   return true;
 }
 
-/** An application from /ambassadors: stored, the document in a private bucket, and a mail to us. */
+/** An application from /ambassadors: stored, the document in a private bucket, a confirmation to them and a mail to us. */
 export async function POST(request: Request) {
   if (!isDbConfigured()) return NextResponse.json({ error: "generic" }, { status: 503 });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -65,38 +65,43 @@ export async function POST(request: Request) {
     }
   }
 
+  const fileName = file ? file.name.slice(0, 200) : null;
   const [row] = await getDb()
     .insert(ambassadorApplications)
     .values({
       ...input,
       motivationPath,
-      motivationName: file ? file.name.slice(0, 200) : null,
+      motivationName: fileName,
     })
     .returning({ id: ambassadorApplications.id });
 
-  after(() => mailUs(input.name, input.city, input.email));
+  after(() => sendMails(input, fileName));
   return NextResponse.json({ ok: true, id: row?.id });
 }
 
-/** One short mail to the admins per application. Never throws. */
-async function mailUs(name: string, city: string, email: string): Promise<void> {
+/** Where the notice goes, and its sender: info@ mail from info@ skips the inbox
+ * (Gmail filter for our own copies), so it comes from the person-like address. */
+const TEAM_INBOX = "info@mytable.club";
+const NOTICE_FROM = "MyTable <hallo@tafels.mytable.club>";
+
+/** The confirmation to the applicant and the notice to us. Never throws. */
+async function sendMails(input: AmbassadorInput, fileName: string | null): Promise<void> {
   const resend = getResendClient();
   if (!resend) return;
-  const to = getAdminEmails();
-  const text = [
-    `Nieuwe ambassador-aanmelding: ${name} (${city}), ${email}.`,
-    "",
-    `Bekijk de aanmelding: ${adminUrl("/ambassadors")}`,
-  ].join("\n");
+  const send = async (label: string, from: string, to: string, mail: PlainMail) => {
+    try {
+      const { error } = await resend.emails.send({ from, replyTo: getEmailReplyTo(), to, ...mail });
+      if (error) console.error(`[ambassadors] ${label} mail failed`, error);
+    } catch (error) {
+      console.error(`[ambassadors] ${label} mail failed`, error);
+    }
+  };
+  await send("applicant", getEmailFrom(), input.email, applicantMail(input, fileName));
+  let url = "https://dashboard.mytable.club/ambassadors";
   try {
-    await resend.emails.send({
-      from: getEmailFrom(),
-      replyTo: getEmailReplyTo(),
-      to: to.length > 0 ? to : ["info@mytable.club"],
-      subject: `Ambassador-aanmelding: ${name}, ${city}`,
-      text,
-    });
-  } catch (error) {
-    console.error("[ambassadors] admin mail failed", error);
+    url = adminUrl("/ambassadors");
+  } catch {
+    // keep the fallback
   }
+  await send("admin", NOTICE_FROM, TEAM_INBOX, adminMail(input, fileName, url));
 }

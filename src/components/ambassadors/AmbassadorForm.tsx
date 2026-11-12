@@ -213,7 +213,7 @@ export function AmbassadorForm({ locale }: { locale: Locale }) {
             <input
               name="motivationFile"
               type="file"
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".pdf,application/pdf"
               className="mt-1.5 block w-full text-[0.9rem] text-wine file:mr-3 file:rounded-full file:border-0 file:bg-burgundy/10 file:px-4 file:py-2 file:font-semibold file:text-burgundy"
             />
             <span className="mt-1 block text-[0.8rem] text-wine/45">{t.motivationFileHelp}</span>

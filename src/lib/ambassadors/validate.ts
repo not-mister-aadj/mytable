@@ -8,8 +8,6 @@ export const MAX_MOTIVATION_BYTES = 5 * 1024 * 1024;
 /** Extension and the content type we store it with. */
 export const MOTIVATION_TYPES: Record<string, string> = {
   pdf: "application/pdf",
-  doc: "application/msword",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 };
 
 export type AmbassadorInput = {

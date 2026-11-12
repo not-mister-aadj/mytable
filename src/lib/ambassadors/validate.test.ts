@@ -51,7 +51,7 @@ test("rejects missing fields, unknown city, no 18+, no motivation, wrong or larg
     [{ ...base, roles: ["hack"] }, null, "roles"],
     [base, null, "motivation"],
     [base, { name: "cv.png", size: 10 }, "file"],
-    [base, { name: "brief.docx", size: MAX_MOTIVATION_BYTES + 1 }, "fileSize"],
+    [base, { name: "brief.pdf", size: MAX_MOTIVATION_BYTES + 1 }, "fileSize"],
   ];
   for (const [fields, file, error] of cases) {
     const f = form(fields);
@@ -60,9 +60,11 @@ test("rejects missing fields, unknown city, no 18+, no motivation, wrong or larg
   }
 });
 
-test("only pdf, doc and docx", () => {
+test("only pdf", () => {
   assert.equal(motivationExtension("a.pdf"), "pdf");
-  assert.equal(motivationExtension("a.final.DOCX"), "docx");
+  assert.equal(motivationExtension("a.final.PDF"), "pdf");
+  assert.equal(motivationExtension("brief.docx"), null);
+  assert.equal(motivationExtension("brief.doc"), null);
   assert.equal(motivationExtension("a.exe"), null);
   assert.equal(motivationExtension("noext"), null);
 });

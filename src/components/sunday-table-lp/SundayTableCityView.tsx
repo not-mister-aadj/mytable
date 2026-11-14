@@ -30,7 +30,7 @@ import type { SundayTableCityDate } from "@/lib/sunday-table-city-dates";
 import { formatSundayTableTime } from "@/lib/sunday-wine-table";
 import { rememberPreferredCity } from "@/lib/member-onboarding";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
-import { formatSpotsLeftHint, formatTableSpotsLeftHint } from "@/lib/event-display";
+import { formatSpotsLeftHint } from "@/lib/event-display";
 import { ease } from "@/lib/motion";
 
 const bookButtonClass =
@@ -291,9 +291,7 @@ export function SundayTableCityView({
                       ? labels.dates.soldOut
                       : table.status === "comingSoon"
                         ? labels.dates.comingSoon
-                        : table.spotsLeft !== null
-                          ? formatTableSpotsLeftHint(table.spotsLeft, locale)
-                          : null;
+                        : table.seatLabel;
                   return (
                     <li
                       key={table.tableDate}

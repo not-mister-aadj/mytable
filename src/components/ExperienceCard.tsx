@@ -19,7 +19,7 @@ import {
 import {
   formatAlmostFullImageHint,
   formatCardDateTimeLine,
-  formatSpotsLeftHint, formatTableSpotsLeftHint, tableSpotsLeft} from "@/lib/event-display";
+  formatSpotsLeftHint, seatUrgencyNow} from "@/lib/event-display";
 
 interface ExperienceCardProps {
   experience: ExperienceItem;
@@ -118,22 +118,28 @@ export function ExperienceCard({
     : experience.price > 0
       ? formatPerPerson(experience.price, perPersonFromLabel)
       : null;
-  // A Sunday Social is filled a table at a time: the card shows the seats
-  // left at the table being filled.
-  const tableLeft =
-    isSundayTable && experience.capacity !== undefined && experience.spotsSold !== undefined
-      ? tableSpotsLeft(experience.capacity, experience.spotsSold)
-      : null;
+  // A Sunday Social follows the one seat-chip rule (`seatUrgency`): the
+  // Sunday's own count far ahead, the table being filled from four weeks.
+  const sundaySocial =
+    isSundayTable && experience.capacity !== undefined && experience.spotsSold !== undefined && Boolean(experience.startsAt);
+  const seats = sundaySocial
+    ? seatUrgencyNow({
+        capacity: experience.capacity!,
+        spotsSold: experience.spotsSold!,
+        startsAt: experience.startsAt!,
+        locale: locale === "en" ? "en" : "nl",
+      })
+    : null;
   const showUrgencyHint =
     !isUnavailable &&
     spotsLeft !== null &&
     spotsLeft > 0 &&
-    (tableLeft !== null ||
-      ((isAlmostFull || (isAvailable && spotsLeft <= 15)) &&
-        shouldShowSpotsCount(spotsLeft, experience.spotsSold)));
+    (sundaySocial
+      ? seats !== null
+      : (isAlmostFull || (isAvailable && spotsLeft <= 15)) && shouldShowSpotsCount(spotsLeft, experience.spotsSold));
   const urgencyHintText =
-    tableLeft !== null
-      ? formatTableSpotsLeftHint(tableLeft, locale)
+    seats !== null
+      ? seats.text
       : isAlmostFull
         ? formatAlmostFullImageHint(spotsLeft!, locale)
         : formatSpotsLeftHint(spotsLeft!, locale);

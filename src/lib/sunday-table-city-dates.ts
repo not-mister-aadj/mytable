@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { tableSpotsLeft } from "@/lib/event-display";
+import { seatUrgencyNow } from "@/lib/event-display";
 import type { Locale } from "@/i18n/config";
 import { sundayTableLocationPath } from "@/i18n/config";
 import type { SundayTableLpCitySlug } from "@/data/sunday-table-lp-cities";
@@ -22,7 +22,8 @@ export type SundayTableCityDate = {
   priceEuros: number;
   status: "available" | "soldOut" | "comingSoon";
   /** Only set once enough seats are sold for the count to help rather than hurt. */
-  spotsLeft: number | null;
+  /** The seat chip (see `seatUrgency`), or null for none. */
+  seatLabel: string | null;
   href: string;
 };
 
@@ -85,7 +86,8 @@ export async function getUpcomingSundayTableDates(
           : seatsLeft === 0
             ? "soldOut"
             : "available",
-        spotsLeft: seatsLeft > 0 ? tableSpotsLeft(event.capacity, event.spotsSold) : null,
+        seatLabel:
+          seatUrgencyNow({ capacity: event.capacity, spotsSold: event.spotsSold, startsAt, locale: locale === "en" ? "en" : "nl" })?.text ?? null,
         href: sundayTableLocationPath(locale, citySlug, location.tableDate),
       };
     }),
@@ -111,7 +113,8 @@ export async function getUpcomingSundayTableDates(
         ageBracket: t.bracket,
         priceEuros: Math.round(t.priceCents / 100),
         status: "available",
-        spotsLeft: seatsLeft > 0 ? tableSpotsLeft(t.capacity, t.spotsSold) : null,
+        seatLabel:
+          seatUrgencyNow({ capacity: t.capacity, spotsSold: t.spotsSold, startsAt: t.startsAt, locale: locale === "en" ? "en" : "nl" })?.text ?? null,
         href: sundayTableLocationPath(locale, citySlug, t.dateIso),
       };
     });

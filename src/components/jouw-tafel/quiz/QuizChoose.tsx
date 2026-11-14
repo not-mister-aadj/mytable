@@ -30,9 +30,6 @@ const AMSTERDAM = "Europe/Amsterdam";
 /** "N mensen die bij jou passen" shows from this many guests around their age. */
 const FIT_SHOWN_FROM = 6;
 
-/** How many full Sundays may stand above the first one that can be booked. */
-const FULL_BEFORE_FIRST = 2;
-
 /** "14:00" / "2:00 PM". */
 function startTime(iso: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "nl-NL", {
@@ -320,18 +317,15 @@ export function QuizChoose({
   const byDate = (x: ChooseRow, y: ChooseRow) => Date.parse(x.event.startsAt) - Date.parse(y.event.startsAt);
   const ownOpen = openRows.filter((r) => !r.nearby).sort(byDate);
   const nearbyOpen = openRows.filter((r) => r.nearby).sort(byDate);
-  // A full Sunday stays on its date between the others, in the usual row: it
-  // shows how fast they go. At most FULL_BEFORE_FIRST of them above the first
-  // Sunday that can be booked; older ones go under the list.
+  // Every full Sunday stays on its date between the others: it shows how fast
+  // they go. Only with nothing left to book at all they stand under "Vol".
   const ownClosed = rows.filter((r) => r.kind === "closed" && !r.nearby).sort(byDate);
   const ownOpenCount = ownOpen.length;
   // Nothing open in their own cities: measured against the first open table
   // of the other cities, so their full Sunday still stands above those.
   const firstOpen = ownOpen[0] ?? nearbyOpen[0];
   const firstOpenAt = firstOpen ? Date.parse(firstOpen.event.startsAt) : null;
-  const closedBefore = firstOpenAt === null ? [] : ownClosed.filter((r) => Date.parse(r.event.startsAt) < firstOpenAt);
-  const closedHeld = closedBefore.slice(0, Math.max(0, closedBefore.length - FULL_BEFORE_FIRST));
-  const closedBelow = firstOpenAt === null ? ownClosed : closedHeld;
+  const closedBelow = firstOpenAt === null ? ownClosed : [];
   const closedDated = ownClosed.filter((r) => !closedBelow.includes(r));
   const ownDated = [...ownOpen, ...closedDated].sort(byDate);
   // Nothing open in their own cities: their full Sundays stand on their date
@@ -722,7 +716,7 @@ export function QuizChoose({
         </section>
       ) : null}
 
-      {/* Full Sundays that did not fit above the first bookable one. */}
+      {/* Full Sundays, when there is nothing left to book. */}
       {closedBelow.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(k.noLongerBookable)}

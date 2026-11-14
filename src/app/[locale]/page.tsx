@@ -4,6 +4,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getBrandLandingLabels } from "@/i18n/get-brand-landing";
 import { isValidLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { loadSoldOutSundays } from "@/lib/home-sold-out";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
   organizationJsonLd,
@@ -41,6 +42,7 @@ export default async function Home({ params }: Props) {
 
   const dict = getDictionary(locale);
   const labels = getBrandLandingLabels(locale);
+  const soldOut = await loadSoldOutSundays();
 
   return (
     <>
@@ -50,10 +52,11 @@ export default async function Home({ params }: Props) {
           locale={locale}
           headerDict={dict.header}
           labels={labels}
+          soldOut={soldOut}
         />
       </main>
       <div className="pb-28 lg:pb-0">
-        <Footer dict={dict.footer} locale={locale} showSeoLinks />
+        <Footer dict={dict.footer} locale={locale} />
       </div>
     </>
   );

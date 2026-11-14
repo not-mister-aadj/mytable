@@ -3,6 +3,7 @@ import { and, eq, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { inviteClicks, inviteRuns, inviteSends, inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
+import { amsterdamDistrict, cleanDistricts, isAmsterdam, outsideDistricts } from "@/lib/jouw-tafel/districts";
 import { getEmailFrom, getResendClient } from "@/lib/email/resend";
 import {
   CHECKIN_WAIT_DAYS,
@@ -84,6 +85,8 @@ export type InvitePerson = {
   solo: boolean;
   /** No invites about Sundays before this day (YYYY-MM-DD), set in the admin. */
   pausedUntil: string | null;
+  /** The parts of Amsterdam they ticked on "Kies je zondag"; empty is all of the city. */
+  districts: string[];
 };
 
 export type InviteEvent = {
@@ -98,6 +101,8 @@ export type InviteEvent = {
   open: boolean;
   lastSoldOut: boolean;
   bracket: "20-39" | "35+" | null;
+  /** Amsterdam with a venue linked: the part of the city it is in. */
+  district: string | null;
 };
 
 type SendRow = typeof inviteSends.$inferSelect;
@@ -292,6 +297,22 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
     select lower(email), max((raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'birthDate')::date) from auth.users
       where raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'birthDate' ~ '^\\d{4}-\\d{2}-\\d{2}' group by 1
   `).catch(() => [])) as unknown as Array<{ email: string; d: string | Date | null }>;
+  // Their account's answers first, then what they filled in as a guest, then
+  // the waitlist row; within one source the latest.
+  const parts = (await db.execute(sql`
+    select * from (
+      select lower(email) as email, 1 as source, updated_at as at,
+        raw_user_meta_data->'jouw_tafel_quiz'->'answers'->'amsterdamDistricts' as districts
+      from auth.users where email is not null and raw_user_meta_data->'jouw_tafel_quiz'->'answers' is not null
+      union all
+      select lower(email), 2, updated_at, state->'answers'->'amsterdamDistricts' from jouw_tafel_guests where email is not null
+      union all
+      select lower(email), 3, created_at, preferences->'amsterdamDistricts' from waitlist_signups
+        where preferences ? 'amsterdamDistricts'
+    ) s order by source, at desc
+  `).catch(() => [])) as unknown as Array<{ email: string; districts: unknown }>;
+  const partsBy = new Map<string, string[]>();
+  for (const row of parts) if (!partsBy.has(row.email)) partsBy.set(row.email, cleanDistricts(row.districts) ?? []);
   const manual = (await db.execute(sql`
     select email_normalized as email, subject, sent_at from email_log
     where sent_at > now() - interval '60 days' and subject not like '[%'
@@ -343,6 +364,7 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
         why: null,
         solo: false,
         pausedUntil: sub?.pausedUntil ?? null,
+        districts: partsBy.get(r.email) ?? [],
       };
       people.set(r.email, p);
     }
@@ -390,7 +412,11 @@ export async function loadInviteEvents(now: Date = new Date()): Promise<InviteEv
             and p.experience_type in ('jouw-tafel', 'sunday-table') and p.starts_at < e.starts_at
         ) p
         where p.starts_at < now() or p.sold >= p.capacity
-        order by p.starts_at desc limit 1) as last_sold_out
+        order by p.starts_at desc limit 1) as last_sold_out,
+      (select v.address from event_venues ev join venues v on v.id = ev.venue_id
+        where ev.event_id = e.id order by ev.position limit 1) as venue_address,
+      (select v.area from event_venues ev join venues v on v.id = ev.venue_id
+        where ev.event_id = e.id order by ev.position limit 1) as venue_area
     from events e
     where e.workflow_status = 'published' and e.experience_type in ('jouw-tafel', 'sunday-table')
       and e.starts_at > ${new Date(now.getTime() + MIN_DAYS_BEFORE * DAY).toISOString()}::timestamptz
@@ -406,6 +432,8 @@ export async function loadInviteEvents(now: Date = new Date()): Promise<InviteEv
     name_nl: string;
     sold: number;
     last_sold_out: boolean | null;
+    venue_address: string | null;
+    venue_area: string | null;
   }>;
   return rows.map((r) => {
     const startsAt = new Date(r.starts_at).toISOString();
@@ -426,6 +454,7 @@ export async function loadInviteEvents(now: Date = new Date()): Promise<InviteEv
       open: !heldBack && Number(r.sold) < r.capacity,
       lastSoldOut: Boolean(r.last_sold_out),
       bracket: bracketFromEventName(r.name_nl ?? ""),
+      district: isAmsterdam(r.city) ? amsterdamDistrict({ address: r.venue_address, area: r.venue_area }) : null,
     };
   });
 }
@@ -688,6 +717,8 @@ export async function planInvites(
         cities.includes(e.city) &&
         !booked.has(e.id) &&
         !pausedFor(person.pausedUntil, e.startsAt) &&
+        // A venue in a part of Amsterdam they left out: they see it on the site.
+        !outsideDistricts(e, person.districts) &&
         // After their Sunday a date they heard about before may come again.
         (Boolean(afterSunday) || !invitedBefore.has(e.id)) &&
         fitsBracket(e.bracket, person, e.startsAt),

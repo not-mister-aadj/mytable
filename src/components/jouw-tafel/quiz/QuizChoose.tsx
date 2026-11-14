@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/config";
 import { CheckIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { seatUrgency } from "@/lib/event-display";
-import { QUIZ_CITIES, displayCity, guestsAroundAge, isNoLongerBookable, sameCity, tableFit, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { QUIZ_CITIES, displayCity, guestsAroundAge, sameCity, tableFit, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { AMSTERDAM_DISTRICTS, DISTRICT_LABELS, cleanDistricts, isAmsterdam, outsideDistricts, type AmsterdamDistrict } from "@/lib/jouw-tafel/districts";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
@@ -410,14 +410,17 @@ export function QuizChoose({
     (city) => !rows.some((r) => sameCity(r.event.city, city)),
   );
   const districts = answers.amsterdamDistricts;
-  /** The city on a card; in Amsterdam with the neighbourhood of the venue,
-   * or "wijk volgt" for who picked parts of the city. */
+  /** The city on a card. Amsterdam always says where: the part of the city
+   * and the neighbourhood of the venue ("Amsterdam Zuid · De Pijp"), or that
+   * the part of the city is still to come. */
   function placeText(event: QuizEvent): string {
     const city = displayCity(event.city, locale);
     if (!isAmsterdam(event.city)) return city;
-    if (event.area) return `${city} · ${areaName(event.area)}`;
-    // A full Sunday has nothing left to wait for.
-    return districts?.length && !isNoLongerBookable(event, now) ? `${city} · ${k.areaFollows}` : city;
+    const part = event.district && event.district in DISTRICT_LABELS ? DISTRICT_LABELS[event.district as AmsterdamDistrict] : null;
+    const area = event.area ? areaName(event.area) : null;
+    if (!part && !area) return `${city} · ${k.areaFollows}`;
+    const head = part ? `${city} ${part}` : city;
+    return area && area.toLowerCase() !== part?.toLowerCase() ? `${head} · ${area}` : head;
   }
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
@@ -638,11 +641,7 @@ export function QuizChoose({
                 <span className="block text-[1.05rem] font-semibold leading-tight text-wine">{when}</span>
                 <span className="mt-1 flex items-center gap-1 text-[0.88rem] text-wine/65">
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                  {isAmsterdam(event.city) && event.area
-                    ? cardCopy.wineBarIn(`${areaName(event.area)}, ${displayCity(event.city, locale)}`)
-                    : isAmsterdam(event.city) && districts?.length
-                      ? `${cardCopy.wineBarIn(displayCity(event.city, locale))} · ${k.areaFollows}`
-                      : cardCopy.wineBarIn(displayCity(event.city, locale))}
+                  {cardCopy.wineBarIn(placeText(event))}
                 </span>
               </span>
               <span className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-burgundy px-5 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-cream">

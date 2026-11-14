@@ -142,7 +142,7 @@ export type QuizCopy = {
     elsewhere: (city: string) => string;
     /** Amsterdam has a table, in a part of the city they left out. */
     elsewhereDistrict: string;
-    /** After the city on a card: no venue yet. */
+    /** After Amsterdam on a card: no venue yet. */
     areaFollows: string;
     /** On a bookable table, after the number of guests around their age:
      * "11 mensen die bij jou passen". */
@@ -409,7 +409,7 @@ const nl: QuizCopy = {
       `Een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten alleen komen" : ""}.`,
     elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
     elsewhereDistrict: "Nog geen tafel in jouw stadsdelen. Dit zijn de eerstvolgende tafels.",
-    areaFollows: "wijk volgt",
+    areaFollows: "stadsdeel volgt",
     fit: "mensen die bij jou passen",
     fitLow: "Past mogelijk minder goed bij je",
     known: (n) =>

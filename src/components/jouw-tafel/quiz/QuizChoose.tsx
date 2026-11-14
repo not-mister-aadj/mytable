@@ -186,7 +186,11 @@ function ChooseFilters({
             })}
           </div>
           {ladies ? (
-            <p className="mx-auto mt-3 max-w-sm text-center text-[0.8rem] leading-snug text-rose-deep/80">{copy.ladiesNotYet}</p>
+            <p className="mx-auto mt-3 max-w-sm text-center text-[0.8rem] leading-snug text-rose-deep/80">
+              {copy.ladiesNotYet[0]}
+              <strong className="font-bold text-rose-deep">{copy.ladiesNotYet[1]}</strong>
+              {copy.ladiesNotYet[2]}
+            </p>
           ) : null}
         </>
       ) : null}

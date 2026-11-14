@@ -1,3 +1,4 @@
+import { mailLoginUrl } from "@/lib/auth/mail-login";
 import type { ReactElement } from "react";
 import { and, asc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { Resend } from "resend";
@@ -328,7 +329,8 @@ export async function buildSundayMail(
         firstName: guest.firstName,
         venueName: venue.name,
         pickedSomeone: guest.pickedSomeone,
-        url: `${SITE}${jouwTafelSettingsPath(locale)}?tab=vrienden`,
+        // Signs them in: most guests never logged in and do not know they have an account.
+        url: await mailLoginUrl(guest.email, `${jouwTafelSettingsPath(locale)}?tab=vrienden`, SITE),
       }),
       from: PLAIN_FROM,
     };

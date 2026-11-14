@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountAfterBooking } from "@/components/booking/AccountAfterBooking";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { bookingOutcomeEn } from "@/i18n/booking-outcome-en";
@@ -141,6 +142,7 @@ export function BookingConfirmationView({
         afterSummary={
           <>
             {memberWelcome ? <MemberWelcomeCard locale={locale} /> : null}
+            {sessionId && summary ? <AccountAfterBooking locale={locale} sessionId={sessionId} /> : null}
             {sessionId && summary && isSharedTableType(summary.experienceType) ? (
               <SundayTableIntroForm
                 locale={locale}

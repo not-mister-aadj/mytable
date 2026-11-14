@@ -71,7 +71,7 @@ const LADIES_PHOTOS = ["/girls-only/table-group.jpg", "/girls-only/laughing-bar.
 
 const CARD_COPY = {
   nl: {
-    wineBarIn: (city: string) => `Een wijnbar in ${city}`,
+    wineBarIn: (city: string) => `Een wijnlocatie in ${city}`,
     reserveShort: "Reserveer",
     next: "Eerstvolgende",
     nextTables: "Eerstvolgende tafels",
@@ -81,9 +81,9 @@ const CARD_COPY = {
     priceLine: (price: string) => `${price} per plek`,
   },
   en: {
-    wineBarIn: (city: string) => `A wine bar in ${city}`,
-    reserveShort: "Reserve",
-    next: "Next up",
+    wineBarIn: (city: string) => `A wine spot in ${city}`,
+    reserveShort: "Book",
+    next: "Next table",
     nextTables: "Next tables",
     shortPeople: "4 to 6 people",
     how: "How it works",
@@ -320,11 +320,20 @@ export function QuizChoose({
   // Sunday that can be booked; older ones go under the list.
   const ownClosed = rows.filter((r) => r.kind === "closed" && !r.nearby).sort(byDate);
   const ownOpenCount = ownOpen.length;
-  const firstOpenAt = ownOpen.length > 0 ? Date.parse(ownOpen[0]!.event.startsAt) : null;
+  // Nothing open in their own cities: measured against the first open table
+  // of the other cities, so their full Sunday still stands above those.
+  const firstOpen = ownOpen[0] ?? nearbyOpen[0];
+  const firstOpenAt = firstOpen ? Date.parse(firstOpen.event.startsAt) : null;
   const closedBefore = firstOpenAt === null ? [] : ownClosed.filter((r) => Date.parse(r.event.startsAt) < firstOpenAt);
   const closedHeld = closedBefore.slice(0, Math.max(0, closedBefore.length - FULL_BEFORE_FIRST));
   const closedBelow = firstOpenAt === null ? ownClosed : closedHeld;
-  const ownDated = [...ownOpen, ...ownClosed.filter((r) => !closedBelow.includes(r))].sort(byDate);
+  const closedDated = ownClosed.filter((r) => !closedBelow.includes(r));
+  const ownDated = [...ownOpen, ...closedDated].sort(byDate);
+  // Nothing open in their own cities: their full Sundays stand on their date
+  // between the tables of the other cities, in that one list.
+  const mergeNearby = ownOpen.length === 0 && nearbyOpen.length > 0;
+  const nearbyDated = mergeNearby ? [...nearbyOpen, ...closedDated].sort(byDate) : nearbyOpen;
+  const ownCount = mergeNearby ? 0 : ownDated.length;
   const soonRows = rows.filter((r) => r.kind === "soon");
 
   const viewedRef = useRef(false);
@@ -687,7 +696,7 @@ export function QuizChoose({
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
       </div>
 
-      {ownDated.length > 0 ? (
+      {ownDated.length > 0 && !mergeNearby ? (
         <section className="mt-6">
           <ul className="space-y-3">{ownDated.map((row, i) => tableCard(row, i))}</ul>
         </section>
@@ -696,7 +705,7 @@ export function QuizChoose({
       {nearbyOpen.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(ownOpenCount === 0 && ours.length > 0 ? cardCopy.nextTables : ourCities ? k.ourCities : k.nearby)}
-          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownDated.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{nearbyDated.map((row, i) => tableCard(row, ownCount + i))}</ul>
         </section>
       ) : null}
 
@@ -704,14 +713,14 @@ export function QuizChoose({
       {closedBelow.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(k.noLongerBookable)}
-          <ul className="mt-3.5 space-y-2">{closedBelow.map((row, i) => tableCard(row, ownDated.length + nearbyOpen.length + i))}</ul>
+          <ul className="mt-3.5 space-y-2">{closedBelow.map((row, i) => tableCard(row, ownCount + nearbyDated.length + i))}</ul>
         </section>
       ) : null}
 
       {soonRows.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(k.comingSoon)}
-          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownDated.length + nearbyOpen.length + closedBelow.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownCount + nearbyDated.length + closedBelow.length + i))}</ul>
         </section>
       ) : null}
 

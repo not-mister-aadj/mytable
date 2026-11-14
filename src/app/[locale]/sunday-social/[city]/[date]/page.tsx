@@ -233,7 +233,7 @@ type SundaySocialPageData = {
   /** False while no wine bar is linked yet: the page says when it follows
    * and why, instead of naming a venue. */
   venueKnown: boolean;
-  /** The neighbourhood we choose the wine bar in, while none is set yet. */
+  /** The neighbourhood we choose the venue in, while none is set yet. */
   venueArea: string | null;
   /** A member can book from this moment, before everyone else (ISO). */
   memberOpensAt: string | null;
@@ -279,8 +279,8 @@ async function loadSundaySocial(citySlug: string, date: string, locale: Locale):
         series.venue?.name ??
         (series.venueArea
           ? locale === "en"
-            ? `A wine bar in ${series.venueArea}`
-            : `Een wijnbar in ${series.venueArea}`
+            ? `A wine spot in ${series.venueArea}`
+            : `Een wijnlocatie in ${series.venueArea}`
           : locale === "en"
             ? "Location to be announced"
             : "Locatie volgt"),
@@ -316,8 +316,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       : `Sunday Social${bracketSuffix} · ${dateLabel} bij ${location.venueName} | MyTable`;
   const description = comingSoon || !venueKnown
     ? locale === "en"
-      ? `Sunday Social in ${city.name} on ${dateLabel}, at a wine bar we pick once we know who is coming.`
-      : `Sunday Social in ${city.name} op ${dateLabel}, bij een wijnbar die we kiezen als we weten wie er komen.`
+      ? `Sunday Social in ${city.name} on ${dateLabel}, at a wine spot we pick once we know who is coming.`
+      : `Sunday Social in ${city.name} op ${dateLabel}, op een wijnlocatie die we kiezen als we weten wie er komen.`
     : locale === "en"
       ? `Join Sunday Social in ${city.name} on ${dateLabel}, at ${location.venueName}.`
       : `Schuif aan bij Sunday Social in ${city.name} op ${dateLabel}, bij ${location.venueName}.`;
@@ -431,18 +431,18 @@ export default async function SundayTableEventPage({ params }: Props) {
         city: venueArea ? `${venueArea}, ${city.name}` : city.name,
         note: venueArea
           ? en
-            ? `A wine bar in ${venueArea}. You'll hear which by ${revealDate}`
-            : `Een wijnbar in ${venueArea}. Welke hoor je uiterlijk ${revealDate}`
+            ? `A wine spot in ${venueArea}. You'll hear which by ${revealDate}`
+            : `Een wijnlocatie in ${venueArea}. Welke hoor je uiterlijk ${revealDate}`
           : en
-            ? `You'll hear the wine bar by ${revealDate}`
-            : `De wijnbar hoor je uiterlijk ${revealDate}`,
-        title: en ? "Why the wine bar isn't named yet" : "Waarom de wijnbar nog niet bekend is",
+            ? `You'll hear the venue by ${revealDate}`
+            : `De locatie hoor je uiterlijk ${revealDate}`,
+        title: en ? "Why the venue isn't named yet" : "Waarom de locatie nog niet bekend is",
         body: en
-          ? `We choose from a few wine bars in ${venueArea ?? "the city"}. Which one it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before.`
-          : `We kiezen uit een paar wijnbars in ${venueArea ?? "de stad"}. Welke het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail.`,
+          ? `We choose from a few wine spots in ${venueArea ?? "the city"}. Which one it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before.`
+          : `We kiezen uit een paar wijnlocaties in ${venueArea ?? "de stad"}. Welke het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail.`,
       };
   const pendingFaq = {
-    question: en ? "Why isn't the wine bar named yet?" : "Waarom staat de wijnbar er nog niet bij?",
+    question: en ? "Why isn't the venue named yet?" : "Waarom staat de locatie er nog niet bij?",
     answer: venuePending ? venuePending.body : "",
   };
 
@@ -464,7 +464,7 @@ export default async function SundayTableEventPage({ params }: Props) {
               : "Op leeftijd en op wat je bij het boeken koos.",
           },
           {
-            title: en ? "The wine bar by email" : "De wijnbar per mail",
+            title: en ? "The venue by email" : "De locatie per mail",
             body: en ? `By ${revealDate} at the latest.` : `Uiterlijk ${revealDate}.`,
           },
           {
@@ -530,7 +530,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           eyebrow: `Sunday Social · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           introLead: "Good wine tastes better in good company.",
           intro:
-            "MyTable is a wine club for people who love a good glass and a good conversation. We pick the wine bar and reserve several tables there. You join one of those tables, with four to six easygoing people your own age.",
+            "MyTable is a wine club for people who love a good glass and a good conversation. We pick the venue and reserve several tables there. You join one of those tables, with four to six easygoing people your own age.",
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
@@ -621,7 +621,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           eyebrow: `Sunday Social · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           introLead: "Goede wijn smaakt beter in goed gezelschap.",
           intro:
-            "MyTable is een wijnclub voor mensen die houden van een mooi glas en een goed gesprek. Wij kiezen de wijnbar en reserveren er meerdere tafels. Jij schuift aan bij een van die tafels, met vier tot zes gezellige mensen van je leeftijd.",
+            "MyTable is een wijnclub voor mensen die houden van een mooi glas en een goed gesprek. Wij kiezen de locatie en reserveren er meerdere tafels. Jij schuift aan bij een van die tafels, met vier tot zes gezellige mensen van je leeftijd.",
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",

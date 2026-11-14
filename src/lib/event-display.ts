@@ -79,7 +79,7 @@ export function formatTableSpotsLeftHint(spotsLeft: number, locale: Locale): str
   if (locale === "nl") {
     return spotsLeft === 1 ? "Nog 1 plek aan deze tafel" : `Nog ${spotsLeft} plekken aan deze tafel`;
   }
-  return spotsLeft === 1 ? "1 spot left at this table" : `${spotsLeft} spots left at this table`;
+  return spotsLeft === 1 ? "1 seat left" : `${spotsLeft} seats left`;
 }
 
 export function formatAlmostFullImageHint(

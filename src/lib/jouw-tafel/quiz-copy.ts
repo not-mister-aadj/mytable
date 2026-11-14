@@ -428,7 +428,7 @@ const nl: QuizCopy = {
     infoLink: "Wat is een Sunday Social?",
     infoClose: "Sluiten",
     infoLines: [
-      "Een middag aan tafel met 4 tot 6 mensen in een goede wijnbar in jouw stad.",
+      "Een middag aan tafel met 4 tot 6 mensen op een leuke wijnlocatie in jouw stad.",
       "Om 14:00 schuif je aan.",
       "Waar precies, hoor je een week van tevoren.",
     ],
@@ -638,8 +638,8 @@ const en: QuizCopy = {
     match: ({ around, dutch, alone }) =>
       `A ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone" : ""}.`,
     elsewhere: (city) => `${city} is full. These are the next tables.`,
-    fit: "people who suit you",
-    fitLow: "May suit you a little less",
+    fit: "people you'll click with",
+    fitLow: "Might be less your crowd",
     known: (n) =>
       n === 1 ? "1 person you had a good time with is coming too" : `${n} people you had a good time with are coming too`,
     knownBadge: (n) => (n === 1 ? "Familiar face" : "Familiar faces"),
@@ -670,7 +670,7 @@ const en: QuizCopy = {
     infoLink: "What is a Sunday Social?",
     infoClose: "Close",
     infoLines: [
-      "An afternoon at a table with 4 to 6 people in a good wine bar in your city.",
+      "An afternoon at a table with 4 to 6 people at a good wine spot in your city.",
       "You take your seat at 14:00.",
       "You'll hear exactly where a week before.",
     ],

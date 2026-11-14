@@ -119,7 +119,7 @@ export const termsNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Voor Sunday Table kan dat tot 7 dagen (168 uur) voor de start. Daarna reserveren wij de wijnbar op basis van het definitieve aantal gasten en ligt je plek vast.",
+          text: "Voor Sunday Table kan dat tot 7 dagen (168 uur) voor de start. Daarna reserveren wij de locatie op basis van het definitieve aantal gasten en ligt je plek vast.",
         },
         {
           type: "p",
@@ -156,11 +156,11 @@ export const termsNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Wij kiezen de wijnbar zodra het aantal gasten bekend is. De tafel vindt plaats in een wijnbar in de stad die bij de datum staat. Het adres krijg je uiterlijk 7 dagen voor de start per e-mail.",
+          text: "Wij kiezen de locatie zodra het aantal gasten bekend is. De tafel vindt plaats op een wijnlocatie in de stad die bij de datum staat. Het adres krijg je uiterlijk 7 dagen voor de start per e-mail.",
         },
         {
           type: "p",
-          text: "De prijs per plek omvat je plek aan tafel en de organisatie. Eten en drinken zijn niet inbegrepen: die bestel en betaal je zelf bij de wijnbar.",
+          text: "De prijs per plek omvat je plek aan tafel en de organisatie. Eten en drinken zijn niet inbegrepen: die bestel en betaal je zelf op de locatie.",
         },
         {
           type: "p",

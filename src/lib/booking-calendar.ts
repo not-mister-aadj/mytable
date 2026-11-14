@@ -41,8 +41,8 @@ function bookingIcsCopy(input: BookingIcsInput): { title: string; description: s
     known ||
     (input.isSundayTable
       ? en
-        ? `A wine bar in ${input.city}, address follows 7 days before`
-        : `Een wijnbar in ${input.city}, adres volgt 7 dagen van tevoren`
+        ? `A wine spot in ${input.city}, address follows 7 days before`
+        : `Een wijnlocatie in ${input.city}, adres volgt 7 dagen van tevoren`
       : input.city);
   const lines = [
     en ? `Your booking: ${input.bookingCode}` : `Je boeking: ${input.bookingCode}`,

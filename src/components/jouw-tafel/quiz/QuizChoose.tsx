@@ -27,6 +27,9 @@ import { PostHogEvents } from "@/lib/posthog/events";
 
 const AMSTERDAM = "Europe/Amsterdam";
 
+/** "N mensen die bij jou passen" shows from this many guests around their age. */
+const FIT_SHOWN_FROM = 6;
+
 /** How many full Sundays may stand above the first one that can be booked. */
 const FULL_BEFORE_FIRST = 2;
 
@@ -352,14 +355,16 @@ export function QuizChoose({
   }
 
   /** The light on a bookable table (tableFit): green with "11 mensen die
-   * bij jou passen" from three guests around their age, red when it may
+   * bij jou passen" from six guests around their age, red when it may
    * suit them less, and nothing in between. Never how many booked, and
    * never who. */
   function fitRow(event: QuizEvent, compact = false) {
     if (age === null) return null;
     const around = guestsAroundAge(event.ageBuckets, age);
     const fit = tableFit({ around, seatsLeft: Math.max(0, event.capacity - event.spotsSold) });
-    if (fit === "none") return null;
+    // Green only with a number worth showing: from FIT_SHOWN_FROM guests
+    // around their age (the seats-left label already carries the scarcity).
+    if (fit === "none" || (fit === "good" && around < FIT_SHOWN_FROM)) return null;
     const tone = fit === "good" ? "bg-emerald-500" : "bg-red-500";
     return (
       <span className={`flex items-center gap-2.5 border-t border-wine/[0.07] ${compact ? "px-3.5 py-2.5" : "px-4 py-3"}`}>
@@ -372,12 +377,10 @@ export function QuizChoose({
         <span className={`leading-snug text-wine ${compact ? "text-[0.85rem]" : "text-[0.92rem] font-medium"}`}>
           {fit === "low" ? (
             k.fitLow
-          ) : around >= 3 ? (
+          ) : (
             <>
               <span className="font-bold tabular-nums">{around}</span> {k.fit}
             </>
-          ) : (
-            k.fitGood
           )}
         </span>
       </span>

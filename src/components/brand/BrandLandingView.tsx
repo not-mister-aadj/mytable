@@ -1,16 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Suspense, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import {
-  sundayTableLpPath,
-  wineTastingLpPath,
-  wineWalkLpPath,
-  chefsSpecialLpPath,
-} from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 import { SundayTableHeroGallery } from "@/components/sunday-table-lp/SundayTableHeroGallery";
 import { SundayTableWaitlistModal } from "@/components/sunday-table-lp/SundayTableWaitlistModal";
@@ -21,10 +13,8 @@ import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonial
 import { getFormatProofSlideshowImages } from "@/data/format-proof-media";
 import { getSundayTableLpLabels } from "@/i18n/get-sunday-table-lp";
 import { trackSundayTableCtaClicked } from "@/lib/posthog/analytics";
+import type { SoldOutSunday } from "@/lib/home-sold-out";
 import { ease } from "@/lib/motion";
-
-const formatCtaClassName =
-  "cta-lift cta-lift-outline relative mt-auto inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-wine/20 px-6 text-xs font-medium text-wine/70 transition hover:border-wine/40 hover:bg-wine hover:text-cream";
 
 export type FinalCaptureLabels = {
   eyebrow: string;
@@ -34,35 +24,18 @@ export type FinalCaptureLabels = {
   privacyNote: string;
 };
 
-export type BrandLandingFormatKey =
-  | "sunday_table"
-  | "wine_tasting"
-  | "wine_walk"
-  | "chefs_special";
-
-const imageForFormat: Record<BrandLandingFormatKey, string> = {
-  sunday_table: "/girls-only/crowd-evening.jpg",
-  wine_tasting: "/girls-only/table-wine-laughing.jpg",
-  wine_walk: "/girls-only/table-group.jpg",
-  chefs_special: "/girls-only/chefs-table-toast.jpg",
-};
-
 export type BrandLandingLabels = {
   brand: string;
   earlyAccessBadge: string;
   belief: string;
   line: string;
-  scrollCta: string;
   whyHeadline: string;
   whyParagraphs: string[];
-  formatsEyebrow: string;
-  formats: Array<{
-    key: BrandLandingFormatKey;
-    name: string;
-    line: string;
-    cta: string;
-    imageAlt: string;
-  }>;
+  /** The Sundays that are full, then how you get in. */
+  soldOutEyebrow: string;
+  soldOutWord: string;
+  stepsEyebrow: string;
+  steps: string[];
   reviewsEyebrow: string;
   finalCapture: FinalCaptureLabels;
 };
@@ -71,12 +44,14 @@ interface BrandLandingViewProps {
   locale: Locale;
   headerDict: Dictionary["header"];
   labels: BrandLandingLabels;
+  soldOut: SoldOutSunday[];
 }
 
 export function BrandLandingView({
   locale,
   headerDict,
   labels,
+  soldOut,
 }: BrandLandingViewProps) {
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
   const waitlistLabels = getSundayTableLpLabels(locale).waitlist;
@@ -91,12 +66,9 @@ export function BrandLandingView({
     setWaitlistOpen(true);
   }
 
-  const hrefForFormat: Record<BrandLandingFormatKey, string> = {
-    sunday_table: sundayTableLpPath(locale),
-    wine_tasting: wineTastingLpPath(locale),
-    wine_walk: wineWalkLpPath(locale),
-    chefs_special: chefsSpecialLpPath(locale),
-  };
+  const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
+  const dayOf = new Intl.DateTimeFormat(dateLocale, { day: "numeric", timeZone: "Europe/Amsterdam" });
+  const monthOf = new Intl.DateTimeFormat(dateLocale, { month: "short", timeZone: "Europe/Amsterdam" });
 
   return (
     <>
@@ -155,15 +127,6 @@ export function BrandLandingView({
               >
                 {headerDict.nav.waitlistCta}
               </button>
-              <a
-                href="#formats"
-                className="cta-lift cta-lift-outline inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-wine/20 bg-white/60 px-8 text-xs font-semibold uppercase tracking-[0.16em] text-wine/75 backdrop-blur-sm transition hover:border-wine/40 hover:bg-white hover:text-wine"
-              >
-                {labels.scrollCta}
-                <span aria-hidden className="text-sm leading-none opacity-90">
-                  ↓
-                </span>
-              </a>
             </motion.div>
           </div>
 
@@ -182,61 +145,81 @@ export function BrandLandingView({
         </div>
       </section>
 
-      {/* Formats — the photos and the names do the talking */}
-      <section
-        id="formats"
-        className="relative scroll-mt-24 overflow-hidden border-t border-wine/8 bg-cream py-16 sm:py-20 lg:py-24"
-      >
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.5, ease }}
-            className="text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-gold"
-          >
-            {labels.formatsEyebrow}
-          </motion.p>
+      {/* Full Sundays, then the three steps in */}
+      <section className="relative overflow-hidden border-t border-wine/8 bg-cream py-16 sm:py-20 lg:py-24">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(197,154,91,0.10),transparent_55%)]" />
+        <div className="relative mx-auto grid max-w-5xl grid-cols-1 gap-14 px-5 sm:px-8 lg:grid-cols-2 lg:items-start lg:gap-16 lg:px-10">
+          {soldOut.length > 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.55, ease }}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+                {labels.soldOutEyebrow}
+              </p>
+              <ul className="mt-6 overflow-hidden rounded-[1.75rem] border border-wine/10 bg-white/80 shadow-[0_18px_44px_rgba(43,13,18,0.10)]">
+                {soldOut.map((sunday, index) => {
+                  const date = new Date(sunday.startsAt);
+                  return (
+                    <li
+                      key={`${sunday.city}-${sunday.startsAt}`}
+                      className={`flex items-center gap-4 px-5 py-4 sm:px-6 ${index > 0 ? "border-t border-wine/8" : ""}`}
+                    >
+                      <span className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-cream text-wine">
+                        <span className="font-serif text-2xl leading-none">{dayOf.format(date)}</span>
+                        <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-wine/50">
+                          {monthOf.format(date).replace(".", "")}
+                        </span>
+                      </span>
+                      <span className="min-w-0 flex-1 font-serif text-[1.35rem] leading-tight tracking-tight text-wine">
+                        {sunday.city}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-wine/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-wine/60">
+                        <span className="h-1.5 w-1.5 rounded-full bg-burgundy" aria-hidden />
+                        {labels.soldOutWord}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+          ) : null}
 
-          <div className="mt-8 grid grid-cols-1 gap-x-5 gap-y-10 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
-            {labels.formats.map((format, index) => (
-              <motion.div
-                key={format.key}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: index * 0.06, ease }}
-                className="flex flex-col items-center rounded-[1.75rem] border border-wine/12 bg-gradient-to-b from-white to-white/70 p-5 text-center shadow-[0_18px_44px_rgba(43,13,18,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_rgba(43,13,18,0.18)] sm:p-6"
-              >
-                <Link
-                  href={hrefForFormat[format.key]}
-                  className="relative block aspect-square w-full overflow-hidden rounded-2xl"
+          <div className={soldOut.length > 0 ? "" : "lg:col-span-2 lg:mx-auto lg:max-w-md"}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
+              {labels.stepsEyebrow}
+            </p>
+            <ol className="relative mt-6">
+              <span className="absolute bottom-6 left-[1.4rem] top-6 w-px bg-gold/35" aria-hidden />
+              {labels.steps.map((step, index) => (
+                <motion.li
+                  key={step}
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: index * 0.08, ease }}
+                  className="relative flex items-center gap-5 py-3.5"
                 >
-                  <Image
-                    src={imageForFormat[format.key]}
-                    alt={format.imageAlt}
-                    fill
-                    sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 300px"
-                    quality={100}
-                    className="object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                </Link>
-                <h3 className="mt-5 font-serif text-2xl font-semibold tracking-tight text-wine">
-                  {format.name}
-                </h3>
-                <p className="mb-5 mt-1.5 text-sm text-wine/55">{format.line}</p>
-                <button
-                  type="button"
-                  onClick={() => openWaitlist(format.key, "format_card")}
-                  className={formatCtaClassName}
-                >
-                  {format.cta}
-                  <span aria-hidden className="text-sm leading-none opacity-70">
-                    ›
+                  <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/50 bg-cream font-serif text-xl text-gold">
+                    {index + 1}
                   </span>
-                </button>
-              </motion.div>
-            ))}
+                  <p className="font-serif text-xl leading-snug tracking-tight text-wine sm:text-[1.4rem]">
+                    {step}
+                  </p>
+                </motion.li>
+              ))}
+            </ol>
+            <div className="mt-8 hidden lg:block">
+              <button
+                type="button"
+                onClick={() => openWaitlist("steps", "brand_steps")}
+                className="cta-lift cta-lift-burgundy inline-flex min-h-12 items-center justify-center rounded-full bg-burgundy px-8 text-xs font-semibold uppercase tracking-[0.16em] text-cream shadow-[0_14px_34px_rgba(90,15,27,0.28)] transition hover:bg-wine"
+              >
+                {headerDict.nav.waitlistCta}
+              </button>
+            </div>
           </div>
         </div>
       </section>

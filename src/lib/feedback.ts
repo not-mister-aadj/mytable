@@ -11,6 +11,8 @@ import { citiesForEmail } from "@/lib/invites/cities";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
 import { getProfilePhotos, setProfilePhoto } from "@/lib/profile-photo";
+import { seatUrgency } from "@/lib/event-display";
+import { loadBookedMatchCounts } from "@/lib/tafelvrienden/server";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason, isSpendRange, type SpendRange } from "@/lib/feedback-reasons";
 
@@ -89,7 +91,19 @@ export type FeedbackPage = {
   /** photoUrl: their profile photo, so they are easy to recognise when picking who to see again. */
   tablemates: { bookingId: string; firstName: string; photoUrl: string | null }[];
   /** The next bookable Sunday Social in this city, or else in another city they follow. */
-  next: { eventId: string; city: string; label: string; shortLabel: string; seatsLeft: number; path: string } | null;
+  next: {
+    eventId: string;
+    city: string;
+    label: string;
+    shortLabel: string;
+    seatsLeft: number;
+    /** The seat chip as on "Kies je zondag" (seatUrgency), or null when there is nothing urgent to say. */
+    seatLabel: string | null;
+    lastSeat: boolean;
+    /** How many of their mutual likes already have a seat there. Never who. */
+    known: number;
+    path: string;
+  } | null;
   /** "De volgende is op ons" after Matig or Niet leuk: the dates they can
    * book for free on the page, or the one they already booked. Null when
    * it doesn't apply (no-show, used before). */
@@ -252,6 +266,13 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
             .map((e) => ({ eventId: e.id, label: `${e.city} · ${longLabel(e.startsAt)}`, seatsLeft: Math.max(0, e.capacity - e.spotsSold) })),
           booked: null,
         };
+  // The next Sunday's card: the same seat chip as on "Kies je zondag", and
+  // how many people they clicked with are already going.
+  const nextUrgency = nextEvent
+    ? seatUrgency({ capacity: nextEvent.capacity, spotsSold: nextEvent.spotsSold, startsAt: nextEvent.startsAt, now, locale })
+    : null;
+  const nextKnown = nextEvent ? ((await loadBookedMatchCounts(booking.email).catch(() => ({}) as Record<string, number>))[nextEvent.id] ?? 0) : 0;
+
   return {
     bookingId: booking.id,
     locale,
@@ -281,6 +302,9 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
               timeZone: "Europe/Amsterdam",
             }).format(nextEvent.startsAt),
             seatsLeft: Math.max(0, nextEvent.capacity - nextEvent.spotsSold),
+            seatLabel: nextUrgency?.text ?? null,
+            lastSeat: nextUrgency?.last ?? false,
+            known: nextKnown,
             path: nextPath,
           }
         : null,

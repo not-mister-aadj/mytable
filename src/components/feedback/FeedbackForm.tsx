@@ -22,8 +22,8 @@ const COPY = {
     photoError: "Je foto opslaan lukte niet. Probeer het opnieuw.",
     thanks: (name: string) => (name ? `Dank je, ${name}!` : "Dank je!"),
     thanksSub: "We lezen alles.",
-    thanksPicked: "Kiest iemand jou ook, dan hoor je het woensdag.",
     reservePrice: "Reserveer · €10",
+    known: (n: number) => (n === 1 ? "1 persoon met wie je het gezellig had is er ook bij" : `${n} mensen met wie je het gezellig had zijn er ook bij`),
     memberLine: "Vaker komen? Als lid ben je elke Sunday Social welkom voor €10 per maand.",
     memberLink: "Word lid",
     missingQuiet: "Was er iemand van je tafel niet? Tik wie, alleen voor ons.",
@@ -77,8 +77,8 @@ const COPY = {
     photoError: "Saving your photo didn't work. Please try again.",
     thanks: (name: string) => (name ? `Thank you, ${name}!` : "Thank you!"),
     thanksSub: "We read everything.",
-    thanksPicked: "If someone picks you too, you'll hear on Wednesday.",
     reservePrice: "Reserve · €10",
+    known: (n: number) => (n === 1 ? "1 person you had a good time with is coming too" : `${n} people you had a good time with are coming too`),
     memberLine: "Coming more often? As a member you're welcome at every Sunday Social for €10 a month.",
     memberLink: "Become a member",
     missingQuiet: "Was anyone from your table not there? Tap who, only for us.",
@@ -264,28 +264,28 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
   const toggle = (key: "wantToSee" | "missing", id: string) =>
     save({ [key]: state[key].includes(id) ? state[key].filter((x) => x !== id) : [...state[key], id] } as Partial<FeedbackState>);
 
-  const chips = (key: "wantToSee" | "missing") => (
-    <div className="mt-4 flex flex-wrap gap-2">
+  /** Who wasn't there: small chips, a face next to each name. */
+  const missingChips = (
+    <div className="mt-3 flex flex-wrap gap-2">
       {page.tablemates.map((m) => {
-        const on = state[key].includes(m.bookingId);
+        const on = state.missing.includes(m.bookingId);
         return (
           <button
             key={m.bookingId}
             type="button"
-            onClick={() => toggle(key, m.bookingId)}
-            className={`inline-flex items-center gap-1.5 rounded-full py-1.5 text-sm transition ${
-              key === "wantToSee" && m.photoUrl ? "pl-1.5 pr-3.5" : "px-3.5"
-            } ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
+            aria-pressed={on}
+            onClick={() => toggle("missing", m.bookingId)}
+            className={`inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3.5 text-sm transition ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
           >
-            {/* A face next to the name, where they pick who to see again. */}
-            {key === "wantToSee" && m.photoUrl ? (
+            {m.photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={m.photoUrl} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
-            ) : null}
-            <span>
-              {on && key === "wantToSee" ? "✓ " : ""}
-              {m.firstName}
-            </span>
+              <img src={m.photoUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span aria-hidden className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${on ? "bg-cream/20 text-cream" : "bg-burgundy/[0.1] text-burgundy"}`}>
+                {m.firstName.charAt(0).toLocaleUpperCase()}
+              </span>
+            )}
+            {m.firstName}
           </button>
         );
       })}
@@ -419,7 +419,7 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
       <section className={`${card} text-center`}>
         <p className="font-serif text-3xl text-wine">{okish ? t.thanks(page.firstName) : t.thanksSorry}</p>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine/70">
-          {okish ? `${t.thanksSub}${state.wantToSee.length > 0 ? ` ${t.thanksPicked}` : ""}` : t.sorryBody}
+          {okish ? t.thanksSub : t.sorryBody}
         </p>
         {freeSeat ? (
           <FreeSeat page={page} token={token} t={t} />
@@ -437,7 +437,7 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
         {hasMates ? (
           <div className="mt-7 border-t border-wine/10 pt-4 text-left">
             <p className="text-sm text-wine/60">{t.missingQuiet}</p>
-            {chips("missing")}
+            {missingChips}
           </div>
         ) : null}
       </section>
@@ -651,7 +651,23 @@ function NextSunday({ page, t, href, label }: { page: FeedbackPage; t: (typeof C
       <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.nextTitle}</p>
       <p className="mt-1.5 text-lg font-semibold leading-snug text-wine first-letter:uppercase">{page.next.label}</p>
       <p className="text-sm text-wine/60">{page.next.city}</p>
-      <p className="mt-2 inline-block rounded-full bg-burgundy/[0.09] px-2.5 py-1 text-xs font-semibold text-burgundy first-letter:uppercase">{t.seats(page.next.seatsLeft)}</p>
+      {page.next.seatLabel ? (
+        <p className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${page.next.lastSeat ? "bg-burgundy text-cream" : "bg-burgundy/[0.09] text-burgundy"}`}>
+          {page.next.seatLabel}
+        </p>
+      ) : null}
+      {page.next.known > 0 ? (
+        <p className="mt-3 flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-gold/25 via-gold/15 to-gold/5 px-3 py-2.5 text-sm font-semibold leading-snug text-wine">
+          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-burgundy text-cream">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 3h10l-.7 6a4.3 4.3 0 0 1-8.6 0Z" />
+              <path d="M7.5 7.4h9" />
+              <path d="M12 13.3V20.5M8.5 20.5h7" />
+            </svg>
+          </span>
+          {t.known(page.next.known)}
+        </p>
+      ) : null}
       <Link href={href} className="mt-4 block rounded-full bg-burgundy px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.08em] text-cream transition hover:bg-wine">
         {label}
       </Link>

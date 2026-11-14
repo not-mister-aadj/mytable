@@ -19,7 +19,7 @@ test("liked mail: no names, no count, no booking button, two variants", () => {
 
   const picked = likedMail({ locale: "nl", firstName: "Sophie", venueName: "Vino Victoria", pickedSomeone: true, url });
   assert.match(picked.text, /Jij liet ook al weten met wie je het gezellig had\./);
-  assert.match(picked.text, /Twijfelde je nog over iemand\? Tot zondag 18:00 kun je het aanpassen\./);
+  assert.doesNotMatch(picked.text, /Twijfelde|18:00/);
   assert.match(picked.html, />Bekijk met wie je het gezellig had</);
 
   const en = likedMail({ locale: "en", firstName: "", venueName: "Vino Victoria", pickedSomeone: false, url });

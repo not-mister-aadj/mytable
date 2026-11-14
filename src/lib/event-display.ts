@@ -79,7 +79,48 @@ export function formatTableSpotsLeftHint(spotsLeft: number, locale: Locale): str
   if (locale === "nl") {
     return spotsLeft === 1 ? "Nog 1 plek aan deze tafel" : `Nog ${spotsLeft} plekken aan deze tafel`;
   }
-  return spotsLeft === 1 ? "1 seat left" : `${spotsLeft} seats left`;
+  return spotsLeft === 1 ? "1 seat left at this table" : `${spotsLeft} seats left at this table`;
+}
+
+/** From this many days before the Sunday the chip counts the table being
+ * filled; earlier it counts the whole Sunday. */
+export const TABLE_COUNT_FROM_DAYS = 28;
+/** Further ahead: the Sunday's own count, only from this many seats left. */
+export const EVENT_COUNT_FROM_SEATS = 15;
+
+export type SeatUrgency = {
+  text: string;
+  /** One seat left: the strong chip. */
+  last: boolean;
+};
+
+/**
+ * The one seat chip of a Sunday Social, or null for none.
+ * - More than four weeks ahead: the Sunday's real count ("Nog 12 plekken"),
+ *   only once someone has booked and 15 or fewer seats are left.
+ * - From four weeks ahead: the table being filled ("Nog 3 plekken aan deze
+ *   tafel"), always. That count is never above what the Sunday has left, so
+ *   the number never goes up at the switch.
+ */
+export function seatUrgency(input: {
+  capacity: number;
+  spotsSold: number;
+  startsAt: string | number | Date;
+  now: number;
+  locale: Locale;
+}): SeatUrgency | null {
+  const left = Math.max(0, input.capacity - input.spotsSold);
+  if (left === 0) return null;
+  const nl = input.locale === "nl";
+  const days = (new Date(input.startsAt).getTime() - input.now) / 86_400_000;
+  if (days <= TABLE_COUNT_FROM_DAYS) {
+    const atTable = tableSpotsLeft(input.capacity, input.spotsSold);
+    if (atTable === 1) return { text: nl ? "Laatste plek aan deze tafel" : "Last seat at this table", last: true };
+    return { text: formatTableSpotsLeftHint(atTable, input.locale), last: false };
+  }
+  if (input.spotsSold < 1 || left > EVENT_COUNT_FROM_SEATS) return null;
+  if (left === 1) return { text: nl ? "Laatste plek" : "Last seat", last: true };
+  return { text: nl ? `Nog ${left} plekken` : `${left} seats left`, last: false };
 }
 
 export function formatAlmostFullImageHint(

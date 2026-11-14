@@ -33,7 +33,7 @@ import {
 import { breadcrumbJsonLd, organizationJsonLd } from "@/lib/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
 import { images } from "@/data/images";
-import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
+import { seatUrgency } from "@/lib/event-display";
 import { getSundayTableMotivationStats } from "@/lib/sunday-table-motivation-stats";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -175,6 +175,12 @@ function venueGoogleRating(venueName: string, locale: Locale) {
     };
   }
   return null;
+}
+
+/** The seat chip as of this request (see `seatUrgency`). */
+function seatChipNow(event: { capacity: number; spotsSold: number }, startsAt: string | null, locale: Locale) {
+  const now = Date.now();
+  return seatUrgency({ capacity: event.capacity, spotsSold: event.spotsSold, startsAt: startsAt ?? now, now, locale });
 }
 
 async function loadTicketEvent(cityName: string, startsAt: Date) {
@@ -333,7 +339,10 @@ export default async function SundayTableEventPage({ params }: Props) {
   const { city, table, location, ticketEvent, comingSoon, venueKnown, venueArea, memberOpensAt, startsAt, spotsLeft } = found;
   // Filled a table at a time: the seats left at the table being filled
   // always show.
-  const showSpotsCount = spotsLeft > 0;
+  // Far ahead the Sunday's own count, from four weeks the table being filled;
+  // nothing to count means the plain "Beschikbaar" chip.
+  const urgency = seatChipNow(ticketEvent, startsAt, locale === "en" ? "en" : "nl");
+  const showSpotsCount = spotsLeft > 0 && urgency !== null;
   const pricePerSeatEuros = Math.round(ticketEvent.priceCents / 100);
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
@@ -534,7 +543,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
-          ticketsLeftLabel: formatTableSpotsLeftHint(tableSpotsLeft(ticketEvent.capacity, ticketEvent.spotsSold), "en"),
+          ticketsLeftLabel: urgency?.text ?? "",
           availableChipLabel: "Available",
           soldOutChipLabel: "Sold out",
           comingSoonChipLabel: "Coming soon",
@@ -625,7 +634,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",
-          ticketsLeftLabel: formatTableSpotsLeftHint(tableSpotsLeft(ticketEvent.capacity, ticketEvent.spotsSold), "nl"),
+          ticketsLeftLabel: urgency?.text ?? "",
           availableChipLabel: "Beschikbaar",
           soldOutChipLabel: "Uitverkocht",
           comingSoonChipLabel: "Binnenkort bekend",

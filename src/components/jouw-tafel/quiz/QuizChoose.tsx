@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { CheckIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
-import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
+import { seatUrgency } from "@/lib/event-display";
 import { QUIZ_CITIES, displayCity, guestsAroundAge, sameCity, tableFit, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
@@ -108,12 +108,15 @@ function longDate(iso: string, locale: Locale): string {
   return text.charAt(0).toLocaleUpperCase() + text.slice(1);
 }
 
-type ChipTone = "wine" | "gold" | "grey";
+type ChipTone = "wine" | "gold" | "grey" | "solid";
+type Chip = { text: string; tone: ChipTone; /** Nothing urgent to say: rows leave it out. */ quiet?: boolean };
 
 const CHIP_TONE: Record<ChipTone, string> = {
   wine: "bg-burgundy/[0.09] text-burgundy",
   gold: "bg-gold/[0.16] text-[#7d5c2c]",
   grey: "bg-wine/[0.06] text-wine/55",
+  // The last seat.
+  solid: "bg-burgundy text-cream",
 };
 
 /** "Nog maar 3 plekken" (wine), "Plekken vrij" (gold), "Binnenkort" (grey). */
@@ -122,7 +125,8 @@ export function spotsChip(
   locale: Locale,
   copy: QuizCopy["kies"],
   asMember = false,
-): { text: string; tone: ChipTone } {
+  now: number = Date.now(),
+): Chip {
   if (event.comingSoon) {
     // Not bookable yet: the day this person can book (members 2 days
     // before everyone else).
@@ -133,9 +137,10 @@ export function spotsChip(
     }
     return { text: copy.soonBadge, tone: "grey" };
   }
-  // Filled a table at a time: the seats left at the table being filled.
-  const left = tableSpotsLeft(event.capacity, event.spotsSold);
-  return left > 0 ? { text: formatTableSpotsLeftHint(left, locale), tone: "wine" } : { text: copy.spotsOpen, tone: "gold" };
+  // Far ahead the Sunday's own count, from four weeks the table being filled.
+  const urgency = seatUrgency({ capacity: event.capacity, spotsSold: event.spotsSold, startsAt: event.startsAt, now, locale });
+  if (!urgency) return { text: copy.spotsOpen, tone: "gold", quiet: true };
+  return { text: urgency.text, tone: urgency.last ? "solid" : "wine" };
 }
 
 export { CHIP_TONE };
@@ -453,7 +458,7 @@ export function QuizChoose({
   /** A Sunday that can be booked now. The next one is a card with a photo of
    * a real table; the ones after it are compact rows. What every Sunday has
    * in common (table size, seating by age, price) is said once, above. */
-  function bookableCard(row: ChooseRow, index: number, chip: { text: string; tone: ChipTone }) {
+  function bookableCard(row: ChooseRow, index: number, chip: Chip) {
     const event = row.event;
     const featured = event.id === featuredId;
     const motionProps = {
@@ -479,9 +484,11 @@ export function QuizChoose({
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
                   {displayCity(event.city, locale)}
                 </span>
-                <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
-                  {chip.text}
-                </span>
+                {chip.quiet ? null : (
+                  <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
+                    {chip.text}
+                  </span>
+                )}
               </span>
               <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-burgundy px-4 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-cream">
                 {cardCopy.reserveShort}
@@ -510,9 +517,15 @@ export function QuizChoose({
                 <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">
                   {matches[event.id] ? k.knownBadge(matches[event.id]!) : cardCopy.next}
                 </span>
-                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[0.72rem] font-semibold leading-none text-burgundy shadow-sm">
-                  {chip.text}
-                </span>
+                {chip.quiet ? null : (
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[0.72rem] font-semibold leading-none shadow-sm ${
+                      chip.tone === "solid" ? "bg-burgundy text-cream" : "bg-white/95 text-burgundy"
+                    }`}
+                  >
+                    {chip.text}
+                  </span>
+                )}
               </span>
             </span>
             {knownBand(event)}
@@ -545,13 +558,13 @@ export function QuizChoose({
     const seats = booked[event.id];
     // Bookable now and no seat yet: the full card.
     if (!muted && !seats && !earlyBlocked(event, membership, now)) {
-      return bookableCard(row, index, spotsChip(event, locale, k, asMember));
+      return bookableCard(row, index, spotsChip(event, locale, k, asMember, now));
     }
     const chip = seats
       ? { text: k.booked(seats), tone: "wine" as const }
       : closed
         ? { text: k.noLongerBookable, tone: "grey" as const }
-        : earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember);
+        : earlyChip(event, locale, membership, now) ?? spotsChip(event, locale, k, asMember, now);
     return (
       <motion.li
         key={event.id}

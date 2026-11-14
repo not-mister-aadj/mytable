@@ -134,8 +134,7 @@ export type QuizCopy = {
     guarantees: string[];
     notify: string;
     notified: string;
-    /** Above the list: the table as their answers shaped it. */
-    matchEyebrow: string;
+    /** Under the title: the table as their answers shaped it. */
     match: (m: { around: number | null; dutch: boolean; alone: boolean }) => string;
     /** Their own city is full: the open tables elsewhere follow. */
     elsewhere: (city: string) => string;
@@ -385,9 +384,8 @@ const nl: QuizCopy = {
     ],
     notify: "Houd me op de hoogte",
     notified: "Genoteerd. Je hoort het als eerste.",
-    matchEyebrow: "Op jou afgestemd",
     match: ({ around, dutch, alone }) =>
-      `Je schuift aan bij een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten net als jij alleen komen" : ""}.`,
+      `Een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten alleen komen" : ""}.`,
     elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
     fit: "mensen die bij jou passen",
     fitGood: "Jouw tafel stellen we rond jou samen",
@@ -624,9 +622,8 @@ const en: QuizCopy = {
     ],
     notify: "Keep me posted",
     notified: "Noted. You'll be the first to hear.",
-    matchEyebrow: "Made for you",
     match: ({ around, dutch, alone }) =>
-      `You join a ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone, like you" : ""}.`,
+      `A ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone" : ""}.`,
     elsewhere: (city) => `${city} is full. These are the next tables.`,
     fit: "people who suit you",
     fitGood: "We build your table around you",

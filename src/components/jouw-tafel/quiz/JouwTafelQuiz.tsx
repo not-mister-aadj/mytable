@@ -248,14 +248,15 @@ function QuizHeader({
         <p className="relative h-5 overflow-hidden text-center text-[0.9rem] font-semibold leading-5 text-wine">
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
-              key={chapter}
+              key={step === "kies" ? "kies" : chapter}
               initial={reduceMotion ? false : { y: 14, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={reduceMotion ? { opacity: 0 } : { y: -14, opacity: 0 }}
               transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
               className="block"
             >
-              {copy.chapters[chapter]}
+              {/* On the list of tables the bar carries the page's own title. */}
+              {step === "kies" ? copy.kies.title : copy.chapters[chapter]}
             </motion.span>
           </AnimatePresence>
         </p>

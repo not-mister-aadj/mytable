@@ -170,7 +170,8 @@ function ChooseFilters({
   const ladies = answers.tableType === "girls_only";
   function toggle(city: string) {
     const next = isChosen(city) ? chosen.filter((c) => !sameCity(c, city)) : [...chosen, city];
-    if (next.length > 0) onAnswers(citiesAnswer(next));
+    // Amsterdam picked (again): all of the city, until they tick parts.
+    if (next.length > 0) onAnswers(isAmsterdam(city) ? { ...citiesAnswer(next), amsterdamDistricts: undefined } : citiesAnswer(next));
   }
   const chipOn = ladies ? "border-rose-deep bg-rose-deep text-cream" : "border-burgundy bg-burgundy text-cream";
   // Amsterdam is large: its chip has a menu with the parts of the city they

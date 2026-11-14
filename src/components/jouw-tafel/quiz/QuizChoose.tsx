@@ -7,7 +7,8 @@ import type { Locale } from "@/i18n/config";
 import { CheckIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { seatUrgency } from "@/lib/event-display";
-import { QUIZ_CITIES, displayCity, guestsAroundAge, sameCity, tableFit, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { QUIZ_CITIES, displayCity, guestsAroundAge, isNoLongerBookable, sameCity, tableFit, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { AMSTERDAM_DISTRICTS, DISTRICT_LABELS, cleanDistricts, isAmsterdam, outsideDistricts, type AmsterdamDistrict } from "@/lib/jouw-tafel/districts";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   ageFromBirthDate,
@@ -88,6 +89,11 @@ const CARD_COPY = {
   },
 } as const;
 
+/** "Amsterdam-Noord" next to the city is just "Noord". */
+function areaName(area: string): string {
+  return area.replace(/^amsterdam[\s-]+/i, "") || area;
+}
+
 function priceText(cents: number, locale: Locale): string {
   const price = cents / 100;
   return Number.isInteger(price) ? `€${price}` : `€${price.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
@@ -147,10 +153,12 @@ export { CHIP_TONE };
 function ChooseFilters({
   answers,
   copy,
+  closeLabel,
   locale,
   onAnswers,
 }: {
   answers: QuizAnswers;
+  closeLabel: string;
   copy: QuizCopy["kies"]["filters"];
   locale: Locale;
   onAnswers: (patch: Partial<QuizAnswers>) => void;
@@ -162,9 +170,19 @@ function ChooseFilters({
   const ladies = answers.tableType === "girls_only";
   function toggle(city: string) {
     const next = isChosen(city) ? chosen.filter((c) => !sameCity(c, city)) : [...chosen, city];
-    if (next.length > 0) onAnswers(citiesAnswer(next));
+    // Amsterdam picked (again): all of the city, until they tick parts.
+    if (next.length > 0) onAnswers(isAmsterdam(city) ? { ...citiesAnswer(next), amsterdamDistricts: undefined } : citiesAnswer(next));
   }
   const chipOn = ladies ? "border-rose-deep bg-rose-deep text-cream" : "border-burgundy bg-burgundy text-cream";
+  // Amsterdam is large: its chip has a menu with the parts of the city they
+  // would come to.
+  const districts = answers.amsterdamDistricts ?? [];
+  const [partsOpen, setPartsOpen] = useState(false);
+  function togglePart(part: AmsterdamDistrict | null) {
+    if (part === null) return onAnswers({ amsterdamDistricts: undefined });
+    const next = districts.includes(part) ? districts.filter((d) => d !== part) : [...districts, part];
+    onAnswers({ amsterdamDistricts: cleanDistricts(next) });
+  }
   return (
     <div className="mt-3.5">
       {answers.gender === "female" ? (
@@ -208,10 +226,43 @@ function ChooseFilters({
         aria-label={copy.citiesAria}
         className={answers.gender === "female" ? "mt-2.5" : ""}
       >
-        {/* One row: their own cities first, the rest a swipe away. */}
-        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:gap-1 sm:px-0 sm:[justify-content:safe_center] [&::-webkit-scrollbar]:hidden">
+        {/* On a phone one row: their own cities first, the rest a swipe away,
+            fading out at the edges. Wider screens have no swipe: the row wraps. */}
+        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-28px),transparent)] [scrollbar-width:none] sm:-mx-8 sm:flex-wrap sm:justify-center sm:gap-1 sm:overflow-visible sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden">
         {cities.map((city) => {
           const on = isChosen(city);
+          if (on && isAmsterdam(city)) {
+            return (
+              <span key={city} className={`inline-flex min-h-9 shrink-0 items-stretch rounded-full border text-[0.85rem] font-medium tracking-[0.01em] sm:text-[0.8rem] ${chipOn}`}>
+                <button
+                  type="button"
+                  aria-pressed
+                  onClick={() => toggle(city)}
+                  className="inline-flex items-center rounded-l-full pl-3 pr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pl-[7px]"
+                >
+                  {displayCity(city, locale)}
+                </button>
+                <button
+                  type="button"
+                  aria-label={districts.length ? `${copy.districtsAria}: ${copy.districtCount(districts.length)}` : copy.districtsAria}
+                  aria-haspopup="dialog"
+                  aria-expanded={partsOpen}
+                  onClick={() => setPartsOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-r-full pl-0.5 pr-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pr-[7px]"
+                >
+                  {/* A choice made: how many parts, as a small badge. */}
+                  {districts.length ? (
+                    <span className="flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-cream px-1 text-[0.68rem] font-bold leading-none text-burgundy">
+                      {districts.length}
+                    </span>
+                  ) : null}
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+              </span>
+            );
+          }
           return (
             <button
               key={city}
@@ -228,6 +279,51 @@ function ChooseFilters({
         })}
         </div>
       </div>
+      {partsOpen ? (
+        <BottomSheet
+          labelledBy="jt-kies-districts-title"
+          title={copy.districtsTitle}
+          closeLabel={closeLabel}
+          onClose={() => setPartsOpen(false)}
+        >
+          <p className="mt-1 text-[0.9rem] leading-snug text-wine/65">{copy.districtsSub}</p>
+          <ul className="mt-4 space-y-2">
+            {([null, ...AMSTERDAM_DISTRICTS] as const).map((part) => {
+              const on = part === null ? districts.length === 0 : districts.includes(part);
+              return (
+                <li key={part ?? "all"}>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={on}
+                    onClick={() => togglePart(part)}
+                    className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border px-4 text-left text-[1rem] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                      on ? "border-burgundy/40 bg-burgundy/[0.06] font-semibold text-wine" : "border-wine/10 bg-white text-wine/80"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                        on ? "border-burgundy bg-burgundy text-cream" : "border-wine/25 bg-white"
+                      }`}
+                    >
+                      {on ? <CheckIcon className="h-3.5 w-3.5" /> : null}
+                    </span>
+                    {part === null ? copy.allAmsterdam : DISTRICT_LABELS[part]}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <button
+            type="button"
+            onClick={() => setPartsOpen(false)}
+            className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy text-[0.85rem] font-semibold uppercase tracking-[0.08em] text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+          >
+            {copy.districtsDone}
+          </button>
+        </BottomSheet>
+      ) : null}
     </div>
   );
 }
@@ -299,15 +395,30 @@ export function QuizChoose({
     () =>
       age === null
         ? { rows: [] as ChooseRow[], hasMatch: false, ourCities: false }
-        : chooseTablesForAnswers(events, { cities: answerCities(answers), age, ageMatters: answers.ageMatters }, now),
+        : chooseTablesForAnswers(
+            events,
+            { cities: answerCities(answers), age, ageMatters: answers.ageMatters, districts: answers.amsterdamDistricts },
+            now,
+          ),
     [events, answers, age, now],
   );
   // Name only chosen cities that have tables here; ours without one get a
   // line under the list.
   // A city whose Sunday is full has one: the line is for cities with none.
+  // Nor for Amsterdam with a table in a part of the city they left out.
   const noSunday = kiesCities(cities, rows).noSunday.filter(
-    (city) => !rows.some((r) => !r.nearby && sameCity(r.event.city, city)),
+    (city) => !rows.some((r) => sameCity(r.event.city, city)),
   );
+  const districts = answers.amsterdamDistricts;
+  /** The city on a card; in Amsterdam with the neighbourhood of the venue,
+   * or "wijk volgt" for who picked parts of the city. */
+  function placeText(event: QuizEvent): string {
+    const city = displayCity(event.city, locale);
+    if (!isAmsterdam(event.city)) return city;
+    if (event.area) return `${city} · ${areaName(event.area)}`;
+    // A full Sunday has nothing left to wait for.
+    return districts?.length && !isNoLongerBookable(event, now) ? `${city} · ${k.areaFollows}` : city;
+  }
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
   const openRows = rows.filter((r) => r.kind === "open");
@@ -475,7 +586,7 @@ export function QuizChoose({
                 <span className="block text-[1rem] font-semibold leading-tight text-wine">{startTime(event.startsAt, locale)}</span>
                 <span className="mt-0.5 flex items-center gap-1 text-[0.85rem] leading-tight text-wine/60">
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                  {displayCity(event.city, locale)}
+                  {placeText(event)}
                 </span>
                 {chip.quiet ? null : (
                   <span className={`mt-1.5 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
@@ -527,7 +638,11 @@ export function QuizChoose({
                 <span className="block text-[1.05rem] font-semibold leading-tight text-wine">{when}</span>
                 <span className="mt-1 flex items-center gap-1 text-[0.88rem] text-wine/65">
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                  {cardCopy.wineBarIn(displayCity(event.city, locale))}
+                  {isAmsterdam(event.city) && event.area
+                    ? cardCopy.wineBarIn(`${areaName(event.area)}, ${displayCity(event.city, locale)}`)
+                    : isAmsterdam(event.city) && districts?.length
+                      ? `${cardCopy.wineBarIn(displayCity(event.city, locale))} · ${k.areaFollows}`
+                      : cardCopy.wineBarIn(displayCity(event.city, locale))}
                 </span>
               </span>
               <span className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-burgundy px-5 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-cream">
@@ -595,7 +710,7 @@ export function QuizChoose({
                 {/* Always the city: the list runs across cities. */}
                 <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
                   <PinIcon className="h-3.5 w-3.5" />
-                  {displayCity(event.city, locale)}
+                  {placeText(event)}
                 </span>
               </span>
             </span>
@@ -667,7 +782,9 @@ export function QuizChoose({
             ) : null}
             {ownOpenCount === 0 && ours.length > 0 ? (
               <p className="mx-auto mt-2 max-w-[21rem] text-center text-[0.92rem] leading-snug text-wine/75 text-balance">
-                {k.elsewhere(shownCity)}
+                {ownClosed.length === 0 && nearbyOpen.some((r) => outsideDistricts(r.event, districts))
+                  ? k.elsewhereDistrict
+                  : k.elsewhere(shownCity)}
               </p>
             ) : null}
           </>
@@ -699,7 +816,7 @@ export function QuizChoose({
             {featuredRow ? cardCopy.how : k.infoLink}
           </button>
         </p>
-        {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
+        {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} closeLabel={k.infoClose} locale={locale} onAnswers={onAnswers} /> : null}
       </div>
 
       {ownDated.length > 0 && !mergeNearby ? (

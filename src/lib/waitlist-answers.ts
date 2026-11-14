@@ -17,12 +17,14 @@ import {
   VIBE_LABELS,
   WHY_LABELS,
 } from "@/lib/priority-list-labels";
+import { DISTRICT_LABELS } from "@/lib/jouw-tafel/districts";
 
 export type WaitlistAnswerKey =
   | "ageRange"
   | "gender"
   | "language"
   | "cities"
+  | "amsterdamDistricts"
   | "interests"
   | "company"
   | "why"
@@ -52,6 +54,7 @@ export const WAITLIST_QUESTIONS: WaitlistQuestion[] = [
   { key: "gender", label: "Geslacht", labels: GENDER_LABELS },
   { key: "language", label: "Taal", labels: LANGUAGE_LABELS },
   { key: "cities", label: "Steden", labels: {} },
+  { key: "amsterdamDistricts", label: "Stadsdeel Amsterdam", labels: DISTRICT_LABELS },
   { key: "interests", label: "Interesse", labels: FORMAT_LABELS },
   { key: "company", label: "Gezelschap", labels: COMPANY_LABELS },
   { key: "why", label: "Waarom", labels: WHY_LABELS },
@@ -96,6 +99,7 @@ export function parseWaitlistAnswers(
     gender: stringList(value.gender),
     language: stringList(value.language),
     cities: stringList(value.cities),
+    amsterdamDistricts: stringList(value.amsterdamDistricts),
     interests: stringList(value.interests),
     company: stringList(value.company),
     why: stringList(value.why),

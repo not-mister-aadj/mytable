@@ -5,6 +5,7 @@
 // npx tsx --test src/lib/jouw-tafel/*.test.ts
 
 import { cityMatchKey } from "@/lib/waitlist-city";
+import { cleanDistricts, outsideDistricts, type AmsterdamDistrict } from "@/lib/jouw-tafel/districts";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   QUIZ_CITIES,
@@ -173,6 +174,9 @@ export type QuizAnswers = {
    * (their label from nl-places.json, a waitlist of its own). At most
    * CITIES_MAX. */
   cities?: string[];
+  /** The parts of Amsterdam where they would join a table; not set is all
+   * of the city. Only read while Amsterdam is one of their cities. */
+  amsterdamDistricts?: AmsterdamDistrict[];
   why?: WhyAnswer[];
   conversation?: ConversationAnswer;
   wine?: WineAnswer;
@@ -462,6 +466,14 @@ export function waitlistAgeRange(age: number): WaitlistAgeRange {
 
 // ------------------------------------------------------------ the table list
 
+export type ChooseInput = {
+  cities: readonly string[];
+  age: number;
+  ageMatters: AgeMattersAnswer | undefined;
+  /** Their parts of Amsterdam; not set or empty is all of the city. */
+  districts?: readonly string[];
+};
+
 export type ChooseRow = {
   event: QuizEvent;
   /** "open": can be booked now. "soon": shown, not on sale yet.
@@ -477,16 +489,20 @@ export type ChooseRow = {
  * date), then tables in cities within reach of any chosen city, then tables
  * that are coming soon (chosen cities, then nearby). A table in a chosen
  * city that can no longer be booked stays until the day after its date
- * ("closed"); nearby ones drop off. `cities` is primary first.
+ * ("closed"); nearby ones drop off. `cities` is primary first. An Amsterdam
+ * table with a venue outside their `districts` counts as nearby.
  */
 export function chooseTables(
   events: QuizEvent[],
-  input: { cities: readonly string[]; age: number; ageMatters: AgeMattersAnswer | undefined },
+  input: ChooseInput,
   now: number = Date.now(),
 ): { rows: ChooseRow[]; hasMatch: boolean } {
   const chosen = input.cities.filter((c) => c.trim());
   const brackets = tableBrackets(input.age, input.ageMatters);
   const isChosen = (city: string) => chosen.some((c) => sameCity(c, city));
+  // In a chosen city, but in a part of Amsterdam they left out.
+  const outside = (e: QuizEvent) => isChosen(e.city) && outsideDistricts(e, input.districts);
+  const mine = (e: QuizEvent) => isChosen(e.city) && !outside(e);
   const near = [...new Set(chosen.flatMap((c) => nearbyCities(c)))].filter((c) => !isChosen(c));
   const cityRank = (e: QuizEvent) => chosen.findIndex((c) => sameCity(c, e.city));
   // A table without an age group is for everyone, and ranks first.
@@ -499,10 +515,10 @@ export function chooseTables(
   );
   const closed = (e: QuizEvent) => isNoLongerBookable(e, now);
   const ownClosed = eligible
-    .filter((e) => isChosen(e.city) && closed(e))
+    .filter((e) => mine(e) && closed(e))
     .sort((a, b) => cityRank(a) - cityRank(b) || time(a) - time(b));
-  const own = eligible.filter((e) => isChosen(e.city) && !closed(e));
-  const nearby = eligible.filter((e) => !isChosen(e.city) && nearRank(e) >= 0 && !closed(e));
+  const own = eligible.filter((e) => mine(e) && !closed(e));
+  const nearby = eligible.filter((e) => (outside(e) || (!isChosen(e.city) && nearRank(e) >= 0)) && !closed(e));
   const isOpen = (e: QuizEvent) => !e.comingSoon;
 
   const ownOpen = own
@@ -520,7 +536,7 @@ export function chooseTables(
     ...ownOpen.map((event) => ({ event, kind: "open" as const, nearby: false })),
     ...ownClosed.map((event) => ({ event, kind: "closed" as const, nearby: false })),
     ...nearbyOpen.map((event) => ({ event, kind: "open" as const, nearby: true })),
-    ...soon.map((event) => ({ event, kind: "soon" as const, nearby: !isChosen(event.city) })),
+    ...soon.map((event) => ({ event, kind: "soon" as const, nearby: !mine(event) })),
   ];
   return { rows, hasMatch: ownOpen.length + nearbyOpen.length > 0 };
 }
@@ -670,7 +686,7 @@ export function stopStadContent(
  */
 export function chooseTablesForAnswers(
   events: QuizEvent[],
-  input: { cities: readonly string[]; age: number; ageMatters: AgeMattersAnswer | undefined },
+  input: ChooseInput,
   now: number = Date.now(),
 ): { rows: ChooseRow[]; hasMatch: boolean; ourCities: boolean } {
   const own = chooseTables(events, input, now);
@@ -854,6 +870,7 @@ export function buildWaitlistPreferences(
     tableType: waitlistTableType(a),
     mixedFallback: a.tableType === "girls_only" ? Boolean(a.mixedFallback) : null,
     cities: answerCities(a),
+    amsterdamDistricts: a.amsterdamDistricts ?? [],
     regionFlexible: false,
     gender: a.gender ? [a.gender] : [],
     ageRange: age !== null ? [waitlistAgeRange(age)] : [],
@@ -970,6 +987,7 @@ export function sanitizeQuizState(raw: unknown): QuizState {
     ...citiesAnswer(
       cleanCityList(Array.isArray(ra.cities) && ra.cities.length > 0 ? ra.cities : [ra.city]),
     ),
+    amsterdamDistricts: cleanDistricts(ra.amsterdamDistricts),
     why: pickList(ra.why, WHY_OPTIONS, WHY_MAX),
     conversation: pick(ra.conversation, CONVERSATION_OPTIONS),
     wine: pick(ra.wine, WINE_OPTIONS),

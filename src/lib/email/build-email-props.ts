@@ -1,4 +1,5 @@
-import { asc, eq } from "drizzle-orm";
+import { mailLoginUrl } from "@/lib/auth/mail-login";
+import { asc, eq, sql } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { eventVenues, venues, type Booking, type Event, type Venue } from "@/db/schema";
 import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
@@ -7,7 +8,7 @@ import type { BookingMovedEmailProps } from "@/emails/BookingMovedEmail";
 import { getSiteUrl } from "@/lib/admin-url";
 import { formatMoney, reservationCode } from "@/lib/booking-display";
 import { JOUW_TAFEL_SEAT_PRICE_CENTS } from "@/lib/jouw-tafel/logic";
-import { experiencePath, jouwTafelTablePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
+import { experiencePath, jouwTafelSettingsPath, jouwTafelTablePath, sundayTableLocationPath, type Locale } from "@/i18n/config";
 import { isJouwTafelType, isSharedTableType, isSundaySocialType } from "@/lib/event-concepts";
 import { formatEmailDate, formatEmailTime } from "@/lib/email/format-email-dates";
 import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
@@ -98,6 +99,19 @@ function emailDuration(event: Event, locale: Locale): string | undefined {
   return locale === "en" ? "2 to 3 hours" : "2 tot 3 uur";
 }
 
+/** "Bekijk je boeking": signs them in, and on their first booking says they now have an account. */
+async function accountEmailProps(booking: Booking, locale: Locale): Promise<{ accountUrl?: string; newAccount?: boolean }> {
+  try {
+    const [{ n }] = (await getDb().execute(
+      sql`select count(*)::int as n from bookings where lower(trim(email)) = ${booking.email.trim().toLowerCase()} and payment_status = 'paid'`,
+    )) as unknown as [{ n: number }];
+    return { accountUrl: await mailLoginUrl(booking.email, jouwTafelSettingsPath(locale)), newAccount: n <= 1 };
+  } catch {
+    // The confirmation goes out without the button.
+    return {};
+  }
+}
+
 export async function buildBookingConfirmationEmailProps(
   booking: Booking,
   event: Event,
@@ -118,6 +132,7 @@ export async function buildBookingConfirmationEmailProps(
   const member = memberEmailProps(booking, event, locale);
   return {
     locale,
+    ...(await accountEmailProps(booking, locale)),
     customerName: booking.customerName ?? undefined,
     customerEmail: booking.email,
     eventName: eventDisplayName(event, locale),

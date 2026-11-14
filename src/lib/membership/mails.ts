@@ -1,3 +1,4 @@
+import { mailLoginUrl } from "@/lib/auth/mail-login";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { customers, type Membership } from "@/db/schema";
@@ -31,6 +32,16 @@ function links(locale: Locale) {
   };
 }
 
+/** The same links for a member's own mail: each signs them in (mail-login.ts). */
+async function memberLinks(locale: Locale, email: string): Promise<ReturnType<typeof links>> {
+  const base = getSiteUrl().replace(/\/$/, "");
+  const [kies, settings] = await Promise.all([
+    mailLoginUrl(email, jouwTafelKiesPath(locale), base),
+    mailLoginUrl(email, jouwTafelSettingsPath(locale), base),
+  ]);
+  return { kies, settings, login: kies };
+}
+
 async function recipient(m: Membership): Promise<{ locale: Locale; firstName: string | null; customerId: string | null }> {
   const locale = await resolveEmailLocale({ email: m.email, userId: m.userId, fallbackLocale: m.locale });
   const [customer] = await getDb()
@@ -52,32 +63,32 @@ async function send(to: string, mail: MembershipMail, customerId: string | null,
 export async function sendMembershipWelcomeEmail(m: Membership, bookedSunday: Date | null): Promise<boolean> {
   if (!isMembershipPlanId(m.plan)) return false;
   const [r, singleSeatCents] = await Promise.all([recipient(m), getSingleSeatCents()]);
-  const mail = welcomeMail({ locale: r.locale, firstName: r.firstName, plan: m.plan, bookedSunday, singleSeatCents, links: links(r.locale) });
+  const mail = welcomeMail({ locale: r.locale, firstName: r.firstName, plan: m.plan, bookedSunday, singleSeatCents, links: await memberLinks(r.locale, m.email) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: welkom");
 }
 
 export async function sendMembershipReminderEmail(m: Membership): Promise<boolean> {
   if (!isMembershipPlanId(m.plan) || !m.initialPeriodEnd) return false;
   const r = await recipient(m);
-  const mail = reminderMail({ locale: r.locale, firstName: r.firstName, plan: m.plan, from: m.initialPeriodEnd, links: links(r.locale) });
+  const mail = reminderMail({ locale: r.locale, firstName: r.firstName, plan: m.plan, from: m.initialPeriodEnd, links: await memberLinks(r.locale, m.email) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: loopt per maand door");
 }
 
 export async function sendMembershipCancelledEmail(m: Membership, until: Date): Promise<boolean> {
   const r = await recipient(m);
-  const mail = cancelledMail({ locale: r.locale, firstName: r.firstName, until, links: links(r.locale) });
+  const mail = cancelledMail({ locale: r.locale, firstName: r.firstName, until, links: await memberLinks(r.locale, m.email) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: opzegging bevestigd");
 }
 
 export async function sendNoShowWarningEmail(m: Membership, sunday: Date): Promise<boolean> {
   const r = await recipient(m);
-  const mail = noShowWarningMail({ locale: r.locale, firstName: r.firstName, sunday, links: links(r.locale) });
+  const mail = noShowWarningMail({ locale: r.locale, firstName: r.firstName, sunday, links: await memberLinks(r.locale, m.email) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: niet gekomen (waarschuwing)");
 }
 
 export async function sendNoShowBlockedEmail(m: Membership, sunday: Date, until: Date): Promise<boolean> {
   const r = await recipient(m);
-  const mail = noShowBlockedMail({ locale: r.locale, firstName: r.firstName, sunday, until, links: links(r.locale) });
+  const mail = noShowBlockedMail({ locale: r.locale, firstName: r.firstName, sunday, until, links: await memberLinks(r.locale, m.email) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: niet gekomen (maand niet boeken)");
 }
 

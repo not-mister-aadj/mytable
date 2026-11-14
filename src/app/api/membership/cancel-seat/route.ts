@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMemberUser } from "@/lib/member-auth";
+import { codeRequiredResponse } from "@/lib/auth/mail-login";
 import { cancelMemberSeat } from "@/lib/membership/bookings";
 import { captureClientSafeError } from "@/lib/membership/errors";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -14,6 +15,9 @@ import { PostHogEvents } from "@/lib/posthog/events";
 export async function POST(request: Request) {
   const user = await getMemberUser();
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Signed in from a mail: this step asks for a code first.
+  const codeFirst = await codeRequiredResponse();
+  if (codeFirst) return codeFirst;
   const body = (await request.json().catch(() => ({}))) as { bookingId?: unknown };
   if (typeof body.bookingId !== "string" || !/^[0-9a-f-]{36}$/i.test(body.bookingId)) {
     return NextResponse.json({ error: "Invalid booking" }, { status: 400 });

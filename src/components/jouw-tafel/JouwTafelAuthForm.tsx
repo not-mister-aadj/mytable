@@ -127,6 +127,7 @@ export function JouwTafelAuthForm({
   account = false,
   guestEmail = null,
   initialEmail = "",
+  codeFirst = false,
 }: {
   locale: Locale;
   screen: AuthScreen;
@@ -153,6 +154,8 @@ export function JouwTafelAuthForm({
   guestEmail?: string | null;
   /** The address they gave before (the email screen), prefilled. */
   initialEmail?: string;
+  /** Signed in from a mail, and a step (cancel, move, membership) asks for a code first. */
+  codeFirst?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -584,7 +587,13 @@ export function JouwTafelAuthForm({
       <h1 className="font-serif text-[2rem] font-medium leading-[1.1] tracking-tight text-wine text-balance">
         {screenCopy.title}
       </h1>
-      {screenCopy.sub ? (
+      {codeFirst ? (
+        <p className="mt-3 text-[1.02rem] leading-relaxed text-wine/70">
+          {locale === "en"
+            ? "For this step we first send a code to your email address."
+            : "Voor deze stap sturen we eerst een code naar je e-mailadres."}
+        </p>
+      ) : screenCopy.sub ? (
         <p className="mt-3 text-[1.02rem] leading-relaxed text-wine/70">{screenCopy.sub}</p>
       ) : null}
 

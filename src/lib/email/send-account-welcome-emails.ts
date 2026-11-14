@@ -1,3 +1,4 @@
+import { mailLoginUrl } from "@/lib/auth/mail-login";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { accountWelcomeEmails, jouwTafelGuests } from "@/db/schema";
@@ -93,8 +94,9 @@ export async function sendAccountWelcomeEmails(now: Date = new Date()): Promise<
         firstName,
         variant: pick.variant,
         cities: joinCityNames(pick.cities, locale),
-        kiesUrl: `${site}${jouwTafelStartPath(locale)}?stap=kies`,
-        settingsUrl: `${site}${jouwTafelSettingsPath(locale)}`,
+        // Both sign them in (mail-login.ts): the mail is theirs alone.
+        kiesUrl: await mailLoginUrl(email, `${jouwTafelStartPath(locale)}?stap=kies`, site),
+        settingsUrl: await mailLoginUrl(email, jouwTafelSettingsPath(locale), site),
       }),
     }).catch(() => false);
     if (!ok) await db.delete(accountWelcomeEmails).where(eq(accountWelcomeEmails.userId, user.id));

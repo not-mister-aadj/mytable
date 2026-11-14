@@ -1,5 +1,6 @@
 import { SundayTableWaitlistInviteEmail } from "@/emails/SundayTableWaitlistInviteEmail";
-import { joinPath, type Locale } from "@/i18n/config";
+import { sundayTableLpPath, type Locale } from "@/i18n/config";
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import { getSiteUrl } from "@/lib/env";
 import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { sundayTableWaitlistInviteSubject } from "@/lib/email/subjects";
@@ -75,7 +76,8 @@ export async function sendSundayTableWaitlistInvites(input: {
     const dateLabel = dateObj
       ? formatSundayTableDate(dateObj, locale)
       : input.key.tableDate;
-    const claimUrl = `${site}${joinPath(locale)}?city=${encodeURIComponent(input.key.city)}`;
+    // The Sunday's own page, where a seat is booked (/join is gone).
+    const claimUrl = `${site}${(dateObj && sundaySocialDatePath(locale, { city: input.key.city, startsAt: dateObj })) || sundayTableLpPath(locale)}`;
 
     const ok = await sendSimpleEmail({
       to: candidate.email,

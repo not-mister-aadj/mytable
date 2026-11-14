@@ -21,6 +21,7 @@ import {
   sundayTableLpPath,
 } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
+import { isMailSession } from "@/lib/auth/mail-login";
 import { getCookieGuest } from "@/lib/jouw-tafel/guest-server";
 import { devCountOverride, getWaitlistProof } from "@/lib/jouw-tafel/data";
 import { getLandingCopy } from "@/lib/jouw-tafel/copy";
@@ -105,8 +106,12 @@ export async function JouwTafelAuthPage({
       ? `?naar=${encodeURIComponent(toPath)}`
       : "";
 
-  const signedIn = Boolean(await getMemberUser());
-  if (signedIn && (screen === "login" || confirm)) redirect(nextPath);
+  const user = await getMemberUser();
+  const signedIn = Boolean(user);
+  // Signed in from a mail, and a step asked for a code (?bevestig=1): the
+  // log-in screen with their address filled in, instead of going on.
+  const codeFirst = signedIn && screen === "login" && firstParam(searchParams.bevestig) === "1" && (await isMailSession());
+  if (signedIn && !codeFirst && (screen === "login" || confirm)) redirect(nextPath);
   const guest = screen === "signup" ? await getCookieGuest() : null;
   // Email already given in this browser: straight back to the quiz.
   if (screen === "signup" && !confirm && (signedIn || guest)) redirect(jouwTafelStartPath(locale));
@@ -156,7 +161,8 @@ export async function JouwTafelAuthPage({
         confirm={confirm}
         account={wantsAccount && !toMembership && toPath === null}
         guestEmail={guest?.email ?? null}
-        initialEmail={wantsAccount ? "" : (guest?.email ?? "")}
+        initialEmail={codeFirst ? (user?.email ?? "") : wantsAccount ? "" : (guest?.email ?? "")}
+        codeFirst={codeFirst}
       />
     </AccountShell>
   );

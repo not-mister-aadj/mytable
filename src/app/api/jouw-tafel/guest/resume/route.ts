@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jouwTafelKiesPath, jouwTafelSignUpPath, type Locale } from "@/i18n/config";
 import { MAIL_TRACKING_PARAMS } from "@/lib/email/mail-utm";
-import { GUEST_COOKIE, getGuestById, guestCookieOptions } from "@/lib/jouw-tafel/guest-server";
+import { GUEST_COOKIE, getGuestById, guestCookieOptions, guestResumeOpen } from "@/lib/jouw-tafel/guest-server";
 
 /**
  * The welcome mail's link for someone without an account yet
@@ -11,7 +11,10 @@ import { GUEST_COOKIE, getGuestById, guestCookieOptions } from "@/lib/jouw-tafel
  */
 export async function GET(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("g");
-  const guest = id ? await getGuestById(id).catch(() => null) : null;
+  const found = id ? await getGuestById(id).catch(() => null) : null;
+  // The link is from their welcome mail: it opens their answers without a
+  // log-in, so it stops working RESUME_LINK_DAYS after they did the quiz.
+  const guest = found && (await guestResumeOpen(found.id)) ? found : null;
   const locale: Locale = guest?.locale ?? (request.nextUrl.searchParams.get("locale") === "en" ? "en" : "nl");
   const target = request.nextUrl.clone();
   target.search = "";

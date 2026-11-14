@@ -22,6 +22,10 @@ export type BookingConfirmationEmailProps = {
   bookingCode: string;
   eventUrl: string;
   ticketUrl?: string;
+  /** Their bookings, behind a link that signs them in (mail-login.ts). */
+  accountUrl?: string;
+  /** Their first booking: says once that they now have an account. */
+  newAccount?: boolean;
   venueName?: string;
   startLocation?: string;
   dietaryNotes?: string;
@@ -47,6 +51,8 @@ export function BookingConfirmationEmail({
   bookingCode,
   eventUrl,
   ticketUrl,
+  accountUrl,
+  newAccount,
   venueName,
   startLocation,
   dietaryNotes,
@@ -249,6 +255,23 @@ export function BookingConfirmationEmail({
         href={eventUrl}
         label={en ? "View your table →" : "Bekijk je tafel →"}
       />
+
+      {accountUrl ? (
+        <CTASection
+          helperText={
+            newAccount
+              ? en
+                ? "You now have a MyTable account on this email address."
+                : "Je hebt nu een MyTable-account op dit e-mailadres."
+              : en
+                ? "All your bookings in one place."
+                : "Al je boekingen op één plek."
+          }
+          href={accountUrl}
+          label={en ? "View your booking →" : "Bekijk je boeking →"}
+          variant="secondary"
+        />
+      ) : null}
 
       {ticketUrl ? (
         <CTASection

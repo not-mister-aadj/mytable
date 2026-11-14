@@ -74,6 +74,15 @@ export async function getCookieGuest(): Promise<JouwTafelGuest | null> {
   return id ? getGuestById(id).catch(() => null) : null;
 }
 
+/** How long the link in a guest's welcome mail opens their answers. */
+export const RESUME_LINK_DAYS = 30;
+
+/** Is the welcome mail's link for this guest row still good (see RESUME_LINK_DAYS)? */
+export async function guestResumeOpen(id: string, now: number = Date.now()): Promise<boolean> {
+  const [row] = await getDb().select({ createdAt: jouwTafelGuests.createdAt }).from(jouwTafelGuests).where(eq(jouwTafelGuests.id, id)).limit(1);
+  return Boolean(row && now - row.createdAt.getTime() <= RESUME_LINK_DAYS * 24 * 60 * 60 * 1000);
+}
+
 /** A new guest row for this email (the caller sets the cookie). */
 export async function createGuest(input: { email: string; locale: Locale }): Promise<JouwTafelGuest> {
   const [row] = await getDb()

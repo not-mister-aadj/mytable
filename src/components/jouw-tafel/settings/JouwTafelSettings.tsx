@@ -19,8 +19,7 @@ import {
   privacyPath,
   switchLocalePath,
   termsPath,
-  type Locale,
-} from "@/i18n/config";
+  type Locale, jouwTafelLogInPath } from "@/i18n/config";
 import { companyLegal } from "@/lib/company-legal";
 import { displayCity, supportedCity } from "@/lib/jouw-tafel/logic";
 import { getQuizCopy, type QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
@@ -305,6 +304,17 @@ function Switch({ on, label, onChange, busy }: { on: boolean; label: string; onC
 
 // ---------------------------------------------------------------- page
 
+/** Signed in from a mail, and this step needs a code typed: on to the log-in
+ * screen, which sends one and comes back here. True when it took over. */
+async function askCodeFirst(res: Response, locale: Locale): Promise<boolean> {
+  if (res.status !== 403) return false;
+  const data = (await res.clone().json().catch(() => null)) as { error?: string } | null;
+  if (data?.error !== "code_required") return false;
+  const back = `${window.location.pathname}${window.location.search}`;
+  window.location.assign(`${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(back)}&bevestig=1`);
+  return true;
+}
+
 export function JouwTafelSettings({
   locale,
   userId,
@@ -410,6 +420,7 @@ export function JouwTafelSettings({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId: booking.id, expectedTargetEventId: booking.reschedule.targetEventId, locale }),
       });
+      if (await askCodeFirst(res, locale)) return;
       const data = (await res.json().catch(() => null)) as
         | { ok?: boolean; startsAt?: string; code?: string; error?: string }
         | null;
@@ -455,6 +466,7 @@ export function JouwTafelSettings({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale }),
       });
+      if (await askCodeFirst(res, locale)) return;
       const data = (await res.json().catch(() => null)) as { url?: string } | null;
       if (!res.ok || !data?.url) throw new Error(String(res.status));
       window.location.assign(data.url);
@@ -472,6 +484,7 @@ export function JouwTafelSettings({
     setEndingFree(true);
     try {
       const res = await fetch("/api/membership/end-free", { method: "POST" });
+      if (await askCodeFirst(res, locale)) return;
       if (!res.ok) throw new Error(String(res.status));
       setConfirmFreeEnd(false);
       setToast(ms.freeEndDone);
@@ -494,6 +507,7 @@ export function JouwTafelSettings({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId: booking.id }),
       });
+      if (await askCodeFirst(res, locale)) return;
       if (!res.ok) throw new Error(String(res.status));
       setSheet(null);
       setConfirmCancel(false);
@@ -606,6 +620,7 @@ export function JouwTafelSettings({
     setDeleteError(false);
     try {
       const res = await fetch("/api/auth/member/delete", { method: "POST" });
+      if (await askCodeFirst(res, locale)) return;
       if (!res.ok) throw new Error(String(res.status));
       trackSettingsEvent(PostHogEvents.accountDeleted, { locale });
       try {

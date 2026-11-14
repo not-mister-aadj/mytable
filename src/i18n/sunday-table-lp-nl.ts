@@ -22,6 +22,7 @@ export const sundayTableWaitlistNl: SundayTableLpLabels["waitlist"] = {
   errorName: "Vul je voornaam in.",
   errorEmail: "Vul een geldig e-mailadres in.",
   errorCity: "Kies minstens één stad.",
+  errorCityOtherOnly: "Kies ook een van onze steden erbij.",
   questionsTitle: "Nog een paar korte vragen",
   questionsBody: "Helpt ons de juiste tafel voor je te vinden. Helemaal optioneel.",
   skip: "Overslaan",

@@ -40,7 +40,7 @@ import { QUIZ_CITIES, displayCity } from "@/lib/jouw-tafel/logic";
  * name or email is sent along; the user agent shows in-app browsers.
  */
 function reportSignupFailure(
-  reason: "missing_name" | "invalid_email" | "missing_city" | "server" | "network",
+  reason: "missing_name" | "invalid_email" | "missing_city" | "other_city_only" | "server" | "network",
   extra?: Record<string, unknown>,
 ): void {
   Sentry.withScope((scope) => {
@@ -363,6 +363,13 @@ export function SundayTableWaitlistModal({
       setError(labels.errorCity);
       setErrorAttempt((n) => n + 1);
       reportSignupFailure("missing_city");
+      return;
+    }
+    // Another city only counts next to one of ours: a table has to be near.
+    if (!cityName && selectedCities.length === 0) {
+      setError(labels.errorCityOtherOnly);
+      setErrorAttempt((n) => n + 1);
+      reportSignupFailure("other_city_only");
       return;
     }
     setIsSubmitting(true);

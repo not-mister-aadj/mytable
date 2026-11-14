@@ -138,10 +138,6 @@ export type QuizCopy = {
     unnotified: string;
     /** Under the title: the table as their answers shaped it. */
     match: (m: { around: number | null; dutch: boolean; alone: boolean }) => string;
-    /** Their own city is full: the open tables elsewhere follow. */
-    elsewhere: (city: string) => string;
-    /** Amsterdam has a table, in a part of the city they left out. */
-    elsewhereDistrict: string;
     /** After Amsterdam on a card: no venue yet. */
     areaFollows: string;
     /** On a bookable table, after the number of guests around their age:
@@ -407,8 +403,6 @@ const nl: QuizCopy = {
     unnotified: "Je staat niet meer op de wachtlijst.",
     match: ({ around, dutch, alone }) =>
       `Een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten alleen komen" : ""}.`,
-    elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
-    elsewhereDistrict: "Nog geen tafel in jouw stadsdelen. Dit zijn de eerstvolgende tafels.",
     areaFollows: "stadsdeel volgt",
     fit: "mensen die bij jou passen",
     fitLow: "Past mogelijk minder goed bij je",
@@ -657,8 +651,6 @@ const en: QuizCopy = {
     unnotified: "You're off the waitlist.",
     match: ({ around, dutch, alone }) =>
       `A ${dutch ? "Dutch-speaking " : ""}table of ${around ? "people around your age" : "all ages"}.${alone ? " Most come on their own." : ""}`,
-    elsewhere: (city) => `${city} is full. These are the next tables.`,
-    elsewhereDistrict: "No table in your parts of the city yet. These are the next tables.",
     areaFollows: "area to follow",
     fit: "people you'll click with",
     fitLow: "Might be less your crowd",

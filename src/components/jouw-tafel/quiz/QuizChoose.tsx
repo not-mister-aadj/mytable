@@ -177,8 +177,6 @@ function ChooseFilters({
   // would come to.
   const districts = answers.amsterdamDistricts ?? [];
   const [partsOpen, setPartsOpen] = useState(false);
-  const partsText =
-    districts.length === 0 ? null : districts.length === 1 ? DISTRICT_LABELS[districts[0]!] : copy.districtCount(districts.length);
   function togglePart(part: AmsterdamDistrict | null) {
     if (part === null) return onAnswers({ amsterdamDistricts: undefined });
     const next = districts.includes(part) ? districts.filter((d) => d !== part) : [...districts, part];
@@ -229,7 +227,7 @@ function ChooseFilters({
       >
         {/* On a phone one row: their own cities first, the rest a swipe away,
             fading out at the edges. Wider screens have no swipe: the row wraps. */}
-        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-28px),transparent)] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-28px),transparent)] [scrollbar-width:none] sm:-mx-8 sm:flex-wrap sm:justify-center sm:gap-1 sm:overflow-visible sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden">
         {cities.map((city) => {
           const on = isChosen(city);
           if (on && isAmsterdam(city)) {
@@ -239,19 +237,24 @@ function ChooseFilters({
                   type="button"
                   aria-pressed
                   onClick={() => toggle(city)}
-                  className="inline-flex items-center rounded-l-full pl-3 pr-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pl-[7px]"
+                  className="inline-flex items-center rounded-l-full pl-3 pr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pl-[7px]"
                 >
                   {displayCity(city, locale)}
-                  {partsText ? <span className="ml-1 opacity-80">· {partsText}</span> : null}
                 </button>
                 <button
                   type="button"
-                  aria-label={copy.districtsAria}
+                  aria-label={districts.length ? `${copy.districtsAria}: ${copy.districtCount(districts.length)}` : copy.districtsAria}
                   aria-haspopup="dialog"
                   aria-expanded={partsOpen}
                   onClick={() => setPartsOpen(true)}
-                  className="inline-flex items-center rounded-r-full border-l border-cream/30 pl-1.5 pr-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+                  className="inline-flex items-center gap-1 rounded-r-full pl-0.5 pr-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pr-[7px]"
                 >
+                  {/* A choice made: how many parts, as a small badge. */}
+                  {districts.length ? (
+                    <span className="flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-cream px-1 text-[0.68rem] font-bold leading-none text-burgundy">
+                      {districts.length}
+                    </span>
+                  ) : null}
                   <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
                     <path d="m6 9 6 6 6-6" />
                   </svg>

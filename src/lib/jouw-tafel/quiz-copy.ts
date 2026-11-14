@@ -174,7 +174,7 @@ export type QuizCopy = {
       districtsTitle: string;
       districtsSub: string;
       allAmsterdam: string;
-      /** On the chip with more than one part ticked. */
+      /** For screen readers on the chip: how many parts are ticked. */
       districtCount: (n: number) => string;
       districtsDone: string;
       tableAria: string;
@@ -432,7 +432,7 @@ const nl: QuizCopy = {
       districtsTitle: "Waar in Amsterdam?",
       districtsSub: "Een zondag zonder locatie zie je altijd. Staat de locatie vast, dan eerst die in jouw stadsdelen.",
       allAmsterdam: "Heel Amsterdam",
-      districtCount: (n) => `${n} stadsdelen`,
+      districtCount: (n) => (n === 1 ? "1 stadsdeel" : `${n} stadsdelen`),
       districtsDone: "Klaar",
       tableAria: "Soort tafel",
       mixed: "Mixed table",
@@ -682,7 +682,7 @@ const en: QuizCopy = {
       districtsTitle: "Where in Amsterdam?",
       districtsSub: "A Sunday without a venue always shows. Once the venue is set, the ones in your parts of the city come first.",
       allAmsterdam: "All of Amsterdam",
-      districtCount: (n) => `${n} areas`,
+      districtCount: (n) => (n === 1 ? "1 area" : `${n} areas`),
       districtsDone: "Done",
       tableAria: "Kind of table",
       mixed: "Mixed table",

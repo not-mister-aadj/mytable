@@ -164,7 +164,7 @@ async function loadAgeBuckets(tables: { id: string; startsAt: Date }[]): Promise
 
 /** Short cache, dropped with the agenda whenever a purchase or admin edit
  * revalidates PUBLISHED_EVENTS_CACHE_TAG. */
-const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v8"], {
+const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v9"], {
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });

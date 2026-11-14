@@ -61,7 +61,6 @@ const TABLE_PHOTOS = [
   "/girls-only/wine-tasting-conversation.jpg",
   "/girls-only/wine-tasting-toast.jpg",
   "/girls-only/table-wine-laughing.jpg",
-  "/girls-only/smiling-glasses.jpg",
   "/girls-only/table-group.jpg",
 ] as const;
 const LADIES_PHOTOS = ["/girls-only/table-group.jpg", "/girls-only/laughing-bar.jpg", "/girls-only/table-wine-laughing.jpg"] as const;

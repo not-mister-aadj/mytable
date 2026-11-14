@@ -169,6 +169,8 @@ export function SundayTableBookingCard({
   const ageCopy = AGE_PREFERENCE_COPY[locale === "en" ? "en" : "nl"];
   const [agePreference, setAgePreference] = useState<AgePreference | null>(null);
   const [seats, setSeats] = useState<1 | 2>(1);
+  const [tableLanguagePreference, setTableLanguagePreference] =
+    useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   /** Came through the quiz ("Kies je zondag"): the card is filled in with
    * what they gave there, and a link goes back to their Sundays. */
   const [fromQuiz, setFromQuiz] = useState(false);
@@ -201,7 +203,7 @@ export function SundayTableBookingCard({
     let cancelled = false;
     fetch("/api/jouw-tafel/guest/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null } | null) => {
+      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null } | null) => {
         if (cancelled) return;
         if (!me?.known) {
           setSignedOut(Boolean(me));
@@ -214,6 +216,17 @@ export function SundayTableBookingCard({
         if (me.email) setEmail((current) => current || me.email!);
         if (me.name) setName((current) => current || me.name!);
         if (me.birthDate) setBirthDate((current) => current || me.birthDate!);
+        // Their quiz answers stand in for the two choices on the card.
+        if (me.ageMatters) setAgePreference((current) => current ?? (me.ageMatters === "yes" ? "similar" : "any"));
+        if (me.language === "dutch") setTableLanguagePreference("prefer_dutch");
+        // From "Kies je zondag" the ticket for this Sunday is ticked already
+        // (see the effect above). The choice stays in view, "Elke zondag" and
+        // a second seat next to it: one tap on "Verder" and their details
+        // are there. The card sits under the story of the afternoon, so
+        // bring it into view.
+        if (window.location.hash === "#boeken" && new URLSearchParams(window.location.search).has("ticket")) {
+          window.setTimeout(() => document.getElementById("boeken")?.scrollIntoView({ block: "start", behavior: "instant" }), 150);
+        }
       })
       .catch(() => {
         /* the card simply stays empty */
@@ -222,8 +235,6 @@ export function SundayTableBookingCard({
       cancelled = true;
     };
   }, [startsAt]);
-  const [tableLanguagePreference, setTableLanguagePreference] =
-    useState<TableLanguagePreference>(DEFAULT_TABLE_LANGUAGE_PREFERENCE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/config";
 import { CheckIcon, PinIcon } from "@/components/jouw-tafel/icons";
 import { BottomSheet } from "@/components/jouw-tafel/quiz/BottomSheet";
 import { formatTableSpotsLeftHint, tableSpotsLeft } from "@/lib/event-display";
-import { QUIZ_CITIES, displayCity, sameCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { QUIZ_CITIES, displayCity, guestsAroundAge, sameCity, tableFit, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import type { QuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   ageFromBirthDate,
@@ -68,6 +68,7 @@ const CARD_COPY = {
     wineBarIn: (city: string) => `Een wijnbar in ${city}`,
     reserveShort: "Reserveer",
     next: "Eerstvolgende",
+    nextTables: "Eerstvolgende tafels",
     shortPeople: "4 tot 6 nieuwe mensen",
     priceLine: (price: string) => `${price} per plek`,
   },
@@ -75,6 +76,7 @@ const CARD_COPY = {
     wineBarIn: (city: string) => `A wine bar in ${city}`,
     reserveShort: "Reserve",
     next: "Next up",
+    nextTables: "Next tables",
     shortPeople: "4 to 6 new people",
     priceLine: (price: string) => `${price} per seat`,
   },
@@ -241,6 +243,7 @@ export function QuizChoose({
   tablePath,
   membership = null,
   booked = {},
+  matches = {},
   onAnswers,
 }: {
   locale: Locale;
@@ -256,6 +259,8 @@ export function QuizChoose({
   tablePath: (event: QuizEvent) => string;
   /** Tables this person already has a seat at: event id to seats. */
   booked?: Record<string, number>;
+  /** Per table: how many of their mutual likes have a seat there. */
+  matches?: Record<string, number>;
   /** Saves a change from the filters on top (cities, kind of table). */
   onAnswers?: (patch: Partial<QuizAnswers>) => void;
   /** Their running membership, null when not a member. */
@@ -279,7 +284,10 @@ export function QuizChoose({
   );
   // Name only chosen cities that have tables here; ours without one get a
   // line under the list.
-  const { noSunday } = kiesCities(cities, rows);
+  // A city whose Sunday is full has one: the line is for cities with none.
+  const noSunday = kiesCities(cities, rows).noSunday.filter(
+    (city) => !rows.some((r) => !r.nearby && sameCity(r.event.city, city)),
+  );
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
   const openRows = rows.filter((r) => r.kind === "open");
@@ -292,10 +300,16 @@ export function QuizChoose({
       city,
       rows: ownShown
         .filter((r) => sameCity(r.event.city, city))
-        .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt)),
+        // What can be booked comes first; a full Sunday sits under it.
+        .sort(
+          (a, b) =>
+            Number(a.kind === "closed") - Number(b.kind === "closed") ||
+            Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt),
+        ),
     }))
     .filter((s) => s.rows.length > 0);
   const nearbyOpen = openRows.filter((r) => r.nearby);
+  const ownOpenCount = openRows.filter((r) => !r.nearby).length;
   const soonRows = rows.filter((r) => r.kind === "soon");
 
   const viewedRef = useRef(false);
@@ -317,10 +331,69 @@ export function QuizChoose({
 
   function open(row: ChooseRow) {
     handlers.onOpen({ event_slug: row.event.slug, nearby: row.nearby, coming_soon: row.event.comingSoon });
-    window.location.assign(tablePath(row.event));
+    // Straight to their details: this Sunday's ticket is chosen, with a
+    // second seat for who said they bring someone.
+    const path = tablePath(row.event);
+    const bookable = row.kind === "open" && !row.event.comingSoon;
+    const query = bookable ? `${path.includes("?") ? "&" : "?"}ticket=deze-zondag${answers.companion === "with" ? "&plekken=2" : ""}` : "";
+    window.location.assign(`${path}${query}${bookable ? "#boeken" : ""}`);
   }
 
-  function notifyButton(event: QuizEvent | null, compact = false) {
+  /** The light on a bookable table (tableFit): green with "11 mensen die
+   * bij jou passen" from three guests around their age, red when it may
+   * suit them less, and nothing in between. Never how many booked, and
+   * never who. */
+  function fitRow(event: QuizEvent, compact = false) {
+    if (age === null) return null;
+    const around = guestsAroundAge(event.ageBuckets, age);
+    const fit = tableFit({ around, seatsLeft: Math.max(0, event.capacity - event.spotsSold) });
+    if (fit === "none") return null;
+    const tone = fit === "good" ? "bg-emerald-500" : "bg-red-500";
+    return (
+      <span className={`flex items-center gap-2.5 border-t border-wine/[0.07] ${compact ? "px-3.5 py-2.5" : "px-4 py-3"}`}>
+        <span aria-hidden className="relative flex h-3 w-3 shrink-0">
+          {fit === "good" && !reduceMotion ? (
+            <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-50 ${tone}`} />
+          ) : null}
+          <span className={`relative inline-flex h-3 w-3 rounded-full ring-2 ring-white ${tone}`} />
+        </span>
+        <span className={`leading-snug text-wine ${compact ? "text-[0.85rem]" : "text-[0.92rem] font-medium"}`}>
+          {fit === "low" ? (
+            k.fitLow
+          ) : around >= 3 ? (
+            <>
+              <span className="font-bold tabular-nums">{around}</span> {k.fit}
+            </>
+          ) : (
+            k.fitGood
+          )}
+        </span>
+      </span>
+    );
+  }
+
+  /** Someone they had a good time with has a seat here: the warmest reason
+   * to pick this Sunday, so it gets its own band. */
+  function knownBand(event: QuizEvent, compact = false) {
+    const n = matches[event.id] ?? 0;
+    if (n === 0) return null;
+    return (
+      <span
+        className={`flex items-center gap-2.5 bg-gradient-to-r from-gold/25 via-gold/15 to-gold/5 text-left ${
+          compact ? "rounded-b-2xl px-3 py-2.5" : "px-4 py-3"
+        }`}
+      >
+        <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-burgundy text-cream shadow-[0_3px_10px_rgba(90,15,27,0.3)]">
+          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
+            <path d="M12 20.5 4.2 12.6a4.9 4.9 0 0 1 6.9-6.9l.9.9.9-.9a4.9 4.9 0 0 1 6.9 6.9L12 20.5Z" />
+          </svg>
+        </span>
+        <span className="text-[0.88rem] font-semibold leading-snug text-wine">{k.known(n)}</span>
+      </span>
+    );
+  }
+
+  function notifyButton(event: QuizEvent | null, compact = false, label: string = k.notify) {
     const key = event ? event.id : "city";
     const done = notified.has(key);
     return (
@@ -333,12 +406,12 @@ export function QuizChoose({
         aria-pressed={done}
         className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
           compact
-            ? "px-0 text-burgundy underline decoration-burgundy/30 underline-offset-4"
+            ? "px-0 text-left text-burgundy underline decoration-burgundy/30 underline-offset-4"
             : "border border-wine/12 bg-white px-3.5 text-[0.82rem] text-wine shadow-[0_1px_4px_rgba(43,13,18,0.05)]"
         } ${done ? "no-underline text-wine/55" : ""}`}
       >
         {done ? <CheckIcon className="h-4 w-4" /> : null}
-        {k.notify}
+        {label}
       </button>
     );
   }
@@ -347,7 +420,11 @@ export function QuizChoose({
   // The very next bookable Sunday stands out ("Eerstvolgende").
   const featuredRow = [...openRows]
     .filter((r) => !r.event.comingSoon && !booked[r.event.id])
-    .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt))[0];
+    .sort(
+      (a, b) =>
+        (matches[b.event.id] ?? 0) - (matches[a.event.id] ?? 0) ||
+        Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt),
+    )[0];
   const featuredId = featuredRow?.event.id;
 
   /** A Sunday that can be booked now. The next one is a card with a photo of
@@ -387,6 +464,8 @@ export function QuizChoose({
                 {cardCopy.reserveShort}
               </span>
             </button>
+            {fitRow(event, true)}
+            {knownBand(event, true)}
           </div>
         </motion.li>
       );
@@ -406,13 +485,14 @@ export function QuizChoose({
               <Image src={photo} alt="" fill sizes="(max-width: 640px) 100vw, 420px" className="object-cover" />
               <span className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                 <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">
-                  {cardCopy.next}
+                  {matches[event.id] ? k.knownBadge(matches[event.id]!) : cardCopy.next}
                 </span>
                 <span className="rounded-full bg-white/95 px-2.5 py-1 text-[0.72rem] font-semibold leading-none text-burgundy shadow-sm">
                   {chip.text}
                 </span>
               </span>
             </span>
+            {knownBand(event)}
             <span className="flex items-end justify-between gap-3 px-4 pb-4 pt-3">
               <span className="min-w-0">
                 <span className="block text-[1.05rem] font-semibold leading-tight text-wine">{when}</span>
@@ -425,6 +505,7 @@ export function QuizChoose({
                 {cardCopy.reserveShort}
               </span>
             </span>
+            {fitRow(event)}
           </button>
         </div>
       </motion.li>
@@ -487,6 +568,8 @@ export function QuizChoose({
           </motion.button>
           {soon ? (
             <div className="-mt-1 px-4 pb-3 pl-[5.3rem]">{notifyButton(event)}</div>
+          ) : closed && !seats ? (
+            <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true, k.extraTable)}</div>
           ) : null}
         </div>
       </motion.li>
@@ -505,6 +588,18 @@ export function QuizChoose({
     );
   }
 
+  type CitySection = (typeof citySections)[number];
+  const hasOpenRow = (section: CitySection) => section.rows.some((r) => r.kind !== "closed");
+  function citySection(section: CitySection) {
+    const offset = ownShown.indexOf(section.rows[0]!);
+    return (
+      <section key={section.city} className="mt-8">
+        {sectionTitle(k.inCity(displayCity(section.city, locale)))}
+        <ul className="mt-3.5 space-y-3">{section.rows.map((row, i) => tableCard(row, offset + i))}</ul>
+      </section>
+    );
+  }
+
   return (
     <div className="pb-16">
       <div className="pt-6">
@@ -518,7 +613,27 @@ export function QuizChoose({
             </span>
             {copy.stopStad.otherLine(copy.joinCities(others.map((c) => displayCity(c, locale))))}
           </p>
-        ) : hasMatch ? null : (
+        ) : hasMatch ? (
+          <>
+            {age !== null ? (
+              <div className="mx-auto mt-5 max-w-[22rem] rounded-2xl border border-gold/40 bg-gold/[0.08] px-4 py-3.5 text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold">{k.matchEyebrow}</p>
+                <p className="mt-1.5 text-[0.98rem] leading-snug text-wine text-balance">
+                  {k.match({
+                    around: answers.ageMatters === "yes" ? Math.round(age / 5) * 5 : null,
+                    dutch: answers.language === "dutch",
+                    alone: answers.companion === "alone",
+                  })}
+                </p>
+              </div>
+            ) : null}
+            {ownOpenCount === 0 && ours.length > 0 ? (
+              <p className="mx-auto mt-4 max-w-[21rem] text-center text-[0.95rem] leading-relaxed text-wine/75 text-balance">
+                {k.elsewhere(shownCity)}
+              </p>
+            ) : null}
+          </>
+        ) : (
           <p className="mx-auto mt-3 max-w-[21rem] text-center text-[1rem] leading-relaxed text-wine/75 text-balance">
             {k.noMatch(shownCity)}
           </p>
@@ -549,22 +664,17 @@ export function QuizChoose({
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
       </div>
 
-      {citySections.map((section) => {
-        const offset = ownShown.indexOf(section.rows[0]!);
-        return (
-          <section key={section.city} className="mt-8">
-            {sectionTitle(k.inCity(displayCity(section.city, locale)))}
-            <ul className="mt-3.5 space-y-3">{section.rows.map((row, i) => tableCard(row, offset + i))}</ul>
-          </section>
-        );
-      })}
+      {citySections.filter(hasOpenRow).map(citySection)}
 
       {nearbyOpen.length > 0 ? (
         <section className="mt-8">
-          {sectionTitle(ourCities ? k.ourCities : k.nearby)}
+          {sectionTitle(ownOpenCount === 0 && ours.length > 0 ? cardCopy.nextTables : ourCities ? k.ourCities : k.nearby)}
           <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownShown.length + i))}</ul>
         </section>
       ) : null}
+
+      {/* A city with only a full Sunday: under what can be booked. */}
+      {citySections.filter((s) => !hasOpenRow(s)).map(citySection)}
 
       {soonRows.length > 0 ? (
         <section className="mt-8">

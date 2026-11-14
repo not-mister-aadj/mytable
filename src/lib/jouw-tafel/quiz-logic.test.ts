@@ -664,10 +664,21 @@ test("chooseTablesForAnswers: only a town outside our cities shows our cities' t
   // Only Delft (a place near Rotterdam and Den Haag, but not ours): the
   // same list of our cities, nothing is selected for her.
   assert.equal(chooseTablesForAnswers(EVENTS, { cities: ["Delft"], age: 45, ageMatters: "yes" }, NOW).ourCities, true);
-  // Mixed: the usual list for our city.
+  // Mixed: the list for our city. Nothing there can be booked yet, so the
+  // open tables of our other cities follow it.
   const mixed = chooseTablesForAnswers(EVENTS, { cities: ["Zwolle", "Utrecht"], age: 45, ageMatters: "yes" }, NOW);
-  assert.equal(mixed.ourCities, false);
-  assert.deepEqual(mixed.rows.map((r) => r.event.slug), ["utr-29-nov-35"]);
+  assert.equal(mixed.ourCities, true);
+  assert.equal(mixed.hasMatch, true);
+  assert.deepEqual(
+    mixed.rows.map((r) => `${r.event.slug}:${r.kind}${r.nearby ? ":nearby" : ""}`),
+    ["utr-29-nov-35:soon", "rdam-25-okt-35:open:nearby", "dh-8-nov-35:open:nearby"],
+  );
+});
+
+test("chooseTablesForAnswers: a city with an open table keeps its own list", () => {
+  const own = chooseTablesForAnswers(EVENTS, { cities: ["Rotterdam"], age: 45, ageMatters: "yes" }, NOW);
+  assert.equal(own.ourCities, false);
+  assert.ok(own.rows.every((r) => r.kind !== "open" || r.event.city === "Rotterdam" || r.nearby));
 });
 
 test("stopZoektAnswer: the chosen option highest in the list, not the first tapped", () => {
@@ -722,4 +733,17 @@ test("girls-only wish: only for women who chose it, with the mixed fallback", ()
   assert.equal(girlsOnlyWish({ gender: "male", tableType: "girls_only" }), null);
   const state = sanitizeQuizState({ v: 1, answers: { gender: "female", tableType: "mixed", mixedFallback: true } });
   assert.equal(state.answers.mixedFallback, undefined);
+});
+
+test("tableFit: green, red or no light by guests around their age and seats left", async () => {
+  const { tableFit } = await import("@/lib/jouw-tafel/logic");
+  const row = (around: number) => [8, 5, 2].map((seatsLeft) => tableFit({ around, seatsLeft }));
+  assert.deepEqual(row(4), ["good", "good", "good"]);
+  assert.deepEqual(row(2), ["good", "good", "none"]);
+  assert.deepEqual(row(0), ["good", "low", "low"]);
+  // The edges of each column.
+  assert.equal(tableFit({ around: 0, seatsLeft: 6 }), "good");
+  assert.equal(tableFit({ around: 1, seatsLeft: 4 }), "good");
+  assert.equal(tableFit({ around: 1, seatsLeft: 3 }), "none");
+  assert.equal(tableFit({ around: 3, seatsLeft: 1 }), "good");
 });

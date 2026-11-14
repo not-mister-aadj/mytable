@@ -18,6 +18,7 @@ import { requestCity, type JouwTafelSearchParams } from "@/lib/jouw-tafel/reques
 import { getMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
 import { toClientMembership } from "@/lib/membership/logic";
 import { getBookedSeats } from "@/lib/jouw-tafel/account-server";
+import { loadBookedMatchCounts } from "@/lib/tafelvrienden/server";
 
 /** How long the quiz waits for data it can do without. */
 const OPTIONAL_DATA_MS = 4000;
@@ -66,7 +67,10 @@ export async function JouwTafelQuizPage({
   // on a slow database: what the quiz can do without gets OPTIONAL_DATA_MS,
   // then the page goes on without it (counts drop out of the copy, the
   // membership and booked seats are read again on the table page).
-  const [{ events, now }, geoCity, cityCounts, subsetCounts, membership, booked] = await Promise.all([
+  // People they had a good time with (a mutual like) who booked a coming
+  // Sunday: a count per table, loaded alongside the rest.
+  const personEmail = user ? user.email : person.kind === "guest" ? person.guest.email : null;
+  const [{ events, now }, geoCity, cityCounts, subsetCounts, membership, booked, matches] = await Promise.all([
     tablesWithRetry(),
     requestCity(searchParams),
     withDbTimeout(getWaitlistCityCounts(devCountOverride(searchParams.aantal)), {
@@ -91,6 +95,12 @@ export async function JouwTafelQuizPage({
         return {};
       },
     ),
+    personEmail
+      ? withDbTimeout(
+          loadBookedMatchCounts(personEmail).catch(() => ({}) as Record<string, number>),
+          { ms: OPTIONAL_DATA_MS, fallback: {} as Record<string, number>, label: "quiz mutual likes" },
+        )
+      : Promise.resolve({} as Record<string, number>),
   ]);
 
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
@@ -119,6 +129,7 @@ export async function JouwTafelQuizPage({
       landingPath={jouwTafelPath(locale)}
       membership={toClientMembership(membershipSnapshot(membership))}
       booked={booked}
+      matches={matches}
     />
   );
 }

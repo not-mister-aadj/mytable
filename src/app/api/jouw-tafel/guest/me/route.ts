@@ -38,5 +38,8 @@ export async function GET() {
     email: person.kind === "user" ? person.user.email : person.guest.email,
     name: answers.name ?? null,
     birthDate: answers.birthDate ?? null,
+    // What they already said about their table, so the card does not ask again.
+    ageMatters: answers.ageMatters ?? null,
+    language: answers.language ?? null,
   });
 }

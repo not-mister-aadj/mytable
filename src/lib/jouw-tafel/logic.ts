@@ -54,7 +54,48 @@ export type QuizEvent = {
   opensAt?: string | null;
   /** An admin's exception: open for everyone from this moment (ISO). */
   bookingOpensAt?: string | null;
+  /** How many booked guests per 5 years of age (key: the lower bound, so
+   * "40" is 40 to 44). Counts only, never who. */
+  ageBuckets?: Record<string, number>;
 };
+
+/** The light on a table on "Kies je zondag": green, red, or none. */
+export type TableFit = "good" | "low" | "none";
+
+/** A table can still become anything while this many seats are open. */
+export const FIT_OPEN_SEATS = 6;
+
+/**
+ * The light on a table, by guests around their age and seats left:
+ *
+ *                 6+ left   4-5 left   1-3 left
+ *   3 or more     green     green      green
+ *   1 or 2        green     green      (none)
+ *   nobody        green     red        red
+ *
+ * With a whole table's worth of seats open the tables can still be made
+ * around them, so that is always green. In between, the table shows nothing.
+ */
+export function tableFit(input: { around: number; seatsLeft: number }): TableFit {
+  if (input.around >= 3 || input.seatsLeft >= FIT_OPEN_SEATS) return "good";
+  if (input.around === 0) return "low";
+  return input.seatsLeft >= 4 ? "good" : "none";
+}
+
+/** Width of an age bucket on a table (QuizEvent.ageBuckets). */
+export const AGE_BUCKET_YEARS = 5;
+
+/** Guests on a table around someone's age: buckets whose middle is at most
+ * 10 years away. */
+export function guestsAroundAge(buckets: Record<string, number> | undefined, age: number): number {
+  if (!buckets) return 0;
+  let n = 0;
+  for (const [from, count] of Object.entries(buckets)) {
+    const middle = Number(from) + (AGE_BUCKET_YEARS - 1) / 2;
+    if (Math.abs(middle - age) <= 10) n += count;
+  }
+  return n;
+}
 
 /** Members can book a Sunday Table this many days before its date;
  * everyone else EARLY_ACCESS_HOURS later. With a 4-week rhythm per city

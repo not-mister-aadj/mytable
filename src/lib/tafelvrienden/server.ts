@@ -207,3 +207,58 @@ export async function loadMutualMatches(): Promise<Map<string, Set<string>>> {
   ]);
   return mutualMatches(likes as unknown as Pick[], reports as unknown as Pick[]);
 }
+
+/**
+ * For one person: per upcoming Sunday, how many of their mutual likes have a
+ * seat there. Counts only, never who (the same rule as the "bekende
+ * gezichten" mail), and nobody with an open report between them. One query
+ * that starts from this person's own bookings, so it stays quick.
+ */
+export async function loadBookedMatchCounts(email: string): Promise<Record<string, number>> {
+  const me = key(email);
+  const rows = (await getDb().execute(sql`
+    with mine as (
+      select id from bookings where lower(trim(email)) = ${me}
+    ),
+    i_like as (
+      select distinct lower(trim(tb.email)) as email
+      from booking_feedback f
+      join mine on mine.id = f.booking_id
+      cross join lateral jsonb_array_elements_text(f.want_to_see) w(id)
+      join bookings tb on tb.id::text = w.id
+    ),
+    likes_me as (
+      select distinct lower(trim(fb.email)) as email
+      from booking_feedback f
+      join bookings fb on fb.id = f.booking_id
+      cross join lateral jsonb_array_elements_text(f.want_to_see) w(id)
+      join mine on mine.id::text = w.id
+    ),
+    reported as (
+      select lower(trim(tb.email)) as email
+      from feedback_reports r
+      join mine on mine.id = r.booking_id
+      cross join lateral jsonb_array_elements_text(r.about) a(id)
+      join bookings tb on tb.id::text = a.id
+      where r.withdrawn_at is null
+      union
+      select lower(trim(fb.email)) as email
+      from feedback_reports r
+      join bookings fb on fb.id = r.booking_id
+      cross join lateral jsonb_array_elements_text(r.about) a(id)
+      join mine on mine.id::text = a.id
+      where r.withdrawn_at is null
+    )
+    select b.event_id, count(distinct lower(trim(b.email)))::int as n
+    from bookings b
+    join events e on e.id = b.event_id
+    where e.starts_at > now()
+      and b.payment_status = 'paid' and b.lifecycle_status = 'active' and b.cancelled_late_at is null
+      and lower(trim(b.email)) <> ${me}
+      and lower(trim(b.email)) in (select email from i_like intersect select email from likes_me)
+      and lower(trim(b.email)) not in (select email from reported)
+    group by b.event_id`)) as unknown as Array<{ event_id: string; n: number }>;
+  const out: Record<string, number> = {};
+  for (const row of rows) out[row.event_id] = Number(row.n);
+  return out;
+}

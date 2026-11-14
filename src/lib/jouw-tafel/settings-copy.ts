@@ -45,6 +45,8 @@ export type SettingsCopy = {
   };
   tabs: { reserveringen: string; vrienden: string; voorkeuren: string; account: string };
   groups: { tafel: string; zondag: string; aanTafel: string; binnenkort: string; notifications: string; account: string; help: string };
+  /** The profile photo on top of settings. */
+  photo: { add: string; change: string; remove: string; removed: string; note: string };
   /** "Aan tafel": the seating questions, kept for every next Sunday. */
   intro: {
     note: string;
@@ -55,6 +57,9 @@ export type SettingsCopy = {
     intoNow: string;
     intoNowPlaceholder: string;
   };
+  /** The age answer as a value next to "Leeftijd aan tafel" (the quiz's own
+   * "Ja, graag" answers a question the row does not ask). */
+  ageValue: { yes: string; no: string };
   rows: {
     stad: string;
     leeftijd: string;
@@ -141,27 +146,35 @@ const nl: SettingsCopy = {
   },
   tabs: { reserveringen: "Boekingen", vrienden: "Vrienden", voorkeuren: "Voorkeuren", account: "Account" },
   groups: {
-    tafel: "Jouw tafel",
-    zondag: "Jouw zondag",
-    aanTafel: "Aan tafel",
+    tafel: "Met wie je aan tafel zit",
+    zondag: "Waarom je komt",
+    aanTafel: "Over jou",
     binnenkort: "Binnenkort bij MyTable",
     notifications: "Meldingen",
     account: "Account",
     help: "Hulp",
   },
+  ageValue: { yes: "Rond mijn leeftijd", no: "Maakt niet uit" },
   rows: {
     stad: "Steden",
-    leeftijd: "Leeftijdsgroep belangrijk",
+    leeftijd: "Leeftijd aan tafel",
     gender: "Gender",
-    tafeltype: "Soort tafel",
+    tafeltype: "Mixed of ladies only",
     taal: "Taal aan tafel",
-    gezelschap: "Alleen of met iemand",
-    wie: "Wie",
-    zoekt: "Waar heb je zin in",
-    wijn: "Wijn",
-    gesprek: "Gesprek",
+    gezelschap: "Ik kom",
+    wie: "Ik neem mee",
+    zoekt: "Ik kom voor",
+    wijn: "Ik drink graag",
+    gesprek: "Aan tafel ben ik",
     dieet: "Dieetwensen",
-    formats: "Formats",
+    formats: "Ook interesse in",
+  },
+  photo: {
+    add: "Voeg een foto toe",
+    change: "Wijzig foto",
+    remove: "Verwijder",
+    removed: "Foto verwijderd",
+    note: "Alleen je tafelgenoten zien je foto, als ze na afloop kiezen wie ze terug willen zien. Zo herkennen ze je meteen.",
   },
   intro: {
     note: "Je tafelgenoten zien dit. We gebruiken het bij elke volgende zondag.",
@@ -247,27 +260,35 @@ const en: SettingsCopy = {
   },
   tabs: { reserveringen: "Bookings", vrienden: "Friends", voorkeuren: "Preferences", account: "Account" },
   groups: {
-    tafel: "Your table",
-    zondag: "Your Sunday",
-    aanTafel: "At the table",
+    tafel: "Who you sit with",
+    zondag: "Why you come",
+    aanTafel: "About you",
     binnenkort: "Coming soon at MyTable",
     notifications: "Notifications",
     account: "Account",
     help: "Help",
   },
+  ageValue: { yes: "Around my age", no: "No preference" },
   rows: {
     stad: "Cities",
-    leeftijd: "Age group matters",
+    leeftijd: "Age at the table",
     gender: "Gender",
-    tafeltype: "Kind of table",
+    tafeltype: "Mixed or ladies only",
     taal: "Language at the table",
-    gezelschap: "Alone or with someone",
-    wie: "Who",
-    zoekt: "What you're looking for",
-    wijn: "Wine",
-    gesprek: "Conversation",
+    gezelschap: "I come",
+    wie: "I bring",
+    zoekt: "I come for",
+    wijn: "I like to drink",
+    gesprek: "At the table I am",
     dieet: "Dietary wishes",
-    formats: "Formats",
+    formats: "Also interested in",
+  },
+  photo: {
+    add: "Add a photo",
+    change: "Change photo",
+    remove: "Remove",
+    removed: "Photo removed",
+    note: "Only your tablemates see your photo, when they pick who they would like to see again afterwards. It helps them recognise you.",
   },
   intro: {
     note: "Your table sees this. We use it for every next Sunday.",

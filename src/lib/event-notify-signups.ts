@@ -28,6 +28,14 @@ export async function addEventNotifySignup(input: {
   ensureAccountInBackground({ email: input.email, source: "notify", locale: input.locale });
 }
 
+/** Off the list again: tapping "Zet me op de wachtlijst" a second time. */
+export async function removeEventNotifySignup(input: { eventId: string; email: string }): Promise<void> {
+  if (!isDbConfigured()) return;
+  await getDb()
+    .delete(eventNotifySignups)
+    .where(and(eq(eventNotifySignups.eventId, input.eventId), eq(eventNotifySignups.email, input.email.trim().toLowerCase())));
+}
+
 export async function getUnnotifiedEventSignups(eventId: string) {
   if (!isDbConfigured()) return [];
   const db = getDb();

@@ -27,6 +27,9 @@ import { PostHogEvents } from "@/lib/posthog/events";
 
 const AMSTERDAM = "Europe/Amsterdam";
 
+/** How many full Sundays may stand above the first one that can be booked. */
+const FULL_BEFORE_FIRST = 2;
+
 /** "14:00" / "2:00 PM". */
 function startTime(iso: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "nl-NL", {
@@ -71,6 +74,7 @@ const CARD_COPY = {
     nextTables: "Eerstvolgende tafels",
     shortPeople: "4 tot 6 mensen",
     how: "Hoe werkt het?",
+    adjust: "Aanpassen",
     priceLine: (price: string) => `${price} per plek`,
   },
   en: {
@@ -80,6 +84,7 @@ const CARD_COPY = {
     nextTables: "Next tables",
     shortPeople: "4 to 6 people",
     how: "How it works",
+    adjust: "Change",
     priceLine: (price: string) => `${price} per seat`,
   },
 } as const;
@@ -227,7 +232,8 @@ export type ChooseHandlers = {
   onViewed: (props: { tables_shown: number; has_match: boolean }) => void;
   /** A table card tapped: goes to the table page (also for "Binnenkort"). */
   onOpen: (props: { event_slug: string; nearby: boolean; coming_soon: boolean }) => void;
-  onNotify: (event: QuizEvent | null) => void;
+  /** `off`: tapped again, off the list. */
+  onNotify: (event: QuizEvent | null, off?: boolean) => void;
   onShare: () => void;
   /** "Wat is een Sunday Table?" opened. */
   onInfo: () => void;
@@ -251,6 +257,7 @@ export function QuizChoose({
   membership = null,
   booked = {},
   matches = {},
+  preferencesHref = null,
   onAnswers,
 }: {
   locale: Locale;
@@ -268,6 +275,8 @@ export function QuizChoose({
   booked?: Record<string, number>;
   /** Per table: how many of their mutual likes have a seat there. */
   matches?: Record<string, number>;
+  /** Their preferences in settings, for who has an account; null for a guest. */
+  preferencesHref?: string | null;
   /** Saves a change from the filters on top (cities, kind of table). */
   onAnswers?: (patch: Partial<QuizAnswers>) => void;
   /** Their running membership, null when not a member. */
@@ -298,25 +307,21 @@ export function QuizChoose({
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTrigger = useRef<HTMLButtonElement>(null);
   const openRows = rows.filter((r) => r.kind === "open");
-  // A table that can no longer be booked stays in its city, by date, until
-  // the day after it.
-  const ownShown = rows.filter((r) => r.kind !== "soon" && !r.nearby);
-  // One "In {stad}" section per chosen city with tables, in their order.
-  const citySections = cities
-    .map((city) => ({
-      city,
-      rows: ownShown
-        .filter((r) => sameCity(r.event.city, city))
-        // What can be booked comes first; a full Sunday sits under it.
-        .sort(
-          (a, b) =>
-            Number(a.kind === "closed") - Number(b.kind === "closed") ||
-            Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt),
-        ),
-    }))
-    .filter((s) => s.rows.length > 0);
-  const nearbyOpen = openRows.filter((r) => r.nearby);
-  const ownOpenCount = openRows.filter((r) => !r.nearby).length;
+  // One list by date, nearest first, whatever the city (the city is on
+  // every row): the question is "when can I", not "where".
+  const byDate = (x: ChooseRow, y: ChooseRow) => Date.parse(x.event.startsAt) - Date.parse(y.event.startsAt);
+  const ownOpen = openRows.filter((r) => !r.nearby).sort(byDate);
+  const nearbyOpen = openRows.filter((r) => r.nearby).sort(byDate);
+  // A full Sunday stays on its date between the others, in the usual row: it
+  // shows how fast they go. At most FULL_BEFORE_FIRST of them above the first
+  // Sunday that can be booked; older ones go under the list.
+  const ownClosed = rows.filter((r) => r.kind === "closed" && !r.nearby).sort(byDate);
+  const ownOpenCount = ownOpen.length;
+  const firstOpenAt = ownOpen.length > 0 ? Date.parse(ownOpen[0]!.event.startsAt) : null;
+  const closedBefore = firstOpenAt === null ? [] : ownClosed.filter((r) => Date.parse(r.event.startsAt) < firstOpenAt);
+  const closedHeld = closedBefore.slice(0, Math.max(0, closedBefore.length - FULL_BEFORE_FIRST));
+  const closedBelow = firstOpenAt === null ? ownClosed : closedHeld;
+  const ownDated = [...ownOpen, ...ownClosed.filter((r) => !closedBelow.includes(r))].sort(byDate);
   const soonRows = rows.filter((r) => r.kind === "soon");
 
   const viewedRef = useRef(false);
@@ -390,9 +395,12 @@ export function QuizChoose({
           compact ? "rounded-b-2xl px-3 py-2.5" : "px-4 py-3"
         }`}
       >
-        <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-burgundy text-cream shadow-[0_3px_10px_rgba(90,15,27,0.3)]">
-          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
-            <path d="M12 20.5 4.2 12.6a4.9 4.9 0 0 1 6.9-6.9l.9.9.9-.9a4.9 4.9 0 0 1 6.9 6.9L12 20.5Z" />
+        {/* A glass of wine: a seat next to someone they know. */}
+        <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-burgundy text-cream shadow-[0_3px_10px_rgba(90,15,27,0.3)]">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7 3h10l-.7 6a4.3 4.3 0 0 1-8.6 0Z" />
+            <path d="M7.5 7.4h9" />
+            <path d="M12 13.3V20.5M8.5 20.5h7" />
           </svg>
         </span>
         <span className="text-[0.88rem] font-semibold leading-snug text-wine">{k.known(n)}</span>
@@ -400,7 +408,7 @@ export function QuizChoose({
     );
   }
 
-  function notifyButton(event: QuizEvent | null, compact = false, label: string = k.notify) {
+  function notifyButton(event: QuizEvent | null, compact = false, label: string = k.notify, tight = false) {
     const key = event ? event.id : "city";
     const done = notified.has(key);
     return (
@@ -408,10 +416,10 @@ export function QuizChoose({
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          if (!done) handlers.onNotify(event);
+          handlers.onNotify(event, done);
         }}
         aria-pressed={done}
-        className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+        className={`inline-flex ${tight ? "min-h-7 text-[0.82rem]" : "min-h-11"} shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
           compact
             ? "px-0 text-left text-burgundy underline decoration-burgundy/30 underline-offset-4"
             : "border border-wine/12 bg-white px-3.5 text-[0.82rem] text-wine shadow-[0_1px_4px_rgba(43,13,18,0.05)]"
@@ -427,11 +435,7 @@ export function QuizChoose({
   // The very next bookable Sunday stands out ("Eerstvolgende").
   const featuredRow = [...openRows]
     .filter((r) => !r.event.comingSoon && !booked[r.event.id])
-    .sort(
-      (a, b) =>
-        (matches[b.event.id] ?? 0) - (matches[a.event.id] ?? 0) ||
-        Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt),
-    )[0];
+    .sort((a, b) => Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt))[0];
   const featuredId = featuredRow?.event.id;
 
   /** A Sunday that can be booked now. The next one is a card with a photo of
@@ -543,7 +547,7 @@ export function QuizChoose({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, delay: reduceMotion ? 0 : 0.06 + index * 0.04, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className={`${rowCard} ${rowIdle}`}>
+        <div className={`${rowCard} ${closed && !seats ? rowGone : rowIdle}`}>
           <motion.button
             type="button"
             aria-label={`${k.selectAria}: ${shortDate(event.startsAt, locale)}`}
@@ -553,20 +557,28 @@ export function QuizChoose({
           >
             <DateBadge iso={event.startsAt} locale={locale} muted={muted} />
             <span className="min-w-0 flex-1">
-              <span className={`block text-[1rem] font-semibold leading-tight ${muted ? "text-wine/80" : "text-wine"}`}>
+              <span className={`block text-[1rem] font-semibold leading-tight ${closed && !seats ? "text-wine/55" : muted ? "text-wine/80" : "text-wine"}`}>
                 {k.tableName}
               </span>
-              <span className="mt-0.5 block text-[0.9rem] leading-tight text-wine/70">{startTime(event.startsAt, locale)}</span>
+              {/* A full Sunday keeps to two lines: its time no longer matters. */}
+              {closed && !seats ? null : (
+                <span className="mt-0.5 block text-[0.9rem] leading-tight text-wine/70">{startTime(event.startsAt, locale)}</span>
+              )}
               <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                <span className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold leading-none ${CHIP_TONE[chip.tone]}`}>
+                <span
+                  className={`rounded-full px-2.5 py-1 leading-none ${
+                    closed && !seats
+                      ? "bg-burgundy text-[0.7rem] font-bold uppercase tracking-[0.1em] text-cream"
+                      : `text-[0.75rem] font-semibold ${CHIP_TONE[chip.tone]}`
+                  }`}
+                >
                   {chip.text}
                 </span>
-                {row.nearby || soon ? (
-                  <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
-                    <PinIcon className="h-3.5 w-3.5" />
-                    {displayCity(event.city, locale)}
-                  </span>
-                ) : null}
+                {/* Always the city: the list runs across cities. */}
+                <span className="inline-flex items-center gap-1 text-[0.8rem] text-wine/55">
+                  <PinIcon className="h-3.5 w-3.5" />
+                  {displayCity(event.city, locale)}
+                </span>
               </span>
             </span>
             <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 text-wine/30" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -576,7 +588,7 @@ export function QuizChoose({
           {soon ? (
             <div className="-mt-1 px-4 pb-3 pl-[5.3rem]">{notifyButton(event)}</div>
           ) : closed && !seats ? (
-            <div className="-mt-1 px-4 pb-2 pl-[5.3rem]">{notifyButton(event, true, k.extraTable)}</div>
+            <div className="-mt-4 px-4 pb-1 pl-[5.3rem]">{notifyButton(event, true, k.extraTable, true)}</div>
           ) : null}
         </div>
       </motion.li>
@@ -592,18 +604,6 @@ export function QuizChoose({
         <span className="shrink-0">{text}</span>
         <span aria-hidden className={`h-px flex-1 ${ladies ? "bg-rose/30" : "bg-gold/30"}`} />
       </h2>
-    );
-  }
-
-  type CitySection = (typeof citySections)[number];
-  const hasOpenRow = (section: CitySection) => section.rows.some((r) => r.kind !== "closed");
-  function citySection(section: CitySection) {
-    const offset = ownShown.indexOf(section.rows[0]!);
-    return (
-      <section key={section.city} className="mt-6">
-        {sectionTitle(k.inCity(displayCity(section.city, locale)))}
-        <ul className="mt-3.5 space-y-3">{section.rows.map((row, i) => tableCard(row, offset + i))}</ul>
-      </section>
     );
   }
 
@@ -630,6 +630,21 @@ export function QuizChoose({
                   dutch: answers.language === "dutch",
                   alone: answers.companion === "alone",
                 })}
+                {preferencesHref ? (
+                  <>
+                    {" "}
+                    <a
+                      href={preferencesHref}
+                      className="inline-flex items-center gap-1 whitespace-nowrap align-baseline text-[0.82rem] font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                      {cardCopy.adjust}
+                    </a>
+                  </>
+                ) : null}
               </p>
             ) : null}
             {ownOpenCount === 0 && ours.length > 0 ? (
@@ -669,22 +684,31 @@ export function QuizChoose({
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
       </div>
 
-      {citySections.filter(hasOpenRow).map(citySection)}
+      {ownDated.length > 0 ? (
+        <section className="mt-6">
+          <ul className="space-y-3">{ownDated.map((row, i) => tableCard(row, i))}</ul>
+        </section>
+      ) : null}
 
       {nearbyOpen.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(ownOpenCount === 0 && ours.length > 0 ? cardCopy.nextTables : ourCities ? k.ourCities : k.nearby)}
-          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownShown.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownDated.length + i))}</ul>
         </section>
       ) : null}
 
-      {/* A city with only a full Sunday: under what can be booked. */}
-      {citySections.filter((s) => !hasOpenRow(s)).map(citySection)}
+      {/* Full Sundays that did not fit above the first bookable one. */}
+      {closedBelow.length > 0 ? (
+        <section className="mt-6">
+          {sectionTitle(k.noLongerBookable)}
+          <ul className="mt-3.5 space-y-2">{closedBelow.map((row, i) => tableCard(row, ownDated.length + nearbyOpen.length + i))}</ul>
+        </section>
+      ) : null}
 
       {soonRows.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(k.comingSoon)}
-          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownShown.length + nearbyOpen.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownDated.length + nearbyOpen.length + closedBelow.length + i))}</ul>
         </section>
       ) : null}
 
@@ -715,6 +739,8 @@ export function QuizChoose({
 }
 
 const rowCard = "rounded-2xl border transition-[border-color,background-color,box-shadow] duration-200";
+/** A full Sunday: the same row, set back. */
+const rowGone = "border-wine/[0.06] bg-wine/[0.035]";
 const rowIdle = "border-wine/[0.08] bg-white shadow-[0_1px_2px_rgba(43,13,18,0.04),0_6px_18px_rgba(43,13,18,0.04)]";
 
 /** Weekday, big day number, month: "ZO / 25 / okt". */

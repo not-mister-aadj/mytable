@@ -146,14 +146,14 @@ function birthDateText(iso: string | undefined, locale: Locale): string | null {
 }
 
 /** The value shown on a row: the answer in the quiz's own words. */
-function rowValue(step: QuizStepId, a: QuizAnswers, q: QuizCopy, locale: Locale): string | null {
+function rowValue(step: QuizStepId, a: QuizAnswers, q: QuizCopy, locale: Locale, s: SettingsCopy): string | null {
   switch (step) {
     case "stad": {
       const cities = answerCities(a).map((c) => displayCity(supportedCity(c) ?? c, locale));
       return cities.length ? q.joinCities(cities) : null;
     }
     case "leeftijd":
-      return a.ageMatters ? q.leeftijd.options[a.ageMatters] : null;
+      return a.ageMatters ? s.ageValue[a.ageMatters] : null;
     case "gender":
       return a.gender ? q.gender.options[a.gender] : null;
     case "tafeltype":
@@ -356,6 +356,40 @@ export function JouwTafelSettings({
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [toast, setToast] = useState<string | null>(bookedNotice ? ms.bookedToast : memberNotice ? ms.welcomeToast : null);
   const [tab, setTab] = useState<SettingsTab>(initialTab);
+  // The profile photo: one state for the avatar on top and the row under
+  // "Over jou"; picking a file opens the cropper, then it is uploaded.
+  const [photo, setPhoto] = useState<string | null>(photoUrl);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [cropping, setCropping] = useState<File | null>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
+  const pickPhoto = () => photoInput.current?.click();
+  async function uploadPhoto(file: File) {
+    setPhotoBusy(true);
+    try {
+      const form = new FormData();
+      form.set("photo", file);
+      const res = await fetch("/api/auth/member/photo", { method: "POST", body: form });
+      const data = (await res.json().catch(() => ({}))) as { url?: string };
+      if (res.ok && data.url) setPhoto(data.url);
+      setToast(res.ok ? s.saved : s.saveFailed);
+    } catch {
+      setToast(s.saveFailed);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+  async function removePhoto() {
+    setPhotoBusy(true);
+    try {
+      const res = await fetch("/api/auth/member/photo", { method: "DELETE" });
+      if (res.ok) setPhoto(null);
+      setToast(res.ok ? s.photo.removed : s.saveFailed);
+    } catch {
+      setToast(s.saveFailed);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
   async function copyEmail() {
     const ok = await copyText(companyLegal.email);
     setToast(ok ? s.emailCopied : s.emailCopyFailed(companyLegal.email));
@@ -645,7 +679,7 @@ export function JouwTafelSettings({
         <ButtonRow
           key={step}
           label={s.rows[step as keyof SettingsCopy["rows"]]}
-          value={rowValue(step, answers, q, locale) ?? s.notSet}
+          value={rowValue(step, answers, q, locale, s) ?? s.notSet}
           onClick={() => openQuestion(step)}
         />
       ));
@@ -668,14 +702,68 @@ export function JouwTafelSettings({
 
       <main className="mx-auto w-full max-w-md px-5 pb-16 pt-4">
         <div className="text-center">
-          <span
-            aria-hidden
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-burgundy/[0.1] font-serif text-[1.8rem] text-burgundy ring-1 ring-burgundy/15"
+          <button
+            type="button"
+            onClick={pickPhoto}
+            disabled={photoBusy}
+            aria-label={photo ? s.photo.change : s.photo.add}
+            className="group relative mx-auto block h-24 w-24 rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 active:scale-[0.97] disabled:opacity-60"
           >
-            {name.trim().charAt(0).toLocaleUpperCase() || "·"}
-          </span>
+            {photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo} alt="" className="h-24 w-24 rounded-full object-cover ring-1 ring-burgundy/15" />
+            ) : (
+              <span
+                aria-hidden
+                className="flex h-24 w-24 items-center justify-center rounded-full bg-burgundy/[0.1] font-serif text-[2.4rem] text-burgundy ring-1 ring-burgundy/15"
+              >
+                {name.trim().charAt(0).toLocaleUpperCase() || "·"}
+              </span>
+            )}
+            <span
+              aria-hidden
+              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-burgundy text-cream shadow-[0_3px_10px_rgba(90,15,27,0.3)] ring-2 ring-cream transition group-hover:bg-wine"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 8h3l1.5-2h7L17 8h3v11H4Z" />
+                <circle cx="12" cy="13" r="3.2" />
+              </svg>
+            </span>
+          </button>
+          <p className="mt-2.5 flex items-center justify-center gap-3 text-[0.85rem] font-medium">
+            <button type="button" onClick={pickPhoto} disabled={photoBusy} className="text-burgundy underline decoration-burgundy/30 underline-offset-4 disabled:opacity-60">
+              {photo ? s.photo.change : s.photo.add}
+            </button>
+            {photo ? (
+              <button type="button" onClick={() => void removePhoto()} disabled={photoBusy} className="text-wine/55 underline decoration-wine/20 underline-offset-4 disabled:opacity-60">
+                {s.photo.remove}
+              </button>
+            ) : null}
+          </p>
+          <p className="mx-auto mt-2 max-w-[19rem] text-[0.8rem] leading-snug text-wine/55 text-balance">{s.photo.note}</p>
           <h1 className="mt-4 font-serif text-[2rem] font-medium leading-tight text-wine">{name || email}</h1>
           <p className="mt-1 truncate text-[0.92rem] text-wine/55">{email}</p>
+          <input
+            ref={photoInput}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) setCropping(e.target.files[0]);
+              e.target.value = "";
+            }}
+          />
+          {cropping ? (
+            <PhotoCropper
+              file={cropping}
+              locale={locale === "en" ? "en" : "nl"}
+              onCancel={() => setCropping(null)}
+              onDone={(f) => {
+                setCropping(null);
+                void uploadPhoto(f);
+              }}
+            />
+          ) : null}
         </div>
 
         <div role="tablist" aria-label={s.title} className="mt-6 grid grid-cols-4 rounded-full bg-wine/[0.05] p-1">
@@ -811,7 +899,7 @@ export function JouwTafelSettings({
         <Group title={s.groups.zondag}>{groupRows(SETTINGS_GROUPS.zondag)}</Group>
         <Group title={s.groups.aanTafel} note={s.intro.note}>
           {groupRows(SETTINGS_GROUPS.aanTafel.slice(0, 1))}
-          <ProfilePhotoRow locale={locale} initial={photoUrl} onToast={setToast} />
+          <ProfilePhotoRow locale={locale} url={photo} busy={photoBusy} onPick={pickPhoto} />
           <IntroRows locale={locale} initial={initialIntro} onToast={setToast} />
           {groupRows(SETTINGS_GROUPS.aanTafel.slice(1))}
         </Group>
@@ -861,7 +949,7 @@ export function JouwTafelSettings({
           <li className={`${rowBase} cursor-default`}>
             <RowContent
               label={s.account.gender}
-              value={rowValue("gender", answers, q, locale) ?? s.notSet}
+              value={rowValue("gender", answers, q, locale, s) ?? s.notSet}
               trailing={<LockIcon />}
             />
           </li>
@@ -1210,33 +1298,12 @@ function IntroRows({ locale, initial, onToast }: { locale: Locale; initial: Sett
 }
 
 /** "Profielfoto": tap to pick a photo, saved on the person right away. */
-function ProfilePhotoRow({ locale, initial, onToast }: { locale: Locale; initial: string | null; onToast: (text: string) => void }) {
+function ProfilePhotoRow({ locale, url, busy, onPick }: { locale: Locale; url: string | null; busy: boolean; onPick: () => void }) {
   const s = getSettingsCopy(locale);
-  const [url, setUrl] = useState(initial);
-  const [busy, setBusy] = useState(false);
-  const [cropping, setCropping] = useState<File | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const label = locale === "en" ? "Profile photo" : "Profielfoto";
-
-  async function upload(file: File) {
-    setBusy(true);
-    try {
-      const form = new FormData();
-      form.set("photo", file);
-      const res = await fetch("/api/auth/member/photo", { method: "POST", body: form });
-      const data = (await res.json().catch(() => ({}))) as { url?: string };
-      if (res.ok && data.url) setUrl(data.url);
-      onToast(res.ok ? s.saved : s.saveFailed);
-    } catch {
-      onToast(s.saveFailed);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <li>
-      <button type="button" disabled={busy} onClick={() => fileRef.current?.click()} className={`${rowBase} w-full text-left`}>
+      <button type="button" disabled={busy} onClick={onPick} className={`${rowBase} w-full text-left`}>
         <span className="min-w-0 flex-1 text-[0.98rem] font-medium leading-snug text-wine">{label}</span>
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -1245,27 +1312,6 @@ function ProfilePhotoRow({ locale, initial, onToast }: { locale: Locale; initial
           <span className="shrink-0 text-sm text-wine/50">{busy ? "…" : s.notSet}</span>
         )}
       </button>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        onChange={(e) => {
-          if (e.target.files?.[0]) setCropping(e.target.files[0]);
-          e.target.value = "";
-        }}
-      />
-      {cropping ? (
-        <PhotoCropper
-          file={cropping}
-          locale={locale === "en" ? "en" : "nl"}
-          onCancel={() => setCropping(null)}
-          onDone={(f) => {
-            setCropping(null);
-            void upload(f);
-          }}
-        />
-      ) : null}
     </li>
   );
 }

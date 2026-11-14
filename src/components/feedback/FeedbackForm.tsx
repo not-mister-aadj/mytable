@@ -280,10 +280,19 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
             key={m.bookingId}
             type="button"
             onClick={() => toggle(key, m.bookingId)}
-            className={`rounded-full px-3.5 py-1.5 text-sm transition ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
+            className={`inline-flex items-center gap-1.5 rounded-full py-1.5 text-sm transition ${
+              key === "wantToSee" && m.photoUrl ? "pl-1.5 pr-3.5" : "px-3.5"
+            } ${on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15"}`}
           >
-            {on && key === "wantToSee" ? "✓ " : ""}
-            {m.firstName}
+            {/* A face next to the name, where they pick who to see again. */}
+            {key === "wantToSee" && m.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={m.photoUrl} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
+            ) : null}
+            <span>
+              {on && key === "wantToSee" ? "✓ " : ""}
+              {m.firstName}
+            </span>
           </button>
         );
       })}

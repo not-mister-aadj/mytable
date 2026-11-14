@@ -541,8 +541,8 @@ export function reminderMail(p: {
     : [];
   const text = (
     nl
-      ? [hi, "", `Zondag zat je bij ${p.venueName} aan tafel. Was er iemand die je graag terugziet? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen.`, "", "Tik eerst hoe het gezelschap was:", p.url, "", ...next, "Tot snel,", "Het MyTable-team"]
-      : [hi, "", `On Sunday you were at the table at ${p.venueName}. Was there someone you'd like to see again? Let us know, and we'll do our best to make sure you meet again.`, "", "First tap how the company was:", p.url, "", ...next, "See you soon,", "The MyTable team"]
+      ? [hi, "", `Zondag zat je bij ${p.venueName} aan tafel. Was er iemand die je graag terugziet? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen.`, "", "Tik eerst hoe je middag was:", p.url, "", ...next, "Tot snel,", "Het MyTable-team"]
+      : [hi, "", `On Sunday you were at the table at ${p.venueName}. Was there someone you'd like to see again? Let us know, and we'll do our best to make sure you meet again.`, "", "First tap how your afternoon was:", p.url, "", ...next, "See you soon,", "The MyTable team"]
   ).join("\n");
   return facesMail(text, p.url, p.locale);
 }
@@ -595,8 +595,8 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
   const nl = p.locale === "nl";
   const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
   const opening = nl
-    ? `Hoe was het gezelschap vanmiddag bij ${p.venueName}? Tik wat past:`
-    : `How was the company this afternoon at ${p.venueName}? Tap what fits:`;
+    ? `Hoe was je middag bij ${p.venueName}? Tik wat past:`
+    : `How was your afternoon at ${p.venueName}? Tap what fits:`;
   return nl
     ? [
         hi,

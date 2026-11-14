@@ -9,7 +9,7 @@ import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFo
 const COPY = {
   nl: {
     moodTitle: (name: string, venue: string | null, city: string) =>
-      `${name ? `Hoi ${name}, hoe` : "Hoe"} was het gezelschap ${venue ? `bij ${venue}` : `in ${city}`}?`,
+      `${name ? `Hoi ${name}, hoe` : "Hoe"} was je middag ${venue ? `bij ${venue}` : `in ${city}`}?`,
     moodSub: "Een paar korte vragen, 1 minuut.",
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
     thanks: (name: string) => (name ? `Dank je, ${name}!` : "Dank je!"),
@@ -55,7 +55,7 @@ const COPY = {
   },
   en: {
     moodTitle: (name: string, venue: string | null, city: string) =>
-      `${name ? `Hi ${name}, how` : "How"} was the company ${venue ? `at ${venue}` : `in ${city}`}?`,
+      `${name ? `Hi ${name}, how` : "How"} was your afternoon ${venue ? `at ${venue}` : `in ${city}`}?`,
     moodSub: "A few short questions, 1 minute.",
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
     thanks: (name: string) => (name ? `Thank you, ${name}!` : "Thank you!"),
@@ -101,25 +101,6 @@ const COPY = {
   },
 } as const;
 
-const FACE: Record<Mood, { bg: string; mouth: string }> = {
-  great: { bg: "#1f9d55", mouth: "M9 14.5c1.6 2.2 4.4 2.2 6 0" },
-  good: { bg: "#8cc795", mouth: "M9.5 15c1.4 1 3.6 1 5 0" },
-  meh: { bg: "#e9a2a2", mouth: "M9.5 16c1.4-1 3.6-1 5 0" },
-  bad: { bg: "#d64550", mouth: "M9 16.5c1.6-2.2 4.4-2.2 6 0" },
-};
-
-function Face({ mood, size = 52 }: { mood: Mood; size?: number }) {
-  const f = FACE[mood];
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="12" r="11" fill={f.bg} />
-      <circle cx="9" cy="10" r="1.2" fill="#fff" />
-      <circle cx="15" cy="10" r="1.2" fill="#fff" />
-      <path d={f.mouth} stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 /** 1 to 5 stars; the stars up to the one tapped light up. */
 function Stars({ value, onPick, label }: { value: number | null; onPick: (n: number) => void; label: (n: number) => string }) {
   const [hover, setHover] = useState<number | null>(null);
@@ -146,22 +127,30 @@ function Stars({ value, onPick, label }: { value: number | null; onPick: (n: num
 }
 
 /** Only the two outer faces get a word, so the words don't steer the answer. */
-function Faces({ value, onPick, labels, size }: { value: Mood | null; onPick: (m: Mood) => void; labels: Record<Mood, string>; size?: number }) {
+/** The four answers as tiles, the same faces as in the mail. */
+const MOOD_EMOJI: Record<Mood, string> = { great: "😍", good: "🙂", meh: "😐", bad: "🙁" };
+
+function Faces({ value, onPick, labels }: { value: Mood | null; onPick: (m: Mood) => void; labels: Record<Mood, string> }) {
   return (
-    <div className="mt-4 grid grid-cols-4 gap-2">
+    <div className="mt-6 grid grid-cols-4 gap-2 sm:gap-3">
       {(["great", "good", "meh", "bad"] as const).map((m) => (
         <button
           key={m}
           type="button"
           onClick={() => onPick(m)}
           aria-pressed={value === m}
-          aria-label={labels[m]}
-          className={`flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 transition ${
-            value === m ? "scale-105 bg-white shadow-sm ring-1 ring-wine/10" : value ? "opacity-35 hover:opacity-70" : "hover:bg-white/60"
+          className={`flex flex-col items-center gap-1 rounded-2xl border bg-white px-1 pb-2.5 pt-3 transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pb-3.5 sm:pt-4 ${
+            value === m
+              ? "border-burgundy bg-burgundy/[0.06] shadow-[0_6px_18px_rgba(90,15,27,0.12)]"
+              : value
+                ? "border-wine/10 opacity-45 hover:opacity-80"
+                : "border-wine/10 hover:border-burgundy/40 hover:shadow-[0_6px_18px_rgba(43,13,18,0.07)]"
           }`}
         >
-          <Face mood={m} size={size} />
-          <span className={`h-4 whitespace-nowrap text-xs transition ${value === m ? "font-semibold text-wine" : "text-wine/60"}`}>{labels[m]}</span>
+          <span aria-hidden className="text-[2rem] leading-tight sm:text-[2.4rem]">
+            {MOOD_EMOJI[m]}
+          </span>
+          <span className="whitespace-nowrap text-[0.78rem] font-semibold text-wine sm:text-sm">{labels[m]}</span>
         </button>
       ))}
     </div>

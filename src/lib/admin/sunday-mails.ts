@@ -487,14 +487,10 @@ export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName
       ? [
           "Jij liet ook al weten met wie je het gezellig had. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
           "",
-          "Twijfelde je nog over iemand? Tot zondag 18:00 kun je het aanpassen.",
-          "",
           p.url,
         ]
       : [
           "You already told us who you enjoyed the afternoon with. If it's mutual, we'll make sure you run into each other more often.",
-          "",
-          "Still unsure about someone? You can change it until Sunday 18:00.",
           "",
           p.url,
         ]

@@ -34,6 +34,10 @@ export type BrandLandingLabels = {
   /** The Sundays that are full, then how you get in. */
   soldOutEyebrow: string;
   soldOutWord: string;
+  /** Closing row of the list: where the next tables go. */
+  soldOutNext: string;
+  /** The headline over both blocks. */
+  fullHeadline: string;
   stepsEyebrow: string;
   steps: string[];
   reviewsEyebrow: string;
@@ -148,6 +152,15 @@ export function BrandLandingView({
       {/* Full Sundays, then the three steps in */}
       <section className="relative overflow-hidden border-t border-wine/8 bg-cream py-16 sm:py-20 lg:py-24">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(197,154,91,0.10),transparent_55%)]" />
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease }}
+          className="relative mx-auto mb-12 max-w-5xl px-5 font-serif text-3xl font-medium leading-[1.15] tracking-tight text-wine text-balance sm:mb-14 sm:px-8 sm:text-4xl lg:px-10 lg:text-[2.35rem]"
+        >
+          {labels.fullHeadline}
+        </motion.h2>
         <div className="relative mx-auto grid max-w-5xl grid-cols-1 gap-14 px-5 sm:px-8 lg:grid-cols-2 lg:items-start lg:gap-16 lg:px-10">
           {soldOut.length > 0 ? (
             <motion.div
@@ -168,7 +181,7 @@ export function BrandLandingView({
                       className={`flex items-center gap-4 px-5 py-4 sm:px-6 ${index > 0 ? "border-t border-wine/8" : ""}`}
                     >
                       <span className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-cream text-wine">
-                        <span className="font-serif text-2xl leading-none">{dayOf.format(date)}</span>
+                        <span className="font-serif text-2xl leading-none lining-nums">{dayOf.format(date)}</span>
                         <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-wine/50">
                           {monthOf.format(date).replace(".", "")}
                         </span>
@@ -183,6 +196,20 @@ export function BrandLandingView({
                     </li>
                   );
                 })}
+                <li className="border-t border-wine/8">
+                  <button
+                    type="button"
+                    onClick={() => openWaitlist("sold_out_next", "brand_sold_out")}
+                    className="flex w-full items-center justify-between gap-4 bg-gold/10 px-5 py-4 text-left transition hover:bg-gold/20 sm:px-6"
+                  >
+                    <span className="font-serif text-lg leading-tight tracking-tight text-wine">
+                      {labels.soldOutNext}
+                    </span>
+                    <span aria-hidden className="text-lg leading-none text-gold">
+                      →
+                    </span>
+                  </button>
+                </li>
               </ul>
             </motion.div>
           ) : null}
@@ -192,7 +219,7 @@ export function BrandLandingView({
               {labels.stepsEyebrow}
             </p>
             <ol className="relative mt-6">
-              <span className="absolute bottom-6 left-[1.4rem] top-6 w-px bg-gold/35" aria-hidden />
+              <span className="absolute bottom-6 left-[1.35rem] top-6 w-px bg-gold/45" aria-hidden />
               {labels.steps.map((step, index) => (
                 <motion.li
                   key={step}
@@ -202,7 +229,7 @@ export function BrandLandingView({
                   transition={{ duration: 0.5, delay: index * 0.08, ease }}
                   className="relative flex items-center gap-5 py-3.5"
                 >
-                  <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/50 bg-cream font-serif text-xl text-gold">
+                  <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold text-[15px] font-semibold text-white shadow-[0_6px_16px_rgba(197,154,91,0.35)]">
                     {index + 1}
                   </span>
                   <p className="font-serif text-xl leading-snug tracking-tight text-wine sm:text-[1.4rem]">

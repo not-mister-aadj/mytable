@@ -152,3 +152,13 @@ export function deriveDisplayStatus(
   }
   return "available";
 }
+
+/** `seatUrgency` as of this moment, for places that have no clock of their own. */
+export function seatUrgencyNow(input: {
+  capacity: number;
+  spotsSold: number;
+  startsAt: string | number | Date;
+  locale: Locale;
+}): SeatUrgency | null {
+  return seatUrgency({ ...input, now: Date.now() });
+}

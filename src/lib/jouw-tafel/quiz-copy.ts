@@ -143,8 +143,7 @@ export type QuizCopy = {
     /** On a bookable table, after the number of guests around their age:
      * "11 mensen die bij jou passen". */
     fit: string;
-    /** The green light without a number, and the red one. */
-    fitGood: string;
+    /** The red light. */
     fitLow: string;
     /** On a table where a mutual like has a seat (never who). */
     known: (n: number) => string;
@@ -398,7 +397,6 @@ const nl: QuizCopy = {
       `Een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten alleen komen" : ""}.`,
     elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
     fit: "mensen die bij jou passen",
-    fitGood: "Jouw tafel stellen we rond jou samen",
     fitLow: "Past mogelijk minder goed bij je",
     known: (n) =>
       n === 1 ? "1 persoon met wie je het gezellig had is er ook bij" : `${n} mensen met wie je het gezellig had zijn er ook bij`,
@@ -641,7 +639,6 @@ const en: QuizCopy = {
       `A ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone" : ""}.`,
     elsewhere: (city) => `${city} is full. These are the next tables.`,
     fit: "people who suit you",
-    fitGood: "We build your table around you",
     fitLow: "May suit you a little less",
     known: (n) =>
       n === 1 ? "1 person you had a good time with is coming too" : `${n} people you had a good time with are coming too`,

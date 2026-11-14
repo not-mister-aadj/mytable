@@ -10,6 +10,8 @@ import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import { citiesForEmail } from "@/lib/invites/cities";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
+import { getProfilePhotos } from "@/lib/profile-photo";
+import { normalizeEmail } from "@/lib/customers/normalize";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
 
 /**
@@ -78,7 +80,8 @@ export type FeedbackPage = {
   venueName: string | null;
   member: boolean;
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
-  tablemates: { bookingId: string; firstName: string }[];
+  /** photoUrl: their profile photo, so they are easy to recognise when picking who to see again. */
+  tablemates: { bookingId: string; firstName: string; photoUrl: string | null }[];
   /** The next bookable Sunday Social in this city, or else in another city they follow. */
   next: { eventId: string; city: string; label: string; shortLabel: string; seatsLeft: number; path: string } | null;
   /** "De volgende is op ons" after Matig or Niet leuk: the dates they can
@@ -132,7 +135,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
 
   const mates = group
     ? await db
-        .select({ id: bookings.id, name: bookings.customerName })
+        .select({ id: bookings.id, name: bookings.customerName, email: bookings.email })
         .from(bookings)
         .where(
           and(
@@ -145,6 +148,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
         )
         .orderBy(asc(bookings.createdAt))
     : [];
+  const photos = await getProfilePhotos(mates.map((m) => m.email)).catch(() => new Map<string, string>());
 
   const membership = await getRunningMembershipByEmail(booking.email).catch(() => null);
   // "Sunday Social · 35+": the next one never has another age group.
@@ -249,7 +253,9 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     city: event.city,
     venueName: venue?.name ?? null,
     member: isActiveMember(membershipSnapshot(membership)),
-    tablemates: mates.filter((m) => m.id !== booking.id).map((m) => ({ bookingId: m.id, firstName: firstName(m.name) || "Gast" })),
+    tablemates: mates
+      .filter((m) => m.id !== booking.id)
+      .map((m) => ({ bookingId: m.id, firstName: firstName(m.name) || "Gast", photoUrl: photos.get(normalizeEmail(m.email)) ?? null })),
     next:
       nextEvent && nextPath
         ? {

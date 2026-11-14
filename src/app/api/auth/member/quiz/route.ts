@@ -7,7 +7,7 @@ import { sendMetaCapiQuizLead } from "@/lib/analytics/metaCapi";
 import { metaQuizLeadEventId } from "@/lib/analytics/metaIds";
 import { parseMetaTrackingContext } from "@/lib/analytics/metaApiContext";
 import { metaUserDataFromRequest } from "@/lib/analytics/metaCapiContext";
-import { addEventNotifySignup } from "@/lib/event-notify-signups";
+import { addEventNotifySignup, removeEventNotifySignup } from "@/lib/event-notify-signups";
 import { getSiteUrl } from "@/lib/env";
 import {
   QUIZ_LEAD_SENT_KEY,
@@ -72,6 +72,8 @@ export async function POST(request: Request) {
     locale?: string;
     waitlist?: boolean;
     notifyEventId?: string;
+    /** Off that table's list again. */
+    unnotifyEventId?: string;
     /** "settings": a change from the settings page (no Meta Lead; removed
      * cities lose their waitlist row). */
     origin?: string;
@@ -90,6 +92,9 @@ export async function POST(request: Request) {
   if (notifyEventId && !state.notify?.includes(notifyEventId)) {
     state.notify = [...(state.notify ?? []), notifyEventId].slice(-20);
   }
+  const unnotifyEventId =
+    typeof body.unnotifyEventId === "string" && UUID_RE.test(body.unnotifyEventId) ? body.unnotifyEventId : null;
+  if (unnotifyEventId) state.notify = (state.notify ?? []).filter((id) => id !== unnotifyEventId);
 
   const fromSettings = Boolean(user?.email) && body.origin === "settings";
   const before = sanitizeQuizState(person.meta[QUIZ_METADATA_KEY]);
@@ -166,6 +171,12 @@ export async function POST(request: Request) {
         .catch((error: unknown) => {
           console.error("[jouw-tafel quiz] sendMetaCapiQuizLead failed:", error);
         }),
+    );
+  }
+
+  if (unnotifyEventId) {
+    await removeEventNotifySignup({ eventId: unnotifyEventId, email: person.email }).catch((error) =>
+      console.error("[jouw-tafel quiz] notify removal failed:", error),
     );
   }
 

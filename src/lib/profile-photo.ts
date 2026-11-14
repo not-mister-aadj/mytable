@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { customers } from "@/db/schema";
 import { normalizeEmail } from "@/lib/customers/normalize";
@@ -37,4 +37,25 @@ export async function setProfilePhoto(email: string, file: File): Promise<{ ok: 
   const url = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
   await getDb().update(customers).set({ photoUrl: url, updatedAt: new Date() }).where(eq(customers.id, customerId));
   return { ok: true, url };
+}
+
+/** Takes the person's photo off their profile (the file itself stays in
+ * storage, like every earlier one). */
+export async function clearProfilePhoto(email: string): Promise<void> {
+  await getDb()
+    .update(customers)
+    .set({ photoUrl: null, updatedAt: new Date() })
+    .where(eq(customers.emailNormalized, normalizeEmail(email)));
+}
+
+/** Photos of these people, by normalized email: for the feedback form, where
+ * tablemates pick who they would like to see again. */
+export async function getProfilePhotos(emails: string[]): Promise<Map<string, string>> {
+  const keys = [...new Set(emails.map((e) => normalizeEmail(e)))];
+  if (keys.length === 0) return new Map();
+  const rows = await getDb()
+    .select({ email: customers.emailNormalized, photoUrl: customers.photoUrl })
+    .from(customers)
+    .where(inArray(customers.emailNormalized, keys));
+  return new Map(rows.filter((r) => r.photoUrl).map((r) => [r.email, r.photoUrl!]));
 }

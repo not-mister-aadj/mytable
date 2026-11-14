@@ -19,6 +19,7 @@ import { getMembershipForUser, membershipSnapshot } from "@/lib/membership/data"
 import { toClientMembership } from "@/lib/membership/logic";
 import { getBookedSeats } from "@/lib/jouw-tafel/account-server";
 import { loadBookedMatchCounts } from "@/lib/tafelvrienden/server";
+import { getProfilePhoto } from "@/lib/profile-photo";
 
 /** How long the quiz waits for data it can do without. */
 const OPTIONAL_DATA_MS = 4000;
@@ -70,7 +71,7 @@ export async function JouwTafelQuizPage({
   // People they had a good time with (a mutual like) who booked a coming
   // Sunday: a count per table, loaded alongside the rest.
   const personEmail = user ? user.email : person.kind === "guest" ? person.guest.email : null;
-  const [{ events, now }, geoCity, cityCounts, subsetCounts, membership, booked, matches] = await Promise.all([
+  const [{ events, now }, geoCity, cityCounts, subsetCounts, membership, booked, matches, photoUrl] = await Promise.all([
     tablesWithRetry(),
     requestCity(searchParams),
     withDbTimeout(getWaitlistCityCounts(devCountOverride(searchParams.aantal)), {
@@ -101,6 +102,13 @@ export async function JouwTafelQuizPage({
           { ms: OPTIONAL_DATA_MS, fallback: {} as Record<string, number>, label: "quiz mutual likes" },
         )
       : Promise.resolve({} as Record<string, number>),
+    // Their photo for the avatar on top; the first letter stands in without it.
+    user?.email
+      ? withDbTimeout(
+          getProfilePhoto(user.email).catch(() => null),
+          { ms: OPTIONAL_DATA_MS, fallback: null, label: "quiz profile photo" },
+        )
+      : Promise.resolve(null),
   ]);
 
   const { culinary, people } = getBrandLandingTestimonialRows(locale);
@@ -130,6 +138,7 @@ export async function JouwTafelQuizPage({
       membership={toClientMembership(membershipSnapshot(membership))}
       booked={booked}
       matches={matches}
+      photoUrl={photoUrl}
     />
   );
 }

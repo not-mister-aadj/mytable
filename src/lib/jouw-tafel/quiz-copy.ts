@@ -134,6 +134,8 @@ export type QuizCopy = {
     guarantees: string[];
     notify: string;
     notified: string;
+    /** Tapped again: off the list. */
+    unnotified: string;
     /** Under the title: the table as their answers shaped it. */
     match: (m: { around: number | null; dutch: boolean; alone: boolean }) => string;
     /** Their own city is full: the open tables elsewhere follow. */
@@ -391,6 +393,7 @@ const nl: QuizCopy = {
     ],
     notify: "Houd me op de hoogte",
     notified: "Genoteerd. Je hoort het als eerste.",
+    unnotified: "Je staat niet meer op de wachtlijst.",
     match: ({ around, dutch, alone }) =>
       `Een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten alleen komen" : ""}.`,
     elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
@@ -400,7 +403,7 @@ const nl: QuizCopy = {
     known: (n) =>
       n === 1 ? "1 persoon met wie je het gezellig had is er ook bij" : `${n} mensen met wie je het gezellig had zijn er ook bij`,
     knownBadge: (n) => (n === 1 ? "Bekend gezicht" : "Bekende gezichten"),
-    extraTable: "Zet me op de lijst voor een extra tafel",
+    extraTable: "Zet me op de wachtlijst",
     noMatch: (city) =>
       `Je bent aangemeld. Zodra er in ${city} een tafel opent, hoor je het als eerste.`,
     share: "Deel met een vriend",
@@ -633,6 +636,7 @@ const en: QuizCopy = {
     ],
     notify: "Keep me posted",
     notified: "Noted. You'll be the first to hear.",
+    unnotified: "You're off the waitlist.",
     match: ({ around, dutch, alone }) =>
       `A ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone" : ""}.`,
     elsewhere: (city) => `${city} is full. These are the next tables.`,
@@ -642,7 +646,7 @@ const en: QuizCopy = {
     known: (n) =>
       n === 1 ? "1 person you had a good time with is coming too" : `${n} people you had a good time with are coming too`,
     knownBadge: (n) => (n === 1 ? "Familiar face" : "Familiar faces"),
-    extraTable: "Put me on the list for an extra table",
+    extraTable: "Join the waitlist",
     noMatch: (city) =>
       `You're signed up. As soon as a table opens in ${city}, you'll be the first to hear.`,
     share: "Share with a friend",

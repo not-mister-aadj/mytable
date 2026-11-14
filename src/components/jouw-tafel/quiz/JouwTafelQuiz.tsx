@@ -176,11 +176,14 @@ export function AvatarButton({
   label,
   href,
   onOpen,
+  photoUrl = null,
 }: {
   name: string;
   label: string;
   href: string;
   onOpen: () => void;
+  /** Their profile photo, when they set one; else the first letter. */
+  photoUrl?: string | null;
 }) {
   const initial = name.trim().charAt(0).toLocaleUpperCase("nl-NL");
   return (
@@ -193,9 +196,14 @@ export function AvatarButton({
       aria-label={label}
       className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy/[0.1] text-[0.95rem] font-semibold text-burgundy ring-1 ring-burgundy/15 transition active:scale-95">
-        {initial || <PersonIcon />}
-      </span>
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt="" className="h-9 w-9 rounded-full object-cover ring-1 ring-burgundy/15 transition active:scale-95" />
+      ) : (
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy/[0.1] text-[0.95rem] font-semibold text-burgundy ring-1 ring-burgundy/15 transition active:scale-95">
+          {initial || <PersonIcon />}
+        </span>
+      )}
     </a>
   );
 }
@@ -308,6 +316,7 @@ export function JouwTafelQuiz({
   membership = null,
   booked = {},
   matches = {},
+  photoUrl = null,
   guest = false,
 }: {
   locale: Locale;
@@ -335,6 +344,8 @@ export function JouwTafelQuiz({
   booked?: Record<string, number>;
   /** Per table: how many of their mutual likes have a seat there. */
   matches?: Record<string, number>;
+  /** Their profile photo, for the avatar on top. */
+  photoUrl?: string | null;
   /** Email given, account not confirmed yet: no avatar to settings, which
    * needs the account. */
   guest?: boolean;
@@ -657,13 +668,29 @@ export function JouwTafelQuiz({
     () => ({
       onViewed: (props) => trackQuizEvent(PostHogEvents.quizChooseViewed, { ...common("kies", answers), ...props }),
       onOpen: (props) => trackTableEvent(PostHogEvents.tableOpened, { ...common("kies", answers), ...props }),
-      onNotify: (event) => {
+      onNotify: (event, off = false) => {
+        const key = event ? event.id : "city";
+        const current = quizRef.current;
+        // Tapped again: off the list, here and on the table's own list.
+        if (off) {
+          const next: QuizState = {
+            ...current,
+            notify: (current.notify ?? []).filter((id) => id !== key),
+            updatedAt: Date.now(),
+          };
+          quizRef.current = next;
+          setQuiz(next);
+          writeLocal(storageKey, next);
+          setToast(copy.kies.unnotified);
+          void postSave({ state: next, waitlist: false }, locale, event ? { unnotifyEventId: event.id } : undefined).catch(() =>
+            save(next),
+          );
+          return;
+        }
         trackQuizEvent(PostHogEvents.quizNotifyClicked, {
           ...common("kies", answers),
           event_slug: event ? event.slug : null,
         });
-        const key = event ? event.id : "city";
-        const current = quizRef.current;
         const next: QuizState = {
           ...current,
           notify: [...new Set([...(current.notify ?? []), key])],
@@ -749,6 +776,7 @@ export function JouwTafelQuiz({
             membership={membership}
             booked={booked}
             matches={matches}
+            preferencesHref={guest ? null : `${jouwTafelSettingsPath(locale)}?tab=voorkeuren&terug=kies`}
             onAnswers={updateAnswers}
             tablePath={(event) => sundaySocialDatePath(locale, event) ?? jouwTafelTablePath(locale, event.slug)}
           />
@@ -805,6 +833,7 @@ export function JouwTafelQuiz({
               label={copy.settings}
               href={settingsHref}
               onOpen={() => void openSettings()}
+              photoUrl={photoUrl}
             />
           )
         }

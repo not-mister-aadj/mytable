@@ -1,5 +1,7 @@
 import { SignJWT, decodeJwt, jwtVerify } from "jose";
+import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getDb, isDbConfigured } from "@/db/index";
 import { getSiteUrl } from "@/lib/admin-url";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -79,6 +81,7 @@ function mailSessions(appMetadata: Record<string, unknown> | undefined | null): 
 export async function signInFromMail(email: string): Promise<boolean> {
   try {
     const admin = createSupabaseAdminClient();
+    const sentBefore = await linkSentAt(email);
     const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
     const hash = data?.properties?.hashed_token;
     if (error || !hash || !data.user) return false;
@@ -98,10 +101,39 @@ export async function signInFromMail(email: string): Promise<boolean> {
       await supabase.auth.signOut({ scope: "local" });
       return false;
     }
+    await restoreLinkSentAt(data.user.id, sentBefore);
     return true;
   } catch (error) {
     console.error("[mail-login] signing in failed:", error);
     return false;
+  }
+}
+
+/**
+ * Making the sign-in link counts for Supabase as "a code was just sent", and
+ * it then refuses a real code for a minute. Someone who signs in from a mail
+ * and at once cancels a seat would be told to wait. Nothing was sent, so the
+ * moment is put back to what it was.
+ */
+async function linkSentAt(email: string): Promise<{ at: string | null } | null> {
+  if (!isDbConfigured()) return null;
+  try {
+    const [row] = (await getDb().execute(
+      sql`select recovery_sent_at::text as at from auth.users where lower(email) = ${email.trim().toLowerCase()} limit 1`,
+    )) as unknown as Array<{ at: string | null }>;
+    return row ? { at: row.at } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function restoreLinkSentAt(userId: string, before: { at: string | null } | null): Promise<void> {
+  if (!before) return;
+  try {
+    await getDb().execute(sql`update auth.users set recovery_sent_at = ${before.at}::timestamptz where id = ${userId}::uuid`);
+  } catch (error) {
+    // They wait a minute for a code at worst.
+    console.error("[mail-login] could not put recovery_sent_at back:", error);
   }
 }
 

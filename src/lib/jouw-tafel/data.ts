@@ -1,10 +1,10 @@
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { getDb, isDbConfigured } from "@/db/index";
-import { events } from "@/db/schema";
+import { bookings, events } from "@/db/schema";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
-import { JOUW_TAFEL_SEAT_PRICE_CENTS, JOUW_TAFEL_SHOWN_AFTER_DAYS, QUIZ_CITIES, bookingOpensOverride, isNoLongerBookable, isShownTable, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
+import { AGE_BUCKET_YEARS, JOUW_TAFEL_SEAT_PRICE_CENTS, JOUW_TAFEL_SHOWN_AFTER_DAYS, QUIZ_CITIES, bookingOpensOverride, isNoLongerBookable, isShownTable, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
 import { signupCountsBySubset } from "@/lib/jouw-tafel/quiz-logic";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
@@ -51,6 +51,8 @@ async function loadEvents(): Promise<QuizEvent[]> {
       .map((r) => `${r.city.toLowerCase()}|${amsterdamDateIso(r.startsAt)}`),
   );
 
+  const ages = await loadAgeBuckets(rows.map((r) => ({ id: r.id, startsAt: r.startsAt })));
+
   const out: QuizEvent[] = [];
   for (const row of rows) {
     const handMade = row.experienceType === SUNDAY_SOCIAL_TYPE;
@@ -73,6 +75,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
         // No booking window and no closing when empty: open for everyone
         // from the moment it was made.
         bookingOpensAt: row.createdAt.toISOString(),
+        ageBuckets: ages.get(row.id),
       });
       continue;
     }
@@ -91,14 +94,51 @@ async function loadEvents(): Promise<QuizEvent[]> {
       englishOpen: isEnglishOpenForSundayTable(row.id),
       membersOnlyUntil: row.membersOnlyUntil?.toISOString() ?? null,
       bookingOpensAt: bookingOpensOverride(row.extras),
+      ageBuckets: ages.get(row.id),
     });
+  }
+  return out;
+}
+
+/** Per table: how many booked guests per AGE_BUCKET_YEARS of age on the day
+ * itself. Birth dates are only read here; just the counts leave the server.
+ * The list does without it when this fails. */
+async function loadAgeBuckets(tables: { id: string; startsAt: Date }[]): Promise<Map<string, Record<string, number>>> {
+  const out = new Map<string, Record<string, number>>();
+  if (tables.length === 0) return out;
+  try {
+    const rows = await getDb()
+      .select({ eventId: bookings.eventId, birthDate: bookings.birthDate })
+      .from(bookings)
+      .where(
+        and(
+          inArray(bookings.eventId, tables.map((t) => t.id)),
+          eq(bookings.paymentStatus, "paid"),
+          eq(bookings.lifecycleStatus, "active"),
+        ),
+      );
+    const startOf = new Map(tables.map((t) => [t.id, t.startsAt]));
+    for (const row of rows) {
+      if (!row.birthDate) continue;
+      const born = new Date(`${row.birthDate}T00:00:00Z`);
+      const at = startOf.get(row.eventId)!;
+      let age = at.getUTCFullYear() - born.getUTCFullYear();
+      if (at.getUTCMonth() < born.getUTCMonth() || (at.getUTCMonth() === born.getUTCMonth() && at.getUTCDate() < born.getUTCDate())) age -= 1;
+      if (age < 18 || age > 110) continue;
+      const bucket = String(Math.floor(age / AGE_BUCKET_YEARS) * AGE_BUCKET_YEARS);
+      const table = out.get(row.eventId) ?? {};
+      table[bucket] = (table[bucket] ?? 0) + 1;
+      out.set(row.eventId, table);
+    }
+  } catch (error) {
+    console.error("[jouw-tafel] loading table ages failed", error);
   }
   return out;
 }
 
 /** Short cache, dropped with the agenda whenever a purchase or admin edit
  * revalidates PUBLISHED_EVENTS_CACHE_TAG. */
-const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v4"], {
+const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v6"], {
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });

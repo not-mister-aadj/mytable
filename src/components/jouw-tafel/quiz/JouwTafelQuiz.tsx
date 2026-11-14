@@ -306,6 +306,7 @@ export function JouwTafelQuiz({
   landingPath,
   membership = null,
   booked = {},
+  matches = {},
   guest = false,
 }: {
   locale: Locale;
@@ -331,6 +332,8 @@ export function JouwTafelQuiz({
   membership?: ClientMembership | null;
   /** Tables this person already has a seat at: event id to seats. */
   booked?: Record<string, number>;
+  /** Per table: how many of their mutual likes have a seat there. */
+  matches?: Record<string, number>;
   /** Email given, account not confirmed yet: no avatar to settings, which
    * needs the account. */
   guest?: boolean;
@@ -744,6 +747,7 @@ export function JouwTafelQuiz({
             handlers={chooseHandlers}
             membership={membership}
             booked={booked}
+            matches={matches}
             onAnswers={updateAnswers}
             tablePath={(event) => sundaySocialDatePath(locale, event) ?? jouwTafelTablePath(locale, event.slug)}
           />

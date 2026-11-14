@@ -675,6 +675,20 @@ export function chooseTablesForAnswers(
 ): { rows: ChooseRow[]; hasMatch: boolean; ourCities: boolean } {
   const own = chooseTables(events, input, now);
   const { ours, others } = splitCities(input.cities);
+  // Never a list without a Sunday to pick: when nothing in or near their
+  // cities can be booked, the open tables of our other cities follow.
+  if (ours.length > 0 && !own.hasMatch) {
+    const elsewhere = chooseTables(events, { ...input, cities: QUIZ_CITIES }, now).rows.filter(
+      (r) => r.kind === "open" && !own.rows.some((o) => o.event.id === r.event.id),
+    );
+    if (elsewhere.length === 0) return { ...own, ourCities: false };
+    const time = (r: ChooseRow) => Date.parse(r.event.startsAt);
+    return {
+      rows: [...own.rows, ...elsewhere.sort((a, b) => time(a) - time(b)).map((r) => ({ ...r, nearby: true }))],
+      hasMatch: true,
+      ourCities: true,
+    };
+  }
   if (ours.length > 0 || others.length === 0 || own.rows.length > 0) return { ...own, ourCities: false };
   const all = chooseTables(events, { ...input, cities: QUIZ_CITIES }, now);
   return { rows: all.rows.map((r) => ({ ...r, nearby: true })), hasMatch: all.hasMatch, ourCities: true };

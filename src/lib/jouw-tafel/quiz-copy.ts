@@ -134,6 +134,22 @@ export type QuizCopy = {
     guarantees: string[];
     notify: string;
     notified: string;
+    /** Above the list: the table as their answers shaped it. */
+    matchEyebrow: string;
+    match: (m: { around: number | null; dutch: boolean; alone: boolean }) => string;
+    /** Their own city is full: the open tables elsewhere follow. */
+    elsewhere: (city: string) => string;
+    /** On a bookable table, after the number of guests around their age:
+     * "11 mensen die bij jou passen". */
+    fit: string;
+    /** The green light without a number, and the red one. */
+    fitGood: string;
+    fitLow: string;
+    /** On a table where a mutual like has a seat (never who). */
+    known: (n: number) => string;
+    knownBadge: (n: number) => string;
+    /** On a full table. */
+    extraTable: string;
     noMatch: (city: string) => string;
     share: string;
     shareTitle: string;
@@ -359,7 +375,7 @@ const nl: QuizCopy = {
     nearby: "Vlakbij",
     comingSoon: "Binnenkort te boeken",
     spotsOpen: "Plekken vrij",
-    noLongerBookable: "Full",
+    noLongerBookable: "Vol",
     soonBadge: "Binnenkort",
     opensFrom: (date) => `Te boeken vanaf ${date}`,
     guarantees: [
@@ -369,6 +385,17 @@ const nl: QuizCopy = {
     ],
     notify: "Houd me op de hoogte",
     notified: "Genoteerd. Je hoort het als eerste.",
+    matchEyebrow: "Op jou afgestemd",
+    match: ({ around, dutch, alone }) =>
+      `Je schuift aan bij een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten net als jij alleen komen" : ""}.`,
+    elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
+    fit: "mensen die bij jou passen",
+    fitGood: "Jouw tafel stellen we rond jou samen",
+    fitLow: "Past mogelijk minder goed bij je",
+    known: (n) =>
+      n === 1 ? "1 persoon met wie je het gezellig had is er ook bij" : `${n} mensen met wie je het gezellig had zijn er ook bij`,
+    knownBadge: (n) => (n === 1 ? "Bekend gezicht" : "Bekende gezichten"),
+    extraTable: "Zet me op de lijst voor een extra tafel",
     noMatch: (city) =>
       `Je bent aangemeld. Zodra er in ${city} een tafel opent, hoor je het als eerste.`,
     share: "Deel met een vriend",
@@ -597,6 +624,17 @@ const en: QuizCopy = {
     ],
     notify: "Keep me posted",
     notified: "Noted. You'll be the first to hear.",
+    matchEyebrow: "Made for you",
+    match: ({ around, dutch, alone }) =>
+      `You join a ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone, like you" : ""}.`,
+    elsewhere: (city) => `${city} is full. These are the next tables.`,
+    fit: "people who suit you",
+    fitGood: "We build your table around you",
+    fitLow: "May suit you a little less",
+    known: (n) =>
+      n === 1 ? "1 person you had a good time with is coming too" : `${n} people you had a good time with are coming too`,
+    knownBadge: (n) => (n === 1 ? "Familiar face" : "Familiar faces"),
+    extraTable: "Put me on the list for an extra table",
     noMatch: (city) =>
       `You're signed up. As soon as a table opens in ${city}, you'll be the first to hear.`,
     share: "Share with a friend",

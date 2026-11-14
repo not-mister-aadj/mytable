@@ -656,7 +656,7 @@ const en: QuizCopy = {
     notified: "Noted. You'll be the first to hear.",
     unnotified: "You're off the waitlist.",
     match: ({ around, dutch, alone }) =>
-      `A ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone" : ""}.`,
+      `A ${dutch ? "Dutch-speaking " : ""}table of ${around ? "people around your age" : "all ages"}.${alone ? " Most come on their own." : ""}`,
     elsewhere: (city) => `${city} is full. These are the next tables.`,
     elsewhereDistrict: "No table in your parts of the city yet. These are the next tables.",
     areaFollows: "area to follow",

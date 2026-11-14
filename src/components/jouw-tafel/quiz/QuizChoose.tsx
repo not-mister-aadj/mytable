@@ -19,7 +19,7 @@ import {
   type ChooseRow,
   type QuizAnswers,
 } from "@/lib/jouw-tafel/quiz-logic";
-import { questionTitle, secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
+import { secondaryButton } from "@/components/jouw-tafel/quiz/quiz-ui";
 import { fromClientMembership, memberBookingDecision, type ClientMembership } from "@/lib/membership/logic";
 import { earlyBlocked, earlyChip } from "@/lib/membership/early-label";
 import { trackMembershipEvent } from "@/lib/posthog/analytics";
@@ -69,7 +69,8 @@ const CARD_COPY = {
     reserveShort: "Reserveer",
     next: "Eerstvolgende",
     nextTables: "Eerstvolgende tafels",
-    shortPeople: "4 tot 6 nieuwe mensen",
+    shortPeople: "4 tot 6 mensen",
+    how: "Hoe werkt het?",
     priceLine: (price: string) => `${price} per plek`,
   },
   en: {
@@ -77,7 +78,8 @@ const CARD_COPY = {
     reserveShort: "Reserve",
     next: "Next up",
     nextTables: "Next tables",
-    shortPeople: "4 to 6 new people",
+    shortPeople: "4 to 6 people",
+    how: "How it works",
     priceLine: (price: string) => `${price} per seat`,
   },
 } as const;
@@ -155,13 +157,13 @@ function ChooseFilters({
   }
   const chipOn = ladies ? "border-rose-deep bg-rose-deep text-cream" : "border-burgundy bg-burgundy text-cream";
   return (
-    <div className="mt-5">
+    <div className="mt-3.5">
       {answers.gender === "female" ? (
         <>
           <div
             role="radiogroup"
             aria-label={copy.tableAria}
-            className={`grid grid-cols-2 rounded-full p-1 transition-colors ${ladies ? "bg-rose/15" : "bg-wine/[0.06]"}`}
+            className={`mx-auto grid max-w-[17rem] grid-cols-2 rounded-full p-[3px] transition-colors ${ladies ? "bg-rose/15" : "bg-wine/[0.06]"}`}
           >
             {(["mixed", "girls_only"] as const).map((kind) => {
               const on = kind === "girls_only" ? ladies : !ladies;
@@ -172,7 +174,7 @@ function ChooseFilters({
                   role="radio"
                   aria-checked={on}
                   onClick={() => onAnswers(kind === "girls_only" ? { tableType: "girls_only" } : { tableType: "mixed", mixedFallback: undefined })}
-                  className={`min-h-10 rounded-full text-[0.9rem] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                  className={`min-h-8 rounded-full text-[0.82rem] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
                     on
                       ? `bg-white shadow-[0_2px_8px_rgba(43,13,18,0.10)] ${ladies ? "text-rose-deep" : "text-wine"}`
                       : "text-wine/60"
@@ -191,9 +193,10 @@ function ChooseFilters({
       <div
         role="group"
         aria-label={copy.citiesAria}
-        className="mt-4"
+        className={answers.gender === "female" ? "mt-2.5" : ""}
       >
-        <div className="flex flex-wrap justify-center gap-1.5">
+        {/* One row: their own cities first, the rest a swipe away. */}
+        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:gap-1 sm:px-0 sm:[justify-content:safe_center] [&::-webkit-scrollbar]:hidden">
         {cities.map((city) => {
           const on = isChosen(city);
           return (
@@ -202,7 +205,7 @@ function ChooseFilters({
               type="button"
               aria-pressed={on}
               onClick={() => toggle(city)}
-              className={`inline-flex min-h-9 shrink-0 items-center rounded-full border px-3 text-[0.85rem] font-medium tracking-[0.01em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+              className={`inline-flex min-h-9 shrink-0 items-center rounded-full border px-3 text-[0.85rem] font-medium tracking-[0.01em] transition sm:px-[7px] sm:text-[0.8rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
                 on ? chipOn : "border-gold/40 bg-transparent text-wine/70 hover:border-gold/70"
               }`}
             >
@@ -593,7 +596,7 @@ export function QuizChoose({
   function citySection(section: CitySection) {
     const offset = ownShown.indexOf(section.rows[0]!);
     return (
-      <section key={section.city} className="mt-8">
+      <section key={section.city} className="mt-6">
         {sectionTitle(k.inCity(displayCity(section.city, locale)))}
         <ul className="mt-3.5 space-y-3">{section.rows.map((row, i) => tableCard(row, offset + i))}</ul>
       </section>
@@ -602,8 +605,9 @@ export function QuizChoose({
 
   return (
     <div className="pb-16">
-      <div className="pt-6">
-        <h1 tabIndex={-1} className={questionTitle}>
+      <div className="pt-1">
+        {/* The title is in the bar on top; here only for screen readers. */}
+        <h1 tabIndex={-1} className="sr-only">
           {k.title}
         </h1>
         {onlyOthers ? (
@@ -616,19 +620,16 @@ export function QuizChoose({
         ) : hasMatch ? (
           <>
             {age !== null ? (
-              <div className="mx-auto mt-5 max-w-[22rem] rounded-2xl border border-gold/40 bg-gold/[0.08] px-4 py-3.5 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold">{k.matchEyebrow}</p>
-                <p className="mt-1.5 text-[0.98rem] leading-snug text-wine text-balance">
-                  {k.match({
-                    around: answers.ageMatters === "yes" ? Math.round(age / 5) * 5 : null,
-                    dutch: answers.language === "dutch",
-                    alone: answers.companion === "alone",
-                  })}
-                </p>
-              </div>
+              <p className="mx-auto max-w-[21rem] text-center text-[1.05rem] font-medium leading-snug text-wine text-balance">
+                {k.match({
+                  around: answers.ageMatters === "yes" ? Math.round(age / 5) * 5 : null,
+                  dutch: answers.language === "dutch",
+                  alone: answers.companion === "alone",
+                })}
+              </p>
             ) : null}
             {ownOpenCount === 0 && ours.length > 0 ? (
-              <p className="mx-auto mt-4 max-w-[21rem] text-center text-[0.95rem] leading-relaxed text-wine/75 text-balance">
+              <p className="mx-auto mt-2 max-w-[21rem] text-center text-[0.92rem] leading-snug text-wine/75 text-balance">
                 {k.elsewhere(shownCity)}
               </p>
             ) : null}
@@ -642,9 +643,9 @@ export function QuizChoose({
           {featuredRow ? (
             <>
               {cardCopy.shortPeople}
-              <span aria-hidden className="mx-2 text-gold">·</span>
+              <span aria-hidden className="mx-1.5 text-gold">·</span>
               {cardCopy.priceLine(priceText(featuredRow.event.priceCents, locale))}
-              <br />
+              <span aria-hidden className="mx-1.5 text-gold">·</span>
             </>
           ) : null}
           <button
@@ -658,7 +659,7 @@ export function QuizChoose({
             }}
             className="inline font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
           >
-            {k.infoLink}
+            {featuredRow ? cardCopy.how : k.infoLink}
           </button>
         </p>
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} locale={locale} onAnswers={onAnswers} /> : null}
@@ -667,7 +668,7 @@ export function QuizChoose({
       {citySections.filter(hasOpenRow).map(citySection)}
 
       {nearbyOpen.length > 0 ? (
-        <section className="mt-8">
+        <section className="mt-6">
           {sectionTitle(ownOpenCount === 0 && ours.length > 0 ? cardCopy.nextTables : ourCities ? k.ourCities : k.nearby)}
           <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownShown.length + i))}</ul>
         </section>
@@ -677,7 +678,7 @@ export function QuizChoose({
       {citySections.filter((s) => !hasOpenRow(s)).map(citySection)}
 
       {soonRows.length > 0 ? (
-        <section className="mt-8">
+        <section className="mt-6">
           {sectionTitle(k.comingSoon)}
           <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownShown.length + nearbyOpen.length + i))}</ul>
         </section>

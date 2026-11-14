@@ -12,7 +12,7 @@ import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
 import { getProfilePhotos, setProfilePhoto } from "@/lib/profile-photo";
 import { normalizeEmail } from "@/lib/customers/normalize";
-import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
+import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason, isSpendRange, type SpendRange } from "@/lib/feedback-reasons";
 
 /**
  * "Hoe was je middag?": the page behind the 20:00 mail on the Sunday itself,
@@ -58,6 +58,8 @@ export type FeedbackState = {
   mood: Mood | null;
   /** "En {bar} zelf?": 1 to 5 stars. */
   venueRating: number | null;
+  /** "Wat gaf je ongeveer uit?": a range per person, without the ticket. */
+  spend: SpendRange | null;
   /** Reasons tapped for "wat maakte het zo leuk", plus their own words. */
   liked: LikedReason[];
   highlight: string;
@@ -109,7 +111,7 @@ const FREE_SEAT_OPTIONS = 3;
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? "";
 
 function emptyState(): FeedbackState {
-  return { mood: null, venueRating: null, liked: [], highlight: "", disliked: [], improve: "", contactOk: false, wantToSee: [], missing: [], completed: false };
+  return { mood: null, venueRating: null, spend: null, liked: [], highlight: "", disliked: [], improve: "", contactOk: false, wantToSee: [], missing: [], completed: false };
 }
 
 export async function loadFeedbackPage(bookingId: string, now = Date.now()): Promise<FeedbackPage | null> {
@@ -289,6 +291,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
       ? {
           mood: isMood(saved.mood) ? saved.mood : null,
           venueRating: stars(saved.venueRating),
+          spend: isSpendRange(saved.spendRange) ? saved.spendRange : null,
           liked: onlyKnown(LIKED_REASONS, saved.liked),
           highlight: saved.highlight ?? "",
           disliked: onlyKnown(DISLIKED_REASONS, saved.disliked),
@@ -330,6 +333,7 @@ export async function saveFeedback(bookingId: string, input: Partial<FeedbackSta
   const values = {
     ...(input.mood !== undefined ? { mood: isMood(input.mood) ? input.mood : null } : {}),
     ...(input.venueRating !== undefined ? { venueRating: stars(input.venueRating) } : {}),
+    ...(input.spend !== undefined ? { spendRange: isSpendRange(input.spend) ? input.spend : null } : {}),
     ...(input.liked !== undefined ? { liked: onlyKnown(LIKED_REASONS, input.liked) } : {}),
     ...(input.highlight !== undefined ? { highlight: text(input.highlight, 1000) || null } : {}),
     ...(input.disliked !== undefined ? { disliked: onlyKnown(DISLIKED_REASONS, input.disliked) } : {}),

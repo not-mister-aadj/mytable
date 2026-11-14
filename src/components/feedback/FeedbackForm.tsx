@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
 import { PhotoCropper } from "@/components/PhotoCropper";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
-import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFor } from "@/lib/feedback-reasons";
+import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, SPEND_LABELS, SPEND_LABELS_EN, SPEND_RANGES, orderFor } from "@/lib/feedback-reasons";
 
 const COPY = {
   nl: {
@@ -31,6 +31,8 @@ const COPY = {
     venue: (venue: string) => `En ${venue} zelf?`,
     venueHint: "De plek, de wijn, de bediening.",
     stars: (n: number) => (n === 1 ? "1 ster" : `${n} sterren`),
+    spendTitle: "Wat gaf je ongeveer uit?",
+    spendHint: "Aan drankjes en hapjes, per persoon. Zonder je ticket.",
     liked: "Wat maakte het zo leuk?",
     likedGood: "Wat vond je het leukst?",
     improve: "Wat kan beter?",
@@ -84,6 +86,8 @@ const COPY = {
     venue: (venue: string) => `And ${venue} itself?`,
     venueHint: "The place, the wine, the service.",
     stars: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
+    spendTitle: "Roughly what did you spend?",
+    spendHint: "On drinks and bites, per person. Without your ticket.",
     liked: "What made it so good?",
     likedGood: "What did you like most?",
     improve: "What could be better?",
@@ -544,8 +548,33 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
               <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.venueKicker}</p>
               <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.venue(venue)}</h1>
               <p className="mt-1 text-sm text-wine/55">{t.venueHint}</p>
-              <Stars value={state.venueRating} onPick={(n) => pickAndGo({ venueRating: n })} label={t.stars} />
-              {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
+              <Stars value={state.venueRating} onPick={(n) => save({ venueRating: n })} label={t.stars} />
+              {/* Like a review on a map: a range to tap, and on to the next question. */}
+              <p className="mt-7 text-base font-semibold text-wine">{t.spendTitle}</p>
+              <p className="mt-0.5 text-sm text-wine/55">{t.spendHint}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {SPEND_RANGES.map((range) => {
+                  const on = state.spend === range;
+                  return (
+                    <button
+                      key={range}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => pickAndGo({ spend: range })}
+                      className={`rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                        on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-burgundy/40"
+                      }`}
+                    >
+                      {(page.locale === "en" ? SPEND_LABELS_EN : SPEND_LABELS)[range]}
+                    </button>
+                  );
+                })}
+              </div>
+              {nav({
+                primary: state.venueRating || state.spend ? (last ? t.save : t.next) : t.skip,
+                primaryStyle: state.venueRating || state.spend ? "solid" : "ghost",
+                onPrimary: next,
+              })}
             </>
           ) : current === "liked" || current === "improve" ? (
             reasonStep(current)

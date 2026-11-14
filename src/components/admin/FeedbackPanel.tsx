@@ -1,5 +1,6 @@
 "use client";
 
+import { SPEND_LABELS, SPEND_RANGES, isSpendRange } from "@/lib/feedback-reasons";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { setFeedbackUsedAction } from "@/app/admin/(dashboard)/events/[id]/guests/feedback-actions";
@@ -19,6 +20,7 @@ export type FeedbackRow = {
   venueMood: string | null;
   /** 1 to 5 stars; venueMood holds answers from before the stars. */
   venueRating: number | null;
+  spend: string | null;
   liked: LikedReason[];
   highlight: string | null;
   disliked: DislikedReason[];
@@ -95,6 +97,9 @@ export function FeedbackPanel({
   const [pending, start] = useTransition();
   const count = (key: "mood" | "venueMood", v: string) => rows.filter((r) => r[key] === v).length;
   const rated = rows.filter((r) => r.venueRating);
+  // What guests spent: the range most of them tapped.
+  const spent = rows.map((r) => r.spend).filter(isSpendRange);
+  const topSpend = [...SPEND_RANGES].sort((a, b) => spent.filter((x) => x === b).length - spent.filter((x) => x === a).length)[0]!;
   const sorted = [...rows].sort((a, b) => Number(b.quoteConsent) - Number(a.quoteConsent));
   const likedCounts = tally(rows.map((r) => r.liked), LIKED_LABELS.nl);
   const dislikedCounts = tally(rows.map((r) => r.disliked), DISLIKED_LABELS.nl);
@@ -187,6 +192,11 @@ export function FeedbackPanel({
               <p className="text-xs text-wine/55">
                 {rated.length} {rated.length === 1 ? "beoordeling" : "beoordelingen"}
               </p>
+              {spent.length > 0 ? (
+                <p className="mt-2 text-sm text-wine/75">
+                  Uitgegeven: meestal {SPEND_LABELS[topSpend]} <span className="text-wine/45">({spent.length})</span>
+                </p>
+              ) : null}
             </>
           ) : null}
           {rows.some((r) => !r.venueRating && r.venueMood) ? (
@@ -237,6 +247,12 @@ export function FeedbackPanel({
                     ) : (
                       <MoodChip mood={r.venueMood} />
                     )}
+                    {isSpendRange(r.spend) ? (
+                      <>
+                        <span className="mx-2 text-wine/25">·</span>
+                        <span className="text-wine/70">{SPEND_LABELS[r.spend]}</span>
+                      </>
+                    ) : null}
                   </p>
                 </div>
               </div>

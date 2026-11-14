@@ -991,6 +991,9 @@ export const bookingFeedback = pgTable("booking_feedback", {
   venueMood: text("venue_mood"),
   /** "En {bar} zelf?", 1 to 5 stars (drizzle/0061); venue_mood holds answers from before. */
   venueRating: smallint("venue_rating"),
+  /** "Wat gaf je ongeveer uit?": a range per person at the venue, without the
+   * ticket (keys from SPEND_RANGES, drizzle/0067). */
+  spendRange: text("spend_range"),
   highlight: text("highlight"),
   improve: text("improve"),
   quoteConsent: boolean("quote_consent").notNull().default(false),

@@ -119,7 +119,7 @@ export const termsEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "For Sunday Table you can do this up to 7 days (168 hours) before the start. After that we reserve the wine bar based on the final number of guests and your seat is fixed.",
+          text: "For Sunday Table you can do this up to 7 days (168 hours) before the start. After that we reserve the venue based on the final number of guests and your seat is fixed.",
         },
         {
           type: "p",
@@ -156,11 +156,11 @@ export const termsEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "We choose the wine bar once the number of guests is known. The table takes place in a wine bar in the city shown with the date. You receive the address by email at the latest 7 days before the start.",
+          text: "We choose the venue once the number of guests is known. The table takes place at a wine spot in the city shown with the date. You receive the address by email at the latest 7 days before the start.",
         },
         {
           type: "p",
-          text: "The price per seat covers your seat at the table and the organisation. Food and drinks are not included: you order and pay for them yourself at the wine bar.",
+          text: "The price per seat covers your seat at the table and the organisation. Food and drinks are not included: you order and pay for them yourself at the venue.",
         },
         {
           type: "p",

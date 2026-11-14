@@ -1,7 +1,7 @@
 // All "Jouw tafel" copy, Dutch and English: the landing page and the
 // account screens behind its buttons (sign up, log in, welcome). House
 // rules: short, calm and warm, no em dashes, no exclamation marks, no
-// emojis. Never name a venue (the wine bar is booked once the tables are
+// emojis. Never name a venue (the venue is booked once the tables are
 // known) and never suggest a drink is included. No prices on the landing
 // page for now: they are changing.
 
@@ -127,13 +127,13 @@ const landingNl: LandingCopy = {
   meta: {
     title: "Jouw zondag | MyTable",
     description:
-      "Elke maand schuif je in jouw stad aan bij een tafel van 4 tot 6 mensen in een goede wijnbar.",
+      "Elke maand schuif je in jouw stad aan bij een tafel van 4 tot 6 mensen op een leuke wijnlocatie.",
   },
   signUp: "Aanmelden",
   logIn: "Inloggen",
   hero: {
-    title: "Een goede wijnbar. Een gezellige tafel. Jouw zondag.",
-    body: "Elke maand een tafel van 4 tot 6 mensen in een goede wijnbar in jouw stad. Wij regelen alles, jij schuift aan.",
+    title: "Een leuke wijnlocatie. Een gezellige tafel. Jouw zondag.",
+    body: "Elke maand een tafel van 4 tot 6 mensen op een leuke wijnlocatie in jouw stad. Wij regelen alles, jij schuift aan.",
     note: "Aanmelden duurt een minuut. Daarna kies je je zondag.",
     proof: (count, city) =>
       city ? `Al ${count}+ mensen uit ${city} hebben zich aangemeld` : `Al ${count}+ mensen hebben zich aangemeld`,
@@ -158,7 +158,7 @@ const landingNl: LandingCopy = {
         body: "Elke maand een vaste datum in jouw stad. Wij stellen de tafels samen.",
       },
       {
-        title: "Wij kiezen de wijnbar.",
+        title: "Wij kiezen de locatie.",
         body: "Zodra we weten met hoeveel jullie zijn, boeken we een plek die bij jullie tafel past. Een week van tevoren hoor je waar.",
       },
       {
@@ -177,7 +177,7 @@ const landingNl: LandingCopy = {
     opensFrom: (date) => `Te boeken vanaf ${date}`,
     open: "Plekken vrij",
     noLongerBookable: "Full",
-    where: (city) => `In een wijnbar in ${city}. Een week van tevoren hoor je waar.`,
+    where: (city) => `Op een wijnlocatie in ${city}. Een week van tevoren hoor je waar.`,
     empty: (city) =>
       `Nog geen tafel in ${city}. Meld je aan, dan hoor je het als eerste zodra er een is.`,
   },
@@ -224,11 +224,11 @@ const landingNl: LandingCopy = {
       },
       {
         q: "Zit er drinken bij?",
-        a: "Nee, je drankjes zijn niet inbegrepen. Aan tafel bestel je zelf wat je wilt drinken en dat reken je ook zelf af bij de wijnbar. Weet je niet goed wat je moet kiezen? Dan helpen onze wijnaanraders je op weg.",
+        a: "Nee, je drankjes zijn niet inbegrepen. Aan tafel bestel je zelf wat je wilt drinken en dat reken je ook zelf af op de locatie. Weet je niet goed wat je moet kiezen? Dan helpen onze wijnaanraders je op weg.",
       },
       {
         q: "Waar is het?",
-        a: "Altijd in een goede wijnbar in jouw stad. Welke zaak het wordt, kiezen we zodra we weten met hoeveel jullie zijn, zodat de plek goed bij jullie tafel past. Een week van tevoren krijg je het adres in je mail.",
+        a: "Altijd op een leuke wijnlocatie in jouw stad. Welke zaak het wordt, kiezen we zodra we weten met hoeveel jullie zijn, zodat de plek goed bij jullie tafel past. Een week van tevoren krijg je het adres in je mail.",
       },
       {
         q: "Gaat het altijd door?",
@@ -236,7 +236,7 @@ const landingNl: LandingCopy = {
       },
       {
         q: "Kan ik mijn datum wijzigen?",
-        a: "Ja. Tot 7 dagen voor je tafel kies je kosteloos een andere zondag: laat het ons weten en we zetten je over. Daarna kan het niet meer, omdat we dan de wijnbar voor jullie tafel reserveren.",
+        a: "Ja. Tot 7 dagen voor je tafel kies je kosteloos een andere zondag: laat het ons weten en we zetten je over. Daarna kan het niet meer, omdat we dan de locatie voor jullie tafel reserveren.",
       },
       {
         q: "Wat als ik het niet gezellig vond?",
@@ -343,13 +343,13 @@ const landingEn: LandingCopy = {
   meta: {
     title: "Your Sunday | MyTable",
     description:
-      "Every month, join a table of 4 to 6 people in a good wine bar in your city.",
+      "Every month, join a table of 4 to 6 people at a good wine spot in your city.",
   },
   signUp: "Sign up",
   logIn: "Log in",
   hero: {
-    title: "A good wine bar. A convivial table. Your Sunday.",
-    body: "Every month, a table of 4 to 6 people in a good wine bar in your city. We arrange everything, you take your seat.",
+    title: "A good wine spot. A convivial table. Your Sunday.",
+    body: "Every month, a table of 4 to 6 people at a good wine spot in your city. We arrange everything, you take your seat.",
     note: "Signing up takes a minute. Then you choose your Sunday.",
     proof: (count, city) =>
       city ? `${count}+ people from ${city} have already signed up` : `${count}+ people have already signed up`,
@@ -374,7 +374,7 @@ const landingEn: LandingCopy = {
         body: "A fixed date in your city every month. We put the tables together.",
       },
       {
-        title: "We choose the wine bar.",
+        title: "We choose the venue.",
         body: "Once we know how many of you there are, we book a place that suits your table. You'll hear where a week ahead.",
       },
       {
@@ -393,7 +393,7 @@ const landingEn: LandingCopy = {
     opensFrom: (date) => `Bookable from ${date}`,
     open: "Seats available",
     noLongerBookable: "Full",
-    where: (city) => `In a wine bar in ${city}. You'll hear where a week ahead.`,
+    where: (city) => `At a wine spot in ${city}. You'll hear where a week ahead.`,
     empty: (city) =>
       `No table in ${city} yet. Sign up and you'll be the first to hear when there is one.`,
   },
@@ -440,11 +440,11 @@ const landingEn: LandingCopy = {
       },
       {
         q: "Are drinks included?",
-        a: "No, drinks are not included. At the table you order whatever you'd like to drink and you pay for it yourself at the wine bar. Not sure what to choose? Our wine recommendations will help you on your way.",
+        a: "No, drinks are not included. At the table you order whatever you'd like to drink and you pay for it yourself at the venue. Not sure what to choose? Our wine recommendations will help you on your way.",
       },
       {
         q: "Where is it?",
-        a: "Always in a good wine bar in your city. We choose the place once we know how many of you there are, so it suits your table. You'll get the address by email a week ahead.",
+        a: "Always at a good wine spot in your city. We choose the place once we know how many of you there are, so it suits your table. You'll get the address by email a week ahead.",
       },
       {
         q: "Does it always go ahead?",
@@ -452,7 +452,7 @@ const landingEn: LandingCopy = {
       },
       {
         q: "Can I change my date?",
-        a: "Yes. Up to 7 days before your table you can choose another Sunday at no cost: just let us know and we'll move you. After that it's no longer possible, because that's when we reserve the wine bar for your table.",
+        a: "Yes. Up to 7 days before your table you can choose another Sunday at no cost: just let us know and we'll move you. After that it's no longer possible, because that's when we reserve the venue for your table.",
       },
       {
         q: "What if I didn't enjoy it?",

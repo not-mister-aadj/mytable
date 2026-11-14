@@ -23,7 +23,7 @@ test("confirmation: an invite without the venue yet", () => {
   assert.equal(line(ics, "SEQUENCE"), "SEQUENCE:0");
   assert.equal(line(ics, "DTSTART"), "DTSTART:20261101T130000Z");
   assert.equal(line(ics, "DTEND"), "DTEND:20261101T160000Z");
-  assert.equal(line(ics, "LOCATION"), "LOCATION:Een wijnbar in Rotterdam\\, adres volgt 7 dagen van tevoren");
+  assert.equal(line(ics, "LOCATION"), "LOCATION:Een wijnlocatie in Rotterdam\\, adres volgt 7 dagen van tevoren");
   assert.match(line(ics, "ATTENDEE")!, /^ATTENDEE;CN="Chris";.*:mailto:chris@example\.com$/);
   assert.ok(ics.split("\r\n").every((l) => l.length <= 75));
 });
@@ -38,7 +38,7 @@ test("update: same UID, higher sequence, the address", () => {
 
 test("English, and other events keep their own name and end time", () => {
   const en = buildBookingIcs({ ...BASE, locale: "en" });
-  assert.equal(line(en, "LOCATION"), "LOCATION:A wine bar in Rotterdam\\, address follows 7 days before");
+  assert.equal(line(en, "LOCATION"), "LOCATION:A wine spot in Rotterdam\\, address follows 7 days before");
   const dinner = buildBookingIcs({ ...BASE, isSundayTable: false, eventName: "Diner", endsAt: new Date("2026-11-01T20:00:00Z") });
   assert.equal(line(dinner, "SUMMARY"), "SUMMARY:MyTable · Diner");
   assert.equal(line(dinner, "LOCATION"), "LOCATION:Rotterdam");

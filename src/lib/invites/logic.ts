@@ -389,8 +389,8 @@ export function inviteMail(input: {
   );
   const solo = input.solo ? (en ? " Many people come on their own, just like you." : " Veel mensen schuiven alleen aan, net als jij.") : "";
   const about = en
-    ? `You'll sit with four to six people at a good wine bar.${solo} You'll hear which bar a week before.${samePrice ? ` A seat is ${euro(first.priceCents)}.` : ""}`
-    : `Je zit met vier tot zes mensen aan tafel in een goede wijnbar.${solo} Welke bar het wordt, hoor je een week van tevoren.${samePrice ? ` Een plek kost ${euro(first.priceCents)}.` : ""}`;
+    ? `You'll sit with four to six people at a good wine spot.${solo} You'll hear where a week before.${samePrice ? ` A seat is ${euro(first.priceCents)}.` : ""}`
+    : `Je zit met vier tot zes mensen aan tafel op een leuke wijnlocatie.${solo} Welke het wordt, hoor je een week van tevoren.${samePrice ? ` Een plek kost ${euro(first.priceCents)}.` : ""}`;
   const member = input.member
     ? en
       ? "As a member you hear this 48 hours before everyone else."

@@ -68,15 +68,15 @@ const nl: TableCopy = {
     title: "Zo werkt het",
     steps: (time) => [
       "Je reserveert je plek.",
-      "Een week van tevoren hoor je in welke wijnbar je aanschuift.",
+      "Een week van tevoren hoor je waar je aanschuift.",
       `Om ${time} schuif je aan bij 4 tot 6 mensen.`,
-      "Vaak zitten er meer tafels in dezelfde wijnbar. Zo ontmoet je nog meer mensen.",
+      "Vaak zitten er meer tafels op dezelfde locatie. Zo ontmoet je nog meer mensen.",
     ],
   },
   expect: {
     title: "Wat je kunt verwachten",
     items: [
-      "Een goede wijnbar in de stad, waar wij zelf graag zitten.",
+      "Een leuke wijnlocatie in de stad, waar wij zelf graag zitten.",
       "Een tafel met mensen die net als jij zin hebben in een gezellige zondag.",
       "Je bestelt zelf wat je wilt drinken en eten van de kaart. Een dag van tevoren mailen we onze aanraders.",
       "Reken op twee tot drie uur. Of langer, als het klikt.",
@@ -99,7 +99,7 @@ const nl: TableCopy = {
     items: [
       {
         q: "Wat is Sunday Social?",
-        a: "Een tafel van 4 tot 6 mensen die je nog niet kent, in een goede wijnbar in jouw stad. Je boekt een plek, schuift aan en ontdekt samen een nieuwe plek. Wij geven onze eigen wijnaanraders mee.",
+        a: "Een tafel van 4 tot 6 mensen die je nog niet kent, op een leuke wijnlocatie in jouw stad. Je boekt een plek, schuift aan en ontdekt samen een nieuwe plek. Wij geven onze eigen wijnaanraders mee.",
       },
       {
         q: "Voor wie is deze tafel?",
@@ -107,15 +107,15 @@ const nl: TableCopy = {
       },
       {
         q: "Wat kost het?",
-        a: "€10 voor je plek aan tafel. Drankjes en bites bestel en betaal je zelf aan tafel, van de kaart van de wijnbar.",
+        a: "€10 voor je plek aan tafel. Drankjes en bites bestel en betaal je zelf aan tafel, van de kaart van de locatie.",
       },
       {
         q: "Hoe groot is een tafel?",
-        a: "4 tot 6 mensen. Vaak zitten er meer tafels in dezelfde wijnbar.",
+        a: "4 tot 6 mensen. Vaak zitten er meer tafels op dezelfde locatie.",
       },
       {
         q: "Waar is het?",
-        a: "Altijd in een goede wijnbar in jouw stad. Zodra we weten met hoeveel jullie zijn, kiezen we de plek. Een week van tevoren hoor je waar.",
+        a: "Altijd op een leuke wijnlocatie in jouw stad. Zodra we weten met hoeveel jullie zijn, kiezen we de plek. Een week van tevoren hoor je waar.",
       },
       {
         q: "Wanneer kan ik boeken?",
@@ -139,7 +139,7 @@ const nl: TableCopy = {
       },
       {
         q: "Kan ik mijn datum wijzigen?",
-        a: "Ja. Tot 7 dagen voor je tafel kies je kosteloos een andere zondag. Daarna kan het niet meer, omdat we dan de wijnbar reserveren.",
+        a: "Ja. Tot 7 dagen voor je tafel kies je kosteloos een andere zondag. Daarna kan het niet meer, omdat we dan de locatie reserveren.",
       },
       {
         q: "Wat als het niet klikt?",
@@ -186,15 +186,15 @@ const en: TableCopy = {
     title: "How it works",
     steps: (time) => [
       "You reserve your seat.",
-      "A week before, you hear which wine bar you are joining.",
+      "A week before, you hear where you are joining.",
       `At ${time} you join 4 to 6 people at the table.`,
-      "There are often more tables in the same wine bar, so you meet even more people.",
+      "There are often more tables in the same venue, so you meet even more people.",
     ],
   },
   expect: {
     title: "What to expect",
     items: [
-      "A good wine bar in the city, one we like to sit in ourselves.",
+      "A good wine spot in the city, one we like to sit in ourselves.",
       "A table with people who, like you, are in the mood for a cosy Sunday.",
       "You order your own drinks and food from the menu. The day before, we email our own picks.",
       "Plan for two to three hours. Or longer, if it clicks.",
@@ -217,7 +217,7 @@ const en: TableCopy = {
     items: [
       {
         q: "What is Sunday Social?",
-        a: "A table of 4 to 6 people you have not met yet, in a good wine bar in your city. You book a seat, join the table and discover a new place together. We add our own wine picks.",
+        a: "A table of 4 to 6 people you have not met yet, at a good wine spot in your city. You book a seat, join the table and discover a new place together. We add our own wine picks.",
       },
       {
         q: "Who is this table for?",
@@ -225,15 +225,15 @@ const en: TableCopy = {
       },
       {
         q: "What does it cost?",
-        a: "€10 for your seat at the table. Drinks and bites you order and pay yourself at the table, from the wine bar's menu.",
+        a: "€10 for your seat at the table. Drinks and bites you order and pay yourself at the table, from the venue's menu.",
       },
       {
         q: "How big is a table?",
-        a: "4 to 6 people. There are often more tables in the same wine bar.",
+        a: "4 to 6 people. There are often more tables in the same venue.",
       },
       {
         q: "Where is it?",
-        a: "Always in a good wine bar in your city. Once we know how many of you there are, we choose the place. A week before, you hear where.",
+        a: "Always at a good wine spot in your city. Once we know how many of you there are, we choose the place. A week before, you hear where.",
       },
       {
         q: "When can I book?",
@@ -257,7 +257,7 @@ const en: TableCopy = {
       },
       {
         q: "Can I change my date?",
-        a: "Yes. Up to 7 days before your table you can pick another Sunday at no cost. After that it is no longer possible, because we book the wine bar then.",
+        a: "Yes. Up to 7 days before your table you can pick another Sunday at no cost. After that it is no longer possible, because we book the venue then.",
       },
       {
         q: "What if it does not click?",

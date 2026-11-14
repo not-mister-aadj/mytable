@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { PhotoCropper } from "@/components/PhotoCropper";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
 import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFor } from "@/lib/feedback-reasons";
 
@@ -12,6 +13,13 @@ const COPY = {
       `${name ? `Hoi ${name}, hoe` : "Hoe"} was je middag ${venue ? `bij ${venue}` : `in ${city}`}?`,
     moodSub: "Een paar korte vragen, 1 minuut.",
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
+    photoTitle: "Zo herkennen zij jou ook",
+    photoNote: "Voeg je foto toe. Alleen je tafelgenoten zien hem, als zij kiezen wie ze terug willen zien.",
+    photoAdd: "Foto toevoegen",
+    photoDone: "Je foto staat erop",
+    photoChange: "Wijzig",
+    photoBusy: "Bezig…",
+    photoError: "Je foto opslaan lukte niet. Probeer het opnieuw.",
     thanks: (name: string) => (name ? `Dank je, ${name}!` : "Dank je!"),
     thanksSub: "We lezen alles.",
     thanksPicked: "Kiest iemand jou ook, dan hoor je het woensdag.",
@@ -30,7 +38,7 @@ const COPY = {
     improveHint: "Tik aan wat klopt, meer mag ook. Alleen voor ons, we lezen alles.",
     more: "Vertel er iets meer over (mag ook leeg)",
     wantTitle: "Wie wil je vaker zien?",
-    wantNote: "Kiezen jullie elkaar, dan is de kans groter dat we jullie weer bij elkaar zetten. Niemand ziet wat je aanvinkt.",
+    wantNote: "Tik wie je graag terugziet. Kiezen jullie elkaar, dan zetten we jullie eerder weer bij elkaar. Niemand ziet wat je aanvinkt.",
     nextTitle: "Je volgende zondag",
     seats: (n: number) => `nog ${n} ${n === 1 ? "plek" : "plekken"}`,
     reserve: "Reserveer",
@@ -58,6 +66,13 @@ const COPY = {
       `${name ? `Hi ${name}, how` : "How"} was your afternoon ${venue ? `at ${venue}` : `in ${city}`}?`,
     moodSub: "A few short questions, 1 minute.",
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
+    photoTitle: "So they recognise you too",
+    photoNote: "Add your photo. Only your tablemates see it, when they pick who they'd like to see again.",
+    photoAdd: "Add photo",
+    photoDone: "Your photo is on",
+    photoChange: "Change",
+    photoBusy: "Saving…",
+    photoError: "Saving your photo didn't work. Please try again.",
     thanks: (name: string) => (name ? `Thank you, ${name}!` : "Thank you!"),
     thanksSub: "We read everything.",
     thanksPicked: "If someone picks you too, you'll hear on Wednesday.",
@@ -76,7 +91,7 @@ const COPY = {
     improveHint: "Tap what fits, more than one is fine. Only for us, we read everything.",
     more: "Tell us a bit more (optional)",
     wantTitle: "Who would you like to see again?",
-    wantNote: "If you choose each other, we're more likely to seat you together again. Nobody sees what you tick.",
+    wantNote: "Tap who you'd like to see again. If you choose each other, we're more likely to seat you together again. Nobody sees what you tick.",
     nextTitle: "Your next Sunday",
     seats: (n: number) => `${n} ${n === 1 ? "seat" : "seats"} left`,
     reserve: "Reserve",
@@ -273,6 +288,120 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
     </div>
   );
 
+  // Their own photo, for who has none yet: added where they see the others' faces.
+  const [myPhoto, setMyPhoto] = useState<string | null>(null);
+  const [cropping, setCropping] = useState<File | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
+  async function uploadPhoto(file: File) {
+    setPhotoBusy(true);
+    setPhotoError(false);
+    try {
+      const form = new FormData();
+      form.set("photo", file);
+      const r = await uploadFeedbackPhotoAction(token, form);
+      if (r.ok) setMyPhoto(r.url);
+      else setPhotoError(true);
+    } catch {
+      setPhotoError(true);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+  const ownPhoto = page.photoUrl ? null : (
+    <div className="mt-5">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-wine/20 bg-white/60 p-3">
+        {myPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={myPhoto} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
+        ) : (
+          <span aria-hidden className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-burgundy/[0.1] text-burgundy">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.2-2h6.6l1.2 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" />
+              <circle cx="12" cy="13" r="3.2" />
+            </svg>
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-wine">{myPhoto ? t.photoDone : t.photoTitle}</span>
+          {myPhoto ? null : <span className="mt-0.5 block text-xs leading-snug text-wine/60">{t.photoNote}</span>}
+        </span>
+        <button
+          type="button"
+          disabled={photoBusy}
+          onClick={() => photoInput.current?.click()}
+          className={`w-full shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:opacity-60 sm:w-auto sm:py-2 ${
+            myPhoto ? "text-burgundy underline decoration-burgundy/30 underline-offset-4" : "bg-burgundy text-cream hover:bg-wine"
+          }`}
+        >
+          {photoBusy ? t.photoBusy : myPhoto ? t.photoChange : t.photoAdd}
+        </button>
+      </div>
+      {photoError ? <p className="mt-2 text-sm text-red-800">{t.photoError}</p> : null}
+      <input
+        ref={photoInput}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0]) setCropping(e.target.files[0]);
+          e.target.value = "";
+        }}
+      />
+      {cropping ? (
+        <PhotoCropper
+          file={cropping}
+          locale={page.locale}
+          onCancel={() => setCropping(null)}
+          onDone={(f) => {
+            setCropping(null);
+            void uploadPhoto(f);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+
+  /** Who they'd like to see again: a tile per tablemate, with their photo. */
+  const mateTiles = (
+    <div className={`mt-5 grid gap-2 sm:grid-cols-4 sm:gap-3 ${page.tablemates.length % 3 === 0 || page.tablemates.length > 4 ? "grid-cols-3" : "grid-cols-2"}`}>
+      {page.tablemates.map((m) => {
+        const on = state.wantToSee.includes(m.bookingId);
+        return (
+          <button
+            key={m.bookingId}
+            type="button"
+            aria-pressed={on}
+            onClick={() => toggle("wantToSee", m.bookingId)}
+            className={`flex flex-col items-center gap-2 rounded-2xl border bg-white px-1 pb-3 pt-3.5 transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+              on
+                ? "border-burgundy bg-burgundy/[0.06] shadow-[0_6px_18px_rgba(90,15,27,0.12)]"
+                : "border-wine/10 hover:border-burgundy/40 hover:shadow-[0_6px_18px_rgba(43,13,18,0.07)]"
+            }`}
+          >
+            <span className="relative">
+              {m.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={m.photoUrl} alt="" className="h-14 w-14 rounded-full object-cover sm:h-16 sm:w-16" />
+              ) : (
+                <span aria-hidden className="flex h-14 w-14 items-center justify-center rounded-full bg-burgundy/[0.1] font-serif text-2xl text-burgundy sm:h-16 sm:w-16">
+                  {m.firstName.charAt(0).toLocaleUpperCase()}
+                </span>
+              )}
+              {on ? (
+                <span aria-hidden className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-burgundy text-[0.7rem] font-bold text-cream ring-2 ring-white">
+                  ✓
+                </span>
+              ) : null}
+            </span>
+            <span className="max-w-full truncate px-1 text-sm font-semibold text-wine">{m.firstName}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   if (sent) {
     // One next step: the next Sunday. Becoming a member is a line under it.
     const nextHref = page.next
@@ -422,9 +551,10 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
             reasonStep(current)
           ) : (
             <>
-              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.wantTitle}</h1>
-              <p className="mt-1 text-sm text-wine/55">{t.wantNote}</p>
-              {chips("wantToSee")}
+              <h1 className="font-serif text-3xl font-medium text-wine sm:text-4xl">{t.wantTitle}</h1>
+              <p className="mt-1.5 text-sm leading-relaxed text-wine/60">{t.wantNote}</p>
+              {mateTiles}
+              {ownPhoto}
               {nav({ primary: state.wantToSee.length > 0 ? (last ? t.save : t.next) : t.skip, primaryStyle: state.wantToSee.length > 0 ? "solid" : "ghost", onPrimary: next })}
             </>
           )}

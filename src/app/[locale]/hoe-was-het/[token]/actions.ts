@@ -1,6 +1,6 @@
 "use server";
 
-import { completeFeedback, saveFeedback, verifyFeedbackToken, type FeedbackState } from "@/lib/feedback";
+import { completeFeedback, saveFeedback, setFeedbackPhoto, verifyFeedbackToken, type FeedbackState } from "@/lib/feedback";
 import { bookFreeSeatAfterFeedback, type FreeSeatResult } from "@/lib/feedback-free-seat";
 import { saveFeedbackReport, type ReportInput } from "@/lib/feedback-report";
 
@@ -18,6 +18,14 @@ export async function completeFeedbackAction(token: string, input: Partial<Feedb
   if (!bookingId) return { ok: false };
   await completeFeedback(bookingId, input);
   return { ok: true };
+}
+
+/** Their own profile photo (field "photo", cropped small in the browser), for the booking in the link. */
+export async function uploadFeedbackPhotoAction(token: string, form: FormData): Promise<{ ok: true; url: string } | { ok: false }> {
+  const bookingId = await verifyFeedbackToken(token);
+  const file = form.get("photo");
+  if (!bookingId || !(file instanceof File) || file.size === 0) return { ok: false };
+  return setFeedbackPhoto(bookingId, file);
 }
 
 /** "De volgende is op ons": the free seat after Matig or Niet leuk. */

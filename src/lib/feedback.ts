@@ -10,7 +10,7 @@ import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import { citiesForEmail } from "@/lib/invites/cities";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 import { tablePageAfterPath } from "@/lib/table-page";
-import { getProfilePhotos } from "@/lib/profile-photo";
+import { getProfilePhotos, setProfilePhoto } from "@/lib/profile-photo";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason } from "@/lib/feedback-reasons";
 
@@ -76,6 +76,8 @@ export type FeedbackPage = {
   bookingId: string;
   locale: "nl" | "en";
   firstName: string;
+  /** Their own profile photo: without one they can add it where they pick who to see again. */
+  photoUrl: string | null;
   city: string;
   /** "Zondag 15 november" / "Sunday 15 November". */
   dateLabel: string;
@@ -150,7 +152,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
         )
         .orderBy(asc(bookings.createdAt))
     : [];
-  const photos = await getProfilePhotos(mates.map((m) => m.email)).catch(() => new Map<string, string>());
+  const photos = await getProfilePhotos([booking.email, ...mates.map((m) => m.email)]).catch(() => new Map<string, string>());
 
   const membership = await getRunningMembershipByEmail(booking.email).catch(() => null);
   // "Sunday Social · 35+": the next one never has another age group.
@@ -252,6 +254,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     bookingId: booking.id,
     locale,
     firstName: firstName(booking.customerName),
+    photoUrl: photos.get(normalizeEmail(booking.email)) ?? null,
     dateLabel: longLabel(event.startsAt).replace(/^./, (c) => c.toLocaleUpperCase()),
     city: event.city,
     venueName: venue?.name ?? null,
@@ -304,6 +307,18 @@ const stars = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v
 
 /** Saves what is given so far (the page saves after each answer). Want-to-see
  * and missing only name people at their own table. */
+/** Their own profile photo, added on the feedback page: on the person behind this booking. */
+export async function setFeedbackPhoto(bookingId: string, file: File): Promise<{ ok: true; url: string } | { ok: false }> {
+  const [booking] = await getDb()
+    .select({ email: bookings.email })
+    .from(bookings)
+    .where(and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "paid")))
+    .limit(1);
+  if (!booking) return { ok: false };
+  const result = await setProfilePhoto(booking.email, file);
+  return result.ok ? { ok: true, url: result.url } : { ok: false };
+}
+
 export async function saveFeedback(bookingId: string, input: Partial<FeedbackState>): Promise<void> {
   const page = await loadFeedbackPage(bookingId);
   if (!page) throw new Error("Booking not found");

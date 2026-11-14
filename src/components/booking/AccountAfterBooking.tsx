@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAuthSession } from "@/features/auth/AuthSessionContext";
 import { jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 
 /**
@@ -11,9 +12,14 @@ import { jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/c
  */
 export function AccountAfterBooking({ locale, sessionId }: { locale: Locale; sessionId: string }) {
   const [state, setState] = useState<{ first: boolean; signedIn: boolean } | null>(null);
+  const { refreshAuthSession } = useAuthSession();
 
+  // Asked once per booking: a second call would find the account already
+  // used and say "not signed in" (React runs an effect twice in development).
+  const asked = useRef<string | null>(null);
   useEffect(() => {
-    let gone = false;
+    if (asked.current === sessionId) return;
+    asked.current = sessionId;
     fetch("/api/auth/after-booking", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -21,19 +27,19 @@ export function AccountAfterBooking({ locale, sessionId }: { locale: Locale; ses
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { first?: boolean; signedIn?: boolean } | null) => {
-        if (!gone && data) setState({ first: Boolean(data.first), signedIn: Boolean(data.signedIn) });
+        if (!data) return;
+        setState({ first: Boolean(data.first), signedIn: Boolean(data.signedIn) });
+        // Signed in just now: the header says "Mijn tafel" instead of "Inloggen".
+        if (data.signedIn) void refreshAuthSession();
       })
       .catch(() => undefined);
-    return () => {
-      gone = true;
-    };
-  }, [sessionId]);
+  }, [sessionId, refreshAuthSession]);
 
   if (!state?.first) return null;
   const en = locale === "en";
   const settings = jouwTafelSettingsPath(locale);
   return (
-    <p className="mt-6 rounded-2xl border border-gold/30 bg-cream px-5 py-4 text-center text-[0.95rem] leading-relaxed text-wine/80">
+    <p className="my-6 rounded-2xl border border-gold/30 bg-cream px-5 py-4 text-center text-[0.95rem] leading-relaxed text-wine/80">
       {en ? "You now have a MyTable account on this email address." : "Je hebt nu een MyTable-account op dit e-mailadres."}{" "}
       <Link
         href={state.signedIn ? settings : `${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(settings)}`}

@@ -22,7 +22,6 @@ const COPY = {
     photoError: "Je foto opslaan lukte niet. Probeer het opnieuw.",
     thanks: (name: string) => (name ? `Dank je, ${name}!` : "Dank je!"),
     thanksSub: "We lezen alles.",
-    thanksPicked: "Kiest iemand jou ook, dan hoor je het woensdag.",
     reservePrice: "Reserveer · €10",
     memberLine: "Vaker komen? Als lid ben je elke Sunday Social welkom voor €10 per maand.",
     memberLink: "Word lid",
@@ -77,7 +76,6 @@ const COPY = {
     photoError: "Saving your photo didn't work. Please try again.",
     thanks: (name: string) => (name ? `Thank you, ${name}!` : "Thank you!"),
     thanksSub: "We read everything.",
-    thanksPicked: "If someone picks you too, you'll hear on Wednesday.",
     reservePrice: "Reserve · €10",
     memberLine: "Coming more often? As a member you're welcome at every Sunday Social for €10 a month.",
     memberLink: "Become a member",
@@ -419,7 +417,7 @@ export function FeedbackForm({ page, token, mailAnswer = null }: { page: Feedbac
       <section className={`${card} text-center`}>
         <p className="font-serif text-3xl text-wine">{okish ? t.thanks(page.firstName) : t.thanksSorry}</p>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine/70">
-          {okish ? `${t.thanksSub}${state.wantToSee.length > 0 ? ` ${t.thanksPicked}` : ""}` : t.sorryBody}
+          {okish ? t.thanksSub : t.sorryBody}
         </p>
         {freeSeat ? (
           <FreeSeat page={page} token={token} t={t} />

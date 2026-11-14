@@ -162,7 +162,14 @@ export type QuizCopy = {
     /** On a table this person already has a seat at. */
     booked: (seats: number) => string;
     /** The filters on top: cities and, for women, mixed or ladies only. */
-    filters: { citiesAria: string; tableAria: string; mixed: string; ladies: string; ladiesNotYet: string };
+    filters: {
+      citiesAria: string;
+      tableAria: string;
+      mixed: string;
+      ladies: string;
+      /** Under the switch on "Ladies only": [before, in bold, after]. */
+      ladiesNotYet: [string, string, string];
+    };
     /** Under the subtitle when she prefers a women-only table. */
     /** Our chosen cities without a table on the list (joined; n of them). */
     noSunday: (cities: string, n: number) => string;
@@ -409,7 +416,11 @@ const nl: QuizCopy = {
       tableAria: "Soort tafel",
       mixed: "Mixed table",
       ladies: "Ladies only",
-      ladiesNotYet: "Ladies only tafels hebben we nog niet, alle zondagen hieronder zijn mixed. Kiezen genoeg vrouwen ervoor, dan starten we ermee en hoor jij het als eerste.",
+      ladiesNotYet: [
+        "We noteren ladies only als ",
+        "je voorkeur",
+        ". Lukt het niet, dan wordt het een mixed table. Boek alleen als je dat ook prima vindt.",
+      ],
     },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "hebben" : "heeft"} nog geen zondag gepland. Je hoort het als eerste zodra er een is.`,
@@ -647,7 +658,11 @@ const en: QuizCopy = {
       tableAria: "Kind of table",
       mixed: "Mixed table",
       ladies: "Ladies only",
-      ladiesNotYet: "We don't have ladies only tables yet, so every Sunday below is mixed. If enough women ask for them, we'll start, and you'll be the first to know.",
+      ladiesNotYet: [
+        "We note ladies only as ",
+        "your preference",
+        ". If it doesn't work out, it becomes a mixed table. Only book if that is fine with you too.",
+      ],
     },
     noSunday: (cities, n) =>
       `${cities} ${n > 1 ? "have" : "has"} no Sunday planned yet. You'll be the first to hear when there is one.`,

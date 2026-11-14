@@ -227,8 +227,9 @@ function ChooseFilters({
         aria-label={copy.citiesAria}
         className={answers.gender === "female" ? "mt-2.5" : ""}
       >
-        {/* One row: their own cities first, the rest a swipe away. */}
-        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:gap-1 sm:px-0 sm:[justify-content:safe_center] [&::-webkit-scrollbar]:hidden">
+        {/* On a phone one row: their own cities first, the rest a swipe away,
+            fading out at the edges. Wider screens have no swipe: the row wraps. */}
+        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-0.5 [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-28px),transparent)] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden">
         {cities.map((city) => {
           const on = isChosen(city);
           if (on && isAmsterdam(city)) {

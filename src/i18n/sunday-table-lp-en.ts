@@ -22,6 +22,7 @@ export const sundayTableWaitlistEn: SundayTableLpLabels["waitlist"] = {
   errorName: "Please enter your first name.",
   errorEmail: "Please enter a valid email address.",
   errorCity: "Please choose at least one city.",
+  errorCityOtherOnly: "Please also pick one of our cities.",
   questionsTitle: "A few quick questions",
   questionsBody: "Helps us find the right table for you. Totally optional.",
   skip: "Skip",

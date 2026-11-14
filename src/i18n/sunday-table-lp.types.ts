@@ -90,6 +90,8 @@ export type SundayTableLpLabels = {
     errorEmail: string;
     /** Shown when no city is chosen. */
     errorCity: string;
+    /** Only another city filled in, none of ours picked. */
+    errorCityOtherOnly: string;
     questionsTitle: string;
     questionsBody: string;
     skip: string;

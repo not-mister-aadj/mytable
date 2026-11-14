@@ -332,6 +332,7 @@ async function FeedbackTab({ eventId }: { eventId: string }) {
           mood: r.f.mood,
           venueMood: r.f.venueMood,
           venueRating: r.f.venueRating,
+          spend: r.f.spendRange,
           liked: onlyKnown(LIKED_REASONS, r.f.liked),
           highlight: r.f.highlight,
           disliked: onlyKnown(DISLIKED_REASONS, r.f.disliked),

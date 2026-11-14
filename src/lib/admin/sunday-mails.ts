@@ -418,7 +418,7 @@ export function shortDate(d: Date, locale: "nl" | "en"): string {
  * and an HTML version where the line with `url` becomes one simple button and
  * "Label: https://…" lines become links. Lands in the inbox, not Promotions.
  */
-export function buttonMail(text: string, url: string, label: string): { text: string; html: string } {
+export function buttonMail(text: string, url: string, label: string, block?: string): { text: string; html: string } {
   const [before, after = ""] = text.split(`${url}\n`);
   const line = (l: string) => {
     const m = /^(.+?): (https?:\/\/\S+)$/.exec(l);
@@ -432,13 +432,44 @@ export function buttonMail(text: string, url: string, label: string): { text: st
       .map((b) => `<p style="margin:0 0 16px">${b.split("\n").map(line).join("<br>")}</p>`)
       .join("");
   const button = `<p style="margin:4px 0 24px"><a href="${escapeHtml(url)}" style="display:inline-block;background:#5a0f1b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${escapeHtml(label)}</a></p>`;
-  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before!)}${button}${para(after)}</div>`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before!)}${block ?? button}${para(after)}</div>`;
   return { text, html };
 }
 
-/** The 20:00 feedback mail, with one button. */
+/** The four answers to "hoe was het gezelschap", as the feedback page saves them. */
+const MAIL_FACES = [
+  { mood: "great", emoji: "😍", nl: "Geweldig", en: "Amazing" },
+  { mood: "good", emoji: "🙂", nl: "Leuk", en: "Nice" },
+  { mood: "meh", emoji: "😐", nl: "Matig", en: "So-so" },
+  { mood: "bad", emoji: "🙁", nl: "Niet leuk", en: "Not great" },
+] as const;
+
+/** The link behind one answer in the mail: the feedback page with that answer given. */
+export const feedbackAnswerUrl = (url: string, mood: string) => `${url}?antwoord=${mood}`;
+
+/**
+ * Like buttonMail, with the four answers in the place of the button: a tap
+ * in the mail is the first answer, and the page opens on the next question.
+ * In the plain text each answer is its own link.
+ */
+export function facesMail(text: string, url: string, locale: "nl" | "en"): { text: string; html: string } {
+  const faces = MAIL_FACES.map((f) => ({ label: f[locale], emoji: f.emoji, href: feedbackAnswerUrl(url, f.mood) }));
+  const cells = faces
+    .map(
+      (f) =>
+        `<td style="padding:0 6px 0 0"><a href="${escapeHtml(f.href)}" style="display:block;min-width:58px;border:1px solid #e3d6cf;border-radius:14px;padding:9px 6px 8px;text-align:center;text-decoration:none;color:#2b0d12;font-size:13px;font-weight:600;background:#ffffff"><span style="display:block;font-size:26px;line-height:1.25">${f.emoji}</span>${escapeHtml(f.label)}</a></td>`,
+    )
+    .join("");
+  const block = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 22px"><tr>${cells}</tr></table>`;
+  return {
+    text: text.replace(`${url}\n`, `${faces.map((f) => `${f.label}: ${f.href}`).join("\n")}\n`),
+    html: buttonMail(text, url, "", block).html,
+  };
+}
+
+/** The 20:00 feedback mail: the first answer is a tap in the mail. */
 export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): { text: string; html: string } {
-  return buttonMail(feedbackText(p), p.url, p.locale === "nl" ? "Vertel hoe het was" : "Tell us how it was");
+  return facesMail(feedbackText(p), p.url, p.locale);
 }
 
 /**
@@ -510,10 +541,10 @@ export function reminderMail(p: {
     : [];
   const text = (
     nl
-      ? [hi, "", `Zondag zat je bij ${p.venueName} aan tafel. Was er iemand die je graag terugziet? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen.`, "", p.url, "", ...next, "Tot snel,", "Het MyTable-team"]
-      : [hi, "", `On Sunday you were at the table at ${p.venueName}. Was there someone you'd like to see again? Let us know, and we'll do our best to make sure you meet again.`, "", p.url, "", ...next, "See you soon,", "The MyTable team"]
+      ? [hi, "", `Zondag zat je bij ${p.venueName} aan tafel. Was er iemand die je graag terugziet? Laat het ons weten, dan doen we ons best dat jullie elkaar weer tegenkomen.`, "", "Tik eerst hoe je middag was:", p.url, "", ...next, "Tot snel,", "Het MyTable-team"]
+      : [hi, "", `On Sunday you were at the table at ${p.venueName}. Was there someone you'd like to see again? Let us know, and we'll do our best to make sure you meet again.`, "", "First tap how your afternoon was:", p.url, "", ...next, "See you soon,", "The MyTable team"]
   ).join("\n");
-  return buttonMail(text, p.url, nl ? "Kies wie je weer wilt zien" : "Choose who you'd like to see again");
+  return facesMail(text, p.url, p.locale);
 }
 
 /** Sunday 08:30: when, where, the group, and a taste of our picks; one button to the table page. */
@@ -559,23 +590,22 @@ export function morningMail(p: {
   return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks");
 }
 
-/** The 20:00 feedback mail as plain text. No count of tablemates: a cancellation or no-show after planning would make it wrong. */
+/** The 20:00 feedback mail as plain text, with the page's link where the four answers go. No count of tablemates: a cancellation or no-show after planning would make it wrong. */
 export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueName: string; others: number; url: string }): string {
   const nl = p.locale === "nl";
   const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
   const opening = nl
-    ? `Hoe was je middag bij ${p.venueName}?`
-    : `How was your afternoon at ${p.venueName}?`;
+    ? `Hoe was je middag bij ${p.venueName}? Tik wat past:`
+    : `How was your afternoon at ${p.venueName}? Tap what fits:`;
   return nl
     ? [
         hi,
         "",
         opening,
         "",
-        "De eerste keren aan tafel met nieuwe mensen kunnen wat onwennig zijn. Daarom horen we graag met wie je het gezellig vond. Zo kunnen we bij een volgende zondag rekening houden met wie je graag terugziet en wat bij jou past. Stap voor stap bouw je zo aan je eigen wijnclub, met steeds meer bekende gezichten.",
-        "",
-        "Het duurt maar een minuutje:",
         p.url,
+        "",
+        "Daarna vragen we met wie je het gezellig vond. Zo houden we bij een volgende zondag rekening met wie je graag terugziet. Het duurt een minuutje.",
         "",
         "Was er iets of iemand waardoor je je niet prettig voelde?",
         `Laat het ons weten: ${p.url}/melden`,
@@ -588,10 +618,9 @@ export function feedbackText(p: { locale: "nl" | "en"; firstName: string; venueN
         "",
         opening,
         "",
-        "The first few times at a table with new people can feel a little awkward. That's why we'd love to hear who you enjoyed. Then on a next Sunday we can take into account who you'd like to see again and what suits you. Step by step, you build your own wine club, with more and more familiar faces.",
-        "",
-        "It only takes a minute:",
         p.url,
+        "",
+        "After that we ask who you enjoyed. Then on a next Sunday we take into account who you'd like to see again. It takes a minute.",
         "",
         "Was there anything or anyone that made you feel uncomfortable?",
         `Let us know: ${p.url}/melden`,

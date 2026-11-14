@@ -89,3 +89,20 @@ export function orderFor<T>(items: readonly T[], seed: string): T[] {
   }
   return out;
 }
+
+/** "Wat gaf je ongeveer uit?" on the feedback page: per person at the venue,
+ * without the ticket. Ranges to tap, like a review on a map. */
+export const SPEND_RANGES = ["0-20", "20-40", "40-60", "60-80", "80+"] as const;
+export type SpendRange = (typeof SPEND_RANGES)[number];
+export const SPEND_LABELS: Record<SpendRange, string> = {
+  "0-20": "tot €20",
+  "20-40": "€20-40",
+  "40-60": "€40-60",
+  "60-80": "€60-80",
+  "80+": "€80+",
+};
+export const SPEND_LABELS_EN: Record<SpendRange, string> = { ...SPEND_LABELS, "0-20": "up to €20" };
+
+export function isSpendRange(value: unknown): value is SpendRange {
+  return typeof value === "string" && (SPEND_RANGES as readonly string[]).includes(value);
+}

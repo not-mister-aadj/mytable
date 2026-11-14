@@ -1,21 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
-import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { bookFreeSeatAction, completeFeedbackAction, saveFeedbackAction, uploadFeedbackPhotoAction } from "@/app/[locale]/hoe-was-het/[token]/actions";
+import { PhotoCropper } from "@/components/PhotoCropper";
 import type { FeedbackPage, FeedbackState, Mood } from "@/lib/feedback";
-import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, orderFor } from "@/lib/feedback-reasons";
+import { DISLIKED_LABELS, DISLIKED_REASONS, LIKED_LABELS, LIKED_REASONS, SPEND_LABELS, SPEND_LABELS_EN, SPEND_RANGES, orderFor } from "@/lib/feedback-reasons";
 
 const COPY = {
   nl: {
-    tableKicker: "Je tafel",
-    title: "Hoe was het gezelschap?",
+    moodTitle: (name: string, venue: string | null, city: string) =>
+      `${name ? `Hoi ${name}, hoe` : "Hoe"} was je middag ${venue ? `bij ${venue}` : `in ${city}`}?`,
+    moodSub: "Een paar korte vragen, 1 minuut.",
     moods: { great: "Geweldig", good: "Leuk", meh: "Matig", bad: "Niet leuk" } as Record<Mood, string>,
-    moodEnds: { great: "Heel leuk", bad: "Zeer slecht" } as Partial<Record<Mood, string>>,
+    photoTitle: "Zo herkennen zij jou ook",
+    photoNote: "Met een foto weten je tafelgenoten meteen wie je bent. Alleen zij zien hem.",
+    photoAdd: "Foto toevoegen",
+    photoDone: "Je foto staat erop",
+    photoChange: "Wijzig",
+    photoBusy: "Bezig…",
+    photoError: "Je foto opslaan lukte niet. Probeer het opnieuw.",
+    thanks: (name: string) => (name ? `Dank je, ${name}!` : "Dank je!"),
+    thanksSub: "We lezen alles.",
+    thanksPicked: "Kiest iemand jou ook, dan hoor je het woensdag.",
+    reservePrice: "Reserveer · €10",
+    memberLine: "Vaker komen? Als lid ben je elke Sunday Social welkom voor €10 per maand.",
+    memberLink: "Word lid",
+    missingQuiet: "Was er iemand van je tafel niet? Tik wie, alleen voor ons.",
     venueKicker: "De bar",
     venue: (venue: string) => `En ${venue} zelf?`,
     venueHint: "De plek, de wijn, de bediening.",
     stars: (n: number) => (n === 1 ? "1 ster" : `${n} sterren`),
+    spendTitle: "Wat gaf je ongeveer uit?",
+    spendHint: "Aan drankjes en hapjes, per persoon. Zonder je ticket.",
     liked: "Wat maakte het zo leuk?",
     likedGood: "Wat vond je het leukst?",
     improve: "Wat kan beter?",
@@ -23,37 +40,17 @@ const COPY = {
     improveHint: "Tik aan wat klopt, meer mag ook. Alleen voor ons, we lezen alles.",
     more: "Vertel er iets meer over (mag ook leeg)",
     wantTitle: "Wie wil je vaker zien?",
-    wantNote: "Kiezen jullie elkaar, dan is de kans groter dat we jullie weer bij elkaar zetten. Niemand ziet wat je aanvinkt.",
-    offerTitle: "Klikte het aan tafel? Kom vaker.",
-    offerBody: "Als lid ben je elke Sunday Social welkom, in alle 5 steden, en boek je nieuwe data als eerste.",
-    offerSmall: "€10 per maand · elke Sunday Social in alle 5 steden · maandelijks opzegbaar",
-    offerCta: "Word lid en reserveer",
-    offerCtaNoDate: "Word lid",
-    memberOnly: "Alleen lid worden",
-    memberCardTitle: "Lid worden",
-    memberPrice: "€10 per maand",
-    memberPoints: ["Als eerste boeken bij nieuwe data", "Elke Sunday Social, alle 5 steden", "Maandelijks opzegbaar"],
-    alsoBook: (date: string) => `Reserveer ${date} meteen`,
-    plusOne: "Ik neem iemand mee (+1)",
-    plusOneMember: "je gast gratis",
-    plusOnePrice: "€20 voor jullie twee",
-    singleCardTitle: "Alleen de volgende keer",
-    singlePrice: "€10 eenmalig",
-    singleSeat: "of reserveer alleen deze zondag",
+    wantNote: "Tik wie je graag terugziet. Kiezen jullie elkaar, dan zetten we jullie eerder weer bij elkaar. Niemand ziet wat je aanvinkt.",
     nextTitle: "Je volgende zondag",
     seats: (n: number) => `nog ${n} ${n === 1 ? "plek" : "plekken"}`,
     reserve: "Reserveer",
     noNext: "Bekijk de Sunday Socials",
     contact: "Mogen we contact met je opnemen om het goed te maken?",
-    missingTitle: "Was er iemand van je groep niet?",
-    missingHint: "Tik wie er niet was. Alleen voor ons.",
     save: "Versturen",
     next: "Volgende",
     skip: "Overslaan",
     back: "Terug",
-    everyoneThere: "Iedereen was er",
     saving: "Bezig…",
-    thanks: "Dank je! We lezen alles.",
     thanksSorry: "Dank je dat je het eerlijk zegt.",
     sorryBody:
       "Niet elke tafel klikt meteen, dat hoort erbij. Elke Sunday Social zit je met andere mensen, en met wat je ons net vertelde delen we je de volgende keer beter in.",
@@ -67,14 +64,30 @@ const COPY = {
     error: "Opslaan lukte niet. Probeer het opnieuw.",
   },
   en: {
-    tableKicker: "Your table",
-    title: "How was the company?",
+    moodTitle: (name: string, venue: string | null, city: string) =>
+      `${name ? `Hi ${name}, how` : "How"} was your afternoon ${venue ? `at ${venue}` : `in ${city}`}?`,
+    moodSub: "A few short questions, 1 minute.",
     moods: { great: "Amazing", good: "Nice", meh: "So-so", bad: "Not great" } as Record<Mood, string>,
-    moodEnds: { great: "Really fun", bad: "Very bad" } as Partial<Record<Mood, string>>,
+    photoTitle: "So they recognise you too",
+    photoNote: "With a photo your tablemates know right away who you are. Only they see it.",
+    photoAdd: "Add photo",
+    photoDone: "Your photo is on",
+    photoChange: "Change",
+    photoBusy: "Saving…",
+    photoError: "Saving your photo didn't work. Please try again.",
+    thanks: (name: string) => (name ? `Thank you, ${name}!` : "Thank you!"),
+    thanksSub: "We read everything.",
+    thanksPicked: "If someone picks you too, you'll hear on Wednesday.",
+    reservePrice: "Reserve · €10",
+    memberLine: "Coming more often? As a member you're welcome at every Sunday Social for €10 a month.",
+    memberLink: "Become a member",
+    missingQuiet: "Was anyone from your table not there? Tap who, only for us.",
     venueKicker: "The bar",
     venue: (venue: string) => `And ${venue} itself?`,
     venueHint: "The place, the wine, the service.",
     stars: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
+    spendTitle: "Roughly what did you spend?",
+    spendHint: "On drinks and bites, per person. Without your ticket.",
     liked: "What made it so good?",
     likedGood: "What did you like most?",
     improve: "What could be better?",
@@ -82,37 +95,17 @@ const COPY = {
     improveHint: "Tap what fits, more than one is fine. Only for us, we read everything.",
     more: "Tell us a bit more (optional)",
     wantTitle: "Who would you like to see again?",
-    wantNote: "If you choose each other, we're more likely to seat you together again. Nobody sees what you tick.",
-    offerTitle: "Clicked at the table? Come more often.",
-    offerBody: "As a member you're welcome at every Sunday Social, in all 5 cities, and you book new dates first.",
-    offerSmall: "€10 a month · every Sunday Social in all 5 cities · cancel monthly",
-    offerCta: "Become a member and reserve",
-    offerCtaNoDate: "Become a member",
-    memberOnly: "Just become a member",
-    memberCardTitle: "Become a member",
-    memberPrice: "€10 a month",
-    memberPoints: ["Book new dates first", "Every Sunday Social, all 5 cities", "Cancel monthly"],
-    alsoBook: (date: string) => `Reserve ${date} right away`,
-    plusOne: "I'm bringing someone (+1)",
-    plusOneMember: "your guest free",
-    plusOnePrice: "€20 for the two of you",
-    singleCardTitle: "Just the next one",
-    singlePrice: "€10 one time",
-    singleSeat: "or reserve just this Sunday",
+    wantNote: "Tap who you'd like to see again. If you choose each other, we're more likely to seat you together again. Nobody sees what you tick.",
     nextTitle: "Your next Sunday",
     seats: (n: number) => `${n} ${n === 1 ? "seat" : "seats"} left`,
     reserve: "Reserve",
     noNext: "See the Sunday Socials",
     contact: "May we contact you to make it right?",
-    missingTitle: "Was anyone from your group not there?",
-    missingHint: "Tap who wasn't there. Only for us.",
     save: "Send",
     next: "Next",
     skip: "Skip",
     back: "Back",
-    everyoneThere: "Everyone was there",
     saving: "Saving…",
-    thanks: "Thank you! We read everything.",
     thanksSorry: "Thank you for being honest.",
     sorryBody:
       "Not every table clicks straight away, that's part of it. Every Sunday Social you sit with different people, and with what you just told us we'll seat you better next time.",
@@ -126,25 +119,6 @@ const COPY = {
     error: "Saving didn't work. Please try again.",
   },
 } as const;
-
-const FACE: Record<Mood, { bg: string; mouth: string }> = {
-  great: { bg: "#1f9d55", mouth: "M9 14.5c1.6 2.2 4.4 2.2 6 0" },
-  good: { bg: "#8cc795", mouth: "M9.5 15c1.4 1 3.6 1 5 0" },
-  meh: { bg: "#e9a2a2", mouth: "M9.5 16c1.4-1 3.6-1 5 0" },
-  bad: { bg: "#d64550", mouth: "M9 16.5c1.6-2.2 4.4-2.2 6 0" },
-};
-
-function Face({ mood, size = 52 }: { mood: Mood; size?: number }) {
-  const f = FACE[mood];
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="12" r="11" fill={f.bg} />
-      <circle cx="9" cy="10" r="1.2" fill="#fff" />
-      <circle cx="15" cy="10" r="1.2" fill="#fff" />
-      <path d={f.mouth} stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 /** 1 to 5 stars; the stars up to the one tapped light up. */
 function Stars({ value, onPick, label }: { value: number | null; onPick: (n: number) => void; label: (n: number) => string }) {
@@ -172,22 +146,30 @@ function Stars({ value, onPick, label }: { value: number | null; onPick: (n: num
 }
 
 /** Only the two outer faces get a word, so the words don't steer the answer. */
-function Faces({ value, onPick, labels, ends, size }: { value: Mood | null; onPick: (m: Mood) => void; labels: Record<Mood, string>; ends: Partial<Record<Mood, string>>; size?: number }) {
+/** The four answers as tiles, the same faces as in the mail. */
+const MOOD_EMOJI: Record<Mood, string> = { great: "😍", good: "🙂", meh: "😐", bad: "🙁" };
+
+function Faces({ value, onPick, labels }: { value: Mood | null; onPick: (m: Mood) => void; labels: Record<Mood, string> }) {
   return (
-    <div className="mt-4 grid grid-cols-4 gap-2">
+    <div className="mt-6 grid grid-cols-4 gap-2 sm:gap-3">
       {(["great", "good", "meh", "bad"] as const).map((m) => (
         <button
           key={m}
           type="button"
           onClick={() => onPick(m)}
           aria-pressed={value === m}
-          aria-label={labels[m]}
-          className={`flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 transition ${
-            value === m ? "scale-105 bg-white shadow-sm ring-1 ring-wine/10" : value ? "opacity-35 hover:opacity-70" : "hover:bg-white/60"
+          className={`flex flex-col items-center gap-1 rounded-2xl border bg-white px-1 pb-2.5 pt-3 transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 sm:pb-3.5 sm:pt-4 ${
+            value === m
+              ? "border-burgundy bg-burgundy/[0.06] shadow-[0_6px_18px_rgba(90,15,27,0.12)]"
+              : value
+                ? "border-wine/10 opacity-45 hover:opacity-80"
+                : "border-wine/10 hover:border-burgundy/40 hover:shadow-[0_6px_18px_rgba(43,13,18,0.07)]"
           }`}
         >
-          <Face mood={m} size={size} />
-          <span className={`h-4 text-xs transition ${value === m ? "font-semibold text-wine" : "text-wine/45"}`}>{ends[m]}</span>
+          <span aria-hidden className="text-[2rem] leading-tight sm:text-[2.4rem]">
+            {MOOD_EMOJI[m]}
+          </span>
+          <span className="whitespace-nowrap text-[0.78rem] font-semibold text-wine sm:text-sm">{labels[m]}</span>
         </button>
       ))}
     </div>
@@ -210,7 +192,7 @@ function fromFeedback(href: string, content: string): string {
   return `${url.pathname}${url.search}${hash ? `#${hash}` : ""}`;
 }
 
-type Step = "mood" | "venue" | "liked" | "improve" | "want" | "missing";
+type Step = "mood" | "venue" | "liked" | "improve" | "want";
 
 /** One question per screen: which ones depend on the first answer. Who
  * they'd like to see again comes right after, before anyone drops off. */
@@ -222,21 +204,32 @@ function stepsFor(mood: Mood | null, hasMates: boolean): Step[] {
     "venue",
     ...(okish ? (["liked"] as const) : []),
     ...(mood && mood !== "great" ? (["improve"] as const) : []),
-    ...(hasMates ? (["missing"] as const) : []),
   ];
 }
 
-export function FeedbackForm({ page, token }: { page: FeedbackPage; token: string }) {
+export function FeedbackForm({ page, token, mailAnswer = null }: { page: FeedbackPage; token: string; /** The answer tapped in the mail. */ mailAnswer?: Mood | null }) {
   const t = COPY[page.locale];
   const venue = page.venueName ?? page.city;
-  const [state, setState] = useState<FeedbackState>(page.saved);
+  // A tap in the mail is the first answer, unless they answered before.
+  const fromMail = !page.saved.completed && !page.saved.mood ? mailAnswer : null;
+  const [state, setState] = useState<FeedbackState>(() => (fromMail ? { ...page.saved, mood: fromMail } : page.saved));
   // Back on the page after finishing (for instance as a new member): the last screen.
   const [sent, setSent] = useState(page.saved.completed);
-  const [step, setStep] = useState(0);
+  // Came through an answer in the mail: on with the next question.
+  const [step, setStep] = useState(mailAnswer && !page.saved.completed ? 1 : 0);
   const [error, setError] = useState(false);
-  const [alsoBook, setAlsoBook] = useState(true);
-  const [plusOne, setPlusOne] = useState(false);
   const [pending, start] = useTransition();
+  // Saved from the browser, not when the link is fetched: a mail scanner
+  // that opens the link leaves no answer behind.
+  const savedFromMail = useRef(false);
+  useEffect(() => {
+    if (!fromMail || savedFromMail.current) return;
+    savedFromMail.current = true;
+    start(async () => {
+      const r = await saveFeedbackAction(token, { mood: fromMail });
+      setError(!r.ok);
+    });
+  }, [fromMail, token]);
   const likedOrder = useMemo(() => orderFor(LIKED_REASONS, page.bookingId), [page.bookingId]);
   const dislikedOrder = useMemo(() => orderFor(DISLIKED_REASONS, page.bookingId), [page.bookingId]);
 
@@ -299,82 +292,155 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     </div>
   );
 
-  if (sent) {
-    const withTicket = (ticket: "elke-zondag" | "deze-zondag") =>
-      fromFeedback(
-        page.next ? `${page.next.path}?ticket=${ticket}${plusOne ? "&plekken=2" : ""}#boeken` : page.cityPath,
-        ticket === "elke-zondag" ? "lid-en-reserveer" : "eenmalig",
-      );
-    return (
-      <div className="space-y-5">
-        <section className={`${card} text-center`}>
-          <p className="font-serif text-2xl text-wine">{okish ? t.thanks : t.thanksSorry}</p>
-          {!okish ? <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-wine/70">{t.sorryBody}</p> : null}
-          {!okish && page.freeSeat && (page.freeSeat.booked || page.freeSeat.options.length > 0) ? (
-            <FreeSeat page={page} token={token} t={t} />
-          ) : state.mood === "meh" || (okish && page.member) ? (
-            <NextSunday page={page} t={t} />
-          ) : null}
-        </section>
-        {okish && !page.member ? (
-          <section className={card}>
-            <h2 className="font-serif text-2xl text-wine sm:text-3xl">{t.offerTitle}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-wine/70">{t.offerBody}</p>
-            {page.next && page.next.seatsLeft >= 2 ? (
-              <label className="mt-6 flex items-center gap-2 text-sm text-wine">
-                <input type="checkbox" checked={plusOne} onChange={(e) => setPlusOne(e.target.checked)} className="accent-burgundy" />
-                {t.plusOne}
-              </label>
-            ) : null}
-            <div className={`mt-4 grid gap-3 ${page.next ? "sm:grid-cols-2" : ""}`}>
-              <div className="flex flex-col rounded-2xl bg-white p-5 text-wine ring-2 ring-burgundy shadow-[0_10px_30px_rgba(90,15,27,0.10)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.memberCardTitle}</p>
-                <p className="mt-1 font-serif text-2xl">{t.memberPrice}</p>
-                {plusOne && alsoBook && page.next ? <p className="text-xs font-semibold text-burgundy">+1 · {t.plusOneMember}</p> : null}
-                <ul className="mt-3 flex-1 space-y-1.5 text-sm">
-                  {t.memberPoints.map((point) => (
-                    <li key={point} className="flex gap-2">
-                      <span aria-hidden className="text-gold">✓</span>
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-                {page.next ? (
-                  <label className="mt-4 flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={alsoBook} onChange={(e) => setAlsoBook(e.target.checked)} className="accent-burgundy" />
-                    {t.alsoBook(page.next.city === page.city ? page.next.shortLabel : `${page.next.shortLabel} (${page.next.city})`)}
-                  </label>
-                ) : null}
-                <Link
-                  href={page.next && alsoBook ? withTicket("elke-zondag") : fromFeedback(page.joinPath, "lid")}
-                  className="mt-4 rounded-full bg-burgundy px-5 py-2.5 text-center text-sm font-semibold text-cream transition hover:bg-wine"
-                >
-                  {t.offerCtaNoDate}
-                </Link>
-              </div>
-              {page.next ? (
-                <div className="flex flex-col rounded-2xl bg-white/60 p-5 text-wine ring-1 ring-wine/10">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.singleCardTitle}</p>
-                  <p className="mt-1 font-serif text-2xl">{plusOne ? t.plusOnePrice : t.singlePrice}</p>
-                  <p className="mt-3 flex-1 text-sm text-wine/75">
-                    {page.next.city}
-                    <br />
-                    {page.next.label}
-                    <br />
-                    <span className="text-wine/50">{t.seats(page.next.seatsLeft)}</span>
-                  </p>
-                  <Link
-                    href={withTicket("deze-zondag")}
-                    className="mt-4 rounded-full bg-white px-5 py-2.5 text-center text-sm font-semibold text-burgundy ring-1 ring-burgundy/40 transition hover:ring-burgundy"
-                  >
-                    {t.reserve}
-                  </Link>
-                </div>
-              ) : null}
-            </div>
-          </section>
-        ) : null}
+  // Their own photo, for who has none yet: added where they see the others' faces.
+  const [myPhoto, setMyPhoto] = useState<string | null>(null);
+  const [cropping, setCropping] = useState<File | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
+  async function uploadPhoto(file: File) {
+    setPhotoBusy(true);
+    setPhotoError(false);
+    try {
+      const form = new FormData();
+      form.set("photo", file);
+      const r = await uploadFeedbackPhotoAction(token, form);
+      if (r.ok) setMyPhoto(r.url);
+      else setPhotoError(true);
+    } catch {
+      setPhotoError(true);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+  const ownPhoto = page.photoUrl ? null : (
+    <div className="mt-5">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-wine/20 bg-white/60 p-3">
+        {myPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={myPhoto} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
+        ) : (
+          <span aria-hidden className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-burgundy/[0.1] text-burgundy">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.2-2h6.6l1.2 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" />
+              <circle cx="12" cy="13" r="3.2" />
+            </svg>
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-wine">{myPhoto ? t.photoDone : t.photoTitle}</span>
+          {myPhoto ? null : <span className="mt-0.5 block text-xs leading-snug text-wine/60">{t.photoNote}</span>}
+        </span>
+        <button
+          type="button"
+          disabled={photoBusy}
+          onClick={() => photoInput.current?.click()}
+          className={`w-full shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:opacity-60 sm:w-auto sm:py-2 ${
+            myPhoto ? "text-burgundy underline decoration-burgundy/30 underline-offset-4" : "bg-burgundy text-cream hover:bg-wine"
+          }`}
+        >
+          {photoBusy ? t.photoBusy : myPhoto ? t.photoChange : t.photoAdd}
+        </button>
       </div>
+      {photoError ? <p className="mt-2 text-sm text-red-800">{t.photoError}</p> : null}
+      <input
+        ref={photoInput}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0]) setCropping(e.target.files[0]);
+          e.target.value = "";
+        }}
+      />
+      {cropping ? (
+        <PhotoCropper
+          file={cropping}
+          locale={page.locale}
+          onCancel={() => setCropping(null)}
+          onDone={(f) => {
+            setCropping(null);
+            void uploadPhoto(f);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+
+  /** Who they'd like to see again: a tile per tablemate, with their photo. */
+  const mateTiles = (
+    <div className={`mt-5 grid gap-2 sm:grid-cols-4 sm:gap-3 ${page.tablemates.length % 3 === 0 || page.tablemates.length > 4 ? "grid-cols-3" : "grid-cols-2"}`}>
+      {page.tablemates.map((m) => {
+        const on = state.wantToSee.includes(m.bookingId);
+        return (
+          <button
+            key={m.bookingId}
+            type="button"
+            aria-pressed={on}
+            onClick={() => toggle("wantToSee", m.bookingId)}
+            className={`flex flex-col items-center gap-2 rounded-2xl border bg-white px-1 pb-3 pt-3.5 transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+              on
+                ? "border-burgundy bg-burgundy/[0.06] shadow-[0_6px_18px_rgba(90,15,27,0.12)]"
+                : "border-wine/10 hover:border-burgundy/40 hover:shadow-[0_6px_18px_rgba(43,13,18,0.07)]"
+            }`}
+          >
+            <span className="relative">
+              {m.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={m.photoUrl} alt="" className="h-14 w-14 rounded-full object-cover sm:h-16 sm:w-16" />
+              ) : (
+                <span aria-hidden className="flex h-14 w-14 items-center justify-center rounded-full bg-burgundy/[0.1] font-serif text-2xl text-burgundy sm:h-16 sm:w-16">
+                  {m.firstName.charAt(0).toLocaleUpperCase()}
+                </span>
+              )}
+              {on ? (
+                <span aria-hidden className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-burgundy text-[0.7rem] font-bold text-cream ring-2 ring-white">
+                  ✓
+                </span>
+              ) : null}
+            </span>
+            <span className="max-w-full truncate px-1 text-sm font-semibold text-wine">{m.firstName}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  if (sent) {
+    // One next step: the next Sunday. Becoming a member is a line under it.
+    const nextHref = page.next
+      ? okish && !page.member
+        ? fromFeedback(`${page.next.path}?ticket=deze-zondag#boeken`, "eenmalig")
+        : fromFeedback(page.next.path, "volgende")
+      : null;
+    const memberHref = page.next ? fromFeedback(`${page.next.path}?ticket=elke-zondag#boeken`, "lid-en-reserveer") : fromFeedback(page.joinPath, "lid");
+    const freeSeat = !okish && page.freeSeat && (page.freeSeat.booked || page.freeSeat.options.length > 0);
+    return (
+      <section className={`${card} text-center`}>
+        <p className="font-serif text-3xl text-wine">{okish ? t.thanks(page.firstName) : t.thanksSorry}</p>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine/70">
+          {okish ? `${t.thanksSub}${state.wantToSee.length > 0 ? ` ${t.thanksPicked}` : ""}` : t.sorryBody}
+        </p>
+        {freeSeat ? (
+          <FreeSeat page={page} token={token} t={t} />
+        ) : okish || state.mood === "meh" ? (
+          <NextSunday page={page} t={t} href={nextHref} label={okish && !page.member ? t.reservePrice : t.reserve} />
+        ) : null}
+        {okish && !page.member ? (
+          <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-wine/70">
+            {t.memberLine}{" "}
+            <Link href={memberHref} className="whitespace-nowrap font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-4">
+              {t.memberLink}
+            </Link>
+          </p>
+        ) : null}
+        {hasMates ? (
+          <div className="mt-7 border-t border-wine/10 pt-4 text-left">
+            <p className="text-sm text-wine/60">{t.missingQuiet}</p>
+            {chips("missing")}
+          </div>
+        ) : null}
+      </section>
     );
   }
 
@@ -457,7 +523,9 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
     <div className="space-y-5">
       <section className={card}>
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">Sunday Social {page.city}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">
+            {page.dateLabel} · {page.city}
+          </p>
           {state.mood ? (
             <span className="text-xs text-wine/45">
               {step + 1}/{steps.length}
@@ -471,33 +539,52 @@ export function FeedbackForm({ page, token }: { page: FeedbackPage; token: strin
         <div className="mt-6">
           {current === "mood" ? (
             <>
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.tableKicker}</p>
-              <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.title}</h1>
-              <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} ends={t.moodEnds} />
+              <h1 className="font-serif text-3xl font-medium text-wine text-balance sm:text-4xl">{t.moodTitle(page.firstName, page.venueName, page.city)}</h1>
+              <p className="mt-1.5 text-sm text-wine/55">{t.moodSub}</p>
+              <Faces value={state.mood} onPick={(m) => pickAndGo({ mood: m })} labels={t.moods} />
             </>
           ) : current === "venue" ? (
             <>
               <p className="text-xs font-semibold uppercase tracking-[0.15em] text-wine/45">{t.venueKicker}</p>
               <h1 className="mt-1 font-serif text-3xl font-medium text-wine sm:text-4xl">{t.venue(venue)}</h1>
               <p className="mt-1 text-sm text-wine/55">{t.venueHint}</p>
-              <Stars value={state.venueRating} onPick={(n) => pickAndGo({ venueRating: n })} label={t.stars} />
-              {nav({ primary: t.skip, primaryStyle: "ghost", onPrimary: next })}
+              <Stars value={state.venueRating} onPick={(n) => save({ venueRating: n })} label={t.stars} />
+              {/* Like a review on a map: a range to tap, and on to the next question. */}
+              <p className="mt-7 text-base font-semibold text-wine">{t.spendTitle}</p>
+              <p className="mt-0.5 text-sm text-wine/55">{t.spendHint}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {SPEND_RANGES.map((range) => {
+                  const on = state.spend === range;
+                  return (
+                    <button
+                      key={range}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => pickAndGo({ spend: range })}
+                      className={`rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50 ${
+                        on ? "bg-burgundy text-cream" : "bg-white text-wine ring-1 ring-wine/15 hover:ring-burgundy/40"
+                      }`}
+                    >
+                      {(page.locale === "en" ? SPEND_LABELS_EN : SPEND_LABELS)[range]}
+                    </button>
+                  );
+                })}
+              </div>
+              {nav({
+                primary: state.venueRating || state.spend ? (last ? t.save : t.next) : t.skip,
+                primaryStyle: state.venueRating || state.spend ? "solid" : "ghost",
+                onPrimary: next,
+              })}
             </>
           ) : current === "liked" || current === "improve" ? (
             reasonStep(current)
-          ) : current === "want" ? (
-            <>
-              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.wantTitle}</h1>
-              <p className="mt-1 text-sm text-wine/55">{t.wantNote}</p>
-              {chips("wantToSee")}
-              {nav({ primary: state.wantToSee.length > 0 ? (last ? t.save : t.next) : t.skip, primaryStyle: state.wantToSee.length > 0 ? "solid" : "ghost", onPrimary: next })}
-            </>
           ) : (
             <>
-              <h1 className="font-serif text-2xl font-medium text-wine sm:text-3xl">{t.missingTitle}</h1>
-              <p className="mt-1 text-sm text-wine/55">{t.missingHint}</p>
-              {chips("missing")}
-              {nav({ primary: state.missing.length > 0 ? t.save : t.everyoneThere, onPrimary: next })}
+              <h1 className="font-serif text-3xl font-medium text-wine sm:text-4xl">{t.wantTitle}</h1>
+              <p className="mt-1.5 text-sm leading-relaxed text-wine/60">{t.wantNote}</p>
+              {mateTiles}
+              {ownPhoto}
+              {nav({ primary: state.wantToSee.length > 0 ? (last ? t.save : t.next) : t.skip, primaryStyle: state.wantToSee.length > 0 ? "solid" : "ghost", onPrimary: next })}
             </>
           )}
         </div>
@@ -551,8 +638,8 @@ function FreeSeat({ page, token, t }: { page: FeedbackPage; token: string; t: (t
   );
 }
 
-function NextSunday({ page, t }: { page: FeedbackPage; t: (typeof COPY)["nl"] | (typeof COPY)["en"] }) {
-  if (!page.next) {
+function NextSunday({ page, t, href, label }: { page: FeedbackPage; t: (typeof COPY)["nl"] | (typeof COPY)["en"]; href: string | null; label: string }) {
+  if (!page.next || !href) {
     return (
       <Link href={fromFeedback(page.cityPath, "steden")} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
         {t.noNext}
@@ -560,19 +647,14 @@ function NextSunday({ page, t }: { page: FeedbackPage; t: (typeof COPY)["nl"] | 
     );
   }
   return (
-    <div className="mt-5 text-left">
+    <div className="mt-6 rounded-2xl bg-white p-5 text-left ring-1 ring-wine/10">
       <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">{t.nextTitle}</p>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-wine/10">
-        <div>
-          <p className="font-serif text-lg text-wine">
-            {page.next.city} · {page.next.label}
-          </p>
-          <p className="text-xs text-wine/55">{t.seats(page.next.seatsLeft)}</p>
-        </div>
-        <Link href={fromFeedback(page.next.path, "volgende")} className="rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
-          {t.reserve}
-        </Link>
-      </div>
+      <p className="mt-1.5 text-lg font-semibold leading-snug text-wine first-letter:uppercase">{page.next.label}</p>
+      <p className="text-sm text-wine/60">{page.next.city}</p>
+      <p className="mt-2 inline-block rounded-full bg-burgundy/[0.09] px-2.5 py-1 text-xs font-semibold text-burgundy first-letter:uppercase">{t.seats(page.next.seatsLeft)}</p>
+      <Link href={href} className="mt-4 block rounded-full bg-burgundy px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.08em] text-cream transition hover:bg-wine">
+        {label}
+      </Link>
     </div>
   );
 }

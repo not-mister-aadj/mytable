@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { jouwTafelSettingsPath } from "@/i18n/config";
 import { getSiteUrl } from "@/lib/env";
 import { getMemberUser } from "@/lib/member-auth";
+import { codeRequiredResponse } from "@/lib/auth/mail-login";
 import { getMembershipForUser } from "@/lib/membership/data";
 import { captureClientSafeError } from "@/lib/membership/errors";
 import { membershipPortalConfigurationId } from "@/lib/membership/stripe";
@@ -16,6 +17,9 @@ export async function POST(request: Request) {
   if (!isStripeConfigured()) return NextResponse.json({ error: "Not configured" }, { status: 503 });
   const user = await getMemberUser();
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Signed in from a mail: this step asks for a code first.
+  const codeFirst = await codeRequiredResponse();
+  if (codeFirst) return codeFirst;
   const body = (await request.json().catch(() => ({}))) as { locale?: unknown };
   const locale = body.locale === "en" ? "en" : "nl";
 

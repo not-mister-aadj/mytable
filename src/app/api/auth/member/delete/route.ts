@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMemberUser } from "@/lib/member-auth";
+import { codeRequiredResponse } from "@/lib/auth/mail-login";
 import { deleteMemberData } from "@/lib/jouw-tafel/account-server";
 import { endMembershipsForDeletedAccount } from "@/lib/membership/data";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -17,6 +18,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function POST() {
   const user = await getMemberUser();
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Signed in from a mail: this step asks for a code first.
+  const codeFirst = await codeRequiredResponse();
+  if (codeFirst) return codeFirst;
   try {
     // A running membership stops first: no payments after the account is gone.
     await endMembershipsForDeletedAccount(user.id);

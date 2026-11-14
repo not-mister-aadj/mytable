@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { getMemberUser } from "@/lib/member-auth";
+import { codeRequiredResponse } from "@/lib/auth/mail-login";
 import { rescheduleOwnBooking } from "@/lib/jouw-tafel/reschedule-server";
 import { isEmailFrozen } from "@/lib/customers/freeze";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
@@ -19,6 +20,9 @@ export async function POST(request: Request) {
   if (!isDbConfigured()) return NextResponse.json({ error: "Not configured" }, { status: 503 });
   const user = await getMemberUser();
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Signed in from a mail: this step asks for a code first.
+  const codeFirst = await codeRequiredResponse();
+  if (codeFirst) return codeFirst;
   const body = (await request.json().catch(() => ({}))) as {
     bookingId?: unknown;
     expectedTargetEventId?: unknown;

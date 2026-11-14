@@ -71,7 +71,20 @@ const CARD_COPY = {
     wineBarIn: (city: string) => `Een wijnlocatie in ${city}`,
     reserveShort: "Reserveer",
     next: "Eerstvolgende",
-    nextTables: "Eerstvolgende tafels",
+    otherArea: "Ander stadsdeel",
+    otherCity: "Andere stad",
+    // Nothing to book in what they picked: said where the list starts.
+    noneInAreas: (where: string | null) => `Nog geen tafel in ${where ?? "jouw stadsdelen"}`,
+    noneInAreasSub: "Zodra er een locatie in jouw stadsdeel vaststaat, zie je hem hier.",
+    showAllAmsterdam: "Toon heel Amsterdam",
+    cityFull: (city: string) => `${city} zit vol`,
+    cityFullSub: "Zet je op de wachtlijst bij de volle zondag hieronder, of schuif aan in een andere stad.",
+    cityNone: (city: string) => `Nog geen zondag in ${city}`,
+    cityNoneSub: "Zodra er een datum is, hoor je het als eerste.",
+    openInAmsterdam: "Wel plek elders in Amsterdam",
+    openInCities: "Wel plek in andere steden",
+    openElsewhere: "Wel plek elders",
+    and: "en",
     shortPeople: "4 tot 6 mensen",
     how: "Hoe werkt het?",
     adjust: "Aanpassen",
@@ -81,7 +94,19 @@ const CARD_COPY = {
     wineBarIn: (city: string) => `A wine spot in ${city}`,
     reserveShort: "Book",
     next: "Next table",
-    nextTables: "Next tables",
+    otherArea: "Other area",
+    otherCity: "Other city",
+    noneInAreas: (where: string | null) => `No table in ${where ?? "your parts of Amsterdam"} yet`,
+    noneInAreasSub: "As soon as a venue in your area is set, it shows here.",
+    showAllAmsterdam: "Show all of Amsterdam",
+    cityFull: (city: string) => `${city} is full`,
+    cityFullSub: "Join the waitlist on the full Sunday below, or join a table in another city.",
+    cityNone: (city: string) => `No Sunday in ${city} yet`,
+    cityNoneSub: "As soon as there is a date, you'll be the first to hear.",
+    openInAmsterdam: "Open elsewhere in Amsterdam",
+    openInCities: "Open in other cities",
+    openElsewhere: "Open elsewhere",
+    and: "and",
     shortPeople: "4 to 6 people",
     how: "How it works",
     adjust: "Change",
@@ -441,12 +466,16 @@ export function QuizChoose({
   const closedBelow = firstOpenAt === null ? ownClosed : [];
   const closedDated = ownClosed.filter((r) => !closedBelow.includes(r));
   const ownDated = [...ownOpen, ...closedDated].sort(byDate);
-  // Nothing open in their own cities: their full Sundays stand on their date
-  // between the tables of the other cities, in that one list.
-  const mergeNearby = ownOpen.length === 0 && nearbyOpen.length > 0;
-  const nearbyDated = mergeNearby ? [...nearbyOpen, ...closedDated].sort(byDate) : nearbyOpen;
-  const ownCount = mergeNearby ? 0 : ownDated.length;
+  // Nothing open in their own cities: their full Sundays stand right under
+  // the block that says so, above what is open elsewhere.
+  const ownCount = ownDated.length;
   const soonRows = rows.filter((r) => r.kind === "soon");
+  // Nothing to book in what they picked, while there is elsewhere: said in a
+  // block of its own, and the list under it is named as "elsewhere".
+  const nothingOwn = hasMatch && ownOpenCount === 0 && ours.length > 0;
+  const outsideOpen = nearbyOpen.filter((r) => outsideDistricts(r.event, districts));
+  const areaGap = nothingOwn && outsideOpen.length > 0;
+  const noSundayUnder = nothingOwn ? noSunday.filter((c) => !sameCity(c, ours[0] ?? "")) : noSunday;
 
   const viewedRef = useRef(false);
   useEffect(() => {
@@ -556,6 +585,11 @@ export function QuizChoose({
   }
 
   const cardCopy = CARD_COPY[locale === "en" ? "en" : "nl"];
+  // "Amsterdam Oost", "Amsterdam Oost en West", or no names from three parts.
+  const areaNames =
+    districts && districts.length > 0 && districts.length <= 2
+      ? `Amsterdam ${districts.map((d) => DISTRICT_LABELS[d]).join(` ${cardCopy.and} `)}`
+      : null;
   // The very next bookable Sunday stands out ("Eerstvolgende").
   const featuredRow = [...openRows]
     .filter((r) => !r.event.comingSoon && !booked[r.event.id])
@@ -621,8 +655,19 @@ export function QuizChoose({
             <span className="relative block aspect-[2/1] w-full">
               <Image src={photo} alt="" fill sizes="(max-width: 640px) 100vw, 420px" className="object-cover" />
               <span className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-                <span className="rounded-full bg-gold px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine">
-                  {matches[event.id] ? k.knownBadge(matches[event.id]!) : cardCopy.next}
+                {/* Not in what they picked: said on the card, in a quieter badge. */}
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[0.72rem] font-bold uppercase leading-none tracking-[0.08em] text-wine ${
+                    row.nearby && !matches[event.id] ? "bg-white/95" : "bg-gold"
+                  }`}
+                >
+                  {matches[event.id]
+                    ? k.knownBadge(matches[event.id]!)
+                    : row.nearby
+                      ? outsideDistricts(event, districts)
+                        ? cardCopy.otherArea
+                        : cardCopy.otherCity
+                      : cardCopy.next}
                 </span>
                 {chip.quiet ? null : (
                   <span
@@ -779,13 +824,6 @@ export function QuizChoose({
                 ) : null}
               </p>
             ) : null}
-            {ownOpenCount === 0 && ours.length > 0 ? (
-              <p className="mx-auto mt-2 max-w-[21rem] text-center text-[0.92rem] leading-snug text-wine/75 text-balance">
-                {ownClosed.length === 0 && nearbyOpen.some((r) => outsideDistricts(r.event, districts))
-                  ? k.elsewhereDistrict
-                  : k.elsewhere(shownCity)}
-              </p>
-            ) : null}
           </>
         ) : (
           <p className="mx-auto mt-3 max-w-[21rem] text-center text-[1rem] leading-relaxed text-wine/75 text-balance">
@@ -816,18 +854,47 @@ export function QuizChoose({
           </button>
         </p>
         {onAnswers ? <ChooseFilters answers={answers} copy={k.filters} closeLabel={k.infoClose} locale={locale} onAnswers={onAnswers} /> : null}
+        {nothingOwn ? (
+          <div className="mt-5 rounded-2xl border border-dashed border-wine/20 bg-white/60 px-5 py-5 text-center">
+            <p className="font-serif text-[1.45rem] font-medium leading-tight text-wine text-balance">
+              {areaGap ? cardCopy.noneInAreas(areaNames) : ownClosed.length > 0 ? cardCopy.cityFull(shownCity) : cardCopy.cityNone(shownCity)}
+            </p>
+            <p className="mx-auto mt-1.5 max-w-[19rem] text-[0.9rem] leading-snug text-wine/65 text-balance">
+              {areaGap ? cardCopy.noneInAreasSub : ownClosed.length > 0 ? cardCopy.cityFullSub : cardCopy.cityNoneSub}
+            </p>
+            {areaGap && onAnswers ? (
+              <button
+                type="button"
+                onClick={() => onAnswers({ amsterdamDistricts: undefined })}
+                className="mt-3.5 inline-flex min-h-10 items-center rounded-full border border-burgundy/40 bg-white px-4 text-[0.85rem] font-semibold text-burgundy transition hover:border-burgundy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/50"
+              >
+                {cardCopy.showAllAmsterdam}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
-      {ownDated.length > 0 && !mergeNearby ? (
-        <section className="mt-6">
+      {ownDated.length > 0 ? (
+        <section className={nothingOwn ? "mt-3" : "mt-6"}>
           <ul className="space-y-3">{ownDated.map((row, i) => tableCard(row, i))}</ul>
         </section>
       ) : null}
 
       {nearbyOpen.length > 0 ? (
         <section className="mt-6">
-          {sectionTitle(ownOpenCount === 0 && ours.length > 0 ? cardCopy.nextTables : ourCities ? k.ourCities : k.nearby)}
-          <ul className="mt-3.5 space-y-3">{nearbyDated.map((row, i) => tableCard(row, ownCount + i))}</ul>
+          {sectionTitle(
+            nothingOwn
+              ? outsideOpen.length === nearbyOpen.length
+                ? cardCopy.openInAmsterdam
+                : outsideOpen.length === 0
+                  ? cardCopy.openInCities
+                  : cardCopy.openElsewhere
+              : ourCities
+                ? k.ourCities
+                : k.nearby,
+          )}
+          <ul className="mt-3.5 space-y-3">{nearbyOpen.map((row, i) => tableCard(row, ownCount + i))}</ul>
         </section>
       ) : null}
 
@@ -835,20 +902,20 @@ export function QuizChoose({
       {closedBelow.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(k.noLongerBookable)}
-          <ul className="mt-3.5 space-y-2">{closedBelow.map((row, i) => tableCard(row, ownCount + nearbyDated.length + i))}</ul>
+          <ul className="mt-3.5 space-y-2">{closedBelow.map((row, i) => tableCard(row, ownCount + nearbyOpen.length + i))}</ul>
         </section>
       ) : null}
 
       {soonRows.length > 0 ? (
         <section className="mt-6">
           {sectionTitle(k.comingSoon)}
-          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownCount + nearbyDated.length + closedBelow.length + i))}</ul>
+          <ul className="mt-3.5 space-y-3">{soonRows.map((row, i) => tableCard(row, ownCount + nearbyOpen.length + closedBelow.length + i))}</ul>
         </section>
       ) : null}
 
-      {hasMatch && noSunday.length > 0 ? (
+      {hasMatch && noSundayUnder.length > 0 ? (
         <p className="mt-6 text-center text-[0.92rem] leading-relaxed text-wine/70 text-balance">
-          {k.noSunday(copy.joinCities(noSunday.map((c) => displayCity(c, locale))), noSunday.length)}
+          {k.noSunday(copy.joinCities(noSundayUnder.map((c) => displayCity(c, locale))), noSundayUnder.length)}
         </p>
       ) : null}
 

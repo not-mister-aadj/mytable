@@ -29,6 +29,7 @@ const DISTRIBUTIONS: { key: WaitlistAnswerKey; ordinal: boolean }[] = [
   { key: "why", ordinal: false },
   { key: "tableType", ordinal: false },
   { key: "sundayAvailability", ordinal: true },
+  { key: "amsterdamDistricts", ordinal: true },
 ];
 
 type Bucket = { id: string; label: string; count: number };

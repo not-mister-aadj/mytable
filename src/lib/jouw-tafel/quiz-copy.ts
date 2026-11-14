@@ -140,6 +140,10 @@ export type QuizCopy = {
     match: (m: { around: number | null; dutch: boolean; alone: boolean }) => string;
     /** Their own city is full: the open tables elsewhere follow. */
     elsewhere: (city: string) => string;
+    /** Amsterdam has a table, in a part of the city they left out. */
+    elsewhereDistrict: string;
+    /** After the city on a card: no venue yet. */
+    areaFollows: string;
     /** On a bookable table, after the number of guests around their age:
      * "11 mensen die bij jou passen". */
     fit: string;
@@ -165,6 +169,14 @@ export type QuizCopy = {
     /** The filters on top: cities and, for women, mixed or ladies only. */
     filters: {
       citiesAria: string;
+      /** The menu on the Amsterdam chip: the parts of the city. */
+      districtsAria: string;
+      districtsTitle: string;
+      districtsSub: string;
+      allAmsterdam: string;
+      /** On the chip with more than one part ticked. */
+      districtCount: (n: number) => string;
+      districtsDone: string;
       tableAria: string;
       mixed: string;
       ladies: string;
@@ -396,6 +408,8 @@ const nl: QuizCopy = {
     match: ({ around, dutch, alone }) =>
       `Een ${dutch ? "Nederlandstalige " : ""}tafel met mensen van ${around ? `rond de ${around}` : "alle leeftijden"}${alone ? ", waar de meesten alleen komen" : ""}.`,
     elsewhere: (city) => `In ${city} zit het vol. Dit zijn de eerstvolgende tafels.`,
+    elsewhereDistrict: "Nog geen tafel in jouw stadsdelen. Dit zijn de eerstvolgende tafels.",
+    areaFollows: "wijk volgt",
     fit: "mensen die bij jou passen",
     fitLow: "Past mogelijk minder goed bij je",
     known: (n) =>
@@ -414,6 +428,12 @@ const nl: QuizCopy = {
     booked: (seats) => (seats > 1 ? `Je bent erbij · ${seats} plekken` : "Je bent erbij"),
     filters: {
       citiesAria: "Steden",
+      districtsAria: "Kies stadsdelen in Amsterdam",
+      districtsTitle: "Waar in Amsterdam?",
+      districtsSub: "Een zondag zonder locatie zie je altijd. Staat de locatie vast, dan eerst die in jouw stadsdelen.",
+      allAmsterdam: "Heel Amsterdam",
+      districtCount: (n) => `${n} stadsdelen`,
+      districtsDone: "Klaar",
       tableAria: "Soort tafel",
       mixed: "Mixed table",
       ladies: "Ladies only",
@@ -638,6 +658,8 @@ const en: QuizCopy = {
     match: ({ around, dutch, alone }) =>
       `A ${dutch ? "Dutch-speaking " : ""}table with people ${around ? `around ${around}` : "of all ages"}${alone ? ", where most come alone" : ""}.`,
     elsewhere: (city) => `${city} is full. These are the next tables.`,
+    elsewhereDistrict: "No table in your parts of the city yet. These are the next tables.",
+    areaFollows: "area to follow",
     fit: "people you'll click with",
     fitLow: "Might be less your crowd",
     known: (n) =>
@@ -656,6 +678,12 @@ const en: QuizCopy = {
     booked: (seats) => (seats > 1 ? `You're going · ${seats} seats` : "You're going"),
     filters: {
       citiesAria: "Cities",
+      districtsAria: "Choose parts of Amsterdam",
+      districtsTitle: "Where in Amsterdam?",
+      districtsSub: "A Sunday without a venue always shows. Once the venue is set, the ones in your parts of the city come first.",
+      allAmsterdam: "All of Amsterdam",
+      districtCount: (n) => `${n} areas`,
+      districtsDone: "Done",
       tableAria: "Kind of table",
       mixed: "Mixed table",
       ladies: "Ladies only",

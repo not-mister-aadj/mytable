@@ -32,8 +32,8 @@ export const QUIZ_CITIES = [
 ] as const;
 export type QuizCity = (typeof QUIZ_CITIES)[number];
 
-/** One published, upcoming Sunday Table, as the client gets it. Never a
- * venue: the wine bar is booked once the tables are known. */
+/** One published, upcoming Sunday Table, as the client gets it. Never the
+ * venue itself; in Amsterdam its neighbourhood, once a venue is linked. */
 export type QuizEvent = {
   id: string;
   slug: string;
@@ -57,6 +57,10 @@ export type QuizEvent = {
   /** How many booked guests per 5 years of age (key: the lower bound, so
    * "40" is 40 to 44). Counts only, never who. */
   ageBuckets?: Record<string, number>;
+  /** Amsterdam, venue linked: its neighbourhood as typed in admin ("De
+   * Pijp") and the part of the city (districts.ts). */
+  area?: string | null;
+  district?: string | null;
 };
 
 /** The light on a table on "Kies je zondag": green, red, or none. */

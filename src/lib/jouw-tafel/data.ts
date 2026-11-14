@@ -1,7 +1,8 @@
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { getDb, isDbConfigured } from "@/db/index";
-import { bookings, events } from "@/db/schema";
+import { bookings, eventVenues, events, venues } from "@/db/schema";
+import { amsterdamDistrict, isAmsterdam } from "@/lib/jouw-tafel/districts";
 import { isEnglishOpenForSundayTable } from "@/lib/booking-table-language";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import { AGE_BUCKET_YEARS, JOUW_TAFEL_SEAT_PRICE_CENTS, JOUW_TAFEL_SHOWN_AFTER_DAYS, QUIZ_CITIES, bookingOpensOverride, isNoLongerBookable, isShownTable, nextDatesPerCity, withBookingWindow, SIGNUP_COUNT_MIN, bracketFromEventName, roundSignupCount, supportedCity, type QuizEvent } from "@/lib/jouw-tafel/logic";
@@ -14,8 +15,8 @@ import { amsterdamDateIso } from "@/lib/sunday-wine-table";
  * series planned, and the hand-made ones (experience_type "sunday-table").
  * One Sunday Social per city per Sunday: a hand-made one wins over a series
  * table on the same city and date.
- * Deliberately no venue: the page never names one, because the wine bar is
- * booked once the tables are known. */
+ * Deliberately no venue: the page never names one. Only for Amsterdam the
+ * neighbourhood of a linked venue goes along (the city is large). */
 async function loadEvents(): Promise<QuizEvent[]> {
   if (!isDbConfigured()) return [];
   const db = getDb();
@@ -52,6 +53,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
   );
 
   const ages = await loadAgeBuckets(rows.map((r) => ({ id: r.id, startsAt: r.startsAt })));
+  const places = await loadAmsterdamPlaces(rows.filter((r) => isAmsterdam(r.city)).map((r) => r.id));
 
   const out: QuizEvent[] = [];
   for (const row of rows) {
@@ -76,6 +78,7 @@ async function loadEvents(): Promise<QuizEvent[]> {
         // from the moment it was made.
         bookingOpensAt: row.createdAt.toISOString(),
         ageBuckets: ages.get(row.id),
+        ...places.get(row.id),
       });
       continue;
     }
@@ -95,7 +98,30 @@ async function loadEvents(): Promise<QuizEvent[]> {
       membersOnlyUntil: row.membersOnlyUntil?.toISOString() ?? null,
       bookingOpensAt: bookingOpensOverride(row.extras),
       ageBuckets: ages.get(row.id),
+      ...places.get(row.id),
     });
+  }
+  return out;
+}
+
+/** Per Amsterdam table with a venue linked: the neighbourhood and the part
+ * of the city of its first venue. The list does without it when this fails. */
+async function loadAmsterdamPlaces(eventIds: string[]): Promise<Map<string, { area: string | null; district: string | null }>> {
+  const out = new Map<string, { area: string | null; district: string | null }>();
+  if (eventIds.length === 0) return out;
+  try {
+    const rows = await getDb()
+      .select({ eventId: eventVenues.eventId, area: venues.area, address: venues.address })
+      .from(eventVenues)
+      .innerJoin(venues, eq(venues.id, eventVenues.venueId))
+      .where(inArray(eventVenues.eventId, eventIds))
+      .orderBy(asc(eventVenues.position));
+    for (const row of rows) {
+      if (out.has(row.eventId)) continue;
+      out.set(row.eventId, { area: row.area?.trim() || null, district: amsterdamDistrict(row) });
+    }
+  } catch (error) {
+    console.error("[jouw-tafel] loading Amsterdam venues failed", error);
   }
   return out;
 }
@@ -138,7 +164,7 @@ async function loadAgeBuckets(tables: { id: string; startsAt: Date }[]): Promise
 
 /** Short cache, dropped with the agenda whenever a purchase or admin edit
  * revalidates PUBLISHED_EVENTS_CACHE_TAG. */
-const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v6"], {
+const getCachedEvents = unstable_cache(loadEvents, ["jouw-tafel-landing-events-v8"], {
   revalidate: 300,
   tags: [PUBLISHED_EVENTS_CACHE_TAG],
 });

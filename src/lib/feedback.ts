@@ -77,6 +77,8 @@ export type FeedbackPage = {
   locale: "nl" | "en";
   firstName: string;
   city: string;
+  /** "Zondag 15 november" / "Sunday 15 November". */
+  dateLabel: string;
   venueName: string | null;
   member: boolean;
   /** First names at their table (not themselves), for "wie wil je vaker zien". */
@@ -250,6 +252,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
     bookingId: booking.id,
     locale,
     firstName: firstName(booking.customerName),
+    dateLabel: longLabel(event.startsAt).replace(/^./, (c) => c.toLocaleUpperCase()),
     city: event.city,
     venueName: venue?.name ?? null,
     member: isActiveMember(membershipSnapshot(membership)),

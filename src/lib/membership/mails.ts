@@ -1,3 +1,5 @@
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
+import { quizLanguageOf } from "@/lib/event-notify-signups";
 import { mailLoginUrl } from "@/lib/auth/mail-login";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
@@ -98,7 +100,12 @@ export async function sendOpenForEveryoneEmail(input: {
   city: string;
   sunday: Date;
 }): Promise<boolean> {
-  const locale = await resolveEmailLocale({ email: input.email, fallbackLocale: input.fallbackLocale });
-  const mail = openForEveryoneMail({ locale, city: input.city, sunday: input.sunday, links: links(locale) });
+  // Who speaks only English (or only Dutch) gets the mail in that language, whatever the site was set to.
+  const spoken = await quizLanguageOf(input.email).catch(() => null);
+  const locale: Locale =
+    spoken === "english" ? "en" : spoken === "dutch" ? "nl" : await resolveEmailLocale({ email: input.email, fallbackLocale: input.fallbackLocale });
+  const path = sundaySocialDatePath(locale, { city: input.city, startsAt: input.sunday });
+  const url = path ? `${getSiteUrl().replace(/\/$/, "")}${path}` : null;
+  const mail = openForEveryoneMail({ locale, city: input.city, sunday: input.sunday, links: links(locale), url });
   return sendSimpleEmail({ to: input.email, subject: mail.subject, element: MembershipEmail(mail.props) });
 }

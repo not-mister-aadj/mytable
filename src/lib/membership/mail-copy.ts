@@ -268,23 +268,25 @@ export function openForEveryoneMail(input: {
   city: string;
   sunday: Date;
   links: Links;
+  /** The Sunday's own page, where a seat is booked without a log-in; else "Kies je zondag". */
+  url?: string | null;
 }): MembershipMail {
   const { locale: l } = input;
   const en = l === "en";
   const day = mailSunday(input.sunday, l);
   return {
-    subject: en ? `You can book now: Sunday Table ${input.city}` : `Je kunt nu boeken: Sunday Table ${input.city}`,
+    subject: en ? `You can book now: Sunday Social ${input.city}` : `Je kunt nu boeken: Sunday Social ${input.city}`,
     props: {
       locale: l,
       preview: en ? `The table of ${day} is open for you.` : `De tafel van ${day} staat voor je open.`,
       greeting: greeting(l, null),
       headline: en ? "You can book now" : "Je kunt nu boeken",
       body: en
-        ? `The Sunday Table of ${day} in ${input.city} is now open for everyone. Seats are limited.`
-        : `De Sunday Table van ${day} in ${input.city} is nu voor iedereen open. De plekken zijn beperkt.`,
+        ? `The Sunday Social of ${day} in ${input.city} is now open for everyone. Seats are limited.`
+        : `De Sunday Social van ${day} in ${input.city} is nu voor iedereen open. De plekken zijn beperkt.`,
       cta: {
-        href: input.links.kies,
-        label: en ? "Choose your Sunday →" : "Kies je zondag →",
+        href: input.url ?? input.links.kies,
+        label: input.url ? (en ? "Reserve your seat →" : "Reserveer je plek →") : en ? "Choose your Sunday →" : "Kies je zondag →",
         helperText: en ? "Where exactly, you hear a week before." : "Waar precies, hoor je een week van tevoren.",
       },
     },

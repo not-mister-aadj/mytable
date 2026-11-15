@@ -49,6 +49,18 @@ export async function knownBirthDate(email: string): Promise<string | null> {
   return row?.birth_date && /^\d{4}-\d{2}-\d{2}/.test(row.birth_date) ? row.birth_date.slice(0, 10) : null;
 }
 
+/** The language they chose in the quiz ("dutch" | "english" | "both"), or null: a mail follows it before the site's language. */
+export async function quizLanguageOf(email: string): Promise<string | null> {
+  if (!isDbConfigured()) return null;
+  const me = email.trim().toLowerCase();
+  const [row] = (await getDb().execute(sql`
+    select coalesce(
+      (select u.raw_user_meta_data->'jouw_tafel_quiz'->'answers'->>'language' from auth.users u where lower(u.email) = ${me} limit 1),
+      (select g.state->'answers'->>'language' from jouw_tafel_guests g where lower(g.email) = ${me} and g.state->'answers'->>'language' is not null order by g.updated_at desc limit 1)
+    ) as language`)) as unknown as Array<{ language: string | null }>;
+  return row?.language ?? null;
+}
+
 /** Off the list again: tapping "Zet me op de wachtlijst" a second time. */
 export async function removeEventNotifySignup(input: { eventId: string; email: string }): Promise<void> {
   if (!isDbConfigured()) return;

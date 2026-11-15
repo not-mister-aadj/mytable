@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
-import { addEventNotifySignup, isValidEmail } from "@/lib/event-notify-signups";
+import { addEventNotifySignup, isValidEmail, knownBirthDate } from "@/lib/event-notify-signups";
+import { ageFromBirthDate } from "@/lib/jouw-tafel/quiz-logic";
 
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
@@ -34,7 +35,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid event." }, { status: 400 });
   }
 
-  let body: { email?: string; locale?: string };
+  let body: { email?: string; locale?: string; birthDate?: string };
   try {
     body = await request.json();
   } catch {
@@ -48,8 +49,20 @@ export async function POST(
     return NextResponse.json({ error: "Invalid email." }, { status: 400 });
   }
 
+  // The waitlist needs an age: a seat that comes free goes to who fits the
+  // group. Known from the quiz or a booking, else asked here (18 or older).
+  const sent = typeof body.birthDate === "string" ? body.birthDate.trim() : "";
+  const sentAge = sent ? ageFromBirthDate(sent) : null;
+  if (sent && sentAge === null) {
+    return NextResponse.json({ error: "Invalid birth date.", needsBirthDate: true }, { status: 422 });
+  }
+  const birthDate = sent || (await knownBirthDate(email).catch(() => null));
+  if (!birthDate) {
+    return NextResponse.json({ error: "Birth date needed.", needsBirthDate: true }, { status: 422 });
+  }
+
   try {
-    await addEventNotifySignup({ eventId, email, locale });
+    await addEventNotifySignup({ eventId, email, locale, birthDate });
   } catch (error) {
     console.error("[event-notify] addEventNotifySignup failed:", error);
     return NextResponse.json({ error: "Could not sign up." }, { status: 400 });

@@ -1,3 +1,4 @@
+import { holdSeatOffer, loadSeatOffer } from "@/lib/seat-offer";
 import { NextResponse } from "next/server";
 import { readAttribution } from "@/lib/analytics/attribution-server";
 import { eq } from "drizzle-orm";
@@ -115,6 +116,8 @@ export async function POST(request: Request) {
 
   let body: {
     eventId?: string;
+    /** The link from "Er is een plek vrij" (seat-offer.ts): one seat on a full Sunday. */
+    seatOffer?: string;
     seats?: number;
     pricingTier?: string;
     email?: string;
@@ -218,7 +221,22 @@ export async function POST(request: Request) {
     );
   }
 
-  if (isEventClosedForBooking(event.startsAt)) {
+  // A seat that came free after a cancellation, offered to this person by
+  // mail: the Sunday is full for everyone else, so the seat checks below are
+  // answered by the offer. Also past the usual close 48 hours before: these
+  // seats come free in the last days, and the offer has its own limit.
+  const seatOffer = typeof body.seatOffer === "string" && body.seatOffer ? await loadSeatOffer(body.seatOffer) : null;
+  if (body.seatOffer && (!seatOffer || seatOffer.event.id !== event.id || seatOffer.email !== email || seatOffer.state !== "open")) {
+    return NextResponse.json(
+      {
+        code: "offer_gone",
+        error: locale === "en" ? "This seat has just been taken." : "Deze plek is net vergeven.",
+      },
+      { status: 409 },
+    );
+  }
+
+  if (!seatOffer && isEventClosedForBooking(event.startsAt)) {
     return NextResponse.json(
       {
         error:
@@ -330,7 +348,7 @@ export async function POST(request: Request) {
   }
   // A Sunday Table nobody booked 14 days before is closed. The message is
   // the same as for a full table: nobody learns which of the two it is.
-  if (isJouwTafel && isClosedEmpty({ ...event, bookingOpensAt: bookingOpensOverride(event.extras) })) {
+  if (!seatOffer && isJouwTafel && isClosedEmpty({ ...event, bookingOpensAt: bookingOpensOverride(event.extras) })) {
     return NextResponse.json(
       {
         code: "full",
@@ -535,19 +553,21 @@ export async function POST(request: Request) {
     ? "join_others"
     : seatingForTier(requestedTier);
 
-  const spotsLeft = event.capacity - event.spotsSold;
+  const spotsLeft = seatOffer ? 1 : event.capacity - event.spotsSold;
 
   let seats: number | null;
   let perSeatCents: number;
   let amountCents: number;
 
   if (isSundayTable) {
-    const requestedSeats = Math.max(1, Number(body.seats) || 1);
+    const requestedSeats = seatOffer ? 1 : Math.max(1, Number(body.seats) || 1);
     seats = resolveSundayTableSeats(requestedSeats, spotsLeft);
-    perSeatCents = resolveSeatPriceCents({
-      eventPriceCents: event.priceCents,
-      isJouwTafel,
-    });
+    perSeatCents = seatOffer
+      ? seatOffer.priceCents
+      : resolveSeatPriceCents({
+          eventPriceCents: event.priceCents,
+          isJouwTafel,
+        });
     amountCents = seats !== null ? perSeatCents * seats : 0;
   } else {
     const requestedSeats = Math.max(
@@ -582,6 +602,13 @@ export async function POST(request: Request) {
 
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
+  }
+  // Theirs while they pay: the next one from the waitlist hears it is taken.
+  if (seatOffer && !(await holdSeatOffer(seatOffer.releaseId, email))) {
+    return NextResponse.json(
+      { code: "offer_gone", error: locale === "en" ? "This seat has just been taken." : "Deze plek is net vergeven." },
+      { status: 409 },
+    );
   }
   // Kept with the booking, so tables can be grouped by age: the date the
   // date page asked for, else the quiz answer of the signed-in guest.
@@ -737,6 +764,7 @@ export async function POST(request: Request) {
         affiliate_code: booking.affiliateCode ?? "",
         from_sunday_table: booking.fromSundayTable ? "1" : "0",
         source: isJouwTafel ? JOUW_TAFEL_CHECKOUT_SOURCE : "site",
+        seat_offer: seatOffer?.releaseId ?? "",
       },
       success_url: `${siteUrl}/${locale}/boeking/bevestigd?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/${locale}/boeking/geannuleerd?event=${event.slug}`,

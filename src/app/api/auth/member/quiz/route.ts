@@ -182,7 +182,7 @@ export async function POST(request: Request) {
 
   if (notifyEventId) {
     try {
-      await addEventNotifySignup({ eventId: notifyEventId, email: person.email, locale });
+      await addEventNotifySignup({ eventId: notifyEventId, email: person.email, locale, birthDate: state.answers.birthDate ?? null });
     } catch (error) {
       console.error("[jouw-tafel quiz] notify signup failed:", error);
       return NextResponse.json({ error: "Could not sign up" }, { status: 400 });

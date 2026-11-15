@@ -248,6 +248,14 @@ export async function fulfillPaidCheckoutSession(
     return "already_paid";
   }
 
+  // A seat from "Er is een plek vrij": room is made for it first (the Sunday
+  // is full), and the booking joins the group with the gap.
+  const seatOfferId = session.metadata?.seat_offer;
+  if (seatOfferId) {
+    const { claimSeatOffer } = await import("@/lib/seat-offer");
+    await claimSeatOffer(seatOfferId, bookingId).catch((error) => console.error("[fulfill] claiming the seat offer failed:", error));
+  }
+
   const updated = await db.transaction(async (tx) => {
     const [ev] = await tx
       .update(events)

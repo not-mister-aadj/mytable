@@ -9,11 +9,13 @@ import { recordMissedSunday } from "@/lib/missed-sundays/server";
 export type LateCancelResult = { ok: true } | { ok: false; error: "not_found" | "started" };
 
 /**
- * "Kun je toch niet?" on the table page, until the Sunday starts. No
- * refund (terms, art. 6) and the seat stays taken; the guest leaves their
+ * "Kun je toch niet?" on the table page, until the Sunday starts: the guest
+ * gives up a fixed seat and tells us what happened (a member just cancels).
+ * No refund (terms, art. 6) and the seat stays taken; the guest leaves their
  * group's list and gets no more Sunday mails. Not a no-show.
  */
-export async function cancelLate(bookingId: string, now = new Date()): Promise<LateCancelResult> {
+export async function cancelLate(bookingId: string, now = new Date(), reason?: string): Promise<LateCancelResult> {
+  const why = reason?.trim().slice(0, 1000) || null;
   const db = getDb();
   const [row] = await db
     .select({ booking: bookings, event: events })
@@ -32,7 +34,7 @@ export async function cancelLate(bookingId: string, now = new Date()): Promise<L
     .returning({ id: bookings.id });
   if (!marked) return { ok: true };
   const left = await dropPlannedMailsFor(row.event.id, bookingId).catch(() => ["saturday", "morning", "feedback"]);
-  await db.insert(bookingEvents).values({ bookingId, type: "cancelled_late", payload: { plannedMailsLeft: left } });
+  await db.insert(bookingEvents).values({ bookingId, type: "cancelled_late", payload: { plannedMailsLeft: left, ...(why ? { reason: why } : {}) } });
   // The seat goes to the Sunday's waitlist, to who fits the group (seat-offer.ts).
   let seatLine: string | null = null;
   try {
@@ -43,7 +45,7 @@ export async function cancelLate(bookingId: string, now = new Date()): Promise<L
     console.error("[late-cancel] offering the seat failed:", error);
   }
   // We hear about it at once: the groups may need another look.
-  await notifyOwnerOfCancel({ booking: row.booking, event: row.event, plannedMailsLeft: left, seatLine, now }).catch((error) =>
+  await notifyOwnerOfCancel({ booking: row.booking, event: row.event, plannedMailsLeft: left, seatLine, now, reason: why }).catch((error) =>
     console.error("[late-cancel] telling the owner failed:", error),
   );
   // A seat given up after moving closed: a missed Sunday (missed-sundays/logic.ts).
@@ -58,6 +60,7 @@ async function notifyOwnerOfCancel(input: {
   plannedMailsLeft: string[];
   seatLine: string | null;
   now: Date;
+  reason: string | null;
 }): Promise<void> {
   const { booking, event, now } = input;
   const db = getDb();
@@ -80,6 +83,7 @@ async function notifyOwnerOfCancel(input: {
   const text = [
     `${name} heeft zich afgemeld voor ${event.city}, ${date}.`,
     "",
+    ...(input.reason ? [`Wat er is: ${input.reason}`, ""] : []),
     `Afgemeld: ${when}, ${hours} uur voor de start`,
     `Plekken: ${booking.seats}`,
     ...(group ? [`Groep ${group.number}: nog ${own}`] : []),

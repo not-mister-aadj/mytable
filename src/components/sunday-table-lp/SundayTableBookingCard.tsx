@@ -17,10 +17,19 @@ import {
   getMembershipPlan,
 } from "@/lib/membership/plans";
 
-/** Right above the buy button: the table counts on you. */
+/** Right above the buy button: the promise the booker ticks. A seat from a
+ * membership follows the membership's own rule (cancel until 48 hours before). */
 const COMMIT_COPY = {
-  nl: "Je tafel rekent op je. Kun je toch niet, laat het dan zo vroeg mogelijk weten.",
-  en: "Your table counts on you. If you can't make it after all, let us know as early as possible.",
+  nl: {
+    lead: "Ik kom.",
+    seat: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan verzet ik uiterlijk 7 dagen vooraf.",
+    member: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan meld ik me uiterlijk 48 uur vooraf af.",
+  },
+  en: {
+    lead: "I'll be there.",
+    seat: "My table is made around me. If I can't make it after all, I move my seat at least 7 days before.",
+    member: "My table is made around me. If I can't make it after all, I cancel at least 48 hours before.",
+  },
 } as const;
 
 /** Date of birth: only a check that the booker is 18 or older. */
@@ -673,7 +682,13 @@ export function SundayTableBookingCard({
       {errorBlock}
 
       {englishOnlyWaiting || needsLogin ? null : (
-        <p className="text-center text-sm leading-snug text-wine/75">{COMMIT_COPY[locale === "en" ? "en" : "nl"]}</p>
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gold/40 bg-white/60 px-4 py-3 text-left text-sm leading-snug text-wine/80">
+          <input type="checkbox" required className="mt-0.5 h-4 w-4 shrink-0 accent-burgundy" />
+          <span>
+            <span className="font-semibold text-wine">{COMMIT_COPY[locale === "en" ? "en" : "nl"].lead}</span>{" "}
+            {COMMIT_COPY[locale === "en" ? "en" : "nl"][member || monthly ? "member" : "seat"]}
+          </span>
+        </label>
       )}
       {(englishOnlyWaiting && englishNotified) || needsLogin ? null : (
         <Button type="submit" className={submitClass}>

@@ -43,8 +43,8 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
   },
   confirm: {
     title: "Kom je zondag?",
-    when: "Woensdag 10:00, automatisch",
-    what: "Vraagt of ze komen, met één knop: Ja, ik kom. Gaat naar wie nog niet bevestigde. Wie niet kan, vragen we het meteen te laten weten.",
+    when: "Vrijdag 10:00, 9 dagen vooraf, automatisch",
+    what: "Twee knoppen: Ja, ik kom, of Ik wil verzetten. Niet naar leden. Wie niets kiest, krijgt zaterdag een herinnering.",
   },
   saturday: {
     title: "Zaterdagmail",

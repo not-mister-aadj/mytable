@@ -30,6 +30,10 @@ export async function transferBooking(input: {
   by: string | null;
   /** The customer did it themselves (mail wording). */
   selfService?: boolean;
+  /** The caller sends its own mail about the move. */
+  quiet?: boolean;
+  /** They picked this Sunday themselves: counts as "Ja, ik kom". */
+  confirmed?: boolean;
 }): Promise<TransferBookingOutcome> {
   const { bookingId, targetEventId, by } = input;
   const db = getDb();
@@ -102,6 +106,7 @@ export async function transferBooking(input: {
         transferredFromBookingId: booking.id,
         transferredAt,
         transferredBy: by ?? undefined,
+        attendanceConfirmedAt: input.confirmed ? transferredAt : undefined,
       })
       .returning();
 
@@ -185,6 +190,8 @@ export async function transferBooking(input: {
   await reconcileEventSpotsSold([...slugs.eventIds]);
   revalidateEventPaths(slugs.sourceEvent);
   revalidateEventPaths(slugs.targetEvent);
+
+  if (input.quiet) return { newBooking: slugs.newBooking, sourceEvent: slugs.sourceEvent, targetEvent: slugs.targetEvent };
 
   try {
     const movedProps = await buildBookingMovedEmailProps(

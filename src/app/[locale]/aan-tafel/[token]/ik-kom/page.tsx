@@ -9,6 +9,7 @@ import { getDb } from "@/db/index";
 import { bookings } from "@/db/schema";
 import { isValidLocale, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { longDate } from "@/lib/admin/sunday-mails";
 import { loadTablePage, verifyTablePageToken } from "@/lib/table-page";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 
 type Props = { params: Promise<{ locale: string; token: string }> };
 
-/** "Ja, ik kom" from the Wednesday mail. */
+/** "Ja, ik kom" from "Kom je zondag?". */
 export default async function ConfirmAttendanceRoute({ params }: Props) {
   const { locale: localeParam, token: rawToken } = await params;
   if (!isValidLocale(localeParam)) notFound();
@@ -35,6 +36,8 @@ export default async function ConfirmAttendanceRoute({ params }: Props) {
     ? await getDb().select({ at: bookings.attendanceConfirmedAt }).from(bookings).where(eq(bookings.id, usable.bookingId)).limit(1)
     : [];
   const lang = locale === "en" ? "en" : "nl";
+  const when = usable ? longDate(usable.startsAt, lang) : "";
+  const at = usable ? new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", hour: "2-digit", minute: "2-digit" }).format(usable.startsAt) : "";
 
   return (
     <>
@@ -45,7 +48,8 @@ export default async function ConfirmAttendanceRoute({ params }: Props) {
             <ConfirmAttendance
               token={token}
               locale={lang}
-              venue={usable.venue?.name ?? usable.city}
+              when={`${when.charAt(0).toUpperCase()}${when.slice(1)} ${lang === "en" ? "at" : "om"} ${at} in ${usable.city}.`}
+              placeKnown={Boolean(usable.venue)}
               confirmed={Boolean(row?.at)}
               tableHref={`${locale === "en" ? "/en" : ""}/aan-tafel/${encodeURIComponent(token)}`}
             />

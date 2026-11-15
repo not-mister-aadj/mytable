@@ -17,7 +17,11 @@ function months(n: number, locale: Locale): string {
   return n === 1 ? "een maand" : `${n} maanden`;
 }
 
-/** The mail after a late cancel or a no-show, for each outcome. */
+/**
+ * The mail after a seat given up late or a no-show. The first time it is let
+ * go, and the mail says what a next time means; after that it names the date
+ * they can book again. Short, and about the table, not about them.
+ */
 export function missedSundayMail(input: {
   locale: Locale;
   firstName?: string | null;
@@ -25,78 +29,37 @@ export function missedSundayMail(input: {
   outcome: MissOutcome;
   /** Months off now (block) or next time (warning). */
   months: number;
-  member: boolean;
   sunday: Date;
 }): MissedSundayMail {
   const { locale: l, kind, outcome } = input;
   const en = l === "en";
   const day = mailSunday(input.sunday, l);
-  const hi = greeting(l, input.firstName);
-  const moveLine = en
-    ? "Can't make it next time? Let us know as early as possible at info@mytable.club, so we can still give your seat to someone else."
-    : "Kun je een volgende keer niet? Laat het ons dan zo vroeg mogelijk weten via info@mytable.club, dan kunnen we je plek nog aan iemand anders geven.";
-  const memberLine = input.member ? (en ? " Your membership continues as usual." : " Je lidmaatschap loopt gewoon door.") : "";
-
-  if (outcome.kind === "warning") {
-    return {
-      subject: en ? "You cancelled your seat late" : "Je zegde je plek laat af",
-      props: {
-        locale: l,
-        preview: en ? `Your seat for ${day} was cancelled less than 48 hours before.` : `Je plek voor ${day} is minder dan 48 uur van tevoren afgezegd.`,
-        greeting: hi,
-        headline: en ? "A shame you weren't there on Sunday" : "Jammer dat je er zondag niet bij was",
-        body: en
-          ? `You cancelled your seat for ${day} less than 48 hours before. That can happen, but your table was counting on you, and this late we couldn't give the seat to someone else.`
-          : `Je zegde je plek voor ${day} minder dan 48 uur van tevoren af. Dat kan gebeuren, maar je tafel rekende op je, en zo laat konden we de plek niet meer aan iemand anders geven.`,
-        warmLine: moveLine,
-        note: en
-          ? `If you cancel this late again, you can't book a Sunday Social for ${months(input.months, l)}.${memberLine}`
-          : `Zeg je nog een keer zo laat af, dan kun je ${months(input.months, l)} geen Sunday Social boeken.${memberLine}`,
-      },
-    };
-  }
-
-  const until = mailDate(outcome.until, l);
-  if (outcome.kind === "warning_block") {
-    return {
-      subject: en ? "We missed you at the table" : "We hebben je gemist aan tafel",
-      props: {
-        locale: l,
-        preview: en ? `You can book again from ${until}.` : `Vanaf ${until} kun je weer boeken.`,
-        greeting: hi,
-        headline: en ? "We missed you" : "We hebben je gemist",
-        body: en
-          ? `You weren't at the table on ${day}, and you didn't let us know. Your table was counting on you. So you can't book a Sunday Social for a month. From ${until} you can again.`
-          : `Je was er ${day} niet bij, zonder het ons te laten weten. Je tafel rekende op je. Daarom kun je een maand geen Sunday Social boeken. Vanaf ${until} kan het weer.`,
-        warmLine: moveLine,
-        note: en ? "If it happens again, you can't book for 6 months." : "Gebeurt het nog een keer, dan kun je 6 maanden niet boeken.",
-      },
-    };
-  }
-
+  const late = kind === "late";
+  const subject = late ? (en ? "About last Sunday" : "Over afgelopen zondag") : en ? "We missed you on Sunday" : "We hebben je gemist zondag";
+  const what = late
+    ? en
+      ? `You let us know shortly before ${day} that you couldn't come. Your table was already made around you, and sat with an empty seat.`
+      : `Je liet kort voor ${day} weten dat je niet kon. Je tafel was toen al ingedeeld en zat daardoor met een lege plek.`
+    : en
+      ? `On ${day} a seat was ready for you, but you weren't there and we didn't hear from you. Your table sat with an empty seat.`
+      : `Op ${day} stond er een plek voor je klaar, maar je was er niet en we hoorden niets. Je tafel zat daardoor met een lege plek.`;
+  const consequence =
+    outcome.kind === "warning"
+      ? en
+        ? `We're letting it go this time. If it happens again, you can't book for ${months(input.months, l)}.`
+        : `Deze keer laten we het hierbij. Gebeurt het nog een keer, dan kun je ${months(input.months, l)} niet boeken.`
+      : en
+        ? `It wasn't the first time, so you can't book until ${mailDate(outcome.until, l)}. After that you're welcome again.`
+        : `Het was niet de eerste keer. Daarom kun je tot ${mailDate(outcome.until, l)} niet boeken. Daarna ben je weer welkom.`;
+  const next = late
+    ? en
+      ? "See earlier next time that it won't work? Until 7 days before, you move your seat for free."
+      : "Zie je een volgende keer eerder dat het niet lukt? Tot 7 dagen vooraf verzet je kosteloos."
+    : en
+      ? "Did something come up that you couldn't help? Reply to this mail and we'll look at it."
+      : "Kwam er iets tussen waar je niets aan kon doen? Antwoord op deze mail, dan kijken we ernaar.";
   return {
-    subject: en ? `You can book again from ${until}` : `Vanaf ${until} kun je weer boeken`,
-    props: {
-      locale: l,
-      preview: en ? `You can book again from ${until}.` : `Vanaf ${until} kun je weer boeken.`,
-      greeting: hi,
-      headline: en ? "A break from booking" : "Even geen Sunday Social",
-      body:
-        (kind === "late"
-          ? en
-            ? `You cancelled your seat for ${day} less than 48 hours before, and it wasn't the first time. `
-            : `Je zegde je plek voor ${day} minder dan 48 uur van tevoren af, en het was niet de eerste keer. `
-          : en
-            ? `You weren't at the table on ${day}, and it wasn't the first time. `
-            : `Je was er ${day} niet bij, en het was niet de eerste keer. `) +
-        (en
-          ? "At the table, people count on each other: they keep their Sunday afternoon free and look forward to meeting you. In our club we respect each other's time, and this doesn't fit with that."
-          : "Aan tafel rekenen mensen op elkaar: ze houden hun zondagmiddag vrij en kijken ernaar uit om je te ontmoeten. In onze club respecteren we elkaars tijd, en daar past dit niet bij."),
-      warmLine:
-        (en
-          ? `So you can't book a Sunday Social for the next ${months(input.months, l)}. From ${until} you're welcome to give it another try.`
-          : `Daarom kun je de komende ${months(input.months, l)} geen Sunday Social boeken. Vanaf ${until} ben je van harte welkom om het nog een keer te proberen.`) + memberLine,
-      note: moveLine,
-    },
+    subject,
+    props: { locale: l, preview: consequence, greeting: greeting(l, input.firstName), headline: subject, body: what, warmLine: consequence, note: next },
   };
 }

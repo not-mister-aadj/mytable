@@ -6,6 +6,8 @@ import { sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/co
 import { hasSundaySocialCityPage, sundaySocialSlugFromCity } from "@/lib/sunday-social-cities";
 import { getTokenSecrets, hasOpenIntroAnswer, isIntroConversationStyle, isIntroWine, type IntroWine, type SundayTableIntro } from "@/lib/sunday-table-intro";
 import { tableLanguage } from "@/lib/jouw-tafel/groups-logic";
+import { canReschedule } from "@/lib/jouw-tafel/reschedule-logic";
+import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { venueTransit } from "@/lib/venue-about";
 import { parseVenuePicks, picksVisible, type VenuePick } from "@/lib/venue-picks";
 
@@ -48,9 +50,19 @@ export async function tablePageUrl(bookingId: string, locale: "nl" | "en", base 
   return `${base.replace(/\/$/, "")}${locale === "en" ? "/en" : ""}/aan-tafel/${token}`;
 }
 
-/** "Ja, ik kom" from the Wednesday mail: a page under the table page that asks once more. */
+/** "Ja, ik kom" from "Kom je zondag?": a page under the table page that saves it. */
 export async function confirmUrl(bookingId: string, locale: "nl" | "en", base = SITE): Promise<string> {
   return `${await tablePageUrl(bookingId, locale, base)}/ik-kom`;
+}
+
+/** "Ik wil verzetten": the page where a guest moves their seat to another Sunday. */
+export async function moveUrl(bookingId: string, locale: "nl" | "en", base = SITE): Promise<string> {
+  return `${await tablePageUrl(bookingId, locale, base)}/verzetten`;
+}
+
+/** Whole Amsterdam calendar days until the Sunday. */
+function daysUntil(startsAt: Date, now: number): number {
+  return Math.round((Date.parse(`${amsterdamDateIso(startsAt)}T12:00:00Z`) - Date.parse(`${amsterdamDateIso(new Date(now))}T12:00:00Z`)) / 86_400_000);
 }
 
 export function tablePageClosesAt(startsAt: Date): Date {
@@ -84,6 +96,9 @@ export type TablePage = {
   started: boolean;
   /** They cancelled on this page ("Kun je toch niet?"). */
   cancelled: boolean;
+  /** What "Kun je toch niet?" offers: moving (until 7 days before, once), a
+   * fixed seat (hand it over, or tell us), or a member's own cancel. */
+  seat: "movable" | "fixed" | "member";
   /** The Sunday is today, tomorrow or later (Amsterdam). */
   day: "today" | "tomorrow" | "later";
   venue: { name: string; address: string | null; transit: string | null } | null;
@@ -216,13 +231,19 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
     closed: now >= tablePageClosesAt(event.startsAt).getTime(),
     started: now >= event.startsAt.getTime(),
     cancelled: Boolean(booking.cancelledLateAt),
+    seat: booking.membershipId
+      ? "member"
+      : canReschedule(event.startsAt, now) && !(booking.transferredFromBookingId && booking.transferredBy === "klant")
+        ? "movable"
+        : "fixed",
     day:
       dayKey(event.startsAt) === dayKey(new Date(now))
         ? "today"
         : dayKey(event.startsAt) === dayKey(new Date(now + 86_400_000))
           ? "tomorrow"
           : "later",
-    venue: venue ? { name: venue.name, address: venue.address, transit: venueTransit(venue.name, locale) } : null,
+    // The place is told a week before (the location mail): not on a page opened earlier.
+    venue: venue && daysUntil(event.startsAt, now) <= 7 ? { name: venue.name, address: venue.address, transit: venueTransit(venue.name, locale) } : null,
     groupNumber: group?.number ?? null,
     language: tableLanguage(tableRows.map((b) => b.tableLanguagePreference)).language,
     me: {

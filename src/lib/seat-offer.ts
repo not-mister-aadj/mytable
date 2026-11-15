@@ -3,6 +3,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, events, seatReleases } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
 import { buttonMail, loadSundayMailContext, mapsUrl, sendSundayMail, shortDate, type SundayMail } from "@/lib/admin/sunday-mails";
 import { isJouwTafelType } from "@/lib/event-concepts";
 import { amsterdamDistrict, DISTRICT_LABELS, isAmsterdam } from "@/lib/jouw-tafel/districts";
@@ -230,7 +231,7 @@ async function waitlistPeople(eventId: string, only?: string[]): Promise<Map<str
 const LANGUAGE_OF: Record<string, string> = { prefer_dutch: "dutch", prefer_english: "english", both_fine: "both" };
 
 /** Who on the waitlist fits the group with the gap (or the whole Sunday, without groups). */
-async function fittingPeople(release: Release, event: EventRow): Promise<Person[]> {
+async function fittingPeople(release: Pick<Release, "groupId">, event: EventRow): Promise<Person[]> {
   const db = getDb();
   const still = and(
     eq(bookings.eventId, event.id),
@@ -474,4 +475,34 @@ export async function seatOfferConfirmation(eventId: string, bookingId: string, 
     tableUrl: await tablePageUrl(bookingId, guest.locale),
   });
   return { ...mail, from: FROM };
+}
+
+/**
+ * A seat that came free on a full Sunday because its guest moved (seat-move.ts),
+ * a week or more ahead: the Sunday is open again on the site, and the people on
+ * its waitlist who fit hear it, with the Sunday's own page. Full price.
+ */
+export async function announceMovedSeat(eventId: string, now: Date = new Date()): Promise<number> {
+  const [event] = await getDb().select().from(events).where(eq(events.id, eventId)).limit(1);
+  if (!event || event.workflowStatus !== "published" || event.startsAt.getTime() <= now.getTime()) return 0;
+  const place = await placeOf(event);
+  const fullPriceCents = resolveSeatPriceCents({ eventPriceCents: event.priceCents, isJouwTafel: isJouwTafelType(event.experienceType) });
+  let sent = 0;
+  for (const person of await fittingPeople({ groupId: null }, event)) {
+    const path = sundaySocialDatePath(person.locale, { city: event.city, startsAt: event.startsAt });
+    if (!path) continue;
+    const mail = seatOfferMail({
+      member: await memberSeatIncluded(person.email, event.startsAt),
+      locale: person.locale,
+      firstName: person.firstName,
+      city: event.city,
+      place,
+      startsAt: event.startsAt,
+      url: `${getSiteUrl().replace(/\/$/, "")}${path}`,
+      now,
+      fullPriceCents,
+    });
+    if (await sendSundayMail(person.email, { ...mail, from: FROM }).catch(() => null)) sent++;
+  }
+  return sent;
 }

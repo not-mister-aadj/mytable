@@ -65,3 +65,34 @@ export function pickRescheduleTarget(
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
   return options[0] ?? null;
 }
+
+/**
+ * "Ik wil verzetten" from "Kom je zondag?": every open Sunday in the guest's
+ * cities (their own included) with the same age bracket and room for their
+ * seats, soonest first. Earlier or later than their own, it does not matter.
+ */
+export function moveTargets(
+  source: { id: string; city: string; nameNl: string },
+  candidates: readonly RescheduleCandidate[],
+  seats: number,
+  cities: readonly string[],
+  now: number = Date.now(),
+): RescheduleCandidate[] {
+  const bracket = bracketFromEventName(source.nameNl);
+  const mine = [source.city, ...cities];
+  return candidates
+    .filter(
+      (e) =>
+        e.id !== source.id &&
+        e.experienceType === JOUW_TAFEL_TYPE &&
+        e.workflowStatus === "published" &&
+        !e.comingSoon &&
+        mine.some((city) => sameCity(e.city, city)) &&
+        bracketFromEventName(e.nameNl) === bracket &&
+        e.startsAt.getTime() > now &&
+        !isEventClosedForBooking(e.startsAt, new Date(now)) &&
+        !isClosedEmpty(e, now) &&
+        e.capacity - e.spotsSold >= seats,
+    )
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+}

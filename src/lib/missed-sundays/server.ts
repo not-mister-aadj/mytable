@@ -13,7 +13,7 @@ import { sendRendered } from "@/lib/admin/sunday-mails";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { mailSunday } from "@/lib/membership/mail-copy";
 import {
-  blockMonths,
+  blockMonthsAfter,
   isLateCancel,
   LATE_CANCEL_HOURS,
   MISS_POLICY_START,
@@ -43,11 +43,11 @@ export async function recordMissedSunday(input: { bookingId: string; kind: MissK
   if (!row || !isSharedTableType(row.event.experienceType)) return null;
   if (row.event.startsAt.getTime() < MISS_POLICY_START.getTime()) return null;
   if (input.kind === "late" && !isLateCancel(now, row.event.startsAt)) return null;
-  const member = Boolean(row.booking.membershipId);
-  if (input.kind === "no_show" && member) return null;
+  // A seat from a membership follows the membership's own rule (terms art. 13).
+  if (row.booking.membershipId) return null;
 
   const prior = await countMisses(row.booking.email, input.kind, now, row.booking.id);
-  const outcome = missOutcome(input.kind, prior, member, now);
+  const outcome = missOutcome(input.kind, prior, now);
   const { id: customerId } = await upsertCustomerFromEmail({ email: row.booking.email, customerName: row.booking.customerName });
   if (outcome.kind !== "warning") {
     const until = outcome.until.toISOString();
@@ -68,11 +68,11 @@ export async function recordMissedSunday(input: { bookingId: string; kind: MissK
     metadata: { bookingId: row.booking.id, kind: input.kind, outcome: outcome.kind },
   });
 
-  const months = outcome.kind === "warning" ? (member ? 1 : 3) : blockMonths(input.kind, outcome, member);
+  const months = blockMonthsAfter(input.kind, prior);
   const locale = await resolveEmailLocale({ email: row.booking.email, fallbackLocale: row.booking.locale });
   const [customer] = await db.select({ firstName: customers.firstName }).from(customers).where(eq(customers.id, customerId)).limit(1);
   const firstName = customer?.firstName ?? row.booking.customerName?.trim().split(/\s+/)[0] ?? null;
-  const mail = missedSundayMail({ locale, firstName, kind: input.kind, outcome, months, member, sunday: row.event.startsAt });
+  const mail = missedSundayMail({ locale, firstName, kind: input.kind, outcome, months, sunday: row.event.startsAt });
   // The mail waits for the Monday morning after the Sunday; the block is already on.
   const at = missMailAt(row.event.startsAt, now);
   const resendId = await sendRendered(row.booking.email, mail.subject, MembershipEmail(mail.props), at ?? undefined).catch(() => null);

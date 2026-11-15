@@ -95,6 +95,9 @@ const LIKED_SENT = sql.raw(`(subject ilike 'ze vonden je gezellig%' or subject i
 
 /** "Juni is de eerste wijn- en kaasbar van Rotterdam.": the venue
  * description's opening, up to the first comma or full stop. */
+/** Venues that are closed at the start time and open just for our Sunday. */
+const OPENS_FOR_US = new Set(["Concours Wine & Foodbar"]);
+
 function shortIntro(text: string | null | undefined): string | null {
   const t = text?.trim();
   if (!t) return null;
@@ -328,6 +331,7 @@ export async function buildSundayMail(
         venueName: venue.name,
         area: venue.area,
         venueIntro: shortIntro(nl ? venue.descriptionNl : venue.descriptionEn ?? venue.descriptionNl),
+        opensForUs: OPENS_FOR_US.has(venue.name),
         city: ctx.city,
         address: venue.address,
         transit: venueTransit(venue.name, locale),

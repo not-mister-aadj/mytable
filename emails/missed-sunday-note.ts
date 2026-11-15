@@ -1,13 +1,18 @@
-/** The missed-Sundays rule in one short paragraph, for the confirmation,
- * location and Saturday mails (src/lib/missed-sundays/logic.ts). */
-export function missedSundayNote(locale: "nl" | "en"): { title: string; body: string } {
+/** The rule for a seat in one short paragraph, for the confirmation and
+ * location mails (src/lib/missed-sundays/logic.ts). `fixed`: moving has
+ * closed already (the location mail goes out 7 days before). */
+export function missedSundayNote(locale: "nl" | "en", fixed = false): { title: string; body: string } {
   return locale === "en"
     ? {
         title: "Can't make it after all?",
-        body: "Let us know as early as possible at info@mytable.club, so we can give your seat to someone else. Cancelling less than 48 hours before or not showing up counts as a missed Sunday. After two, you can't book for a while.",
+        body: fixed
+          ? "Your seat is fixed and your table is made around you. If you really can't come, let someone come in your place through your table page. We understand it can happen. Whoever does it more often pays more for their next seat."
+          : "Until 7 days before, you can move your seat to another Sunday for free. After that your seat is fixed: let someone come in your place through your table page. We understand it can happen. Whoever does it more often pays more for their next seat.",
       }
     : {
         title: "Kun je toch niet?",
-        body: "Laat het ons zo vroeg mogelijk weten via info@mytable.club, dan geven we je plek aan iemand anders. Afzeggen minder dan 48 uur van tevoren of niet komen telt als een gemiste zondag. Na twee keer kun je een tijd niet boeken.",
+        body: fixed
+          ? "Je plek ligt vast en je tafel is op jou ingedeeld. Kun je echt niet, laat dan iemand in jouw plaats komen via je tafelpagina. Dat het kan gebeuren, snappen we. Wie het vaker doet, betaalt voor de volgende plek meer."
+          : "Tot 7 dagen vooraf verzet je je plek kosteloos naar een andere zondag. Daarna ligt je plek vast: laat dan iemand in jouw plaats komen via je tafelpagina. Dat het kan gebeuren, snappen we. Wie het vaker doet, betaalt voor de volgende plek meer.",
       };
 }

@@ -221,25 +221,26 @@ export async function POST(request: Request) {
     );
   }
 
-  if (isEventClosedForBooking(event.startsAt)) {
-    return NextResponse.json(
-      {
-        error:
-          locale === "en" ? "Bookings closed." : "Boekingen gesloten.",
-      },
-      { status: 409 },
-    );
-  }
-
   // A seat that came free after a cancellation, offered to this person by
   // mail: the Sunday is full for everyone else, so the seat checks below are
-  // answered by the offer.
+  // answered by the offer. Also past the usual close 48 hours before: these
+  // seats come free in the last days, and the offer has its own limit.
   const seatOffer = typeof body.seatOffer === "string" && body.seatOffer ? await loadSeatOffer(body.seatOffer) : null;
   if (body.seatOffer && (!seatOffer || seatOffer.event.id !== event.id || seatOffer.email !== email || seatOffer.state !== "open")) {
     return NextResponse.json(
       {
         code: "offer_gone",
         error: locale === "en" ? "This seat has just been taken." : "Deze plek is net vergeven.",
+      },
+      { status: 409 },
+    );
+  }
+
+  if (!seatOffer && isEventClosedForBooking(event.startsAt)) {
+    return NextResponse.json(
+      {
+        error:
+          locale === "en" ? "Bookings closed." : "Boekingen gesloten.",
       },
       { status: 409 },
     );

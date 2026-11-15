@@ -61,8 +61,8 @@ export type SeatOffer = {
   releaseId: string;
   email: string;
   event: EventRow;
-  /** "open": can be booked. "taken": someone else has it (or is paying). "closed": too close to the start. */
-  state: "open" | "taken" | "closed";
+  /** "open": can be booked. "yours": they booked it. "taken": someone else has it (or is paying). "closed": too close to the start. */
+  state: "open" | "yours" | "taken" | "closed";
   priceCents: number;
   fullPriceCents: number;
   discountPct: number;
@@ -87,7 +87,17 @@ export async function loadSeatOffer(token: string, now: Date = new Date()): Prom
   if (!row || !row.release.offeredTo.includes(claim.email)) return null;
   const { release, event } = row;
   const heldByOther = Boolean(release.heldBy && release.heldBy !== claim.email && release.heldUntil && release.heldUntil.getTime() > now.getTime());
-  const state = release.claimedBookingId || heldByOther ? "taken" : offerStillOpen(event.startsAt, now) && event.workflowStatus === "published" ? "open" : "closed";
+  const [claimedBy] = release.claimedBookingId
+    ? await db.select({ email: bookings.email }).from(bookings).where(eq(bookings.id, release.claimedBookingId)).limit(1)
+    : [];
+  const state =
+    claimedBy?.email.trim().toLowerCase() === claim.email
+      ? "yours"
+      : release.claimedBookingId || heldByOther
+        ? "taken"
+        : offerStillOpen(event.startsAt, now) && event.workflowStatus === "published"
+          ? "open"
+          : "closed";
   const fullPriceCents = resolveSeatPriceCents({ eventPriceCents: event.priceCents, isJouwTafel: isJouwTafelType(event.experienceType) });
   const person = (await waitlistPeople(event.id, [claim.email])).get(claim.email);
   return {

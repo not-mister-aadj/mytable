@@ -7,6 +7,8 @@ import { buttonMail, sendSundayMail, shortDate } from "@/lib/admin/sunday-mails"
 import { isJouwTafelType } from "@/lib/event-concepts";
 import { amsterdamDistrict, DISTRICT_LABELS, isAmsterdam } from "@/lib/jouw-tafel/districts";
 import { resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
+import { getRunningMembershipByEmail, membershipSnapshot } from "@/lib/membership/data";
+import { memberBookingDecision } from "@/lib/membership/logic";
 import { ageFitsGroup, languageFitsGroup, offerDiscountPct, offerMoment, offerPriceCents, offerStillOpen } from "@/lib/seat-offer-logic";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
 
@@ -66,6 +68,8 @@ export type SeatOffer = {
   priceCents: number;
   fullPriceCents: number;
   discountPct: number;
+  /** A member whose membership covers this Sunday: the seat is in it, nothing to pay. */
+  member: boolean;
   /** What we know of them, to fill in the form. */
   firstName: string;
   birthDate: string | null;
@@ -108,6 +112,7 @@ export async function loadSeatOffer(token: string, now: Date = new Date()): Prom
     priceCents: offerPriceCents(fullPriceCents, event.startsAt, now),
     fullPriceCents,
     discountPct: offerDiscountPct(event.startsAt, now),
+    member: await memberSeatIncluded(claim.email, event.startsAt),
     firstName: person?.firstName ?? "",
     birthDate: person?.birthDate ?? null,
     locale: person?.locale ?? "nl",
@@ -125,6 +130,12 @@ async function placeOf(event: EventRow): Promise<string> {
   const area = venue.area?.trim().replace(/^amsterdam[\s-]+/i, "") || null;
   const head = district ? `${event.city} ${DISTRICT_LABELS[district]}` : event.city;
   return area && area.toLowerCase() !== (district ? DISTRICT_LABELS[district].toLowerCase() : "") ? `${head} · ${area}` : head;
+}
+
+/** Is this address a member whose membership has this Sunday's seat in it? */
+export async function memberSeatIncluded(email: string, startsAt: Date): Promise<boolean> {
+  const membership = await getRunningMembershipByEmail(email).catch(() => null);
+  return Boolean(membership && memberBookingDecision(membershipSnapshot(membership), startsAt).kind === "included");
 }
 
 // ------------------------------------------------------------- the checkout
@@ -151,8 +162,10 @@ export async function holdSeatOffer(releaseId: string, email: string, now: Date 
  * capacity grows by the seat (the cancelled booking keeps counting, it was
  * not refunded), and the booking joins the group with the gap. Returns true
  * when room was made (call before the seat is counted as sold).
+ * `roomMade`: the caller already grew the Sunday (a member's seat, which is
+ * booked at once and needs the room first).
  */
-export async function claimSeatOffer(releaseId: string, bookingId: string): Promise<boolean> {
+export async function claimSeatOffer(releaseId: string, bookingId: string, options: { roomMade?: boolean } = {}): Promise<boolean> {
   const db = getDb();
   const [claimed] = await db
     .update(seatReleases)
@@ -160,9 +173,17 @@ export async function claimSeatOffer(releaseId: string, bookingId: string): Prom
     .where(and(eq(seatReleases.id, releaseId), sql`(${seatReleases.claimedBookingId} is null or ${seatReleases.claimedBookingId} = ${bookingId})`))
     .returning();
   if (!claimed) return false;
-  await db.update(events).set({ capacity: sql`${events.capacity} + 1` }).where(eq(events.id, claimed.eventId));
+  if (!options.roomMade) await seatOfferRoom(claimed.eventId, 1);
   if (claimed.groupId) await db.update(bookings).set({ groupId: claimed.groupId }).where(eq(bookings.id, bookingId));
   return true;
+}
+
+/** Grows (or, when a booking did not go through, shrinks back) the Sunday by the offered seat. */
+export async function seatOfferRoom(eventId: string, delta: 1 | -1): Promise<void> {
+  await getDb()
+    .update(events)
+    .set({ capacity: delta === 1 ? sql`${events.capacity} + 1` : sql`GREATEST(${events.capacity} - 1, ${events.spotsSold})` })
+    .where(eq(events.id, eventId));
 }
 
 // ------------------------------------------------------------ the waitlist
@@ -269,7 +290,7 @@ export async function sendDueSeatOffers(now: Date = new Date()): Promise<SeatOff
     for (const person of people) {
       const token = await signSeatOfferToken(release.id, person.email, event.startsAt);
       const url = `${getSiteUrl().replace(/\/$/, "")}${seatOfferPath(person.locale, token)}`;
-      const mail = seatOfferMail({ locale: person.locale, firstName: person.firstName, city: event.city, place, startsAt: event.startsAt, url, now, fullPriceCents: resolveSeatPriceCents({ eventPriceCents: event.priceCents, isJouwTafel: isJouwTafelType(event.experienceType) }) });
+      const mail = seatOfferMail({ member: await memberSeatIncluded(person.email, event.startsAt), locale: person.locale, firstName: person.firstName, city: event.city, place, startsAt: event.startsAt, url, now, fullPriceCents: resolveSeatPriceCents({ eventPriceCents: event.priceCents, isJouwTafel: isJouwTafelType(event.experienceType) }) });
       const id = await sendSundayMail(person.email, { ...mail, from: FROM }).catch(() => null);
       if (id) sentTo.push(person.email);
     }
@@ -291,11 +312,13 @@ export function seatOfferMail(p: {
   url: string;
   now: Date;
   fullPriceCents: number;
+  /** The seat is in their membership: no price in the mail. */
+  member?: boolean;
 }): { subject: string; text: string; html: string } {
   const nl = p.locale === "nl";
   const day = new Intl.DateTimeFormat(nl ? "nl-NL" : "en-GB", { timeZone: "Europe/Amsterdam", weekday: "long", day: "numeric", month: "long" }).format(p.startsAt);
   const price = offerPriceCents(p.fullPriceCents, p.startsAt, p.now);
-  const cheaper = price < p.fullPriceCents;
+  const cheaper = !p.member && price < p.fullPriceCents;
   const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
   const lines = nl
     ? [

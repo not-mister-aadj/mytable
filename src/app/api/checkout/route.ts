@@ -1,4 +1,4 @@
-import { holdSeatOffer, loadSeatOffer } from "@/lib/seat-offer";
+import { claimSeatOffer, holdSeatOffer, loadSeatOffer, seatOfferRoom } from "@/lib/seat-offer";
 import { NextResponse } from "next/server";
 import { readAttribution } from "@/lib/analytics/attribution-server";
 import { eq } from "drizzle-orm";
@@ -304,6 +304,56 @@ export async function POST(request: Request) {
   if (signedInUser?.email) {
     runningMembership = await getRunningMembershipForUser(signedInUser.id);
     memberDecision = memberBookingDecision(membershipSnapshot(runningMembership), event.startsAt);
+  }
+
+  // A member with a seat offer. The mail went to their own address and the
+  // link is theirs alone, so the seat in their membership is booked here
+  // without a log-in. The Sunday is full: room is made first, and taken back
+  // when the booking does not go through.
+  if (seatOffer && isSundayTable) {
+    const theirMembership = runningMembership ?? (await getRunningMembershipByEmail(email).catch(() => null));
+    if (theirMembership && memberBookingDecision(membershipSnapshot(theirMembership), event.startsAt).kind === "included") {
+      const gone = () =>
+        NextResponse.json({ code: "offer_gone", error: locale === "en" ? "This seat has just been taken." : "Deze plek is net vergeven." }, { status: 409 });
+      if (!(await holdSeatOffer(seatOffer.releaseId, email))) return gone();
+      await seatOfferRoom(event.id, 1);
+      try {
+        const result = await bookAsMember({
+          event: { ...event, capacity: event.capacity + 1 },
+          membership: theirMembership,
+          email,
+          name: customerName,
+          seats: 1,
+          locale,
+          bookingLocale,
+          dietaryNotes: body.dietaryNotes?.trim() || null,
+          tableLanguagePreference,
+          birthDate: birthDateSent ? String(body.birthDate).trim() : null,
+          agePreference,
+        });
+        if (result.kind === "booked" && (await claimSeatOffer(seatOffer.releaseId, result.bookingId, { roomMade: true }))) {
+          return NextResponse.json({ booked: true, bookingId: result.bookingId, code: result.code });
+        }
+        await seatOfferRoom(event.id, -1);
+        if (result.kind === "error") {
+          const messages = {
+            already_booked: locale === "en" ? "You already have a seat at this table." : "Je hebt al een plek aan deze tafel.",
+            full: locale === "en" ? "This seat has just been taken." : "Deze plek is net vergeven.",
+            checkout_failed: locale === "en" ? "Reserving failed." : "Reserveren mislukt.",
+            max_upcoming:
+              locale === "en"
+                ? "You already have 2 Sundays booked. After your next Sunday you can choose a new one."
+                : "Je hebt al 2 zondagen geboekt. Na je volgende zondag kun je weer een nieuwe kiezen.",
+          };
+          return NextResponse.json({ code: result.code, error: messages[result.code] }, { status: result.status });
+        }
+        return gone();
+      } catch (error) {
+        await seatOfferRoom(event.id, -1).catch(() => undefined);
+        console.error("[checkout] member seat offer failed", error);
+        return NextResponse.json({ error: locale === "en" ? "Reserving failed." : "Reserveren mislukt." }, { status: 500 });
+      }
+    }
   }
 
   // The address of a member, typed by someone who is not signed in as that

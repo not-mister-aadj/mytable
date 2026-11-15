@@ -87,6 +87,12 @@ export async function missSeatPriceCents(email: string | null | undefined, now =
   return nextSeatCostsMore(n, Boolean(came)) ? MISS_SEAT_PRICE_CENTS : null;
 }
 
+/** This booking's email has no earlier miss that counts: giving up this seat is their first time. */
+export async function isFirstMiss(bookingId: string, now = new Date()): Promise<boolean> {
+  const [row] = await getDb().select({ email: bookings.email }).from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+  return !row || (await countedMisses(row.email, now, bookingId)).n === 0;
+}
+
 export async function recordMissedSunday(input: { bookingId: string; kind: MissKind; now?: Date }): Promise<MissOutcome | null> {
   const now = input.now ?? new Date();
   const db = getDb();

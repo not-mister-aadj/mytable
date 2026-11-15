@@ -1,3 +1,4 @@
+import { isFirstMiss } from "@/lib/missed-sundays/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -113,6 +114,7 @@ const COPY = {
     },
     cancelledTitle: "Je plek is opgegeven",
     cancelledBody: "We hebben je bericht ontvangen. Je plek gaat naar iemand op de wachtlijst.",
+    cancelledFirst: "Natuurlijk kan er iets tussen komen, dat snappen we. Voor nu verandert er niets: je bent gewoon welkom op een volgende zondag.",
     cancelledCta: "Bekijk de Sunday Socials",
   },
   en: {
@@ -208,6 +210,7 @@ const COPY = {
     },
     cancelledTitle: "You've given up your seat",
     cancelledBody: "We've received your message. Your seat goes to someone on the waitlist.",
+    cancelledFirst: "Of course something can come up, we understand that. Nothing changes for now: you're welcome at a next Sunday as always.",
     cancelledCta: "See the Sunday Socials",
   },
 } as const;
@@ -243,7 +246,7 @@ export default async function TablePageRoute({ params }: Props) {
           {!page ? (
             <Invalid t={t} locale={locale} />
           ) : page.cancelled ? (
-            <Cancelled t={t} href={tablePageAfterPath(locale, page.city)} />
+            <Cancelled t={t} href={tablePageAfterPath(locale, page.city)} first={await isFirstMiss(page.bookingId)} />
           ) : (
             <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} />
           )}
@@ -254,10 +257,11 @@ export default async function TablePageRoute({ params }: Props) {
   );
 }
 
-function Cancelled({ t, href }: { t: Copy; href: string }) {
+function Cancelled({ t, href, first }: { t: Copy; href: string; first: boolean }) {
   return (
     <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-8 text-center sm:px-8">
       <h1 className="font-serif text-2xl text-wine">{t.cancelledTitle}</h1>
+      {first ? <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine">{t.cancelledFirst}</p> : null}
       <p className="mt-2 text-sm text-wine/70">{t.cancelledBody}</p>
       <Link href={href} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
         {t.cancelledCta}

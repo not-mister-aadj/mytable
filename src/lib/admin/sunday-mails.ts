@@ -634,8 +634,8 @@ export function confirmMail(p: {
       ? ["Na morgen kan verzetten niet meer.", "MyTable"]
       : ["After tomorrow, moving is no longer possible.", "MyTable"]
     : nl
-      ? [`Verzetten kan tot ${until}. Daarna ligt je plek vast en rekent je tafel op je.`, `Tot de ${dayOfMonth}e,\nMyTable`]
-      : [`You can move until ${until}. After that your seat is fixed and your table counts on you.`, "See you then,\nMyTable"];
+      ? [`Verzetten kan tot ${until}. Die dag sturen we je de locatie. Daarna ligt je plek vast en rekent je tafel op je.`, `Tot de ${dayOfMonth}e,\nMyTable`]
+      : [`You can move until ${until}. That day we send you the location. After that your seat is fixed and your table counts on you.`, "See you then,\nMyTable"];
   const yes = nl ? "Ja, ik kom" : "Yes, I'm coming";
   const move = nl ? "Ik wil verzetten" : "I'd like to move";
   const text = [...before, `${yes}: ${p.yesUrl}\n${move}: ${p.moveUrl}`, ...after].join("\n\n");

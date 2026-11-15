@@ -23,6 +23,8 @@ export type SundayLocationEmailProps = {
   area: string | null;
   /** One sentence about the venue, from its description; optional. */
   venueIntro?: string | null;
+  /** The venue is closed at that hour and opens at the start time just for us. */
+  opensForUs?: boolean;
   city: string;
   address: string;
   /** "Een paar minuten lopen van ...", in the mail's language; optional. */
@@ -134,8 +136,8 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
         }
         body={
           nl
-            ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`
-            : `We're looking forward to it. Your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.${p.venueIntro ? ` ${p.venueIntro}` : ""} Below you'll find where to go and how the afternoon works.`
+            ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.${p.venueIntro ? ` ${p.venueIntro}` : ""}${p.opensForUs ? ` Ze gaan speciaal voor ons om ${p.time} open.` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`
+            : `We're looking forward to it. Your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.${p.venueIntro ? ` ${p.venueIntro}` : ""}${p.opensForUs ? ` They open at ${p.time} especially for us.` : ""} Below you'll find where to go and how the afternoon works.`
         }
       />
 

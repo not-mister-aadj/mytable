@@ -550,6 +550,9 @@ export const eventNotifySignups = pgTable(
       .notNull()
       .defaultNow(),
     notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    /** Asked before they join the list when we do not know it: a seat that
+     * comes free is offered to who fits the group by age (drizzle/0068). */
+    birthDate: date("birth_date"),
   },
   (table) => ({
     eventEmailUnique: uniqueIndex("event_notify_signups_event_email_unique").on(
@@ -558,6 +561,35 @@ export const eventNotifySignups = pgTable(
     ),
   }),
 );
+
+/**
+ * A seat that came free after a late cancellation (drizzle/0068). The Sunday
+ * stays full on the site; the seat is offered by mail to the people on its
+ * waitlist who fit the group, and the first to pay has it (seat-offer.ts).
+ */
+export const seatReleases = pgTable("seat_releases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  /** The group with the gap, when groups were made. */
+  groupId: uuid("group_id").references(() => eventGroups.id, { onDelete: "set null" }),
+  /** The booking that was cancelled. */
+  fromBookingId: uuid("from_booking_id")
+    .notNull()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  /** When the offer may go out (08:00 after a night); null: too close to the start, never offered. */
+  offerAt: timestamp("offer_at", { withTimezone: true }),
+  /** The mails went out, to these addresses. */
+  offeredAt: timestamp("offered_at", { withTimezone: true }),
+  offeredTo: jsonb("offered_to").$type<string[]>().notNull().default([]),
+  /** Someone is paying for it right now. */
+  heldBy: text("held_by"),
+  heldUntil: timestamp("held_until", { withTimezone: true }),
+  /** Taken. */
+  claimedBookingId: uuid("claimed_booking_id").references(() => bookings.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const customerActivities = pgTable("customer_activities", {
   id: uuid("id").primaryKey().defaultRandom(),

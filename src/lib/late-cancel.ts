@@ -3,6 +3,7 @@ import { getDb } from "@/db/index";
 import { bookingEvents, bookings, eventGroups, events } from "@/db/schema";
 import { dropPlannedMailsFor, sendSundayMail, shortDate } from "@/lib/admin/sunday-mails";
 import { getEmailReplyTo } from "@/lib/email/resend";
+import { releaseLine, releaseSeat, sendDueSeatOffers } from "@/lib/seat-offer";
 
 export type LateCancelResult = { ok: true } | { ok: false; error: "not_found" | "started" };
 
@@ -31,8 +32,17 @@ export async function cancelLate(bookingId: string, now = new Date()): Promise<L
   if (!marked) return { ok: true };
   const left = await dropPlannedMailsFor(row.event.id, bookingId).catch(() => ["saturday", "morning", "feedback"]);
   await db.insert(bookingEvents).values({ bookingId, type: "cancelled_late", payload: { plannedMailsLeft: left } });
+  // The seat goes to the Sunday's waitlist, to who fits the group (seat-offer.ts).
+  let seatLine: string | null = null;
+  try {
+    const release = await releaseSeat({ bookingId, eventId: row.event.id, groupId: row.booking.groupId, startsAt: row.event.startsAt, now });
+    const offered = release.offerAt && release.offerAt.getTime() <= now.getTime() ? (await sendDueSeatOffers(now)).find((r) => r.releaseId === release.id) : undefined;
+    seatLine = releaseLine(release, offered);
+  } catch (error) {
+    console.error("[late-cancel] offering the seat failed:", error);
+  }
   // We hear about it at once: the groups may need another look.
-  await notifyOwnerOfCancel({ booking: row.booking, event: row.event, plannedMailsLeft: left, now }).catch((error) =>
+  await notifyOwnerOfCancel({ booking: row.booking, event: row.event, plannedMailsLeft: left, seatLine, now }).catch((error) =>
     console.error("[late-cancel] telling the owner failed:", error),
   );
   return { ok: true };
@@ -43,6 +53,7 @@ async function notifyOwnerOfCancel(input: {
   booking: typeof bookings.$inferSelect;
   event: typeof events.$inferSelect;
   plannedMailsLeft: string[];
+  seatLine: string | null;
   now: Date;
 }): Promise<void> {
   const { booking, event, now } = input;
@@ -70,6 +81,7 @@ async function notifyOwnerOfCancel(input: {
     `Plekken: ${booking.seats}`,
     ...(group ? [`Groep ${group.number}: nog ${own}`] : []),
     `Komen nog: ${total}${counts.length > 1 ? ` (${counts.map((c) => `${c.number === null ? "zonder groep" : `groep ${c.number}`}: ${c.seats}`).join(", ")})` : ""}`,
+    ...(input.seatLine ? [input.seatLine] : []),
     ...(input.plannedMailsLeft.length ? [`Mail niet teruggehaald: ${input.plannedMailsLeft.join(", ")}`] : []),
   ].join("\n");
   await sendSundayMail(getEmailReplyTo(), {

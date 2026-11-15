@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { sendDueAutoMails } from "@/lib/admin/auto-feedback";
+import { sendDueSeatOffers } from "@/lib/seat-offer";
 
 export const maxDuration = 300;
 
@@ -13,5 +14,10 @@ export async function GET(request: Request) {
   }
   if (!isDbConfigured()) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   const results = await sendDueAutoMails();
-  return NextResponse.json({ results });
+  // Seats that came free in the night are offered from 08:00 (seat-offer.ts).
+  const seatOffers = await sendDueSeatOffers().catch((error) => {
+    console.error("[cron] seat offers failed:", error);
+    return [];
+  });
+  return NextResponse.json({ results, seatOffers });
 }

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { Resend } from "resend";
 import { getDb, isDbConfigured } from "@/db/index";
 import { bookingEvents, bookings, customers, emailLog, events } from "@/db/schema";
@@ -12,14 +12,17 @@ import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { sendRendered } from "@/lib/admin/sunday-mails";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { mailSunday } from "@/lib/membership/mail-copy";
+import { isJouwTafelType } from "@/lib/event-concepts";
+import { resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 import {
-  blockMonthsAfter,
   isLateCancel,
   LATE_CANCEL_HOURS,
   MISS_POLICY_START,
+  MISS_SEAT_PRICE_CENTS,
   MISS_WINDOW_DAYS,
   missMailAt,
   missOutcome,
+  nextSeatCostsMore,
   type MissKind,
   type MissOutcome,
 } from "@/lib/missed-sundays/logic";
@@ -27,10 +30,63 @@ import { missedSundayMail } from "@/lib/missed-sundays/mail-copy";
 
 /**
  * Records a late cancel or a no-show on a booking and applies the policy in
- * logic.ts: a warning or a block on the customer, a line in their history
- * and the mail. Returns null when it doesn't count (not a Sunday, before the
- * policy, not late, or a member's no-show, which membership/no-show.ts handles).
+ * logic.ts: a line in their history and the mail (the first time nothing
+ * changes, from the second the next seat costs more). Returns null when it
+ * doesn't count (not a Sunday, before the policy, not late, or a seat from a
+ * membership, which membership/no-show.ts handles).
  */
+
+/** A seat given up after moving closed, or a no-show: what counts as a miss. */
+const MISSED_SQL = sql`(${bookings.noShowAt} is not null or (${bookings.cancelledLateAt} is not null and ${bookings.cancelledLateAt} > ${events.startsAt} - make_interval(hours => ${LATE_CANCEL_HOURS})))`;
+
+/** Misses that still count for this email (one booking left out), and the Sunday of the last one. */
+async function countedMisses(email: string, now: Date, exceptBookingId?: string): Promise<{ n: number; last: Date | null }> {
+  const since = new Date(Math.max(MISS_POLICY_START.getTime(), now.getTime() - MISS_WINDOW_DAYS * 86_400_000));
+  const [row] = await getDb()
+    .select({ n: sql<number>`count(*)::int`, last: sql<Date | string | null>`max(${events.startsAt})` })
+    .from(bookings)
+    .innerJoin(events, eq(events.id, bookings.eventId))
+    .where(
+      and(
+        sql`lower(trim(${bookings.email})) = ${normalizeEmail(email)}`,
+        exceptBookingId ? ne(bookings.id, exceptBookingId) : undefined,
+        isNull(bookings.membershipId),
+        isNull(bookings.missWaivedAt),
+        sql`${events.startsAt} >= ${since.toISOString()}::timestamptz`,
+        MISSED_SQL,
+      ),
+    );
+  return { n: row?.n ?? 0, last: row?.last ? new Date(row.last) : null };
+}
+
+/**
+ * What a Sunday seat costs this email after missed Sundays, or null for the
+ * usual price: after a second miss the next seat costs more, until they have
+ * come to a Sunday since.
+ */
+export async function missSeatPriceCents(email: string | null | undefined, now = new Date()): Promise<number | null> {
+  if (!email?.trim() || !isDbConfigured()) return null;
+  const { n, last } = await countedMisses(email, now);
+  if (n < 2 || !last) return null;
+  const [came] = await getDb()
+    .select({ id: bookings.id })
+    .from(bookings)
+    .innerJoin(events, eq(events.id, bookings.eventId))
+    .where(
+      and(
+        sql`lower(trim(${bookings.email})) = ${normalizeEmail(email)}`,
+        eq(bookings.paymentStatus, "paid"),
+        eq(bookings.lifecycleStatus, "active"),
+        isNull(bookings.cancelledLateAt),
+        isNull(bookings.noShowAt),
+        sql`${events.startsAt} > ${last.toISOString()}::timestamptz`,
+        sql`${events.startsAt} < ${now.toISOString()}::timestamptz`,
+      ),
+    )
+    .limit(1);
+  return nextSeatCostsMore(n, Boolean(came)) ? MISS_SEAT_PRICE_CENTS : null;
+}
+
 export async function recordMissedSunday(input: { bookingId: string; kind: MissKind; now?: Date }): Promise<MissOutcome | null> {
   const now = input.now ?? new Date();
   const db = getDb();
@@ -46,34 +102,25 @@ export async function recordMissedSunday(input: { bookingId: string; kind: MissK
   // A seat from a membership follows the membership's own rule (terms art. 13).
   if (row.booking.membershipId) return null;
 
-  const prior = await countMisses(row.booking.email, input.kind, now, row.booking.id);
-  const outcome = missOutcome(input.kind, prior, now);
+  const prior = (await countedMisses(row.booking.email, now, row.booking.id)).n;
+  const outcome = missOutcome(prior);
+  const normalCents = resolveSeatPriceCents({ eventPriceCents: row.event.priceCents, isJouwTafel: isJouwTafelType(row.event.experienceType) });
+  const missCents = Math.max(MISS_SEAT_PRICE_CENTS, normalCents);
   const { id: customerId } = await upsertCustomerFromEmail({ email: row.booking.email, customerName: row.booking.customerName });
-  if (outcome.kind !== "warning") {
-    const until = outcome.until.toISOString();
-    await db
-      .update(customers)
-      .set({ bookingBlockedUntil: sql`GREATEST(coalesce(${customers.bookingBlockedUntil}, ${until}::timestamptz), ${until}::timestamptz)`, updatedAt: now })
-      .where(eq(customers.id, customerId));
-  }
   const day = mailSunday(row.event.startsAt, "nl");
   await logCustomerActivity({
     customerId,
     type: CustomerActivityTypes.sundayMissed,
     title: input.kind === "late" ? "Laat afgezegd" : "Niet gekomen",
-    description:
-      outcome.kind === "warning"
-        ? `${day} · waarschuwing`
-        : `${day} · niet boeken tot ${outcome.until.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" })}`,
+    description: outcome.kind === "warning" ? `${day} · eerste keer` : `${day} · volgende plek €${missCents / 100}`,
     metadata: { bookingId: row.booking.id, kind: input.kind, outcome: outcome.kind },
   });
 
-  const months = blockMonthsAfter(input.kind, prior);
   const locale = await resolveEmailLocale({ email: row.booking.email, fallbackLocale: row.booking.locale });
   const [customer] = await db.select({ firstName: customers.firstName }).from(customers).where(eq(customers.id, customerId)).limit(1);
   const firstName = customer?.firstName ?? row.booking.customerName?.trim().split(/\s+/)[0] ?? null;
-  const mail = missedSundayMail({ locale, firstName, kind: input.kind, outcome, months, sunday: row.event.startsAt });
-  // The mail waits for the Monday morning after the Sunday; the block is already on.
+  const mail = missedSundayMail({ locale, firstName, kind: input.kind, outcome, normalCents, missCents, sunday: row.event.startsAt });
+  // The mail waits for the Monday morning after the Sunday.
   const at = missMailAt(row.event.startsAt, now);
   const resendId = await sendRendered(row.booking.email, mail.subject, MembershipEmail(mail.props), at ?? undefined).catch(() => null);
   if (resendId) {
@@ -82,29 +129,6 @@ export async function recordMissedSunday(input: { bookingId: string; kind: MissK
     await onEmailSent({ customerId, subject: `Gemiste zondag: ${mail.subject}` }).catch(() => undefined);
   }
   return outcome;
-}
-
-/** Misses of this kind that still count for this email, this booking left out. */
-async function countMisses(email: string, kind: MissKind, now: Date, exceptBookingId: string): Promise<number> {
-  const since = new Date(Math.max(MISS_POLICY_START.getTime(), now.getTime() - MISS_WINDOW_DAYS * 86_400_000));
-  const missed =
-    kind === "late"
-      ? and(isNotNull(bookings.cancelledLateAt), sql`${bookings.cancelledLateAt} > ${events.startsAt} - make_interval(hours => ${LATE_CANCEL_HOURS})`)
-      : isNotNull(bookings.noShowAt);
-  const [row] = await getDb()
-    .select({ n: sql<number>`count(*)::int` })
-    .from(bookings)
-    .innerJoin(events, eq(events.id, bookings.eventId))
-    .where(
-      and(
-        sql`lower(trim(${bookings.email})) = ${normalizeEmail(email)}`,
-        ne(bookings.id, exceptBookingId),
-        isNull(bookings.missWaivedAt),
-        sql`${events.startsAt} >= ${since.toISOString()}::timestamptz`,
-        missed,
-      ),
-    );
-  return row?.n ?? 0;
 }
 
 /** Until when this email may not book a Sunday, or null. */
@@ -156,20 +180,61 @@ export async function waiveMissedSunday(bookingId: string): Promise<void> {
   await cancelPlannedMissMails([bookingId]).catch(() => undefined);
 }
 
-export type MissedSundayRow = { bookingId: string; kind: MissKind; startsAt: string; city: string; waived: boolean };
+export type MissedSundayRow = {
+  bookingId: string;
+  kind: MissKind;
+  startsAt: string;
+  city: string;
+  waived: boolean;
+  /** Hours before the start they cancelled (late cancels only). */
+  hoursBefore: number | null;
+  /** Counts for the policy: since its start, not a member's seat, inside 7 days. */
+  counts: boolean;
+};
 
-/** For the customer page: their missed Sundays since the policy, and a block. */
-export async function loadMissedSundays(email: string, now = new Date()): Promise<{ rows: MissedSundayRow[]; blockedUntil: string | null }> {
+/** For the customer page: every Sunday they cancelled on the table page or did not come to, and what their next seat costs. */
+export async function loadMissedSundays(email: string, now = new Date()): Promise<{ rows: MissedSundayRow[]; nextSeatCents: number | null }> {
   const rows = (await getDb().execute(sql`
-    select b.id, e.starts_at, e.city, b.miss_waived_at is not null as waived,
-      case when b.no_show_at is not null then 'no_show' else 'late' end as kind
+    select b.id, e.starts_at, e.city, b.miss_waived_at is not null as waived, b.cancelled_late_at,
+      case when b.no_show_at is not null then 'no_show' else 'late' end as kind,
+      (b.membership_id is null and e.starts_at >= ${MISS_POLICY_START.toISOString()}::timestamptz
+        and (b.no_show_at is not null or b.cancelled_late_at > e.starts_at - make_interval(hours => ${LATE_CANCEL_HOURS}))) as counts
     from bookings b join events e on e.id = b.event_id
-    where lower(trim(b.email)) = ${normalizeEmail(email)} and e.starts_at >= ${MISS_POLICY_START.toISOString()}::timestamptz
-      and (b.no_show_at is not null or (b.cancelled_late_at is not null and b.cancelled_late_at > e.starts_at - make_interval(hours => ${LATE_CANCEL_HOURS})))
-    order by e.starts_at desc`)) as unknown as Array<{ id: string; starts_at: string | Date; city: string; waived: boolean; kind: MissKind }>;
-  const until = await bookingBlockedUntil(email, now);
+    where lower(trim(b.email)) = ${normalizeEmail(email)} and (b.no_show_at is not null or b.cancelled_late_at is not null)
+    order by e.starts_at desc`)) as unknown as Array<{
+    id: string;
+    starts_at: string | Date;
+    city: string;
+    waived: boolean;
+    cancelled_late_at: string | Date | null;
+    kind: MissKind;
+    counts: boolean;
+  }>;
   return {
-    rows: rows.map((r) => ({ bookingId: r.id, kind: r.kind, startsAt: new Date(r.starts_at).toISOString(), city: r.city, waived: r.waived })),
-    blockedUntil: until?.toISOString() ?? null,
+    rows: rows.map((r) => ({
+      bookingId: r.id,
+      kind: r.kind,
+      startsAt: new Date(r.starts_at).toISOString(),
+      city: r.city,
+      waived: r.waived,
+      hoursBefore:
+        r.kind === "late" && r.cancelled_late_at
+          ? Math.max(0, Math.round((new Date(r.starts_at).getTime() - new Date(r.cancelled_late_at).getTime()) / 3_600_000))
+          : null,
+      counts: r.counts,
+    })),
+    nextSeatCents: await missSeatPriceCents(email, now),
   };
+}
+
+/** For the customers list: per email, how often they did not come and how often they cancelled inside 7 days. */
+export async function missCountsByEmail(): Promise<Map<string, { noShows: number; lateCancels: number }>> {
+  const rows = (await getDb().execute(sql`
+    select lower(trim(b.email)) as email,
+      count(*) filter (where b.no_show_at is not null)::int as no_shows,
+      count(*) filter (where b.no_show_at is null and b.cancelled_late_at > e.starts_at - make_interval(hours => ${LATE_CANCEL_HOURS}))::int as late_cancels
+    from bookings b join events e on e.id = b.event_id
+    where b.no_show_at is not null or b.cancelled_late_at is not null
+    group by 1`)) as unknown as Array<{ email: string; no_shows: number; late_cancels: number }>;
+  return new Map(rows.map((r) => [r.email, { noShows: r.no_shows, lateCancels: r.late_cancels }]));
 }

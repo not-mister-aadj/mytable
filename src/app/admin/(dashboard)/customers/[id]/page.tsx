@@ -68,7 +68,7 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
             cityPrefs={invitePause.cityPrefs}
             pausedUntil={invitePause.pausedUntil}
           />
-          <MissedSundaysPanel customerId={profile.id} rows={missed.rows} blockedUntil={missed.blockedUntil} />
+          <MissedSundaysPanel customerId={profile.id} rows={missed.rows} nextSeatCents={missed.nextSeatCents} />
           <TableHistoryPanel history={history} email={profile.email} />
         </>
       }

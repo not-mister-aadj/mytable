@@ -251,6 +251,7 @@ export function SundayTableBookingCard({
     };
   }, [startsAt]);
   const [loading, setLoading] = useState(false);
+  const [missPriceCents, setMissPriceCents] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [englishNotified, setEnglishNotified] = useState(false);
@@ -268,7 +269,7 @@ export function SundayTableBookingCard({
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
       ? MONTHLY_CENTS / 100
-      : pricePerSeatEuros * seats;
+      : ((missPriceCents ?? 0) / 100 || pricePerSeatEuros) * seats;
   const euroLabel = (value: number) =>
     Number.isInteger(value) ? `€${value}` : `€${value.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
   // Most tables are Dutch-speaking: there "English" stays selectable, but it
@@ -367,10 +368,13 @@ export function SundayTableBookingCard({
           ...(offersPlan && ticketPlan ? { plan: ticketPlan } : {}),
           returnPath: window.location.pathname,
           utm: getStoredUtm(),
+          ...(missPriceCents ? { acceptPriceCents: missPriceCents } : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) {
+        // The seat costs more after missed Sundays: shown first, the next tap pays it.
+        if (data.code === "miss_price" && typeof data.priceCents === "number") setMissPriceCents(data.priceCents);
         setNeedsLogin(data.code === "member_login");
         setError(data.error ?? genericErrorLabel);
         setLoading(false);

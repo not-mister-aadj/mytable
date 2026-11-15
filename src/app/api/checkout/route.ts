@@ -21,7 +21,7 @@ import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { MIN_ONBOARDING_AGE, ageFromBirthDate, isAtLeastMinAge } from "@/lib/member-onboarding";
 import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { isEmailFrozen } from "@/lib/customers/freeze";
-import { bookingBlockedUntil } from "@/lib/missed-sundays/server";
+import { missSeatPriceCents } from "@/lib/missed-sundays/server";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
   communicationLocale,
@@ -119,6 +119,8 @@ export async function POST(request: Request) {
     eventId?: string;
     /** The link from "Er is een plek vrij" (seat-offer.ts): one seat on a full Sunday. */
     seatOffer?: string;
+    /** The higher seat price after missed Sundays, shown to the booker and sent back. */
+    acceptPriceCents?: number;
     seats?: number;
     pricingTier?: string;
     email?: string;
@@ -424,22 +426,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ code: FROZEN_ERROR_CODE, error: frozenMessage(locale) }, { status: 403 });
   }
 
-  // Missed Sundays (a late cancel or a no-show too many): no booking until then.
-  const missedBlock = isSundayTable ? ((await bookingBlockedUntil(email)) ?? (await bookingBlockedUntil(signedInUser?.email))) : null;
-  if (missedBlock) {
-    return NextResponse.json(
-      {
-        code: "missed_blocked",
-        until: missedBlock.toISOString(),
-        error:
-          locale === "en"
-            ? `You can book a Sunday Social again from ${openFromLabel(missedBlock, locale)}.`
-            : `Je kunt weer een Sunday Social boeken vanaf ${openFromLabel(missedBlock, locale)}.`,
-      },
-      { status: 409 },
-    );
-  }
-
   if (isSundayTable && memberDecision.kind === "blocked") {
     return NextResponse.json(
       {
@@ -635,6 +621,28 @@ export async function POST(request: Request) {
           eventPriceCents: event.priceCents,
           isJouwTafel,
         });
+    // After a second missed Sunday the next seat costs more (missed-sundays/logic.ts).
+    // The booker sees that price first and sends it back to go on.
+    const missCents =
+      !seatOffer && memberDecision.kind === "non_member" ? ((await missSeatPriceCents(email)) ?? (await missSeatPriceCents(signedInUser?.email))) : null;
+    if (missCents && missCents > perSeatCents) {
+      if (Number(body.acceptPriceCents) !== missCents) {
+        const was = `€${perSeatCents / 100}`;
+        const now = `€${missCents / 100}`;
+        return NextResponse.json(
+          {
+            code: "miss_price",
+            priceCents: missCents,
+            error:
+              locale === "en"
+                ? `This time your seat is ${now} instead of ${was}, because you cancelled late or didn't come more than once. Once you've joined a Sunday, it's ${was} again. Tap once more to continue.`
+                : `Je plek kost deze keer ${now} in plaats van ${was}, omdat je vaker kort van tevoren afzegde of niet kwam. Kom je, dan is het daarna weer ${was}. Tik nog een keer om door te gaan.`,
+          },
+          { status: 409 },
+        );
+      }
+      perSeatCents = missCents;
+    }
     amountCents = seats !== null ? perSeatCents * seats : 0;
   } else {
     const requestedSeats = Math.max(

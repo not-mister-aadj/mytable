@@ -3,7 +3,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, events, seatReleases } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
-import { buttonMail, sendSundayMail, shortDate } from "@/lib/admin/sunday-mails";
+import { buttonMail, loadSundayMailContext, mapsUrl, sendSundayMail, shortDate, type SundayMail } from "@/lib/admin/sunday-mails";
 import { isJouwTafelType } from "@/lib/event-concepts";
 import { amsterdamDistrict, DISTRICT_LABELS, isAmsterdam } from "@/lib/jouw-tafel/districts";
 import { resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
@@ -11,6 +11,9 @@ import { getRunningMembershipByEmail, membershipSnapshot } from "@/lib/membershi
 import { memberBookingDecision } from "@/lib/membership/logic";
 import { ageFitsGroup, languageFitsGroup, offerDiscountPct, offerMoment, offerPriceCents, offerStillOpen } from "@/lib/seat-offer-logic";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
+import { tablePageUrl } from "@/lib/table-page";
+import { venueTransit } from "@/lib/venue-about";
+import { eventGroups } from "@/db/schema";
 
 /**
  * A seat that came free after "Kun je toch niet?" (late-cancel.ts). The
@@ -363,3 +366,112 @@ export function releaseLine(release: Release, result: SeatOfferResult | undefine
 }
 
 export type { Release as SeatRelease };
+
+const NUMBER_WORDS = {
+  nl: ["nul", "één", "twee", "drie", "vier", "vijf", "zes", "zeven", "acht", "negen", "tien"],
+  en: ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"],
+} as const;
+
+/**
+ * The confirmation for a seat booked through an offer. These seats are booked
+ * in the last days, after the location mail and often after the group mail,
+ * so this one mail says it all: where and when, the group, and the way to the
+ * table page (who is at the table, our picks).
+ */
+export function seatConfirmedMail(p: {
+  locale: "nl" | "en";
+  firstName: string;
+  startsAt: Date;
+  venueName: string;
+  address: string;
+  mapsUrl: string;
+  transit: string | null;
+  /** Null while the groups are not made yet. */
+  groupNumber: number | null;
+  picks: string[];
+  tableUrl: string;
+}): { subject: string; text: string; html: string } {
+  const nl = p.locale === "nl";
+  const tag = nl ? "nl-NL" : "en-GB";
+  const day = new Intl.DateTimeFormat(tag, { timeZone: "Europe/Amsterdam", weekday: "long", day: "numeric", month: "long" }).format(p.startsAt);
+  const time = new Intl.DateTimeFormat(tag, { timeZone: "Europe/Amsterdam", hour: "2-digit", minute: "2-digit" }).format(p.startsAt);
+  const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
+  const first = p.picks[0];
+  const last = p.picks.length > 1 ? p.picks[p.picks.length - 1] : null;
+  const count = NUMBER_WORDS[p.locale][p.picks.length] ?? String(p.picks.length);
+  const where = [
+    nl ? `Adres: ${p.address}` : `Address: ${p.address}`,
+    `Route: ${p.mapsUrl}`,
+    ...(p.transit ? [`${p.transit}.`] : []),
+  ].join("\n");
+  const group =
+    p.groupNumber !== null
+      ? nl
+        ? `Je zit in groep ${p.groupNumber}, een tafel met mensen van rond jouw leeftijd. Zeg bij binnenkomst dat je bij MyTable hoort, groep ${p.groupNumber}.`
+        : `You're in group ${p.groupNumber}, a table with people around your age. When you arrive, say you're with MyTable, group ${p.groupNumber}.`
+      : nl
+        ? "In welke groep je zit, hoor je de dag ervoor. Zeg bij binnenkomst dat je bij MyTable hoort."
+        : "You'll hear which group you're in the day before. When you arrive, say you're with MyTable.";
+  const table =
+    first && last
+      ? nl
+        ? `Op je tafelpagina zie je wie er bij je aan tafel zitten. We hebben bij ${p.venueName} geproefd en ${count} aanraders gekozen, van de ${first} tot de ${last}; daar lees je ook waarom.`
+        : `On your table page you'll see who's at your table. We tasted at ${p.venueName} and chose ${count} picks, from the ${first} to the ${last}; you'll read why there too.`
+      : nl
+        ? "Op je tafelpagina zie je wie er bij je aan tafel zitten."
+        : "On your table page you'll see who's at your table.";
+  const lines = nl
+    ? [hi, "", `Je plek staat: ${day} om ${time} bij ${p.venueName}.`, "", where, "", group, "", table, "", "Je tafel:", p.tableUrl, "", "Tot zondag,", "MyTable"]
+    : [hi, "", `Your seat is booked: ${day} at ${time} at ${p.venueName}.`, "", where, "", group, "", table, "", "Your table:", p.tableUrl, "", "See you Sunday,", "MyTable"];
+  return {
+    subject: nl
+      ? `Bevestigd: ${shortDate(p.startsAt, "nl")} bij ${p.venueName}${p.groupNumber !== null ? ` · je zit in groep ${p.groupNumber}` : ""}`
+      : `Confirmed: ${shortDate(p.startsAt, "en")} at ${p.venueName}${p.groupNumber !== null ? ` · you're in group ${p.groupNumber}` : ""}`,
+    ...buttonMail(lines.join("\n"), p.tableUrl, nl ? "Bekijk je tafel" : "See your table"),
+  };
+}
+
+/**
+ * The confirmation for this booking when it took an offered seat (claimed, or
+ * being booked right now by a member): seatConfirmedMail, with the group the
+ * seat belongs to. Null for any other booking, and while the Sunday has no
+ * venue with an address yet: then the usual confirmation goes.
+ */
+export async function seatOfferConfirmation(eventId: string, bookingId: string, now: Date = new Date()): Promise<SundayMail | null> {
+  const db = getDb();
+  const [booking] = await db.select({ email: bookings.email }).from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+  if (!booking) return null;
+  const me = booking.email.trim().toLowerCase();
+  const [release] = await db
+    .select({ groupId: seatReleases.groupId })
+    .from(seatReleases)
+    .where(
+      and(
+        eq(seatReleases.eventId, eventId),
+        sql`(${seatReleases.claimedBookingId} = ${bookingId} or (${seatReleases.claimedBookingId} is null and ${seatReleases.heldBy} = ${me} and ${seatReleases.heldUntil} > ${now.toISOString()}::timestamptz))`,
+      ),
+    )
+    .limit(1);
+  if (!release) return null;
+  const ctx = await loadSundayMailContext(eventId);
+  const guest = ctx?.guests.find((g) => g.bookingId === bookingId);
+  if (!ctx?.venue || !guest) return null;
+  // A member's seat is booked before it is claimed: the group comes from the seat itself.
+  const [group] =
+    guest.groupNumber === null && release.groupId
+      ? await db.select({ number: eventGroups.number }).from(eventGroups).where(eq(eventGroups.id, release.groupId)).limit(1)
+      : [];
+  const mail = seatConfirmedMail({
+    locale: guest.locale,
+    firstName: guest.firstName,
+    startsAt: ctx.startsAt,
+    venueName: ctx.venue.name,
+    address: ctx.venue.address,
+    mapsUrl: mapsUrl(ctx.venue.name, ctx.venue.address),
+    transit: venueTransit(ctx.venue.name, guest.locale),
+    groupNumber: guest.groupNumber ?? group?.number ?? null,
+    picks: ctx.picks.map((pick) => pick.name),
+    tableUrl: await tablePageUrl(bookingId, guest.locale),
+  });
+  return { ...mail, from: FROM };
+}

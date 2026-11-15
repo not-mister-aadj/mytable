@@ -621,13 +621,13 @@ export function confirmMail(p: {
           hi,
           `${inDays} schuif je aan in ${p.city}: ${day} om ${at}.`,
           "We delen de tafels in op wie er komt. Jouw tafel wordt om jou heen gebouwd, met mensen van rond jouw leeftijd. Valt er iemand weg, dan merkt de hele tafel dat. Het is voor iedereen leuker als de groep compleet is.",
-          "We snappen dat er soms iets tussen komt. Daarom vragen we het nu, nu ruilen nog kan:",
+          "We snappen dat er soms iets tussen komt. Daarom vragen we het nu, nu je je plek nog gratis kunt verzetten naar een andere datum:",
         ]
       : [
           hi,
           `${inDays} you're joining the table in ${p.city}: ${day} at ${at}.`,
           "We make the tables around who is coming. Yours is built around you, with people around your age. When someone drops out, the whole table notices. It's nicer for everyone when the group is complete.",
-          "We know things come up. That's why we ask now, while moving is still possible:",
+          "We know things come up. That's why we ask now, while you can still move your seat to another date for free:",
         ];
   const after = p.again
     ? nl

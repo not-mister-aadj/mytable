@@ -10,7 +10,7 @@ const COPY = {
     yes: "Ja, ik kom",
     sending: "Even geduld...",
     doneTitle: "Je staat erbij.",
-    later: "Volgende week zondag hoor je waar je aan tafel zit.",
+    later: (day: string) => `${day} hoor je waar je aan tafel zit.`,
     soon: "Je tafel rekent op je.",
     table: "Naar je tafelpagina",
     error: "Dat lukte niet. Probeer het opnieuw.",
@@ -20,7 +20,7 @@ const COPY = {
     yes: "Yes, I'm coming",
     sending: "One moment...",
     doneTitle: "You're in.",
-    later: "Next Sunday you'll hear where you'll be seated.",
+    later: (day: string) => `On ${day} you'll hear where you'll be seated.`,
     soon: "Your table counts on you.",
     table: "To your table page",
     error: "That didn't work. Please try again.",
@@ -39,6 +39,7 @@ export function ConfirmAttendance({
   locale,
   when,
   placeKnown,
+  locationDay,
   confirmed,
   tableHref,
 }: {
@@ -48,6 +49,8 @@ export function ConfirmAttendance({
   when: string;
   /** The location mail is out: nothing more to wait for. */
   placeKnown: boolean;
+  /** The day the location mail goes out, a week before: "Zondag 6 december" / "Sunday 6 December". */
+  locationDay: string;
   confirmed: boolean;
   tableHref: string;
 }) {
@@ -76,7 +79,7 @@ export function ConfirmAttendance({
       <section className={card}>
         <p className="font-serif text-3xl text-wine">{t.doneTitle}</p>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine/70">
-          {when} {placeKnown ? t.soon : t.later}
+          {when} {placeKnown ? t.soon : t.later(locationDay)}
         </p>
         <Link href={tableHref} className="mt-6 inline-flex rounded-full bg-burgundy px-6 py-3 text-sm font-semibold text-cream hover:bg-burgundy/90">
           {t.table}

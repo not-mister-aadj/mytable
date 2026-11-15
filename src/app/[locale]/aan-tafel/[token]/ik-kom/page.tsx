@@ -37,6 +37,8 @@ export default async function ConfirmAttendanceRoute({ params }: Props) {
     : [];
   const lang = locale === "en" ? "en" : "nl";
   const when = usable ? longDate(usable.startsAt, lang) : "";
+  const weekBefore = usable ? longDate(new Date(usable.startsAt.getTime() - 7 * 86_400_000), lang) : "";
+  const locationDay = lang === "en" ? weekBefore : `${weekBefore.charAt(0).toUpperCase()}${weekBefore.slice(1)}`;
   const at = usable ? new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", hour: "2-digit", minute: "2-digit" }).format(usable.startsAt) : "";
 
   return (
@@ -50,6 +52,7 @@ export default async function ConfirmAttendanceRoute({ params }: Props) {
               locale={lang}
               when={`${when.charAt(0).toUpperCase()}${when.slice(1)} ${lang === "en" ? "at" : "om"} ${at} in ${usable.city}.`}
               placeKnown={Boolean(usable.venue)}
+              locationDay={locationDay}
               confirmed={Boolean(row?.at)}
               tableHref={`${locale === "en" ? "/en" : ""}/aan-tafel/${encodeURIComponent(token)}`}
             />

@@ -79,7 +79,7 @@ const COPY = {
     cancel: {
       open: "Kun je toch niet?",
       title: "Afmelden voor deze middag?",
-      body: "Je ticket wordt niet terugbetaald. Wel weten we zo dat je er niet bij bent, en kunnen we de andere gasten nog opnieuw indelen mocht dat nodig zijn. Wie niet komt zonder af te melden, zetten we in de toekomst misschien niet meer aan tafel.",
+      body: "Je ticket wordt niet terugbetaald. Wel weten we zo dat je er niet bij bent, en kunnen we de andere gasten nog opnieuw indelen. Minder dan 48 uur van tevoren telt dit als een gemiste zondag: de eerste keer krijg je een waarschuwing, de tweede keer kun je 3 maanden niet boeken. Niet komen zonder af te melden weegt zwaarder.",
       confirm: "Ja, ik kan niet",
       keep: "Laat maar",
       error: "Dat lukte niet. Probeer het opnieuw.",
@@ -147,7 +147,7 @@ const COPY = {
     cancel: {
       open: "Can't make it after all?",
       title: "Cancel for this afternoon?",
-      body: "Your ticket is not refunded. But this way we know you won't be there, and we can still rearrange the other guests if needed. If you don't show up without cancelling, we may not seat you at a table in the future.",
+      body: "Your ticket is not refunded. But this way we know you won't be there, and we can still rearrange the other guests. Less than 48 hours before, this counts as a missed Sunday: the first time you get a warning, the second time you can't book for 3 months. Not showing up without cancelling weighs heavier.",
       confirm: "Yes, I can't come",
       keep: "Never mind",
       error: "That didn't work. Please try again.",

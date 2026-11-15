@@ -48,6 +48,11 @@ export async function tablePageUrl(bookingId: string, locale: "nl" | "en", base 
   return `${base.replace(/\/$/, "")}${locale === "en" ? "/en" : ""}/aan-tafel/${token}`;
 }
 
+/** "Ja, ik kom" from the Wednesday mail: a page under the table page that asks once more. */
+export async function confirmUrl(bookingId: string, locale: "nl" | "en", base = SITE): Promise<string> {
+  return `${await tablePageUrl(bookingId, locale, base)}/ik-kom`;
+}
+
 export function tablePageClosesAt(startsAt: Date): Date {
   return new Date(startsAt.getTime() + OPEN_AFTER_START_MS);
 }

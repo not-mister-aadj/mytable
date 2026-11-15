@@ -10,6 +10,8 @@ export const CustomerActivityTypes = {
   noteAdded: "note_added",
   accountFrozen: "account_frozen",
   accountUnfrozen: "account_unfrozen",
+  sundayMissed: "sunday_missed",
+  bookingUnblocked: "booking_unblocked",
   paymentRefunded: "payment_refunded",
   paymentDisputed: "payment_disputed",
 } as const;

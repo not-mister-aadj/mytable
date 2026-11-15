@@ -15,6 +15,9 @@ export type MailGuest = {
   groupNumber: number | null;
   needsIntro: boolean;
   sentLocation: boolean;
+  sentConfirm: boolean;
+  /** Clicked "Ja, ik kom". */
+  confirmed: boolean;
   sentSaturday: boolean;
   sentMorning: boolean;
   sentFeedback: boolean;
@@ -27,7 +30,7 @@ export type MailGuest = {
   feedbackDone: boolean;
 };
 
-type Kind = "location" | "saturday" | "morning" | "feedback" | "reminder" | "liked";
+type Kind = "location" | "confirm" | "saturday" | "morning" | "feedback" | "reminder" | "liked";
 
 /** A planned send: when ("za 24 okt, 14:00") and for how many guests. */
 export type MailPlan = { label: string; count: number; bookingIds: string[] } | null;
@@ -37,6 +40,11 @@ const COPY: Record<Kind, { title: string; when: string; what: string }> = {
     title: "Locatiemail",
     when: "Een week van tevoren",
     what: "De locatie en het adres, hoe de middag gaat, dat zaterdag de groepsmail volgt, en een knop naar de vragen (invullen of aanpassen).",
+  },
+  confirm: {
+    title: "Kom je zondag?",
+    when: "Woensdag 10:00, automatisch",
+    what: "Vraagt of ze komen, met één knop: Ja, ik kom. Gaat naar wie nog niet bevestigde. Wie niet kan, vragen we het meteen te laten weten.",
   },
   saturday: {
     title: "Zaterdagmail",
@@ -84,6 +92,7 @@ export function SundayMailsPanel({
   return (
     <div className="space-y-6">
       <MailCard kind="location" eventId={eventId} guests={guests} blocker={blockers.location} />
+      <MailCard kind="confirm" eventId={eventId} guests={guests} blocker={blockers.confirm} />
       <MailCard kind="saturday" eventId={eventId} guests={guests} blocker={blockers.saturday} plan={plans.saturday} defaultTime={defaultTimes.saturday} />
       <MailCard kind="morning" eventId={eventId} guests={guests} blocker={blockers.morning} plan={plans.morning} defaultTime={defaultTimes.morning} />
       <MailCard kind="feedback" eventId={eventId} guests={guests} blocker={blockers.feedback} plan={plans.feedback} defaultTime={defaultTimes.feedback} />
@@ -121,7 +130,9 @@ function MailCard({
   const sentOf = (g: MailGuest) =>
     kind === "location"
       ? g.sentLocation
-      : kind === "saturday"
+      : kind === "confirm"
+        ? g.sentConfirm || g.confirmed
+        : kind === "saturday"
         ? g.sentSaturday
         : kind === "morning"
           ? g.sentMorning
@@ -192,7 +203,8 @@ function MailCard({
       <ul className="mt-4 divide-y divide-border-subtle/70 overflow-hidden rounded-lg border border-border-subtle bg-cream/70">
         {guests.map((g) => {
           const planned = plan?.bookingIds.includes(g.bookingId);
-          const status = sentOf(g) && !planned ? "Verstuurd" : planned ? `Ingepland ${plan!.label}` : "Nog niet";
+          const status =
+            kind === "confirm" && g.confirmed ? "Komt" : sentOf(g) && !planned ? "Verstuurd" : planned ? `Ingepland ${plan!.label}` : "Nog niet";
           return (
             <li key={g.bookingId} className={`flex items-center gap-3 px-3 py-2 text-sm ${previewFor === g.bookingId && preview ? "bg-burgundy/5" : ""}`}>
               <span className="min-w-0 flex-1 truncate text-wine">
@@ -202,7 +214,7 @@ function MailCard({
               </span>
               <span
                 className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                  status === "Verstuurd" ? "bg-emerald-50 text-emerald-800" : planned ? "bg-sky-50 text-sky-900" : "bg-wine/[0.05] text-wine/60"
+                  status === "Verstuurd" || status === "Komt" ? "bg-emerald-50 text-emerald-800" : planned ? "bg-sky-50 text-sky-900" : "bg-wine/[0.05] text-wine/60"
                 }`}
               >
                 {status}

@@ -15,6 +15,7 @@ import { seatUrgency } from "@/lib/event-display";
 import { loadBookedMatchCounts } from "@/lib/tafelvrienden/server";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown, type DislikedReason, type LikedReason, isSpendRange, type SpendRange } from "@/lib/feedback-reasons";
+import { bookingBlockedUntil } from "@/lib/missed-sundays/server";
 
 /**
  * "Hoe was je middag?": the page behind the 20:00 mail on the Sunday itself,
@@ -253,7 +254,11 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
         .where(and(sql`lower(${bookings.email}) = lower(${booking.email})`, eq(bookings.paymentStatus, "paid")))
     ).map((b) => b.eventId),
   );
-  const freeSeat = used
+  // Kept from booking after missed Sundays: no next date and no free seat.
+  const blocked = Boolean(await bookingBlockedUntil(booking.email));
+  const freeSeat = blocked
+    ? null
+    : used
     ? used.startsAt.getTime() > now
       ? { options: [], booked: `${used.city} · ${longLabel(used.startsAt)}` }
       : null
@@ -286,7 +291,7 @@ export async function loadFeedbackPage(bookingId: string, now = Date.now()): Pro
       .filter((m) => m.id !== booking.id)
       .map((m) => ({ bookingId: m.id, firstName: firstName(m.name) || "Gast", photoUrl: photos.get(normalizeEmail(m.email)) ?? null })),
     next:
-      nextEvent && nextPath
+      !blocked && nextEvent && nextPath
         ? {
             eventId: nextEvent.id,
             city: nextEvent.city,

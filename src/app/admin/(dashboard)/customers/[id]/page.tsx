@@ -13,6 +13,8 @@ import { TableHistoryPanel } from "@/components/admin/TableHistoryPanel";
 import { loadTableHistory } from "@/lib/admin/table-history";
 import { InvitePausePanel } from "@/components/admin/InvitePausePanel";
 import { getInvitePause } from "@/lib/invites/pause";
+import { MissedSundaysPanel } from "@/components/admin/MissedSundaysPanel";
+import { loadMissedSundays } from "@/lib/missed-sundays/server";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
 
@@ -37,12 +39,13 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  const [waitlistAnswers, sentEmails, tablemates, history, invitePause] = await Promise.all([
+  const [waitlistAnswers, sentEmails, tablemates, history, invitePause, missed] = await Promise.all([
     getCustomerWaitlistAnswers(profile.id, profile.email),
     getCustomerSentEmails(profile.id, profile.email),
     getCustomerTablemates(profile.id, profile.email),
     loadTableHistory(),
     getInvitePause(profile.email),
+    loadMissedSundays(profile.email),
   ]);
 
   void captureServerEvent(id, PostHogEvents.customerProfileViewed, {
@@ -65,6 +68,7 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
             cityPrefs={invitePause.cityPrefs}
             pausedUntil={invitePause.pausedUntil}
           />
+          <MissedSundaysPanel customerId={profile.id} rows={missed.rows} blockedUntil={missed.blockedUntil} />
           <TableHistoryPanel history={history} email={profile.email} />
         </>
       }

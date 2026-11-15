@@ -6,6 +6,7 @@ import { InfoList } from "./components/InfoList";
 import { EmailCard } from "./components/EmailCard";
 import { Text } from "@react-email/components";
 import { emailBrand, emailType } from "./brand";
+import { missedSundayNote } from "./missed-sunday-note";
 
 export type BookingConfirmationEmailProps = {
   locale?: "nl" | "en";
@@ -218,6 +219,11 @@ export function BookingConfirmationEmail({
                   description: en
                     ? "No need to tell us in advance. You order your own dishes from the menu."
                     : "Niet nodig om vooraf door te geven. Je bestelt zelf je gerechten van de kaart.",
+                },
+                {
+                  icon: "calendar" as const,
+                  title: missedSundayNote(en ? "en" : "nl").title,
+                  description: missedSundayNote(en ? "en" : "nl").body,
                 },
               ]
             : trimmedDietary

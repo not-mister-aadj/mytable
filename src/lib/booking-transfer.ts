@@ -6,6 +6,7 @@ import { buildBookingMovedEmailProps } from "@/lib/email/build-email-props";
 import { sendBookingMovedEmail } from "@/lib/email/sendBookingMovedEmail";
 import { reconcileEventSpotsSold } from "@/lib/reconcile-spots-sold";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
+import { waiveMissedSunday } from "@/lib/missed-sundays/server";
 
 export type TransferBookingOutcome = {
   newBooking: Booking;
@@ -150,6 +151,7 @@ export async function transferBooking(input: {
       targetEvent,
       customerId: booking.customerId,
       sourceBookingId: bookingId,
+      missed: Boolean(booking.cancelledLateAt || booking.noShowAt),
     };
   });
 
@@ -176,6 +178,9 @@ export async function transferBooking(input: {
       by,
     });
   }
+
+  // Moved after a late cancel or a no-show: that miss no longer counts, and its Monday mail is taken back.
+  if (slugs.missed) await waiveMissedSunday(slugs.sourceBookingId).catch((e) => console.error("[transfer booking] waive miss failed", e));
 
   await reconcileEventSpotsSold([...slugs.eventIds]);
   revalidateEventPaths(slugs.sourceEvent);

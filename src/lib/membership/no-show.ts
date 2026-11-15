@@ -6,6 +6,7 @@ import { logCustomerActivity } from "@/lib/customers/activities";
 import { CustomerActivityTypes } from "@/lib/customers/types";
 import { noShowOutcome, type NoShowOutcome } from "@/lib/membership/logic";
 import { sendNoShowBlockedEmail, sendNoShowWarningEmail } from "@/lib/membership/mails";
+import { recordMissedSunday } from "@/lib/missed-sundays/server";
 
 export type NoShowResult =
   | { ok: true; outcome: NoShowOutcome | null; mailed: boolean }
@@ -73,7 +74,14 @@ export async function markNoShow(input: { bookingId: string; by: string; now?: D
   if (result.alreadyMarked) return { ok: true, outcome: null, mailed: false };
   // Not there: no "Hoe was het vanmiddag?" either.
   await dropPlannedMailsFor(row.event.id, row.booking.id, ["feedback"]).catch(() => undefined);
-  if (!result.outcome || !result.membershipId) return { ok: true, outcome: null, mailed: false };
+  if (!result.outcome || !result.membershipId) {
+    // Not a member: the missed-Sundays policy (warning and a month off, then six).
+    const missed = result.membershipId ? null : await recordMissedSunday({ bookingId: row.booking.id, kind: "no_show", now }).catch((e) => {
+      console.error("[no-show] missed sunday failed", e);
+      return null;
+    });
+    return { ok: true, outcome: null, mailed: Boolean(missed) };
+  }
 
   const [membership] = await db.select().from(memberships).where(eq(memberships.id, result.membershipId)).limit(1);
   if (!membership) return { ok: true, outcome: result.outcome, mailed: false };

@@ -235,6 +235,7 @@ async function MailsTab({ eventId }: { eventId: string }) {
       eventId={eventId}
       blockers={{
         location: mailBlocker(ctx, "location"),
+        confirm: mailBlocker(ctx, "confirm"),
         saturday: mailBlocker(ctx, "saturday"),
         morning: mailBlocker(ctx, "morning"),
         feedback: mailBlocker(ctx, "feedback"),
@@ -253,6 +254,8 @@ async function MailsTab({ eventId }: { eventId: string }) {
         groupNumber: g.groupNumber,
         needsIntro: g.needsIntro,
         sentLocation: g.sentLocation,
+        sentConfirm: g.sentConfirm,
+        confirmed: g.confirmed,
         sentSaturday: g.sentSaturday,
         sentMorning: g.sentMorning,
         sentFeedback: g.sentFeedback,

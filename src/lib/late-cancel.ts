@@ -4,6 +4,7 @@ import { bookingEvents, bookings, eventGroups, events } from "@/db/schema";
 import { dropPlannedMailsFor, sendSundayMail, shortDate } from "@/lib/admin/sunday-mails";
 import { getEmailReplyTo } from "@/lib/email/resend";
 import { releaseLine, releaseSeat, sendDueSeatOffers } from "@/lib/seat-offer";
+import { recordMissedSunday } from "@/lib/missed-sundays/server";
 
 export type LateCancelResult = { ok: true } | { ok: false; error: "not_found" | "started" };
 
@@ -45,6 +46,8 @@ export async function cancelLate(bookingId: string, now = new Date()): Promise<L
   await notifyOwnerOfCancel({ booking: row.booking, event: row.event, plannedMailsLeft: left, seatLine, now }).catch((error) =>
     console.error("[late-cancel] telling the owner failed:", error),
   );
+  // A seat given up after moving closed: a missed Sunday (missed-sundays/logic.ts).
+  await recordMissedSunday({ bookingId, kind: "late", now }).catch((e) => console.error("[late-cancel] missed sunday failed", e));
   return { ok: true };
 }
 

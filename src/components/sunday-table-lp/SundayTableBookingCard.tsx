@@ -17,6 +17,12 @@ import {
   getMembershipPlan,
 } from "@/lib/membership/plans";
 
+/** Right above the buy button: the table counts on you. */
+const COMMIT_COPY = {
+  nl: "Je tafel rekent op je. Kun je toch niet, laat het dan zo vroeg mogelijk weten.",
+  en: "Your table counts on you. If you can't make it after all, let us know as early as possible.",
+} as const;
+
 /** Date of birth: only a check that the booker is 18 or older. */
 const BIRTH_COPY = {
   nl: { label: "Geboortedatum", underAge: "Om te boeken moet je 18 jaar of ouder zijn." },
@@ -666,6 +672,9 @@ export function SundayTableBookingCard({
 
       {errorBlock}
 
+      {englishOnlyWaiting || needsLogin ? null : (
+        <p className="text-center text-sm leading-snug text-wine/75">{COMMIT_COPY[locale === "en" ? "en" : "nl"]}</p>
+      )}
       {(englishOnlyWaiting && englishNotified) || needsLogin ? null : (
         <Button type="submit" className={submitClass}>
           {loading

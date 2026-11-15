@@ -60,7 +60,6 @@ export function missedSundayMail(input: {
       : "Kwam er iets tussen waar je niets aan kon doen? Antwoord op deze mail, dan kijken we ernaar.";
   if (outcome.kind === "warning") {
     // The first time: understanding first, nothing changes, and the rule as the reason it exists.
-    const m = months(input.months, l);
     const first = late
       ? en
         ? `You let us know shortly before ${day} that you couldn't come. Of course something can come up, we understand that.`
@@ -71,11 +70,11 @@ export function missedSundayMail(input: {
     const stays = en ? "Nothing changes for now. You're welcome at a next Sunday as always." : "Voor nu verandert er niets. Je bent gewoon welkom op een volgende zondag.";
     const rule = late
       ? en
-        ? `We make every table around who is coming. To give everyone a good Sunday, and to keep cancelling from being misused, there is one rule: who cancels late more often can't book for ${m}. Until 7 days before, you move your seat for free.`
-        : `We delen elke tafel in op wie er komt. Om iedereen een fijne zondag te geven, en om misbruik van afmelden te voorkomen, is er één regel: wie vaker kort van tevoren afzegt, kan ${m} niet boeken. Tot 7 dagen vooraf verzet je kosteloos.`
+        ? `We make every table around who is coming. To give everyone a good Sunday, and to keep cancelling from being misused, we may choose to no longer welcome someone at our tables who cancels late more often. Until 7 days before, you move your seat for free.`
+        : `We delen elke tafel in op wie er komt. Om iedereen een fijne zondag te geven, en om misbruik van afmelden te voorkomen, kunnen we ervoor kiezen iemand die vaker kort van tevoren afzegt niet meer aan tafel te verwelkomen. Tot 7 dagen vooraf verzet je kosteloos.`
       : en
-        ? `We make every table around who is coming. To give everyone a good Sunday, there is one rule: who stays away more often without a word can't book for ${m}. Was it something you couldn't help? Reply to this mail.`
-        : `We delen elke tafel in op wie er komt. Om iedereen een fijne zondag te geven, is er één regel: wie vaker wegblijft zonder iets te laten weten, kan ${m} niet boeken. Kon je er niets aan doen? Antwoord gerust op deze mail.`;
+        ? `We make every table around who is coming. To give everyone a good Sunday, we may choose to no longer welcome someone at our tables who stays away more often without a word. Was it something you couldn't help? Reply to this mail.`
+        : `We delen elke tafel in op wie er komt. Om iedereen een fijne zondag te geven, kunnen we ervoor kiezen iemand die vaker wegblijft zonder iets te laten weten niet meer aan tafel te verwelkomen. Kon je er niets aan doen? Antwoord gerust op deze mail.`;
     return { subject, props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: first, warmLine: stays, note: rule } };
   }
   return {

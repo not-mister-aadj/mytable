@@ -296,7 +296,7 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
       </EmailCard>
 
       <Text style={{ ...emailType.bodySmall, margin: "0 0 18px" }}>
-        <strong>{missedSundayNote(p.locale).title}</strong> {missedSundayNote(p.locale).body}
+        <strong>{missedSundayNote(p.locale, true).title}</strong> {missedSundayNote(p.locale, true).body}
       </Text>
 
       <Text style={{ ...emailType.body, margin: "8px 0 0" }}>

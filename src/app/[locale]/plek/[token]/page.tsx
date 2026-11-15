@@ -85,17 +85,23 @@ export default async function SeatOfferPage({ params }: Props) {
             <p className="mt-4 text-[0.98rem] leading-relaxed text-wine/80">
               {en ? "One seat, at a table with people around your age." : "Eén plek, aan een tafel met mensen van rond jouw leeftijd."}
             </p>
-            <div className="mt-5 rounded-2xl bg-white px-4 py-3.5 ring-1 ring-wine/10">
-              <p className="flex items-baseline gap-2 text-wine">
-                <span className="font-serif text-3xl">{euros(offer.priceCents)}</span>
-                {offer.priceCents < offer.fullPriceCents ? <span className="text-base text-wine/45 line-through">{euros(offer.fullPriceCents)}</span> : null}
+            {offer.member ? (
+              <p className="mt-5 rounded-2xl bg-white px-4 py-3.5 text-[0.95rem] leading-snug text-wine/80 ring-1 ring-wine/10">
+                {en ? "This seat is in your membership." : "Deze plek zit in je lidmaatschap."}
               </p>
-              {offer.priceCents < offer.fullPriceCents ? (
-                <p className="mt-1 text-sm leading-snug text-wine/65">
-                  {en ? "The groups are largely made already, so this seat is half price." : "De groepjes zijn al grotendeels gevormd, daarom is deze plek voor de helft."}
+            ) : (
+              <div className="mt-5 rounded-2xl bg-white px-4 py-3.5 ring-1 ring-wine/10">
+                <p className="flex items-baseline gap-2 text-wine">
+                  <span className="font-serif text-3xl">{euros(offer.priceCents)}</span>
+                  {offer.priceCents < offer.fullPriceCents ? <span className="text-base text-wine/45 line-through">{euros(offer.fullPriceCents)}</span> : null}
                 </p>
-              ) : null}
-            </div>
+                {offer.priceCents < offer.fullPriceCents ? (
+                  <p className="mt-1 text-sm leading-snug text-wine/65">
+                    {en ? "The groups are largely made already, so this seat is half price." : "De groepjes zijn al grotendeels gevormd, daarom is deze plek voor de helft."}
+                  </p>
+                ) : null}
+              </div>
+            )}
             <SeatOfferForm
               locale={en ? "en" : "nl"}
               token={token}
@@ -103,7 +109,7 @@ export default async function SeatOfferPage({ params }: Props) {
               email={offer.email}
               firstName={offer.firstName}
               birthDate={offer.birthDate}
-              price={euros(offer.priceCents)}
+              price={offer.member ? null : euros(offer.priceCents)}
               termsHref={termsPath(locale)}
             />
           </section>

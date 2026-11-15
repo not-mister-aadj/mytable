@@ -125,6 +125,28 @@ export async function sendBookingConfirmationForPaidBooking(
   }
 
   const props = await buildBookingConfirmationEmailProps(booking, event, venue);
+  // A seat taken through "Er is een plek vrij": one mail that says it all
+  // (where, when, the group, the table page), instead of the usual one.
+  if (props.isSundayTable) {
+    const seatMail = await import("@/lib/seat-offer")
+      .then((m) => m.seatOfferConfirmation(event.id, booking.id))
+      .catch((error) => {
+        console.error("[email] seat offer confirmation failed", error);
+        return null;
+      });
+    if (seatMail) {
+      const { sendSundayMail } = await import("@/lib/admin/sunday-mails");
+      const id = await sendSundayMail(booking.email, seatMail).catch(() => null);
+      if (id) {
+        // Our own copy, as with every confirmation.
+        const [copyTo] = getBookingConfirmationBcc();
+        if (copyTo) await sendSundayMail(copyTo, seatMail, undefined, `[kopie] ${seatMail.subject}`).catch(() => null);
+        await db.update(bookings).set({ confirmationEmailSentAt: new Date() }).where(eq(bookings.id, booking.id));
+        if (booking.customerId) await onEmailSent({ customerId: booking.customerId, subject: "Boekingsbevestiging", bookingId: booking.id });
+        return { ok: true, id };
+      }
+    }
+  }
   // A Sunday Social whose location mail already went out: that mail is the confirmation.
   const location = props.isSundayTable
     ? await import("@/lib/admin/sunday-mails")

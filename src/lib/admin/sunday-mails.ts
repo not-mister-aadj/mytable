@@ -203,7 +203,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
   };
 }
 
-function mapsUrl(venueName: string, address: string) {
+export function mapsUrl(venueName: string, address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venueName}, ${address}`)}`;
 }
 

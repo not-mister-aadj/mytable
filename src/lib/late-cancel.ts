@@ -1,7 +1,8 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
-import { bookingEvents, bookings, events } from "@/db/schema";
-import { dropPlannedMailsFor } from "@/lib/admin/sunday-mails";
+import { bookingEvents, bookings, eventGroups, events } from "@/db/schema";
+import { dropPlannedMailsFor, sendSundayMail, shortDate } from "@/lib/admin/sunday-mails";
+import { getEmailReplyTo } from "@/lib/email/resend";
 
 export type LateCancelResult = { ok: true } | { ok: false; error: "not_found" | "started" };
 
@@ -30,7 +31,51 @@ export async function cancelLate(bookingId: string, now = new Date()): Promise<L
   if (!marked) return { ok: true };
   const left = await dropPlannedMailsFor(row.event.id, bookingId).catch(() => ["saturday", "morning", "feedback"]);
   await db.insert(bookingEvents).values({ bookingId, type: "cancelled_late", payload: { plannedMailsLeft: left } });
+  // We hear about it at once: the groups may need another look.
+  await notifyOwnerOfCancel({ booking: row.booking, event: row.event, plannedMailsLeft: left, now }).catch((error) =>
+    console.error("[late-cancel] telling the owner failed:", error),
+  );
   return { ok: true };
+}
+
+/** A short mail to our own inbox for every cancellation on the table page. */
+async function notifyOwnerOfCancel(input: {
+  booking: typeof bookings.$inferSelect;
+  event: typeof events.$inferSelect;
+  plannedMailsLeft: string[];
+  now: Date;
+}): Promise<void> {
+  const { booking, event, now } = input;
+  const db = getDb();
+  const [group] = booking.groupId
+    ? await db.select({ number: eventGroups.number }).from(eventGroups).where(eq(eventGroups.id, booking.groupId)).limit(1)
+    : [];
+  // Who still comes: per group, and for the whole Sunday.
+  const counts = (await db.execute(sql`
+    select g.number, coalesce(sum(b.seats), 0)::int as seats
+    from bookings b left join event_groups g on g.id = b.group_id
+    where b.event_id = ${event.id} and b.payment_status = 'paid' and b.lifecycle_status = 'active'
+      and b.cancelled_late_at is null and b.no_show_at is null
+    group by g.number order by g.number nulls last`)) as unknown as Array<{ number: number | null; seats: number }>;
+  const total = counts.reduce((n, c) => n + c.seats, 0);
+  const own = group ? (counts.find((c) => c.number === group.number)?.seats ?? 0) : null;
+  const name = booking.customerName?.trim() || booking.email;
+  const date = shortDate(event.startsAt, "nl");
+  const hours = Math.max(0, Math.round((event.startsAt.getTime() - now.getTime()) / 3_600_000));
+  const when = new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", weekday: "short", hour: "2-digit", minute: "2-digit" }).format(now);
+  const text = [
+    `${name} heeft zich afgemeld voor ${event.city}, ${date}.`,
+    "",
+    `Afgemeld: ${when}, ${hours} uur voor de start`,
+    `Plekken: ${booking.seats}`,
+    ...(group ? [`Groep ${group.number}: nog ${own}`] : []),
+    `Komen nog: ${total}${counts.length > 1 ? ` (${counts.map((c) => `${c.number === null ? "zonder groep" : `groep ${c.number}`}: ${c.seats}`).join(", ")})` : ""}`,
+    ...(input.plannedMailsLeft.length ? [`Mail niet teruggehaald: ${input.plannedMailsLeft.join(", ")}`] : []),
+  ].join("\n");
+  await sendSundayMail(getEmailReplyTo(), {
+    subject: `[afmelding] ${name} · ${event.city} ${date}${group ? ` · groep ${group.number} nog ${own}` : ""}`,
+    text,
+  });
 }
 
 /** Our own note on a cancellation (admin). */

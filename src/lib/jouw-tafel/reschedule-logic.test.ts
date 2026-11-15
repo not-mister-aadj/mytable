@@ -1,7 +1,7 @@
 // Run with: npx tsx --test src/lib/jouw-tafel/*.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canReschedule, daysBefore, pickRescheduleTarget, type RescheduleCandidate } from "./reschedule-logic";
+import { canReschedule, daysBefore, moveTargets, pickRescheduleTarget, type RescheduleCandidate } from "./reschedule-logic";
 
 const NOW = Date.parse("2026-10-04T10:00:00Z");
 const DAY = 24 * 60 * 60 * 1000;
@@ -58,4 +58,40 @@ test("never to a table that closed because nobody booked it 14 days before", () 
   assert.equal(pickRescheduleTarget(source, [empty], 1, NOW), null);
   assert.equal(pickRescheduleTarget(source, [empty, booked], 1, NOW)?.id, "booked");
   assert.equal(pickRescheduleTarget(source, [opened], 1, NOW)?.id, "opened");
+});
+
+test("moveTargets: every open Sunday in the guest's cities, soonest first", () => {
+  const now = Date.parse("2026-12-01T10:00:00Z");
+  const table = (id: string, city: string, startsAt: string, over: Partial<RescheduleCandidate> = {}): RescheduleCandidate => ({
+    id,
+    city,
+    nameNl: "Sunday Social",
+    startsAt: new Date(startsAt),
+    capacity: 20,
+    spotsSold: 5,
+    workflowStatus: "published",
+    experienceType: "jouw-tafel",
+    comingSoon: false,
+    ...over,
+  });
+  const source = table("own", "Amsterdam", "2026-12-13T13:00:00Z");
+  const found = moveTargets(
+    source,
+    [
+      source,
+      table("utrecht", "Utrecht", "2027-01-17T13:00:00Z"),
+      table("rotterdam", "Rotterdam", "2027-01-24T13:00:00Z"),
+      table("earlier", "Amsterdam", "2026-12-06T13:00:00Z"),
+      table("full", "Utrecht", "2027-01-10T13:00:00Z", { spotsSold: 20 }),
+      table("soon", "Utrecht", "2027-02-07T13:00:00Z", { comingSoon: true }),
+      table("eindhoven", "Eindhoven", "2027-01-03T13:00:00Z"),
+    ],
+    1,
+    ["Utrecht", "Amsterdam"],
+    now,
+  );
+  assert.deepEqual(
+    found.map((e) => e.id),
+    ["earlier", "utrecht"],
+  );
 });

@@ -22,6 +22,8 @@ export type SundaySaturdayEmailProps = {
   time: string;
   /** The guest's own table page. */
   tableUrl: string;
+  /** Their first Sunday: a few words for the evening before. */
+  firstTime?: boolean;
 };
 
 export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
@@ -77,6 +79,16 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
         href={p.tableUrl}
         label={nl ? "Bekijk je tafel →" : "See your table →"}
       />
+
+      <Text style={{ ...emailType.bodySmall, margin: "0 0 18px" }}>
+        {p.firstTime
+          ? nl
+            ? "Je eerste keer? Bijna iedereen komt alleen, en bijna iedereen vindt het de avond ervoor een beetje spannend. Dat hoort erbij. Je tafel is ingedeeld en rekent op je."
+            : "Your first time? Almost everyone comes on their own, and almost everyone finds the evening before a little nerve-racking. That's part of it. Your table is made and counts on you."
+          : nl
+            ? "Je tafel is ingedeeld en rekent op je."
+            : "Your table is made and counts on you."}
+      </Text>
 
       <Text style={{ ...emailType.body, margin: "8px 0 0" }}>
         {nl ? "Tot morgen," : "See you tomorrow,"}

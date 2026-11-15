@@ -194,6 +194,8 @@ export const customers = pgTable(
     favoriteEventType: text("favorite_event_type"),
     tags: jsonb("tags").$type<string[]>().default([]),
     notes: text("notes"),
+    /** Kept from booking a Sunday until then, after missed Sundays (drizzle/0063). */
+    bookingBlockedUntil: timestamp("booking_blocked_until", { withTimezone: true }),
     /** "Meet your table" answers, kept on the person (drizzle/0042) so a new
      * booking starts with them; the latest save on any booking wins. */
     introConversationStyle: text("intro_conversation_style"),
@@ -283,6 +285,10 @@ export const bookings = pgTable("bookings", {
   cancelledLateAt: timestamp("cancelled_late_at", { withTimezone: true }),
   /** Our own note on that cancellation. */
   cancelNote: text("cancel_note"),
+  /** "Ja, ik kom" in the Wednesday mail (drizzle/0063). */
+  attendanceConfirmedAt: timestamp("attendance_confirmed_at", { withTimezone: true }),
+  /** Admin struck this missed Sunday: it no longer counts (drizzle/0063). */
+  missWaivedAt: timestamp("miss_waived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

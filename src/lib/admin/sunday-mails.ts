@@ -11,7 +11,7 @@ import { renderEmailForDelivery } from "@/lib/email/render-email";
 import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/resend";
 import { signSundayTableIntroToken } from "@/lib/sunday-table-intro";
 import { feedbackUrl, loadFeedbackPage } from "@/lib/feedback";
-import { tablePageUrl } from "@/lib/table-page";
+import { confirmUrl, moveUrl, tablePageUrl } from "@/lib/table-page";
 import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 import { venueTransit } from "@/lib/venue-about";
 import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
@@ -21,8 +21,9 @@ import { jouwTafelSettingsPath } from "@/i18n/config";
  * before, on Saturday the group with a link to the table page, and on
  * Sunday morning our picks; the feedback mail that evening and, for who
  * didn't answer it, a reminder with the next date on Tuesday; on Wednesday
- * evening, for who a tablemate picked, that their table enjoyed them. */
-export type SundayMailKind = "location" | "saturday" | "morning" | "feedback" | "reminder" | "liked";
+ * evening, for who a tablemate picked, that their table enjoyed them. Nine
+ * days before, "Kom je zondag?": yes, or move while that is still free. */
+export type SundayMailKind = "location" | "confirm" | "confirmAgain" | "saturday" | "morning" | "feedback" | "reminder" | "liked";
 
 const SITE = "https://www.mytable.club";
 
@@ -38,6 +39,14 @@ type Guest = {
   /** The open questions are still empty. */
   needsIntro: boolean;
   sentLocation: boolean;
+  sentConfirm: boolean;
+  sentConfirmAgain: boolean;
+  /** Tapped "Ja, ik kom" in "Kom je zondag?". */
+  confirmed: boolean;
+  /** A seat from a membership: its own rule, no "Kom je zondag?". */
+  member: boolean;
+  /** Their first Sunday with us. */
+  firstTime: boolean;
   sentSaturday: boolean;
   sentMorning: boolean;
   sentFeedback: boolean;
@@ -72,6 +81,8 @@ export type SundayMailContext = {
 /** Which sent mails count as the location mail; the Vandaag page counts with it too. */
 export const LOCATION_SUBJECT_SQL = `(subject ilike '%locatie%' or subject ilike '%location%' or subject ilike '%je Sunday Social bij%' or subject ilike '%your Sunday Social at%' or subject ilike '%volgende week zondag%' or subject ilike '%next sunday at%' or subject ilike 'aanstaande zondag bij%' or subject ilike 'this sunday at%')`;
 const LOCATION_SENT = sql.raw(LOCATION_SUBJECT_SQL);
+const CONFIRM_SENT = sql.raw(`(subject ilike 'kom je zondag%' or subject ilike 'are you coming on sunday%')`);
+const CONFIRM_AGAIN_SENT = sql.raw(`(subject ilike 'nog even: kom je zondag%' or subject ilike 'quick reminder: are you coming%')`);
 const SATURDAY_SENT = sql.raw(`(subject ilike '%groep %' or subject ilike '%group %')`);
 const MORNING_SENT = sql.raw(
   `(subject ilike '%aanraders%' or subject ilike '%our picks%' or (subject ilike 'vanmiddag bij%') or (subject ilike 'this afternoon at%'))`,
@@ -145,8 +156,18 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
         )
       : new Set<string>();
   const ids = rows.map((r) => r.id);
-  const [locationSent, saturdaySent, morningSent, feedbackSent, reminderSent, likedSent, picks, answered, reported] = await Promise.all([
+  const [locationSent, confirmSent, confirmAgainSent, earlier, saturdaySent, morningSent, feedbackSent, reminderSent, likedSent, picks, answered, reported] = await Promise.all([
     sent(LOCATION_SENT, 10),
+    sent(CONFIRM_SENT, 10),
+    sent(CONFIRM_AGAIN_SENT, 10),
+    // Who sat at a table before this Sunday: not a first-timer.
+    emails.length
+      ? db.execute<{ email: string }>(sql`
+          select distinct lower(trim(b.email)) as email from bookings b join events e on e.id = b.event_id
+          where lower(trim(b.email)) in (${sql.join(emails.map((e) => sql`${e}`), sql`, `)})
+            and b.payment_status = 'paid' and b.lifecycle_status = 'active' and b.cancelled_late_at is null and b.no_show_at is null
+            and e.starts_at < ${event.startsAt.toISOString()}::timestamptz`)
+      : [],
     sent(SATURDAY_SENT, 4),
     sent(MORNING_SENT, 2),
     sent(FEEDBACK_SENT, 2),
@@ -165,6 +186,8 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
   const picked = new Map(picks.map((p) => [p.id, Array.isArray(p.wantToSee) ? (p.wantToSee as string[]) : []]));
   const likedBy = (id: string) => [...picked].filter(([from, to]) => from !== id && to.includes(id)).length;
 
+  const earlierEmails = new Set([...earlier].map((r) => r.email));
+
   const guests: Guest[] = rows.map((b) => {
     const open = [b.introAskMeAbout, b.introFavoriteSpot, b.introIntoNow].some((v) => v?.trim());
     const key = normalizeEmail(b.email);
@@ -179,6 +202,11 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       groupNumber: b.groupId ? (numberById.get(b.groupId) ?? null) : null,
       needsIntro: !open,
       sentLocation: locationSent.has(key),
+      sentConfirm: confirmSent.has(key),
+      sentConfirmAgain: confirmAgainSent.has(key),
+      confirmed: Boolean(b.attendanceConfirmedAt),
+      member: Boolean(b.membershipId),
+      firstTime: !earlierEmails.has(key),
       sentSaturday: saturdaySent.has(key),
       sentMorning: morningSent.has(key),
       sentFeedback: feedbackSent.has(key),
@@ -240,14 +268,20 @@ export async function locationMailAsConfirmation(eventId: string, bookingId: str
  * only who a tablemate picked. */
 export function mailRecipients(ctx: SundayMailContext, kind: SundayMailKind): Guest[] {
   if (kind === "liked") return ctx.guests.filter((g) => !g.noShow && g.likedBy > 0);
+  // "Kom je zondag?": not who said yes, and not a member (their own rule). The
+  // second one only for who had the first and stayed silent.
+  if (kind === "confirm") return ctx.guests.filter((g) => !g.confirmed && !g.member);
+  if (kind === "confirmAgain") return ctx.guests.filter((g) => !g.confirmed && !g.member && g.sentConfirm);
   if (kind === "reminder") return ctx.guests.filter((g) => !g.noShow && !g.feedbackGiven && !g.reported);
   return kind === "feedback" ? ctx.guests.filter((g) => !g.noShow) : ctx.guests;
 }
 
 /** Why a mail can't go out yet for this Sunday; null when it can. */
 export function mailBlocker(ctx: SundayMailContext, kind: SundayMailKind): string | null {
-  if (!ctx.venue) return "Deze zondag heeft nog geen locatie met adres.";
   if (ctx.guests.length === 0) return "Nog geen gasten.";
+  // "Kom je zondag?" goes nine days before, when the venue may not be known: it names the city.
+  if (kind === "confirm" || kind === "confirmAgain") return null;
+  if (!ctx.venue) return "Deze zondag heeft nog geen locatie met adres.";
   if (kind === "morning" && ctx.picks.length === 0) return `${ctx.venue.name} heeft nog geen aanraders. Vul ze in bij Tafelindeling.`;
   if (kind === "saturday" || kind === "morning") {
     const without = ctx.guests.filter((g) => g.groupNumber === null).length;
@@ -335,6 +369,29 @@ export async function buildSundayMail(
       from: PLAIN_FROM,
     };
   }
+  if (kind === "confirm" || kind === "confirmAgain") {
+    const again = kind === "confirmAgain";
+    const day = longDate(ctx.startsAt, locale);
+    return {
+      subject: again
+        ? nl
+          ? `Nog even: kom je ${day}?`
+          : `Quick reminder: are you coming on ${day}?`
+        : nl
+          ? `Kom je ${day}? · ${ctx.city}`
+          : `Are you coming on ${day}? · ${ctx.city}`,
+      ...confirmMail({
+        locale,
+        firstName: guest.firstName,
+        city: ctx.city,
+        startsAt: ctx.startsAt,
+        again,
+        yesUrl: await confirmUrl(guest.bookingId, locale),
+        moveUrl: await moveUrl(guest.bookingId, locale),
+      }),
+      from: PLAIN_FROM,
+    };
+  }
   if (kind === "reminder") {
     const page = await loadFeedbackPage(guest.bookingId);
     const next = page?.next;
@@ -387,6 +444,7 @@ export async function buildSundayMail(
       mapsUrl: mapsUrl(venue.name, venue.address),
       time: time(ctx.startsAt),
       tableUrl,
+      firstTime: guest.firstTime,
     }),
   };
 }
@@ -520,6 +578,72 @@ export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName
       ? "Laat weten met wie het gezellig was"
       : "Let us know who you enjoyed";
   return buttonMail(text, p.url, label);
+}
+
+/** "zondag 13 december" / "Sunday 13 December". */
+export function longDate(d: Date, locale: "nl" | "en"): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" })
+    .format(d)
+    .replace(",", "");
+}
+
+const MOVE_DAYS_MS = 7 * 86_400_000;
+
+/**
+ * "Kom je zondag?", nine days before, while moving is still free: yes, or
+ * move. Why it matters for the table, without blame. `again` is the short
+ * one a day later, for who chose nothing.
+ */
+export function confirmMail(p: {
+  locale: "nl" | "en";
+  firstName: string;
+  city: string;
+  startsAt: Date;
+  again?: boolean;
+  yesUrl: string;
+  moveUrl: string;
+  now?: Date;
+}): { text: string; html: string } {
+  const nl = p.locale === "nl";
+  const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
+  const day = longDate(p.startsAt, p.locale);
+  const at = time(p.startsAt);
+  const until = longDate(new Date(p.startsAt.getTime() - MOVE_DAYS_MS), p.locale);
+  const days = Math.round((Date.parse(`${amsterdamDateIso(p.startsAt)}T12:00:00Z`) - Date.parse(`${amsterdamDateIso(p.now ?? new Date())}T12:00:00Z`)) / 86_400_000);
+  const inDays = nl ? `Over ${NL_NUMBERS[days] ?? days} dagen` : `In ${EN_NUMBERS[days] ?? days} days`;
+  const dayOfMonth = Number(amsterdamDateIso(p.startsAt).split("-")[2]);
+  const before = p.again
+    ? nl
+      ? [hi, `We hebben nog niet van je gehoord. Morgen delen we de tafels in voor ${day}.`]
+      : [hi, `We haven't heard from you yet. Tomorrow we make the tables for ${day}.`]
+    : nl
+      ? [
+          hi,
+          `${inDays} schuif je aan in ${p.city}: ${day} om ${at}.`,
+          "We delen de tafels in op wie er komt. Jouw tafel wordt om jou heen gebouwd, met mensen van rond jouw leeftijd. Valt er iemand weg, dan merkt de hele tafel dat. Het is voor iedereen leuker als de groep compleet is.",
+          "We snappen dat er soms iets tussen komt. Daarom vragen we het nu, nu je je plek nog gratis kunt verzetten naar een andere datum:",
+        ]
+      : [
+          hi,
+          `${inDays} you're joining the table in ${p.city}: ${day} at ${at}.`,
+          "We make the tables around who is coming. Yours is built around you, with people around your age. When someone drops out, the whole table notices. It's nicer for everyone when the group is complete.",
+          "We know things come up. That's why we ask now, while you can still move your seat to another date for free:",
+        ];
+  const after = p.again
+    ? nl
+      ? ["Na morgen kan verzetten niet meer.", "MyTable"]
+      : ["After tomorrow, moving is no longer possible.", "MyTable"]
+    : nl
+      ? [`Verzetten kan tot ${until}. Die dag sturen we je de locatie. Daarna ligt je plek vast en rekent je tafel op je.`, `Tot de ${dayOfMonth}e,\nMyTable`]
+      : [`You can move until ${until}. That day we send you the location. After that your seat is fixed and your table counts on you.`, "See you then,\nMyTable"];
+  const yes = nl ? "Ja, ik kom" : "Yes, I'm coming";
+  const move = nl ? "Ik wil verzetten" : "I'd like to move";
+  const text = [...before, `${yes}: ${p.yesUrl}\n${move}: ${p.moveUrl}`, ...after].join("\n\n");
+  const para = (lines: string[]) => lines.map((l) => `<p style="margin:0 0 16px">${escapeHtml(l).replace(/\n/g, "<br>")}</p>`).join("");
+  const button = (url: string, label: string, solid: boolean) =>
+    `<a href="${escapeHtml(url)}" style="display:inline-block;margin:0 8px 8px 0;border:1px solid #5a0f1b;background:${solid ? "#5a0f1b" : "#ffffff"};color:${solid ? "#ffffff" : "#5a0f1b"};text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${escapeHtml(label)}</a>`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${para(before)}<p style="margin:4px 0 16px">${button(p.yesUrl, yes, true)}${button(p.moveUrl, move, false)}</p>${para(after)}</div>`;
+  return { text, html };
 }
 
 /** Tuesday 08:00, for who didn't answer: who they'd like to see again, and the next date to book. */
@@ -736,11 +860,15 @@ function parseSchedule(raw: unknown): SundayMailContext["schedule"] {
 
 /** The suggested send time: Saturday 14:00 (24 hours before) for the group mail, Sunday 20:00 for the feedback, Sunday 08:30
  * for the picks (Amsterdam). */
-export function defaultScheduleAt(startsAt: Date, kind: "saturday" | "morning" | "feedback" | "reminder" | "liked"): Date {
+export function defaultScheduleAt(startsAt: Date, kind: "confirm" | "confirmAgain" | "saturday" | "morning" | "feedback" | "reminder" | "liked"): Date {
   const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
   if (kind === "feedback") return amsterdamDateTime(y, m, d, 20, 0);
   // The feedback reminder: Tuesday 08:00. "Ze vonden je gezellig": Wednesday 19:00.
   if (kind === "reminder") return amsterdamDateTime(y, m, d + 2, 8, 0);
   if (kind === "liked") return amsterdamDateTime(y, m, d + 3, 19, 0);
+  // "Kom je zondag?": nine days before (the Friday), 10:00, while moving is still free.
+  if (kind === "confirm") return amsterdamDateTime(y, m, d - 9, 10, 0);
+  // The short one for who chose nothing: the Saturday, a day before moving closes.
+  if (kind === "confirmAgain") return amsterdamDateTime(y, m, d - 8, 10, 0);
   return kind === "saturday" ? amsterdamDateTime(y, m, d - 1, 14, 0) : amsterdamDateTime(y, m, d, 8, 30);
 }

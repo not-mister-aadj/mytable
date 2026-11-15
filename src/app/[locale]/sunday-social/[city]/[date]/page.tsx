@@ -566,7 +566,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           bookingCtaLabel: "Buy your ticket",
           bookingCtaLabelPlural: "Buy your tickets",
           bookingSoldOutLabel: "This table is fully booked.",
-          bookingGuarantees: ["Secure payment via iDEAL", "Free rescheduling up to 48 hours before"],
+          bookingGuarantees: ["Secure payment via iDEAL", "Free rescheduling up to 7 days before"],
           bookingErrorLabel: "Something went wrong. Please try again.",
           englishComingSoon: {
             title: "English-speaking tables are coming",
@@ -622,7 +622,7 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Can I cancel or reschedule?",
               answer:
-                "Cancelling isn't possible. You can reschedule to a different Sunday Social edition for free up to 48 hours in advance. Email us at info@mytable.club to arrange it.",
+                "Cancelling isn't possible. You can move to a different Sunday Social for free up to 7 days in advance, through the link in your mail.",
             },
           ],
         }
@@ -657,7 +657,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           bookingCtaLabel: "Koop je ticket",
           bookingCtaLabelPlural: "Koop je tickets",
           bookingSoldOutLabel: "Deze tafel zit vol.",
-          bookingGuarantees: ["Veilig betalen via iDEAL", "Kosteloos verplaatsen tot 48 uur vooraf"],
+          bookingGuarantees: ["Veilig betalen via iDEAL", "Kosteloos verzetten tot 7 dagen vooraf"],
           bookingErrorLabel: "Er ging iets mis. Probeer het opnieuw.",
           // In English on the Dutch page too: whoever sees this just said
           // they'd rather speak English. Only the button name stays Dutch,
@@ -716,7 +716,7 @@ export default async function SundayTableEventPage({ params }: Props) {
             {
               question: "Kan ik annuleren of verplaatsen?",
               answer:
-                "Annuleren is niet mogelijk. Wel kun je tot 48 uur van tevoren gratis verplaatsen naar een andere Sunday Social editie. Mail ons daarvoor op info@mytable.club.",
+                "Annuleren is niet mogelijk. Wel kun je tot 7 dagen van tevoren gratis verzetten naar een andere Sunday Social, via de link in je mail.",
             },
           ],
         };

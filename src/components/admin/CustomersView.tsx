@@ -57,6 +57,8 @@ type SortKey =
   | "seats"
   | "spent"
   | "lastBookingAt"
+  | "noShows"
+  | "lateCancels"
   | "status";
 
 type SortDir = "asc" | "desc";
@@ -85,6 +87,8 @@ const COLUMNS: { key: SortKey; label: string; defaultDir: SortDir }[] = [
   { key: "seats", label: "Plekken", defaultDir: "desc" },
   { key: "spent", label: "Totaal besteed", defaultDir: "desc" },
   { key: "lastBookingAt", label: "Laatste boeking", defaultDir: "desc" },
+  { key: "noShows", label: "Niet gekomen", defaultDir: "desc" },
+  { key: "lateCancels", label: "Laat afgezegd", defaultDir: "desc" },
   { key: "status", label: "Status", defaultDir: "asc" },
 ];
 
@@ -108,6 +112,10 @@ function sortValue(row: AdminCustomerListRow, key: SortKey): string | number | n
       return row.totalSpentCents;
     case "lastBookingAt":
       return row.lastBookingAt ? new Date(row.lastBookingAt).getTime() : null;
+    case "noShows":
+      return row.noShows;
+    case "lateCancels":
+      return row.lateCancels;
     case "status":
       return row.statusLabel.toLowerCase();
   }
@@ -710,6 +718,8 @@ export function CustomersView({ data }: { data: AdminCustomersPageData }) {
                     <td className="px-5 py-4 text-wine/70">
                       {formatDate(row.lastBookingAt)}
                     </td>
+                    <td className={`px-5 py-4 ${row.noShows ? "font-semibold text-red-800" : "text-wine/40"}`}>{row.noShows || "-"}</td>
+                    <td className={`px-5 py-4 ${row.lateCancels ? "font-semibold text-red-800" : "text-wine/40"}`}>{row.lateCancels || "-"}</td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${customerStatusPillClass(row.status as CustomerStatusKey)}`}

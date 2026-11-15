@@ -1,9 +1,10 @@
+import { isFirstMiss } from "@/lib/missed-sundays/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { CancelLate, EditOwnIntro, PlusOneEditor, TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
+import { CancelLate, SeatFixed, EditOwnIntro, PlusOneEditor, TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
 import { isValidLocale, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { reservationCode } from "@/lib/booking-display";
@@ -79,13 +80,41 @@ const COPY = {
     cancel: {
       open: "Kun je toch niet?",
       title: "Afmelden voor deze middag?",
-      body: "Je ticket wordt niet terugbetaald. Wel weten we zo dat je er niet bij bent, en kunnen we de andere gasten nog opnieuw indelen mocht dat nodig zijn. Wie niet komt zonder af te melden, zetten we in de toekomst misschien niet meer aan tafel.",
+      body: "Zo weten we dat je er niet bij bent, en kunnen we de andere gasten nog opnieuw indelen.",
       confirm: "Ja, ik kan niet",
       keep: "Laat maar",
       error: "Dat lukte niet. Probeer het opnieuw.",
     },
-    cancelledTitle: "Je hebt je afgemeld",
-    cancelledBody: "Jammer dat je er deze keer niet bij kunt zijn. Hopelijk tot een volgende keer.",
+    move: "Kun je toch niet? Verzet je plek",
+    fixed: {
+      open: "Kun je toch niet?",
+      title: "Je plek ligt vast.",
+      body: "Je tafel is op jou ingedeeld. Kun je echt niet? Laat dan iemand in jouw plaats komen, zodat de tafel compleet blijft.",
+      handOver: "Geef mijn plek door",
+      message: "Meld me toch af",
+      keep: "Laat maar",
+      back: "Terug",
+      handOverTitle: "Wie komt er in jouw plaats?",
+      handOverBody: "Diegene krijgt een mail met waar en wanneer, en een eigen tafelpagina.",
+      name: "Voornaam",
+      email: "E-mailadres",
+      handOverDone: "Je plek is doorgegeven aan {name}.",
+      handOverDoneBody: "Je tafel blijft compleet.",
+      messageTitle: "Wat is er?",
+      messageBody: "Vertel ons wat er is. Daarmee geef je je plek op; die gaat naar iemand op de wachtlijst.",
+      messagePlaceholder: "Wat is er gebeurd?",
+      send: "Verstuur en geef mijn plek op",
+      errors: {
+        invalid: "Vul een naam en een geldig e-mailadres in.",
+        same: "Dat is je eigen e-mailadres.",
+        already: "Diegene heeft al een plek op deze zondag.",
+        closed: "Dat kan niet meer.",
+        failed: "Dat lukte niet. Probeer het opnieuw.",
+      },
+    },
+    cancelledTitle: "Je plek is opgegeven",
+    cancelledBody: "We hebben je bericht ontvangen. Je plek gaat naar iemand op de wachtlijst.",
+    cancelledFirst: "Natuurlijk kan er iets tussen komen, dat snappen we. Voor nu verandert er niets: je bent gewoon welkom op een volgende zondag.",
     cancelledCta: "Bekijk de Sunday Socials",
   },
   en: {
@@ -147,13 +176,41 @@ const COPY = {
     cancel: {
       open: "Can't make it after all?",
       title: "Cancel for this afternoon?",
-      body: "Your ticket is not refunded. But this way we know you won't be there, and we can still rearrange the other guests if needed. If you don't show up without cancelling, we may not seat you at a table in the future.",
+      body: "This way we know you won't be there, and we can still rearrange the other guests.",
       confirm: "Yes, I can't come",
       keep: "Never mind",
       error: "That didn't work. Please try again.",
     },
-    cancelledTitle: "You've cancelled",
-    cancelledBody: "A shame you can't make it this time. Hopefully see you another time.",
+    move: "Can't make it after all? Move your seat",
+    fixed: {
+      open: "Can't make it after all?",
+      title: "Your seat is fixed.",
+      body: "Your table is made around you. Really can't come? Then let someone come in your place, so the table stays complete.",
+      handOver: "Pass on my seat",
+      message: "Cancel anyway",
+      keep: "Never mind",
+      back: "Back",
+      handOverTitle: "Who is coming in your place?",
+      handOverBody: "They get a mail with where and when, and their own table page.",
+      name: "First name",
+      email: "Email address",
+      handOverDone: "Your seat has been passed on to {name}.",
+      handOverDoneBody: "Your table stays complete.",
+      messageTitle: "What's up?",
+      messageBody: "Tell us what's going on. With this you give up your seat; it goes to someone on the waitlist.",
+      messagePlaceholder: "What happened?",
+      send: "Send and give up my seat",
+      errors: {
+        invalid: "Enter a name and a valid email address.",
+        same: "That's your own email address.",
+        already: "They already have a seat on this Sunday.",
+        closed: "That's no longer possible.",
+        failed: "That didn't work. Please try again.",
+      },
+    },
+    cancelledTitle: "You've given up your seat",
+    cancelledBody: "We've received your message. Your seat goes to someone on the waitlist.",
+    cancelledFirst: "Of course something can come up, we understand that. Nothing changes for now: you're welcome at a next Sunday as always.",
     cancelledCta: "See the Sunday Socials",
   },
 } as const;
@@ -189,7 +246,7 @@ export default async function TablePageRoute({ params }: Props) {
           {!page ? (
             <Invalid t={t} locale={locale} />
           ) : page.cancelled ? (
-            <Cancelled t={t} href={tablePageAfterPath(locale, page.city)} />
+            <Cancelled t={t} href={tablePageAfterPath(locale, page.city)} first={await isFirstMiss(page.bookingId)} />
           ) : (
             <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} />
           )}
@@ -200,10 +257,11 @@ export default async function TablePageRoute({ params }: Props) {
   );
 }
 
-function Cancelled({ t, href }: { t: Copy; href: string }) {
+function Cancelled({ t, href, first }: { t: Copy; href: string; first: boolean }) {
   return (
     <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-8 text-center sm:px-8">
       <h1 className="font-serif text-2xl text-wine">{t.cancelledTitle}</h1>
+      {first ? <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine">{t.cancelledFirst}</p> : null}
       <p className="mt-2 text-sm text-wine/70">{t.cancelledBody}</p>
       <Link href={href} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
         {t.cancelledCta}
@@ -334,7 +392,17 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
       <Picks page={page} venueName={venueName} t={t} />
 
       <p className="px-1 text-xs text-wine/50">{t.footer}</p>
-      {!page.started ? <CancelLate token={token} copy={t.cancel} /> : null}
+      {page.started ? null : page.seat === "member" ? (
+        <CancelLate token={token} copy={t.cancel} />
+      ) : page.seat === "movable" ? (
+        <p className="px-1">
+          <Link href={`${locale === "en" ? "/en" : ""}/aan-tafel/${encodeURIComponent(token)}/verzetten`} className="text-xs text-wine/50 underline underline-offset-4 hover:text-burgundy">
+            {t.move}
+          </Link>
+        </p>
+      ) : (
+        <SeatFixed token={token} copy={t.fixed} />
+      )}
     </>
   );
 }

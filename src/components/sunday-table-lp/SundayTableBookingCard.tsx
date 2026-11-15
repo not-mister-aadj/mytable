@@ -17,6 +17,21 @@ import {
   getMembershipPlan,
 } from "@/lib/membership/plans";
 
+/** Right above the buy button: the promise the booker ticks. A seat from a
+ * membership follows the membership's own rule (cancel until 48 hours before). */
+const COMMIT_COPY = {
+  nl: {
+    lead: "Ik kom.",
+    seat: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan verzet ik uiterlijk 7 dagen vooraf.",
+    member: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan meld ik me uiterlijk 48 uur vooraf af.",
+  },
+  en: {
+    lead: "I'll be there.",
+    seat: "My table is made around me. If I can't make it after all, I move my seat at least 7 days before.",
+    member: "My table is made around me. If I can't make it after all, I cancel at least 48 hours before.",
+  },
+} as const;
+
 /** Date of birth: only a check that the booker is 18 or older. */
 const BIRTH_COPY = {
   nl: { label: "Geboortedatum", underAge: "Om te boeken moet je 18 jaar of ouder zijn." },
@@ -236,6 +251,7 @@ export function SundayTableBookingCard({
     };
   }, [startsAt]);
   const [loading, setLoading] = useState(false);
+  const [missPriceCents, setMissPriceCents] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [englishNotified, setEnglishNotified] = useState(false);
@@ -253,7 +269,7 @@ export function SundayTableBookingCard({
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
       ? MONTHLY_CENTS / 100
-      : pricePerSeatEuros * seats;
+      : ((missPriceCents ?? 0) / 100 || pricePerSeatEuros) * seats;
   const euroLabel = (value: number) =>
     Number.isInteger(value) ? `€${value}` : `€${value.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
   // Most tables are Dutch-speaking: there "English" stays selectable, but it
@@ -352,10 +368,13 @@ export function SundayTableBookingCard({
           ...(offersPlan && ticketPlan ? { plan: ticketPlan } : {}),
           returnPath: window.location.pathname,
           utm: getStoredUtm(),
+          ...(missPriceCents ? { acceptPriceCents: missPriceCents } : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) {
+        // The seat costs more after missed Sundays: shown first, the next tap pays it.
+        if (data.code === "miss_price" && typeof data.priceCents === "number") setMissPriceCents(data.priceCents);
         setNeedsLogin(data.code === "member_login");
         setError(data.error ?? genericErrorLabel);
         setLoading(false);
@@ -666,6 +685,15 @@ export function SundayTableBookingCard({
 
       {errorBlock}
 
+      {englishOnlyWaiting || needsLogin ? null : (
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gold/40 bg-white/60 px-4 py-3 text-left text-sm leading-snug text-wine/80">
+          <input type="checkbox" required className="mt-0.5 h-4 w-4 shrink-0 accent-burgundy" />
+          <span>
+            <span className="font-semibold text-wine">{COMMIT_COPY[locale === "en" ? "en" : "nl"].lead}</span>{" "}
+            {COMMIT_COPY[locale === "en" ? "en" : "nl"][member || monthly ? "member" : "seat"]}
+          </span>
+        </label>
+      )}
       {(englishOnlyWaiting && englishNotified) || needsLogin ? null : (
         <Button type="submit" className={submitClass}>
           {loading

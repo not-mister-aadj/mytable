@@ -1,6 +1,10 @@
 "use server";
 
+import { confirmAttendance } from "@/lib/attendance";
 import { cancelLate } from "@/lib/late-cancel";
+import { longDate } from "@/lib/admin/sunday-mails";
+import { handOverSeat } from "@/lib/seat-handover";
+import { moveSeat } from "@/lib/seat-move";
 import { savePlusOneAnswers, shareTablePageIntro, verifyTablePageToken, type PlusOneAnswers } from "@/lib/table-page";
 
 /** "Deel mijn intro" on the table page: only for the booking in the link. */
@@ -19,9 +23,38 @@ export async function savePlusOneAction(token: string, answers: PlusOneAnswers):
   return { ok: true };
 }
 
-/** "Kun je toch niet?": cancels the booking in the link, until the start. */
-export async function cancelLateAction(token: string): Promise<{ ok: boolean }> {
+/** "Ja, ik kom" from "Kom je zondag?", for the booking in the link. */
+export async function confirmAttendanceAction(token: string): Promise<{ ok: boolean }> {
   const bookingId = await verifyTablePageToken(token);
   if (!bookingId) return { ok: false };
-  return { ok: (await cancelLate(bookingId)).ok };
+  return { ok: await confirmAttendance(bookingId) };
+}
+
+/** "Kun je toch niet?": gives up the seat of the booking in the link, until the start, with what happened. */
+export async function cancelLateAction(token: string, reason?: string): Promise<{ ok: boolean }> {
+  const bookingId = await verifyTablePageToken(token);
+  if (!bookingId) return { ok: false };
+  return { ok: (await cancelLate(bookingId, new Date(), reason)).ok };
+}
+
+/** "Verzet mijn plek": moves the seat in the link to the Sunday they picked. */
+export async function moveSeatAction(
+  token: string,
+  eventId: string,
+  locale: "nl" | "en",
+): Promise<{ ok: true; label: string; tableUrl: string } | { ok: false; error: string }> {
+  const bookingId = await verifyTablePageToken(token);
+  if (!bookingId || !/^[0-9a-f-]{36}$/i.test(eventId)) return { ok: false, error: "closed" };
+  const lang = locale === "en" ? "en" : "nl";
+  const result = await moveSeat(bookingId, eventId, lang);
+  if (!result.ok) return result;
+  return { ok: true, label: `${longDate(new Date(result.startsAt), lang)} in ${result.city}`, tableUrl: result.tableUrl };
+}
+
+/** "Geef mijn plek door": someone else comes in their place. */
+export async function handOverSeatAction(token: string, to: { name: string; email: string }): Promise<{ ok: boolean; error?: string }> {
+  const bookingId = await verifyTablePageToken(token);
+  if (!bookingId) return { ok: false, error: "closed" };
+  const result = await handOverSeat(bookingId, { name: String(to?.name ?? ""), email: String(to?.email ?? "") });
+  return result.ok ? { ok: true } : { ok: false, error: result.error };
 }

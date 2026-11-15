@@ -1,3 +1,4 @@
+import { missCountsByEmail } from "@/lib/missed-sundays/server";
 import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 import type { Attribution } from "@/lib/analytics/attribution";
 import {
@@ -54,6 +55,9 @@ export type AdminCustomerListRow = {
   signupConcept: SignupConcept | null;
   /** Has an account (also a waitlist person who later did the quiz). */
   hasAccount: boolean;
+  /** Sundays they did not come to, and seats given up inside 7 days. */
+  noShows: number;
+  lateCancels: number;
 } & CustomerWaitlistAnswers;
 
 export type AdminCustomersPageData = {
@@ -119,7 +123,7 @@ export type AdminCustomerProfile = {
 function mapCustomerRow(
   row: typeof customers.$inferSelect,
   answers: CustomerWaitlistAnswers & { waitlistCity: string | null },
-): Omit<AdminCustomerListRow, "signupConcept" | "hasAccount"> {
+): Omit<AdminCustomerListRow, "signupConcept" | "hasAccount" | "noShows" | "lateCancels"> {
   const status = resolveCustomerStatus({
     paidBookingsCount: row.paidBookingsCount,
     totalBookings: row.totalBookings,
@@ -192,6 +196,8 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
     signupsByEmail.set(key, list);
   }
 
+  const misses = await missCountsByEmail();
+
   const allCustomers = rows.map((row) => {
     const signups =
       signupsByCustomer.get(row.id) ??
@@ -205,6 +211,8 @@ export async function getAdminCustomersPageData(): Promise<AdminCustomersPageDat
       }),
       signupConcept: concept?.concept ?? null,
       hasAccount: concept?.hasAccount ?? false,
+      noShows: misses.get(row.emailNormalized)?.noShows ?? 0,
+      lateCancels: misses.get(row.emailNormalized)?.lateCancels ?? 0,
     };
   });
 

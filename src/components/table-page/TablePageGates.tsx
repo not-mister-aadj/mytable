@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { cancelLateAction, savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
+import { cancelLateAction, handOverSeatAction, savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { Locale } from "@/i18n/config";
 import type { IntroWine, SundayTableIntro } from "@/lib/sunday-table-intro";
@@ -276,6 +276,162 @@ export function CancelLate({
               </button>
             </div>
             {error ? <p className="mt-3 text-sm text-red-800">{copy.error}</p> : null}
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+type SeatFixedCopy = {
+  open: string;
+  title: string;
+  body: string;
+  handOver: string;
+  message: string;
+  keep: string;
+  back: string;
+  handOverTitle: string;
+  handOverBody: string;
+  name: string;
+  email: string;
+  handOverDone: string;
+  handOverDoneBody: string;
+  messageTitle: string;
+  messageBody: string;
+  messagePlaceholder: string;
+  send: string;
+  errors: { invalid: string; same: string; already: string; closed: string; failed: string };
+};
+
+const seatField = "mt-1 w-full rounded-xl border border-gold/40 bg-white px-3 py-2.5 text-sm text-wine outline-none focus:border-burgundy";
+const solid = "rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream transition hover:bg-burgundy/90 disabled:opacity-60";
+const ghost = "rounded-full border border-burgundy px-5 py-2.5 text-sm font-semibold text-burgundy transition hover:bg-burgundy/5 disabled:opacity-60";
+
+/**
+ * "Kun je toch niet?" once the seat is fixed (less than 7 days before): the
+ * table is made around them, so the first choice is someone in their place;
+ * else they tell us what happened, and give up the seat.
+ */
+export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy }) {
+  const router = useRouter();
+  const [view, setView] = useState<"closed" | "main" | "handOver" | "message" | "handedOver">("closed");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const go = (next: typeof view) => {
+    setError(null);
+    setView(next);
+  };
+
+  if (view === "handedOver") {
+    return (
+      <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-6 sm:px-8">
+        <p className="font-serif text-2xl text-wine">{copy.handOverDone.replace("{name}", name.trim().split(" ")[0] ?? "")}</p>
+        <p className="mt-1 text-sm text-wine/70">{copy.handOverDoneBody}</p>
+      </section>
+    );
+  }
+  return (
+    <>
+      <p className="px-1">
+        <button type="button" onClick={() => go("main")} className="text-xs text-wine/50 underline underline-offset-4 hover:text-burgundy">
+          {copy.open}
+        </button>
+      </p>
+      {view !== "closed" ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={copy.title}
+          className="fixed inset-0 z-50 flex items-end justify-center bg-wine/40 p-4 sm:items-center"
+          onClick={() => !pending && go("closed")}
+        >
+          <div className="w-full max-w-md rounded-3xl bg-cream px-6 py-6 shadow-xl sm:px-8" onClick={(e) => e.stopPropagation()}>
+            {view === "main" ? (
+              <>
+                <p className="font-serif text-2xl text-wine">{copy.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.body}</p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={() => go("handOver")} className={solid}>
+                    {copy.handOver}
+                  </button>
+                  <button type="button" onClick={() => go("message")} className={ghost}>
+                    {copy.message}
+                  </button>
+                </div>
+                <button type="button" onClick={() => go("closed")} className="mt-4 text-sm text-wine/60 hover:text-wine">
+                  {copy.keep}
+                </button>
+              </>
+            ) : view === "handOver" ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  start(async () => {
+                    setError(null);
+                    const result = await handOverSeatAction(token, { name, email });
+                    if (result.ok) setView("handedOver");
+                    else setError(copy.errors[(result.error ?? "failed") as keyof SeatFixedCopy["errors"]] ?? copy.errors.failed);
+                  });
+                }}
+              >
+                <p className="font-serif text-2xl text-wine">{copy.handOverTitle}</p>
+                <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.handOverBody}</p>
+                <label className="mt-4 block text-xs font-semibold text-wine/70">
+                  {copy.name}
+                  <input value={name} onChange={(e) => setName(e.target.value)} required autoComplete="off" className={seatField} />
+                </label>
+                <label className="mt-3 block text-xs font-semibold text-wine/70">
+                  {copy.email}
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="off" className={seatField} />
+                </label>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button type="submit" disabled={pending} className={solid}>
+                    {copy.handOver}
+                  </button>
+                  <button type="button" disabled={pending} onClick={() => go("main")} className="text-sm text-wine/60 hover:text-wine">
+                    {copy.back}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  start(async () => {
+                    setError(null);
+                    const result = await cancelLateAction(token, reason);
+                    if (result.ok) router.refresh();
+                    else setError(copy.errors.failed);
+                  });
+                }}
+              >
+                <p className="font-serif text-2xl text-wine">{copy.messageTitle}</p>
+                <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.messageBody}</p>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  required
+                  minLength={3}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder={copy.messagePlaceholder}
+                  className={seatField}
+                />
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button type="submit" disabled={pending} className={solid}>
+                    {copy.send}
+                  </button>
+                  <button type="button" disabled={pending} onClick={() => go("main")} className="text-sm text-wine/60 hover:text-wine">
+                    {copy.back}
+                  </button>
+                </div>
+              </form>
+            )}
+            {error ? <p className="mt-3 text-sm text-red-800">{error}</p> : null}
           </div>
         </div>
       ) : null}

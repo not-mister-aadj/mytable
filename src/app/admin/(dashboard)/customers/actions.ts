@@ -7,6 +7,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { onNoteAdded } from "@/lib/customers/hooks";
 import { setCustomerFrozen } from "@/lib/customers/freeze";
+import { liftBookingBlock, waiveMissedSunday } from "@/lib/missed-sundays/server";
 import { adminPath } from "@/lib/admin-url";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { PostHogEvents } from "@/lib/posthog/events";
@@ -67,4 +68,18 @@ export async function setCustomerFrozenAction(
   revalidatePath(adminPath(`/customers/${customerId}`));
   revalidatePath(adminPath("/customers"));
   return { ok: true };
+}
+
+/** Missed Sundays: lift a block now. */
+export async function liftBookingBlockAction(customerId: string): Promise<void> {
+  await requireAdmin();
+  await liftBookingBlock(customerId);
+  revalidatePath(adminPath(`/customers/${customerId}`));
+}
+
+/** Missed Sundays: strike one so it no longer counts. */
+export async function waiveMissedSundayAction(customerId: string, bookingId: string): Promise<void> {
+  await requireAdmin();
+  await waiveMissedSunday(bookingId);
+  revalidatePath(adminPath(`/customers/${customerId}`));
 }

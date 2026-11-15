@@ -105,6 +105,9 @@ export function PriceRow({ label, amount, strong = false }: { label: ReactNode; 
   );
 }
 
+/** The higher seat price a guest was shown (after missed Sundays), to send back on the next tap. */
+const shownMissPrice: Record<string, number> = {};
+
 /** What the single-seat checkout needs to know about the guest. */
 export type ReserveGuest = { email: string; answers: QuizAnswers };
 
@@ -140,9 +143,15 @@ export async function startSingleCheckout({
         dietaryNotes: dietaryNotes(guest.answers) || undefined,
         utm: getStoredUtm(),
         meta: { ...getMetaBrowserCookies(), eventSourceUrl: getMetaEventSourceUrl() },
+        ...(shownMissPrice[guest.email] ? { acceptPriceCents: shownMissPrice[guest.email] } : {}),
       }),
     });
-    const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+    const data = (await res.json().catch(() => null)) as { url?: string; error?: string; code?: string; priceCents?: number } | null;
+    // The seat costs more after missed Sundays: the message says so, the next tap pays it.
+    if (data?.code === "miss_price" && typeof data.priceCents === "number") {
+      shownMissPrice[guest.email] = data.priceCents;
+      return data.error ?? t.error;
+    }
     if (!res.ok || !data?.url) {
       Sentry.withScope((scope) => {
         scope.setTag("flow", "jouw_tafel_reserve_checkout");

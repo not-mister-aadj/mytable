@@ -6,6 +6,7 @@ import { EmailCard } from "./components/EmailCard";
 import { EmailDivider } from "./components/EmailDivider";
 import { CityRow, LocationRow } from "./components/InfoGrid4";
 import { emailBrand, emailFonts, emailRadii, emailType } from "./brand";
+import { missedSundayNote } from "./missed-sunday-note";
 
 /** A week before a Sunday Social, sent from the Sunday page in admin: where
  * it is, how the afternoon goes, what follows on Saturday, and a one-click
@@ -293,6 +294,10 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
           last
         />
       </EmailCard>
+
+      <Text style={{ ...emailType.bodySmall, margin: "0 0 18px" }}>
+        <strong>{missedSundayNote(p.locale).title}</strong> {missedSundayNote(p.locale).body}
+      </Text>
 
       <Text style={{ ...emailType.body, margin: "8px 0 0" }}>
         {nl ? "Tot zondag," : "See you Sunday,"}

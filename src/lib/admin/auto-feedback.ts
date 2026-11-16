@@ -23,12 +23,14 @@ const SAFE_DAY_TOTAL = 90;
 const SEND_INTERVAL_MS = 600;
 const DAY_MS = 86_400_000;
 
-/** Sundays whose mail of this kind is due now: past its time, less than a day ago. */
+/** Sundays whose mail of this kind is due now: past its time, less than a day ago, and not switched off for that Sunday. */
 export async function dueAutoMailEvents(kind: AutoMailKind, now = new Date()): Promise<string[]> {
   const rows = await getDb().execute<{ id: string; starts_at: Date }>(sql`
     select id, starts_at from events
     where workflow_status = 'published'
       and experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
+      -- A Sunday can switch a kind off by hand: events.extras.autoMailsOff, e.g. ["reminder"].
+      and not (coalesce(extras -> 'autoMailsOff', '[]'::jsonb) @> ${JSON.stringify([kind])}::jsonb)
       and starts_at between ${new Date(now.getTime() - 5 * DAY_MS).toISOString()}::timestamptz and ${new Date(now.getTime() + 10 * DAY_MS).toISOString()}::timestamptz`);
   return rows
     .filter((r) => {

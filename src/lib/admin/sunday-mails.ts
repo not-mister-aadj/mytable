@@ -60,6 +60,8 @@ type Guest = {
   noShow: boolean;
   /** Answered the first feedback question, or reported something: no reminder. */
   feedbackGiven: boolean;
+  /** Finished the feedback page (not just the first answer). */
+  feedbackCompleted: boolean;
   reported: boolean;
 };
 
@@ -75,6 +77,8 @@ export type SundayMailContext = {
   picks: VenuePick[];
   /** Mails waiting at Resend for their send time. */
   schedule: Partial<Record<SundayMailKind, ScheduledMail>>;
+  /** A new feedback mail went out by hand (events.extras.autoMailShiftDays): the first answers of the old one no longer count. */
+  feedbackByHand: boolean;
   guests: Guest[];
 };
 
@@ -159,7 +163,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
         )
       : new Set<string>();
   const ids = rows.map((r) => r.id);
-  const [locationSent, confirmSent, confirmAgainSent, earlier, saturdaySent, morningSent, feedbackSent, reminderSent, likedSent, picks, answered, reported] = await Promise.all([
+  const [locationSent, confirmSent, confirmAgainSent, earlier, saturdaySent, morningSent, feedbackSent, reminderSent, likedSent, picks, answered, completed, reported] = await Promise.all([
     sent(LOCATION_SENT, 10),
     sent(CONFIRM_SENT, 10),
     sent(CONFIRM_AGAIN_SENT, 10),
@@ -182,9 +186,13 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
     ids.length
       ? db.select({ id: bookingFeedback.bookingId }).from(bookingFeedback).where(and(inArray(bookingFeedback.bookingId, ids), isNotNull(bookingFeedback.mood)))
       : [],
+    ids.length
+      ? db.select({ id: bookingFeedback.bookingId }).from(bookingFeedback).where(and(inArray(bookingFeedback.bookingId, ids), isNotNull(bookingFeedback.completedAt)))
+      : [],
     ids.length ? db.select({ id: feedbackReports.bookingId }).from(feedbackReports).where(inArray(feedbackReports.bookingId, ids)) : [],
   ]);
   const answeredIds = new Set(answered.map((r) => r.id));
+  const completedIds = new Set(completed.map((r) => r.id));
   const reportedIds = new Set(reported.map((r) => r.id));
   const picked = new Map(picks.map((p) => [p.id, Array.isArray(p.wantToSee) ? (p.wantToSee as string[]) : []]));
   const likedBy = (id: string) => [...picked].filter(([from, to]) => from !== id && to.includes(id)).length;
@@ -219,6 +227,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       pickedSomeone: (picked.get(b.id)?.length ?? 0) > 0,
       noShow: Boolean(b.noShowAt),
       feedbackGiven: answeredIds.has(b.id),
+      feedbackCompleted: completedIds.has(b.id),
       reported: reportedIds.has(b.id),
     };
   });
@@ -230,6 +239,7 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
     venue: venue && venue.address ? { ...venue, address: venue.address } : null,
     picks: parseVenuePicks(venue?.picks),
     schedule: parseSchedule(event.extras?.mailSchedule),
+    feedbackByHand: Number(event.extras?.autoMailShiftDays) > 0,
     guests,
   };
 }
@@ -275,7 +285,8 @@ export function mailRecipients(ctx: SundayMailContext, kind: SundayMailKind): Gu
   // second one only for who had the first and stayed silent.
   if (kind === "confirm") return ctx.guests.filter((g) => !g.confirmed && !g.member);
   if (kind === "confirmAgain") return ctx.guests.filter((g) => !g.confirmed && !g.member && g.sentConfirm);
-  if (kind === "reminder") return ctx.guests.filter((g) => !g.noShow && !g.feedbackGiven && !g.reported);
+  // After a new feedback mail by hand, only a finished form counts as done.
+  if (kind === "reminder") return ctx.guests.filter((g) => !g.noShow && !(ctx.feedbackByHand ? g.feedbackCompleted : g.feedbackGiven) && !g.reported);
   return kind === "feedback" ? ctx.guests.filter((g) => !g.noShow) : ctx.guests;
 }
 

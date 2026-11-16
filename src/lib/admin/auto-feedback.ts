@@ -25,8 +25,8 @@ const DAY_MS = 86_400_000;
 
 /** Sundays whose mail of this kind is due now: past its time, less than a day ago, and not switched off for that Sunday. */
 export async function dueAutoMailEvents(kind: AutoMailKind, now = new Date()): Promise<string[]> {
-  const rows = await getDb().execute<{ id: string; starts_at: Date }>(sql`
-    select id, starts_at from events
+  const rows = await getDb().execute<{ id: string; starts_at: Date; extras: Record<string, unknown> | null }>(sql`
+    select id, starts_at, extras from events
     where workflow_status = 'published'
       and experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
       -- A Sunday can switch a kind off by hand: events.extras.autoMailsOff, e.g. ["reminder"].
@@ -34,7 +34,9 @@ export async function dueAutoMailEvents(kind: AutoMailKind, now = new Date()): P
       and starts_at between ${new Date(now.getTime() - 5 * DAY_MS).toISOString()}::timestamptz and ${new Date(now.getTime() + 10 * DAY_MS).toISOString()}::timestamptz`);
   return rows
     .filter((r) => {
-      const at = defaultScheduleAt(new Date(r.starts_at), kind).getTime();
+      // After a new feedback mail by hand, the follow-ups (reminder, "liked") move by events.extras.autoMailShiftDays.
+      const shiftDays = kind === "reminder" || kind === "liked" ? Number(r.extras?.autoMailShiftDays) || 0 : 0;
+      const at = defaultScheduleAt(new Date(r.starts_at), kind).getTime() + shiftDays * DAY_MS;
       return now.getTime() >= at && now.getTime() < at + DAY_MS;
     })
     .map((r) => r.id);

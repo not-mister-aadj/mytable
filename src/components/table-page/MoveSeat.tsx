@@ -9,7 +9,7 @@ export type MoveSeatOption = { eventId: string; label: string };
 const COPY = {
   nl: {
     title: "Naar welke zondag wil je?",
-    body: (own: string) => `Je staat nu op ${own}. Verzetten kan één keer.`,
+    body: (own: string) => `Je staat nu op ${own}. Verzetten kan tot 7 dagen vooraf.`,
     move: "Verzet mijn plek",
     sending: "Even geduld...",
     none: "Er is nu geen andere zondag open in jouw steden.",
@@ -22,7 +22,7 @@ const COPY = {
   },
   en: {
     title: "Which Sunday would you like?",
-    body: (own: string) => `You're now booked for ${own}. You can move once.`,
+    body: (own: string) => `You're now booked for ${own}. You can move until 7 days before.`,
     move: "Move my seat",
     sending: "One moment...",
     none: "There's no other Sunday open in your cities right now.",

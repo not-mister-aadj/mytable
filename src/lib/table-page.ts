@@ -233,7 +233,7 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
     cancelled: Boolean(booking.cancelledLateAt),
     seat: booking.membershipId
       ? "member"
-      : canReschedule(event.startsAt, now) && !(booking.transferredFromBookingId && booking.transferredBy === "klant")
+      : canReschedule(event.startsAt, now)
         ? "movable"
         : "fixed",
     day:

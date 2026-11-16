@@ -13,7 +13,7 @@ import { tablePageUrl } from "@/lib/table-page";
 /**
  * "Ik wil verzetten", from "Kom je zondag?" and the table page: a guest moves
  * their own seat to any open Sunday in their cities. Free until 7 days
- * before, once per booking; a seat from a membership follows the
+ * before, as often as they like; a seat from a membership follows the
  * membership's own rule. A full Sunday's waitlist hears about the seat.
  */
 
@@ -24,7 +24,7 @@ export type MoveOption = { eventId: string; city: string; startsAt: string };
 export type MoveState =
   | { state: "open"; city: string; startsAt: string; options: MoveOption[] }
   | { state: "moved"; city: string; startsAt: string; tableUrl: string }
-  | { state: "closed"; reason: "too_late" | "used" | "member" | "gone"; city: string; startsAt: string };
+  | { state: "closed"; reason: "too_late" | "member" | "gone"; city: string; startsAt: string };
 
 type Row = { booking: typeof bookings.$inferSelect; event: typeof events.$inferSelect };
 
@@ -53,9 +53,6 @@ async function citiesOf(email: string): Promise<string[]> {
   return [...new Set(all)];
 }
 
-/** The seat was already moved by the guest once: this booking came from their own move. */
-const usedMove = (booking: Row["booking"]) => Boolean(booking.transferredFromBookingId) && booking.transferredBy === "klant";
-
 async function options(row: Row, now: number): Promise<MoveOption[]> {
   const found = moveTargets(row.event, await loadRescheduleCandidates(), row.booking.seats, await citiesOf(row.booking.email), now);
   return found.map((e) => ({ eventId: e.id, city: e.city, startsAt: e.startsAt.toISOString() }));
@@ -79,7 +76,6 @@ export async function loadMovePage(bookingId: string, locale: "nl" | "en", now: 
   }
   if (booking.lifecycleStatus !== "active" || booking.cancelledLateAt || event.startsAt.getTime() <= now) return { state: "closed", reason: "gone", ...base };
   if (booking.membershipId) return { state: "closed", reason: "member", ...base };
-  if (usedMove(booking)) return { state: "closed", reason: "used", ...base };
   if (!canReschedule(event.startsAt, now)) return { state: "closed", reason: "too_late", ...base };
   return { state: "open", ...base, options: await options(row, now) };
 }
@@ -96,7 +92,6 @@ export async function moveSeat(bookingId: string, targetEventId: string, locale:
     booking.lifecycleStatus !== "active" ||
     booking.cancelledLateAt ||
     booking.membershipId ||
-    usedMove(booking) ||
     event.experienceType !== JOUW_TAFEL_TYPE ||
     !canReschedule(event.startsAt, now.getTime())
   ) {

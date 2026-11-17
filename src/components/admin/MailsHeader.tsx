@@ -2,15 +2,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { adminPath } from "@/lib/admin-url";
 
-export type MailsTab = "overzicht" | "verstuurd" | "cijfers";
+export type MailsTab = "alle" | "verstuurd" | "gepland" | "grafieken" | "cijfers";
 
 const TABS: Array<{ id: MailsTab; label: string; path: string }> = [
-  { id: "overzicht", label: "Overzicht", path: "/emails" },
+  { id: "alle", label: "Alle mails", path: "/emails" },
   { id: "verstuurd", label: "Verstuurd", path: "/emails?tab=verstuurd" },
-  { id: "cijfers", label: "Cijfers", path: "/email-preview" },
+  { id: "gepland", label: "Gepland", path: "/emails?tab=gepland" },
+  { id: "grafieken", label: "Grafieken", path: "/emails?tab=grafieken" },
+  { id: "cijfers", label: "Cijfers per mail", path: "/email-preview" },
 ];
 
-/** The title and tabs shared by the three mail pages. */
+/** The title and tabs shared by the mail pages. */
 export function MailsHeader({ tab, hostname, children }: { tab: MailsTab; hostname: string; children?: ReactNode }) {
   return (
     <header>

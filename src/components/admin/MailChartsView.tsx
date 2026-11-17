@@ -48,10 +48,34 @@ function Card({ who, title, take, children }: { who: string; title: string; take
 const Em = ({ children }: { children: ReactNode }) => <span className="text-burgundy">{children}</span>;
 const Empty = () => <p className="py-8 text-center text-sm text-wine/45">Nog te weinig data</p>;
 
-/** Horizontal bars: a label, the bar, one number. The rest is in the tooltip. */
-function Bars({ rows, max, color = BURGUNDY }: { rows: Array<{ label: string; value: number; text: string; hint?: string }>; max: number; color?: string }) {
+/** The difference with the period before, in the unit of the number next to it. Red when it moved the wrong way. */
+function Change({ now, before, goodUp = true, digits = 0 }: { now: number | null; before: number | null; goodUp?: boolean; digits?: number }) {
+  if (now === null || before === null) return null;
+  const diff = now - before;
+  const shown = Math.abs(diff).toFixed(digits).replace(".", ",");
+  if (Number(Math.abs(diff).toFixed(digits)) === 0) return <span className="text-wine/40">=</span>;
+  const good = diff > 0 === goodUp;
   return (
-    <div className="grid grid-cols-[minmax(110px,38%)_1fr_auto] items-center gap-x-3 gap-y-3 text-sm">
+    <span className={`whitespace-nowrap font-semibold ${good ? "text-emerald-700" : "text-red-700"}`}>
+      {diff > 0 ? "▲ +" : "▼ -"}
+      {shown}
+    </span>
+  );
+}
+
+/** Horizontal bars: a label, the bar, one number, and how it moved since the period before. The rest is in the tooltip. */
+function Bars({
+  rows,
+  max,
+  color = BURGUNDY,
+}: {
+  rows: Array<{ label: string; value: number; text: string; hint?: string; change?: ReactNode }>;
+  max: number;
+  color?: string;
+}) {
+  const changes = rows.some((r) => r.change !== undefined);
+  return (
+    <div className={`grid items-center gap-x-3 gap-y-3 text-sm ${changes ? "grid-cols-[minmax(110px,36%)_1fr_auto_3.5rem]" : "grid-cols-[minmax(110px,38%)_1fr_auto]"}`}>
       {rows.map((r) => (
         <div key={r.label} className="contents" title={r.hint}>
           <span className="text-wine">{r.label}</span>
@@ -59,6 +83,7 @@ function Bars({ rows, max, color = BURGUNDY }: { rows: Array<{ label: string; va
             <span className="block h-full rounded-r" style={{ width: `${max > 0 ? Math.max(r.value > 0 ? 1.5 : 0, (r.value / max) * 100) : 0}%`, background: color }} />
           </span>
           <span className="min-w-[3.5rem] text-right text-base font-semibold tabular-nums text-wine">{r.text}</span>
+          {changes ? <span className="text-right text-xs tabular-nums">{r.change}</span> : null}
         </div>
       ))}
     </div>
@@ -134,13 +159,16 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
 
   return (
     <div className="space-y-5">
-      <nav className="flex w-fit gap-1 rounded-full border border-border-subtle bg-cream p-1 text-sm">
-        {INSIGHT_PERIODS.map((p) => (
-          <Link key={p.id} href={href(p.id)} className={`rounded-full px-3 py-1 ${p.id === period ? "bg-burgundy text-cream" : "text-wine/70 hover:text-burgundy"}`}>
-            {p.label}
-          </Link>
-        ))}
-      </nav>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <nav className="flex w-fit gap-1 rounded-full border border-border-subtle bg-cream p-1 text-sm">
+          {INSIGHT_PERIODS.map((p) => (
+            <Link key={p.id} href={href(p.id)} className={`rounded-full px-3 py-1 ${p.id === period ? "bg-burgundy text-cream" : "text-wine/70 hover:text-burgundy"}`}>
+              {p.label}
+            </Link>
+          ))}
+        </nav>
+        {period !== "alle" ? <p className="text-xs text-wine/55">▲▼ verschil met de {period} dagen ervoor</p> : null}
+      </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
         <Kpi label="Verstuurd" value={nf.format(k.sent)}>
@@ -182,8 +210,8 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
             )
           }
         >
-          <div className="grid grid-cols-[minmax(90px,24%)_1fr_auto_auto] items-center gap-x-3 gap-y-3 text-sm">
-            {d.funnel.map((f) => (
+          <div className="grid grid-cols-[minmax(90px,22%)_1fr_auto_auto_3.5rem] items-center gap-x-3 gap-y-3 text-sm">
+            {d.funnel.map((f, i) => (
               <div key={f.label} className="contents">
                 <span className="text-wine">{f.label}</span>
                 <span className="h-[22px] rounded-r" style={{ background: TRACK }}>
@@ -191,6 +219,17 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                 </span>
                 <span className="text-right text-base font-semibold tabular-nums text-wine">{nf.format(f.value)}</span>
                 <span className="w-12 text-right text-xs tabular-nums text-wine/55">{pct({ part: f.value, total: d.funnel[0]!.value }, f.value / funnelMax < 0.1 ? 1 : 0)}</span>
+                <span className="text-right text-xs tabular-nums" title={f.before === null ? undefined : `Periode ervoor: ${nf.format(f.before)}`}>
+                  {i === 0 ? (
+                    <Change now={f.value} before={f.before} />
+                  ) : (
+                    <Change
+                      now={d.funnel[0]!.value > 0 ? (f.value / d.funnel[0]!.value) * 100 : null}
+                      before={f.before !== null && d.funnel[0]!.before ? (f.before / d.funnel[0]!.before) * 100 : null}
+                      digits={1}
+                    />
+                  )}
+                </span>
               </div>
             ))}
           </div>
@@ -280,7 +319,8 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                 label: mailTitle(s.kind),
                 value: (share(s.booked) ?? 0) * 100,
                 text: pct(s.booked, 1),
-                hint: `${s.booked.part} van ${s.booked.total} ontvangers · ${euro(s.revenueCents)}`,
+                hint: `${s.booked.part} van ${s.booked.total} ontvangers · ${euro(s.revenueCents)}${s.before ? ` · periode ervoor ${pct(s.before, 1)}` : ""}`,
+                change: <Change now={(share(s.booked) ?? 0) * 100} before={s.before ? (share(s.before) ?? 0) * 100 : null} digits={1} />,
               }))}
             />
           )}
@@ -314,7 +354,8 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                 label: c.city,
                 value: c.rate,
                 text: c.rate.toFixed(1).replace(".", ","),
-                hint: `${c.sent} verstuurd · ${c.clicked} geklikt · ${c.booked} geboekt`,
+                hint: `${c.sent} verstuurd · ${c.clicked} geklikt · ${c.booked} geboekt${c.before ? ` · periode ervoor ${c.before.booked} van ${c.before.sent}` : ""}`,
+                change: <Change now={c.rate} before={c.before && c.before.sent >= 5 ? (c.before.booked / c.before.sent) * 100 : null} digits={1} />,
               }))}
             />
           )}
@@ -390,7 +431,14 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
           {d.steps.length === 0 ? (
             <Empty />
           ) : (
-            <Bars max={100} rows={d.steps.map((s) => ({ label: s.label, value: (share(s.rate) ?? 0) * 100, text: pct(s.rate), hint: `${s.rate.part} van ${s.rate.total}` }))} />
+            <Bars max={100} rows={d.steps.map((s) => ({
+                label: s.label,
+                value: (share(s.rate) ?? 0) * 100,
+                text: pct(s.rate),
+                hint: `${s.rate.part} van ${s.rate.total}${s.before ? ` · periode ervoor ${pct(s.before)}` : ""}`,
+                change: <Change now={(share(s.rate) ?? 0) * 100} before={s.before ? (share(s.before) ?? 0) * 100 : null} />,
+              }))}
+            />
           )}
         </Card>
 
@@ -459,12 +507,24 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
               <Bars
                 color="#a1262f"
                 max={Math.max(5, ...d.senders.map((s) => (share(s.problems) ?? 0) * 100))}
-                rows={d.senders.slice(0, 5).map((s) => ({ label: s.from, value: (share(s.problems) ?? 0) * 100, text: pct(s.problems, 1), hint: `${s.problems.part} van ${s.problems.total} · bounce, spam of tegengehouden` }))}
+                rows={d.senders.slice(0, 5).map((s) => ({
+                  label: s.from,
+                  value: (share(s.problems) ?? 0) * 100,
+                  text: pct(s.problems, 1),
+                  hint: `${s.problems.part} van ${s.problems.total} · bounce, spam of tegengehouden`,
+                  change: <Change now={(share(s.problems) ?? 0) * 100} before={s.before ? (share(s.before) ?? 0) * 100 : null} goodUp={false} digits={1} />,
+                }))}
               />
               <Bars
                 color="#a1262f"
                 max={Math.max(5, ...d.providers.map((s) => (share(s.problems) ?? 0) * 100))}
-                rows={d.providers.map((s) => ({ label: s.name, value: (share(s.problems) ?? 0) * 100, text: pct(s.problems, 1), hint: `${s.problems.part} van ${s.problems.total}` }))}
+                rows={d.providers.map((s) => ({
+                  label: s.name,
+                  value: (share(s.problems) ?? 0) * 100,
+                  text: pct(s.problems, 1),
+                  hint: `${s.problems.part} van ${s.problems.total}`,
+                  change: <Change now={(share(s.problems) ?? 0) * 100} before={s.before ? (share(s.before) ?? 0) * 100 : null} goodUp={false} digits={1} />,
+                }))}
               />
             </div>
           )}

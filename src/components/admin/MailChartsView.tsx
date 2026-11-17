@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CHART_GOALS, INSIGHT_PERIODS, getMailInsights, type ChartGoal, type InsightPeriod, type Rate } from "@/lib/admin/mail-insights";
 import { adminPath } from "@/lib/admin-url";
-import { MAIL_GOALS, mailTitle } from "@/lib/email/mail-catalog";
+import { MAIL_CATALOG, MAIL_GOALS, mailTitle } from "@/lib/email/mail-catalog";
 import { EMAIL_DAY_LIMIT, EMAIL_DAY_WARN } from "@/lib/email/volume";
 
 /** A goal keeps its colour in every chart (fixed order, never by rank). */
@@ -12,13 +12,13 @@ const GOAL_COLOR: Record<ChartGoal, string> = {
   achteraf: "#1baf7a",
   groei: "#eda100",
   lid: "#e87ba4",
-  venues: "#6250d6",
-  account: "#b4a79b",
-  intern: "#b4a79b",
-  overig: "#cdbfb0",
+  overig: "#b4a79b",
 };
-const GOAL_INK: Partial<Record<ChartGoal, string>> = { boeken: "#ffffff", venues: "#ffffff" };
-const GOAL_LABEL: Record<string, string> = { ...Object.fromEntries(MAIL_GOALS.map((g) => [g.id, g.label])), overig: "Overig" };
+const GOAL_LABEL: Record<string, string> = Object.fromEntries(MAIL_GOALS.map((g) => [g.id, g.label]));
+/** The mails under a goal, for the tooltip on its name. */
+const GOAL_MAILS: Record<string, string> = Object.fromEntries(
+  MAIL_GOALS.map((g) => [g.id, MAIL_CATALOG.filter((m) => m.goal === g.id).map((m) => m.title).join(" · ")]),
+);
 const BURGUNDY = "#5a0f1b";
 const TRACK = "#efe5d9";
 
@@ -140,9 +140,22 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
   const best = d.selling[0];
 
   const goals = CHART_GOALS.filter((g) => d.volume.some((v) => (v.byGoal[g] ?? 0) > 0));
-  const volumeMax = Math.max(1, ...d.volume.map((v) => v.total));
-  const lastVolume = d.volume[d.volume.length - 1];
-  const topGoal = lastVolume ? goals.slice().sort((a, b) => (lastVolume.byGoal[b] ?? 0) - (lastVolume.byGoal[a] ?? 0))[0] : null;
+  const totalMax = Math.max(1, ...d.volume.map((v) => v.total));
+  const cellMax = Math.max(1, ...d.volume.flatMap((v) => goals.map((g) => v.byGoal[g] ?? 0)));
+  // The conclusion is about the last whole week (or day), not the one still running.
+  const whole = d.volume.filter((v) => !v.running);
+  const last = whole[whole.length - 1];
+  const prior = whole[whole.length - 2];
+  const unit = d.volumePerDay ? "dag" : "week";
+  const moved = last && prior && prior.total > 0 ? Math.round(((last.total - prior.total) / prior.total) * 100) : null;
+  // The goal that explains most of the move.
+  const mover =
+    last && prior && moved
+      ? goals
+          .map((g) => ({ g, now: last.byGoal[g] ?? 0, was: prior.byGoal[g] ?? 0 }))
+          .filter((x) => (x.now - x.was) * moved > 0)
+          .sort((a, b) => Math.abs(b.now - b.was) - Math.abs(a.now - a.was))[0]
+      : null;
 
   const funnelMax = Math.max(1, d.funnel[0]!.value);
   const per100 = d.funnel[0]!.value > 0 ? ((k.bookings / d.funnel[0]!.value) * 100).toFixed(1).replace(".", ",") : null;
@@ -239,58 +252,77 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
           who="Directie en groei"
           title="Hoeveel sturen we, en waarvoor?"
           take={
-            lastVolume ? (
+            last ? (
               <>
-                <Em>{nf.format(lastVolume.total)} mails</Em> {period === "7" ? "op de laatste dag" : "in de laatste week"}
-                {topGoal ? (
+                <Em>{nf.format(last.total)} mails</Em> in de laatste volle {unit}
+                {moved !== null && moved !== 0 ? (
                   <>
-                    , de meeste voor <Em>{GOAL_LABEL[topGoal]?.toLowerCase()}</Em>
+                    , <Em>{Math.abs(moved)}% {moved > 0 ? "meer" : "minder"}</Em> dan de {unit} ervoor
                   </>
                 ) : null}
                 .
+                {mover ? (
+                  <>
+                    {" "}
+                    Vooral {moved! > 0 ? "meer" : "minder"} {GOAL_LABEL[mover.g]?.toLowerCase()} ({mover.now} tegen {mover.was}).
+                  </>
+                ) : null}
               </>
             ) : (
-              "Nog geen mails in deze periode."
+              `Nog geen volle ${unit} in deze periode.`
             )
           }
         >
           {d.volume.length === 0 ? (
             <Empty />
           ) : (
-            <>
-              <Legend items={goals.map((g) => ({ label: GOAL_LABEL[g] ?? g, color: GOAL_COLOR[g] }))} />
-              <div className="flex h-56 items-end gap-2 border-b border-[#cdbfb0]">
-                {d.volume.map((v) => (
-                  <div key={v.label} className="flex h-full min-w-0 flex-1 flex-col justify-end">
-                    <p className="mb-1 text-center text-xs font-semibold tabular-nums text-wine">{v.total}</p>
-                    <div className="mx-auto flex w-full max-w-[56px] flex-col-reverse gap-0.5" style={{ height: `${(v.total / volumeMax) * 88}%` }}>
-                      {goals.map((g, i) => {
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] border-separate border-spacing-x-2 border-spacing-y-1.5 text-sm tabular-nums">
+                <thead>
+                  <tr className="text-xs text-wine/55">
+                    <th />
+                    {d.volume.map((v) => (
+                      <th key={v.label + v.sub} className={`px-1 pb-1 text-right font-medium ${v.running ? "text-wine/40" : ""}`}>
+                        <span className={`block ${v.running ? "" : "text-wine"}`}>{v.running ? (d.volumePerDay ? "vandaag" : "deze week") : v.label}</span>
+                        <span className="block font-normal">{v.running ? "tot nu toe" : v.sub}</span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th className="whitespace-nowrap pr-2 text-left font-semibold text-wine">Totaal</th>
+                    {d.volume.map((v) => (
+                      <td key={v.label + v.sub} className={`text-right align-bottom ${v.running ? "opacity-50" : ""}`}>
+                        <span className="block text-base font-semibold text-wine">{nf.format(v.total)}</span>
+                        <span className="mt-0.5 block h-1.5 rounded-full" style={{ background: TRACK }}>
+                          <span className="ml-auto block h-full rounded-full" style={{ width: `${(v.total / totalMax) * 100}%`, background: BURGUNDY }} />
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                  {goals.map((g) => (
+                    <tr key={g}>
+                      <th className="whitespace-nowrap pr-2 text-left font-normal text-wine" title={GOAL_MAILS[g]}>
+                        <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm align-middle" style={{ background: GOAL_COLOR[g] }} />
+                        {GOAL_LABEL[g]}
+                      </th>
+                      {d.volume.map((v) => {
                         const n = v.byGoal[g] ?? 0;
-                        if (n === 0) return null;
-                        const last = goals.slice(i + 1).every((x) => !(v.byGoal[x] ?? 0));
                         return (
-                          <div
-                            key={g}
-                            title={`${GOAL_LABEL[g]}: ${n}`}
-                            className={`flex min-h-0 items-center justify-center overflow-hidden text-[11px] font-semibold tabular-nums ${last ? "rounded-t" : ""}`}
-                            style={{ flex: n, background: GOAL_COLOR[g], color: GOAL_INK[g] ?? "#2b0d12" }}
-                          >
-                            {(n / volumeMax) * 190 >= 14 ? n : ""}
-                          </div>
+                          <td key={v.label + v.sub} className={`text-right align-bottom ${v.running ? "opacity-50" : ""}`}>
+                            <span className={`block ${n > 0 ? "text-wine" : "text-wine/30"}`}>{n > 0 ? nf.format(n) : "–"}</span>
+                            <span className="mt-0.5 block h-1.5 rounded-full" style={{ background: TRACK }}>
+                              <span className="ml-auto block h-full rounded-full" style={{ width: `${(n / cellMax) * 100}%`, background: GOAL_COLOR[g] }} />
+                            </span>
+                          </td>
                         );
                       })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-1.5 flex gap-2 text-center text-[11px] text-wine/50">
-                {d.volume.map((v) => (
-                  <span key={v.label} className="min-w-0 flex-1 truncate">
-                    {v.label}
-                  </span>
-                ))}
-              </div>
-            </>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </Card>
 

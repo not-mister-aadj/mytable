@@ -158,7 +158,7 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
     const q = search.trim().toLowerCase();
     return rows.filter((row) => {
       if (kind !== "all" && row.kind !== kind) return false;
-      if (goal !== "all" && (mailGoal(row.kind) ?? "other") !== goal) return false;
+      if (goal !== "all" && mailGoal(row.kind) !== goal) return false;
       if (sender !== "all" && (row.fromAddress ?? "") !== sender) return false;
       if (status !== "all" && !matchesStatus(status, row)) return false;
       const day = amsterdamDay.format(new Date(row.sentAt));
@@ -242,7 +242,6 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
                 {g.label}
               </option>
             ))}
-            <option value="other">Overig</option>
           </select>
           <select value={kind} onChange={(e) => setKind(e.target.value)} className={selectClass} aria-label="Soort mail">
             <option value="all">Alle soorten</option>

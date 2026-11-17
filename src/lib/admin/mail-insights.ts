@@ -80,6 +80,14 @@ const amsterdamDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amster
 const amsterdamParts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", weekday: "short", hour: "2-digit", hourCycle: "h23" });
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+/** ISO week number of a day (given at noon UTC). */
+function isoWeek(day: Date): number {
+  const d = new Date(day);
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
+  return Math.ceil(((d.getTime() - yearStart) / DAY + 1) / 7);
+}
+
 /** Monday of the week (Amsterdam), as YYYY-MM-DD. */
 function weekOf(date: Date): string {
   const d = new Date(`${amsterdamDay.format(date)}T12:00:00Z`);
@@ -209,7 +217,7 @@ export async function getMailListNumbers(now = new Date()): Promise<Map<string, 
   return out;
 }
 
-export type ChartGoal = MailGoalId | "overig";
+export type ChartGoal = MailGoalId;
 export type MailInsights = {
   period: InsightPeriod;
   kpis: {
@@ -227,8 +235,9 @@ export type MailInsights = {
   };
   /** From sent to booked, over the mails meant to sell a seat only. */
   funnel: Array<{ label: string; value: number; before: number | null }>;
-  /** Mails per week (per day for 7 days), split by goal. */
-  volume: Array<{ label: string; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
+  /** Mails per full week (per day for 7 days), split by goal; the week or day still running comes last, marked. */
+  volume: Array<{ label: string; sub: string; running: boolean; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
+  volumePerDay: boolean;
   /** Mails meant to sell a seat, with enough recipients to compare, best first. */
   selling: Array<{ kind: string; booked: Rate; revenueCents: number; before: Rate | null }>;
   cities: Array<{ city: string; sent: number; clicked: number; booked: number; before: { sent: number; booked: number } | null }>;
@@ -319,22 +328,37 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
   const sellBefore = previous ? rates(previous.filter((r) => BOOKING_MAILS.has(r.kind))) : null;
   const creditedBefore = previous ? previous.flatMap((r) => credited.get(r.id) ?? []) : null;
 
-  // Volume: per day for a week, else per week (the last 12).
+  // Volume: per day for a week, else per week (the last 8). Only whole weeks or days, plus the one still running.
   const perDay = period === "7";
   const buckets = new Map<string, { total: number; byGoal: Partial<Record<ChartGoal, number>> }>();
   for (const r of rows) {
     const key = perDay ? amsterdamDay.format(r.sentAt) : weekOf(r.sentAt);
-    const goal: ChartGoal = mailGoal(r.kind) ?? "overig";
+    const goal = mailGoal(r.kind);
     const b = buckets.get(key) ?? { total: 0, byGoal: {} };
     b.total++;
     b.byGoal[goal] = (b.byGoal[goal] ?? 0) + 1;
     buckets.set(key, b);
   }
+  const runningKey = perDay ? amsterdamDay.format(now) : weekOf(now);
+  // A week or day without mails is still a column: "the week before" must be the week before.
+  const firstKey = [...buckets.keys()].sort()[0];
+  for (let at = firstKey ? Date.parse(`${firstKey}T12:00:00Z`) : NaN; at <= Date.parse(`${runningKey}T12:00:00Z`); at += (perDay ? 1 : 7) * DAY) {
+    const key = new Date(at).toISOString().slice(0, 10);
+    if (!buckets.has(key)) buckets.set(key, { total: 0, byGoal: {} });
+  }
+  // The period starts in the middle of a week or day: that first piece is not a whole one.
+  const cutKey = since ? (perDay ? amsterdamDay.format(since) : weekOf(since)) : null;
   const short = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "UTC" });
+  const weekday = new Intl.DateTimeFormat("nl-NL", { weekday: "short", timeZone: "UTC" });
   const volume = [...buckets.entries()]
+    .filter(([key]) => key !== cutKey || key === runningKey)
     .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-12)
-    .map(([key, b]) => ({ label: short.format(new Date(`${key}T12:00:00Z`)).replace(".", ""), ...b }));
+    .slice(-8)
+    .map(([key, b]) => {
+      const at = new Date(`${key}T12:00:00Z`);
+      const date = short.format(at).replace(".", "");
+      return { label: perDay ? weekday.format(at).replace(".", "") : `wk ${isoWeek(at)}`, sub: date, running: key === runningKey, ...b };
+    });
 
   const selling = numbers
     .filter((n) => n.booked && n.booked.total >= MIN_RECIPIENTS)
@@ -449,6 +473,7 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
       { label: "Geboekt", value: creditedNow.length, before: creditedBefore?.length ?? null },
     ],
     volume,
+    volumePerDay: perDay,
     selling,
     cities: cityRows.map((r) => {
       const was = cityRowsBefore?.find((b) => b.city === r.city);
@@ -471,7 +496,7 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
 }
 
 /** The goals a chart colours, in a fixed order, so a goal keeps its colour. */
-export const CHART_GOALS: ChartGoal[] = ["boeken", "vooraf", "achteraf", "groei", "lid", "overig"];
+export const CHART_GOALS: ChartGoal[] = ["groei", "vooraf", "boeken", "achteraf", "lid", "overig"];
 
 /** Catalog order for the list of all mails. */
 export const CATALOG_KINDS = MAIL_CATALOG.map((m) => m.kind);

@@ -6,17 +6,15 @@
  * one there and change it here.
  */
 
-export type MailGoalId = "boeken" | "vooraf" | "achteraf" | "groei" | "lid" | "venues" | "account" | "intern";
+export type MailGoalId = "boeken" | "vooraf" | "achteraf" | "groei" | "lid" | "overig";
 
 export const MAIL_GOALS: Array<{ id: MailGoalId; label: string }> = [
-  { id: "boeken", label: "Boeken" },
-  { id: "vooraf", label: "Voor de zondag" },
-  { id: "achteraf", label: "Na de zondag" },
-  { id: "groei", label: "Nieuwe gasten" },
-  { id: "lid", label: "Lidmaatschap" },
-  { id: "venues", label: "Venues" },
-  { id: "account", label: "Account" },
-  { id: "intern", label: "Intern" },
+  { id: "boeken", label: "Boeking en betaling" },
+  { id: "vooraf", label: "Aanloop naar de zondag" },
+  { id: "achteraf", label: "Feedback en nazorg" },
+  { id: "groei", label: "Uitnodigen en werven" },
+  { id: "lid", label: "Leden" },
+  { id: "overig", label: "Overig" },
 ];
 
 export type CatalogMail = {
@@ -38,7 +36,7 @@ export const MAIL_CATALOG: CatalogMail[] = [
   { kind: "Betaling afgebroken", title: "Betaling niet afgemaakt", goal: "boeken", when: "1 uur na een afgebroken betaling, 08:00 tot 22:00", auto: true, to: "Wie niet afrekende" },
   { kind: "Verplaatst", title: "Boeking verzet", goal: "boeken", when: "Direct na verzetten", auto: true, to: "Gast" },
   { kind: "Plek doorgegeven", title: "Plek gekregen van een ander", goal: "boeken", when: "Direct na doorgeven", auto: true, to: "Nieuwe gast" },
-  { kind: "Plek vrij", title: "Plek vrijgekomen", goal: "boeken", when: "Direct na een late afmelding, 's nachts om 08:00", auto: true, to: "Wachtlijst van een volle zondag" },
+  { kind: "Plek vrij", title: "Plek vrijgekomen", goal: "groei", when: "Direct na een late afmelding, 's nachts om 08:00", auto: true, to: "Wachtlijst van een volle zondag" },
 
   { kind: "Kom je zondag?", title: "Kom je zondag? (9 dagen vooraf)", goal: "vooraf", when: "Vrijdag 10:00, 9 dagen vooraf", auto: true, to: "Gasten zonder ja, geen leden" },
   { kind: "Kom je zondag, herinnering", title: "Kom je zondag? Herinnering", goal: "vooraf", when: "Zaterdag 10:00, 8 dagen vooraf", auto: true, to: "Wie niets koos" },
@@ -62,12 +60,12 @@ export const MAIL_CATALOG: CatalogMail[] = [
   { kind: "Lidmaatschap", title: "Lidmaatschap loopt door per maand", goal: "lid", when: "7 dagen voor het einde van de eerste periode", auto: true, to: "Lid met 4 of 12 maanden" },
   { kind: "Opzegging", title: "Opzegging bevestigd", goal: "lid", when: "Direct na opzeggen", auto: true, to: "Lid" },
 
-  { kind: "Venue", title: "Aanvraag aan een bar", goal: "venues", when: "Per aanvraag", auto: false, to: "Bars", managePath: "/outreach/mails" },
+  { kind: "Venue", title: "Aanvraag aan een bar", goal: "overig", when: "Per aanvraag", auto: false, to: "Bars", managePath: "/outreach/mails" },
 
-  { kind: "Inlogcode", title: "Inlogcode", goal: "account", when: "Direct bij inloggen", auto: true, to: "Wie inlogt" },
-  { kind: "Sollicitatie", title: "Sollicitatie ontvangen", goal: "account", when: "Direct na aanmelden", auto: true, to: "Aanmelder" },
+  { kind: "Inlogcode", title: "Inlogcode", goal: "overig", when: "Direct bij inloggen", auto: true, to: "Wie inlogt" },
+  { kind: "Sollicitatie", title: "Sollicitatie ontvangen", goal: "overig", when: "Direct na aanmelden", auto: true, to: "Aanmelder" },
 
-  { kind: "Intern", title: "Melding aan ons", goal: "intern", when: "Bij een afmelding, melding of limiet", auto: true, to: "info@mytable.club" },
+  { kind: "Intern", title: "Melding aan ons", goal: "overig", when: "Bij een afmelding, melding of limiet", auto: true, to: "info@mytable.club" },
 ];
 
 const BY_KIND = new Map<string, CatalogMail>();
@@ -80,9 +78,9 @@ export function catalogMail(kind: string): CatalogMail | null {
   return BY_KIND.get(kind) ?? null;
 }
 
-/** The goal a sent mail belongs to; null for mails outside the catalog (campaigns, one-offs). */
-export function mailGoal(kind: string): MailGoalId | null {
-  return BY_KIND.get(kind)?.goal ?? null;
+/** The goal a sent mail belongs to; mails outside the catalog (campaigns, one-offs) fall under "overig". */
+export function mailGoal(kind: string): MailGoalId {
+  return BY_KIND.get(kind)?.goal ?? "overig";
 }
 
 /** The name we show for a kind of mail; the kind itself for mails outside the catalog. */

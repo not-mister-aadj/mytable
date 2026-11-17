@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { EmailPreviewDialog } from "@/components/admin/EmailPreviewDialog";
 import { EmailStatusPill } from "@/components/admin/EmailStatusPill";
 import { EMAIL_TRACKING_SINCE } from "@/lib/email/email-tracking";
 import { adminPath } from "@/lib/admin-url";
 import type { EmailLogListRow } from "@/lib/email/email-log";
+import { MAIL_GOALS, mailGoal } from "@/lib/email/mail-catalog";
 
 /** Rows shown at first and added per step while scrolling. */
 const PAGE_SIZE = 50;
@@ -72,6 +73,54 @@ function rates(rows: EmailLogListRow[]) {
   return { total: rows.length, bounced, spam, held, tracked: tracked.length, opened, clicked };
 }
 
+/** Mails of one kind that went out together: one send to a group of people. */
+type Send = { id: string; kind: string; at: string; subject: string; rows: EmailLogListRow[]; opened: number; clicked: number; problems: number };
+
+const SEND_GAP_MS = 15 * 60 * 1000;
+
+/** What the subjects of one send share: the whole subject, or its start and end around what differs per guest. */
+function sharedSubject(subjects: string[]): string {
+  const distinct = [...new Set(subjects)];
+  if (distinct.length === 1) return distinct[0]!;
+  let start = 0;
+  const shortest = Math.min(...distinct.map((s) => s.length));
+  while (start < shortest && distinct.every((s) => s[start] === distinct[0]![start])) start++;
+  let end = 0;
+  while (end < shortest - start && distinct.every((s) => s[s.length - 1 - end] === distinct[0]![distinct[0]!.length - 1 - end])) end++;
+  if (start + end >= 12) return `${distinct[0]!.slice(0, start)}…${end > 0 ? distinct[0]!.slice(-end) : ""}`;
+  const counts = new Map<string, number>();
+  for (const s of subjects) counts.set(s, (counts.get(s) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]![0];
+}
+
+/** Rows (newest first) into sends: the same kind of mail, each within a quarter of an hour of the one before. */
+function groupSends(rows: EmailLogListRow[]): Send[] {
+  const sends: Array<{ kind: string; rows: EmailLogListRow[]; oldest: number }> = [];
+  const current = new Map<string, (typeof sends)[number]>();
+  for (const row of rows) {
+    const t = new Date(row.sentAt).getTime();
+    const running = current.get(row.kind);
+    if (running && running.oldest - t <= SEND_GAP_MS) {
+      running.rows.push(row);
+      running.oldest = t;
+    } else {
+      const send = { kind: row.kind, rows: [row], oldest: t };
+      current.set(row.kind, send);
+      sends.push(send);
+    }
+  }
+  return sends.map((send) => ({
+    id: send.rows[0]!.id,
+    kind: send.kind,
+    at: send.rows[send.rows.length - 1]!.sentAt,
+    subject: sharedSubject(send.rows.map((r) => r.subject)),
+    rows: send.rows,
+    opened: send.rows.filter((r) => OPENED.has(r.lastEvent ?? "") || r.openCount > 0).length,
+    clicked: send.rows.filter((r) => r.lastEvent === "clicked" || r.clickCount > 0).length,
+    problems: send.rows.filter((r) => PROBLEMS.has(r.lastEvent ?? "")).length,
+  }));
+}
+
 const selectClass =
   "rounded-full border border-border-subtle bg-cream px-3.5 py-2 text-sm text-wine outline-none focus:border-burgundy/40";
 
@@ -79,6 +128,13 @@ const selectClass =
 export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogListRow[]; initialKind?: string }) {
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState(initialKind);
+  const [goal, setGoal] = useState("all");
+  // A link to one kind of mail wants the mails themselves.
+  const [view, setView] = useState<"sends" | "mails">(initialKind === "all" ? "sends" : "mails");
+  const [openSend, setOpenSend] = useState<string | null>(null);
+  const [sendLimit, setSendLimit] = useState(PAGE_SIZE);
+  // Mails planned at Resend are in the log with their future send time.
+  const [loadedAt] = useState(() => Date.now());
   const [sender, setSender] = useState("all");
   const [status, setStatus] = useState("all");
   const [fromDate, setFromDate] = useState("");
@@ -101,6 +157,7 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
     const q = search.trim().toLowerCase();
     return rows.filter((row) => {
       if (kind !== "all" && row.kind !== kind) return false;
+      if (goal !== "all" && (mailGoal(row.kind) ?? "other") !== goal) return false;
       if (sender !== "all" && (row.fromAddress ?? "") !== sender) return false;
       if (status !== "all" && !matchesStatus(status, row)) return false;
       const day = amsterdamDay.format(new Date(row.sentAt));
@@ -114,9 +171,10 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
         (row.fromAddress ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, search, kind, sender, status, fromDate, toDate]);
+  }, [rows, search, kind, goal, sender, status, fromDate, toDate]);
 
   const stats = useMemo(() => rates(filtered), [filtered]);
+  const sends = useMemo(() => groupSends(filtered), [filtered]);
 
   // Back to the first page whenever the filtered list changes.
   const [page, setPage] = useState({ list: filtered, count: PAGE_SIZE });
@@ -145,20 +203,30 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
 
   const recipients = useMemo(() => new Set(filtered.map((row) => row.to.toLowerCase())).size, [filtered]);
   const filtering =
-    search !== "" || kind !== "all" || sender !== "all" || status !== "all" || fromDate !== "" || toDate !== "";
+    search !== "" || kind !== "all" || goal !== "all" || sender !== "all" || status !== "all" || fromDate !== "" || toDate !== "";
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl text-burgundy sm:text-4xl">E-mails</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-wine/65">
-          Elke mail die MyTable verstuurde, nieuwste eerst. Klik op een mail om hem te zien zoals de ontvanger hem
-          kreeg.
-        </p>
-      </div>
-
       <div className="rounded-2xl border border-border-subtle/80 bg-cream/60 p-5 sm:p-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+          <div className="flex gap-1 self-start rounded-full border border-border-subtle bg-cream p-1 text-sm">
+            {(
+              [
+                ["sends", "Per verzending"],
+                ["mails", "Per mail"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setView(id)}
+                aria-pressed={view === id}
+                className={`rounded-full px-3 py-1 ${view === id ? "bg-burgundy text-cream" : "text-wine/70 hover:text-burgundy"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <input
             type="search"
             value={search}
@@ -166,6 +234,15 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
             placeholder="Zoek op naam, e-mail, afzender of onderwerp…"
             className="w-full max-w-md rounded-full border border-border-subtle bg-cream px-4 py-2.5 text-sm text-wine outline-none transition focus:border-burgundy/40 focus:ring-2 focus:ring-burgundy/10"
           />
+          <select value={goal} onChange={(e) => setGoal(e.target.value)} className={selectClass} aria-label="Doel">
+            <option value="all">Alle doelen</option>
+            {MAIL_GOALS.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.label}
+              </option>
+            ))}
+            <option value="other">Overig</option>
+          </select>
           <select value={kind} onChange={(e) => setKind(e.target.value)} className={selectClass} aria-label="Soort mail">
             <option value="all">Alle soorten</option>
             {kinds.map(([label, count]) => (
@@ -206,6 +283,7 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
               onClick={() => {
                 setSearch("");
                 setKind("all");
+                setGoal("all");
                 setSender("all");
                 setStatus("all");
                 setFromDate("");
@@ -243,6 +321,92 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
           <div className="px-6 py-16 text-center">
             <p className="font-serif text-xl text-burgundy">Geen mails gevonden</p>
             <p className="mt-2 text-sm text-wine/60">Pas je zoekopdracht of filters aan.</p>
+          </div>
+        ) : view === "sends" ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
+                  <th className="px-5 py-3.5">Verstuurd</th>
+                  <th className="px-5 py-3.5">Soort</th>
+                  <th className="px-5 py-3.5">Onderwerp</th>
+                  <th className="px-5 py-3.5 text-right">Aan</th>
+                  <th className="px-5 py-3.5 text-right">Geopend</th>
+                  <th className="px-5 py-3.5 text-right">Geklikt</th>
+                  <th className="px-5 py-3.5 text-right">Probleem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sends.slice(0, sendLimit).map((send) => {
+                  const isOpen = openSend === send.id;
+                  const planned = new Date(send.at).getTime() > loadedAt;
+                  return (
+                    <Fragment key={send.id}>
+                      <tr
+                        onClick={() => setOpenSend(isOpen ? null : send.id)}
+                        className={`cursor-pointer border-b border-border-subtle/50 transition hover:bg-cream/70 ${isOpen ? "bg-cream/70" : ""}`}
+                      >
+                        <td className="whitespace-nowrap px-5 py-3.5 text-wine/70">
+                          {dateTime.format(new Date(send.at))}
+                          {planned ? <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Ingepland</span> : null}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="inline-flex whitespace-nowrap rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-wine/75 ring-1 ring-inset ring-border-subtle">
+                            {send.kind}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 font-medium text-wine">
+                          <button type="button" aria-expanded={isOpen} className="text-left underline decoration-wine/25 underline-offset-2">
+                            {send.subject}
+                          </button>
+                        </td>
+                        <td className="px-5 py-3.5 text-right tabular-nums text-wine">{send.rows.length}</td>
+                        <td className="px-5 py-3.5 text-right tabular-nums text-wine/75">{send.opened || "–"}</td>
+                        <td className="px-5 py-3.5 text-right tabular-nums text-wine/75">{send.clicked || "–"}</td>
+                        <td className={`px-5 py-3.5 text-right tabular-nums ${send.problems ? "font-medium text-red-700" : "text-wine/75"}`}>
+                          {send.problems || "–"}
+                        </td>
+                      </tr>
+                      {isOpen ? (
+                        <tr className="border-b border-border-subtle/50 bg-cream/40">
+                          <td colSpan={7} className="px-5 py-3">
+                            <ul className="grid gap-x-6 gap-y-1.5 sm:grid-cols-2 xl:grid-cols-3">
+                              {send.rows.map((row) => (
+                                <li key={row.id} className="flex items-center gap-2 text-sm">
+                                  <button
+                                    type="button"
+                                    onClick={() => setOpen(row)}
+                                    title={row.subject}
+                                    className="min-w-0 flex-1 truncate text-left text-wine underline decoration-wine/20 underline-offset-2 hover:text-burgundy"
+                                  >
+                                    {row.name ?? row.to}
+                                  </button>
+                                  <EmailStatusPill state={row} />
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-wine/60">
+              <span>
+                {Math.min(sendLimit, sends.length)} van {sends.length} verzendingen
+              </span>
+              {sendLimit < sends.length ? (
+                <button
+                  type="button"
+                  onClick={() => setSendLimit(sendLimit + PAGE_SIZE)}
+                  className="rounded-full border border-border-subtle bg-cream px-4 py-1.5 text-sm font-medium text-wine transition hover:border-burgundy/40 hover:text-burgundy"
+                >
+                  Toon meer
+                </button>
+              ) : null}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">

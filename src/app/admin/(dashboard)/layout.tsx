@@ -27,7 +27,7 @@ const NAV: NavDef[] = [
       { label: "Klanten", path: "/customers" },
       { label: "Wachtlijst", path: "/priority-list" },
       { label: "Wachtlijstantwoorden", path: "/customers/antwoorden" },
-      { label: "E-mails", path: "/emails" },
+      { label: "Mails", path: "/emails", matchAlso: ["/email-preview"] },
       { label: "Ambassadors", path: "/ambassadors" },
     ],
   },
@@ -46,7 +46,6 @@ const NAV: NavDef[] = [
     children: [
       { label: "Venues", path: "/venues" },
       { label: "Types", path: "/experience-types" },
-      { label: "E-mailtemplates", path: "/email-preview" },
     ],
   },
 ];

@@ -79,6 +79,10 @@ export type SundayMailContext = {
   schedule: Partial<Record<SundayMailKind, ScheduledMail>>;
   /** A new feedback mail went out by hand (events.extras.autoMailShiftDays): the first answers of the old one no longer count. */
   feedbackByHand: boolean;
+  /** Days the follow-ups (reminder, "liked") moved after that mail by hand. */
+  autoMailShiftDays: number;
+  /** Automatic kinds switched off for this Sunday (events.extras.autoMailsOff). */
+  autoMailsOff: string[];
   guests: Guest[];
 };
 
@@ -240,6 +244,8 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
     picks: parseVenuePicks(venue?.picks),
     schedule: parseSchedule(event.extras?.mailSchedule),
     feedbackByHand: Number(event.extras?.autoMailShiftDays) > 0,
+    autoMailShiftDays: Number(event.extras?.autoMailShiftDays) || 0,
+    autoMailsOff: Array.isArray(event.extras?.autoMailsOff) ? (event.extras.autoMailsOff as unknown[]).map(String) : [],
     guests,
   };
 }

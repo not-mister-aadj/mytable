@@ -15,7 +15,9 @@ import { bookingFeedback, bookings, customers, eventGroups, eventVenues, events,
 import { getDb } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, getSiteUrl, resolveHostname } from "@/lib/admin-url";
-import { defaultScheduleAt, loadSundayMailContext, mailBlocker, type ScheduledMail } from "@/lib/admin/sunday-mails";
+import { SundayMailTimeline } from "@/components/admin/SundayMailTimeline";
+import { loadSundayTimeline } from "@/lib/admin/mail-overview";
+import { defaultScheduleAt, mailBlocker, type ScheduledMail } from "@/lib/admin/sunday-mails";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 import { getEventTicketsData } from "@/lib/event-tickets-data";
@@ -228,10 +230,13 @@ async function BarTab({ eventId, hostname, seatingHref }: { eventId: string; hos
 }
 
 async function MailsTab({ eventId }: { eventId: string }) {
-  const ctx = await loadSundayMailContext(eventId);
-  if (!ctx) return null;
+  const loaded = await loadSundayTimeline(eventId);
+  if (!loaded) return null;
+  const { ctx, steps } = loaded;
   return (
-    <SundayMailsPanel
+    <div className="space-y-6">
+      <SundayMailTimeline steps={steps} />
+      <SundayMailsPanel
       eventId={eventId}
       blockers={{
         location: mailBlocker(ctx, "location"),
@@ -265,7 +270,8 @@ async function MailsTab({ eventId }: { eventId: string }) {
         noShow: g.noShow,
         feedbackDone: g.feedbackGiven || g.reported,
       }))}
-    />
+      />
+    </div>
   );
 }
 

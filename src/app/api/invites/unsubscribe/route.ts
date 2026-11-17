@@ -4,6 +4,8 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
 import { citiesForEmail } from "@/lib/invites/cities";
+import type { CityPref } from "@/lib/invites/logic";
+import { recordPrefChange } from "@/lib/invites/pref-changes";
 
 /**
  * One-click unsubscribe (List-Unsubscribe-Post, RFC 8058): turns every
@@ -17,8 +19,10 @@ export async function POST(request: NextRequest) {
   const [sub] = await db.select().from(inviteSubscribers).where(eq(inviteSubscribers.token, token)).limit(1);
   if (!sub) return NextResponse.json({ ok: false }, { status: 404 });
   const prefs: Record<string, "none"> = {};
-  for (const city of await citiesForEmail(sub.emailNormalized)) prefs[city] = "none";
+  const followed = await citiesForEmail(sub.emailNormalized);
+  for (const city of followed) prefs[city] = "none";
   await db.update(inviteSubscribers).set({ cityPrefs: prefs, updatedAt: new Date() }).where(eq(inviteSubscribers.token, token));
+  await recordPrefChange({ email: sub.emailNormalized, source: "one_click", before: (sub.cityPrefs ?? {}) as Record<string, CityPref>, after: prefs, followed });
   return NextResponse.json({ ok: true });
 }
 

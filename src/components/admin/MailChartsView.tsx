@@ -282,7 +282,7 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                   <tr className="text-xs text-wine/55">
                     <th />
                     {d.volume.map((v) => (
-                      <th key={v.label + v.sub} className={`px-1 pb-1 text-right font-medium ${v.running ? "text-wine/40" : ""}`}>
+                      <th key={v.key} className={`px-1 pb-1 text-right font-medium ${v.running ? "text-wine/40" : ""}`}>
                         <span className={`block ${v.running ? "" : "text-wine"}`}>{v.running ? (d.volumePerDay ? "vandaag" : "deze week") : v.label}</span>
                         <span className="block font-normal">{v.running ? "tot nu toe" : v.sub}</span>
                       </th>
@@ -293,7 +293,7 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                   <tr>
                     <th className="whitespace-nowrap pr-2 text-left font-semibold text-wine">Totaal</th>
                     {d.volume.map((v) => (
-                      <td key={v.label + v.sub} className={`text-right align-bottom ${v.running ? "opacity-50" : ""}`}>
+                      <td key={v.key} className={`text-right align-bottom ${v.running ? "opacity-50" : ""}`}>
                         <span className="block text-base font-semibold text-wine">{nf.format(v.total)}</span>
                         <span className="mt-0.5 block h-1.5 rounded-full" style={{ background: TRACK }}>
                           <span className="ml-auto block h-full rounded-full" style={{ width: `${(v.total / totalMax) * 100}%`, background: BURGUNDY }} />
@@ -310,7 +310,7 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                       {d.volume.map((v) => {
                         const n = v.byGoal[g] ?? 0;
                         return (
-                          <td key={v.label + v.sub} className={`text-right align-bottom ${v.running ? "opacity-50" : ""}`}>
+                          <td key={v.key} className={`text-right align-bottom ${v.running ? "opacity-50" : ""}`}>
                             <span className={`block ${n > 0 ? "text-wine" : "text-wine/30"}`}>{n > 0 ? nf.format(n) : "–"}</span>
                             <span className="mt-0.5 block h-1.5 rounded-full" style={{ background: TRACK }}>
                               <span className="ml-auto block h-full rounded-full" style={{ width: `${(n / cellMax) * 100}%`, background: GOAL_COLOR[g] }} />
@@ -390,6 +390,128 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
                 change: <Change now={c.rate} before={c.before && c.before.sent >= 5 ? (c.before.booked / c.before.sent) * 100 : null} digits={1} />,
               }))}
             />
+          )}
+        </Card>
+
+        <Card
+          who="Groei"
+          title="Melden mensen zich af voor uitnodigingen?"
+          take={
+            d.prefs.unsubscribed.total === 0 ? (
+              "Nog geen uitnodigingen in deze periode."
+            ) : (
+              <>
+                <Em>
+                  {d.prefs.unsubscribed.part} van {nf.format(d.prefs.unsubscribed.total)}
+                </Em>{" "}
+                uitgenodigden zetten alle steden uit ({pct(d.prefs.unsubscribed, 1)}).
+              </>
+            )
+          }
+        >
+          {d.prefs.unsubscribed.total === 0 ? (
+            <Empty />
+          ) : (
+            <div className="space-y-6">
+              <Bars
+                color="#a1262f"
+                max={Math.max(1, d.prefs.unsubscribed.part)}
+                rows={[
+                  {
+                    label: "Afgemeld",
+                    value: d.prefs.unsubscribed.part,
+                    text: nf.format(d.prefs.unsubscribed.part),
+                    change: (
+                      <Change
+                        now={(share(d.prefs.unsubscribed) ?? 0) * 100}
+                        before={d.prefs.before && d.prefs.before.total > 0 ? (share(d.prefs.before) ?? 0) * 100 : null}
+                        goodUp={false}
+                        digits={1}
+                      />
+                    ),
+                    hint: d.prefs.before ? `Periode ervoor: ${d.prefs.before.part} van ${d.prefs.before.total}` : undefined,
+                  },
+                  { label: "Via de voorkeurenpagina", value: d.prefs.viaPage, text: nf.format(d.prefs.viaPage), change: null },
+                  { label: "Via de afmeldknop van de mailapp", value: d.prefs.viaMailApp, text: nf.format(d.prefs.viaMailApp), change: null },
+                ]}
+              />
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[420px] border-separate border-spacing-x-2 text-sm tabular-nums">
+                  <thead>
+                    <tr className="text-xs text-wine/55">
+                      <th />
+                      {d.volume.map((v) => (
+                        <th key={v.key} className={`px-1 pb-1 text-right font-medium ${v.running ? "text-wine/40" : "text-wine"}`}>
+                          {v.running ? (d.volumePerDay ? "vandaag" : "deze week") : v.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th className="whitespace-nowrap pr-2 text-left font-normal text-wine">Afgemeld</th>
+                      {d.prefs.perColumn.map((n, i) => (
+                        <td key={d.volume[i]!.key} className={`text-right ${n > 0 ? "font-semibold text-wine" : "text-wine/30"}`}>
+                          {n > 0 ? n : "–"}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <Card
+          who="Groei"
+          title="Welke steden zetten ze uit of aan?"
+          take={
+            d.prefs.cities.length === 0 ? (
+              "Nog niemand heeft een stad gewijzigd in deze periode."
+            ) : (
+              <>
+                <Em>{d.prefs.cities[0]!.city}</Em> wordt het vaakst gewijzigd: {d.prefs.cities[0]!.off} keer uit, {d.prefs.cities[0]!.less} keer minder vaak, {d.prefs.cities[0]!.on} keer aan.
+              </>
+            )
+          }
+        >
+          {d.prefs.cities.length === 0 ? (
+            <Empty />
+          ) : (
+            <table className="w-full border-separate border-spacing-x-3 border-spacing-y-2 text-sm tabular-nums">
+              <thead>
+                <tr className="text-xs font-medium text-wine/55">
+                  <th />
+                  <th className="text-right">Uitgezet</th>
+                  <th className="text-right">Minder vaak</th>
+                  <th className="text-right">Aangezet</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.prefs.cities.map((c) => {
+                  const max = Math.max(1, ...d.prefs.cities.flatMap((x) => [x.off, x.less, x.on]));
+                  const cells: Array<[number, string]> = [
+                    [c.off, "#a1262f"],
+                    [c.less, "#eda100"],
+                    [c.on, "#1baf7a"],
+                  ];
+                  return (
+                    <tr key={c.city}>
+                      <th className="whitespace-nowrap text-left font-normal text-wine">{c.city}</th>
+                      {cells.map(([n, color], i) => (
+                        <td key={i} className="w-1/4 text-right align-bottom">
+                          <span className={`block ${n > 0 ? "text-base font-semibold text-wine" : "text-wine/30"}`}>{n > 0 ? n : "–"}</span>
+                          <span className="mt-0.5 block h-1.5 rounded-full" style={{ background: TRACK }}>
+                            <span className="ml-auto block h-full rounded-full" style={{ width: `${(n / max) * 100}%`, background: color }} />
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
         </Card>
 

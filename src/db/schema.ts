@@ -443,6 +443,18 @@ export const inviteSends = pgTable("invite_sends", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Every change of invite settings by the guest (drizzle/0071): which cities went
+ * from what to what, through which button, and the last invite before it. */
+export const invitePrefChanges = pgTable("invite_pref_changes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  emailNormalized: text("email_normalized").notNull(),
+  changedAt: timestamp("changed_at", { withTimezone: true }).notNull().defaultNow(),
+  source: text("source").$type<"page" | "one_click" | "backfill">().notNull(),
+  changes: jsonb("changes").$type<Array<{ city: string; from: "all" | "less" | "none"; to: "all" | "less" | "none" }>>().notNull().default([]),
+  unsubscribed: boolean("unsubscribed").notNull().default(false),
+  lastSendId: uuid("last_send_id").references(() => inviteSends.id, { onDelete: "set null" }),
+});
+
 /** One row per plan or send round that did something (drizzle/0048). */
 export const inviteRuns = pgTable("invite_runs", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -74,7 +74,7 @@ function rates(rows: EmailLogListRow[]) {
 }
 
 /** Mails of one kind that went out together: one send to a group of people. */
-type Send = { id: string; kind: string; at: string; subject: string; rows: EmailLogListRow[]; opened: number; clicked: number; problems: number };
+type Send = { id: string; kind: string; variant: string | null; at: string; subject: string; rows: EmailLogListRow[]; opened: number; clicked: number; problems: number };
 
 const SEND_GAP_MS = 15 * 60 * 1000;
 
@@ -95,23 +95,26 @@ function sharedSubject(subjects: string[]): string {
 
 /** Rows (newest first) into sends: the same kind of mail, each within a quarter of an hour of the one before. */
 function groupSends(rows: EmailLogListRow[]): Send[] {
-  const sends: Array<{ kind: string; rows: EmailLogListRow[]; oldest: number }> = [];
+  const sends: Array<{ kind: string; variant: string | null; rows: EmailLogListRow[]; oldest: number }> = [];
   const current = new Map<string, (typeof sends)[number]>();
   for (const row of rows) {
     const t = new Date(row.sentAt).getTime();
-    const running = current.get(row.kind);
+    // A variant is its own send: two versions of a mail going out together stay apart.
+    const key = `${row.kind}|${row.variant ?? ""}`;
+    const running = current.get(key);
     if (running && running.oldest - t <= SEND_GAP_MS) {
       running.rows.push(row);
       running.oldest = t;
     } else {
-      const send = { kind: row.kind, rows: [row], oldest: t };
-      current.set(row.kind, send);
+      const send = { kind: row.kind, variant: row.variant, rows: [row], oldest: t };
+      current.set(key, send);
       sends.push(send);
     }
   }
   return sends.map((send) => ({
     id: send.rows[0]!.id,
     kind: send.kind,
+    variant: send.variant,
     at: send.rows[send.rows.length - 1]!.sentAt,
     subject: sharedSubject(send.rows.map((r) => r.subject)),
     rows: send.rows,
@@ -467,7 +470,10 @@ function SendsView({ sends, loadedAt }: { sends: Send[]; loadedAt: number }) {
                       {planned ? <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Ingepland</span> : null}
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-wine">{mailTitle(s.kind)}</p>
+                      <p className="font-medium text-wine">
+                        {mailTitle(s.kind)}
+                        {s.variant ? <span className="ml-2 rounded-full bg-cream px-2 py-0.5 text-xs font-medium text-wine/70 ring-1 ring-inset ring-border-subtle">Variant {s.variant}</span> : null}
+                      </p>
                       <p className="text-xs text-wine/55">{s.subject}</p>
                     </td>
                     <td className="px-4 py-3 text-right text-wine">{s.rows.length}</td>
@@ -532,6 +538,34 @@ function SendsView({ sends, loadedAt }: { sends: Send[]; loadedAt: number }) {
             <span className="text-wine/50">Onderwerp </span>
             {row.subject}
           </p>
+          {row.variant || row.version ? (
+            <p className="text-sm text-wine">
+              {row.variant ? (
+                <>
+                  <span className="text-wine/50">Variant </span>
+                  {row.variant}{" "}
+                </>
+              ) : null}
+              {row.version ? (
+                <>
+                  <span className="text-wine/50">Versie </span>
+                  <span className="font-mono text-xs">{row.version}</span>
+                </>
+              ) : null}
+            </p>
+          ) : null}
+          {row.vars ? (
+            <dl className="mt-2 flex flex-wrap gap-1.5 text-xs">
+              {Object.entries(row.vars)
+                .filter(([, v]) => v !== null && v !== "")
+                .map(([k, v]) => (
+                  <div key={k} className="rounded-full bg-cream px-2.5 py-0.5 ring-1 ring-inset ring-border-subtle">
+                    <dt className="inline text-wine/50">{k} </dt>
+                    <dd className="inline text-wine">{String(v)}</dd>
+                  </div>
+                ))}
+            </dl>
+          ) : null}
           {row.hasHtml ? (
             <iframe key={row.id} title={row.subject} src={`/api/admin/email-log/${row.id}`} sandbox="" className="mt-3 h-[480px] w-full rounded-xl border border-border-subtle bg-white" />
           ) : (

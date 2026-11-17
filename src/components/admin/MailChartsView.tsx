@@ -113,43 +113,6 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
   const today = d.limit[0]!;
   const tight = d.limit.find((l) => l.sent + l.planned >= EMAIL_DAY_WARN);
   const best = d.selling[0];
-  const worst = d.selling.length > 1 ? d.selling[d.selling.length - 1]! : null;
-  const badSender = d.senders.find((s) => s.problems.total >= 20 && (share(s.problems) ?? 0) > 0.02);
-
-  const notices: Array<{ tone: "good" | "watch" | "act"; tag: string; title: string; sub: string }> = [];
-  if (best && best.booked.part > 0)
-    notices.push({
-      tone: "good",
-      tag: "Gaat goed",
-      title: `"${mailTitle(best.kind)}" zet het vaakst aan tot boeken`,
-      sub: `${best.booked.part} van ${best.booked.total} ontvangers boekten, goed voor ${euro(best.revenueCents)}.`,
-    });
-  if (worst && (share(worst.booked) ?? 0) < (share(best!.booked) ?? 0))
-    notices.push({
-      tone: "watch",
-      tag: "Let op",
-      title: `"${mailTitle(worst.kind)}" zet weinig om`,
-      sub: `${worst.booked.total} ontvangers, ${worst.booked.part} ${worst.booked.part === 1 ? "boeking" : "boekingen"} (${pct(worst.booked, 1)}).`,
-    });
-  if (tight)
-    notices.push({
-      tone: "act",
-      tag: "Actie nodig",
-      title: `${WEEKDAY_LONG[(new Date(`${tight.day}T12:00:00Z`).getUTCDay() + 6) % 7]} staat op ${tight.sent + tight.planned} van ${EMAIL_DAY_LIMIT} mails`,
-      sub: "Verplaats een verzending naar een andere dag.",
-    });
-  else if (badSender)
-    notices.push({
-      tone: "act",
-      tag: "Actie nodig",
-      title: `${pct(badSender.problems, 1)} van de mails vanaf ${badSender.from} komt niet aan`,
-      sub: `${badSender.problems.part} van ${badSender.problems.total} mails.`,
-    });
-  const TONE = {
-    good: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    watch: "border-amber-200 bg-amber-50 text-amber-800",
-    act: "border-red-200 bg-red-50 text-red-800",
-  };
 
   const goals = CHART_GOALS.filter((g) => d.volume.some((v) => (v.byGoal[g] ?? 0) > 0));
   const volumeMax = Math.max(1, ...d.volume.map((v) => v.total));
@@ -157,7 +120,7 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
   const topGoal = lastVolume ? goals.slice().sort((a, b) => (lastVolume.byGoal[b] ?? 0) - (lastVolume.byGoal[a] ?? 0))[0] : null;
 
   const funnelMax = Math.max(1, d.funnel[0]!.value);
-  const per100 = k.sent > 0 ? ((k.bookings / k.sent) * 100).toFixed(1).replace(".", ",") : null;
+  const per100 = d.funnel[0]!.value > 0 ? ((k.bookings / d.funnel[0]!.value) * 100).toFixed(1).replace(".", ",") : null;
 
   const cityRows = d.cities.filter((c) => c.sent >= 5).map((c) => ({ ...c, rate: (c.booked / c.sent) * 100 }));
   cityRows.sort((a, b) => b.rate - a.rate);
@@ -203,30 +166,18 @@ export async function MailChartsView({ period, hostname }: { period: InsightPeri
         </Kpi>
       </div>
 
-      {notices.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-3">
-          {notices.map((n) => (
-            <div key={n.tag} className={`rounded-xl border px-4 py-3.5 ${TONE[n.tone]}`}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">{n.tag}</p>
-              <p className="mt-1 font-semibold text-wine">{n.title}</p>
-              <p className="mt-0.5 text-sm text-wine/65">{n.sub}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
       <div className="grid gap-5 xl:grid-cols-2">
         <Card
           who="Directie"
-          title="Wat levert mail op?"
+          title="Wat leveren mails op die een plek moeten verkopen?"
           take={
             per100 === null ? (
-              "Nog geen mails in deze periode."
+              "Nog geen uitnodigingen of andere wervende mails in deze periode."
             ) : k.bookings === 0 ? (
               "Nog geen betaalde plek uit mail in deze periode."
             ) : (
               <>
-                Van elke 100 mails leiden er <Em>{per100}</Em> tot een betaalde plek: <Em>{k.bookings} {k.bookings === 1 ? "boeking" : "boekingen"}, {euro(k.revenueCents)}</Em>.
+                Van elke 100 uitnodigingen en andere wervende mails leiden er <Em>{per100}</Em> tot een betaalde plek: <Em>{k.bookings} {k.bookings === 1 ? "boeking" : "boekingen"}, {euro(k.revenueCents)}</Em>.
               </>
             )
           }

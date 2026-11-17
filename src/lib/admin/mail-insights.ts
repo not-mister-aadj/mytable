@@ -100,9 +100,10 @@ async function loadRows(since: Date | null, now: Date): Promise<LogRow[]> {
     click_count: number;
     first_opened_at: Date | null;
     has_html: boolean;
+    template: string | null;
   }>(sql`
     select id, email_normalized as email, to_email, subject, from_email, sent_at, last_event, open_count, click_count,
-      first_opened_at, html is not null as has_html
+      first_opened_at, html is not null as has_html, template
     from email_log
     where sent_at <= ${now.toISOString()}::timestamptz
       and email_normalized not like 'delivered%@resend.dev'
@@ -122,7 +123,7 @@ async function loadRows(since: Date | null, now: Date): Promise<LogRow[]> {
     clicked: r.last_event === "clicked" || Number(r.click_count) > 0,
     firstOpenedAt: r.first_opened_at ? new Date(r.first_opened_at) : null,
     hasHtml: Boolean(r.has_html),
-    kind: emailKind(r.subject),
+    kind: r.template ?? emailKind(r.subject),
   }));
 }
 
@@ -224,6 +225,7 @@ export type MailInsights = {
     /** All paid booking revenue in the period, to set the mail revenue against. */
     allRevenueCents: number;
   };
+  /** From sent to booked, over the mails meant to sell a seat only. */
   funnel: Array<{ label: string; value: number }>;
   /** Mails per week (per day for 7 days), split by goal. */
   volume: Array<{ label: string; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
@@ -309,6 +311,8 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
   const cur = rates(rows);
   const prev = previous ? rates(previous) : null;
   const creditedNow = rows.flatMap((r) => credited.get(r.id) ?? []);
+  // Only mails meant to sell a seat can end in a booking: the funnel counts those, not every mail.
+  const sell = rates(rows.filter((r) => BOOKING_MAILS.has(r.kind)));
 
   // Volume: per day for a week, else per week (the last 12).
   const perDay = period === "7";
@@ -415,10 +419,10 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
       allRevenueCents: bookings.reduce((n, b) => n + b.cents, 0),
     },
     funnel: [
-      { label: "Verstuurd", value: cur.sent },
-      { label: "Afgeleverd", value: cur.delivered.part },
-      { label: "Geopend", value: cur.opened.part },
-      { label: "Geklikt", value: cur.clicked.part },
+      { label: "Verstuurd", value: sell.sent },
+      { label: "Afgeleverd", value: sell.delivered.part },
+      { label: "Geopend", value: sell.opened.part },
+      { label: "Geklikt", value: sell.clicked.part },
       { label: "Geboekt", value: creditedNow.length },
     ],
     volume,

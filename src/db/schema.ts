@@ -371,6 +371,12 @@ export const emailLog = pgTable(
     clickCount: integer("click_count").notNull().default(0),
     bouncedAt: timestamp("bounced_at", { withTimezone: true }),
     complainedAt: timestamp("complained_at", { withTimezone: true }),
+    /** Which mail this is (the catalog kind), the variant when more than one runs,
+     * the release that built it and the values filled in for this guest (drizzle/0070). */
+    template: text("template"),
+    variant: text("variant"),
+    version: text("version"),
+    vars: jsonb("vars").$type<Record<string, string | number | boolean | null>>(),
   },
   (table) => ({
     resendIdUnique: uniqueIndex("email_log_resend_id_recipient_unique").on(

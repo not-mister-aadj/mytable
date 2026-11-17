@@ -8,7 +8,8 @@ import { SundayLocationEmail } from "@/emails/SundayLocationEmail";
 import { SundaySaturdayEmail } from "@/emails/SundaySaturdayEmail";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { renderEmailForDelivery } from "@/lib/email/render-email";
-import { getEmailFrom, getEmailReplyTo, getResendClient } from "@/lib/email/resend";
+import type { MailMeta } from "@/lib/email/email-log";
+import { getEmailFrom, getEmailReplyTo, getResendClient, withMailMeta } from "@/lib/email/resend";
 import { signSundayTableIntroToken } from "@/lib/sunday-table-intro";
 import { feedbackUrl, loadFeedbackPage } from "@/lib/feedback";
 import { confirmUrl, moveUrl, tablePageUrl } from "@/lib/table-page";
@@ -316,12 +317,49 @@ export function locationThisWeek(startsAt: Date, now = new Date()): boolean {
   return days <= 6;
 }
 
+/** The catalog kind of each Sunday mail, for the log. */
+const TEMPLATE: Record<SundayMailKind, string> = {
+  confirm: "Kom je zondag?",
+  confirmAgain: "Kom je zondag, herinnering",
+  location: "Locatie",
+  saturday: "Groep",
+  morning: "Vanmiddag",
+  feedback: "Review",
+  reminder: "Terugzien",
+  liked: "Gezellig",
+};
+
+/** A Sunday mail for one guest, with what it is and what was filled in for the log. */
 export async function buildSundayMail(
   ctx: SundayMailContext,
   kind: SundayMailKind,
   guest: Guest,
   /** Location mail as the confirmation of a booking made after it went out. */
   booked = false,
+): Promise<SundayMail> {
+  const mail = await composeSundayMail(ctx, kind, guest, booked);
+  return {
+    ...mail,
+    meta: {
+      template: booked ? "Bevestiging" : TEMPLATE[kind],
+      vars: {
+        voornaam: guest.firstName || null,
+        taal: guest.locale,
+        stad: ctx.city,
+        zondag: amsterdamDateIso(ctx.startsAt),
+        bar: ctx.venue?.name ?? null,
+        groep: guest.groupNumber,
+        plusEen: guest.plusOneName,
+      },
+    },
+  };
+}
+
+async function composeSundayMail(
+  ctx: SundayMailContext,
+  kind: SundayMailKind,
+  guest: Guest,
+  booked: boolean,
 ): Promise<SundayMail> {
   const venue = ctx.venue!;
   const locale = guest.locale;
@@ -472,7 +510,7 @@ export async function buildSundayMail(
 
 /** A Sunday mail: designed (element), or plain text from a person-like sender
  * (lands in the inbox rather than Promotions). */
-export type SundayMail = { subject: string; element?: ReactElement; text?: string; html?: string; from?: string };
+export type SundayMail = { subject: string; element?: ReactElement; text?: string; html?: string; from?: string; meta?: MailMeta };
 
 const PLAIN_FROM = "MyTable <hallo@tafels.mytable.club>";
 
@@ -778,34 +816,44 @@ export async function sendSundayMail(to: string, mail: SundayMail, scheduledAt?:
   if (mail.text) {
     const resend = getResendClient();
     if (!resend) return null;
-    const { data, error } = await resend.emails.send({
-      from: mail.from ?? getEmailFrom(),
-      replyTo: getEmailReplyTo(),
-      to,
-      subject,
-      text: mail.text,
-      ...(mail.html ? { html: mail.html } : {}),
-      ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
-    });
+    const { data, error } = await resend.emails.send(
+      withMailMeta(
+        {
+          from: mail.from ?? getEmailFrom(),
+          replyTo: getEmailReplyTo(),
+          to,
+          subject,
+          text: mail.text,
+          ...(mail.html ? { html: mail.html } : {}),
+          ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
+        },
+        mail.meta ?? {},
+      ),
+    );
     return error ? null : (data?.id ?? "sent");
   }
-  return sendRendered(to, subject, mail.element!, scheduledAt);
+  return sendRendered(to, subject, mail.element!, scheduledAt, mail.meta);
 }
 
 /** Sends now, or at `scheduledAt`; the Resend id, or null when it failed. */
-export async function sendRendered(to: string, subject: string, element: ReactElement, scheduledAt?: Date): Promise<string | null> {
+export async function sendRendered(to: string, subject: string, element: ReactElement, scheduledAt?: Date, meta?: MailMeta): Promise<string | null> {
   const resend = getResendClient();
   if (!resend) return null;
   const { html, text } = await renderEmailForDelivery(element);
-  const { data, error } = await resend.emails.send({
-    from: getEmailFrom(),
-    replyTo: getEmailReplyTo(),
-    to,
-    subject,
-    html,
-    text,
-    ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
-  });
+  const { data, error } = await resend.emails.send(
+    withMailMeta(
+      {
+        from: getEmailFrom(),
+        replyTo: getEmailReplyTo(),
+        to,
+        subject,
+        html,
+        text,
+        ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
+      },
+      meta ?? {},
+    ),
+  );
   return error ? null : (data?.id ?? "sent");
 }
 

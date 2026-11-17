@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { MailsHeader } from "@/components/admin/MailsHeader";
 import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, resolveHostname } from "@/lib/admin-url";
@@ -85,8 +86,7 @@ export default async function EmailTemplatesPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-serif text-3xl text-burgundy">E-mailtemplates</h1>
+      <MailsHeader tab="cijfers" hostname={hostname}>
         <nav className="flex gap-1 rounded-full border border-border-subtle bg-cream p-1 text-sm">
           {EMAIL_PERIODS.map((p) => (
             <Link
@@ -98,7 +98,7 @@ export default async function EmailTemplatesPage({ searchParams }: Props) {
             </Link>
           ))}
         </nav>
-      </header>
+      </MailsHeader>
 
       <div className="overflow-x-auto rounded-2xl border border-border-subtle/80 bg-beige/50">
         <table className="w-full min-w-[900px] text-sm">
@@ -147,7 +147,7 @@ export default async function EmailTemplatesPage({ searchParams }: Props) {
                     </Link>
                   ) : null}
                   <Link
-                    href={adminPath(`/emails?soort=${encodeURIComponent(k.kind)}`, hostname)}
+                    href={adminPath(`/emails?tab=verstuurd&soort=${encodeURIComponent(k.kind)}`, hostname)}
                     className="ml-3 text-burgundy hover:underline"
                   >
                     Mails

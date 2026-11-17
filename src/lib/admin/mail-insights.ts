@@ -236,7 +236,7 @@ export type MailInsights = {
   /** From sent to booked, over the mails meant to sell a seat only. */
   funnel: Array<{ label: string; value: number; before: number | null }>;
   /** Mails per full week (per day for 7 days), split by goal; the week or day still running comes last, marked. */
-  volume: Array<{ label: string; sub: string; running: boolean; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
+  volume: Array<{ key: string; label: string; sub: string; running: boolean; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
   volumePerDay: boolean;
   /** Mails meant to sell a seat, with enough recipients to compare, best first. */
   selling: Array<{ kind: string; booked: Rate; revenueCents: number; before: Rate | null }>;
@@ -249,6 +249,19 @@ export type MailInsights = {
   heat: { slots: string[]; days: number[][]; peak: { day: number; slot: number } | null };
   senders: Array<{ from: string; problems: Rate; before: Rate | null }>;
   providers: Array<{ name: string; problems: Rate; before: Rate | null }>;
+  /** What guests did with their invite settings: unsubscribed, or changed a city. */
+  prefs: {
+    /** People who turned every city off, over the people who got an invite in the period. */
+    unsubscribed: Rate;
+    before: Rate | null;
+    /** Through the settings page, or the unsubscribe button of their mail app. */
+    viaPage: number;
+    viaMailApp: number;
+    /** Unsubscribes per column of the volume grid. */
+    perColumn: number[];
+    /** Per city: turned off, set to less often, or turned (back) on. */
+    cities: Array<{ city: string; off: number; less: number; on: number }>;
+  };
   /** Mails per day for a week from today: sent and still planned. */
   limit: Array<{ day: string; sent: number; planned: number }>;
 };
@@ -357,7 +370,7 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
     .map(([key, b]) => {
       const at = new Date(`${key}T12:00:00Z`);
       const date = short.format(at).replace(".", "");
-      return { label: perDay ? weekday.format(at).replace(".", "") : `wk ${isoWeek(at)}`, sub: date, running: key === runningKey, ...b };
+      return { label: perDay ? weekday.format(at).replace(".", "") : `wk ${isoWeek(at)}`, sub: date, running: key === runningKey, key, ...b };
     });
 
   const selling = numbers
@@ -451,6 +464,34 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
 
   const limit = await getDayVolume(now);
 
+  // Changes of invite settings. Empty until drizzle/0071 is applied.
+  type PrefRow = { email: string; changed_at: Date; source: string; changes: Array<{ city: string; from: string; to: string }>; unsubscribed: boolean };
+  const prefRows = ((await db
+    .execute<PrefRow>(sql`
+      select email_normalized as email, changed_at, source, changes, unsubscribed from invite_pref_changes
+      where changed_at <= ${now.toISOString()}::timestamptz
+        ${before ? sql`and changed_at >= ${before.toISOString()}::timestamptz` : sql``}`)
+    .catch(() => [])) as unknown as PrefRow[]).map((r) => ({ ...r, changed_at: new Date(r.changed_at) }));
+  const prefNow = since ? prefRows.filter((r) => r.changed_at >= since) : prefRows;
+  const prefBefore = since ? prefRows.filter((r) => r.changed_at < since) : null;
+  const [invited] = await db.execute<{ now: number; before: number }>(sql`
+    select count(distinct email_normalized) filter (where ${since ? sql`sent_at >= ${since.toISOString()}::timestamptz` : sql`true`})::int as now,
+      count(distinct email_normalized) filter (where ${since ? sql`sent_at < ${since.toISOString()}::timestamptz` : sql`false`})::int as before
+    from invite_sends
+    where status = 'sent' and sent_at <= ${now.toISOString()}::timestamptz
+      ${before ? sql`and sent_at >= ${before.toISOString()}::timestamptz` : sql``}`);
+  const unsubscribers = (list: typeof prefRows) => new Set(list.filter((r) => r.unsubscribed).map((r) => r.email)).size;
+  const cityMoves = new Map<string, { off: number; less: number; on: number }>();
+  for (const row of prefNow) {
+    for (const c of row.changes ?? []) {
+      const have = cityMoves.get(c.city) ?? { off: 0, less: 0, on: 0 };
+      if (c.to === "none") have.off++;
+      else if (c.to === "less") have.less++;
+      else have.on++;
+      cityMoves.set(c.city, have);
+    }
+  }
+
   return {
     period,
     kpis: {
@@ -491,6 +532,14 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
     heat: { slots: HEAT_SLOTS, days: heatDays, peak },
     senders: tally((r) => senderAddress(r.from)).map(({ name, ...rest }) => ({ from: name, ...rest })),
     providers: tally((r) => provider(r.email)),
+    prefs: {
+      unsubscribed: { part: unsubscribers(prefNow), total: Number(invited?.now ?? 0) },
+      before: prefBefore ? { part: unsubscribers(prefBefore), total: Number(invited?.before ?? 0) } : null,
+      viaPage: prefNow.filter((r) => r.unsubscribed && r.source === "page").length,
+      viaMailApp: prefNow.filter((r) => r.unsubscribed && r.source === "one_click").length,
+      perColumn: volume.map((v) => prefNow.filter((r) => r.unsubscribed && (perDay ? amsterdamDay.format(r.changed_at) : weekOf(r.changed_at)) === v.key).length),
+      cities: [...cityMoves.entries()].map(([city, n]) => ({ city, ...n })).sort((a, b) => b.off + b.less + b.on - (a.off + a.less + a.on)),
+    },
     limit,
   };
 }

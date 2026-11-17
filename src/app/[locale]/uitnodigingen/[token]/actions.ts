@@ -4,7 +4,9 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb, isDbConfigured } from "@/db/index";
 import { inviteSubscribers } from "@/db/schema";
+import { citiesForEmail } from "@/lib/invites/cities";
 import type { CityPref } from "@/lib/invites/logic";
+import { recordPrefChange } from "@/lib/invites/pref-changes";
 import { supportedCity } from "@/lib/jouw-tafel/logic";
 
 const PREFS: CityPref[] = ["all", "less", "none"];
@@ -26,6 +28,9 @@ export async function saveInvitePrefs(formData: FormData): Promise<void> {
     const added = key.startsWith("add:") ? supportedCity(key.slice(4)) : null;
     if (added && pref !== "none") prefs[added] = pref;
   }
+  // Read before saving: afterwards a city turned off no longer counts as followed.
+  const followed = await citiesForEmail(sub.emailNormalized);
   await db.update(inviteSubscribers).set({ cityPrefs: prefs, updatedAt: new Date() }).where(eq(inviteSubscribers.token, token));
+  await recordPrefChange({ email: sub.emailNormalized, source: "page", before: (sub.cityPrefs ?? {}) as Record<string, CityPref>, after: prefs, followed });
   redirect(`${locale === "en" ? "/en" : ""}/uitnodigingen/${token}?opgeslagen=1`);
 }

@@ -100,9 +100,10 @@ async function loadRows(since: Date | null, now: Date): Promise<LogRow[]> {
     click_count: number;
     first_opened_at: Date | null;
     has_html: boolean;
+    template: string | null;
   }>(sql`
     select id, email_normalized as email, to_email, subject, from_email, sent_at, last_event, open_count, click_count,
-      first_opened_at, html is not null as has_html
+      first_opened_at, html is not null as has_html, template
     from email_log
     where sent_at <= ${now.toISOString()}::timestamptz
       and email_normalized not like 'delivered%@resend.dev'
@@ -122,7 +123,7 @@ async function loadRows(since: Date | null, now: Date): Promise<LogRow[]> {
     clicked: r.last_event === "clicked" || Number(r.click_count) > 0,
     firstOpenedAt: r.first_opened_at ? new Date(r.first_opened_at) : null,
     hasHtml: Boolean(r.has_html),
-    kind: emailKind(r.subject),
+    kind: r.template ?? emailKind(r.subject),
   }));
 }
 
@@ -224,20 +225,21 @@ export type MailInsights = {
     /** All paid booking revenue in the period, to set the mail revenue against. */
     allRevenueCents: number;
   };
-  funnel: Array<{ label: string; value: number }>;
+  /** From sent to booked, over the mails meant to sell a seat only. */
+  funnel: Array<{ label: string; value: number; before: number | null }>;
   /** Mails per week (per day for 7 days), split by goal. */
   volume: Array<{ label: string; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
   /** Mails meant to sell a seat, with enough recipients to compare, best first. */
-  selling: Array<{ kind: string; booked: Rate; revenueCents: number }>;
-  cities: Array<{ city: string; sent: number; clicked: number; booked: number }>;
+  selling: Array<{ kind: string; booked: Rate; revenueCents: number; before: Rate | null }>;
+  cities: Array<{ city: string; sent: number; clicked: number; booked: number; before: { sent: number; booked: number } | null }>;
   /** "Kom je zondag?" per Sunday: said yes, moved their seat, or silent. */
   confirms: Array<{ eventId: string; city: string; startsAt: string; yes: number; moved: number; silent: number }>;
   /** Share of guests that takes each step around a Sunday. */
-  steps: Array<{ label: string; rate: Rate }>;
+  steps: Array<{ label: string; rate: Rate; before: Rate | null }>;
   /** Opens per weekday (Monday first) and part of the day. */
   heat: { slots: string[]; days: number[][]; peak: { day: number; slot: number } | null };
-  senders: Array<{ from: string; problems: Rate }>;
-  providers: Array<{ name: string; problems: Rate }>;
+  senders: Array<{ from: string; problems: Rate; before: Rate | null }>;
+  providers: Array<{ name: string; problems: Rate; before: Rate | null }>;
   /** Mails per day for a week from today: sent and still planned. */
   limit: Array<{ day: string; sent: number; planned: number }>;
 };
@@ -302,13 +304,20 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
   const all = await loadRows(before, now);
   const rows = since ? all.filter((r) => r.sentAt >= since) : all;
   const previous = since ? all.filter((r) => r.sentAt < since) : null;
-  const bookings = (await loadBookings(since)).filter((b) => b.at <= now);
-  const credited = creditBookings(all, bookings);
+  const allBookings = (await loadBookings(before)).filter((b) => b.at <= now);
+  const bookings = since ? allBookings.filter((b) => b.at >= since) : allBookings;
+  const credited = creditBookings(all, allBookings);
   const numbers = kindNumbers(rows, credited, []);
+  // The same numbers over the period before, to set this one against.
+  const numbersBefore = previous ? kindNumbers(previous, credited, []) : null;
 
   const cur = rates(rows);
   const prev = previous ? rates(previous) : null;
   const creditedNow = rows.flatMap((r) => credited.get(r.id) ?? []);
+  // Only mails meant to sell a seat can end in a booking: the funnel counts those, not every mail.
+  const sell = rates(rows.filter((r) => BOOKING_MAILS.has(r.kind)));
+  const sellBefore = previous ? rates(previous.filter((r) => BOOKING_MAILS.has(r.kind))) : null;
+  const creditedBefore = previous ? previous.flatMap((r) => credited.get(r.id) ?? []) : null;
 
   // Volume: per day for a week, else per week (the last 12).
   const perDay = period === "7";
@@ -329,10 +338,14 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
 
   const selling = numbers
     .filter((n) => n.booked && n.booked.total >= MIN_RECIPIENTS)
-    .map((n) => ({ kind: n.kind, booked: n.booked!, revenueCents: n.revenueCents }))
+    .map((n) => {
+      const was = numbersBefore?.find((b) => b.kind === n.kind)?.booked ?? null;
+      return { kind: n.kind, booked: n.booked!, revenueCents: n.revenueCents, before: was && was.total >= MIN_RECIPIENTS ? was : null };
+    })
     .sort((a, b) => (pct(b.booked) ?? 0) - (pct(a.booked) ?? 0));
 
-  const cityRows = await db.execute<{ city: string; sent: number; clicked: number; booked: number }>(sql`
+  const citiesIn = (from: Date | null, to: Date) =>
+    db.execute<{ city: string; sent: number; clicked: number; booked: number }>(sql`
     select s.cities[1] as city, count(*)::int as sent,
       count(*) filter (where exists (select 1 from invite_clicks c where c.send_id = s.id))::int as clicked,
       count(*) filter (where exists (
@@ -341,9 +354,11 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
           and b.created_at > s.sent_at and b.created_at <= s.sent_at + make_interval(days => ${BOOK_DAYS})))::int as booked
     from invite_sends s
     where s.status = 'sent' and s.kind in ('invite', 'nudge', 'match') and array_length(s.cities, 1) >= 1
-      and s.sent_at <= ${now.toISOString()}::timestamptz
-      ${since ? sql`and s.sent_at >= ${since.toISOString()}::timestamptz` : sql``}
+      and s.sent_at <= ${to.toISOString()}::timestamptz
+      ${from ? sql`and s.sent_at >= ${from.toISOString()}::timestamptz` : sql``}
     group by 1 order by 2 desc`);
+  const cityRows = await citiesIn(since, now);
+  const cityRowsBefore = since ? await citiesIn(before, since) : null;
 
   const confirmRows = await db.execute<{ id: string; city: string; starts_at: Date; yes: number; moved: number; silent: number }>(sql`
     select e.id, e.city, e.starts_at,
@@ -358,18 +373,26 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
     group by e.id having count(*) filter (where b.attendance_confirmed_at is not null) > 0
     order by e.starts_at desc limit 8`);
 
-  const feedback = (await loadFeedbackOverview(period === "alle" ? "all" : period === "90" ? "90" : "30", null, now)).total;
-  const numberOf = (kind: string) => numbers.find((n) => n.kind === kind);
-  const booked = feedback.guests + feedback.noShows + feedback.lateCancels;
-  const steps: MailInsights["steps"] = [
-    { label: "Opent \"Kom je zondag?\"", rate: numberOf("Kom je zondag?")?.opened ?? { part: 0, total: 0 } },
-    { label: "Opent de locatiemail", rate: numberOf("Locatie")?.opened ?? { part: 0, total: 0 } },
-    { label: "Klikt door naar de tafelpagina", rate: numberOf("Groep")?.clicked ?? { part: 0, total: 0 } },
-    { label: "Komt", rate: { part: feedback.guests, total: booked } },
-    { label: "Geeft feedback", rate: { part: feedback.answered, total: feedback.mailed } },
-    { label: "Kiest iemand om terug te zien", rate: { part: feedback.picked, total: feedback.guests } },
-    { label: "Boekt opnieuw binnen 60 dagen", rate: { part: feedback.rebooked, total: feedback.rebookBase } },
-  ].filter((s) => s.rate.total > 0);
+  const feedbackPeriod = period === "alle" ? "all" : period === "90" ? "90" : "30";
+  const stepsOf = (list: KindNumbers[], f: Awaited<ReturnType<typeof loadFeedbackOverview>>["total"]) => {
+    const of = (kind: string) => list.find((n) => n.kind === kind);
+    const none = { part: 0, total: 0 };
+    return [
+      { label: 'Opent "Kom je zondag?"', rate: of("Kom je zondag?")?.opened ?? none },
+      { label: "Opent de locatiemail", rate: of("Locatie")?.opened ?? none },
+      { label: "Klikt door naar de tafelpagina", rate: of("Groep")?.clicked ?? none },
+      { label: "Komt", rate: { part: f.guests, total: f.guests + f.noShows + f.lateCancels } },
+      { label: "Geeft feedback", rate: { part: f.answered, total: f.mailed } },
+      { label: "Kiest iemand om terug te zien", rate: { part: f.picked, total: f.guests } },
+      { label: "Boekt opnieuw binnen 60 dagen", rate: { part: f.rebooked, total: f.rebookBase } },
+    ];
+  };
+  const stepsNow = stepsOf(numbers, (await loadFeedbackOverview(feedbackPeriod, null, now)).total);
+  // The period before: the same window, ending where this one starts.
+  const stepsBefore = since && numbersBefore ? stepsOf(numbersBefore, (await loadFeedbackOverview(feedbackPeriod, null, since)).total) : null;
+  const steps: MailInsights["steps"] = stepsNow
+    .map((step, i) => ({ ...step, before: stepsBefore && stepsBefore[i]!.rate.total > 0 ? stepsBefore[i]!.rate : null }))
+    .filter((step) => step.rate.total > 0);
 
   const heatDays = WEEKDAYS.map(() => HEAT_SLOTS.map(() => 0));
   for (const r of rows) {
@@ -386,16 +409,20 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
     }),
   );
 
-  const tally = (key: (r: LogRow) => string) => {
+  const tallyOf = (list: LogRow[], key: (r: LogRow) => string) => {
     const m = new Map<string, Rate>();
-    for (const r of rows) {
+    for (const r of list) {
       const k = key(r);
       const have = m.get(k) ?? { part: 0, total: 0 };
       have.total++;
       if (PROBLEMS.has(r.lastEvent ?? "")) have.part++;
       m.set(k, have);
     }
-    return [...m.entries()].sort((a, b) => b[1].total - a[1].total);
+    return m;
+  };
+  const tally = (key: (r: LogRow) => string) => {
+    const was = previous ? tallyOf(previous, key) : null;
+    return [...tallyOf(rows, key).entries()].sort((a, b) => b[1].total - a[1].total).map(([name, problems]) => ({ name, problems, before: was?.get(name) ?? null }));
   };
 
   const limit = await getDayVolume(now);
@@ -415,15 +442,18 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
       allRevenueCents: bookings.reduce((n, b) => n + b.cents, 0),
     },
     funnel: [
-      { label: "Verstuurd", value: cur.sent },
-      { label: "Afgeleverd", value: cur.delivered.part },
-      { label: "Geopend", value: cur.opened.part },
-      { label: "Geklikt", value: cur.clicked.part },
-      { label: "Geboekt", value: creditedNow.length },
+      { label: "Verstuurd", value: sell.sent, before: sellBefore?.sent ?? null },
+      { label: "Afgeleverd", value: sell.delivered.part, before: sellBefore?.delivered.part ?? null },
+      { label: "Geopend", value: sell.opened.part, before: sellBefore?.opened.part ?? null },
+      { label: "Geklikt", value: sell.clicked.part, before: sellBefore?.clicked.part ?? null },
+      { label: "Geboekt", value: creditedNow.length, before: creditedBefore?.length ?? null },
     ],
     volume,
     selling,
-    cities: cityRows.map((r) => ({ city: r.city, sent: Number(r.sent), clicked: Number(r.clicked), booked: Number(r.booked) })),
+    cities: cityRows.map((r) => {
+      const was = cityRowsBefore?.find((b) => b.city === r.city);
+      return { city: r.city, sent: Number(r.sent), clicked: Number(r.clicked), booked: Number(r.booked), before: was ? { sent: Number(was.sent), booked: Number(was.booked) } : null };
+    }),
     confirms: confirmRows.map((r) => ({
       eventId: r.id,
       city: r.city,
@@ -434,8 +464,8 @@ export async function getMailInsights(period: InsightPeriod, now = new Date()): 
     })),
     steps,
     heat: { slots: HEAT_SLOTS, days: heatDays, peak },
-    senders: tally((r) => senderAddress(r.from)).map(([from, problems]) => ({ from, problems })),
-    providers: tally((r) => provider(r.email)).map(([name, problems]) => ({ name, problems })),
+    senders: tally((r) => senderAddress(r.from)).map(({ name, ...rest }) => ({ from: name, ...rest })),
+    providers: tally((r) => provider(r.email)),
     limit,
   };
 }

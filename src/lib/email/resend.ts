@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import type { MailMeta } from "@/lib/email/email-log";
 import { addMailUtm } from "@/lib/email/mail-utm";
 
 export const DEFAULT_EMAIL_FROM = "MyTable <info@mytable.club>";
@@ -25,6 +26,16 @@ export function getBookingConfirmationBcc(): string[] {
 /** Alias for Sunday Social / lifecycle sends. */
 export function getTransactionalEmailBcc(): string[] {
   return getBookingConfirmationBcc();
+}
+
+const MAIL_META = Symbol.for("mytable.mailMeta");
+
+/**
+ * Marks a mail with what it is, for the log: `resend.emails.send(withMailMeta({...}, { template, variant, vars }))`.
+ * Nothing of it goes to Resend or into the mail.
+ */
+export function withMailMeta<T extends object>(payload: T, meta: MailMeta): T {
+  return Object.assign(payload, { [MAIL_META]: meta });
 }
 
 export function getResendClient(): Resend | null {
@@ -82,6 +93,8 @@ function withEmailLog(client: Resend): Resend {
         from: payload.from,
         subject: payload.subject ?? "",
         html: typeof payload.html === "string" ? payload.html : null,
+        text: typeof payload.text === "string" ? payload.text : null,
+        meta: (original as { [MAIL_META]?: MailMeta })[MAIL_META] ?? null,
         resendId: result.data.id,
       });
     }

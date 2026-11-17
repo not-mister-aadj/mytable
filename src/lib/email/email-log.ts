@@ -3,6 +3,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 import { customers, emailLog } from "@/db/schema";
 import { customerDisplayName, normalizeEmail } from "@/lib/customers/normalize";
 import { emailKind } from "@/lib/email/email-kind";
+import { catalogMail } from "@/lib/email/mail-catalog";
 
 export type EmailLogSource = "app" | "script" | "resend_import";
 
@@ -13,22 +14,56 @@ function recipients(to: string | string[] | undefined): string[] {
 
 /** Logs one sent email per recipient (not the BCC copy). Never throws: a
  * failing log must not turn a sent email into an error. */
+/** What a send says about itself, next to the mail: see withMailMeta. */
+export type MailMeta = {
+  /** The catalog kind; read from the subject when left out. */
+  template?: string;
+  /** Set when more than one version of a mail runs at the same time. */
+  variant?: string;
+  /** The values filled in for this guest. */
+  vars?: Record<string, string | number | boolean | null>;
+};
+
+const escapeHtml = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** A mail sent as plain text, as HTML to look at: the text as it is, links clickable. */
+export function textAsHtml(text: string): string {
+  const body = escapeHtml(text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#5a0f1b">$1</a>');
+  return `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px;padding:24px;white-space:pre-wrap">${body}</div>`;
+}
+
+/** The mail a row is: what the send said, else what its subject says. */
+export function templateOf(row: { template: string | null; subject: string }): string {
+  return row.template ?? emailKind(row.subject);
+}
+
 export async function logSentEmail(input: {
   to: string | string[] | undefined;
   from?: string | null;
   subject: string;
   html?: string | null;
+  /** The plain text, kept as the mail to look at when there is no HTML. */
+  text?: string | null;
+  meta?: MailMeta | null;
   resendId?: string | null;
   source?: EmailLogSource;
   sentAt?: Date;
 }): Promise<void> {
   if (!isDbConfigured()) return;
+  const kind = input.meta?.template ?? emailKind(input.subject);
+  const template = catalogMail(kind)?.kind ?? kind;
+  // The release that built the mail: the same template key can read differently after a change.
+  const version = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null;
   const rows = recipients(input.to).map((address) => ({
     toEmail: address,
     emailNormalized: normalizeEmail(address),
     subject: input.subject,
     fromEmail: input.from ?? null,
-    html: input.html ?? null,
+    html: input.html ?? (input.text ? textAsHtml(input.text) : null),
+    template,
+    variant: input.meta?.variant ?? null,
+    version,
+    vars: input.meta?.vars ?? null,
     resendId: input.resendId ?? null,
     source: input.source ?? (process.env.EMAIL_LOG_SOURCE === "script" ? "script" : "app"),
     ...(input.sentAt ? { sentAt: input.sentAt } : {}),
@@ -102,6 +137,11 @@ export type EmailLogListRow = EmailDeliveryState & {
   fromName: string | null;
   subject: string;
   kind: string;
+  /** Set when more than one version of the mail ran; null otherwise. */
+  variant: string | null;
+  /** The release that built the mail; null for mails from before this was kept. */
+  version: string | null;
+  vars: Record<string, string | number | boolean | null> | null;
   sentAt: string;
   hasHtml: boolean;
   customerId: string | null;
@@ -129,6 +169,10 @@ export async function getEmailLogList(): Promise<EmailLogListRow[]> {
       lastEvent: emailLog.lastEvent,
       openCount: emailLog.openCount,
       clickCount: emailLog.clickCount,
+      template: emailLog.template,
+      variant: emailLog.variant,
+      version: emailLog.version,
+      vars: emailLog.vars,
       hasHtml: sql<boolean>`${emailLog.html} is not null`,
       customerId: customers.id,
       firstName: customers.firstName,
@@ -142,7 +186,10 @@ export async function getEmailLogList(): Promise<EmailLogListRow[]> {
     to: row.to,
     ...splitSender(row.from),
     subject: row.subject,
-    kind: emailKind(row.subject),
+    kind: templateOf(row),
+    variant: row.variant,
+    version: row.version,
+    vars: row.vars,
     sentAt: row.sentAt.toISOString(),
     lastEvent: row.lastEvent,
     openCount: row.openCount,

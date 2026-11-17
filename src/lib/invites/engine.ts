@@ -4,7 +4,7 @@ import { getDb } from "@/db/index";
 import { inviteClicks, inviteRuns, inviteSends, inviteSubscribers } from "@/db/schema";
 import { getSiteUrl } from "@/lib/admin-url";
 import { amsterdamDistrict, cleanDistricts, isAmsterdam, outsideDistricts } from "@/lib/jouw-tafel/districts";
-import { getEmailFrom, getResendClient } from "@/lib/email/resend";
+import { getEmailFrom, getResendClient, withMailMeta } from "@/lib/email/resend";
 import {
   CHECKIN_WAIT_DAYS,
   ENGAGE_DAYS,
@@ -1068,17 +1068,23 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     let resendId: string | null = null;
     try {
       const sentMail = await resend.emails.send(
-        {
-          from: FROM,
-          replyTo: REPLY_TO,
-          to: person.email,
-          subject: composed.subject,
-          text: composed.body,
-          headers: {
-            "List-Unsubscribe": `<${unsubscribe}>, <mailto:${REPLY_TO}?subject=Afmelden%20uitnodigingen>`,
-            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        withMailMeta(
+          {
+            from: FROM,
+            replyTo: REPLY_TO,
+            to: person.email,
+            subject: composed.subject,
+            text: composed.body,
+            headers: {
+              "List-Unsubscribe": `<${unsubscribe}>, <mailto:${REPLY_TO}?subject=Afmelden%20uitnodigingen>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            },
           },
-        },
+          {
+            template: send.kind === "match" ? "Bekende gezichten" : send.kind === "checkin" ? "Nog uitnodigingen?" : "Uitnodiging",
+            vars: { soort: send.kind, taal: send.locale, steden: send.cities.join(", ") || null, zondagen: (composed.eventIds ?? send.eventIds).filter(Boolean).length },
+          },
+        ),
         // Resend sends one mail per key, however often it is asked.
         { idempotencyKey: `invite-${send.id}` },
       );

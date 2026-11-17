@@ -8,7 +8,7 @@ import {
   type SundayMailKind,
 } from "@/lib/admin/sunday-mails";
 import { emailKind } from "@/lib/email/email-kind";
-import { catalogMail } from "@/lib/email/mail-catalog";
+import { catalogMail, mailTitle } from "@/lib/email/mail-catalog";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
 
 /** What goes out around one Sunday and when: sent, planned or still to come.
@@ -46,6 +46,8 @@ export type TimelineState = "sent" | "partial" | "planned" | "coming" | "late" |
 
 export type TimelineStep = {
   kind: SundayMailKind;
+  /** The catalog kind of this step. */
+  label: string;
   title: string;
   /** When it goes by itself, or should go by hand. */
   at: Date;
@@ -100,7 +102,8 @@ export function sundayTimeline(ctx: SundayMailContext, sentAt: Partial<Record<Su
                 : "late";
     return {
       kind: step.kind,
-      title: catalogMail(step.label)?.title ?? step.label,
+      label: step.label,
+      title: mailTitle(step.label),
       at,
       dayOnly,
       auto: step.auto,
@@ -144,6 +147,8 @@ export async function loadSundayTimeline(eventId: string, now = new Date()): Pro
 export type UpcomingMail = {
   at: Date;
   dayOnly: boolean;
+  /** The catalog kind, to hang it on a mail in the list. */
+  kind: string;
   title: string;
   /** "Utrecht · zo 22 nov", or null for mails that are not about one Sunday. */
   sunday: { eventId: string; city: string; startsAt: Date } | null;
@@ -152,10 +157,10 @@ export type UpcomingMail = {
   managePath: string | null;
 };
 
-const INVITE_TITLES: Record<string, string> = {
+const INVITE_KINDS: Record<string, string> = {
   invite: "Uitnodiging",
-  nudge: "Uitnodiging, tweede",
-  checkin: "Wil je nog uitnodigingen?",
+  nudge: "Uitnodiging",
+  checkin: "Nog uitnodigingen?",
   match: "Bekende gezichten",
 };
 
@@ -188,6 +193,7 @@ export async function getUpcomingMails(now = new Date(), days = 14): Promise<Upc
       out.push({
         at,
         dayOnly: step.dayOnly,
+        kind: step.label,
         title: step.title,
         sunday: { eventId: id, city: ctx.city, startsAt: ctx.startsAt },
         count: step.planned ? step.planned.count : step.total === null ? null : step.total - step.sent,
@@ -206,7 +212,8 @@ export async function getUpcomingMails(now = new Date(), days = 14): Promise<Upc
     out.push({
       at: new Date(row.first),
       dayOnly: true,
-      title: INVITE_TITLES[row.kind] ?? "Uitnodiging",
+      kind: INVITE_KINDS[row.kind] ?? "Uitnodiging",
+      title: mailTitle(INVITE_KINDS[row.kind] ?? "Uitnodiging"),
       sunday: null,
       count: Number(row.n),
       how: row.status === "approved" ? "Ingepland" : "Wacht op akkoord",
@@ -227,35 +234,9 @@ export async function getUpcomingMails(now = new Date(), days = 14): Promise<Upc
     const key = `${kind}|${Math.floor(at.getTime() / 60_000)}`;
     const item = grouped.get(key);
     if (item) item.count = (item.count ?? 0) + 1;
-    else grouped.set(key, { at, dayOnly: false, title: catalogMail(kind)?.title ?? kind, sunday: null, count: 1, how: "Ingepland", managePath: null });
+    else grouped.set(key, { at, dayOnly: false, kind: catalogMail(kind)?.kind ?? kind, title: mailTitle(kind), sunday: null, count: 1, how: "Ingepland", managePath: null });
   }
   out.push(...grouped.values());
 
   return out.sort((a, b) => a.at.getTime() - b.at.getTime());
-}
-
-export type KindActivity = { last: Date; last30: number };
-
-/** Per kind of mail: when it last went out and how often in the last 30 days. Not our own test sends. */
-export async function getMailKindActivity(now = new Date()): Promise<Map<string, KindActivity>> {
-  const rows = await getDb().execute<{ subject: string; last: Date; last30: number }>(sql`
-    select subject, max(sent_at) as last,
-      count(*) filter (where sent_at > ${new Date(now.getTime() - 30 * DAY_MS).toISOString()}::timestamptz)::int as last30
-    from email_log
-    where sent_at <= ${now.toISOString()}::timestamptz
-      and email_normalized not like 'delivered+%'
-      and subject !~* '^\\[(test|voorbeeld|preview|kopie)'
-    group by subject`);
-  const out = new Map<string, KindActivity>();
-  for (const row of rows) {
-    const mail = catalogMail(emailKind(row.subject));
-    if (!mail) continue;
-    const last = new Date(row.last);
-    const item = out.get(mail.kind);
-    if (item) {
-      item.last30 += Number(row.last30);
-      if (last > item.last) item.last = last;
-    } else out.set(mail.kind, { last, last30: Number(row.last30) });
-  }
-  return out;
 }

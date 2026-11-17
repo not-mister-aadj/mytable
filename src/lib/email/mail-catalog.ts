@@ -10,7 +10,7 @@ export type MailGoalId = "boeken" | "vooraf" | "achteraf" | "groei" | "lid" | "v
 
 export const MAIL_GOALS: Array<{ id: MailGoalId; label: string }> = [
   { id: "boeken", label: "Boeken" },
-  { id: "vooraf", label: "Naar de zondag toe" },
+  { id: "vooraf", label: "Voor de zondag" },
   { id: "achteraf", label: "Na de zondag" },
   { id: "groei", label: "Nieuwe gasten" },
   { id: "lid", label: "Lidmaatschap" },
@@ -33,54 +33,41 @@ export type CatalogMail = {
 };
 
 export const MAIL_CATALOG: CatalogMail[] = [
-  { kind: "Bevestiging", title: "Bevestiging", goal: "boeken", when: "Direct na betaling", auto: true, to: "Gast" },
-  { kind: "Vragen", title: "Vragen vooraf", goal: "boeken", when: "15 min na de bevestiging", auto: true, to: "Gast zonder antwoorden" },
-  { kind: "Betaling afgebroken", title: "Ging er iets mis?", goal: "boeken", when: "1 uur na een afgebroken betaling, 08:00 tot 22:00", auto: true, to: "Wie niet afrekende" },
-  { kind: "Verplaatst", title: "Verplaatst", goal: "boeken", when: "Direct na verzetten", auto: true, to: "Gast" },
-  { kind: "Plek doorgegeven", title: "Plek doorgegeven", goal: "boeken", when: "Direct na doorgeven", auto: true, to: "Nieuwe gast" },
-  { kind: "Plek vrij", title: "Er is een plek vrij", goal: "boeken", when: "Direct na een late afmelding, 's nachts om 08:00", auto: true, to: "Wachtlijst van een volle zondag" },
+  { kind: "Bevestiging", title: "Boeking bevestigd", goal: "boeken", when: "Direct na betaling", auto: true, to: "Gast" },
+  { kind: "Vragen", title: "Vragen voor je tafel", goal: "boeken", when: "15 min na de bevestiging", auto: true, to: "Gast zonder antwoorden" },
+  { kind: "Betaling afgebroken", title: "Betaling niet afgemaakt", goal: "boeken", when: "1 uur na een afgebroken betaling, 08:00 tot 22:00", auto: true, to: "Wie niet afrekende" },
+  { kind: "Verplaatst", title: "Boeking verzet", goal: "boeken", when: "Direct na verzetten", auto: true, to: "Gast" },
+  { kind: "Plek doorgegeven", title: "Plek gekregen van een ander", goal: "boeken", when: "Direct na doorgeven", auto: true, to: "Nieuwe gast" },
+  { kind: "Plek vrij", title: "Plek vrijgekomen", goal: "boeken", when: "Direct na een late afmelding, 's nachts om 08:00", auto: true, to: "Wachtlijst van een volle zondag" },
 
-  { kind: "Kom je zondag?", title: "Kom je zondag?", goal: "vooraf", when: "Vrijdag 10:00, 9 dagen vooraf", auto: true, to: "Gasten zonder ja, geen leden" },
-  { kind: "Kom je zondag, herinnering", title: "Nog even: kom je zondag?", goal: "vooraf", when: "Zaterdag 10:00, 8 dagen vooraf", auto: true, to: "Wie niets koos" },
-  { kind: "Locatie", title: "Locatie", goal: "vooraf", when: "7 dagen vooraf", auto: false, to: "Alle gasten" },
-  { kind: "Groep", title: "Je groep", goal: "vooraf", when: "Zaterdag 14:00, de dag ervoor", auto: false, to: "Alle gasten" },
-  { kind: "Vanmiddag", alsoKinds: ["Aanraders"], title: "Vanmiddag, met aanraders", goal: "vooraf", when: "Zondag 08:30", auto: false, to: "Alle gasten" },
+  { kind: "Kom je zondag?", title: "Kom je zondag? (9 dagen vooraf)", goal: "vooraf", when: "Vrijdag 10:00, 9 dagen vooraf", auto: true, to: "Gasten zonder ja, geen leden" },
+  { kind: "Kom je zondag, herinnering", title: "Kom je zondag? Herinnering", goal: "vooraf", when: "Zaterdag 10:00, 8 dagen vooraf", auto: true, to: "Wie niets koos" },
+  { kind: "Locatie", title: "Locatie bekend (week vooraf)", goal: "vooraf", when: "7 dagen vooraf", auto: false, to: "Alle gasten" },
+  { kind: "Groep", title: "Je groep en tafel (zaterdag)", goal: "vooraf", when: "Zaterdag 14:00, de dag ervoor", auto: false, to: "Alle gasten" },
+  { kind: "Vanmiddag", alsoKinds: ["Aanraders"], title: "Vanmiddag, met onze aanraders", goal: "vooraf", when: "Zondag 08:30", auto: false, to: "Alle gasten" },
 
-  { kind: "Review", title: "Hoe was het?", goal: "achteraf", when: "Zondag 20:00", auto: true, to: "Wie er was" },
-  { kind: "Niet gekomen", title: "Niet gekomen", goal: "achteraf", when: "Maandag 11:00, leden direct", auto: true, to: "Niet gekomen of laat afgemeld" },
-  { kind: "Terugzien", title: "Wie wil je terugzien?", goal: "achteraf", when: "Dinsdag 08:00", auto: true, to: "Wie nog niet antwoordde" },
-  { kind: "Gezellig", title: "Ze vonden je gezellig", goal: "achteraf", when: "Woensdag 19:00", auto: true, to: "Wie door een tafelgenoot gekozen is" },
+  { kind: "Review", title: "Feedback: hoe was het?", goal: "achteraf", when: "Zondag 20:00", auto: true, to: "Wie er was" },
+  { kind: "Niet gekomen", title: "Gemist: niet gekomen of laat afgemeld", goal: "achteraf", when: "Maandag 11:00, leden direct", auto: true, to: "Niet gekomen of laat afgemeld" },
+  { kind: "Terugzien", title: "Feedback herinnering: wie wil je terugzien?", goal: "achteraf", when: "Dinsdag 08:00", auto: true, to: "Wie nog niet antwoordde" },
+  { kind: "Gezellig", title: "Je tafel wil je terugzien", goal: "achteraf", when: "Woensdag 19:00", auto: true, to: "Wie door een tafelgenoot gekozen is" },
 
-  { kind: "Wachtlijst", title: "Je staat op de lijst", goal: "groei", when: "Direct na aanmelden", auto: true, to: "Wachtlijst" },
-  { kind: "Welkom", title: "Welkom aan tafel", goal: "groei", when: "15 min na de quiz", auto: true, to: "Nieuw account zonder boeking" },
-  { kind: "Uitnodiging", title: "Uitnodiging", goal: "groei", when: "Ongeveer 1 per maand, op het eigen aanmeldmoment", auto: true, to: "Wie een stad volgt", managePath: "/invites" },
-  { kind: "Bekende gezichten", title: "Bekende gezichten", goal: "groei", when: "1 uur na de boeking van een bekende", auto: true, to: "Wie elkaar wil terugzien", managePath: "/invites" },
-  { kind: "Nog uitnodigingen?", title: "Wil je nog uitnodigingen?", goal: "groei", when: "Na 5 genegeerde uitnodigingen", auto: true, to: "Wie niet reageert", managePath: "/invites" },
+  { kind: "Wachtlijst", title: "Welkom op de wachtlijst", goal: "groei", when: "Direct na aanmelden", auto: true, to: "Wachtlijst" },
+  { kind: "Welkom", title: "Welkom na de quiz", goal: "groei", when: "15 min na de quiz", auto: true, to: "Nieuw account zonder boeking" },
+  { kind: "Uitnodiging", title: "Uitnodiging voor een zondag", goal: "groei", when: "Ongeveer 1 per maand, op het eigen aanmeldmoment", auto: true, to: "Wie een stad volgt", managePath: "/invites" },
+  { kind: "Bekende gezichten", title: "Uitnodiging: bekenden komen ook", goal: "groei", when: "1 uur na de boeking van een bekende", auto: true, to: "Wie elkaar wil terugzien", managePath: "/invites" },
+  { kind: "Nog uitnodigingen?", title: "Wil je uitnodigingen blijven krijgen?", goal: "groei", when: "Na 5 genegeerde uitnodigingen", auto: true, to: "Wie niet reageert", managePath: "/invites" },
   { kind: "Boeken open", title: "Boeken is open", goal: "groei", when: "Zodra een zondag opengaat", auto: true, to: "Wie een seintje vroeg" },
 
   { kind: "Lid geworden", title: "Welkom als lid", goal: "lid", when: "Direct na betaling", auto: true, to: "Nieuw lid" },
-  { kind: "Lidmaatschap", title: "Loopt straks per maand door", goal: "lid", when: "7 dagen voor het einde van de eerste periode", auto: true, to: "Lid met 4 of 12 maanden" },
+  { kind: "Lidmaatschap", title: "Lidmaatschap loopt door per maand", goal: "lid", when: "7 dagen voor het einde van de eerste periode", auto: true, to: "Lid met 4 of 12 maanden" },
   { kind: "Opzegging", title: "Opzegging bevestigd", goal: "lid", when: "Direct na opzeggen", auto: true, to: "Lid" },
 
-  { kind: "Venue", title: "Reserveringsaanvraag", goal: "venues", when: "Per aanvraag", auto: false, to: "Bars", managePath: "/outreach/mails" },
+  { kind: "Venue", title: "Aanvraag aan een bar", goal: "venues", when: "Per aanvraag", auto: false, to: "Bars", managePath: "/outreach/mails" },
 
   { kind: "Inlogcode", title: "Inlogcode", goal: "account", when: "Direct bij inloggen", auto: true, to: "Wie inlogt" },
-  { kind: "Sollicitatie", title: "Sollicitatie ambassador", goal: "account", when: "Direct na aanmelden", auto: true, to: "Aanmelder" },
+  { kind: "Sollicitatie", title: "Sollicitatie ontvangen", goal: "account", when: "Direct na aanmelden", auto: true, to: "Aanmelder" },
 
-  { kind: "Intern", title: "Meldingen aan ons", goal: "intern", when: "Bij een afmelding, melding of limiet", auto: true, to: "info@mytable.club" },
-];
-
-/** The steps around one Sunday, in order, with the day they fall on (0 = the Sunday). */
-export const SUNDAY_FLOW: Array<{ day: number; time: string; kind: string }> = [
-  { day: -9, time: "vr 10:00", kind: "Kom je zondag?" },
-  { day: -8, time: "za 10:00", kind: "Kom je zondag, herinnering" },
-  { day: -7, time: "zo", kind: "Locatie" },
-  { day: -1, time: "za 14:00", kind: "Groep" },
-  { day: 0, time: "zo 08:30", kind: "Vanmiddag" },
-  { day: 0, time: "zo 20:00", kind: "Review" },
-  { day: 1, time: "ma 11:00", kind: "Niet gekomen" },
-  { day: 2, time: "di 08:00", kind: "Terugzien" },
-  { day: 3, time: "wo 19:00", kind: "Gezellig" },
+  { kind: "Intern", title: "Melding aan ons", goal: "intern", when: "Bij een afmelding, melding of limiet", auto: true, to: "info@mytable.club" },
 ];
 
 const BY_KIND = new Map<string, CatalogMail>();
@@ -96,4 +83,9 @@ export function catalogMail(kind: string): CatalogMail | null {
 /** The goal a sent mail belongs to; null for mails outside the catalog (campaigns, one-offs). */
 export function mailGoal(kind: string): MailGoalId | null {
   return BY_KIND.get(kind)?.goal ?? null;
+}
+
+/** The name we show for a kind of mail; the kind itself for mails outside the catalog. */
+export function mailTitle(kind: string): string {
+  return BY_KIND.get(kind)?.title ?? kind;
 }

@@ -1,0 +1,447 @@
+import { sql } from "drizzle-orm";
+import { getDb } from "@/db/index";
+import { loadFeedbackOverview } from "@/lib/admin/feedback-overview";
+import { emailKind } from "@/lib/email/email-kind";
+import { EMAIL_TRACKING_SINCE } from "@/lib/email/email-tracking";
+import { MAIL_CATALOG, catalogMail, mailGoal, type MailGoalId } from "@/lib/email/mail-catalog";
+import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
+
+/**
+ * The numbers behind the Mails page: per kind of mail for the list, and
+ * everything the Grafieken tab draws. One pass over email_log; our own test
+ * sends and mails to ourselves are left out.
+ */
+
+export type InsightPeriod = "7" | "30" | "90" | "alle";
+export const INSIGHT_PERIODS: Array<{ id: InsightPeriod; label: string }> = [
+  { id: "7", label: "7 dagen" },
+  { id: "30", label: "30 dagen" },
+  { id: "90", label: "90 dagen" },
+  { id: "alle", label: "Alles" },
+];
+
+const DAY = 86_400_000;
+/** A paid booking counts for a mail when it comes within this many days after it. */
+const BOOK_DAYS = 7;
+/** Fewer recipients than this says too little to compare mails on. */
+export const MIN_RECIPIENTS = 20;
+const PROBLEMS = new Set(["bounced", "suppressed", "complained"]);
+const UNDELIVERED = new Set(["bounced", "suppressed"]);
+const trackingStart = new Date(EMAIL_TRACKING_SINCE).getTime();
+
+/** Mails meant to bring someone to book; a booking is credited to one of these. */
+const BOOKING_MAILS = new Set([
+  "Uitnodiging",
+  "Bekende gezichten",
+  "Nog uitnodigingen?",
+  "Boeken open",
+  "Plek vrij",
+  "Betaling afgebroken",
+  "Wachtlijst",
+  "Welkom",
+  "Review",
+  "Terugzien",
+  "Gezellig",
+]);
+
+type LogRow = {
+  id: string;
+  email: string;
+  to: string;
+  subject: string;
+  from: string | null;
+  sentAt: Date;
+  lastEvent: string | null;
+  opened: boolean;
+  clicked: boolean;
+  firstOpenedAt: Date | null;
+  hasHtml: boolean;
+  kind: string;
+};
+
+export type Rate = { part: number; total: number };
+export type MailSample = { id: string; to: string; subject: string; from: string | null; sentAt: string };
+
+export type KindNumbers = {
+  kind: string;
+  sent: number;
+  opened: Rate;
+  clicked: Rate;
+  /** Paid bookings credited to this mail over its recipients; null for mails that are not meant to sell a seat. */
+  booked: Rate | null;
+  revenueCents: number;
+  /** The latest sends with the mail itself stored, newest first. */
+  samples: MailSample[];
+};
+
+const pct = (r: Rate) => (r.total > 0 ? r.part / r.total : null);
+
+const amsterdamDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" });
+const amsterdamParts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", weekday: "short", hour: "2-digit", hourCycle: "h23" });
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/** Monday of the week (Amsterdam), as YYYY-MM-DD. */
+function weekOf(date: Date): string {
+  const d = new Date(`${amsterdamDay.format(date)}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+
+async function loadRows(since: Date | null, now: Date): Promise<LogRow[]> {
+  const rows = await getDb().execute<{
+    id: string;
+    email: string;
+    to_email: string;
+    subject: string;
+    from_email: string | null;
+    sent_at: Date;
+    last_event: string | null;
+    open_count: number;
+    click_count: number;
+    first_opened_at: Date | null;
+    has_html: boolean;
+  }>(sql`
+    select id, email_normalized as email, to_email, subject, from_email, sent_at, last_event, open_count, click_count,
+      first_opened_at, html is not null as has_html
+    from email_log
+    where sent_at <= ${now.toISOString()}::timestamptz
+      and email_normalized not like 'delivered%@resend.dev'
+      and email_normalized not like '%@mytable.club'
+      and subject not like '[%'
+      ${since ? sql`and sent_at >= ${since.toISOString()}::timestamptz` : sql``}
+    order by sent_at desc`);
+  return rows.map((r) => ({
+    id: r.id,
+    email: r.email,
+    to: r.to_email,
+    subject: r.subject,
+    from: r.from_email,
+    sentAt: new Date(r.sent_at),
+    lastEvent: r.last_event,
+    opened: r.last_event === "opened" || r.last_event === "clicked" || Number(r.open_count) > 0,
+    clicked: r.last_event === "clicked" || Number(r.click_count) > 0,
+    firstOpenedAt: r.first_opened_at ? new Date(r.first_opened_at) : null,
+    hasHtml: Boolean(r.has_html),
+    kind: emailKind(r.subject),
+  }));
+}
+
+type Booking = { email: string; at: Date; cents: number };
+
+async function loadBookings(since: Date | null): Promise<Booking[]> {
+  const rows = await getDb().execute<{ email: string; created_at: Date; amount_cents: number }>(sql`
+    select lower(trim(email)) as email, created_at, amount_cents from bookings
+    where payment_status = 'paid' and amount_cents > 0
+      ${since ? sql`and created_at >= ${since.toISOString()}::timestamptz` : sql``}`);
+  return rows.map((r) => ({ email: r.email, at: new Date(r.created_at), cents: Number(r.amount_cents) }));
+}
+
+/**
+ * Each paid booking goes to one mail: the last one the guest clicked in the
+ * week before, else the last one they got. So a booking never counts twice.
+ */
+function creditBookings(rows: LogRow[], bookings: Booking[]): Map<string, Booking[]> {
+  const byEmail = new Map<string, LogRow[]>();
+  for (const r of rows) {
+    if (!BOOKING_MAILS.has(r.kind) || UNDELIVERED.has(r.lastEvent ?? "")) continue;
+    byEmail.set(r.email, [...(byEmail.get(r.email) ?? []), r]);
+  }
+  const credited = new Map<string, Booking[]>();
+  for (const b of bookings) {
+    const before = (byEmail.get(b.email) ?? []).filter((r) => r.sentAt < b.at && b.at.getTime() - r.sentAt.getTime() <= BOOK_DAYS * DAY);
+    // Rows are newest first.
+    const mail = before.find((r) => r.clicked) ?? before[0];
+    if (mail) credited.set(mail.id, [...(credited.get(mail.id) ?? []), b]);
+  }
+  return credited;
+}
+
+function kindNumbers(rows: LogRow[], credited: Map<string, Booking[]>, samplesFrom: LogRow[]): KindNumbers[] {
+  const byKind = new Map<string, LogRow[]>();
+  for (const r of rows) byKind.set(r.kind, [...(byKind.get(r.kind) ?? []), r]);
+  const samples = new Map<string, MailSample[]>();
+  for (const r of samplesFrom) {
+    if (!r.hasHtml) continue;
+    const list = samples.get(r.kind) ?? [];
+    if (list.length < 3 && !list.some((s) => s.to === r.to)) {
+      list.push({ id: r.id, to: r.to, subject: r.subject, from: r.from, sentAt: r.sentAt.toISOString() });
+      samples.set(r.kind, list);
+    }
+  }
+  const kinds = new Set([...byKind.keys(), ...samples.keys()]);
+  return [...kinds].map((kind) => {
+    const list = byKind.get(kind) ?? [];
+    const tracked = list.filter((r) => r.sentAt.getTime() >= trackingStart && !UNDELIVERED.has(r.lastEvent ?? ""));
+    const mine = list.flatMap((r) => credited.get(r.id) ?? []);
+    return {
+      kind,
+      sent: list.length,
+      opened: { part: tracked.filter((r) => r.opened).length, total: tracked.length },
+      clicked: { part: tracked.filter((r) => r.clicked).length, total: tracked.length },
+      booked: BOOKING_MAILS.has(kind) ? { part: mine.length, total: new Set(list.map((r) => r.email)).size } : null,
+      revenueCents: mine.reduce((n, b) => n + b.cents, 0),
+      samples: samples.get(kind) ?? [],
+    };
+  });
+}
+
+/** Per kind of mail over the last 30 days, with the latest sends to look at. For the list of all mails. */
+export async function getMailListNumbers(now = new Date()): Promise<Map<string, KindNumbers>> {
+  // Samples may be older than the 30 days the numbers cover.
+  const all = await loadRows(new Date(now.getTime() - 120 * DAY), now);
+  const since = new Date(now.getTime() - 30 * DAY);
+  const rows = all.filter((r) => r.sentAt >= since);
+  const bookings = (await loadBookings(since)).filter((b) => b.at <= now);
+  const numbers = kindNumbers(rows, creditBookings(all, bookings), all);
+  const out = new Map<string, KindNumbers>();
+  for (const n of numbers) {
+    const key = catalogMail(n.kind)?.kind ?? n.kind;
+    const have = out.get(key);
+    if (!have) out.set(key, { ...n, kind: key });
+    else {
+      have.sent += n.sent;
+      have.opened = { part: have.opened.part + n.opened.part, total: have.opened.total + n.opened.total };
+      have.clicked = { part: have.clicked.part + n.clicked.part, total: have.clicked.total + n.clicked.total };
+      have.samples = [...have.samples, ...n.samples].sort((a, b) => b.sentAt.localeCompare(a.sentAt)).slice(0, 3);
+    }
+  }
+  return out;
+}
+
+export type ChartGoal = MailGoalId | "overig";
+export type MailInsights = {
+  period: InsightPeriod;
+  kpis: {
+    sent: number;
+    sentBefore: number | null;
+    delivered: Rate;
+    opened: Rate;
+    openedBefore: Rate | null;
+    clicked: Rate;
+    clickedBefore: Rate | null;
+    bookings: number;
+    revenueCents: number;
+    /** All paid booking revenue in the period, to set the mail revenue against. */
+    allRevenueCents: number;
+  };
+  funnel: Array<{ label: string; value: number }>;
+  /** Mails per week (per day for 7 days), split by goal. */
+  volume: Array<{ label: string; total: number; byGoal: Partial<Record<ChartGoal, number>> }>;
+  /** Mails meant to sell a seat, with enough recipients to compare, best first. */
+  selling: Array<{ kind: string; booked: Rate; revenueCents: number }>;
+  cities: Array<{ city: string; sent: number; clicked: number; booked: number }>;
+  /** "Kom je zondag?" per Sunday: said yes, moved their seat, or silent. */
+  confirms: Array<{ eventId: string; city: string; startsAt: string; yes: number; moved: number; silent: number }>;
+  /** Share of guests that takes each step around a Sunday. */
+  steps: Array<{ label: string; rate: Rate }>;
+  /** Opens per weekday (Monday first) and part of the day. */
+  heat: { slots: string[]; days: number[][]; peak: { day: number; slot: number } | null };
+  senders: Array<{ from: string; problems: Rate }>;
+  providers: Array<{ name: string; problems: Rate }>;
+  /** Mails per day for a week from today: sent and still planned. */
+  limit: Array<{ day: string; sent: number; planned: number }>;
+};
+
+const HEAT_SLOTS = ["0-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24"];
+const slotOf = (hour: number) => (hour < 6 ? 0 : Math.min(6, Math.floor((hour - 6) / 3) + 1));
+
+function provider(email: string): string {
+  const domain = email.split("@")[1] ?? "";
+  if (/^(gmail|googlemail)\./.test(domain)) return "Gmail";
+  if (/^(outlook|hotmail|live|msn)\./.test(domain)) return "Outlook en Hotmail";
+  if (/^(icloud|me|mac)\./.test(domain)) return "iCloud";
+  return "Overig";
+}
+
+const senderAddress = (from: string | null) => from?.match(/<([^>]+)>/)?.[1]?.trim() ?? from?.trim() ?? "-";
+
+function rates(rows: LogRow[]) {
+  const delivered = rows.filter((r) => !UNDELIVERED.has(r.lastEvent ?? ""));
+  const tracked = delivered.filter((r) => r.sentAt.getTime() >= trackingStart);
+  return {
+    sent: rows.length,
+    delivered: { part: delivered.length, total: rows.length },
+    opened: { part: tracked.filter((r) => r.opened).length, total: tracked.length },
+    clicked: { part: tracked.filter((r) => r.clicked).length, total: tracked.length },
+  };
+}
+
+/** Mails per Amsterdam day for a week from today: sent, and still planned (at Resend or in the invite queue). */
+export async function getDayVolume(now = new Date()): Promise<Array<{ day: string; sent: number; planned: number }>> {
+  const db = getDb();
+  const today = amsterdamDay.format(now);
+  const lastDay = amsterdamDay.format(new Date(now.getTime() + 6 * DAY));
+  const limitRows = await db.execute<{ day: string; sent: number; planned: number }>(sql`
+    select day, sum(sent)::int as sent, sum(planned)::int as planned from (
+      select to_char(sent_at at time zone 'Europe/Amsterdam', 'YYYY-MM-DD') as day,
+        count(*) filter (where sent_at <= ${now.toISOString()}::timestamptz) as sent,
+        count(*) filter (where sent_at > ${now.toISOString()}::timestamptz) as planned
+      from email_log
+      where (sent_at at time zone 'Europe/Amsterdam')::date between ${today}::date and ${lastDay}::date
+      group by 1
+      union all
+      select to_char(scheduled_for at time zone 'Europe/Amsterdam', 'YYYY-MM-DD'), 0, count(*)
+      from invite_sends
+      where status in ('queued', 'approved') and (scheduled_for at time zone 'Europe/Amsterdam')::date between ${today}::date and ${lastDay}::date
+      group by 1
+    ) t group by day`);
+  const limitBy = new Map(limitRows.map((r) => [r.day, r]));
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = amsterdamDay.format(new Date(now.getTime() + i * DAY));
+    return { day, sent: Number(limitBy.get(day)?.sent ?? 0), planned: Number(limitBy.get(day)?.planned ?? 0) };
+  });
+}
+
+export async function getMailInsights(period: InsightPeriod, now = new Date()): Promise<MailInsights> {
+  const db = getDb();
+  const days = period === "alle" ? null : Number(period);
+  const since = days ? new Date(now.getTime() - days * DAY) : null;
+  const before = days ? new Date(now.getTime() - 2 * days * DAY) : null;
+
+  // One query after the other: the pool has 3 connections.
+  const all = await loadRows(before, now);
+  const rows = since ? all.filter((r) => r.sentAt >= since) : all;
+  const previous = since ? all.filter((r) => r.sentAt < since) : null;
+  const bookings = (await loadBookings(since)).filter((b) => b.at <= now);
+  const credited = creditBookings(all, bookings);
+  const numbers = kindNumbers(rows, credited, []);
+
+  const cur = rates(rows);
+  const prev = previous ? rates(previous) : null;
+  const creditedNow = rows.flatMap((r) => credited.get(r.id) ?? []);
+
+  // Volume: per day for a week, else per week (the last 12).
+  const perDay = period === "7";
+  const buckets = new Map<string, { total: number; byGoal: Partial<Record<ChartGoal, number>> }>();
+  for (const r of rows) {
+    const key = perDay ? amsterdamDay.format(r.sentAt) : weekOf(r.sentAt);
+    const goal: ChartGoal = mailGoal(r.kind) ?? "overig";
+    const b = buckets.get(key) ?? { total: 0, byGoal: {} };
+    b.total++;
+    b.byGoal[goal] = (b.byGoal[goal] ?? 0) + 1;
+    buckets.set(key, b);
+  }
+  const short = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: "UTC" });
+  const volume = [...buckets.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-12)
+    .map(([key, b]) => ({ label: short.format(new Date(`${key}T12:00:00Z`)).replace(".", ""), ...b }));
+
+  const selling = numbers
+    .filter((n) => n.booked && n.booked.total >= MIN_RECIPIENTS)
+    .map((n) => ({ kind: n.kind, booked: n.booked!, revenueCents: n.revenueCents }))
+    .sort((a, b) => (pct(b.booked) ?? 0) - (pct(a.booked) ?? 0));
+
+  const cityRows = await db.execute<{ city: string; sent: number; clicked: number; booked: number }>(sql`
+    select s.cities[1] as city, count(*)::int as sent,
+      count(*) filter (where exists (select 1 from invite_clicks c where c.send_id = s.id))::int as clicked,
+      count(*) filter (where exists (
+        select 1 from bookings b join events e on e.id = b.event_id
+        where lower(trim(b.email)) = s.email_normalized and b.payment_status = 'paid' and e.city = s.cities[1]
+          and b.created_at > s.sent_at and b.created_at <= s.sent_at + make_interval(days => ${BOOK_DAYS})))::int as booked
+    from invite_sends s
+    where s.status = 'sent' and s.kind in ('invite', 'nudge', 'match') and array_length(s.cities, 1) >= 1
+      and s.sent_at <= ${now.toISOString()}::timestamptz
+      ${since ? sql`and s.sent_at >= ${since.toISOString()}::timestamptz` : sql``}
+    group by 1 order by 2 desc`);
+
+  const confirmRows = await db.execute<{ id: string; city: string; starts_at: Date; yes: number; moved: number; silent: number }>(sql`
+    select e.id, e.city, e.starts_at,
+      count(*) filter (where b.lifecycle_status = 'active' and b.attendance_confirmed_at is not null)::int as yes,
+      count(*) filter (where b.lifecycle_status = 'transferred' and b.transferred_at > e.starts_at - interval '10 days')::int as moved,
+      count(*) filter (where b.lifecycle_status = 'active' and b.attendance_confirmed_at is null and b.cancelled_late_at is null)::int as silent
+    from events e join bookings b on b.event_id = e.id
+    where e.workflow_status = 'published' and e.experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
+      and b.payment_status = 'paid' and b.membership_id is null
+      and e.starts_at - interval '9 days' <= ${now.toISOString()}::timestamptz
+      and e.starts_at >= ${(since ?? new Date(0)).toISOString()}::timestamptz
+    group by e.id having count(*) filter (where b.attendance_confirmed_at is not null) > 0
+    order by e.starts_at desc limit 8`);
+
+  const feedback = (await loadFeedbackOverview(period === "alle" ? "all" : period === "90" ? "90" : "30", null, now)).total;
+  const numberOf = (kind: string) => numbers.find((n) => n.kind === kind);
+  const booked = feedback.guests + feedback.noShows + feedback.lateCancels;
+  const steps: MailInsights["steps"] = [
+    { label: "Opent \"Kom je zondag?\"", rate: numberOf("Kom je zondag?")?.opened ?? { part: 0, total: 0 } },
+    { label: "Opent de locatiemail", rate: numberOf("Locatie")?.opened ?? { part: 0, total: 0 } },
+    { label: "Klikt door naar de tafelpagina", rate: numberOf("Groep")?.clicked ?? { part: 0, total: 0 } },
+    { label: "Komt", rate: { part: feedback.guests, total: booked } },
+    { label: "Geeft feedback", rate: { part: feedback.answered, total: feedback.mailed } },
+    { label: "Kiest iemand om terug te zien", rate: { part: feedback.picked, total: feedback.guests } },
+    { label: "Boekt opnieuw binnen 60 dagen", rate: { part: feedback.rebooked, total: feedback.rebookBase } },
+  ].filter((s) => s.rate.total > 0);
+
+  const heatDays = WEEKDAYS.map(() => HEAT_SLOTS.map(() => 0));
+  for (const r of rows) {
+    if (!r.firstOpenedAt) continue;
+    const parts = amsterdamParts.formatToParts(r.firstOpenedAt);
+    const day = WEEKDAYS.indexOf(parts.find((p) => p.type === "weekday")?.value ?? "");
+    const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+    if (day >= 0) heatDays[day]![slotOf(hour)]!++;
+  }
+  let peak: MailInsights["heat"]["peak"] = null;
+  heatDays.forEach((slots, day) =>
+    slots.forEach((n, slot) => {
+      if (n > 0 && (!peak || n > heatDays[peak.day]![peak.slot]!)) peak = { day, slot };
+    }),
+  );
+
+  const tally = (key: (r: LogRow) => string) => {
+    const m = new Map<string, Rate>();
+    for (const r of rows) {
+      const k = key(r);
+      const have = m.get(k) ?? { part: 0, total: 0 };
+      have.total++;
+      if (PROBLEMS.has(r.lastEvent ?? "")) have.part++;
+      m.set(k, have);
+    }
+    return [...m.entries()].sort((a, b) => b[1].total - a[1].total);
+  };
+
+  const limit = await getDayVolume(now);
+
+  return {
+    period,
+    kpis: {
+      sent: cur.sent,
+      sentBefore: prev ? prev.sent : null,
+      delivered: cur.delivered,
+      opened: cur.opened,
+      openedBefore: prev ? prev.opened : null,
+      clicked: cur.clicked,
+      clickedBefore: prev ? prev.clicked : null,
+      bookings: creditedNow.length,
+      revenueCents: creditedNow.reduce((n, b) => n + b.cents, 0),
+      allRevenueCents: bookings.reduce((n, b) => n + b.cents, 0),
+    },
+    funnel: [
+      { label: "Verstuurd", value: cur.sent },
+      { label: "Afgeleverd", value: cur.delivered.part },
+      { label: "Geopend", value: cur.opened.part },
+      { label: "Geklikt", value: cur.clicked.part },
+      { label: "Geboekt", value: creditedNow.length },
+    ],
+    volume,
+    selling,
+    cities: cityRows.map((r) => ({ city: r.city, sent: Number(r.sent), clicked: Number(r.clicked), booked: Number(r.booked) })),
+    confirms: confirmRows.map((r) => ({
+      eventId: r.id,
+      city: r.city,
+      startsAt: new Date(r.starts_at).toISOString(),
+      yes: Number(r.yes),
+      moved: Number(r.moved),
+      silent: Number(r.silent),
+    })),
+    steps,
+    heat: { slots: HEAT_SLOTS, days: heatDays, peak },
+    senders: tally((r) => senderAddress(r.from)).map(([from, problems]) => ({ from, problems })),
+    providers: tally((r) => provider(r.email)).map(([name, problems]) => ({ name, problems })),
+    limit,
+  };
+}
+
+/** The goals a chart colours, in a fixed order, so a goal keeps its colour. */
+export const CHART_GOALS: ChartGoal[] = ["boeken", "vooraf", "achteraf", "groei", "lid", "overig"];
+
+/** Catalog order for the list of all mails. */
+export const CATALOG_KINDS = MAIL_CATALOG.map((m) => m.kind);

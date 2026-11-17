@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { MailsHeader } from "@/components/admin/MailsHeader";
+import { mailTitle } from "@/lib/email/mail-catalog";
 import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, resolveHostname } from "@/lib/admin-url";
@@ -130,7 +131,7 @@ export default async function EmailTemplatesPage({ searchParams }: Props) {
               >
                 <td className="px-4 py-3">
                   <Link href={href(period, k.kind === detail ? null : k.kind)} className="font-medium text-wine hover:text-burgundy">
-                    {k.kind}
+                    {mailTitle(k.kind)}
                   </Link>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums text-wine">{k.sent}</td>
@@ -161,7 +162,7 @@ export default async function EmailTemplatesPage({ searchParams }: Props) {
 
       {detail && detailStats && stats.weeks ? (
         <section className="rounded-2xl border border-border-subtle/80 bg-beige/50 p-5">
-          <h2 className="font-serif text-xl text-burgundy">{detail} per week</h2>
+          <h2 className="font-serif text-xl text-burgundy">{mailTitle(detail)} per week</h2>
           <div className="mt-4 overflow-x-auto">
             <div className="flex min-w-max items-end gap-3">
               {stats.weeks.map((w) => (

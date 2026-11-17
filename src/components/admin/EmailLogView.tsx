@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EmailPreviewDialog } from "@/components/admin/EmailPreviewDialog";
 import { EmailStatusPill } from "@/components/admin/EmailStatusPill";
 import { EMAIL_TRACKING_SINCE } from "@/lib/email/email-tracking";
 import { adminPath } from "@/lib/admin-url";
 import type { EmailLogListRow } from "@/lib/email/email-log";
-import { MAIL_GOALS, mailGoal } from "@/lib/email/mail-catalog";
+import { MAIL_GOALS, mailGoal, mailTitle } from "@/lib/email/mail-catalog";
 
 /** Rows shown at first and added per step while scrolling. */
 const PAGE_SIZE = 50;
@@ -131,8 +131,6 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
   const [goal, setGoal] = useState("all");
   // A link to one kind of mail wants the mails themselves.
   const [view, setView] = useState<"sends" | "mails">(initialKind === "all" ? "sends" : "mails");
-  const [openSend, setOpenSend] = useState<string | null>(null);
-  const [sendLimit, setSendLimit] = useState(PAGE_SIZE);
   // Mails planned at Resend are in the log with their future send time.
   const [loadedAt] = useState(() => Date.now());
   const [sender, setSender] = useState("all");
@@ -247,7 +245,7 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
             <option value="all">Alle soorten</option>
             {kinds.map(([label, count]) => (
               <option key={label} value={label}>
-                {label} ({count})
+                {mailTitle(label)} ({count})
               </option>
             ))}
           </select>
@@ -323,91 +321,7 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
             <p className="mt-2 text-sm text-wine/60">Pas je zoekopdracht of filters aan.</p>
           </div>
         ) : view === "sends" ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
-                  <th className="px-5 py-3.5">Verstuurd</th>
-                  <th className="px-5 py-3.5">Soort</th>
-                  <th className="px-5 py-3.5">Onderwerp</th>
-                  <th className="px-5 py-3.5 text-right">Aan</th>
-                  <th className="px-5 py-3.5 text-right">Geopend</th>
-                  <th className="px-5 py-3.5 text-right">Geklikt</th>
-                  <th className="px-5 py-3.5 text-right">Probleem</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sends.slice(0, sendLimit).map((send) => {
-                  const isOpen = openSend === send.id;
-                  const planned = new Date(send.at).getTime() > loadedAt;
-                  return (
-                    <Fragment key={send.id}>
-                      <tr
-                        onClick={() => setOpenSend(isOpen ? null : send.id)}
-                        className={`cursor-pointer border-b border-border-subtle/50 transition hover:bg-cream/70 ${isOpen ? "bg-cream/70" : ""}`}
-                      >
-                        <td className="whitespace-nowrap px-5 py-3.5 text-wine/70">
-                          {dateTime.format(new Date(send.at))}
-                          {planned ? <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Ingepland</span> : null}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className="inline-flex whitespace-nowrap rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-wine/75 ring-1 ring-inset ring-border-subtle">
-                            {send.kind}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5 font-medium text-wine">
-                          <button type="button" aria-expanded={isOpen} className="text-left underline decoration-wine/25 underline-offset-2">
-                            {send.subject}
-                          </button>
-                        </td>
-                        <td className="px-5 py-3.5 text-right tabular-nums text-wine">{send.rows.length}</td>
-                        <td className="px-5 py-3.5 text-right tabular-nums text-wine/75">{send.opened || "–"}</td>
-                        <td className="px-5 py-3.5 text-right tabular-nums text-wine/75">{send.clicked || "–"}</td>
-                        <td className={`px-5 py-3.5 text-right tabular-nums ${send.problems ? "font-medium text-red-700" : "text-wine/75"}`}>
-                          {send.problems || "–"}
-                        </td>
-                      </tr>
-                      {isOpen ? (
-                        <tr className="border-b border-border-subtle/50 bg-cream/40">
-                          <td colSpan={7} className="px-5 py-3">
-                            <ul className="grid gap-x-6 gap-y-1.5 sm:grid-cols-2 xl:grid-cols-3">
-                              {send.rows.map((row) => (
-                                <li key={row.id} className="flex items-center gap-2 text-sm">
-                                  <button
-                                    type="button"
-                                    onClick={() => setOpen(row)}
-                                    title={row.subject}
-                                    className="min-w-0 flex-1 truncate text-left text-wine underline decoration-wine/20 underline-offset-2 hover:text-burgundy"
-                                  >
-                                    {row.name ?? row.to}
-                                  </button>
-                                  <EmailStatusPill state={row} />
-                                </li>
-                              ))}
-                            </ul>
-                          </td>
-                        </tr>
-                      ) : null}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-wine/60">
-              <span>
-                {Math.min(sendLimit, sends.length)} van {sends.length} verzendingen
-              </span>
-              {sendLimit < sends.length ? (
-                <button
-                  type="button"
-                  onClick={() => setSendLimit(sendLimit + PAGE_SIZE)}
-                  className="rounded-full border border-border-subtle bg-cream px-4 py-1.5 text-sm font-medium text-wine transition hover:border-burgundy/40 hover:text-burgundy"
-                >
-                  Toon meer
-                </button>
-              ) : null}
-            </div>
-          </div>
+          <SendsView sends={sends} loadedAt={loadedAt} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1120px] text-left text-sm">
@@ -448,7 +362,7 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="inline-flex rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-wine/75 ring-1 ring-inset ring-border-subtle">
-                        {row.kind}
+                        {mailTitle(row.kind)}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
@@ -497,6 +411,133 @@ export function EmailLogView({ rows, initialKind = "all" }: { rows: EmailLogList
           from={open.fromAddress ? (open.fromName ? `${open.fromName} (${open.fromAddress})` : open.fromAddress) : null}
           onClose={() => setOpen(null)}
         />
+      ) : null}
+    </div>
+  );
+}
+
+/** Sends on the left; on the right who got the one you picked, and the mail of the guest you point at. */
+function SendsView({ sends, loadedAt }: { sends: Send[]; loadedAt: number }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [shownRow, setShownRow] = useState<string | null>(null);
+  const send = sends.find((s) => s.id === picked) ?? sends[0] ?? null;
+  const row = send ? (send.rows.find((r) => r.id === shownRow) ?? send.rows[0]!) : null;
+  // A short wait, so moving the mouse down the names doesn't load every mail on the way.
+  const hover = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const point = (id: string) => {
+    if (hover.current) clearTimeout(hover.current);
+    hover.current = setTimeout(() => setShownRow(id), 120);
+  };
+
+  return (
+    <div className="grid items-start xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] xl:divide-x xl:divide-border-subtle/70">
+      <div className="min-w-0">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-border-subtle/80 bg-cream/60 text-xs font-medium uppercase tracking-[0.06em] text-wine/50">
+                <th className="px-4 py-3.5">Verstuurd</th>
+                <th className="px-4 py-3.5">Mail</th>
+                <th className="px-4 py-3.5 text-right">Aan</th>
+                <th className="px-4 py-3.5 text-right">Geopend</th>
+                <th className="px-4 py-3.5 text-right">Geklikt</th>
+                <th className="px-4 py-3.5 text-right">Probleem</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {sends.slice(0, limit).map((s) => {
+                const on = send?.id === s.id;
+                const planned = new Date(s.at).getTime() > loadedAt;
+                return (
+                  <tr
+                    key={s.id}
+                    tabIndex={0}
+                    aria-selected={on}
+                    onClick={() => setPicked(s.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") setPicked(s.id);
+                    }}
+                    className={`cursor-pointer border-b border-border-subtle/50 align-top outline-none transition focus-visible:ring-2 focus-visible:ring-burgundy/40 ${
+                      on ? "bg-burgundy/[0.07]" : "hover:bg-cream/70"
+                    }`}
+                  >
+                    <td className="whitespace-nowrap px-4 py-3 text-wine/70">
+                      {dateTime.format(new Date(s.at))}
+                      {planned ? <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Ingepland</span> : null}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-wine">{mailTitle(s.kind)}</p>
+                      <p className="text-xs text-wine/55">{s.subject}</p>
+                    </td>
+                    <td className="px-4 py-3 text-right text-wine">{s.rows.length}</td>
+                    <td className="px-4 py-3 text-right text-wine/75">{s.opened || "–"}</td>
+                    <td className="px-4 py-3 text-right text-wine/75">{s.clicked || "–"}</td>
+                    <td className={`px-4 py-3 text-right ${s.problems ? "font-medium text-red-700" : "text-wine/75"}`}>{s.problems || "–"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 text-sm text-wine/60">
+          <span>
+            {Math.min(limit, sends.length)} van {sends.length} verzendingen
+          </span>
+          {limit < sends.length ? (
+            <button
+              type="button"
+              onClick={() => setLimit(limit + PAGE_SIZE)}
+              className="rounded-full border border-border-subtle bg-cream px-4 py-1.5 text-sm font-medium text-wine transition hover:border-burgundy/40 hover:text-burgundy"
+            >
+              Toon meer
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {send && row ? (
+        <aside className="min-w-0 p-4 sm:p-5 xl:sticky xl:top-4">
+          <h2 className="font-serif text-xl text-burgundy">{mailTitle(send.kind)}</h2>
+          <p className="mt-1 text-sm text-wine/60">
+            {dateTime.format(new Date(send.at))} · {send.rows.length} {send.rows.length === 1 ? "ontvanger" : "ontvangers"}
+          </p>
+          <ul className="mt-3 max-h-56 divide-y divide-border-subtle/60 overflow-y-auto rounded-xl border border-border-subtle bg-cream/70">
+            {send.rows.map((r) => (
+              <li
+                key={r.id}
+                tabIndex={0}
+                onMouseEnter={() => point(r.id)}
+                onFocus={() => setShownRow(r.id)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm outline-none ${row.id === r.id ? "bg-burgundy/[0.07]" : ""}`}
+              >
+                <span className="min-w-0 flex-1 truncate">
+                  {r.customerId ? (
+                    <Link href={adminPath(`/customers/${r.customerId}`)} className="font-medium text-wine hover:text-burgundy hover:underline">
+                      {r.name}
+                    </Link>
+                  ) : (
+                    <span className="text-wine">{r.to}</span>
+                  )}
+                </span>
+                <EmailStatusPill state={r} />
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 truncate text-sm text-wine">
+            <span className="text-wine/50">Aan </span>
+            {row.name ? `${row.name} (${row.to})` : row.to}
+          </p>
+          <p className="text-sm text-wine">
+            <span className="text-wine/50">Onderwerp </span>
+            {row.subject}
+          </p>
+          {row.hasHtml ? (
+            <iframe key={row.id} title={row.subject} src={`/api/admin/email-log/${row.id}`} sandbox="" className="mt-3 h-[480px] w-full rounded-xl border border-border-subtle bg-white" />
+          ) : (
+            <p className="mt-3 text-sm text-wine/50">Van deze mail is de inhoud niet bewaard</p>
+          )}
+        </aside>
       ) : null}
     </div>
   );

@@ -11,7 +11,10 @@ import {
 } from "@/lib/admin-customer-profile-extras";
 import { TableHistoryPanel } from "@/components/admin/TableHistoryPanel";
 import { loadTableHistory } from "@/lib/admin/table-history";
+import { InviteDeclinesPanel } from "@/components/admin/InviteDeclinesPanel";
 import { InvitePausePanel } from "@/components/admin/InvitePausePanel";
+import { citiesForEmail } from "@/lib/invites/cities";
+import { upcomingDeclines } from "@/lib/invites/declines";
 import { getInvitePause } from "@/lib/invites/pause";
 import { MissedSundaysPanel } from "@/components/admin/MissedSundaysPanel";
 import { loadMissedSundays } from "@/lib/missed-sundays/server";
@@ -47,6 +50,8 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
     getInvitePause(profile.email),
     loadMissedSundays(profile.email),
   ]);
+  const followed = (await citiesForEmail(profile.email)).filter((c) => invitePause.cityPrefs[c] !== "none");
+  const declines = await upcomingDeclines(profile.email, followed);
 
   void captureServerEvent(id, PostHogEvents.customerProfileViewed, {
     paid_bookings_count: profile.paidBookingsCount,
@@ -67,6 +72,11 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
             email={profile.email}
             cityPrefs={invitePause.cityPrefs}
             pausedUntil={invitePause.pausedUntil}
+          />
+          <InviteDeclinesPanel
+            customerId={profile.id}
+            email={profile.email}
+            rows={declines.map((d) => ({ eventId: d.eventId, city: d.city, startsAt: d.startsAt.toISOString(), declined: d.declined ? { source: d.declined.source } : null }))}
           />
           <MissedSundaysPanel customerId={profile.id} rows={missed.rows} nextSeatCents={missed.nextSeatCents} />
           <TableHistoryPanel history={history} email={profile.email} />

@@ -469,6 +469,17 @@ export const inviteRuns = pgTable("invite_runs", {
   details: jsonb("details").$type<Array<{ email: string; status: string; reason?: string }>>().notNull().default([]),
 });
 
+/** "Kan niet" (drizzle/0072): this person can't come to this Sunday, so no
+ * invite, reminder or "bekende gezichten" mail mentions it again. */
+export const inviteDeclines = pgTable("invite_declines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  emailNormalized: text("email_normalized").notNull(),
+  eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  source: text("source").$type<"mail" | "admin">().notNull(),
+  sendId: uuid("send_id").references(() => inviteSends.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const inviteClicks = pgTable("invite_clicks", {
   id: uuid("id").primaryKey().defaultRandom(),
   sendId: uuid("send_id").notNull().references(() => inviteSends.id, { onDelete: "cascade" }),

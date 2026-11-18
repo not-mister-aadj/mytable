@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BOARD_PERIODS } from "@/lib/admin/board-data";
 import type { BoardData, Kpi, Share } from "@/lib/admin/board-data";
 import { SnapshotButton } from "./SnapshotButton";
 
@@ -135,10 +136,12 @@ export function BoardView({
   data,
   monthHref,
   eventHref,
+  periodHref,
 }: {
   data: BoardData;
   monthHref: (month: string) => string;
   eventHref: (id: string) => string;
+  periodHref: (days: number) => string;
 }) {
   const k = data.kpis;
   const maxRevenue = Math.max(1, ...data.months.map((m) => Math.max(m.revenueCents, m.targetCents ?? 0)));
@@ -146,10 +149,13 @@ export function BoardView({
   const funnelTop = data.funnel.posthog?.[0]?.count ?? 0;
   const contribution = data.unit.contributionCents;
   const maxWeekSeats = Math.max(1, ...data.weeks.map((w) => w.seats));
-  const maxDaySeats = Math.max(1, ...data.days.map((d) => d.seats));
-  const maxDaySpend = Math.max(1, ...data.days.map((d) => d.spendCents ?? 0));
-  const today = data.days[data.days.length - 1]?.day ?? "";
-  const spendStale = data.adSpendThrough !== null && data.days.some((d) => d.spendCents === null && d.day < today);
+  const points = data.series.points;
+  const maxDaySeats = Math.max(1, ...points.map((d) => d.seats));
+  const maxDaySpend = Math.max(1, ...points.map((d) => d.spendCents ?? 0));
+  const labelStep = Math.max(1, Math.ceil(points.length / 8));
+  const periodName = (days: number) => (days >= 365 ? "jaar" : `${days} dagen`);
+  const periodLabel = periodName(data.period.days);
+  const bucketName = (day: string) => (data.series.bucket === "week" ? `Week van ${dayShort(day)}` : dayShort(day));
   const r = data.retention;
   const comeBack = r.attended > 0 ? r.cameBack / r.attended : null;
   const newest = [...data.cohorts].reverse();
@@ -168,7 +174,18 @@ export function BoardView({
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-wine/45">Board</p>
           <h1 className="mt-1 font-serif text-4xl capitalize text-burgundy">{monthName(data.month)}</h1>
         </div>
-        <div className="no-print flex items-center gap-2">
+        <div className="no-print flex flex-wrap items-center gap-2">
+          <div className="flex overflow-hidden rounded-full border border-border-subtle bg-cream text-sm">
+            {BOARD_PERIODS.map((days) => (
+              <Link
+                key={days}
+                href={periodHref(days)}
+                className={`px-3 py-1.5 ${days === data.period.days ? "bg-burgundy text-cream" : "text-wine hover:bg-beige"}`}
+              >
+                {periodName(days)}
+              </Link>
+            ))}
+          </div>
           <Link href={monthHref(data.previousMonth)} className="rounded-full border border-border-subtle bg-cream px-3 py-1.5 text-sm text-wine hover:border-burgundy/30">
             ← {monthName(data.previousMonth, false)}
           </Link>
@@ -200,9 +217,9 @@ export function BoardView({
             ) : null}
             <Delta kpi={k.revenueCents} good="up" format="money" />
           </Stat>
-          <Stat label="Plekken geboekt, 7 dagen" value={String(data.last7.seats.value ?? 0)}>
-            <p className="text-xs text-wine/70">{euro(data.last7.revenueCents.value)}</p>
-            <Delta kpi={data.last7.seats} good="up" format="count" label="vs 7 dagen ervoor" />
+          <Stat label={`Plekken geboekt, ${periodLabel}`} value={String(data.period.seats.value ?? 0)}>
+            <p className="text-xs text-wine/70">{euro(data.period.revenueCents.value)}</p>
+            <Delta kpi={data.period.seats} good="up" format="count" label={`vs ${periodLabel} ervoor`} />
           </Stat>
           <Stat label={`Plekken ${monthName(data.month, false)}`} value={String(k.seats.value ?? 0)}>
             {k.projectedSeats !== null ? <p className="text-xs text-wine/70">Verwacht {k.projectedSeats}</p> : null}
@@ -291,11 +308,13 @@ export function BoardView({
       <Question n={2} title="Waar komen gasten vandaan, en wat kost dat?">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat
-            label="Advertentiekosten per plek, 7 dagen"
-            value={euro(data.last7.costPerSeatCents, 2)}
-            tone={data.last7.costPerSeatCents !== null && data.last7.costPerSeatCents > data.unit.avgPriceCents ? "bad" : undefined}
+            label={`Advertentiekosten per plek, ${periodLabel}`}
+            value={euro(data.period.costPerSeatCents, 2)}
+            tone={data.period.costPerSeatCents !== null && data.period.costPerSeatCents > data.unit.avgPriceCents ? "bad" : undefined}
           >
-            <p className="text-xs text-wine/70">Plek {euro(data.unit.avgPriceCents, 2)}</p>
+            <p className="text-xs text-wine/70">
+              Uitgegeven {euro(data.period.spendCents)} · plek {euro(data.unit.avgPriceCents, 2)}
+            </p>
           </Stat>
           <Stat
             label={`Per plek, ${monthName(data.month, false)}`}
@@ -316,28 +335,28 @@ export function BoardView({
         </div>
 
         <Panel
-          title="Per dag, 8 weken"
+          title={data.series.bucket === "week" ? "Per week, een jaar" : `Per dag, ${points.length} dagen`}
           aside={
-            spendStale && data.adSpendThrough ? (
+            data.adSpendStale && data.adSpendThrough ? (
               <span className="font-semibold text-red-700">Advertentiekosten t/m {dayShort(data.adSpendThrough)}</span>
             ) : null
           }
         >
           <p className="text-xs text-wine/55">Plekken geboekt</p>
           <div className="mt-1 flex h-24 items-end gap-px">
-            {data.days.map((d) => (
-              <div key={d.day} className="flex h-full flex-1 flex-col justify-end" title={`${dayShort(d.day)}: ${d.seats} plekken`}>
+            {points.map((d) => (
+              <div key={d.day} className="flex h-full flex-1 flex-col justify-end" title={`${bucketName(d.day)}: ${d.seats} plekken`}>
                 <div className="rounded-t-sm bg-burgundy" style={{ height: `${(d.seats / maxDaySeats) * 100}%`, minHeight: d.seats > 0 ? 2 : 0 }} />
               </div>
             ))}
           </div>
           <p className="mt-3 text-xs text-wine/55">Advertenties</p>
           <div className="mt-1 flex h-16 items-end gap-px">
-            {data.days.map((d) => (
+            {points.map((d) => (
               <div
                 key={d.day}
                 className={`flex h-full flex-1 flex-col justify-end ${d.spendCents === null ? "bg-wine/5" : ""}`}
-                title={`${dayShort(d.day)}: ${d.spendCents === null ? "niet ingelezen" : euro(d.spendCents, 2)}`}
+                title={`${bucketName(d.day)}: ${d.spendCents === null ? "niet ingelezen" : euro(d.spendCents, 2)}`}
               >
                 <div
                   className="rounded-t-sm bg-amber-500"
@@ -347,10 +366,9 @@ export function BoardView({
             ))}
           </div>
           <div className="mt-2 flex justify-between text-[11px] text-wine/50">
-            {data.days.filter((_, i) => i % 7 === 0).map((d) => (
+            {points.filter((_, i) => i % labelStep === 0).map((d) => (
               <span key={d.day}>{dayShort(d.day)}</span>
             ))}
-            <span>{dayShort(today)}</span>
           </div>
         </Panel>
 
@@ -359,7 +377,7 @@ export function BoardView({
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead>
                 <tr className={headRow}>
-                  <th className={th}>Kanaal, {monthName(data.month, false)}</th>
+                  <th className={th}>Kanaal, {periodLabel}</th>
                   <th className={`${th} text-right`}>Plekken</th>
                   <th className={`${th} text-right`}>Omzet</th>
                   <th className={`${th} text-right`}>Uitgegeven</th>
@@ -477,7 +495,7 @@ export function BoardView({
 
         {r.winBack.length > 0 ? (
           <details className={`${card} no-print`}>
-            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-wine">Terug te halen · {r.winBackTotal}</summary>
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-wine">Nog niet terug · {r.winBackTotal}</summary>
             <div className="overflow-x-auto border-t border-border-subtle">
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead>

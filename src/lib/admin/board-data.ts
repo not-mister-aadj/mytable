@@ -53,7 +53,13 @@ export type CityRow = {
   waitlist: number;
   next: { date: string; sold: number; capacity: number } | null;
 };
-export type CohortRow = { month: string; guests: number; back30: number; back60: number; back90: number; matured: number };
+/** Guests by the month of their first Sunday at the table, and how many booked another Sunday. */
+export type CohortRow = { month: string; guests: number; back30: number; back60: number; back90: number; backEver: number; matured: number };
+export type WeekPoint = { week: string; seats: number; revenueCents: number };
+/** spendCents is null for days the ad costs were not read in yet. */
+export type DayPoint = { day: string; seats: number; spendCents: number | null };
+export type UpcomingRow = { id: string; city: string; date: string; sold: number; capacity: number; daysLeft: number };
+export type WinBackRow = { name: string; email: string; city: string; lastAt: string; nextAt: string };
 export type Share = { label: string; count: number };
 
 export type BoardData = {
@@ -83,7 +89,23 @@ export type BoardData = {
     answeredRate: Kpi;
   };
   hasAdSpend: boolean;
+  /** Last day with ad costs in the database. */
+  adSpendThrough: string | null;
   months: MonthPoint[];
+  /** Paid bookings by the week they were made, last 12 weeks. */
+  weeks: WeekPoint[];
+  /** Paid bookings and ad costs per day, last 8 weeks. */
+  days: DayPoint[];
+  last7: { seats: Kpi; revenueCents: Kpi; costPerSeatCents: number | null };
+  members: { paying: number; complimentary: number };
+  retention: {
+    attended: number;
+    cameBack: number;
+    cities: { city: string; guests: number; back: number }[];
+    winBack: WinBackRow[];
+    winBackTotal: number;
+  };
+  upcoming: UpcomingRow[];
   unit: {
     avgPriceCents: number;
     costPerTicketCents: number | null;
@@ -380,24 +402,87 @@ export async function getBoardData(month: string): Promise<BoardData> {
     next: r.next_at ? { date: new Date(r.next_at).toISOString(), sold: r.next_sold ?? 0, capacity: r.next_capacity ?? 0 } : null,
   }));
 
-  // ---- cohorts: first paid booking month, back within 30/60/90 days
-  const cohorts = (
-    await q<{ month: string; guests: number; back30: number; back60: number; back90: number; matured: number }>(sql`
-      with firsts as (
-        select lower(email) as email, min(created_at) as first_at from bookings
-        where payment_status = 'paid' and amount_cents > 0 and created_at >= ${SINCE}::date group by 1
-      ), nexts as (
-        select f.email, f.first_at,
-          (select min(b.created_at) from bookings b where lower(b.email) = f.email and b.payment_status = 'paid' and b.created_at > f.first_at + interval '1 hour') as again_at
-        from firsts f
-      )
-      select to_char(first_at at time zone ${tz}, 'YYYY-MM') as month, count(*)::int as guests,
-        count(*) filter (where again_at <= first_at + interval '30 days')::int as back30,
-        count(*) filter (where again_at <= first_at + interval '60 days')::int as back60,
-        count(*) filter (where again_at <= first_at + interval '90 days')::int as back90,
-        max(extract(day from now() - first_at))::int as matured
-      from nexts group by 1 order by 1 desc limit 6`)
-  ).reverse();
+  // ---- do they come back: guests who sat at a table, and whether they
+  // booked another (later) Sunday. Cohorts by the month of the first Sunday.
+  const SAT = `with sat as (
+      select lower(b.email) as email, min(e.starts_at) as first_at, max(e.starts_at) as last_at
+      from bookings b join events e on e.id = b.event_id
+      where ${PAID} and e.experience_type in ${SUNDAYS} and e.starts_at < now() and e.starts_at >= '${SINCE}'
+      group by 1
+    ), again as (
+      select s.*, (select min(b.created_at) from bookings b join events e on e.id = b.event_id
+        where lower(b.email) = s.email and ${PAID} and e.starts_at > s.first_at) as again_at,
+        (select e.city from bookings b join events e on e.id = b.event_id
+          where lower(b.email) = s.email and ${PAID} and e.starts_at = s.last_at limit 1) as city,
+        exists (select 1 from bookings b join events e on e.id = b.event_id
+          where lower(b.email) = s.email and ${PAID} and e.starts_at > now()) as has_next
+      from sat s
+    )`;
+  const cohorts = await q<CohortRow>(sql`
+    ${sql.raw(SAT)}
+    select to_char(first_at at time zone ${tz}, 'YYYY-MM') as month, count(*)::int as guests,
+      count(*) filter (where again_at <= first_at + interval '30 days')::int as "back30",
+      count(*) filter (where again_at <= first_at + interval '60 days')::int as "back60",
+      count(*) filter (where again_at <= first_at + interval '90 days')::int as "back90",
+      count(*) filter (where again_at is not null)::int as "backEver",
+      max(extract(day from now() - first_at))::int as matured
+    from again group by 1 order by 1`);
+  const retentionCities = await q<{ city: string; guests: number; back: number }>(sql`
+    ${sql.raw(SAT)}
+    select city, count(*)::int as guests, count(*) filter (where again_at is not null)::int as back
+    from again where city is not null group by 1 order by 2 desc`);
+  const winBackAll = await q<WinBackRow>(sql`
+    ${sql.raw(SAT)}
+    select coalesce((select b.customer_name from bookings b where lower(b.email) = a.email and b.customer_name is not null order by b.created_at desc limit 1), '') as name,
+      a.email, a.city, a.last_at::text as "lastAt", n.starts_at::text as "nextAt"
+    from again a
+    join lateral (select starts_at from events e where e.city = a.city and e.workflow_status = 'published'
+      and e.experience_type in ${sql.raw(SUNDAYS)} and e.starts_at > now() and e.spots_sold < e.capacity order by e.starts_at limit 1) n on true
+    where not a.has_next and a.email !~ '@example\.(com|org|net)$'
+    order by a.last_at desc, a.email`);
+
+  // ---- bookings per week (12) and per day (8 weeks), by the day they were made
+  const weeks = (
+    await q<{ week: string; seats: number; revenue: number }>(sql`
+      select to_char(w, 'YYYY-MM-DD') as week, coalesce(sum(b.seats), 0)::int as seats, coalesce(sum(b.amount_cents), 0)::int as revenue
+      from generate_series(date_trunc('week', now() at time zone ${tz}) - interval '11 weeks', date_trunc('week', now() at time zone ${tz}), interval '1 week') w
+      left join bookings b on b.payment_status = 'paid' and b.amount_cents > 0 and date_trunc('week', b.created_at at time zone ${tz}) = w
+      group by 1 order by 1`)
+  ).map((r) => ({ week: r.week, seats: r.seats, revenueCents: r.revenue }));
+  const dayRows = await q<{ day: string; seats: number }>(sql`
+    select to_char(d, 'YYYY-MM-DD') as day, coalesce(sum(b.seats), 0)::int as seats
+    from generate_series((now() at time zone ${tz})::date - 55, (now() at time zone ${tz})::date, interval '1 day') d
+    left join bookings b on b.payment_status = 'paid' and b.amount_cents > 0 and (b.created_at at time zone ${tz})::date = d::date
+    group by 1 order by 1`);
+  const daySpend = await q<{ day: string; spend: number }>(sql`
+    select day::text as day, sum(spend_cents)::int as spend from ad_spend_daily where day >= current_date - 60 group by 1`).catch(() => []);
+  const [through] = await q<{ day: string | null }>(sql`select max(day)::text as day from ad_spend_daily`).catch(() => [{ day: null }]);
+  const adSpendThrough = through?.day ?? null;
+  const spendByDay = new Map(daySpend.map((r) => [r.day, r.spend]));
+  const days: DayPoint[] = dayRows.map((r) => ({
+    day: r.day,
+    seats: r.seats,
+    spendCents: adSpendThrough && r.day <= adSpendThrough ? (spendByDay.get(r.day) ?? 0) : null,
+  }));
+  const [l7] = await q<{ seats: number; revenue: number; seats_prev: number; revenue_prev: number }>(sql`
+    select coalesce(sum(seats) filter (where created_at > now() - interval '7 days'), 0)::int as seats,
+           coalesce(sum(amount_cents) filter (where created_at > now() - interval '7 days'), 0)::int as revenue,
+           coalesce(sum(seats) filter (where created_at <= now() - interval '7 days'), 0)::int as seats_prev,
+           coalesce(sum(amount_cents) filter (where created_at <= now() - interval '7 days'), 0)::int as revenue_prev
+    from bookings where payment_status = 'paid' and amount_cents > 0 and created_at > now() - interval '14 days'`);
+  const last7Days = days.slice(-8, -1);
+  const last7Spend = last7Days.every((d) => d.spendCents !== null) ? last7Days.reduce((sum, d) => sum + (d.spendCents ?? 0), 0) : null;
+  const last7Seats = last7Days.reduce((sum, d) => sum + d.seats, 0);
+
+  // ---- the Sundays still to come
+  const upcoming = await q<UpcomingRow>(sql`
+    select id::text as id, city, starts_at::text as date, spots_sold::int as sold, capacity::int as capacity,
+      greatest(0, ceil(extract(epoch from starts_at - now()) / 86400))::int as "daysLeft"
+    from events where workflow_status = 'published' and experience_type in ${sql.raw(SUNDAYS)} and starts_at > now()
+    order by starts_at limit 12`);
+  const [memberKinds] = await q<{ paying: number; complimentary: number }>(sql`
+    select count(*) filter (where not complimentary)::int as paying, count(*) filter (where complimentary)::int as complimentary
+    from memberships where status <> 'canceled'`).catch(() => [{ paying: 0, complimentary: 0 }]);
 
   // ---- who our guest is (last 90 days)
   const [g] = await q<{
@@ -480,7 +565,24 @@ export async function getBoardData(month: string): Promise<BoardData> {
       answeredRate: { value: ratio(f.answered, f.bookings), previous: ratio(fp.answered, fp.bookings) },
     },
     hasAdSpend,
+    adSpendThrough,
     months,
+    weeks,
+    days,
+    last7: {
+      seats: { value: l7?.seats ?? 0, previous: l7?.seats_prev ?? 0 },
+      revenueCents: { value: l7?.revenue ?? 0, previous: l7?.revenue_prev ?? 0 },
+      costPerSeatCents: last7Spend !== null && last7Spend > 0 && last7Seats > 0 ? Math.round(last7Spend / last7Seats) : null,
+    },
+    members: { paying: memberKinds?.paying ?? 0, complimentary: memberKinds?.complimentary ?? 0 },
+    retention: {
+      attended: cohorts.reduce((sum, c) => sum + c.guests, 0),
+      cameBack: cohorts.reduce((sum, c) => sum + c.backEver, 0),
+      cities: retentionCities,
+      winBack: winBackAll.slice(0, 40),
+      winBackTotal: winBackAll.length,
+    },
+    upcoming,
     unit: {
       avgPriceCents: Math.round(avgPrice),
       costPerTicketCents: curCpt,

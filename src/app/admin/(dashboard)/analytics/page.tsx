@@ -9,7 +9,7 @@ import { getPostHogGrowthDashboardUrl, isPostHogAdminConfigured } from "@/lib/po
 
 type Props = { searchParams: Promise<{ maand?: string }> };
 
-/** Board: one month of MyTable for the founders and the board. */
+/** Board: five questions about growth, each with its own numbers. */
 export default async function AdminBoardPage({ searchParams }: Props) {
   await requireAdmin();
   if (!isDbConfigured()) return <p>Database niet geconfigureerd.</p>;
@@ -22,13 +22,14 @@ export default async function AdminBoardPage({ searchParams }: Props) {
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3001";
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
   const monthHref = (m: string) => adminPath(`/analytics${m && m !== now ? `?maand=${m}` : ""}`, hostname);
+  const eventHref = (id: string) => adminPath(`/events/${id}`, hostname);
 
   const data = await getBoardData(month);
   const posthogUrl = isPostHogAdminConfigured() ? getPostHogGrowthDashboardUrl() : null;
 
   return (
     <div className="space-y-8">
-      <BoardView data={data} monthHref={monthHref} />
+      <BoardView data={data} monthHref={monthHref} eventHref={eventHref} />
       {posthogUrl ? (
         <p className="no-print text-sm text-wine/60">
           Meer detail over bezoek en klikken:{" "}

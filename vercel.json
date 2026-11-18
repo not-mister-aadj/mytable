@@ -34,6 +34,10 @@
       "schedule": "*/15 * * * *"
     },
     {
+      "path": "/api/cron/ad-spend",
+      "schedule": "30 4 * * *"
+    },
+    {
       "path": "/api/cron/memberships",
       "schedule": "15 * * * *"
     },

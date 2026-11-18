@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { oneQueryPerConnection } from "./one-at-a-time";
 import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL;
@@ -31,9 +32,12 @@ const REGION = process.env.VERCEL_REGION ?? "local";
 let lastQueryAt = 0;
 let closedSinceReset = 0;
 
+/** Connections per instance; also how many queries run at once (see one-at-a-time.ts). */
+const MAX_CONNECTIONS = 3;
+
 const postgresOptions = {
   prepare: false as const,
-  max: 3,
+  max: MAX_CONNECTIONS,
   idle_timeout: 20,
   connect_timeout: 5,
   connection: { application_name: `mytable-${REGION}` },
@@ -72,7 +76,7 @@ export function getPostgresClient(): PostgresClient {
     lastQueryAt = Date.now();
     closedSinceReset = 0;
     globalForDb.__mytablePostgres = postgres(connectionString, postgresOptions);
-    globalForDb.__mytableDrizzle = drizzle(globalForDb.__mytablePostgres, {
+    globalForDb.__mytableDrizzle = drizzle(oneQueryPerConnection(globalForDb.__mytablePostgres, MAX_CONNECTIONS), {
       schema,
     });
   }

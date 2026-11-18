@@ -32,6 +32,7 @@ import {
   type InviteLocale,
   type MailEvent,
 } from "@/lib/invites/logic";
+import { declinedAfter, loadDeclines, nextAfterDecline, type Decline } from "@/lib/invites/declines";
 import { getInviteSettings, needsApproval, saveInviteSettings, type InviteSettings } from "@/lib/invites/settings";
 import {
   JOUW_TAFEL_SEAT_PRICE_CENTS,
@@ -169,6 +170,8 @@ export async function planMatchInvites(now: Date = new Date()): Promise<{ planne
     .from(inviteSends)
     .where(eq(inviteSends.kind, "match"));
   const already = new Set(matchRows.flatMap((r) => r.eventIds.map((id) => `${r.email}|${id}`)));
+  // "Kan niet" for that Sunday: no "bekende gezichten" about it either.
+  for (const [email, list] of await loadDeclines()) for (const d of list) already.add(`${email}|${d.eventId}`);
 
   let planned = 0;
   const details: Array<{ email: string; status: string }> = [];
@@ -238,6 +241,11 @@ export function manageUrl(person: Pick<InvitePerson, "token" | "locale">): strin
 
 function linkUrl(send: Pick<SendRow, "code">, index: number): string {
   return `${getSiteUrl().replace(/\/$/, "")}/r/${send.code}${index}`;
+}
+
+/** "Deze zondag kan ik niet" for the Sunday at `index` in the mail. */
+function declineUrl(send: Pick<SendRow, "code" | "locale">, index: number): string {
+  return `${getSiteUrl().replace(/\/$/, "")}${send.locale === "en" ? "/en" : ""}/niet/${send.code}${index}`;
 }
 
 /**
@@ -476,6 +484,8 @@ type History = {
   sends: SendRow[];
   clicksBySend: Map<string, Array<{ eventId: string | null; at: Date }>>;
   bookings: Map<string, BookingRef[]>;
+  /** "Kan niet" per address: those Sundays are never mentioned to them again. */
+  declines: Map<string, Decline[]>;
 };
 
 /** `at` is when they booked; `attends`: still coming (not cancelled on the
@@ -502,6 +512,7 @@ async function loadHistory(): Promise<History> {
   const db = getDb();
   const sends = await db.select().from(inviteSends).catch(() => [] as SendRow[]);
   const clicks = await db.select().from(inviteClicks).catch(() => [] as Array<typeof inviteClicks.$inferSelect>);
+  const declines = await loadDeclines();
   const bookingRows = (await db.execute(sql`
     select lower(b.email) as email, b.event_id, b.created_at, e.starts_at,
            (b.lifecycle_status = 'active' and b.cancelled_late_at is null and b.no_show_at is null) as attends
@@ -520,15 +531,19 @@ async function loadHistory(): Promise<History> {
     list.push({ eventId: b.event_id, at: new Date(b.created_at), startsAt: new Date(b.starts_at), attends: Boolean(b.attends) });
     bookings.set(b.email, list);
   }
-  return { sends, clicksBySend, bookings };
+  return { sends, clicksBySend, bookings, declines };
 }
 
 /** Interest of one person from their sent invites, clicks and bookings. */
 export function personEngagement(
   email: string,
-  history: Pick<History, "sends" | "clicksBySend"> & { bookings: Map<string, Array<{ eventId: string; at: Date }>> },
+  history: Pick<History, "sends" | "clicksBySend"> & {
+    bookings: Map<string, Array<{ eventId: string; at: Date }>>;
+    declines?: Map<string, Decline[]>;
+  },
   now: Date,
 ): Engagement {
+  const declines = history.declines?.get(email) ?? [];
   const sent = history.sends
     .filter((s) => s.emailNormalized === email && s.status === "sent" && s.sentAt)
     .map((s) => {
@@ -536,13 +551,21 @@ export function personEngagement(
       const until = at.getTime() + ENGAGE_DAYS * DAY;
       const clicked = (history.clicksBySend.get(s.id) ?? []).length > 0;
       const booked = (history.bookings.get(email) ?? []).some((b) => b.at.getTime() > at.getTime() && b.at.getTime() <= until);
-      return { sentAt: at, kind: s.kind, engaged: clicked || booked };
+      // "Kan niet" is an answer too (user's choice, 18 Nov 2026).
+      const declined = declinedAfter(declines, { id: s.id, sentAt: at }, ENGAGE_DAYS * DAY);
+      return { sentAt: at, kind: s.kind, engaged: clicked || booked || declined };
     });
   return engagement(sent, now);
 }
 
-function mailEvent(e: InviteEvent, send: Pick<SendRow, "code">, index: number, locale: InviteLocale): MailEvent {
+function mailEvent(
+  e: InviteEvent,
+  send: Pick<SendRow, "code" | "kind" | "locale">,
+  index: number,
+  locale: InviteLocale,
+): MailEvent {
   return {
+    ...(send.kind === "invite" || send.kind === "nudge" ? { declineUrl: declineUrl(send, index) } : {}),
     city: e.city,
     startsAt: e.startsAt,
     priceCents: e.priceCents,
@@ -663,6 +686,8 @@ export async function planInvites(
     if (!person.member && upcomingSunday(myBookings, now)) continue;
 
     const booked = new Set(myBookings.map((b) => b.eventId));
+    const myDeclines = history.declines.get(person.email) ?? [];
+    const declined = new Set(myDeclines.map((d) => d.eventId));
     const invitedBefore = new Set(mine.filter((s) => s.status === "sent" && s.kind === "invite").flatMap((s) => s.eventIds));
     const base = {
       emailNormalized: person.email,
@@ -679,7 +704,7 @@ export async function planInvites(
     const click = mine
       .filter((s) => s.status === "sent" && s.kind === "invite")
       .flatMap((s) => history.clicksBySend.get(s.id) ?? [])
-      .filter((c) => c.eventId && !booked.has(c.eventId) && !reminded.has(c.eventId))
+      .filter((c) => c.eventId && !booked.has(c.eventId) && !declined.has(c.eventId) && !reminded.has(c.eventId))
       .filter((c) => now.getTime() - c.at.getTime() < NUDGE_UNTIL_DAYS * DAY)
       .sort((a, b) => b.at.getTime() - a.at.getTime())[0];
     const clickedEvent = click?.eventId ? events.find((e) => e.id === click.eventId) : undefined;
@@ -717,12 +742,17 @@ export async function planInvites(
       lastSunday && now.getTime() - lastSunday.getTime() < 2 * AFTER_SUNDAY_DAYS * DAY && sentDates.every((d) => d.getTime() < lastSunday.getTime())
         ? lastSunday
         : null;
-    const allowed = afterSunday ? new Date(afterSunday.getTime() + DAY) : nextAllowedAt(sentDates, cities.length, slowed);
+    const rhythm = afterSunday ? new Date(afterSunday.getTime() + DAY) : nextAllowedAt(sentDates, cities.length, slowed);
+    // A "kan niet" since their last mail: the next Sunday may come after two weeks.
+    const lastSent = Math.max(0, ...sentDates.map((d) => d.getTime()));
+    const afterDecline = nextAfterDecline(myDeclines.filter((d) => d.at.getTime() > lastSent));
+    const allowed = rhythm && afterDecline && afterDecline.getTime() < rhythm.getTime() ? afterDecline : rhythm;
     const candidates = events.filter(
       (e) =>
         e.open &&
         cities.includes(e.city) &&
         !booked.has(e.id) &&
+        !declined.has(e.id) &&
         !pausedFor(person.pausedUntil, e.startsAt) &&
         // A venue in a part of Amsterdam they left out: they see it on the site.
         !outsideDistricts(e, person.districts) &&
@@ -988,7 +1018,11 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
     }
     const person = byEmail.get(send.emailNormalized);
     const sendBookings = history.bookings.get(send.emailNormalized) ?? [];
-    const booked = new Set(sendBookings.map((b) => b.eventId));
+    // Booked or "kan niet": that Sunday is left out of the mail.
+    const booked = new Set([
+      ...sendBookings.map((b) => b.eventId),
+      ...(history.declines.get(send.emailNormalized) ?? []).map((d) => d.eventId),
+    ]);
     const stillFollowed = person ? followedCities(person) : [];
     const skip = async (reason: string) => {
       if (!options.dryRun) {
@@ -1034,7 +1068,7 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
         events.some((e) => e.id === id && e.open && stillFollowed.includes(e.city) && !pausedFor(person.pausedUntil, e.startsAt)),
     );
     if ((send.kind === "invite" || send.kind === "match") && valid.length === 0) {
-      await skip("geboekt, vol of te dichtbij");
+      await skip("geboekt, kan niet, vol of te dichtbij");
       continue;
     }
     const matchCount = send.kind === "match" ? await bookedMatches(send.emailNormalized, send.eventIds[0]!, mutual) : 0;

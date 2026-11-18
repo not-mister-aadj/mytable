@@ -244,7 +244,15 @@ export type MailEvent = {
   priceCents: number;
   scarcity: string | null;
   url: string;
+  /** "Deze zondag kan ik niet": in invites and reminders. */
+  declineUrl?: string;
 };
+
+/** The "kan niet" line under a Sunday, or nothing. */
+function declineLine(e: MailEvent, locale: InviteLocale): string[] {
+  if (!e.declineUrl) return [];
+  return [`${locale === "en" ? "I can't make this Sunday" : "Deze zondag kan ik niet"}: ${e.declineUrl}`];
+}
 
 function joinList(items: string[], locale: InviteLocale): string {
   if (items.length <= 1) return items[0] ?? "";
@@ -385,6 +393,7 @@ export function inviteMail(input: {
       ...(e.scarcity ? [e.scarcity] : []),
       ...(!samePrice ? [en ? `A seat is ${euro(e.priceCents)}` : `Een plek kost ${euro(e.priceCents)}`] : []),
       e.url,
+      ...declineLine(e, locale),
     ].join("\n"),
   );
   const solo = input.solo ? (en ? " Many people come on their own, just like you." : " Veel mensen schuiven alleen aan, net als jij.") : "";
@@ -432,7 +441,7 @@ export function nextSundayAt(after: Date, minutes: number = NUDGE_SEND_MINUTES):
 }
 
 /** "zondag 15 november" / "Sunday 15 November" */
-function sundayDate(startsAt: string, locale: InviteLocale): string {
+export function sundayDate(startsAt: string, locale: InviteLocale): string {
   const d = new Date(startsAt);
   return locale === "en"
     ? new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(d)
@@ -494,6 +503,7 @@ export function nudgeMail(input: {
     ...opening,
     "",
     `${en ? "Reserve your seat" : "Reserveer je plek"}: ${event.url}`,
+    ...declineLine(event, locale),
     "",
     SIGN_OFF[locale],
     "",

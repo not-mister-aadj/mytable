@@ -56,8 +56,10 @@ export type CityRow = {
 /** Guests by the month of their first Sunday at the table, and how many booked another Sunday. */
 export type CohortRow = { month: string; guests: number; back30: number; back60: number; back90: number; backEver: number; matured: number };
 export type WeekPoint = { week: string; seats: number; revenueCents: number };
-/** spendCents is null for days the ad costs were not read in yet. */
+/** One day or one week (day is its first day). spendCents is null where the ad costs were not read in yet. */
 export type DayPoint = { day: string; seats: number; spendCents: number | null };
+export const BOARD_PERIODS = [7, 30, 365] as const;
+export type BoardPeriod = (typeof BOARD_PERIODS)[number];
 export type UpcomingRow = { id: string; city: string; date: string; sold: number; capacity: number; daysLeft: number };
 export type WinBackRow = { name: string; email: string; city: string; lastAt: string; nextAt: string };
 export type Share = { label: string; count: number };
@@ -89,14 +91,16 @@ export type BoardData = {
     answeredRate: Kpi;
   };
   hasAdSpend: boolean;
-  /** Last day with ad costs in the database. */
+  /** Last day the ad costs are known for, and whether that is behind. */
   adSpendThrough: string | null;
+  adSpendStale: boolean;
   months: MonthPoint[];
   /** Paid bookings by the week they were made, last 12 weeks. */
   weeks: WeekPoint[];
-  /** Paid bookings and ad costs per day, last 8 weeks. */
-  days: DayPoint[];
-  last7: { seats: Kpi; revenueCents: Kpi; costPerSeatCents: number | null };
+  /** Paid bookings and ad costs over twice the chosen period, per day (per week for a year). */
+  series: { bucket: "day" | "week"; points: DayPoint[] };
+  /** The chosen period (7, 30 or 365 days back from now) against the same number of days before it. */
+  period: { days: BoardPeriod; seats: Kpi; revenueCents: Kpi; spendCents: number | null; costPerSeatCents: number | null };
   members: { paying: number; complimentary: number };
   retention: {
     attended: number;
@@ -133,7 +137,7 @@ export function currentMonth(): string {
 
 const ratio = (a: number, b: number) => (b > 0 ? a / b : null);
 
-export async function getBoardData(month: string): Promise<BoardData> {
+export async function getBoardData(month: string, periodDays: BoardPeriod = 30): Promise<BoardData> {
   const db = getDb();
   const prev = shiftMonth(month, -1);
   const isCurrentMonth = month === currentMonth();
@@ -322,7 +326,7 @@ export async function getBoardData(month: string): Promise<BoardData> {
       left join customers c on lower(c.email) = lower(b.email)
       left join lateral (select payload from booking_events be where be.booking_id = b.id and be.type = 'checkout_utm' limit 1) u on true
       where b.payment_status = 'paid' and b.amount_cents > 0
-        and b.created_at >= ${monthStart}::date and b.created_at < ${nextStart}::date
+        and b.created_at > now() - make_interval(days => ${periodDays}::int)
     )
     select
       case
@@ -337,7 +341,7 @@ export async function getBoardData(month: string): Promise<BoardData> {
     from t group by 1, 2`);
   const campaignSpend = await q<{ campaign_id: string; campaign_name: string; spend: number }>(sql`
     select campaign_id, campaign_name, sum(spend_cents)::int as spend from ad_spend_daily
-    where day >= ${monthStart}::date and day < ${nextStart}::date group by 1, 2`).catch(() => []);
+    where day > current_date - ${periodDays}::int group by 1, 2`).catch(() => []);
   const spendFor = (campaign: string | null) => {
     if (!campaign) return undefined;
     const hit = campaignSpend.find((c) => c.campaign_id === campaign || c.campaign_name === campaign);
@@ -449,30 +453,47 @@ export async function getBoardData(month: string): Promise<BoardData> {
       left join bookings b on b.payment_status = 'paid' and b.amount_cents > 0 and date_trunc('week', b.created_at at time zone ${tz}) = w
       group by 1 order by 1`)
   ).map((r) => ({ week: r.week, seats: r.seats, revenueCents: r.revenue }));
-  const dayRows = await q<{ day: string; seats: number }>(sql`
+  // The chart shows twice the chosen period: per day, or per week for a year.
+  const byWeek = periodDays > 60;
+  const span = Math.max(14, periodDays * 2);
+  const seriesRows = await q<{ day: string; seats: number }>(
+    byWeek
+      ? sql`
+    select to_char(w, 'YYYY-MM-DD') as day, coalesce(sum(b.seats), 0)::int as seats
+    from generate_series(date_trunc('week', now() at time zone ${tz}) - interval '51 weeks', date_trunc('week', now() at time zone ${tz}), interval '1 week') w
+    left join bookings b on b.payment_status = 'paid' and b.amount_cents > 0 and date_trunc('week', b.created_at at time zone ${tz}) = w
+    group by 1 order by 1`
+      : sql`
     select to_char(d, 'YYYY-MM-DD') as day, coalesce(sum(b.seats), 0)::int as seats
-    from generate_series((now() at time zone ${tz})::date - 55, (now() at time zone ${tz})::date, interval '1 day') d
+    from generate_series((now() at time zone ${tz})::date - (${span}::int - 1), (now() at time zone ${tz})::date, interval '1 day') d
     left join bookings b on b.payment_status = 'paid' and b.amount_cents > 0 and (b.created_at at time zone ${tz})::date = d::date
-    group by 1 order by 1`);
+    group by 1 order by 1`,
+  );
   const daySpend = await q<{ day: string; spend: number }>(sql`
-    select day::text as day, sum(spend_cents)::int as spend from ad_spend_daily where day >= current_date - 60 group by 1`).catch(() => []);
-  const [through] = await q<{ day: string | null }>(sql`select max(day)::text as day from ad_spend_daily`).catch(() => [{ day: null }]);
+    select day::text as day, sum(spend_cents)::int as spend from ad_spend_daily where day >= current_date - 400 group by 1`).catch(() => []);
+  // A day without ads has no row, so "known through" is the day before the last import, or the last day with spend.
+  const [through] = await q<{ day: string | null; stale: boolean | null }>(sql`
+    with t as (select greatest(max(day), (max(updated_at) at time zone ${tz})::date - 1) as day from ad_spend_daily)
+    select day::text as day, day < (now() at time zone ${tz})::date - 2 as stale from t`).catch(() => [{ day: null, stale: null }]);
   const adSpendThrough = through?.day ?? null;
+  const adSpendStale = through?.stale ?? false;
   const spendByDay = new Map(daySpend.map((r) => [r.day, r.spend]));
-  const days: DayPoint[] = dayRows.map((r) => ({
-    day: r.day,
-    seats: r.seats,
-    spendCents: adSpendThrough && r.day <= adSpendThrough ? (spendByDay.get(r.day) ?? 0) : null,
-  }));
-  const [l7] = await q<{ seats: number; revenue: number; seats_prev: number; revenue_prev: number }>(sql`
-    select coalesce(sum(seats) filter (where created_at > now() - interval '7 days'), 0)::int as seats,
-           coalesce(sum(amount_cents) filter (where created_at > now() - interval '7 days'), 0)::int as revenue,
-           coalesce(sum(seats) filter (where created_at <= now() - interval '7 days'), 0)::int as seats_prev,
-           coalesce(sum(amount_cents) filter (where created_at <= now() - interval '7 days'), 0)::int as revenue_prev
-    from bookings where payment_status = 'paid' and amount_cents > 0 and created_at > now() - interval '14 days'`);
-  const last7Days = days.slice(-8, -1);
-  const last7Spend = last7Days.every((d) => d.spendCents !== null) ? last7Days.reduce((sum, d) => sum + (d.spendCents ?? 0), 0) : null;
-  const last7Seats = last7Days.reduce((sum, d) => sum + d.seats, 0);
+  const addDays = (iso: string, n: number) => new Date(new Date(`${iso}T12:00:00Z`).getTime() + n * 86_400_000).toISOString().slice(0, 10);
+  const points: DayPoint[] = seriesRows.map((r) => {
+    if (!adSpendThrough || r.day > adSpendThrough) return { day: r.day, seats: r.seats, spendCents: null };
+    let spend = 0;
+    for (let i = 0; i < (byWeek ? 7 : 1); i++) spend += spendByDay.get(addDays(r.day, i)) ?? 0;
+    return { day: r.day, seats: r.seats, spendCents: spend };
+  });
+  const [pr] = await q<{ seats: number; revenue: number; seats_prev: number; revenue_prev: number }>(sql`
+    select coalesce(sum(seats) filter (where created_at > now() - make_interval(days => ${periodDays}::int)), 0)::int as seats,
+           coalesce(sum(amount_cents) filter (where created_at > now() - make_interval(days => ${periodDays}::int)), 0)::int as revenue,
+           coalesce(sum(seats) filter (where created_at <= now() - make_interval(days => ${periodDays}::int)), 0)::int as seats_prev,
+           coalesce(sum(amount_cents) filter (where created_at <= now() - make_interval(days => ${periodDays}::int)), 0)::int as revenue_prev
+    from bookings where payment_status = 'paid' and amount_cents > 0 and created_at > now() - make_interval(days => ${periodDays * 2}::int)`);
+  const [ps] = await q<{ spend: number | null }>(sql`
+    select sum(spend_cents)::int as spend from ad_spend_daily where day > current_date - ${periodDays}::int`).catch(() => [{ spend: null }]);
+  const periodSpend = adSpendThrough && !adSpendStale ? (ps?.spend ?? 0) : null;
 
   // ---- the Sundays still to come
   const upcoming = await q<UpcomingRow>(sql`
@@ -566,13 +587,16 @@ export async function getBoardData(month: string): Promise<BoardData> {
     },
     hasAdSpend,
     adSpendThrough,
+    adSpendStale,
     months,
     weeks,
-    days,
-    last7: {
-      seats: { value: l7?.seats ?? 0, previous: l7?.seats_prev ?? 0 },
-      revenueCents: { value: l7?.revenue ?? 0, previous: l7?.revenue_prev ?? 0 },
-      costPerSeatCents: last7Spend !== null && last7Spend > 0 && last7Seats > 0 ? Math.round(last7Spend / last7Seats) : null,
+    series: { bucket: byWeek ? "week" : "day", points },
+    period: {
+      days: periodDays,
+      seats: { value: pr?.seats ?? 0, previous: pr?.seats_prev ?? 0 },
+      revenueCents: { value: pr?.revenue ?? 0, previous: pr?.revenue_prev ?? 0 },
+      spendCents: periodSpend,
+      costPerSeatCents: periodSpend !== null && periodSpend > 0 && (pr?.seats ?? 0) > 0 ? Math.round(periodSpend / pr!.seats) : null,
     },
     members: { paying: memberKinds?.paying ?? 0, complimentary: memberKinds?.complimentary ?? 0 },
     retention: {

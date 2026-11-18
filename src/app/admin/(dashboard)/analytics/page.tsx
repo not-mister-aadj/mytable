@@ -4,32 +4,43 @@ import { BoardView } from "@/components/admin/board/BoardView";
 import { isDbConfigured } from "@/db/index";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminPath, resolveHostname } from "@/lib/admin-url";
-import { currentMonth, getBoardData } from "@/lib/admin/board-data";
+import { BOARD_PERIODS, currentMonth, getBoardData } from "@/lib/admin/board-data";
+import type { BoardPeriod } from "@/lib/admin/board-data";
 import { getPostHogGrowthDashboardUrl, isPostHogAdminConfigured } from "@/lib/posthog/config";
 
-type Props = { searchParams: Promise<{ maand?: string }> };
+type Props = { searchParams: Promise<{ maand?: string; periode?: string }> };
 
 /** Board: five questions about growth, each with its own numbers. */
 export default async function AdminBoardPage({ searchParams }: Props) {
   await requireAdmin();
   if (!isDbConfigured()) return <p>Database niet geconfigureerd.</p>;
 
-  const requested = (await searchParams).maand;
+  const params = await searchParams;
+  const requested = params.maand;
+  const period: BoardPeriod = BOARD_PERIODS.find((d) => String(d) === params.periode) ?? 30;
   const now = currentMonth();
   const month = requested && /^\d{4}-\d{2}$/.test(requested) && requested <= now ? requested : now;
 
   const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3001";
   const hostname = resolveHostname(host) ?? host.split(":")[0].toLowerCase();
-  const monthHref = (m: string) => adminPath(`/analytics${m && m !== now ? `?maand=${m}` : ""}`, hostname);
+  const href = (m: string, days: number) => {
+    const query = new URLSearchParams();
+    if (m && m !== now) query.set("maand", m);
+    if (days !== 30) query.set("periode", String(days));
+    const qs = query.toString();
+    return adminPath(`/analytics${qs ? `?${qs}` : ""}`, hostname);
+  };
+  const monthHref = (m: string) => href(m, period);
+  const periodHref = (days: number) => href(month, days);
   const eventHref = (id: string) => adminPath(`/events/${id}`, hostname);
 
-  const data = await getBoardData(month);
+  const data = await getBoardData(month, period);
   const posthogUrl = isPostHogAdminConfigured() ? getPostHogGrowthDashboardUrl() : null;
 
   return (
     <div className="space-y-8">
-      <BoardView data={data} monthHref={monthHref} eventHref={eventHref} />
+      <BoardView data={data} monthHref={monthHref} eventHref={eventHref} periodHref={periodHref} />
       {posthogUrl ? (
         <p className="no-print text-sm text-wine/60">
           Meer detail over bezoek en klikken:{" "}

@@ -485,6 +485,7 @@ async function composeSundayMail(
         groupNumber: guest.groupNumber,
         picks: ctx.picks.map((pick) => pick.name),
         url: tableUrl,
+        opensForUs: OPENS_FOR_US.has(venue.name),
       }),
       from: PLAIN_FROM,
     };
@@ -504,6 +505,7 @@ async function composeSundayMail(
       time: time(ctx.startsAt),
       tableUrl,
       firstTime: guest.firstTime,
+      opensForUs: OPENS_FOR_US.has(venue.name),
     }),
   };
 }
@@ -537,9 +539,10 @@ export function shortDate(d: Date, locale: "nl" | "en"): string {
  * and an HTML version where the line with `url` becomes one simple button and
  * "Label: https://…" lines become links. Lands in the inbox, not Promotions.
  */
-export function buttonMail(text: string, url: string, label: string, block?: string): { text: string; html: string } {
+export function buttonMail(text: string, url: string, label: string, block?: string, bold: string[] = []): { text: string; html: string } {
   const [before, after = ""] = text.split(`${url}\n`);
   const line = (l: string) => {
+    if (bold.includes(l)) return `<strong>${escapeHtml(l)}</strong>`;
     const m = /^(.+?): (https?:\/\/\S+)$/.exec(l);
     return m ? `<a href="${escapeHtml(m[2]!)}" style="color:#5a0f1b">${escapeHtml(m[1]!)}</a>` : escapeHtml(l);
   };
@@ -740,6 +743,8 @@ export function morningMail(p: {
   groupNumber: number | null;
   picks: string[];
   url: string;
+  /** The venue is closed at this time and opens just for us. */
+  opensForUs?: boolean;
 }): { text: string; html: string } {
   const nl = p.locale === "nl";
   const hi = nl ? `Goedemorgen${p.firstName ? ` ${p.firstName}` : ""},` : `Good morning${p.firstName ? ` ${p.firstName}` : ""},`;
@@ -760,15 +765,21 @@ export function morningMail(p: {
       ? [nl ? `Zeg bij binnenkomst dat je bij MyTable hoort, groep ${p.groupNumber}.` : `When you arrive, say you're with MyTable, group ${p.groupNumber}.`]
       : []),
   ].join("\n");
+  // Online the venue shows later hours; without this, guests think it's closed.
+  const opens = p.opensForUs
+    ? nl
+      ? `Let op: online staan andere openingstijden, maar ${p.venueName} gaat speciaal voor ons om ${p.time} open.`
+      : `Heads-up: the opening hours online say otherwise, but ${p.venueName} opens especially for us at ${p.time}.`
+    : null;
   // Sets the expectation: a slow start is normal, not a failed table.
   const ice = nl
     ? "Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken."
     : "To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass.";
   const text = (nl
-    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, "", where, "", ice, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
-    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, "", where, "", ice, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
+    ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, ...(opens ? ["", opens] : []), "", where, "", ice, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
+    : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, ...(opens ? ["", opens] : []), "", where, "", ice, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]
   ).join("\n");
-  return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks");
+  return buttonMail(text, p.url, nl ? "Bekijk je tafel en onze aanraders" : "See your table and our picks", undefined, opens ? [opens] : []);
 }
 
 /** The 20:00 feedback mail as plain text, with the page's link where the four answers go. No count of tablemates: a cancellation or no-show after planning would make it wrong. */

@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookings, eventGroups, eventVenues, events, venues } from "@/db/schema";
 import { sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/config";
@@ -196,7 +196,9 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
             eq(bookings.groupId, group.id),
             eq(bookings.paymentStatus, "paid"),
             inArray(bookings.lifecycleStatus, ["active"]),
-            isNull(bookings.cancelledLateAt),
+            // Who cancels stays on the list, so the table doesn't see itself
+            // shrink; only once someone else took their seat do they go.
+            sql`(${bookings.cancelledLateAt} is null or not exists (select 1 from seat_releases sr where sr.from_booking_id = ${bookings.id} and sr.claimed_booking_id is not null))`,
           ),
         )
         .orderBy(asc(bookings.createdAt))

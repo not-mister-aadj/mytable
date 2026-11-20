@@ -24,6 +24,8 @@ export type SundaySaturdayEmailProps = {
   tableUrl: string;
   /** Their first Sunday: a few words for the evening before. */
   firstTime?: boolean;
+  /** The venue is closed at this time and opens just for us. */
+  opensForUs?: boolean;
 };
 
 export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
@@ -59,6 +61,13 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
             : `When you arrive, say you're with MyTable, group ${p.groupNumber}. The ${p.venueName} team will show you to your table.`}
           {p.plusOneName ? (nl ? ` ${p.plusOneName} zit natuurlijk naast je.` : ` ${p.plusOneName} sits with you, of course.`) : ""}
         </Text>
+        {p.opensForUs ? (
+          <Text style={{ ...emailType.body, fontWeight: 700, margin: "0 0 14px" }}>
+            {nl
+              ? `Let op: online staan andere openingstijden, maar ${p.venueName} gaat speciaal voor ons om ${p.time} open.`
+              : `Heads-up: the opening hours online say otherwise, but ${p.venueName} opens especially for us at ${p.time}.`}
+          </Text>
+        ) : null}
         <EmailDivider spacing="14px" />
         <Row>
           <Column style={{ width: "24px", verticalAlign: "top", paddingTop: "1px" }}>

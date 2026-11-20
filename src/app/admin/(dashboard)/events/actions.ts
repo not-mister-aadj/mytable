@@ -555,7 +555,7 @@ export async function removeBookingFromEventAction(
       await tx
         .update(bookings)
         .set({
-          paymentStatus: "refunded",
+          // Taking someone off refunds nothing: the payment stays "paid".
           lifecycleStatus: "removed",
           // Taken off less than 48 hours before a Sunday: a late cancel.
           ...(isSharedTableType(event.experienceType) && isLateCancel(new Date(), event.startsAt) ? { cancelledLateAt: new Date() } : {}),

@@ -154,7 +154,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         unit_amount: guestCents,
         tax_behavior: "inclusive",
         product_data: {
-          name: en ? "Guest at your Sunday Social (member price)" : "Gast aan je Sunday Social (ledenprijs)",
+          name: en ? "Guest at your Sunday Social (club member price)" : "Gast aan je Sunday Social (prijs voor club members)",
           description: event ? `${event.city} · MyTable` : "MyTable",
         },
       },
@@ -196,8 +196,8 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         // price, so the plan's own words go right above the pay button.
         submit: {
           message: en
-            ? `${priceLine}. Your membership starts right after payment. Terms: ${site}${termsPath("en")}`
-            : `${priceLine}. Je lidmaatschap start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
+            ? `${priceLine}. Your club membership starts right after payment. Terms: ${site}${termsPath("en")}`
+            : `${priceLine}. Je club membership start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
         },
       },
       success_url: fromBooking

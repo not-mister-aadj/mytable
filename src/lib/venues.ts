@@ -60,6 +60,7 @@ function withOptionalVenueFields(
     latitude: extra?.latitude ?? null,
     longitude: extra?.longitude ?? null,
     picks: extra?.picks ?? [],
+    partner: (row as Partial<Venue>).partner ?? false,
   };
 }
 

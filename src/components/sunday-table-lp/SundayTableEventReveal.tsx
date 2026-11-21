@@ -11,12 +11,14 @@ import { SundayTableNotifyMeForm } from "@/components/sunday-table-lp/SundayTabl
 import { TestimonialMarquee } from "@/components/TestimonialMarquee";
 import { SundayTableSectionNav } from "@/components/sunday-table-lp/SundayTableSectionNav";
 import {
+  SundayTablePartnerSelection,
+  type PartnerSelection,
+} from "@/components/sunday-table-lp/SundayTablePartnerSelection";
+import {
   SundayTableDaySteps,
   SundayTableHighlights,
-  SundayTableVenueAbout,
   type DateHighlights,
   type DaySteps,
-  type VenueAbout,
 } from "@/components/sunday-table-lp/SundayTableDateDetails";
 import { getBrandLandingTestimonialRows } from "@/data/brand-landing-testimonials";
 import { trackGroupInvitationShared } from "@/lib/posthog/analytics";
@@ -32,11 +34,11 @@ interface SundayTableEventRevealProps {
   locale: Locale;
   dateLabel: string;
   timeLabel: string;
-  venueName: string;
-  address: string;
-  /** The wine bar is not chosen yet: the heading is the date and city, the
-   * venue line says when it follows, and a short block says why. */
-  venuePending?: { heading: string; city: string; note: string; title: string; body: string } | null;
+  /** The bar is never named: the heading is the date and city, the venue
+   * line says when the bar follows. */
+  venuePending: { heading: string; city: string; note: string };
+  /** Every partner bar of the city; where we reserved only members see. */
+  partnerSelection: PartnerSelection;
   heroImages: HeroImage[];
   /** One short line in bold above the intro. */
   introLead?: string;
@@ -102,14 +104,10 @@ interface SundayTableEventRevealProps {
   /** City of this table ("Rotterdam"), for the English-table sign-up. */
   cityName: string;
   englishComingSoon: EnglishComingSoonLabels;
-  /** Google rating of the venue, only for venues we have a verified rating for. */
-  googleRating?: { score: string; label: string; href: string } | null;
   /** Photo cards: why this will be a good Sunday. */
   highlights: DateHighlights;
   /** What the afternoon itself looks like, in three steps. */
   daySteps: DaySteps;
-  /** Story and practical details of the venue; null while it is unknown. */
-  venueAbout?: VenueAbout | null;
   /** "Wat je krijgt voor €10", under the buy button. */
   included: { title: string; items: string[]; note: string };
   /** Labels for the sticky tab bar. */
@@ -129,9 +127,8 @@ export function SundayTableEventReveal({
   locale,
   dateLabel,
   timeLabel,
-  venueName,
-  address,
-  venuePending = null,
+  venuePending,
+  partnerSelection,
   heroImages,
   introLead,
   intro,
@@ -184,10 +181,8 @@ export function SundayTableEventReveal({
   perSeatLabel,
   cityName,
   englishComingSoon,
-  googleRating = null,
   highlights,
   daySteps,
-  venueAbout = null,
   included,
   sectionNavLabels,
 }: SundayTableEventRevealProps) {
@@ -216,9 +211,6 @@ export function SundayTableEventReveal({
   const [slide, setSlide] = useState(0);
   const activeImage = heroImages[slide] ?? heroImages[0];
   const { people } = getBrandLandingTestimonialRows(locale);
-  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `${venueName}, ${address}`,
-  )}`;
 
   async function handleShare() {
     if (navigator.share) {
@@ -282,9 +274,7 @@ export function SundayTableEventReveal({
             { id: "overzicht", label: sectionNavLabels.overview },
             { id: "hoogtepunten", label: sectionNavLabels.highlights },
             { id: "zo-werkt-het", label: sectionNavLabels.howItWorks },
-            ...(venueAbout && !comingSoon
-              ? [{ id: "locatie", label: sectionNavLabels.venue }]
-              : []),
+            ...(partnerSelection.partners.length > 0 ? [{ id: "partners", label: sectionNavLabels.venue }] : []),
             { id: "ervaringen", label: sectionNavLabels.reviews },
             { id: "vragen", label: sectionNavLabels.faq },
           ]}
@@ -368,17 +358,6 @@ export function SundayTableEventReveal({
               ) : null}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-              {googleRating && !comingSoon ? (
-                <a
-                  href={googleRating.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex shrink-0 items-center gap-1.5 text-sm text-wine/60 transition hover:text-wine"
-                >
-                  <span className="font-semibold text-wine">★ {googleRating.score}</span>
-                  <span className="whitespace-nowrap">· {googleRating.label}</span>
-                </a>
-              ) : null}
               <p className="truncate text-xs text-wine/45">{activeImage?.alt}</p>
             </div>
 
@@ -386,7 +365,7 @@ export function SundayTableEventReveal({
               {eyebrow}
             </p>
             <h1 className="mt-3 font-serif text-[2.1rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
-              {venuePending ? venuePending.heading : venueName}
+              {venuePending.heading}
             </h1>
             {tags.length > 0 ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -411,12 +390,7 @@ export function SundayTableEventReveal({
             <p className={`${introLead ? "mt-2" : "mt-4"} max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg`}>
               {intro}
             </p>
-            {venuePending ? (
-              <div className="mt-6 max-w-xl rounded-2xl border border-gold/40 bg-gold/10 px-5 py-4">
-                <p className="font-serif text-lg text-wine">{venuePending.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-wine/75">{venuePending.body}</p>
-              </div>
-            ) : null}
+            <SundayTablePartnerSelection selection={partnerSelection} />
 
             {/* On phones these come before the booking form, so people know
                 what it is before they are asked to pay; on desktop the form
@@ -453,21 +427,8 @@ export function SundayTableEventReveal({
                 <div className="flex items-baseline justify-between gap-4">
                   <dt className="text-wine/55">{venueFieldLabel}</dt>
                   <dd className="text-right">
-                    {venuePending ? (
-                      <span className="font-medium text-wine">{venuePending.city}</span>
-                    ) : comingSoon ? (
-                      <span className="font-medium text-wine">{venueName}</span>
-                    ) : (
-                      <a
-                        href={mapsHref}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium text-wine underline-offset-4 hover:underline"
-                      >
-                        {venueName}
-                      </a>
-                    )}
-                    <span className="block text-xs text-wine/55">{venuePending ? venuePending.note : address}</span>
+                    <span className="font-medium text-wine">{venuePending.city}</span>
+                    <span className="block text-xs text-wine/55">{venuePending.note}</span>
                   </dd>
                 </div>
               </dl>
@@ -513,11 +474,6 @@ export function SundayTableEventReveal({
           </div>
 
           <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-            {venueAbout && !comingSoon ? (
-              <div className="mb-10 lg:mt-14">
-                <SundayTableVenueAbout venue={venueAbout} />
-              </div>
-            ) : null}
             <div id="ervaringen" className="border-t border-wine/10 pt-10 lg:mt-14">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {statsEyebrow}

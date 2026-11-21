@@ -57,6 +57,7 @@ import {
 } from "@/lib/membership/logic";
 import { MEMBERSHIP_AT_BOOKING, MEMBERSHIP_AT_BOOKING_PLAN, MEMBERSHIP_OPEN } from "@/lib/membership/plans";
 import { bookAsMember } from "@/lib/membership/member-checkout";
+import { canPickVenue } from "@/lib/partner-venues";
 import { createMembershipCheckout } from "@/lib/membership/checkout";
 import { accountIdForEmail } from "@/lib/membership/offer";
 
@@ -121,6 +122,8 @@ export async function POST(request: Request) {
     seatOffer?: string;
     /** The higher seat price after missed Sundays, shown to the booker and sent back. */
     acceptPriceCents?: number;
+    /** The reserved bar a member picked (Sunday Social). */
+    preferredVenueId?: string;
     seats?: number;
     pricingTier?: string;
     email?: string;
@@ -371,8 +374,8 @@ export async function POST(request: Request) {
           code: "member_login",
           error:
             locale === "en"
-              ? "You are a member. Log in to reserve your seat without paying."
-              : "Je bent lid. Log in om je plek zonder te betalen te reserveren.",
+              ? "You are a club member. Log in to reserve your seat without paying."
+              : "Je bent club member. Log in om je plek zonder te betalen te reserveren.",
         },
         { status: 409 },
       );
@@ -445,8 +448,8 @@ export async function POST(request: Request) {
         code: "member_past_due",
         error:
           locale === "en"
-            ? "Your last membership payment did not go through. Update your payment details in your settings first."
-            : "Je laatste betaling voor je lidmaatschap is niet gelukt. Werk eerst je betaalgegevens bij in je instellingen.",
+            ? "Your last club membership payment did not go through. Update your payment details in your settings first."
+            : "Je laatste betaling voor je club membership is niet gelukt. Werk eerst je betaalgegevens bij in je instellingen.",
       },
       { status: 409 },
     );
@@ -473,8 +476,23 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
+    // The bar a member picked: only one we reserved for this Sunday, with room.
+    const preferredVenueId = typeof body.preferredVenueId === "string" ? body.preferredVenueId.trim() : "";
+    if (preferredVenueId && !(await canPickVenue(event.id, preferredVenueId, memberSeats))) {
+      return NextResponse.json(
+        {
+          code: "venue_full",
+          error:
+            locale === "en"
+              ? "That bar is full now. Pick another one."
+              : "Die bar zit nu vol. Kies een andere.",
+        },
+        { status: 409 },
+      );
+    }
     try {
       const result = await bookAsMember({
+        preferredVenueId: preferredVenueId || null,
         event,
         membership: runningMembership,
         email: signedInUser.email.trim().toLowerCase(),
@@ -581,8 +599,8 @@ export async function POST(request: Request) {
       const messages = {
         already_member:
           locale === "en"
-            ? "You are a member. Log in to reserve your seat without paying."
-            : "Je bent lid. Log in om je plek zonder te betalen te reserveren.",
+            ? "You are a club member. Log in to reserve your seat without paying."
+            : "Je bent club member. Log in om je plek zonder te betalen te reserveren.",
         table_full: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over.",
         table_unavailable:
           locale === "en" ? "This table can no longer be booked." : "Deze tafel is niet meer te boeken.",

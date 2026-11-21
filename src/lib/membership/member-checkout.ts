@@ -74,6 +74,8 @@ export async function bookAsMember(input: {
   tableLanguagePreference: string;
   birthDate?: string | null;
   agePreference?: string | null;
+  /** The reserved bar the member picked (Sunday Social). */
+  preferredVenueId?: string | null;
 }): Promise<MemberBookingResult> {
   const { event, membership } = input;
   if (!isMembershipPlanId(membership.plan)) return { kind: "error", status: 500, code: "checkout_failed" };
@@ -129,6 +131,7 @@ export async function bookAsMember(input: {
       agePreference: input.agePreference || null,
       paymentStatus: "pending",
       membershipId: membership.id,
+      preferredVenueId: input.preferredVenueId ?? null,
     })
     .returning();
   if (!booking) {
@@ -170,7 +173,7 @@ export async function bookAsMember(input: {
             currency: "eur",
             unit_amount: guestCents,
             product_data: {
-              name: en ? "Guest at your Sunday Social (member price)" : "Gast aan je Sunday Social (ledenprijs)",
+              name: en ? "Guest at your Sunday Social (club member price)" : "Gast aan je Sunday Social (prijs voor club members)",
               description: `${event.city} · MyTable`,
             },
           },

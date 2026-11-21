@@ -12,8 +12,6 @@ import type {
 } from "@/lib/booking-outcome-data";
 import { formatGuestCount, formatMoney } from "@/lib/booking-display";
 import { NextTableConversion } from "@/components/NextTableConversion";
-import { girlsOnlyPageNl } from "@/i18n/girls-only-page-nl";
-import { girlsOnlyPageEn } from "@/i18n/girls-only-page-en";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { CopyEmailText } from "@/components/booking/CopyEmailText";
 
@@ -246,11 +244,7 @@ export function BookingOutcomeContent({
 
       {variant === "success" && !isSundayTable ? (
         <NextTableConversion
-          labels={
-            locale === "en"
-              ? girlsOnlyPageEn.nextTable
-              : girlsOnlyPageNl.nextTable
-          }
+          labels={locale === "en" ? NEXT_TABLE_EN : NEXT_TABLE_NL}
           locale={locale}
           sharePath={agendaHref}
           source="booking_confirmation"
@@ -284,3 +278,23 @@ function SummaryItem({
     </div>
   );
 }
+
+const NEXT_TABLE_NL = {
+  eyebrow: "Volgende stap",
+  title: "Met wie deel je de volgende tafel?",
+  body: "Iemand ontmoet die je graag opnieuw zou zien? Kies samen een Wine Walk, proeverij of diner.",
+  cta: "Bekijk culinaire ervaringen",
+  shareWhatsapp: "Deel via WhatsApp",
+  copyLink: "Kopieer link",
+  copied: "Gekopieerd",
+};
+
+const NEXT_TABLE_EN = {
+  eyebrow: "Next step",
+  title: "Who would you share the next table with?",
+  body: "Met someone you’d happily make plans with again? Choose a Wine Walk, tasting or dinner together.",
+  cta: "Browse culinary experiences",
+  shareWhatsapp: "Share on WhatsApp",
+  copyLink: "Copy link",
+  copied: "Copied",
+};

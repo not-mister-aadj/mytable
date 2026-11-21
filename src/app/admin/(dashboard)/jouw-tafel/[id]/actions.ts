@@ -172,3 +172,17 @@ export async function saveCancelNoteAction(eventId: string, bookingId: string, n
   await saveCancelNote(bookingId, note);
   refresh(eventId);
 }
+
+/** Seats we hold at a bar on this Sunday; members see how many are left. Empty = no limit. */
+export async function saveEventVenueSeatsAction(eventId: string, venueId: string, seats: number | null) {
+  await requireAdmin();
+  await requireTable(eventId);
+  const clean = seats !== null && Number.isFinite(seats) && seats > 0 ? Math.round(seats) : null;
+  await getDb()
+    .update(eventVenues)
+    .set({ seats: clean })
+    .where(and(eq(eventVenues.eventId, eventId), eq(eventVenues.venueId, venueId)));
+  const [row] = await getDb().select().from(events).where(eq(events.id, eventId)).limit(1);
+  if (row) revalidateEventPaths(row);
+  refresh(eventId);
+}

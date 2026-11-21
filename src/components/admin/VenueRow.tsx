@@ -62,7 +62,12 @@ export function VenueRow({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-lg text-burgundy">{venue.name}</p>
+          <p className="font-serif text-lg text-burgundy">
+            {venue.name}
+            {venue.partner ? (
+              <span className="ml-2 rounded-full bg-gold/20 px-2 py-0.5 align-middle font-sans text-xs font-semibold text-wine">Partner</span>
+            ) : null}
+          </p>
           <p className="text-sm text-wine/70">
             {venue.city}
             {venue.area ? ` · ${venue.area}` : ""}

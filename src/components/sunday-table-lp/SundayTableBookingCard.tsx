@@ -11,6 +11,7 @@ import {
 import { getStoredUtm } from "@/lib/analytics/utm";
 import { trackSundaySocialTicketChosen, trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
 import { isAtLeastMinAge, latestLegalBirthDate } from "@/lib/member-onboarding";
+import type { ReservedVenue } from "@/lib/partner-venues";
 import {
   MEMBERSHIP_AT_BOOKING,
   MEMBERSHIP_AT_BOOKING_PLAN,
@@ -57,7 +58,7 @@ const PLAN_COPY = {
     perMonthShort: "maand",
     monthlyBody: "Deze zondag, en daarna elke Sunday Social in alle steden. Die boek je zelf in je account. Maandelijks opzegbaar.",
     missing: "Kies of je alleen deze zondag of elke zondag wilt.",
-    monthlyCta: "Word lid en reserveer",
+    monthlyCta: "Word club member en reserveer",
     guestFree: "gast gratis",
     singleShort: "eenmalig",
     monthlyShort: "alle steden, maandelijks opzegbaar",
@@ -74,7 +75,7 @@ const PLAN_COPY = {
     perMonthShort: "month",
     monthlyBody: "This Sunday, then every Sunday Social in every city. You book those yourself in your account. Cancel monthly.",
     missing: "Choose just this Sunday or every Sunday.",
-    monthlyCta: "Become a member and reserve",
+    monthlyCta: "Become a club member and reserve",
     guestFree: "guest free",
     singleShort: "one time",
     monthlyShort: "every city, cancel monthly",
@@ -90,22 +91,32 @@ const MONTHLY_CENTS = getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents
 /** A signed-in member books here too: their own seat is included. */
 const MEMBER_COPY = {
   nl: {
-    included: "Inbegrepen in je lidmaatschap",
+    included: "Inbegrepen in je club membership",
     reserve: "Reserveer mijn plek",
     guestFree: "Je gast komt deze keer gratis mee",
     guestPaid: (price: string) => `Je gast betaalt ${price}`,
     free: "gratis",
-    login: "Al lid? Log in",
-    loginCta: "Log in als lid",
+    login: "Al club member? Log in",
+    loginCta: "Log in als club member",
+    reservedTitle: "Hier hebben we gereserveerd",
+    reservedPending: "Waar we reserveren, zie je hier zodra het vastligt.",
+    seatsLeft: (n: number) => (n === 1 ? "1 plek" : `${n} plekken`),
+    full: "vol",
+    pickVenue: "Kies je bar.",
   },
   en: {
-    included: "Included in your membership",
+    included: "Included in your club membership",
     reserve: "Reserve my seat",
     guestFree: "Your guest comes along for free this time",
     guestPaid: (price: string) => `Your guest pays ${price}`,
     free: "free",
-    login: "Already a member? Log in",
-    loginCta: "Log in as a member",
+    login: "Already a club member? Log in",
+    loginCta: "Log in as a club member",
+    reservedTitle: "Where we reserved",
+    reservedPending: "You'll see where we reserve here once it's set.",
+    seatsLeft: (n: number) => (n === 1 ? "1 seat" : `${n} seats`),
+    full: "full",
+    pickVenue: "Pick your bar.",
   },
 } as const;
 
@@ -193,6 +204,9 @@ export function SundayTableBookingCard({
   const [member, setMember] = useState<CardMember | null>(null);
   /** Nobody is signed in: a member can log in from here. */
   const [signedOut, setSignedOut] = useState(false);
+  /** For a member: the bars we reserved this Sunday, and the one they pick. */
+  const [reserved, setReserved] = useState<ReservedVenue[] | null>(null);
+  const [venueId, setVenueId] = useState<string | null>(null);
   const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
   const planCopy = PLAN_COPY[locale === "en" ? "en" : "nl"];
   const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>(null);
@@ -226,8 +240,17 @@ export function SundayTableBookingCard({
         }
         // A membership that ends before this Sunday does not cover it.
         const covers = !me.member?.endsAt || !startsAt || Date.parse(startsAt) <= Date.parse(me.member.endsAt);
-        if (me.member && covers) setMember(me.member);
-        else setFromQuiz(true);
+        if (me.member && covers) {
+          setMember(me.member);
+          fetch(`/api/sunday-social/reserved?eventId=${encodeURIComponent(eventId)}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data: { venues?: ReservedVenue[] | null } | null) => {
+              if (!cancelled && Array.isArray(data?.venues)) setReserved(data.venues);
+            })
+            .catch(() => {
+              /* no pick: we choose the bar */
+            });
+        } else setFromQuiz(true);
         if (me.email) setEmail((current) => current || me.email!);
         if (me.name) setName((current) => current || me.name!);
         if (me.birthDate) setBirthDate((current) => current || me.birthDate!);
@@ -249,7 +272,7 @@ export function SundayTableBookingCard({
     return () => {
       cancelled = true;
     };
-  }, [startsAt]);
+  }, [startsAt, eventId]);
   const [loading, setLoading] = useState(false);
   const [missPriceCents, setMissPriceCents] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -350,6 +373,10 @@ export function SundayTableBookingCard({
       setError(planCopy.missing);
       return;
     }
+    if (member && reserved && reserved.length > 0 && !venueId) {
+      setError(memberCopy.pickVenue);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -369,6 +396,7 @@ export function SundayTableBookingCard({
           returnPath: window.location.pathname,
           utm: getStoredUtm(),
           ...(missPriceCents ? { acceptPriceCents: missPriceCents } : {}),
+          ...(member && venueId ? { preferredVenueId: venueId } : {}),
         }),
       });
       const data = await res.json();
@@ -586,6 +614,48 @@ export function SundayTableBookingCard({
           </span>
           {memberCopy.included}
         </p>
+      ) : null}
+      {member && reserved ? (
+        <fieldset className="rounded-xl border border-wine/10 bg-white/70 px-3.5 py-3">
+          <legend className="px-1 text-sm font-semibold text-wine">{memberCopy.reservedTitle}</legend>
+          {reserved.length === 0 ? (
+            <p className="text-sm text-wine/60">{memberCopy.reservedPending}</p>
+          ) : (
+            <div className="space-y-1.5">
+              {reserved.map((v) => {
+                const full = v.seatsLeft !== null && v.seatsLeft < seats;
+                return (
+                  <label
+                    key={v.id}
+                    className={`flex items-center justify-between gap-3 text-sm ${full ? "text-wine/40" : "text-wine"}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="preferredVenue"
+                        value={v.id}
+                        checked={venueId === v.id}
+                        disabled={full}
+                        onChange={() => {
+                          setVenueId(v.id);
+                          setError(null);
+                        }}
+                        className="h-4 w-4 accent-burgundy"
+                      />
+                      <span className="font-medium">{v.name}</span>
+                      {v.area ? <span className="text-wine/50">{v.area}</span> : null}
+                    </span>
+                    {v.seatsLeft !== null ? (
+                      <span className="shrink-0 text-xs text-wine/55">
+                        {v.seatsLeft === 0 ? memberCopy.full : memberCopy.seatsLeft(v.seatsLeft)}
+                      </span>
+                    ) : null}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </fieldset>
       ) : null}
       <label className="block text-sm font-medium text-wine">
         {emailLabel}

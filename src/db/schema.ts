@@ -68,6 +68,8 @@ export const venues = pgTable("venues", {
   longitude: text("longitude"),
   /** Our picks from the menu, shown on the guests' table page (drizzle/0051). */
   picks: jsonb("picks").$type<unknown[]>().notNull().default([]),
+  /** Shown in the partner selection on the Sunday Social page (drizzle/0073). */
+  partner: boolean("partner").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -129,6 +131,8 @@ export const eventVenues = pgTable(
       .notNull()
       .references(() => venues.id, { onDelete: "restrict" }),
     position: integer("position").notNull().default(0),
+    /** Seats we hold at this bar on this Sunday; null = no limit (drizzle/0073). */
+    seats: integer("seats"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -287,6 +291,8 @@ export const bookings = pgTable("bookings", {
   cancelNote: text("cancel_note"),
   /** "Ja, ik kom" in the Wednesday mail (drizzle/0063). */
   attendanceConfirmedAt: timestamp("attendance_confirmed_at", { withTimezone: true }),
+  /** The bar a member picked when booking (drizzle/0073). */
+  preferredVenueId: uuid("preferred_venue_id").references(() => venues.id, { onDelete: "set null" }),
   /** Admin struck this missed Sunday: it no longer counts (drizzle/0063). */
   missWaivedAt: timestamp("miss_waived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })

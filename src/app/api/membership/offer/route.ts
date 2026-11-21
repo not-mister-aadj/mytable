@@ -7,12 +7,12 @@ import { startMembershipOfferCheckout } from "@/lib/membership/offer";
 
 const ERRORS = {
   nl: {
-    already_member: "Je bent al lid.",
+    already_member: "Je bent al club member.",
     offer_closed: "Dit aanbod is verlopen.",
     generic: "Afrekenen lukte niet. Probeer het nog een keer.",
   },
   en: {
-    already_member: "You are already a member.",
+    already_member: "You are already a club member.",
     offer_closed: "This offer has ended.",
     generic: "Checkout did not work. Please try again.",
   },

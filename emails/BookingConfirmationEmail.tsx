@@ -152,16 +152,16 @@ export function BookingConfirmationEmail({
 
       {memberIncluded ? (
         <EmailCard>
-          <Text style={emailType.sectionLabel}>{en ? "Your membership" : "Je lidmaatschap"}</Text>
+          <Text style={emailType.sectionLabel}>{en ? "Your club membership" : "Je club membership"}</Text>
           <Text style={{ ...emailType.value, fontSize: "16px", margin: "0 0 6px" }}>
-            {en ? "Included in your membership" : "Inbegrepen in je lidmaatschap"}
+            {en ? "Included in your club membership" : "Inbegrepen in je club membership"}
           </Text>
           {memberGuest ? (
             <Text style={{ ...emailType.body, margin: 0 }}>
               {en ? "Guest: " : "Gast: "}
               <span style={{ textDecoration: "line-through", color: emailBrand.mutedText }}>{memberGuest.was}</span>{" "}
               <strong style={{ color: emailBrand.burgundy }}>{memberGuest.now}</strong>{" "}
-              {en ? "(member price)" : "(ledenprijs)"}
+              {en ? "(club member price)" : "(prijs voor club members)"}
             </Text>
           ) : null}
           <Text style={{ ...emailType.bodySmall, margin: "8px 0 0" }}>

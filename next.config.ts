@@ -66,6 +66,9 @@ const nextConfig: NextConfig = {
     // City pages moved from /girls-only to /sunday-social. The slug pattern
     // only matches plain slugs, so the /girls-only/*.jpg images keep working.
     return [
+      // The girls-only hub is gone: its old links land on Sunday Social.
+      { source: "/girls-only", destination: "/sunday-social", permanent: true },
+      { source: "/:locale(en|nl)/girls-only", destination: "/:locale/sunday-social", permanent: true },
       {
         source: "/girls-only/:city([a-z-]+)",
         destination: "/sunday-social/:city",

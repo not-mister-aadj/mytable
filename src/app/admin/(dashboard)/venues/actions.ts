@@ -117,6 +117,7 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
     city,
     area: area || null,
     atmosphere: atmosphere || null,
+    partner: data.get("partner") === "on",
     address: address || null,
     descriptionNl,
     descriptionEn: descriptionEn || descriptionNl,

@@ -144,10 +144,6 @@ export function privacyPath(locale: Locale): string {
   return locale === "en" ? "/en/privacy" : "/privacy";
 }
 
-export function girlsOnlyPath(locale: Locale): string {
-  return locale === "en" ? "/en/girls-only" : "/girls-only";
-}
-
 /** Pre-auth onboarding funnel (commit → vibe → signup). */
 export function joinPath(locale: Locale): string {
   return locale === "en" ? "/en/join" : "/join";

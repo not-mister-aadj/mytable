@@ -40,7 +40,7 @@ const RULES: Array<[RegExp, string]> = [
   [/(Je staat op de lijst|You're on the list)/i, "Wachtlijst"],
   [/(Welkom aan tafel|Welcome to the table)/i, "Welkom"],
   [/(Welkom bij MyTable|Welcome to MyTable)/i, "Welkom"],
-  [/(Welkom als lid|you are a member)/i, "Lid geworden"],
+  [/(Welkom als (club member|lid)|you are a (club )?member)/i, "Lid geworden"],
   [/(lidmaatschap|membership)/i, "Lidmaatschap"],
   [/(Opzegging|Cancellation confirmed)/i, "Opzegging"],
   [/(gemist aan tafel|missed you)/i, "Niet gekomen"],

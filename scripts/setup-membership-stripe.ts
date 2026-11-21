@@ -63,13 +63,14 @@ const PRICES: PriceSpec[] = [
 ];
 
 /** Shown under the product name on the Stripe payment page. */
+const PRODUCT_NAME = "MyTable club membership";
 const PRODUCT_DESCRIPTION = "Elke Sunday Social inbegrepen, in alle steden. Per maand opzegbaar.";
 
 /** Brings an existing product's text in line with the one above. */
 async function withCurrentText(product: Stripe.Product): Promise<Stripe.Product> {
-  if (product.description === PRODUCT_DESCRIPTION) return product;
-  const updated = await stripe.products.update(product.id, { description: PRODUCT_DESCRIPTION });
-  console.log(`Product: ${product.id} (description updated)`);
+  if (product.description === PRODUCT_DESCRIPTION && product.name === PRODUCT_NAME) return product;
+  const updated = await stripe.products.update(product.id, { name: PRODUCT_NAME, description: PRODUCT_DESCRIPTION });
+  console.log(`Product: ${product.id} (name and description updated)`);
   return updated;
 }
 
@@ -88,7 +89,7 @@ async function ensureProduct(): Promise<Stripe.Product> {
     }
   }
   const product = await stripe.products.create({
-    name: "MyTable lidmaatschap",
+    name: PRODUCT_NAME,
     description: PRODUCT_DESCRIPTION,
     metadata: { mytable: PRODUCT_TAG },
   });

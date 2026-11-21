@@ -399,8 +399,8 @@ export default async function SundayTableEventPage({ params }: Props) {
   const pendingFaq = {
     question: en ? "Where is it?" : "Waar is het?",
     answer: en
-      ? `At one of our partner bars in ${city.name}. Which bar it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before. Members see where we reserved when they book, and pick their bar themselves.`
-      : `Bij een van onze partner-bars in ${city.name}. Welke bar het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail. Leden zien bij het boeken waar we gereserveerd hebben en kiezen zelf hun bar.`,
+      ? `At one of our partner bars in ${city.name}. Which bar it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before. Club members see where we reserved when they book, and pick their bar themselves.`
+      : `Bij een van onze partner-bars in ${city.name}. Welke bar het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail. Club members zien bij het boeken waar we gereserveerd hebben en kiezen zelf hun bar.`,
   };
   const partnerSelection = {
     eyebrow: en ? `Our partner selection in ${city.name}` : `Onze partnerselectie in ${city.name}`,
@@ -408,11 +408,11 @@ export default async function SundayTableEventPage({ params }: Props) {
     body: en
       ? "No tourist spots, only places where we like to sit ourselves. Each Sunday we reserve at one or more of these bars. Which bar you're at, you'll hear 7 days before."
       : "Geen toeristische zaken, alleen plekken waar we zelf graag zitten. Per zondag reserveren we bij een of meer van deze bars. Bij welke bar jij zit, hoor je 7 dagen van tevoren.",
-    memberTitle: en ? "A member? Then you pick your bar." : "Lid? Dan kies je zelf je bar.",
+    memberTitle: en ? "Club member? Then you pick your bar." : "Club member? Dan kies je zelf je bar.",
     memberBody: en
-      ? "Members see in advance where we reserved, and choose which bar they join."
-      : "Leden zien vooraf waar we gereserveerd hebben en kiezen zelf bij welke bar ze aanschuiven.",
-    memberCta: en ? "Become a member" : "Word lid",
+      ? "Club members see in advance where we reserved, and choose which bar they join."
+      : "Club members zien vooraf waar we gereserveerd hebben en kiezen zelf bij welke bar ze aanschuiven.",
+    memberCta: en ? "Become a club member" : "Word club member",
     memberHref: jouwTafelMembershipPath(locale),
     prevLabel: en ? "Previous" : "Vorige",
     nextLabel: en ? "Next" : "Volgende",

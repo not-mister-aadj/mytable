@@ -115,7 +115,7 @@ export const termsEn: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "Cancelling is not possible. You can, however, exchange your booking for another available date at no cost. For seats included in a membership, article 13 applies.",
+          text: "Cancelling is not possible. You can, however, exchange your booking for another available date at no cost. For seats included in a club membership, article 13 applies.",
         },
         {
           type: "p",
@@ -198,7 +198,7 @@ export const termsEn: LegalDocumentContent = {
       blocks: [
         {
           type: "p",
-          text: "If you do not attend without exchanging in time, your seat lapses without a refund. If this happens repeatedly, we may refuse future bookings. For members, article 13.6 applies.",
+          text: "If you do not attend without exchanging in time, your seat lapses without a refund. If this happens repeatedly, we may refuse future bookings. For club members, article 13.6 applies.",
         },
       ],
     },
@@ -264,15 +264,15 @@ export const termsEn: LegalDocumentContent = {
       ],
     },
     {
-      title: "13. Membership",
+      title: "13. Club membership",
       blocks: [
         {
           type: "p",
-          text: "Besides single seats, we offer a membership for Sunday Table. This article applies to members. The rest of these terms also applies to members, unless this article says otherwise.",
+          text: "Besides single seats, we offer a club membership for Sunday Table. This article applies to club members. The rest of these terms also applies to club members, unless this article says otherwise.",
         },
         {
           type: "p",
-          text: "13.1 Memberships and prices. You choose from:",
+          text: "13.1 Club memberships and prices. You choose from:",
         },
         {
           type: "ul",
@@ -288,7 +288,7 @@ export const termsEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "13.2 Term and renewal. Your membership starts as soon as we have received your first payment. After your first period (1 month, 4 months or 1 year) the membership continues automatically for an indefinite period, monthly, at the monthly amount of your membership. From then on you can cancel monthly. At the latest 7 days before a first period of 4 months or 1 year ends, we send you a reminder by email.",
+          text: "13.2 Term and renewal. Your club membership starts as soon as we have received your first payment. After your first period (1 month, 4 months or 1 year) the club membership continues automatically for an indefinite period, monthly, at the monthly amount of your club membership. From then on you can cancel monthly. At the latest 7 days before a first period of 4 months or 1 year ends, we send you a reminder by email.",
         },
         {
           type: "p",
@@ -296,47 +296,47 @@ export const termsEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "13.4 What is included. As a member:",
+          text: "13.4 What is included. As a club member:",
         },
         {
           type: "ul",
           items: [
-            "you book a seat at every Sunday Table in the cities where we hold tables at no extra cost, while seats are available and as long as you are a member on the day of the table;",
-            "you book a new table 48 hours before non-members;",
-            "you can bring one guest per table. Your guest then pays the monthly amount of your membership as the price of the seat (the member price).",
+            "you book a seat at every Sunday Table in the cities where we hold tables at no extra cost, while seats are available and as long as you are a club member on the day of the table;",
+            "you book a new table 48 hours before people who are not club members;",
+            "you can bring one guest per table. Your guest then pays the monthly amount of your club membership as the price of the seat (the club member price).",
           ],
         },
         {
           type: "p",
-          text: "Food and drinks are not included: you order and pay for them at the table yourself. Seats at a table are limited. A membership does not guarantee a seat at a particular table.",
+          text: "Food and drinks are not included: you order and pay for them at the table yourself. Seats at a table are limited. A club membership does not guarantee a seat at a particular table.",
         },
         {
           type: "p",
-          text: "13.5 Cancelling your seat. As a member you can cancel your seat free of charge in your settings up to 48 hours before the start, so someone else can join. If you booked a guest, you cancel both seats. What you paid for your guest's seat is not refunded. After that, cancelling is no longer possible. Article 6 (exchanging) does not apply to seats included in your membership.",
+          text: "13.5 Cancelling your seat. As a club member you can cancel your seat free of charge in your settings up to 48 hours before the start, so someone else can join. If you booked a guest, you cancel both seats. What you paid for your guest's seat is not refunded. After that, cancelling is no longer possible. Article 6 (exchanging) does not apply to seats included in your club membership.",
         },
         {
           type: "p",
-          text: "13.6 Not showing up. If you do not come without cancelling in time, the first time we send you a warning by email. If it happens again after that, each time you cannot book tables for one month. Your membership and your payments continue during that month. We let you know by email from when you can book again.",
+          text: "13.6 Not showing up. If you do not come without cancelling in time, the first time we send you a warning by email. If it happens again after that, each time you cannot book tables for one month. Your club membership and your payments continue during that month. We let you know by email from when you can book again.",
         },
         {
           type: "p",
-          text: "13.7 A table does not go ahead. Members count towards the minimum number of guests in article 7. If a table still does not go ahead, you hear at the latest 7 days before and you choose another Sunday. Your seat stays included. If your guest paid, we refund that amount.",
+          text: "13.7 A table does not go ahead. Club members count towards the minimum number of guests in article 7. If a table still does not go ahead, you hear at the latest 7 days before and you choose another Sunday. Your seat stays included. If your guest paid, we refund that amount.",
         },
         {
           type: "p",
-          text: "13.8 Payment fails. If a payment fails, we try again through Stripe and ask you to update your payment details. While a payment is outstanding, you cannot book new tables. If the payment is still not made, we may end your membership.",
+          text: "13.8 Payment fails. If a payment fails, we try again through Stripe and ask you to update your payment details. While a payment is outstanding, you cannot book new tables. If the payment is still not made, we may end your club membership.",
         },
         {
           type: "p",
-          text: "13.9 Price changes. We may change the prices of the membership. We tell you about a change by email at least 30 days in advance. A period you have already paid for does not change in price. If you do not agree with a price increase, you can cancel before it takes effect.",
+          text: "13.9 Price changes. We may change the prices of the club membership. We tell you about a change by email at least 30 days in advance. A period you have already paid for does not change in price. If you do not agree with a price increase, you can cancel before it takes effect.",
         },
         {
           type: "p",
-          text: "13.10 Right of withdrawal. You take out a membership online. You then have 14 days to change your mind, counted from the day you become a member. You do not have to give a reason. Because your membership starts straight away and you can book tables immediately, you expressly ask us at checkout to start right away. If you withdraw within those 14 days, we refund what you paid, minus an amount in proportion to the period you were a member until the moment you withdraw. You withdraw via {{email}}. We refund within 14 days, using the payment method you used.",
+          text: "13.10 Right of withdrawal. You take out a club membership online. You then have 14 days to change your mind, counted from the day you become a club member. You do not have to give a reason. Because your club membership starts straight away and you can book tables immediately, you expressly ask us at checkout to start right away. If you withdraw within those 14 days, we refund what you paid, minus an amount in proportion to the period you were a club member until the moment you withdraw. You withdraw via {{email}}. We refund within 14 days, using the payment method you used.",
         },
         {
           type: "p",
-          text: "13.11 Deleting your account. If you have your account deleted while you are a member, your membership stops straight away and we do not charge you after that. You do not get a refund for the current period, except under 13.10.",
+          text: "13.11 Deleting your account. If you have your account deleted while you are a club member, your club membership stops straight away and we do not charge you after that. You do not get a refund for the current period, except under 13.10.",
         },
       ],
     },
@@ -396,7 +396,7 @@ export const termsEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Right of withdrawal: a booking for a table or event on a fixed date is a leisure service. By law, the 14-day withdrawal period does not apply to it. You can exchange your booking under article 6. A membership does have a 14-day withdrawal period, see article 13.10.",
+          text: "Right of withdrawal: a booking for a table or event on a fixed date is a leisure service. By law, the 14-day withdrawal period does not apply to it. You can exchange your booking under article 6. A club membership does have a 14-day withdrawal period, see article 13.10.",
         },
       ],
     },
@@ -443,7 +443,7 @@ export const privacyEn: LegalDocumentContent = {
                 "Contact by email: your name, email address and message content;",
                 "Account: your email address, and if you log in with Google also the name linked to your Google account;",
                 "Quiz: your answers, such as your date of birth, gender, table preference, cities and preferences;",
-                "Membership: the membership you chose, when it started and ends, whether you cancelled, your bookings as a member and whether you missed a table without cancelling;",
+                "Club membership: the club membership you chose, when it started and ends, whether you cancelled, your bookings as a club member and whether you missed a table without cancelling;",
                 "Waitlist or newsletter (if available): your email address and preferred city, if you sign up.",
                 "At events: photos and videos on which guests may appear recognisably, where you give consent when booking.",
               ],
@@ -472,7 +472,7 @@ export const privacyEn: LegalDocumentContent = {
             },
             {
               type: "p",
-              text: "If you are a member, we also receive the status of your subscription, its periods and payments from Stripe. Stripe keeps your payment method (for example your card or a direct debit mandate) to collect the following payments. We do not store those details ourselves.",
+              text: "If you are a club member, we also receive the status of your subscription, its periods and payments from Stripe. Stripe keeps your payment method (for example your card or a direct debit mandate) to collect the following payments. We do not store those details ourselves.",
             },
             {
               type: "p",
@@ -509,11 +509,11 @@ export const privacyEn: LegalDocumentContent = {
           ],
         },
         {
-          title: "To run your membership",
+          title: "To run your club membership",
           blocks: [
             {
               type: "p",
-              text: "We use your email address, your membership and your payment status to run your membership: the payments, the reminder before your first period ends, the confirmation when you cancel, your bookings as a member and the rule about not showing up.",
+              text: "We use your email address, your club membership and your payment status to run your club membership: the payments, the reminder before your first period ends, the confirmation when you cancel, your bookings as a club member and the rule about not showing up.",
             },
             {
               type: "p",
@@ -612,7 +612,7 @@ export const privacyEn: LegalDocumentContent = {
           type: "ul",
           items: [
             "Partner venues: limited guest information to run your table;",
-            "Stripe (payments and subscriptions): processes your payments and, if you are a member, your recurring payments and payment method; we do not store card or bank details;",
+            "Stripe (payments and subscriptions): processes your payments and, if you are a club member, your recurring payments and payment method; we do not store card or bank details;",
             "Supabase (database, storage and login): stores booking data, accounts and media;",
             "Vercel (hosting): hosts our website;",
             "Resend (email): sends booking confirmations and login codes on our behalf;",
@@ -656,7 +656,7 @@ export const privacyEn: LegalDocumentContent = {
           items: [
             "Order and invoice data: at least 7 years to comply with tax retention rules.",
             "Booking data: as long as needed to fulfil your reservation and any follow-up.",
-            "Membership data: as long as you are a member, and after that as long as needed for our administration (payment and invoice data at least 7 years).",
+            "Club membership data: as long as you are a club member, and after that as long as needed for our administration (payment and invoice data at least 7 years).",
             "Account data: as long as your account exists. If you have your account deleted, we delete that data within 30 days, except what we are legally required to keep.",
             "Marketing photos and videos: usually up to 3 years, or shorter if you withdraw consent and removal is reasonably possible.",
             "Technical logs: kept briefly, only as long as needed for security and troubleshooting.",

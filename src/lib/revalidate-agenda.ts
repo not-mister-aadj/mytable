@@ -42,7 +42,6 @@ export function revalidateEventPaths(
     "/",
     "/nl",
     "/en",
-    "/girls-only",
     "/en/girls-only",
     "/sitemap.xml",
     "/admin/bookings",

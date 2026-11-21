@@ -406,10 +406,12 @@ export default async function SundayTableEventPage({ params }: Props) {
     eyebrow: en ? `Our partner selection in ${city.name}` : `Onze partnerselectie in ${city.name}`,
     title: en ? "Bars we pick ourselves" : "Bars die wij zelf uitkiezen",
     body: en
-      ? "No tourist spots, only places where we like to sit ourselves. Each Sunday we reserve at one or more of these bars."
-      : "Geen toeristische zaken, alleen plekken waar we zelf graag zitten. Per zondag reserveren we bij een of meer van deze bars.",
-    memberTitle: en ? "Members see where we reserved" : "Als lid zie je waar we gereserveerd hebben",
-    memberBody: en ? "And pick which bar you join yourself." : "En kies je zelf aan welke bar je aanschuift.",
+      ? "No tourist spots, only places where we like to sit ourselves. Each Sunday we reserve at one or more of these bars. Which bar you're at, you'll hear 7 days before."
+      : "Geen toeristische zaken, alleen plekken waar we zelf graag zitten. Per zondag reserveren we bij een of meer van deze bars. Bij welke bar jij zit, hoor je 7 dagen van tevoren.",
+    memberTitle: en ? "A member? Then you pick your bar" : "Lid? Dan kies je zelf je bar",
+    memberBody: en
+      ? "Members see in advance where we reserved, and choose which bar they join."
+      : "Leden zien vooraf waar we gereserveerd hebben en kiezen zelf bij welke bar ze aanschuiven.",
     memberCta: en ? "Become a member" : "Word lid",
     memberHref: jouwTafelMembershipPath(locale),
     partners: partners.map((p) => ({ id: p.id, name: p.name, area: p.area, atmosphere: p.atmosphere, imageUrl: p.imageUrl })),

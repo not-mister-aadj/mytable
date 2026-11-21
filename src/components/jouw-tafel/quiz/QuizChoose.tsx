@@ -68,7 +68,6 @@ const LADIES_PHOTOS = ["/girls-only/table-group.jpg", "/girls-only/laughing-bar.
 
 const CARD_COPY = {
   nl: {
-    wineBarIn: (city: string) => `Een wijnlocatie in ${city}`,
     reserveShort: "Reserveer",
     next: "Eerstvolgende",
     otherArea: "Ander stadsdeel",
@@ -91,7 +90,6 @@ const CARD_COPY = {
     priceLine: (price: string) => `${price} per plek`,
   },
   en: {
-    wineBarIn: (city: string) => `A wine spot in ${city}`,
     reserveShort: "Book",
     next: "Next table",
     otherArea: "Other area",
@@ -686,7 +684,7 @@ export function QuizChoose({
                 <span className="block text-[1.05rem] font-semibold leading-tight text-wine">{when}</span>
                 <span className="mt-1 flex items-center gap-1 text-[0.88rem] text-wine/65">
                   <PinIcon className="h-3.5 w-3.5 shrink-0" />
-                  {cardCopy.wineBarIn(placeText(event))}
+                  {placeText(event)}
                 </span>
               </span>
               <span className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-burgundy px-5 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-cream">

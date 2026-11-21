@@ -374,8 +374,8 @@ export async function POST(request: Request) {
           code: "member_login",
           error:
             locale === "en"
-              ? "You are a member. Log in to reserve your seat without paying."
-              : "Je bent lid. Log in om je plek zonder te betalen te reserveren.",
+              ? "You are a club member. Log in to reserve your seat without paying."
+              : "Je bent club member. Log in om je plek zonder te betalen te reserveren.",
         },
         { status: 409 },
       );
@@ -448,8 +448,8 @@ export async function POST(request: Request) {
         code: "member_past_due",
         error:
           locale === "en"
-            ? "Your last membership payment did not go through. Update your payment details in your settings first."
-            : "Je laatste betaling voor je lidmaatschap is niet gelukt. Werk eerst je betaalgegevens bij in je instellingen.",
+            ? "Your last club membership payment did not go through. Update your payment details in your settings first."
+            : "Je laatste betaling voor je club membership is niet gelukt. Werk eerst je betaalgegevens bij in je instellingen.",
       },
       { status: 409 },
     );
@@ -599,8 +599,8 @@ export async function POST(request: Request) {
       const messages = {
         already_member:
           locale === "en"
-            ? "You are a member. Log in to reserve your seat without paying."
-            : "Je bent lid. Log in om je plek zonder te betalen te reserveren.",
+            ? "You are a club member. Log in to reserve your seat without paying."
+            : "Je bent club member. Log in om je plek zonder te betalen te reserveren.",
         table_full: locale === "en" ? "Not enough seats left." : "Niet genoeg plekken over.",
         table_unavailable:
           locale === "en" ? "This table can no longer be booked." : "Deze tafel is niet meer te boeken.",

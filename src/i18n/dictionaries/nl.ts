@@ -243,7 +243,7 @@ export const nl: Dictionary = {
     error: "Aanmelden mislukt. Probeer het later opnieuw.",
     cities: ["Rotterdam", "Den Haag", "Amsterdam", "Utrecht"],
     emptyAgenda: {
-      title: "Word lid van de MyTable Club",
+      title: "Word club member van MyTable",
       subtitle:
         "Via Sunday Social hoor je als eerste wanneer er nieuwe tafels openen in jouw stad.",
       cta: "Naar Sunday Social",

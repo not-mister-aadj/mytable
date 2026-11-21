@@ -187,10 +187,10 @@ const landingNl: LandingCopy = {
     imageAlt: "Twee gasten lachen aan een tafel vol wijnglazen",
   },
   membership: {
-    eyebrow: "Lidmaatschap",
+    eyebrow: "Club membership",
     title: "Vaker aanschuiven?",
-    body: "Als lid schuif je aan bij elke Sunday Social in jouw steden. En je boekt eerder dan anderen.",
-    link: "Bekijk het lidmaatschap",
+    body: "Als club member schuif je aan bij elke Sunday Social in jouw steden. En je boekt eerder dan anderen.",
+    link: "Bekijk de club membership",
   },
   promise: {
     eyebrow: "Onze belofte",
@@ -403,10 +403,10 @@ const landingEn: LandingCopy = {
     imageAlt: "Two guests laughing at a table full of wine glasses",
   },
   membership: {
-    eyebrow: "Membership",
+    eyebrow: "Club membership",
     title: "Want to join more often?",
-    body: "As a member you join every Sunday Social in your cities. And you book before everyone else.",
-    link: "See the membership",
+    body: "As a club member you join every Sunday Social in your cities. And you book before everyone else.",
+    link: "See the club membership",
   },
   promise: {
     eyebrow: "Our promise",

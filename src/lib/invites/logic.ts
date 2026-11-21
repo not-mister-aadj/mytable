@@ -402,8 +402,8 @@ export function inviteMail(input: {
     : `Je zit met vier tot zes mensen aan tafel op een leuke wijnlocatie.${solo} Welke het wordt, hoor je een week van tevoren.${samePrice ? ` Een plek kost ${euro(first.priceCents)}.` : ""}`;
   const member = input.member
     ? en
-      ? "As a member you hear this 48 hours before everyone else."
-      : "Als lid hoor je dit 48 uur eerder dan de rest."
+      ? "As a club member you hear this 48 hours before everyone else."
+      : "Als club member hoor je dit 48 uur eerder dan de rest."
     : null;
   const body = [
     hi,

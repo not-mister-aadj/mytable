@@ -87,7 +87,7 @@ export default async function SeatOfferPage({ params }: Props) {
             </p>
             {offer.member ? (
               <p className="mt-5 rounded-2xl bg-white px-4 py-3.5 text-[0.95rem] leading-snug text-wine/80 ring-1 ring-wine/10">
-                {en ? "This seat is in your membership." : "Deze plek zit in je lidmaatschap."}
+                {en ? "This seat is in your club membership." : "Deze plek zit in je club membership."}
               </p>
             ) : (
               <div className="mt-5 rounded-2xl bg-white px-4 py-3.5 ring-1 ring-wine/10">

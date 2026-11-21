@@ -63,7 +63,7 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
       // Sunday Social every 4 weeks, so more Sundays means other cities.
       headline: { before: `For ${first} extra: every Sunday Social, in `, accent: `all ${a.cities} cities` },
       lead: `You just paid ${paid} for one Sunday${a.city ? ` in ${a.city}` : ""}. Upgrade for ${first} extra and this month you can also join in the other cities.`,
-      stackTitle: "What you get as a member",
+      stackTitle: "What you get as a club member",
       rows: [
         {
           title: `Every Sunday Social included, in all ${a.cities} cities`,
@@ -78,7 +78,7 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
         },
       ],
       worthPrefix: "worth",
-      worth: { label: "Total value of your membership", amount: worth },
+      worth: { label: "Total value of your club membership", amount: worth },
       price: {
         label: "Today you pay",
         amount: first,
@@ -97,7 +97,7 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
     paid: (sunday) => (sunday ? `Betaald. Je plek op ${sunday} staat vast.` : "Betaald. Je plek staat vast."),
     headline: { before: `Voor ${first} extra: elke Sunday Social, in `, accent: `alle ${a.cities} steden` },
     lead: `Je hebt net ${paid} betaald voor één zondag${a.city ? ` in ${a.city}` : ""}. Upgrade voor ${first} extra en schuif deze maand ook aan in de andere steden.`,
-    stackTitle: "Dit krijg je als lid",
+    stackTitle: "Dit krijg je als club member",
     rows: [
       {
         title: `Elke Sunday Social inbegrepen, in alle ${a.cities} steden`,
@@ -112,7 +112,7 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
       },
     ],
     worthPrefix: "t.w.v.",
-    worth: { label: "Totale waarde van je lidmaatschap", amount: worth },
+    worth: { label: "Totale waarde van je club membership", amount: worth },
     price: {
       label: "Vandaag betaal je",
       amount: first,
@@ -132,14 +132,14 @@ export function getMembershipOfferCopy(locale: Locale, a: MembershipOfferAmounts
 export function getMemberWelcomeCopy(locale: Locale): { eyebrow: string; title: string; body: string; cta: string } {
   if (locale === "en") {
     return {
-      eyebrow: "You are a member",
+      eyebrow: "You are a club member",
       title: "Welcome. Every Sunday is yours now.",
       body: "This Sunday is booked. Every next Sunday you book yourself, in your account: log in with the email address of this booking and you get a code by email, no password needed. You can have 2 Sundays booked at a time.",
       cta: "Log in to your account",
     };
   }
   return {
-    eyebrow: "Je bent lid",
+    eyebrow: "Je bent club member",
     title: "Welkom. Elke zondag is nu van jou.",
     body: "Deze zondag staat vast. Elke volgende zondag boek je zelf, in je account: log in met het e-mailadres van deze boeking en je krijgt een code per mail, een wachtwoord is niet nodig. Je kunt 2 zondagen tegelijk geboekt hebben.",
     cta: "Log in op je account",

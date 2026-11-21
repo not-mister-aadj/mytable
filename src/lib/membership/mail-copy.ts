@@ -74,12 +74,12 @@ export function welcomeMail(input: {
   const en = l === "en";
   const booked = input.bookedSunday ? mailSunday(input.bookedSunday, l) : null;
   return {
-    subject: en ? "Welcome, you are a member" : "Welkom als lid",
+    subject: en ? "Welcome, you are a club member" : "Welkom als club member",
     props: {
       locale: l,
       preview: en ? "Every Sunday Social is now included." : "Elke Sunday Social is nu inbegrepen.",
       greeting: greeting(l, input.firstName),
-      headline: en ? "Welcome, you are a member" : "Welkom als lid",
+      headline: en ? "Welcome, you are a club member" : "Welkom als club member",
       body: en
         ? "Lovely to have you. From now on you can join every Sunday Social, in every city."
         : "Fijn dat je erbij bent. Vanaf nu schuif je aan bij elke Sunday Social, in elke stad.",
@@ -89,7 +89,7 @@ export function welcomeMail(input: {
           : `Je plek op ${booked} staat vast. De bevestiging krijg je in een aparte mail. Elke volgende zondag boek je zelf, in je account.`
         : undefined,
       details: {
-        label: en ? "Your membership" : "Je lidmaatschap",
+        label: en ? "Your club membership" : "Je club membership",
         lines: [planName(plan, l), planPriceLine(plan, l)],
       },
       infoHeading: en ? "What you get" : "Wat je krijgt",
@@ -112,8 +112,8 @@ export function welcomeMail(input: {
           icon: "clock",
           title: en ? "First to book" : "Als eerste boeken",
           description: en
-            ? "As a member you book 2 days before a table opens for everyone."
-            : "Als lid boek je 2 dagen voordat een tafel voor iedereen opengaat.",
+            ? "As a club member you book 2 days before a table opens for everyone."
+            : "Als club member boek je 2 dagen voordat een tafel voor iedereen opengaat.",
         },
         {
           icon: "people",
@@ -154,15 +154,15 @@ export function reminderMail(input: {
   const date = mailDate(input.from, l);
   const amount = `€${formatPlanEuros(getMembershipPlan(input.plan).monthlyCents, l)}`;
   return {
-    subject: en ? "Your membership continues monthly soon" : "Je lidmaatschap loopt straks per maand door",
+    subject: en ? "Your club membership continues monthly soon" : "Je club membership loopt straks per maand door",
     props: {
       locale: l,
-      preview: en ? `From ${date} your membership continues at ${amount} per month.` : `Vanaf ${date} loopt je lidmaatschap door voor ${amount} per maand.`,
+      preview: en ? `From ${date} your club membership continues at ${amount} per month.` : `Vanaf ${date} loopt je club membership door voor ${amount} per maand.`,
       greeting: greeting(l, input.firstName),
       headline: en ? "Your first period ends soon" : "Je eerste periode loopt bijna af",
       body: en
-        ? `Your membership continues monthly from ${date} at ${amount}. You can cancel any time in your settings.`
-        : `Je lidmaatschap loopt vanaf ${date} per maand door voor ${amount}. Opzeggen kan altijd in je instellingen.`,
+        ? `Your club membership continues monthly from ${date} at ${amount}. You can cancel any time in your settings.`
+        : `Je club membership loopt vanaf ${date} per maand door voor ${amount}. Opzeggen kan altijd in je instellingen.`,
       cta: {
         href: input.links.settings,
         label: en ? "Go to your settings →" : "Naar je instellingen →",
@@ -185,12 +185,12 @@ export function cancelledMail(input: {
     subject: en ? "Cancellation confirmed" : "Opzegging bevestigd",
     props: {
       locale: l,
-      preview: en ? `You are a member until ${date}.` : `Je bent lid tot ${date}.`,
+      preview: en ? `You are a club member until ${date}.` : `Je bent club member tot ${date}.`,
       greeting: greeting(l, input.firstName),
       headline: en ? "Cancellation confirmed" : "Opzegging bevestigd",
       body: en
-        ? `You are a member until ${date}. Until then you simply book your Sundays. After that we will not charge you again.`
-        : `Je bent lid tot ${date}. Tot die tijd boek je gewoon je zondagen. Daarna schrijven we niets meer af.`,
+        ? `You are a club member until ${date}. Until then you simply book your Sundays. After that we will not charge you again.`
+        : `Je bent club member tot ${date}. Tot die tijd boek je gewoon je zondagen. Daarna schrijven we niets meer af.`,
       warmLine: en ? "Changed your mind? You can undo it in your settings." : "Toch van gedachten veranderd? In je instellingen draai je het terug.",
       cta: {
         href: input.links.kies,
@@ -221,8 +221,8 @@ export function noShowWarningMail(input: {
         ? `You were not at the table on ${day}. That can happen. If you cannot make it, cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before. Then someone else can join.`
         : `Je was er ${day} niet bij. Dat kan gebeuren. Kun je een keer niet, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen. Dan kan iemand anders aanschuiven.`,
       warmLine: en
-        ? "If it happens again without cancelling, you cannot book for a month. Your membership continues as usual."
-        : "Gebeurt het nog een keer zonder afzeggen, dan kun je een maand niet boeken. Je lidmaatschap loopt dan gewoon door.",
+        ? "If it happens again without cancelling, you cannot book for a month. Your club membership continues as usual."
+        : "Gebeurt het nog een keer zonder afzeggen, dan kun je een maand niet boeken. Je club membership loopt dan gewoon door.",
       cta: {
         href: input.links.settings,
         label: en ? "Your reservations →" : "Je reserveringen →",
@@ -253,7 +253,7 @@ export function noShowBlockedMail(input: {
       body: en
         ? `You were not at the table on ${day}, and it was not the first time. So for a month you cannot book a table. From ${until} you can book again.`
         : `Je was er ${day} niet bij, en het was niet de eerste keer. Daarom kun je een maand geen tafel boeken. Vanaf ${until} kun je weer boeken.`,
-      warmLine: en ? "Your membership continues as usual." : "Je lidmaatschap loopt gewoon door.",
+      warmLine: en ? "Your club membership continues as usual." : "Je club membership loopt gewoon door.",
       note: en
         ? `Cannot make it next time? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before.`
         : `Kun je een volgende keer niet? Zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen.`,

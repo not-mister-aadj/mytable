@@ -173,7 +173,7 @@ export async function bookAsMember(input: {
             currency: "eur",
             unit_amount: guestCents,
             product_data: {
-              name: en ? "Guest at your Sunday Social (member price)" : "Gast aan je Sunday Social (ledenprijs)",
+              name: en ? "Guest at your Sunday Social (club member price)" : "Gast aan je Sunday Social (prijs voor club members)",
               description: `${event.city} · MyTable`,
             },
           },

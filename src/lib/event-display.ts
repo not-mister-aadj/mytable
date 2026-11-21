@@ -73,13 +73,12 @@ export function tableSpotsLeft(
   return Math.min(atTable, left);
 }
 
-/** "Nog 2 plekken aan deze tafel": the table being filled, so it never
- * reads as if the whole afternoon is nearly full. */
+/** "Nog 2 plekken": the seats left at the table being filled. */
 export function formatTableSpotsLeftHint(spotsLeft: number, locale: Locale): string {
   if (locale === "nl") {
-    return spotsLeft === 1 ? "Nog 1 plek aan deze tafel" : `Nog ${spotsLeft} plekken aan deze tafel`;
+    return spotsLeft === 1 ? "Nog 1 plek" : `Nog ${spotsLeft} plekken`;
   }
-  return spotsLeft === 1 ? "1 seat left at this table" : `${spotsLeft} seats left at this table`;
+  return spotsLeft === 1 ? "1 seat left" : `${spotsLeft} seats left`;
 }
 
 /** From this many days before the Sunday the chip counts the table being
@@ -115,11 +114,11 @@ export function seatUrgency(input: {
   const days = (new Date(input.startsAt).getTime() - input.now) / 86_400_000;
   if (days <= TABLE_COUNT_FROM_DAYS) {
     const atTable = tableSpotsLeft(input.capacity, input.spotsSold);
-    if (atTable === 1) return { text: nl ? "Laatste plek aan deze tafel" : "Last seat at this table", last: true };
+    if (atTable === 1) return { text: nl ? "Nog 1 plek" : "1 seat left", last: true };
     return { text: formatTableSpotsLeftHint(atTable, input.locale), last: false };
   }
   if (input.spotsSold < 1 || left > EVENT_COUNT_FROM_SEATS) return null;
-  if (left === 1) return { text: nl ? "Laatste plek" : "Last seat", last: true };
+  if (left === 1) return { text: nl ? "Nog 1 plek" : "1 seat left", last: true };
   return { text: nl ? `Nog ${left} plekken` : `${left} seats left`, last: false };
 }
 

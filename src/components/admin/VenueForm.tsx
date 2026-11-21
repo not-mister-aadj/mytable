@@ -82,6 +82,10 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           defaultValue={venue?.atmosphere ?? ""}
           hint="Bijv. Chef's special, Wijnbar"
         />
+        <label className="flex items-center gap-2 text-sm font-medium text-wine">
+          <input type="checkbox" name="partner" defaultChecked={venue?.partner ?? false} className="h-4 w-4" />
+          Partner (staat in de partnerselectie op de Sunday Social-pagina)
+        </label>
         <Field
           label="Adres"
           name="address"

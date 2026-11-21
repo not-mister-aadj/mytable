@@ -125,6 +125,8 @@ export type BoardGuest = {
    * does not work out; null without the wish. */
   ladies: "strict" | "mixed_ok" | null;
   groupId: string | null;
+  /** The bar a member picked when booking; null without a pick. */
+  preferredVenueId: string | null;
   email: string;
   plusOneName: string | null;
   /** Cancelled on the table page: when, our note, and the Sunday mails
@@ -161,7 +163,7 @@ export type EventBoard = {
     /** Within two days: a venue without picks needs them now. */
     picksDueSoon: boolean;
   };
-  venues: { id: string; name: string; address: string | null; picks: VenuePick[] }[];
+  venues: { id: string; name: string; address: string | null; picks: VenuePick[]; seats: number | null }[];
   groups: BoardGroup[];
   guests: BoardGuest[];
   /** Venues in the same city that can still be added. */
@@ -175,6 +177,7 @@ type GuestRow = {
   seats: number;
   membership_id: string | null;
   group_id: string | null;
+  preferred_venue_id: string | null;
   dietary_notes: string | null;
   table_language_preference: string | null;
   birth_date: string | null;
@@ -206,7 +209,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
 
   const [linked, groupRows, guestRows, cityVenues] = await Promise.all([
     db
-      .select({ id: venues.id, name: venues.name, address: venues.address, picks: venues.picks })
+      .select({ id: venues.id, name: venues.name, address: venues.address, picks: venues.picks, seats: eventVenues.seats })
       .from(eventVenues)
       .innerJoin(venues, eq(eventVenues.venueId, venues.id))
       .where(eq(eventVenues.eventId, eventId))
@@ -217,7 +220,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       .where(eq(eventGroups.eventId, eventId))
       .orderBy(asc(eventGroups.number)),
     db.execute(sql`
-      select b.id, b.customer_name, b.email, b.seats, b.membership_id, b.group_id, b.dietary_notes,
+      select b.id, b.customer_name, b.email, b.seats, b.membership_id, b.group_id, b.preferred_venue_id, b.dietary_notes,
              b.table_language_preference, b.birth_date::text as birth_date, b.age_preference,
              b.intro_plus_one_name, b.intro_conversation_style, b.intro_ask_me_about, b.intro_favorite_spot,
              b.intro_into_now, b.intro_wine, b.intro_share_consent, b.intro_answered_at::text as intro_answered_at,
@@ -265,6 +268,7 @@ export async function loadEventBoard(eventId: string, now = Date.now()): Promise
       dietary: g.dietary_notes?.trim() || null,
       ladies: girlsOnlyWish(answers),
       groupId: g.group_id,
+      preferredVenueId: g.preferred_venue_id,
       email: g.email,
       plusOneName: g.seats >= 2 ? g.intro_plus_one_name?.trim() || null : null,
       cancelled: g.cancelled_late_at

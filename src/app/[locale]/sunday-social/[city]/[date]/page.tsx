@@ -1,4 +1,3 @@
-import { venueAbout } from "@/lib/venue-about";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SundayTableEventReveal } from "@/components/sunday-table-lp/SundayTableEventReveal";
@@ -11,6 +10,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import {
   isValidLocale,
+  jouwTafelMembershipPath,
   localePath,
   sundayTableLocationPath,
   sundayTableLpCityPath,
@@ -25,6 +25,7 @@ import {
   sundaySocialCityFromSlug,
 } from "@/lib/sunday-social-tables";
 import { getSundayTableLocation } from "@/lib/sunday-table-locations";
+import { getCityPartners, type PartnerVenue } from "@/lib/partner-venues";
 import {
   formatSundayTableDate,
   formatSundayTableTime,
@@ -148,34 +149,6 @@ function buildVenueHeroImages(
   ];
 }
 
-
-/** Google rating per venue, curated by hand like the photos above. Venues
- * without a verified rating show none, so a new venue never borrows another
- * venue's reviews. */
-function venueGoogleRating(venueName: string, locale: Locale) {
-  if (venueName === "Bar Juni Rotterdam") {
-    return {
-      score: "4.9",
-      label: locale === "en" ? "123 Google reviews" : "123 reviews op Google",
-      href: "https://www.google.com/maps/search/?api=1&query=Juni+Rotterdam",
-    };
-  }
-  if (venueName === "Bar Cava") {
-    return {
-      score: "4.6",
-      label: locale === "en" ? "785 Google reviews" : "785 reviews op Google",
-      href: "https://www.google.com/maps/search/?api=1&query=Bar+Cava+Utrecht",
-    };
-  }
-  if (venueName === "Vino Victoria") {
-    return {
-      score: "4.9",
-      label: locale === "en" ? "120 Google reviews" : "120 reviews op Google",
-      href: "https://www.google.com/maps/search/?api=1&query=Vino+Victoria+Eindhoven",
-    };
-  }
-  return null;
-}
 
 /** The seat chip as of this request (see `seatUrgency`). */
 function seatChipNow(event: { capacity: number; spotsSold: number }, startsAt: string | null, locale: Locale) {
@@ -307,26 +280,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isValidLocale(locale)) return {};
   const found = await loadSundaySocial(citySlug, date, locale as Locale);
   if (!found) return {};
-  const { city, table, location, ticketEvent, comingSoon, venueKnown } = found;
+  const { city, table, ticketEvent } = found;
   const ageBracket = ageBracketFromEventName(
     locale === "en" ? ticketEvent.nameEn : ticketEvent.nameNl,
   );
   const bracketSuffix = ageBracket ? ` · ${ageBracket}` : "";
   const dateLabel = formatSundayTableDate(table, locale as Locale);
-  const title = comingSoon || !venueKnown
-    ? locale === "en"
-      ? `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
-      : `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`
-    : locale === "en"
-      ? `Sunday Social${bracketSuffix} · ${dateLabel} at ${location.venueName} | MyTable`
-      : `Sunday Social${bracketSuffix} · ${dateLabel} bij ${location.venueName} | MyTable`;
-  const description = comingSoon || !venueKnown
-    ? locale === "en"
-      ? `Sunday Social in ${city.name} on ${dateLabel}, at a wine spot we pick once we know who is coming.`
-      : `Sunday Social in ${city.name} op ${dateLabel}, op een wijnlocatie die we kiezen als we weten wie er komen.`
-    : locale === "en"
-      ? `Join Sunday Social in ${city.name} on ${dateLabel}, at ${location.venueName}.`
-      : `Schuif aan bij Sunday Social in ${city.name} op ${dateLabel}, bij ${location.venueName}.`;
+  // The bar is never named here: the page shows the partner selection.
+  const title = `Sunday Social${bracketSuffix} · ${dateLabel} in ${city.name} | MyTable`;
+  const description =
+    locale === "en"
+      ? `Sunday Social in ${city.name} on ${dateLabel}, at one of our partner wine bars.`
+      : `Sunday Social in ${city.name} op ${dateLabel}, bij een van onze partner-wijnbars.`;
   return { title, description };
 }
 
@@ -336,7 +301,8 @@ export default async function SundayTableEventPage({ params }: Props) {
   const locale = localeParam as Locale;
   const found = await loadSundaySocial(citySlug, date, locale);
   if (!found) notFound();
-  const { city, table, location, ticketEvent, comingSoon, venueKnown, venueArea, memberOpensAt, startsAt, spotsLeft } = found;
+  const { city, table, ticketEvent, comingSoon, memberOpensAt, startsAt, spotsLeft } = found;
+  const partners = await getCityPartners(city.name);
   // Filled a table at a time: the seats left at the table being filled
   // always show.
   // Far ahead the Sunday's own count, from four weeks the table being filled;
@@ -366,23 +332,15 @@ export default async function SundayTableEventPage({ params }: Props) {
     dateLabel.slice(1);
   const timeLabel = formatSundayTableTime(locale);
   const pageUrl = absoluteUrl(sundayTableLocationPath(locale, city.slug, date));
-  const heroImages = buildVenueHeroImages(
-    location.venueName,
-    ticketEvent.imageUrl,
-    locale,
-  );
-  const venue = venueAbout(
-    location.venueName,
-    location.address,
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      `${location.venueName}, ${location.address}`,
-    )}`,
-    locale,
-  );
   const en = locale === "en";
-  const venueLabel = venue ? venue.about.name : null;
-  // The venue's own name once it is known (an address is set), for the FAQ.
-  const menuVenue = location.address ? location.venueName : null;
+  // The partner bars of this city, their photos as the slideshow; the bar
+  // itself is never named on this page.
+  const partnerImages = partners
+    .filter((p): p is PartnerVenue & { imageUrl: string } => Boolean(p.imageUrl))
+    .map((p) => ({ src: p.imageUrl, alt: en ? `${p.name}, one of our partners` : `${p.name}, een van onze partners` }));
+  const heroImages = partnerImages.length > 0 ? partnerImages : buildVenueHeroImages("", ticketEvent.imageUrl, locale);
+  const venueLabel: string | null = null;
+  const menuVenue: string | null = null;
   const venueTeam = en
     ? venueLabel
       ? `the team at ${venueLabel}`
@@ -433,30 +391,31 @@ export default async function SundayTableEventPage({ params }: Props) {
   // No wine bar yet: the heading is the date and city, and the page says
   // when the venue follows (7 days before) and why it is not named yet.
   const revealDate = formatSundayTableDate(new Date(table.getTime() - 7 * 24 * 60 * 60 * 1000), locale);
-  const venuePending = venueKnown
-    ? null
-    : {
-        heading: venueArea ? `${capitalizedDate} in ${venueArea}, ${city.name}` : `${capitalizedDate} in ${city.name}`,
-        city: venueArea ? `${venueArea}, ${city.name}` : city.name,
-        note: venueArea
-          ? en
-            ? `A wine spot in ${venueArea}. You'll hear which by ${revealDate}`
-            : `Een wijnlocatie in ${venueArea}. Welke hoor je uiterlijk ${revealDate}`
-          : en
-            ? `You'll hear the venue by ${revealDate}`
-            : `De locatie hoor je uiterlijk ${revealDate}`,
-        title: en ? "Why the venue isn't named yet" : "Waarom de locatie nog niet bekend is",
-        body: en
-          ? `We choose from a few wine spots in ${venueArea ?? "the city"}. Which one it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before.`
-          : `We kiezen uit een paar wijnlocaties in ${venueArea ?? "de stad"}. Welke het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail.`,
-      };
+  const venuePending = {
+    heading: `${capitalizedDate} in ${city.name}`,
+    city: en ? "At one of our partners" : "Bij een van onze partners",
+    note: en ? `Where, you'll hear by ${revealDate}` : `Waar, hoor je uiterlijk ${revealDate}`,
+  };
   const pendingFaq = {
-    question: en ? "Why isn't the venue named yet?" : "Waarom staat de locatie er nog niet bij?",
-    answer: venuePending ? venuePending.body : "",
+    question: en ? "Where is it?" : "Waar is het?",
+    answer: en
+      ? `At one of our partner bars in ${city.name}. Which bar it is, and which table you sit at, we decide once we know who is coming. You'll get the venue by email at least 7 days before. Members see where we reserved when they book, and pick their bar themselves.`
+      : `Bij een van onze partner-bars in ${city.name}. Welke bar het wordt en aan welke tafel je zit, bepalen we als we weten wie er komen. Uiterlijk 7 dagen van tevoren krijg je de locatie per mail. Leden zien bij het boeken waar we gereserveerd hebben en kiezen zelf hun bar.`,
+  };
+  const partnerSelection = {
+    eyebrow: en ? `Our partner selection in ${city.name}` : `Onze partnerselectie in ${city.name}`,
+    title: en ? "Bars we pick ourselves" : "Bars die wij zelf uitkiezen",
+    body: en
+      ? "No tourist spots, only places where we like to sit ourselves. Each Sunday we reserve at one or more of these bars."
+      : "Geen toeristische zaken, alleen plekken waar we zelf graag zitten. Per zondag reserveren we bij een of meer van deze bars.",
+    memberTitle: en ? "Members see where we reserved" : "Als lid zie je waar we gereserveerd hebben",
+    memberBody: en ? "And pick which bar you join yourself." : "En kies je zelf aan welke bar je aanschuift.",
+    memberCta: en ? "Become a member" : "Word lid",
+    memberHref: jouwTafelMembershipPath(locale),
+    partners: partners.map((p) => ({ id: p.id, name: p.name, area: p.area, atmosphere: p.atmosphere, imageUrl: p.imageUrl })),
   };
 
-  const daySteps: DaySteps = venuePending
-    ? {
+  const daySteps: DaySteps = {
         eyebrow: en ? "In four steps" : "In vier stappen",
         title: en ? "How it works" : "Zo werkt het",
         steps: [
@@ -483,31 +442,7 @@ export default async function SundayTableEventPage({ params }: Props) {
               : "Reken op twee tot drie uur. Of langer, als het klikt.",
           },
         ],
-      }
-    : {
-    eyebrow: en ? "In three steps" : "In drie stappen",
-    title: en ? "How it works" : "Zo werkt het",
-    steps: [
-      {
-        title: en ? "Pick your Sunday" : "Kies je zondag",
-        body: en
-          ? "Your ticket reserves a seat at one of our tables."
-          : "Met je ticket reserveer je een plek aan een van onze tafels.",
-      },
-      {
-        title: en ? "Walk in, your table is ready" : "Kom binnen, je tafel staat klaar",
-        body: en
-          ? `At 2:00 PM your table is waiting${venueLabel ? ` at ${venueLabel}` : ""}. Take a seat and pick a glass from the menu, or one of our MyTable picks.`
-          : `Om 14:00 staat je tafel${venueLabel ? ` bij ${venueLabel}` : ""} klaar. Schuif aan en kies een glas van de kaart, of een van onze MyTable-aanraders.`,
-      },
-      {
-        title: en ? "Stay as long as you like" : "Blijf zo lang je wilt",
-        body: en
-          ? "Plan for two to three hours. Or longer, if it clicks."
-          : "Reken op twee tot drie uur. Of langer, als het klikt.",
-      },
-    ],
-  };
+      };
 
   // Under the buy button, so its length never pushes the button out of view.
   // Four ticks plus the note, one thing per line.
@@ -539,7 +474,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           eyebrow: `Sunday Social · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           introLead: "Good wine tastes better in good company.",
           intro:
-            "MyTable is a wine club for people who love a good glass and a good conversation. We pick the venue and reserve several tables there. You join one of those tables, with four to six easygoing people your own age.",
+            "MyTable is a wine club for people who love a good glass and a good conversation. We reserve tables at one of our partner bars. You join one of those tables, with four to six easygoing people your own age.",
           detailsLabel: "Details",
           dateFieldLabel: "Date",
           venueFieldLabel: "Venue",
@@ -577,7 +512,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           },
           shareLabel: "Share",
           shareCopiedLabel: "Link copied",
-          shareTitle: venuePending ? `Sunday Social · ${dateLabel} in ${city.name}` : `Sunday Social · ${dateLabel} at ${location.venueName}`,
+          shareTitle: `Sunday Social · ${dateLabel} in ${city.name}`,
           statsEyebrow: "Why people come to MyTable",
           statsTitle: "Sound familiar? Here's what we see across all our events",
           stats: [
@@ -630,7 +565,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           eyebrow: `Sunday Social · ${city.name}${ageBracket ? ` · ${ageBracket}` : ""}`,
           introLead: "Goede wijn smaakt beter in goed gezelschap.",
           intro:
-            "MyTable is een wijnclub voor mensen die houden van een mooi glas en een goed gesprek. Wij kiezen de locatie en reserveren er meerdere tafels. Jij schuift aan bij een van die tafels, met vier tot zes gezellige mensen van je leeftijd.",
+            "MyTable is een wijnclub voor mensen die houden van een mooi glas en een goed gesprek. Wij reserveren tafels bij een van onze partner-bars. Jij schuift aan bij een van die tafels, met vier tot zes gezellige mensen van je leeftijd.",
           detailsLabel: "Details",
           dateFieldLabel: "Datum",
           venueFieldLabel: "Locatie",
@@ -671,7 +606,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           },
           shareLabel: "Delen",
           shareCopiedLabel: "Link gekopieerd",
-          shareTitle: venuePending ? `Sunday Social · ${dateLabel} in ${city.name}` : `Sunday Social · ${dateLabel} bij ${location.venueName}`,
+          shareTitle: `Sunday Social · ${dateLabel} in ${city.name}`,
           statsEyebrow: "Waarom mensen bij MyTable komen",
           statsTitle: "Herkenbaar? Dit blijkt uit de data van al onze events",
           stats: [
@@ -743,9 +678,8 @@ export default async function SundayTableEventPage({ params }: Props) {
           locale={locale}
           dateLabel={capitalizedDate}
           timeLabel={timeLabel}
-          venueName={location.venueName}
-          address={location.address}
           venuePending={venuePending}
+          partnerSelection={partnerSelection}
           heroImages={heroImages}
           introLead={copy.introLead}
           intro={copy.intro}
@@ -763,7 +697,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           stats={copy.stats}
           faqEyebrow={copy.faqEyebrow}
           faqTitle={copy.faqTitle}
-          faqItems={venuePending ? [pendingFaq, ...copy.faqItems] : copy.faqItems}
+          faqItems={[pendingFaq, ...copy.faqItems]}
           eventId={ticketEvent.id}
           spotsLeft={spotsLeft}
           showSpotsCount={showSpotsCount}
@@ -798,10 +732,8 @@ export default async function SundayTableEventPage({ params }: Props) {
           perSeatLabel={locale === "en" ? "per seat" : "per plek"}
           cityName={city.name}
           englishComingSoon={copy.englishComingSoon}
-          googleRating={venueGoogleRating(location.venueName, locale)}
           highlights={highlights}
           daySteps={daySteps}
-          venueAbout={venue?.about ?? null}
           included={included}
           sectionNavLabels={
             en
@@ -809,7 +741,7 @@ export default async function SundayTableEventPage({ params }: Props) {
                   overview: "Overview",
                   highlights: "Highlights",
                   howItWorks: "How it works",
-                  venue: "Venue",
+                  venue: "Partners",
                   reviews: "Reviews",
                   faq: "FAQ",
                   share: "Share",
@@ -819,7 +751,7 @@ export default async function SundayTableEventPage({ params }: Props) {
                   overview: "Overzicht",
                   highlights: "Hoogtepunten",
                   howItWorks: "Zo werkt het",
-                  venue: "Locatie",
+                  venue: "Partners",
                   reviews: "Ervaringen",
                   faq: "Vragen",
                   share: "Delen",

@@ -11,6 +11,7 @@ import {
   removeEventVenueAction,
   removeGroupAction,
   saveCancelNoteAction,
+  saveEventVenueSeatsAction,
   setGroupsFinalAction,
 } from "@/app/admin/(dashboard)/jouw-tafel/[id]/actions";
 import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
@@ -138,6 +139,13 @@ export function JouwTafelBoard({
           {g.seats > 1 ? <span className="font-normal text-wine/55"> + {g.plusOneName ?? g.seats - 1}</span> : null}
         </button>
         <GuestHistoryChips bookingId={g.bookingId} />
+        {g.preferredVenueId ? (
+          <p className="mt-1">
+            <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[11px] font-semibold text-wine">
+              Kiest {venueName.get(g.preferredVenueId) ?? "een andere bar"}
+            </span>
+          </p>
+        ) : null}
         {g.ladies ? (
           <p className="mt-1">
             <span className="rounded-full bg-rose/20 px-2 py-0.5 text-[11px] font-semibold text-rose-deep">
@@ -319,6 +327,26 @@ export function JouwTafelBoard({
                 <div>
                   <p className="font-serif text-lg text-burgundy">{venue.name}</p>
                   {venue.address ? <p className="text-xs text-wine/50">{venue.address}</p> : null}
+                  <label className="mt-1 flex items-center gap-1.5 text-xs text-wine/60">
+                    Plekken
+                    <input
+                      type="number"
+                      min={1}
+                      defaultValue={venue.seats ?? ""}
+                      placeholder="–"
+                      disabled={pending}
+                      className="w-14 rounded-md border border-border-subtle bg-white px-1.5 py-0.5 text-xs text-wine"
+                      onBlur={(e) => {
+                        const raw = e.currentTarget.value.trim();
+                        const next = raw ? Number(raw) : null;
+                        if (next === venue.seats) return;
+                        run(() => saveEventVenueSeatsAction(event.id, venue.id, next));
+                      }}
+                    />
+                    <span>
+                      · {board.guests.filter((x) => x.preferredVenueId === venue.id && !x.cancelled).reduce((n, x) => n + x.seats, 0)} gekozen
+                    </span>
+                  </label>
                 </div>
                 <div className="flex gap-1.5">
                   <button

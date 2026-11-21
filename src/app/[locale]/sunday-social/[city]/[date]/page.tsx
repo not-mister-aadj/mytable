@@ -408,12 +408,14 @@ export default async function SundayTableEventPage({ params }: Props) {
     body: en
       ? "No tourist spots, only places where we like to sit ourselves. Each Sunday we reserve at one or more of these bars. Which bar you're at, you'll hear 7 days before."
       : "Geen toeristische zaken, alleen plekken waar we zelf graag zitten. Per zondag reserveren we bij een of meer van deze bars. Bij welke bar jij zit, hoor je 7 dagen van tevoren.",
-    memberTitle: en ? "A member? Then you pick your bar" : "Lid? Dan kies je zelf je bar",
+    memberTitle: en ? "A member? Then you pick your bar." : "Lid? Dan kies je zelf je bar.",
     memberBody: en
       ? "Members see in advance where we reserved, and choose which bar they join."
       : "Leden zien vooraf waar we gereserveerd hebben en kiezen zelf bij welke bar ze aanschuiven.",
     memberCta: en ? "Become a member" : "Word lid",
     memberHref: jouwTafelMembershipPath(locale),
+    prevLabel: en ? "Previous" : "Vorige",
+    nextLabel: en ? "Next" : "Volgende",
     partners: partners.map((p) => ({ id: p.id, name: p.name, area: p.area, atmosphere: p.atmosphere, imageUrl: p.imageUrl })),
   };
 

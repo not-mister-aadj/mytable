@@ -16,7 +16,7 @@ const RULES: Array<[RegExp, string]> = [
   [/^(Ze vonden je gezellig|They enjoyed your company)/i, "Gezellig"],
   [/^(Bekende gezichten|Familiar faces)/i, "Bekende gezichten"],
   [/^(Wil je nog uitnodigingen|Do you still want our invites)/i, "Nog uitnodigingen?"],
-  [/^(Over afgelopen zondag|About last Sunday|We hebben je gemist zondag)/i, "Niet gekomen"],
+  [/^(Over afgelopen zondag|About last Sunday|We hebben je gemist (zondag|op )|Late afmelding op |Late cancellation for )/i, "Niet gekomen"],
   [/(sollicitatie als MyTable Ambassador|application as a MyTable Ambassador)/i, "Sollicitatie"],
   [/^(Bevestigd|Confirmed):/i, "Bevestiging"],
   [/^Sunday (Social|Table) (bevestigd|confirmed)/i, "Bevestiging"],

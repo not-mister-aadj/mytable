@@ -62,8 +62,8 @@ export function missedSundayMail(input: {
   if (outcome.kind === "warning") {
     return props(
       en
-        ? "If you cancel at the last minute more often, your next ticket may cost a little more."
-        : "Zeg je vaker op het laatste moment af, dan kan je volgende ticket iets duurder worden.",
+        ? "If you cancel at the last minute more often, your next ticket may cost a little more. That way, together we keep the tables full and fun."
+        : "Zeg je vaker op het laatste moment af, dan kan je volgende ticket iets duurder worden. Zo zorgen we samen voor volle, gezellige tafels.",
     );
   }
   return props(

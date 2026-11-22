@@ -105,6 +105,8 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
   const area = String(data.get("area") ?? "").trim();
   const atmosphere = String(data.get("atmosphere") ?? "").trim();
   const address = String(data.get("address") ?? "").trim();
+  const mailIntroNl = String(data.get("mailIntroNl") ?? "").trim();
+  const mailIntroEn = String(data.get("mailIntroEn") ?? "").trim();
 
   if (!name || !city || !descriptionNl) {
     throw new Error("Naam, stad en beschrijving (NL) zijn verplicht.");
@@ -121,6 +123,8 @@ async function parseVenueForm(data: FormData, existing?: Venue) {
     address: address || null,
     descriptionNl,
     descriptionEn: descriptionEn || descriptionNl,
+    mailIntroNl: mailIntroNl || null,
+    mailIntroEn: mailIntroEn || null,
     imageUrl: imageUrl || DEFAULT_VENUE_IMAGE,
     imageMeta,
     galleryMeta,

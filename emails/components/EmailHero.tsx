@@ -1,12 +1,14 @@
 import { Heading, Img, Section, Text } from "@react-email/components";
+import type { ReactNode } from "react";
 import { emailBrand, emailFonts, emailType } from "../brand";
 import { emailIcons } from "../icons";
 import { EmailCard } from "./EmailCard";
 
 type Props = {
   greeting: string;
-  headline: string;
-  body: string;
+  /** Left out when the body opens strong enough on its own. */
+  headline?: string;
+  body: ReactNode;
   warmLine?: string;
 };
 
@@ -38,6 +40,7 @@ export function EmailHero({ greeting, headline, body, warmLine }: Props) {
       </Section>
       <Section>
         <Text style={{ ...emailType.body, margin: "0 0 8px" }}>{greeting}</Text>
+        {headline ? (
         <Heading
           as="h1"
           className="email-hero-headline"
@@ -52,6 +55,7 @@ export function EmailHero({ greeting, headline, body, warmLine }: Props) {
         >
           {headline}
         </Heading>
+        ) : null}
         <Text style={{ ...emailType.body, margin: warmLine ? "0 0 10px" : 0 }}>{body}</Text>
         {warmLine ? (
           <Text

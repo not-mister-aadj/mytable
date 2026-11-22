@@ -70,6 +70,9 @@ export const venues = pgTable("venues", {
   picks: jsonb("picks").$type<unknown[]>().notNull().default([]),
   /** Shown in the partner selection on the Sunday Social page (drizzle/0073). */
   partner: boolean("partner").notNull().default(false),
+  /** The bar in a sentence or two, for the location mail (drizzle/0074). */
+  mailIntroNl: text("mail_intro_nl"),
+  mailIntroEn: text("mail_intro_en"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

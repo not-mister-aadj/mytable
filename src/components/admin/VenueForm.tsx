@@ -127,6 +127,16 @@ export function VenueForm({ venue }: { venue?: Venue }) {
           name="descriptionEn"
           defaultValue={venue?.descriptionEn ?? ""}
         />
+        <TextArea
+          label="In de locatiemail (NL)"
+          name="mailIntroNl"
+          defaultValue={venue?.mailIntroNl ?? ""}
+        />
+        <TextArea
+          label="In de locatiemail (EN)"
+          name="mailIntroEn"
+          defaultValue={venue?.mailIntroEn ?? ""}
+        />
 
         {galleryBusy ? (
           <p className="text-sm text-wine/60">

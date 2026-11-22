@@ -49,26 +49,35 @@ export function missedSundayMail(input: {
     : en
       ? "Was it something you couldn't help? Reply to this mail."
       : "Kon je er niets aan doen? Antwoord gerust op deze mail.";
+  // Why it matters, in the main text: an empty seat is felt by the whole table.
   const why = en
-    ? "We make every table around who is coming. To give everyone a good Sunday, and to keep cancelling from being misused,"
-    : "We delen elke tafel in op wie er komt. Om iedereen een fijne zondag te geven, en om misbruik van afmelden te voorkomen,";
-  const props = (warmLine: string, note: string) => ({
-    subject,
-    props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: first, warmLine, note },
-  });
-  if (outcome.kind === "warning") {
-    const who = late ? (en ? "cancels late more often" : "vaker kort van tevoren afzegt") : en ? "stays away more often without a word" : "vaker wegblijft zonder iets te laten weten";
-    return props(
-      en ? "Nothing changes for now. You're welcome at a next Sunday as always." : "Voor nu verandert er niets. Je bent gewoon welkom op een volgende zondag.",
-      en ? `${why} we charge a higher price to who ${who}. ${tip}` : `${why} rekenen we een hogere prijs voor wie ${who}. ${tip}`,
-    );
-  }
+    ? "We make every table around who is coming, so a seat left empty at short notice is felt by the whole table."
+    : "We delen elke tafel in op wie er komt. Een plek die kort van tevoren leeg blijft, merkt de hele tafel.";
   const normal = euros(input.normalCents);
   const more = euros(input.missCents);
+  const props = (warmLine: string) => ({
+    subject,
+    props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${why}`, warmLine, note: tip },
+  });
+  if (outcome.kind === "warning") {
+    const again = late
+      ? en
+        ? "cancel within 7 days again"
+        : "nog een keer binnen 7 dagen af"
+      : en
+        ? "stay away without a word again"
+        : "nog een keer weg zonder iets te laten weten";
+    return props(
+      en
+        ? `This time nothing changes. If you ${again}, your next seat is ${more} instead of ${normal}.`
+        : late
+          ? `Deze keer verandert er niets. Zeg je ${again}, dan kost je volgende plek ${more} in plaats van ${normal}.`
+          : `Deze keer verandert er niets. Blijf je ${again}, dan kost je volgende plek ${more} in plaats van ${normal}.`,
+    );
+  }
   return props(
     en
       ? `It wasn't the first time. That's why your next seat is ${more} instead of ${normal}. Once you've joined a Sunday, it's ${normal} again.`
       : `Het was niet de eerste keer. Daarom kost je volgende plek ${more} in plaats van ${normal}. Kom je, dan is het daarna weer ${normal}.`,
-    en ? `${why} we charge a higher price after a second time. ${tip}` : `${why} rekenen we na een tweede keer een hogere prijs. ${tip}`,
   );
 }

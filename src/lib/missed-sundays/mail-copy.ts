@@ -49,8 +49,8 @@ export function missedSundayMail(input: {
       ? `We missed you on ${day}. A shame, we'd have loved to have you there.`
       : `We hebben je gemist op ${day}. Jammer, we hadden je er graag bij gehad.`;
   const reassure = en
-    ? "Were you ill, or was it something you couldn't help? No worries, we completely understand. Just reply to this mail."
-    : "Was je ziek of kon je er echt niets aan doen? Geen zorgen, dat snappen we helemaal. Antwoord gerust op deze mail.";
+    ? "Were you ill, or was it something you couldn't help? No worries, we completely understand."
+    : "Was je ziek of kon je er echt niets aan doen? Geen zorgen, dat snappen we helemaal.";
   // The rule as a friendly tip, with the why: full, gezellige tables.
   const tip = en
     ? "Good to know: if you can't make it, you move to another Sunday for free until 7 days before. That keeps every table full and fun."

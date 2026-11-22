@@ -32,7 +32,14 @@ export function missedSundayMail(input: {
   const en = l === "en";
   const day = mailSunday(input.sunday, l);
   const late = kind === "late";
-  const subject = late ? (en ? "About last Sunday" : "Over afgelopen zondag") : en ? "We missed you on Sunday" : "We hebben je gemist zondag";
+  // Names the Sunday, so it reads as about their booking, not a newsletter.
+  const subject = late
+    ? en
+      ? `Your late cancellation for ${day}`
+      : `Je late afmelding voor ${day}`
+    : en
+      ? `We missed you on ${day}`
+      : `We hebben je gemist op ${day}`;
   const first = late
     ? en
       ? `You let us know shortly before ${day} that you couldn't come. Of course something can come up, we understand that.`

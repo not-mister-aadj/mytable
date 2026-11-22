@@ -15,6 +15,8 @@ import { feedbackUrl, loadFeedbackPage } from "@/lib/feedback";
 import { confirmUrl, moveUrl, tablePageUrl } from "@/lib/table-page";
 import { parseVenuePicks, type VenuePick } from "@/lib/venue-picks";
 import { venueTransit } from "@/lib/venue-about";
+import { bookingIcsAttachment } from "@/lib/booking-calendar";
+import { reservationCode } from "@/lib/booking-display";
 import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
 import { jouwTafelSettingsPath } from "@/i18n/config";
 
@@ -73,7 +75,15 @@ export type SundayMailContext = {
   eventId: string;
   city: string;
   startsAt: Date;
-  venue: { name: string; area: string | null; address: string; descriptionNl: string | null; descriptionEn: string | null } | null;
+  venue: {
+    name: string;
+    area: string | null;
+    address: string;
+    descriptionNl: string | null;
+    descriptionEn: string | null;
+    mailIntroNl: string | null;
+    mailIntroEn: string | null;
+  } | null;
   /** The picks of the Sunday's (first) venue. */
   picks: VenuePick[];
   /** Mails waiting at Resend for their send time. */
@@ -127,6 +137,8 @@ export async function loadSundayMailContext(eventId: string): Promise<SundayMail
       address: venues.address,
       descriptionNl: venues.descriptionNl,
       descriptionEn: venues.descriptionEn,
+      mailIntroNl: venues.mailIntroNl,
+      mailIntroEn: venues.mailIntroEn,
       picks: venues.picks,
     })
     .from(eventVenues)
@@ -385,7 +397,7 @@ async function composeSundayMail(
         time: time(ctx.startsAt),
         venueName: venue.name,
         area: venue.area,
-        venueIntro: shortIntro(nl ? venue.descriptionNl : venue.descriptionEn ?? venue.descriptionNl),
+        venueIntro: (nl ? venue.mailIntroNl : venue.mailIntroEn)?.trim() || shortIntro(nl ? venue.descriptionNl : venue.descriptionEn ?? venue.descriptionNl),
         opensForUs: OPENS_FOR_US.has(venue.name),
         city: ctx.city,
         address: venue.address,
@@ -395,6 +407,27 @@ async function composeSundayMail(
         answered: !guest.needsIntro,
         thisWeek,
       }),
+      // The invite from the confirmation (same UID), now with the bar's
+      // address; a confirmation made after this mail carries its own.
+      attachments: booked
+        ? undefined
+        : [
+            bookingIcsAttachment({
+              bookingId: guest.bookingId,
+              bookingCode: reservationCode(guest.bookingId),
+              eventName: "Sunday Social",
+              city: ctx.city,
+              startsAt: ctx.startsAt,
+              attendeeEmail: guest.email,
+              attendeeName: guest.firstName || undefined,
+              locale,
+              isSundayTable: true,
+              location: `${venue.name}, ${venue.address}`,
+              sequence: 1,
+              eventUrl: await tablePageUrl(guest.bookingId, locale),
+              organizerEmail: getEmailReplyTo(),
+            }),
+          ],
     };
   }
   if (kind === "feedback") {
@@ -512,7 +545,17 @@ async function composeSundayMail(
 
 /** A Sunday mail: designed (element), or plain text from a person-like sender
  * (lands in the inbox rather than Promotions). */
-export type SundayMail = { subject: string; element?: ReactElement; text?: string; html?: string; from?: string; meta?: MailMeta };
+export type MailAttachment = { filename: string; content: Buffer; contentType: string };
+export type SundayMail = {
+  subject: string;
+  element?: ReactElement;
+  text?: string;
+  html?: string;
+  from?: string;
+  meta?: MailMeta;
+  /** The location mail: an update of the calendar invite from the confirmation. */
+  attachments?: MailAttachment[];
+};
 
 const PLAIN_FROM = "MyTable <hallo@tafels.mytable.club>";
 
@@ -836,6 +879,7 @@ export async function sendSundayMail(to: string, mail: SundayMail, scheduledAt?:
           subject,
           text: mail.text,
           ...(mail.html ? { html: mail.html } : {}),
+          ...(mail.attachments ? { attachments: mail.attachments } : {}),
           ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
         },
         mail.meta ?? {},
@@ -843,11 +887,18 @@ export async function sendSundayMail(to: string, mail: SundayMail, scheduledAt?:
     );
     return error ? null : (data?.id ?? "sent");
   }
-  return sendRendered(to, subject, mail.element!, scheduledAt, mail.meta);
+  return sendRendered(to, subject, mail.element!, scheduledAt, mail.meta, mail.attachments);
 }
 
 /** Sends now, or at `scheduledAt`; the Resend id, or null when it failed. */
-export async function sendRendered(to: string, subject: string, element: ReactElement, scheduledAt?: Date, meta?: MailMeta): Promise<string | null> {
+export async function sendRendered(
+  to: string,
+  subject: string,
+  element: ReactElement,
+  scheduledAt?: Date,
+  meta?: MailMeta,
+  attachments?: MailAttachment[],
+): Promise<string | null> {
   const resend = getResendClient();
   if (!resend) return null;
   const { html, text } = await renderEmailForDelivery(element);
@@ -860,6 +911,7 @@ export async function sendRendered(to: string, subject: string, element: ReactEl
         subject,
         html,
         text,
+        ...(attachments ? { attachments } : {}),
         ...(scheduledAt ? { scheduledAt: scheduledAt.toISOString() } : {}),
       },
       meta ?? {},

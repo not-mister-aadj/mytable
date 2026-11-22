@@ -60,7 +60,8 @@ export async function sendSundayMailTestAction(eventId: string, kind: string, bo
   if (!guest) return { ok: false, error: "Nog geen gasten." };
   if (kind !== "location" && guest.groupNumber === null) return { ok: false, error: "Deze gast heeft nog geen groep." };
   const mail = await buildSundayMail(ctx, kind, guest);
-  const ok = await sendSundayMail(user.email!, mail, undefined, `[Test: mail van ${guest.firstName || "gast"}] ${mail.subject}`);
+  // No calendar invite in a test: it would land in the admin's own calendar.
+  const ok = await sendSundayMail(user.email!, { ...mail, attachments: undefined }, undefined, `[Test: mail van ${guest.firstName || "gast"}] ${mail.subject}`);
   return ok ? { ok: true, message: `Test verstuurd naar ${user.email}.` } : { ok: false, error: "Versturen lukte niet." };
 }
 

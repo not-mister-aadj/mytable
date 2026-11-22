@@ -21,7 +21,8 @@ export type SundayLocationEmailProps = {
   venueName: string;
   /** Neighbourhood, e.g. "Kralingen"; left out when unknown. */
   area: string | null;
-  /** One sentence about the venue, from its description; optional. */
+  /** The bar in a sentence or two: our own line for the mail, else the
+   * opening of its description; optional. */
   venueIntro?: string | null;
   /** The venue is closed at that hour and opens at the start time just for us. */
   opensForUs?: boolean;
@@ -102,6 +103,8 @@ function Step({ n, title, body, last }: { n: number; title: string; body: string
   );
 }
 
+const capitalize = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
+
 export function SundayLocationEmail(p: SundayLocationEmailProps) {
   const nl = p.locale !== "en";
   const greeting = nl
@@ -125,19 +128,24 @@ export function SundayLocationEmail(p: SundayLocationEmailProps) {
     >
       <EmailHero
         greeting={greeting}
-        headline={
-          p.booked
-            ? nl
-              ? `Je plek staat, tot zondag bij ${p.venueName}`
-              : `You're booked, see you Sunday at ${p.venueName}`
-            : nl
-              ? `${whenNl} bij ${p.venueName}`
-              : `${whenEn} at ${p.venueName}`
-        }
+        headline={p.booked ? (nl ? `Je plek staat, tot zondag bij ${p.venueName}` : `You're booked, see you Sunday at ${p.venueName}`) : undefined}
         body={
-          nl
-            ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.${p.venueIntro ? ` ${p.venueIntro}` : ""}${p.opensForUs ? ` Ze gaan speciaal voor ons om ${p.time} open.` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`
-            : `We're looking forward to it. Your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.${p.venueIntro ? ` ${p.venueIntro}` : ""}${p.opensForUs ? ` They open at ${p.time} especially for us.` : ""} Below you'll find where to go and how the afternoon works.`
+          p.booked ? (
+            nl
+              ? `We hebben er zin in. Je Sunday Social is bij ${p.venueName}${areaPhrase(p.area, true)}.${p.venueIntro ? ` ${p.venueIntro}` : ""}${p.opensForUs ? ` Ze gaan speciaal voor ons om ${p.time} open.` : ""} Hieronder lees je waar je moet zijn en hoe de middag gaat.`
+              : `We're looking forward to it. Your Sunday Social is at ${p.venueName}${areaPhrase(p.area, false)}.${p.venueIntro ? ` ${p.venueIntro}` : ""}${p.opensForUs ? ` They open at ${p.time} especially for us.` : ""} Below you'll find where to go and how the afternoon works.`
+          ) : (
+            <>
+              <strong style={{ color: emailBrand.burgundy }}>
+                {nl ? `Je bar is bekend: ${p.venueName}${areaPhrase(p.area, true)}.` : `Your bar is in: ${p.venueName}${areaPhrase(p.area, false)}.`}
+              </strong>
+              {p.venueIntro ? ` ${p.venueIntro}` : ""}
+              {p.opensForUs ? (nl ? ` Ze gaan speciaal voor ons om ${p.time} open.` : ` They open at ${p.time} especially for us.`) : ""}
+              {nl
+                ? ` ${capitalize(p.dateLabel)} om ${p.time} staat je tafel klaar.`
+                : ` ${capitalize(p.dateLabel)} at ${p.time}, your table will be ready.`}
+            </>
+          )
         }
       />
 

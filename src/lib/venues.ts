@@ -61,6 +61,8 @@ function withOptionalVenueFields(
     longitude: extra?.longitude ?? null,
     picks: extra?.picks ?? [],
     partner: (row as Partial<Venue>).partner ?? false,
+    mailIntroNl: (row as Partial<Venue>).mailIntroNl ?? null,
+    mailIntroEn: (row as Partial<Venue>).mailIntroEn ?? null,
   };
 }
 

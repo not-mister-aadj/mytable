@@ -53,8 +53,8 @@ export function missedSundayMail(input: {
     : "Was je ziek of kon je er echt niets aan doen? Geen zorgen, dat snappen we helemaal.";
   // Why it matters, the free way out, then what happens if it keeps happening.
   const why = en
-    ? "Good to know: our bars are often small and keep a few seats free for us. When a chair stays empty, the whole table notices, and so does the bar. Can't make it one time? Move your ticket up to 7 days before, that's free."
-    : "Goed om te weten: onze bars zijn vaak klein en houden een paar plekken voor ons vrij. Blijft een stoel leeg, dan merkt de hele tafel dat, en de bar ook. Kun je een keer niet? Verzet je ticket dan uiterlijk 7 dagen van tevoren, dat is gratis.";
+    ? "Good to know: our bars are often small and keep seats free for us. When a chair stays empty, the whole table notices, and so does the bar. Can't make it one time? Move your ticket up to 7 days before, that's free."
+    : "Goed om te weten: onze bars zijn vaak klein en houden plekken voor ons vrij. Blijft een stoel leeg, dan merkt de hele tafel dat, en de bar ook. Kun je een keer niet? Verzet je ticket dan uiterlijk 7 dagen van tevoren, dat is gratis.";
   const props = (rule: string) => ({
     subject,
     props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${reassure}`, warmLine: `${why} ${rule}` },

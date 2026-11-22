@@ -40,39 +40,35 @@ export function missedSundayMail(input: {
     : en
       ? `We missed you on ${day}`
       : `We hebben je gemist op ${day}`;
+  // Warm first: we missed them, and if they were ill there's nothing to worry about.
   const first = late
     ? en
-      ? `You let us know shortly before ${day} that you couldn't come. Of course something can come up, we understand that.`
-      : `Je liet kort voor ${day} weten dat je niet kon. Natuurlijk kan er iets tussen komen, dat snappen we.`
+      ? `You let us know shortly before ${day} that you couldn't come. A shame, we'd have loved to have you there.`
+      : `Je liet kort voor ${day} weten dat je niet kon. Jammer, we hadden je er graag bij gehad.`
     : en
-      ? `We missed you on ${day}. Of course something can come up, we understand that.`
-      : `We hebben je gemist op ${day}. Natuurlijk kan er iets tussen komen, dat snappen we.`;
-  const tip = late
-    ? en
-      ? "Until 7 days before, you move your seat for free."
-      : "Tot 7 dagen vooraf verzet je kosteloos."
-    : en
-      ? "Was it something you couldn't help? Reply to this mail."
-      : "Kon je er niets aan doen? Antwoord gerust op deze mail.";
-  // Why it matters, in the main text: an empty seat is a shame for the
-  // table and for the bar, which often keeps only a few seats for us.
-  const why = en
-    ? "We make every table around who is coming. An empty seat is a shame for your table, and for the bar, which often keeps only a few seats free for us."
-    : "We delen elke tafel in op wie er komt. Een lege plek is jammer voor je tafel, en voor de bar, die vaak maar een paar plekken voor ons vrijhoudt.";
-  const props = (warmLine: string) => ({
+      ? `We missed you on ${day}. A shame, we'd have loved to have you there.`
+      : `We hebben je gemist op ${day}. Jammer, we hadden je er graag bij gehad.`;
+  const reassure = en
+    ? "Were you ill, or was it something you couldn't help? No worries, we completely understand. Just reply to this mail."
+    : "Was je ziek of kon je er echt niets aan doen? Geen zorgen, dat snappen we helemaal. Antwoord gerust op deze mail.";
+  // The rule as a friendly tip, with the why: full, gezellige tables.
+  const tip = en
+    ? "Good to know: if you can't make it, you move to another Sunday for free until 7 days before. That keeps every table full and fun."
+    : "Goed om te weten: kun je een keer niet, dan verzet je tot 7 dagen vooraf kosteloos naar een andere zondag. Zo blijft elke tafel vol en gezellig.";
+  const props = (rule: string) => ({
     subject,
-    props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${why}`, warmLine, note: tip },
+    props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${reassure}`, warmLine: `${tip} ${rule}` },
   });
   if (outcome.kind === "warning") {
     return props(
       en
-        ? "This time nothing changes. If it happens more often, a somewhat higher price applies to your next seat. That way we keep every table full and fun, so when you join next time, nobody is missing either."
-        : "Deze keer verandert er niets. Gebeurt het vaker, dan geldt voor je volgende plek een iets hogere prijs. Zo houden we elke tafel vol en gezellig, en zit jij de volgende keer ook niet ineens met een lege stoel naast je.",
+        ? "Only if a late cancellation happens more often do we ask a little more for the next seat."
+        : "Alleen als een late afmelding vaker gebeurt, vragen we voor de volgende plek iets meer.",
     );
   }
   return props(
     en
-      ? "It wasn't the first time, so a somewhat higher price applies to your next seat. That way we keep every table full and fun, so when you join next time, nobody is missing either. Once you've joined a Sunday again, it's the usual price."
-      : "Het was niet de eerste keer, dus voor je volgende plek geldt een iets hogere prijs. Zo houden we elke tafel vol en gezellig, en zit jij de volgende keer ook niet ineens met een lege stoel naast je. Ben je er daarna weer bij, dan is het weer de gewone prijs.",
+      ? "As it wasn't the first time, we ask a little more for your next seat. After that Sunday, it's the usual price again."
+      : "Omdat het niet de eerste keer was, vragen we voor je volgende plek iets meer. Na die zondag is het weer de gewone prijs.",
   );
 }

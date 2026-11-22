@@ -51,27 +51,24 @@ export function missedSundayMail(input: {
   const reassure = en
     ? "Were you ill, or was it something you couldn't help? No worries, we completely understand."
     : "Was je ziek of kon je er echt niets aan doen? Geen zorgen, dat snappen we helemaal.";
-  // Why it matters, then what we may do, then the free way out.
+  // Why it matters, the free way out, then what happens if it keeps happening.
   const why = en
-    ? "Good to know: most bars are small and keep only a few seats free for us. An empty seat is a shame for your table and awkward for the bar, and next time they may not want to anymore."
-    : "Goed om te weten: de meeste bars zijn klein en houden maar een paar plekken voor ons vrij. Een lege plek is jammer voor je tafel en lastig voor de bar, en dan willen ze een volgende keer misschien niet meer.";
-  const plans = en
-    ? "Plans change, of course: until 7 days before, you move your ticket for free."
-    : "Plannen veranderen natuurlijk: tot 7 dagen vooraf verzet je je ticket kosteloos.";
+    ? "Good to know: our bars are often small and keep a few seats free for us. When a chair stays empty, the whole table notices, and so does the bar. Can't make it one time? Move your ticket up to 7 days before, that's free."
+    : "Goed om te weten: onze bars zijn vaak klein en houden een paar plekken voor ons vrij. Blijft een stoel leeg, dan merkt de hele tafel dat, en de bar ook. Kun je een keer niet? Verzet je ticket dan uiterlijk 7 dagen van tevoren, dat is gratis.";
   const props = (rule: string) => ({
     subject,
-    props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${reassure}`, warmLine: `${why} ${rule} ${plans}` },
+    props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${reassure}`, warmLine: `${why} ${rule}` },
   });
   if (outcome.kind === "warning") {
     return props(
       en
-        ? "If someone cancels at the last minute more often, we may raise the price or not offer a seat anymore."
-        : "Zegt iemand vaker op het laatste moment af, dan kunnen we de prijs verhogen of geen plek meer geven.",
+        ? "If you cancel at the last minute more often, your next ticket may cost a little more."
+        : "Zeg je vaker op het laatste moment af, dan kan je volgende ticket iets duurder worden.",
     );
   }
   return props(
     en
-      ? "As it wasn't the first time, we ask a little more for your next seat. After that Sunday, it's the usual price again."
-      : "Omdat het niet de eerste keer was, vragen we voor je volgende plek iets meer. Na die zondag is het weer de gewone prijs.",
+      ? "As it wasn't the first time, your next ticket costs a little more. After that, it's the usual price again."
+      : "Omdat het niet de eerste keer was, is je volgende ticket iets duurder. Daarna is het weer de gewone prijs.",
   );
 }

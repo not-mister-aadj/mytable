@@ -59,13 +59,13 @@ export function missedSundayMail(input: {
   if (outcome.kind === "warning") {
     return props(
       en
-        ? "This time nothing changes. If it happens more often, a somewhat higher price applies to your next seat."
-        : "Deze keer verandert er niets. Gebeurt het vaker, dan geldt voor je volgende plek een iets hogere prijs.",
+        ? "This time nothing changes. If it happens more often, a somewhat higher price applies to your next seat. That way we keep every table full and fun, so when you join next time, nobody is missing either."
+        : "Deze keer verandert er niets. Gebeurt het vaker, dan geldt voor je volgende plek een iets hogere prijs. Zo houden we elke tafel vol en gezellig, en zit jij de volgende keer ook niet ineens met een lege stoel naast je.",
     );
   }
   return props(
     en
-      ? "It wasn't the first time, so a somewhat higher price applies to your next seat. Once you've joined a Sunday again, it's the usual price."
-      : "Het was niet de eerste keer, dus voor je volgende plek geldt een iets hogere prijs. Ben je er daarna weer bij, dan is het weer de gewone prijs.",
+      ? "It wasn't the first time, so a somewhat higher price applies to your next seat. That way we keep every table full and fun, so when you join next time, nobody is missing either. Once you've joined a Sunday again, it's the usual price."
+      : "Het was niet de eerste keer, dus voor je volgende plek geldt een iets hogere prijs. Zo houden we elke tafel vol en gezellig, en zit jij de volgende keer ook niet ineens met een lege stoel naast je. Ben je er daarna weer bij, dan is het weer de gewone prijs.",
   );
 }

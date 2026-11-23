@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import type { MailMeta } from "@/lib/email/email-log";
 import { addMailUtm } from "@/lib/email/mail-utm";
+import { localLinkProblem } from "@/lib/email/local-link-guard";
 
 export const DEFAULT_EMAIL_FROM = "MyTable <info@mytable.club>";
 
@@ -67,6 +68,11 @@ function siteHost(): string[] {
 function withEmailLog(client: Resend): Resend {
   const send = client.emails.send.bind(client.emails);
   client.emails.send = (async (original, options) => {
+    const blocked = localLinkProblem(original as { to?: unknown; html?: unknown; text?: unknown });
+    if (blocked) {
+      console.error(`[email] ${blocked} To: ${String(original.to)} Subject: ${original.subject ?? ""}`);
+      return { data: null, error: { name: "validation_error", message: blocked, statusCode: 422 }, headers: null } as unknown as Awaited<ReturnType<typeof send>>;
+    }
     let payload = original;
     const firstTo = Array.isArray(original.to) ? original.to[0] : original.to;
     if (firstTo && typeof original.html === "string") {

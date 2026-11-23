@@ -11,6 +11,7 @@ import { getQuizCopy } from "@/lib/jouw-tafel/quiz-copy";
 import {
   QUIZ_METADATA_KEY,
   firstNameFromMetadata,
+  firstMissingStep,
   resolveStep,
   sanitizeQuizState,
 } from "@/lib/jouw-tafel/quiz-logic";
@@ -20,6 +21,8 @@ import { toClientMembership } from "@/lib/membership/logic";
 import { getBookedSeats } from "@/lib/jouw-tafel/account-server";
 import { loadBookedMatchCounts } from "@/lib/tafelvrienden/server";
 import { getProfilePhoto } from "@/lib/profile-photo";
+import { loadBuyerAnswers } from "@/lib/jouw-tafel/buyer-prefill";
+import { withBuyerAnswers } from "@/lib/jouw-tafel/buyer-answers";
 
 /** How long the quiz waits for data it can do without. */
 const OPTIONAL_DATA_MS = 4000;
@@ -60,9 +63,17 @@ export async function JouwTafelQuizPage({
   const personId = user ? user.id : person.kind === "guest" ? person.guest.id : "";
 
   const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
-  const state = user ? sanitizeQuizState(meta[QUIZ_METADATA_KEY]) : person.kind === "guest" ? person.guest.state : sanitizeQuizState(null);
+  const saved = user ? sanitizeQuizState(meta[QUIZ_METADATA_KEY]) : person.kind === "guest" ? person.guest.state : sanitizeQuizState(null);
+  // Bought a ticket before and the onboarding isn't done: skip it. What the
+  // table list needs comes from their bookings; their own answers win.
+  const buyerAnswers =
+    user?.email && firstMissingStep(saved.answers, { photo: true })
+      ? await withDbTimeout(loadBuyerAnswers(user.email), { ms: OPTIONAL_DATA_MS, fallback: null, label: "quiz buyer answers" }).catch(() => null)
+      : null;
+  const buyer = Boolean(buyerAnswers);
+  const state = buyerAnswers ? withBuyerAnswers(saved, buyerAnswers) : saved;
   const requested = firstParam(searchParams.stap);
-  const initialStep = resolveStep(requested, state.answers, { photo: Boolean(user) });
+  const initialStep = resolveStep(requested, state.answers, { photo: Boolean(user), buyer });
 
   // Right after signing in this is someone's first screen, so it never waits
   // on a slow database: what the quiz can do without gets OPTIONAL_DATA_MS,
@@ -124,6 +135,7 @@ export async function JouwTafelQuizPage({
       userId={personId}
       storageKey={`mytable_jt_quiz_${personId}`}
       guest={!user}
+      buyer={buyer}
       initialState={state}
       initialStep={initialStep}
       requestedStep={requested}

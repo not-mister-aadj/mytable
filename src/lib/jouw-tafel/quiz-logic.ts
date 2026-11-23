@@ -71,6 +71,7 @@ export const QUIZ_STEPS = [
   "dieet",
   "formats",
   "bron",
+  "foto",
   "stop-reviews",
   "klaar",
   "stop-twijfel",
@@ -248,8 +249,14 @@ export function emptyQuizState(): QuizState {
 /** The screens this person sees, in order: "Alleen" gets one stop, "Met
  * iemand" gets "Wie neem je mee?" and its stop instead; the table type
  * question only for women; "Nog niet zeker" gets one more stop. */
-export function quizSteps(answers: QuizAnswers): QuizStepId[] {
+export type StepOptions = {
+  /** Ask for a profile photo: only with an account, which holds the photo. */
+  photo?: boolean;
+};
+
+export function quizSteps(answers: QuizAnswers, opts: StepOptions = {}): QuizStepId[] {
   return QUIZ_STEPS.filter((step) => {
+    if (step === "foto") return Boolean(opts.photo);
     if (step === "tafeltype") return answers.gender === "female";
     if (step === "stop-alleen") return answers.companion !== "with";
     if (step === "stop-twijfel") return answers.ready === "unsure";
@@ -318,8 +325,8 @@ export function hasAnyAnswer(a: QuizAnswers): boolean {
 
 /** Whether a screen may be shown: it belongs to this person's path and every
  * question before it has an answer. */
-export function canShowStep(step: QuizStepId, a: QuizAnswers): boolean {
-  const steps = quizSteps(a);
+export function canShowStep(step: QuizStepId, a: QuizAnswers, opts: StepOptions = {}): boolean {
+  const steps = quizSteps(a, opts);
   const index = steps.indexOf(step);
   if (index < 0) return false;
   for (const earlier of steps.slice(0, index)) {
@@ -334,32 +341,32 @@ export function canShowStep(step: QuizStepId, a: QuizAnswers): boolean {
  * question. With no step: the intro for someone new, the first open
  * question for someone halfway, the table list for someone who is done.
  */
-export function resolveStep(requested: string | null | undefined, a: QuizAnswers): QuizStepId {
-  if (isQuizStepId(requested) && canShowStep(requested, a)) return requested;
+export function resolveStep(requested: string | null | undefined, a: QuizAnswers, opts: StepOptions = {}): QuizStepId {
+  if (isQuizStepId(requested) && canShowStep(requested, a, opts)) return requested;
   const missing = firstMissingStep(a);
   if (isQuizStepId(requested)) return missing ?? "kies";
   if (!missing) return "kies";
   return hasAnyAnswer(a) ? missing : "welkom";
 }
 
-export function nextStep(step: QuizStepId, a: QuizAnswers): QuizStepId | null {
-  const steps = quizSteps(a);
+export function nextStep(step: QuizStepId, a: QuizAnswers, opts: StepOptions = {}): QuizStepId | null {
+  const steps = quizSteps(a, opts);
   const index = steps.indexOf(step);
   return index >= 0 && index < steps.length - 1 ? steps[index + 1]! : null;
 }
 
 /** One screen back. The loader is skipped: back from the table list goes to
  * "Klaar om aan te schuiven?". */
-export function previousStep(step: QuizStepId, a: QuizAnswers): QuizStepId | null {
-  const steps = quizSteps(a);
+export function previousStep(step: QuizStepId, a: QuizAnswers, opts: StepOptions = {}): QuizStepId | null {
+  const steps = quizSteps(a, opts);
   let index = steps.indexOf(step) - 1;
   while (index >= 0 && steps[index] === "zoeken") index -= 1;
   return index >= 0 ? steps[index]! : null;
 }
 
 /** 0-based position and the total, for the progress bar and analytics. */
-export function stepPosition(step: QuizStepId, a: QuizAnswers): { index: number; total: number } {
-  const steps = quizSteps(a);
+export function stepPosition(step: QuizStepId, a: QuizAnswers, opts: StepOptions = {}): { index: number; total: number } {
+  const steps = quizSteps(a, opts);
   return { index: Math.max(0, steps.indexOf(step)), total: steps.length };
 }
 

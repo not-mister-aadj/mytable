@@ -62,7 +62,7 @@ export async function JouwTafelQuizPage({
   const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
   const state = user ? sanitizeQuizState(meta[QUIZ_METADATA_KEY]) : person.kind === "guest" ? person.guest.state : sanitizeQuizState(null);
   const requested = firstParam(searchParams.stap);
-  const initialStep = resolveStep(requested, state.answers);
+  const initialStep = resolveStep(requested, state.answers, { photo: Boolean(user) });
 
   // Right after signing in this is someone's first screen, so it never waits
   // on a slow database: what the quiz can do without gets OPTIONAL_DATA_MS,

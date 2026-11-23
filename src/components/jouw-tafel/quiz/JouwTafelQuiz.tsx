@@ -359,6 +359,9 @@ export function JouwTafelQuiz({
   const settle = useCallback(() => saver.settle(), [saver]);
   const flushOnExit = useCallback(() => saver.flushOnExit(), [saver]);
 
+  // The photo question needs the account, which holds the photo.
+  const stepOpts = useMemo(() => ({ photo: !guest }), [guest]);
+  const [photo, setPhoto] = useState<string | null>(photoUrl);
   const [quiz, setQuiz] = useState<QuizState>(initialState);
   const answers = quiz.answers;
   const quizRef = useRef(quiz);
@@ -367,9 +370,9 @@ export function JouwTafelQuiz({
   }, [quiz]);
   const urlStep = searchParams.get("stap");
   // Before the first effect the URL may still lack ?stap: use the server's.
-  const step: QuizStepId = urlStep ? resolveStep(urlStep, answers) : initialStep;
-  const steps = useMemo(() => quizSteps(answers), [answers]);
-  const position = stepPosition(step, answers);
+  const step: QuizStepId = urlStep ? resolveStep(urlStep, answers, stepOpts) : initialStep;
+  const steps = useMemo(() => quizSteps(answers, stepOpts), [answers, stepOpts]);
+  const position = stepPosition(step, answers, stepOpts);
   const progress = position.total > 1 ? position.index / (position.total - 1) : 0;
   // One bar per chapter: full behind you, filling where you are.
   const chapterFill = useMemo(() => {
@@ -395,7 +398,7 @@ export function JouwTafelQuiz({
 
   const common = useCallback(
     (s: QuizStepId, a: QuizAnswers) => {
-      const pos = stepPosition(s, a);
+      const pos = stepPosition(s, a, stepOpts);
       return {
         step_id: s,
         step_index: pos.index,
@@ -405,7 +408,7 @@ export function JouwTafelQuiz({
         quiz_version: QUIZ_VERSION,
       };
     },
-    [locale],
+    [locale, stepOpts],
   );
 
   const stepStartedAt = useRef(0);
@@ -493,13 +496,13 @@ export function JouwTafelQuiz({
   }, []);
 
   const goBack = useCallback(() => {
-    const prev = previousStep(step, answers);
+    const prev = previousStep(step, answers, stepOpts);
     if (!prev) return;
     trackQuizEvent(PostHogEvents.quizBackClicked, { ...common(step, answers), to_step: prev });
     const depth = Number((window.history.state as { quizDepth?: number } | null)?.quizDepth ?? 0);
     if (depth > 0) window.history.back();
     else go(prev, { replace: true });
-  }, [step, answers, common, go]);
+  }, [step, answers, common, go, stepOpts]);
 
   // ------------------------------------------------------------ answering
 
@@ -581,13 +584,13 @@ export function JouwTafelQuiz({
       advancing.current = true;
       const from = step;
       const next = commit(patch, from);
-      const target = nextStep(from, next.answers);
+      const target = nextStep(from, next.answers, stepOpts);
       if (!target) return;
       const delay = options?.delay ?? 0;
       if (delay) window.setTimeout(() => go(target), reduceMotion ? 0 : delay);
       else go(target);
     },
-    [commit, go, step, reduceMotion],
+    [commit, go, step, reduceMotion, stepOpts],
   );
 
   /** Intro and stops: nothing to answer, just on. */
@@ -606,9 +609,9 @@ export function JouwTafelQuiz({
       ...common(step, answers),
       ms_on_step: t - stepStartedAt.current,
     });
-    const target = nextStep(step, answers);
+    const target = nextStep(step, answers, stepOpts);
     if (target) go(target);
-  }, [step, answers, common, go, save, storageKey]);
+  }, [step, answers, common, go, save, storageKey, stepOpts]);
 
   // The search screen moves on by itself; back from the list skips it.
   useEffect(() => {
@@ -800,6 +803,8 @@ export function JouwTafelQuiz({
     answerAndNext,
     continueFrom,
     primaryActionRef,
+    photoUrl: photo,
+    setPhotoUrl: setPhoto,
   };
 
   const slide = reduceMotion ? 0 : 36;
@@ -824,7 +829,7 @@ export function JouwTafelQuiz({
         step={step}
         chapterFill={chapterFill}
         progress={progress}
-        canGoBack={previousStep(step, answers) !== null && step !== "zoeken" && step !== "kies"}
+        canGoBack={previousStep(step, answers, stepOpts) !== null && step !== "zoeken" && step !== "kies"}
         onBack={goBack}
         avatar={
           guest ? null : (
@@ -833,7 +838,7 @@ export function JouwTafelQuiz({
               label={copy.settings}
               href={settingsHref}
               onOpen={() => void openSettings()}
-              photoUrl={photoUrl}
+              photoUrl={photo}
             />
           )
         }

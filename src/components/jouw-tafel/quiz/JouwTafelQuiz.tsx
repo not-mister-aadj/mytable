@@ -318,6 +318,7 @@ export function JouwTafelQuiz({
   matches = {},
   photoUrl = null,
   guest = false,
+  buyer = false,
 }: {
   locale: Locale;
   /** localStorage key for this account's copy of the answers. */
@@ -349,6 +350,8 @@ export function JouwTafelQuiz({
   /** Email given, account not confirmed yet: no avatar to settings, which
    * needs the account. */
   guest?: boolean;
+  /** Bought a ticket before: the onboarding is skipped (see StepOptions.buyer). */
+  buyer?: boolean;
 }) {
   const copy = getQuizCopy(locale);
   const router = useRouter();
@@ -360,7 +363,7 @@ export function JouwTafelQuiz({
   const flushOnExit = useCallback(() => saver.flushOnExit(), [saver]);
 
   // The photo question needs the account, which holds the photo.
-  const stepOpts = useMemo(() => ({ photo: !guest }), [guest]);
+  const stepOpts = useMemo(() => ({ photo: !guest, buyer }), [guest, buyer]);
   const [photo, setPhoto] = useState<string | null>(photoUrl);
   const [quiz, setQuiz] = useState<QuizState>(initialState);
   const answers = quiz.answers;

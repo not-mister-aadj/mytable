@@ -252,9 +252,21 @@ export function emptyQuizState(): QuizState {
 export type StepOptions = {
   /** Ask for a profile photo: only with an account, which holds the photo. */
   photo?: boolean;
+  /** Bought a ticket before: only what the table list needs is asked, the
+   * rest of the onboarding is skipped (answers come from their bookings). */
+  buyer?: boolean;
 };
 
+/** What the table list cannot do without. */
+const NEEDED_FOR_LIST: readonly QuizStepId[] = ["geboortedatum", "leeftijd", "stad"];
+
+function counts(step: QuizStepId, opts: StepOptions): boolean {
+  return stepKind(step) === "question" && (!opts.buyer || NEEDED_FOR_LIST.includes(step));
+}
+
 export function quizSteps(answers: QuizAnswers, opts: StepOptions = {}): QuizStepId[] {
+  // A buyer: only what the table list needs, then the list.
+  if (opts.buyer) return QUIZ_STEPS.filter((step) => NEEDED_FOR_LIST.includes(step) || step === "zoeken" || step === "kies");
   return QUIZ_STEPS.filter((step) => {
     if (step === "foto") return Boolean(opts.photo);
     if (step === "tafeltype") return answers.gender === "female";
@@ -308,9 +320,9 @@ export function isStepAnswered(step: QuizStepId, a: QuizAnswers): boolean {
 }
 
 /** The first question this person still has to answer, or null when done. */
-export function firstMissingStep(a: QuizAnswers): QuizStepId | null {
-  for (const step of quizSteps(a)) {
-    if (stepKind(step) === "question" && !isStepAnswered(step, a)) return step;
+export function firstMissingStep(a: QuizAnswers, opts: StepOptions = {}): QuizStepId | null {
+  for (const step of quizSteps(a, opts)) {
+    if (counts(step, opts) && !isStepAnswered(step, a)) return step;
   }
   return null;
 }
@@ -330,7 +342,7 @@ export function canShowStep(step: QuizStepId, a: QuizAnswers, opts: StepOptions 
   const index = steps.indexOf(step);
   if (index < 0) return false;
   for (const earlier of steps.slice(0, index)) {
-    if (stepKind(earlier) === "question" && !isStepAnswered(earlier, a)) return false;
+    if (counts(earlier, opts) && !isStepAnswered(earlier, a)) return false;
   }
   return true;
 }
@@ -343,7 +355,7 @@ export function canShowStep(step: QuizStepId, a: QuizAnswers, opts: StepOptions 
  */
 export function resolveStep(requested: string | null | undefined, a: QuizAnswers, opts: StepOptions = {}): QuizStepId {
   if (isQuizStepId(requested) && canShowStep(requested, a, opts)) return requested;
-  const missing = firstMissingStep(a);
+  const missing = firstMissingStep(a, opts);
   if (isQuizStepId(requested)) return missing ?? "kies";
   if (!missing) return "kies";
   return hasAnyAnswer(a) ? missing : "welkom";
@@ -352,7 +364,10 @@ export function resolveStep(requested: string | null | undefined, a: QuizAnswers
 export function nextStep(step: QuizStepId, a: QuizAnswers, opts: StepOptions = {}): QuizStepId | null {
   const steps = quizSteps(a, opts);
   const index = steps.indexOf(step);
-  return index >= 0 && index < steps.length - 1 ? steps[index + 1]! : null;
+  if (index < 0) return null;
+  // A buyer skips what their bookings already answered.
+  const rest = steps.slice(index + 1).filter((s) => !opts.buyer || !(stepKind(s) === "question" && isStepAnswered(s, a)));
+  return rest.at(0) ?? null;
 }
 
 /** One screen back. The loader is skipped: back from the table list goes to

@@ -115,6 +115,7 @@ export type QuizCopy = {
     note: string;
   };
   bron: { title: string; options: Record<HeardFromAnswer, string>; otherLabel: string; otherPlaceholder: string };
+  foto: { title: string; body: string; pick: string; change: string; later: string; uploading: string; failed: string };
   stopReviews: { eyebrow: string; title: string };
   klaar: { title: string; options: Record<ReadyAnswer, string> };
   zoeken: { title: string; items: [string, string, string] };
@@ -374,6 +375,15 @@ const nl: QuizCopy = {
     otherLabel: "Waar kwam je ons tegen?",
     otherPlaceholder: "Bijvoorbeeld TikTok of een flyer",
   },
+  foto: {
+    title: "Goed gezelschap onthoud je",
+    body: "Met een foto herkennen je tafelgenoten je na de zondag. Zo schuif je een volgende keer weer aan bij de mensen met wie het gezellig was. Alleen zij zien je foto.",
+    pick: "Kies een foto",
+    change: "Andere foto",
+    later: "Liever niet",
+    uploading: "Even geduld…",
+    failed: "Dat lukte niet. Probeer een andere foto.",
+  },
   stopReviews: { eyebrow: "Aan tafel", title: "Dit zeggen gasten na hun zondag." },
   klaar: {
     title: "Klaar om aan te schuiven bij 4 tot 6 nieuwe mensen?",
@@ -621,6 +631,15 @@ const en: QuizCopy = {
     },
     otherLabel: "Where did you come across us?",
     otherPlaceholder: "For example TikTok or a flyer",
+  },
+  foto: {
+    title: "Good company is worth remembering",
+    body: "With a photo, your tablemates recognise you after the Sunday. That way you can sit down again with the people you had a good time with. Only they see your photo.",
+    pick: "Choose a photo",
+    change: "Another photo",
+    later: "No thanks",
+    uploading: "One moment…",
+    failed: "That didn't work. Try another photo.",
   },
   stopReviews: { eyebrow: "At the table", title: "What guests say after their Sunday." },
   klaar: {

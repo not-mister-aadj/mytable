@@ -747,3 +747,12 @@ test("tableFit: green, red or no light by guests around their age and seats left
   assert.equal(tableFit({ around: 1, seatsLeft: 3 }), "none");
   assert.equal(tableFit({ around: 3, seatsLeft: 1 }), "good");
 });
+
+test("photo step only with an account, right after 'Hoe ken je ons?'", () => {
+  const a = { heardFrom: "instagram" } as const;
+  assert.ok(!quizSteps(a).includes("foto"));
+  assert.equal(nextStep("bron", a), "stop-reviews");
+  assert.equal(nextStep("bron", a, { photo: true }), "foto");
+  assert.equal(nextStep("foto", a, { photo: true }), "stop-reviews");
+  assert.equal(previousStep("stop-reviews", a, { photo: true }), "foto");
+});

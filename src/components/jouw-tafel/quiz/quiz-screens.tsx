@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { Locale } from "@/i18n/config";
+import { PhotoCropper } from "@/components/PhotoCropper";
 import { CheckIcon } from "@/components/jouw-tafel/icons";
 import {
   CalendarSunIcon,
@@ -115,6 +116,9 @@ type QuizScreenContextValue = {
   answerAndNext: (patch: Partial<QuizAnswers>, options?: { delay?: number }) => void;
   continueFrom: () => void;
   primaryActionRef: RefObject<(() => void) | null>;
+  /** Their profile photo (the photo question and the avatar on top). */
+  photoUrl?: string | null;
+  setPhotoUrl?: (url: string | null) => void;
   /** "sheet": a question inside the settings page's bottom sheet (compact
    * title, the button inside the sheet labelled `submitLabel`, no room
    * kept for the sticky bar). */
@@ -1165,6 +1169,101 @@ export function HeardFromScreen() {
   );
 }
 
+/** "Goed gezelschap onthoud je": an optional profile photo, so tablemates
+ * recognise them after the Sunday. Picking opens the cropper, then it is
+ * saved on their profile; "Liever niet" just goes on. */
+export function PhotoScreen() {
+  const { copy, locale, photoUrl, setPhotoUrl, continueFrom } = useQuiz();
+  const t = copy.foto;
+  const input = useRef<HTMLInputElement>(null);
+  const [cropping, setCropping] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const pick = () => input.current?.click();
+  usePrimaryAction(photoUrl ? continueFrom : pick);
+  async function upload(file: File) {
+    setBusy(true);
+    setFailed(false);
+    try {
+      const form = new FormData();
+      form.set("photo", file);
+      const res = await fetch("/api/auth/member/photo", { method: "POST", body: form });
+      const data = (await res.json().catch(() => ({}))) as { url?: string };
+      if (res.ok && data.url) setPhotoUrl?.(data.url);
+      else setFailed(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <>
+      <QuestionHead title={t.title} sub={t.body} />
+      <div className={`${answersGap} flex flex-col items-center`}>
+        <button
+          type="button"
+          onClick={pick}
+          disabled={busy}
+          aria-label={photoUrl ? t.change : t.pick}
+          className="relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-full bg-burgundy/[0.07] ring-1 ring-burgundy/15 transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy/60"
+        >
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" className="text-burgundy/45" aria-hidden>
+              <circle cx="12" cy="8.5" r="3.75" />
+              <path d="M4.5 20c1.3-3.6 4.2-5.5 7.5-5.5s6.2 1.9 7.5 5.5" strokeLinecap="round" />
+            </svg>
+          )}
+          {busy ? (
+            <span className="absolute inset-0 flex items-center justify-center bg-cream/70 text-sm font-semibold text-wine">{t.uploading}</span>
+          ) : null}
+        </button>
+        {failed ? <p className="mt-4 text-center text-sm text-red-700">{t.failed}</p> : null}
+        {photoUrl ? (
+          <button type="button" onClick={pick} disabled={busy} className="mt-4 text-sm font-semibold text-burgundy underline decoration-burgundy/30 underline-offset-4">
+            {t.change}
+          </button>
+        ) : null}
+        <input
+          ref={input}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.[0]) setCropping(e.target.files[0]);
+            e.target.value = "";
+          }}
+        />
+      </div>
+      {cropping ? (
+        <PhotoCropper
+          file={cropping}
+          locale={locale === "en" ? "en" : "nl"}
+          onCancel={() => setCropping(null)}
+          onDone={(f) => {
+            setCropping(null);
+            void upload(f);
+          }}
+        />
+      ) : null}
+      <div className="h-40" />
+      <StickyBar>
+        <button type="button" className={primaryButton} onClick={photoUrl ? continueFrom : pick} disabled={busy}>
+          {photoUrl ? copy.next : t.pick}
+        </button>
+        {photoUrl ? null : (
+          <button type="button" onClick={continueFrom} className="mt-3 w-full py-2 text-sm font-semibold text-wine/60 hover:text-wine">
+            {t.later}
+          </button>
+        )}
+      </StickyBar>
+    </>
+  );
+}
+
 export function FormatsScreen() {
   const { copy, answers, answerAndNext, variant } = useQuiz();
   const sheet = variant === "sheet";
@@ -1370,6 +1469,8 @@ export function QuizQuestion({ step }: { step: QuizStepId }) {
       return <FormatsScreen />;
     case "bron":
       return <HeardFromScreen />;
+    case "foto":
+      return <PhotoScreen />;
     case "klaar":
       return (
         <SingleChoiceScreen

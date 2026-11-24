@@ -12,17 +12,14 @@ import { resolveEmailLocale } from "@/lib/email/resolve-email-locale";
 import { sendRendered } from "@/lib/admin/sunday-mails";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { mailSunday } from "@/lib/membership/mail-copy";
-import { isJouwTafelType } from "@/lib/event-concepts";
-import { resolveSeatPriceCents } from "@/lib/jouw-tafel/logic";
 import {
   isLateCancel,
   LATE_CANCEL_HOURS,
   MISS_POLICY_START,
-  MISS_SEAT_PRICE_CENTS,
   MISS_WINDOW_DAYS,
+  SICK_WINDOW_DAYS,
   missMailAt,
   missOutcome,
-  nextSeatCostsMore,
   type MissKind,
   type MissOutcome,
 } from "@/lib/missed-sundays/logic";
@@ -30,8 +27,7 @@ import { missedSundayMail } from "@/lib/missed-sundays/mail-copy";
 
 /**
  * Records a late cancel or a no-show on a booking and applies the policy in
- * logic.ts: a line in their history and the mail (the first time nothing
- * changes, from the second the next seat costs more). Returns null when it
+ * logic.ts: a line in their history and the mail. Returns null when it
  * doesn't count (not a Sunday, before the policy, not late, or a seat from a
  * membership, which membership/no-show.ts handles).
  */
@@ -59,32 +55,49 @@ async function countedMisses(email: string, now: Date, exceptBookingId?: string)
   return { n: row?.n ?? 0, last: row?.last ? new Date(row.last) : null };
 }
 
+/** Another seat of this email given up ill (on the table page) in the last 3 months. */
+export async function cancelledSickBefore(email: string, now: Date, exceptBookingId: string): Promise<boolean> {
+  const since = new Date(now.getTime() - SICK_WINDOW_DAYS * 86_400_000);
+  const rows = (await getDb().execute(sql`
+    select 1 from booking_events be join bookings b on b.id = be.booking_id
+    where be.type = 'cancelled_late' and be.payload->>'reasonKind' = 'sick'
+      and lower(trim(b.email)) = ${normalizeEmail(email)} and b.id <> ${exceptBookingId}
+      and be.created_at > ${since.toISOString()}::timestamptz
+    limit 1`)) as unknown as unknown[];
+  return rows.length > 0;
+}
+
 /**
- * What a Sunday seat costs this email after missed Sundays, or null for the
- * usual price: after a second miss the next seat costs more, until they have
- * come to a Sunday since.
+ * Cancelled ill, the first time in 3 months: let go. It does not count, no
+ * mail, a line in their history. False when it counts as a usual miss.
  */
-export async function missSeatPriceCents(email: string | null | undefined, now = new Date()): Promise<number | null> {
-  if (!email?.trim() || !isDbConfigured()) return null;
-  const { n, last } = await countedMisses(email, now);
-  if (n < 2 || !last) return null;
-  const [came] = await getDb()
-    .select({ id: bookings.id })
+export async function forgiveSickCancel(bookingId: string, now = new Date()): Promise<boolean> {
+  const [row] = await getDb()
+    .select({ booking: bookings, event: events })
     .from(bookings)
     .innerJoin(events, eq(events.id, bookings.eventId))
-    .where(
-      and(
-        sql`lower(trim(${bookings.email})) = ${normalizeEmail(email)}`,
-        eq(bookings.paymentStatus, "paid"),
-        eq(bookings.lifecycleStatus, "active"),
-        isNull(bookings.cancelledLateAt),
-        isNull(bookings.noShowAt),
-        sql`${events.startsAt} > ${last.toISOString()}::timestamptz`,
-        sql`${events.startsAt} < ${now.toISOString()}::timestamptz`,
-      ),
-    )
+    .where(eq(bookings.id, bookingId))
     .limit(1);
-  return nextSeatCostsMore(n, Boolean(came)) ? MISS_SEAT_PRICE_CENTS : null;
+  if (!row || (await cancelledSickBefore(row.booking.email, now, bookingId))) return false;
+  await getDb().update(bookings).set({ missWaivedAt: now }).where(and(eq(bookings.id, bookingId), isNull(bookings.missWaivedAt)));
+  const { id: customerId } = await upsertCustomerFromEmail({ email: row.booking.email, customerName: row.booking.customerName });
+  await logCustomerActivity({
+    customerId,
+    type: CustomerActivityTypes.sundayMissed,
+    title: "Ziek afgemeld",
+    description: `${mailSunday(row.event.startsAt, "nl")} · vergeven`,
+    metadata: { bookingId, kind: "late", outcome: "sick_forgiven" },
+  });
+  return true;
+}
+
+/** For the page after cancelling: this seat was given up ill (let go or not). */
+export async function wasCancelledSick(bookingId: string): Promise<boolean> {
+  const rows = (await getDb().execute(sql`
+    select 1 from booking_events
+    where booking_id = ${bookingId} and type = 'cancelled_late' and payload->>'reasonKind' = 'sick'
+    limit 1`)) as unknown as unknown[];
+  return rows.length > 0;
 }
 
 /** This booking's email has no earlier miss that counts: giving up this seat is their first time. */
@@ -110,22 +123,20 @@ export async function recordMissedSunday(input: { bookingId: string; kind: MissK
 
   const prior = (await countedMisses(row.booking.email, now, row.booking.id)).n;
   const outcome = missOutcome(prior);
-  const normalCents = resolveSeatPriceCents({ eventPriceCents: row.event.priceCents, isJouwTafel: isJouwTafelType(row.event.experienceType) });
-  const missCents = Math.max(MISS_SEAT_PRICE_CENTS, normalCents);
   const { id: customerId } = await upsertCustomerFromEmail({ email: row.booking.email, customerName: row.booking.customerName });
   const day = mailSunday(row.event.startsAt, "nl");
   await logCustomerActivity({
     customerId,
     type: CustomerActivityTypes.sundayMissed,
     title: input.kind === "late" ? "Laat afgezegd" : "Niet gekomen",
-    description: outcome.kind === "warning" ? `${day} · eerste keer` : `${day} · volgende plek €${missCents / 100}`,
+    description: outcome.kind === "first" ? `${day} · eerste keer` : `${day} · ${prior + 1}e keer`,
     metadata: { bookingId: row.booking.id, kind: input.kind, outcome: outcome.kind },
   });
 
   const locale = await resolveEmailLocale({ email: row.booking.email, fallbackLocale: row.booking.locale });
   const [customer] = await db.select({ firstName: customers.firstName }).from(customers).where(eq(customers.id, customerId)).limit(1);
   const firstName = customer?.firstName ?? row.booking.customerName?.trim().split(/\s+/)[0] ?? null;
-  const mail = missedSundayMail({ locale, firstName, kind: input.kind, outcome, normalCents, missCents, sunday: row.event.startsAt });
+  const mail = missedSundayMail({ locale, firstName, kind: input.kind, sunday: row.event.startsAt });
   // The mail waits for the Monday morning after the Sunday.
   const at = missMailAt(row.event.startsAt, now);
   const resendId = await sendRendered(row.booking.email, mail.subject, MembershipEmail(mail.props), at ?? undefined).catch(() => null);
@@ -198,8 +209,8 @@ export type MissedSundayRow = {
   counts: boolean;
 };
 
-/** For the customer page: every Sunday they cancelled on the table page or did not come to, and what their next seat costs. */
-export async function loadMissedSundays(email: string, now = new Date()): Promise<{ rows: MissedSundayRow[]; nextSeatCents: number | null }> {
+/** For the customer page: every Sunday they cancelled on the table page or did not come to. */
+export async function loadMissedSundays(email: string): Promise<{ rows: MissedSundayRow[] }> {
   const rows = (await getDb().execute(sql`
     select b.id, e.starts_at, e.city, b.miss_waived_at is not null as waived, b.cancelled_late_at,
       case when b.no_show_at is not null then 'no_show' else 'late' end as kind,
@@ -229,7 +240,6 @@ export async function loadMissedSundays(email: string, now = new Date()): Promis
           : null,
       counts: r.counts,
     })),
-    nextSeatCents: await missSeatPriceCents(email, now),
   };
 }
 

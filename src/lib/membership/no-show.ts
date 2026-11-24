@@ -75,7 +75,7 @@ export async function markNoShow(input: { bookingId: string; by: string; now?: D
   // Not there: no "Hoe was het vanmiddag?" either.
   await dropPlannedMailsFor(row.event.id, row.booking.id, ["feedback"]).catch(() => undefined);
   if (!result.outcome || !result.membershipId) {
-    // Not a member: the missed-Sundays policy (warning and a month off, then six).
+    // Not a member: the missed-Sundays policy (missed-sundays/logic.ts).
     const missed = result.membershipId ? null : await recordMissedSunday({ bookingId: row.booking.id, kind: "no_show", now }).catch((e) => {
       console.error("[no-show] missed sunday failed", e);
       return null;

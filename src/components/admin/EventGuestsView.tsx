@@ -22,7 +22,7 @@ import type {
 } from "@/lib/event-tickets-types";
 import { formatEventAdminListDate } from "@/lib/event-datetime-local";
 import { EmailPreviewDialog } from "@/components/admin/EmailPreviewDialog";
-import { GuestHistoryChips, GuestHistoryContext } from "@/components/admin/GuestHistoryChips";
+import { GuestHistoryChips, GuestHistoryContext, useMissedSundays } from "@/components/admin/GuestHistoryChips";
 import type { GuestHistory } from "@/lib/admin/table-history";
 
 type EventSummary = {
@@ -484,14 +484,15 @@ function GuestCard({
   index: number;
 }) {
   const isTransferred = ticket.lifecycleStatus === "transferred";
+  const missed = useMissedSundays(ticket.id) > 0;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.04 }}
-      className={`rounded-2xl border border-border-subtle/80 bg-cream/70 p-5 shadow-[0_8px_30px_rgba(43,13,18,0.04)] ${
-        isTransferred ? "bg-orange-50/30" : ""
+      className={`rounded-2xl border p-5 shadow-[0_8px_30px_rgba(43,13,18,0.04)] ${
+        missed ? "border-red-300 bg-red-50" : isTransferred ? "border-border-subtle/80 bg-orange-50/30" : "border-border-subtle/80 bg-cream/70"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -549,6 +550,7 @@ function GuestTableRow({
   index: number;
 }) {
   const isTransferred = ticket.lifecycleStatus === "transferred";
+  const missed = useMissedSundays(ticket.id) > 0;
 
   return (
     <motion.tr
@@ -556,7 +558,7 @@ function GuestTableRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.02 }}
       className={`border-b border-border-subtle/50 align-top ${
-        isTransferred ? "bg-orange-50/35" : "hover:bg-cream/60"
+        missed ? "bg-red-50" : isTransferred ? "bg-orange-50/35" : "hover:bg-cream/60"
       }`}
     >
       <td className="px-5 py-4">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition, type DragEvent } from "react";
+import { useContext, useMemo, useState, useTransition, type DragEvent } from "react";
 import {
   addEventVenueAction,
   addGroupAction,
@@ -17,7 +17,7 @@ import {
 import { GuestDrawer, VenuePicksDrawer, languageLabel } from "@/components/admin/BoardDrawers";
 import { GROUP_TARGET, groupLabel, groupWarning, tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import type { BoardGuest, EventBoard } from "@/lib/jouw-tafel/groups-server";
-import { GuestHistoryChips } from "@/components/admin/GuestHistoryChips";
+import { GuestHistoryChips, GuestHistoryContext } from "@/components/admin/GuestHistoryChips";
 
 const UNASSIGNED = "unassigned";
 
@@ -64,6 +64,7 @@ export function JouwTafelBoard({
   embedded?: boolean;
 }) {
   const router = useRouter();
+  const history = useContext(GuestHistoryContext);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   // Optimistic assignments: bookingId -> groupId (or null).
@@ -127,7 +128,9 @@ export function JouwTafelBoard({
         key={g.bookingId}
         draggable
         onDragStart={(e) => e.dataTransfer.setData("text/plain", g.bookingId)}
-        className="cursor-grab rounded-xl border border-border-subtle/80 bg-white p-3 shadow-[0_1px_3px_rgba(43,13,18,0.05)] active:cursor-grabbing"
+        className={`cursor-grab rounded-xl border p-3 shadow-[0_1px_3px_rgba(43,13,18,0.05)] active:cursor-grabbing ${
+          (history[g.bookingId]?.missed ?? 0) > 0 ? "border-red-300 bg-red-50" : "border-border-subtle/80 bg-white"
+        }`}
       >
         <button
           type="button"

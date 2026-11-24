@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { cancelLateAction, handOverSeatAction, savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
+import { CANCEL_REASONS, type CancelReason } from "@/lib/cancel-reasons";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { Locale } from "@/i18n/config";
 import type { IntroWine, SundayTableIntro } from "@/lib/sunday-table-intro";
@@ -298,6 +299,7 @@ type SeatFixedCopy = {
   handOverDone: string;
   handOverDoneBody: string;
   messageTitle: string;
+  reasons: Record<CancelReason, string>;
   messageBody: string;
   messagePlaceholder: string;
   send: string;
@@ -319,6 +321,7 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [reason, setReason] = useState("");
+  const [kind, setKind] = useState<CancelReason | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const go = (next: typeof view) => {
@@ -403,7 +406,8 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
                   e.preventDefault();
                   start(async () => {
                     setError(null);
-                    const result = await cancelLateAction(token, reason);
+                    if (!kind) return;
+                    const result = await cancelLateAction(token, kind === "other" ? reason : undefined, kind);
                     if (result.ok) router.refresh();
                     else setError(copy.errors.failed);
                   });
@@ -411,18 +415,37 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
               >
                 <p className="font-serif text-2xl text-wine">{copy.messageTitle}</p>
                 <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.messageBody}</p>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  required
-                  minLength={3}
-                  maxLength={1000}
-                  rows={4}
-                  placeholder={copy.messagePlaceholder}
-                  className={seatField}
-                />
+                <div role="radiogroup" aria-label={copy.messageTitle} className="mt-4 space-y-2">
+                  {CANCEL_REASONS.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      role="radio"
+                      aria-checked={kind === r}
+                      onClick={() => setKind(r)}
+                      className={`block w-full rounded-xl border px-4 py-2.5 text-left text-sm transition ${
+                        kind === r ? "border-burgundy bg-burgundy/5 font-semibold text-burgundy" : "border-gold/40 bg-white text-wine hover:border-burgundy/50"
+                      }`}
+                    >
+                      {copy.reasons[r]}
+                    </button>
+                  ))}
+                </div>
+                {kind === "other" ? (
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    required
+                    minLength={3}
+                    maxLength={1000}
+                    rows={3}
+                    autoFocus
+                    placeholder={copy.messagePlaceholder}
+                    className={seatField}
+                  />
+                ) : null}
                 <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button type="submit" disabled={pending} className={solid}>
+                  <button type="submit" disabled={pending || !kind} className={solid}>
                     {copy.send}
                   </button>
                   <button type="button" disabled={pending} onClick={() => go("main")} className="text-sm text-wine/60 hover:text-wine">

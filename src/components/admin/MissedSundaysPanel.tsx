@@ -4,9 +4,9 @@ import type { MissedSundayRow } from "@/lib/missed-sundays/server";
 const day = (iso: string) =>
   new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" }).format(new Date(iso));
 
-/** Every Sunday they cancelled on the table page or did not come to, what
- * their next seat costs, and striking a miss. Hidden when there is nothing. */
-export function MissedSundaysPanel({ customerId, rows, nextSeatCents }: { customerId: string; rows: MissedSundayRow[]; nextSeatCents: number | null }) {
+/** Every Sunday they cancelled on the table page or did not come to, and
+ * striking a miss. Hidden when there is nothing. */
+export function MissedSundaysPanel({ customerId, rows }: { customerId: string; rows: MissedSundayRow[] }) {
   if (rows.length === 0) return null;
   const noShows = rows.filter((r) => r.kind === "no_show").length;
   const late = rows.length - noShows;
@@ -16,7 +16,6 @@ export function MissedSundaysPanel({ customerId, rows, nextSeatCents }: { custom
         <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-red-800/70">Gemiste zondagen</h2>
         <span className="text-sm font-medium text-red-800">
           Niet gekomen {noShows} · Afgezegd {late}
-          {nextSeatCents ? ` · Volgende plek €${nextSeatCents / 100}` : ""}
         </span>
       </div>
       <ul className="mt-3 divide-y divide-red-200/60 text-sm">

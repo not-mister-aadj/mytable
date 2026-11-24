@@ -15,6 +15,11 @@ const MOOD: Record<string, string> = { great: "Geweldig", good: "Leuk", meh: "Ma
 
 const chip = "rounded-full px-2 py-0.5 text-[11px] font-semibold";
 
+/** Missed another Sunday (cancelled inside 7 days or did not come): the card or row turns red. */
+export function useMissedSundays(bookingId: string): number {
+  return useContext(GuestHistoryContext)[bookingId]?.missed ?? 0;
+}
+
 /** "3e keer · vorige: Leuk", who here they want to see, and red when someone here reported them or was reported by them. */
 export function GuestHistoryChips({ bookingId }: { bookingId: string }) {
   const h = useContext(GuestHistoryContext)[bookingId];
@@ -25,6 +30,7 @@ export function GuestHistoryChips({ bookingId }: { bookingId: string }) {
         {h.before === 0 ? "Nieuw" : `${h.before + 1}e keer`}
         {h.lastMood ? ` · vorige: ${MOOD[h.lastMood]}` : ""}
       </span>
+      {h.missed > 0 ? <span className={`${chip} bg-red-600 text-white`}>{h.missed}× gemist</span> : null}
       {h.wants.map((n) => (
         <span key={`w${n}`} className={`${chip} bg-emerald-50 text-emerald-800`}>
           Wil {n} zien{h.wantedBy.includes(n) ? " ✓" : ""}

@@ -2,6 +2,7 @@
 
 import { confirmAttendance } from "@/lib/attendance";
 import { cancelLate } from "@/lib/late-cancel";
+import { isCancelReason } from "@/lib/cancel-reasons";
 import { longDate } from "@/lib/admin/sunday-mails";
 import { handOverSeat } from "@/lib/seat-handover";
 import { moveSeat } from "@/lib/seat-move";
@@ -31,10 +32,10 @@ export async function confirmAttendanceAction(token: string): Promise<{ ok: bool
 }
 
 /** "Kun je toch niet?": gives up the seat of the booking in the link, until the start, with what happened. */
-export async function cancelLateAction(token: string, reason?: string): Promise<{ ok: boolean }> {
+export async function cancelLateAction(token: string, reason?: string, kind?: string): Promise<{ ok: boolean }> {
   const bookingId = await verifyTablePageToken(token);
   if (!bookingId) return { ok: false };
-  return { ok: (await cancelLate(bookingId, new Date(), reason)).ok };
+  return { ok: (await cancelLate(bookingId, new Date(), reason, isCancelReason(kind) ? kind : undefined)).ok };
 }
 
 /** "Verzet mijn plek": moves the seat in the link to the Sunday they picked. */

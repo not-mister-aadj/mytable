@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
+import { LATE_CANCEL_HOURS } from "@/lib/missed-sundays/logic";
 
 /**
  * Who sat where, what they thought, who they want to see again and who they
@@ -34,6 +35,8 @@ export type Person = {
   wants: Link[];
   /** People they reported ("Laat het ons weten"). */
   reported: Link[];
+  /** Sundays they cancelled inside 7 days or did not come to, not struck by an admin. */
+  misses: { eventId: string; startsAt: string }[];
 };
 
 export type TableHistory = Map<string, Person>;
@@ -84,13 +87,22 @@ export async function loadTableHistory(): Promise<TableHistory> {
       join bookings tb on tb.id::text = a.id
       where r.withdrawn_at is null`),
   ]);
+  // After the three above, not with them: the pool has 3 connections (see the guests page).
+  const misses = await db.execute<{ email: string; event_id: string; starts_at: Date }>(sql`
+    select b.email, e.id as event_id, e.starts_at
+    from bookings b
+    join events e on e.id = b.event_id
+    where b.miss_waived_at is null
+      and e.experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
+      and (b.no_show_at is not null
+        or (b.membership_id is null and b.cancelled_late_at > e.starts_at - make_interval(hours => ${LATE_CANCEL_HOURS})))`);
 
   const people: TableHistory = new Map();
   const person = (email: string, name: string | null) => {
     const k = key(email);
     let p = people.get(k);
     if (!p) {
-      p = { email: k, name: first(name), visits: [], wants: [], reported: [] };
+      p = { email: k, name: first(name), visits: [], wants: [], reported: [], misses: [] };
       people.set(k, p);
     }
     return p;
@@ -117,6 +129,7 @@ export async function loadTableHistory(): Promise<TableHistory> {
   });
   for (const r of picks) person(r.from_email, null).wants.push(link(r));
   for (const r of reports) person(r.from_email, null).reported.push(link(r));
+  for (const m of misses) person(m.email, null).misses.push({ eventId: m.event_id, startsAt: new Date(m.starts_at).toISOString() });
   return people;
 }
 
@@ -142,6 +155,8 @@ export type GuestHistory = {
   wantedBy: string[];
   reported: string[];
   reportedBy: string[];
+  /** Other Sundays they cancelled inside 7 days or did not come to. */
+  missed: number;
 };
 
 export function guestHistories(
@@ -166,6 +181,7 @@ export function guestHistories(
       wantedBy: uniq(wantedBy),
       reported: uniq(p?.reported ?? []),
       reportedBy: uniq(reportedBy),
+      missed: (p?.misses ?? []).filter((m) => m.eventId !== eventId).length,
     };
   }
   return out;

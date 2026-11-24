@@ -1,19 +1,12 @@
 // Run with: npx tsx --test src/lib/missed-sundays/*.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isLateCancel, missMailAt, missOutcome, nextSeatCostsMore } from "./logic";
+import { isLateCancel, missMailAt, missOutcome } from "./logic";
 
-test("the first miss is let go, from the second the next seat costs more", () => {
-  assert.deepEqual(missOutcome(0), { kind: "warning" });
-  assert.deepEqual(missOutcome(1), { kind: "surcharge" });
-  assert.deepEqual(missOutcome(4), { kind: "surcharge" });
-});
-
-test("the higher price holds until they came to a Sunday", () => {
-  assert.equal(nextSeatCostsMore(1, false), false);
-  assert.equal(nextSeatCostsMore(2, false), true);
-  assert.equal(nextSeatCostsMore(2, true), false);
-  assert.equal(nextSeatCostsMore(3, false), true);
+test("the first miss and the ones after", () => {
+  assert.deepEqual(missOutcome(0), { kind: "first" });
+  assert.deepEqual(missOutcome(1), { kind: "repeat" });
+  assert.deepEqual(missOutcome(4), { kind: "repeat" });
 });
 
 test("late means after moving closed: under 7 days before the start", () => {

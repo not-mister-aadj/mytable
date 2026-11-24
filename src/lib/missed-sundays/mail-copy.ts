@@ -1,6 +1,6 @@
 import type { MembershipEmailProps } from "@/emails/MembershipEmail";
 import { mailSunday } from "@/lib/membership/mail-copy";
-import type { MissKind, MissOutcome } from "@/lib/missed-sundays/logic";
+import type { MissKind } from "@/lib/missed-sundays/logic";
 
 type Locale = "nl" | "en";
 
@@ -13,22 +13,17 @@ function greeting(locale: Locale, firstName?: string | null): string {
 }
 
 /**
- * The mail after a seat given up late or a no-show. Understanding first. The
- * first time nothing changes; from the second the next seat costs more, and
- * it is the usual price again once they have come. Short, and about the
- * table, not about them.
+ * The mail after a seat given up late or a no-show. Understanding first,
+ * then that we may choose not to seat them anymore. The same every time.
+ * Short, and about the table, not about them.
  */
 export function missedSundayMail(input: {
   locale: Locale;
   firstName?: string | null;
   kind: MissKind;
-  outcome: MissOutcome;
-  /** The usual seat price and the higher one. */
-  normalCents: number;
-  missCents: number;
   sunday: Date;
 }): MissedSundayMail {
-  const { locale: l, kind, outcome } = input;
+  const { locale: l, kind } = input;
   const en = l === "en";
   const day = mailSunday(input.sunday, l);
   const late = kind === "late";
@@ -55,20 +50,11 @@ export function missedSundayMail(input: {
   const why = en
     ? "Good to know: our bars are often small and keep seats free for us. When a chair stays empty, the whole table notices, and so does the bar. Can't make it one time? Move your ticket up to 7 days before, that's free."
     : "Goed om te weten: onze bars zijn vaak klein en houden plekken voor ons vrij. Blijft een stoel leeg, dan merkt de hele tafel dat, en de bar ook. Kun je een keer niet? Verzet je ticket dan uiterlijk 7 dagen van tevoren, dat is gratis.";
-  const props = (rule: string) => ({
+  const rule = en
+    ? "If you cancel at the last minute more often, we may choose not to seat you anymore. That way, together we keep the tables full and fun."
+    : "Zeg je vaker op het laatste moment af, dan kunnen we ervoor kiezen je niet meer in te delen. Zo zorgen we samen voor volle, gezellige tafels.";
+  return {
     subject,
     props: { locale: l, preview: first, greeting: greeting(l, input.firstName), headline: subject, body: `${first} ${reassure}`, warmLine: `${why} ${rule}` },
-  });
-  if (outcome.kind === "warning") {
-    return props(
-      en
-        ? "If you cancel at the last minute more often, your next ticket may cost a little more. That way, together we keep the tables full and fun."
-        : "Zeg je vaker op het laatste moment af, dan kan je volgende ticket iets duurder worden. Zo zorgen we samen voor volle, gezellige tafels.",
-    );
-  }
-  return props(
-    en
-      ? "As it wasn't the first time, your next ticket costs a little more. After that, it's the usual price again."
-      : "Omdat het niet de eerste keer was, is je volgende ticket iets duurder. Daarna is het weer de gewone prijs.",
-  );
+  };
 }

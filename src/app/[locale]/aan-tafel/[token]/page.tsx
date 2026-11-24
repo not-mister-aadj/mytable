@@ -1,4 +1,4 @@
-import { isFirstMiss } from "@/lib/missed-sundays/server";
+import { isFirstMiss, wasCancelledSick } from "@/lib/missed-sundays/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -101,7 +101,8 @@ const COPY = {
       handOverDone: "Je plek is doorgegeven aan {name}.",
       handOverDoneBody: "Je tafel blijft compleet.",
       messageTitle: "Wat is er?",
-      messageBody: "Vertel ons wat er is. Daarmee geef je je plek op; die gaat naar iemand op de wachtlijst.",
+      messageBody: "Laat ons weten wat er is. Daarmee geef je je plek op; die gaat naar iemand op de wachtlijst.",
+      reasons: { sick: "Ik ben ziek", work: "Werk kwam ertussen", private: "Familie of privé", plans: "Ik had iets anders gepland", other: "Anders" },
       messagePlaceholder: "Wat is er gebeurd?",
       send: "Verstuur en geef mijn plek op",
       errors: {
@@ -113,8 +114,9 @@ const COPY = {
       },
     },
     cancelledTitle: "Je plek is opgegeven",
-    cancelledBody: "We hebben je bericht ontvangen. Je plek gaat naar iemand op de wachtlijst.",
-    cancelledFirst: "Natuurlijk kan er iets tussen komen, dat snappen we. Voor nu verandert er niets: je bent gewoon welkom op een volgende zondag.",
+    cancelledBody: "Bedankt dat je het laat weten. Je plek gaat naar iemand op de wachtlijst.",
+    cancelledFirst: "Natuurlijk kan er iets tussen komen, dat snappen we. Je plek gaat naar iemand op de wachtlijst. We zien je graag op een volgende zondag.",
+    cancelledSick: "Beterschap, en fijn dat je het laat weten. Je plek gaat naar iemand op de wachtlijst. We zien je graag op een volgende zondag.",
     cancelledCta: "Bekijk de Sunday Socials",
   },
   en: {
@@ -197,7 +199,8 @@ const COPY = {
       handOverDone: "Your seat has been passed on to {name}.",
       handOverDoneBody: "Your table stays complete.",
       messageTitle: "What's up?",
-      messageBody: "Tell us what's going on. With this you give up your seat; it goes to someone on the waitlist.",
+      messageBody: "Let us know what's going on. With this you give up your seat; it goes to someone on the waitlist.",
+      reasons: { sick: "I'm ill", work: "Work came up", private: "Family or personal", plans: "I had something else planned", other: "Something else" },
       messagePlaceholder: "What happened?",
       send: "Send and give up my seat",
       errors: {
@@ -209,8 +212,9 @@ const COPY = {
       },
     },
     cancelledTitle: "You've given up your seat",
-    cancelledBody: "We've received your message. Your seat goes to someone on the waitlist.",
-    cancelledFirst: "Of course something can come up, we understand that. Nothing changes for now: you're welcome at a next Sunday as always.",
+    cancelledBody: "Thanks for letting us know. Your seat goes to someone on the waitlist.",
+    cancelledFirst: "Of course something can come up, we understand. Your seat goes to someone on the waitlist. We'd love to see you at a next Sunday.",
+    cancelledSick: "Get well soon, and thanks for letting us know. Your seat goes to someone on the waitlist. We'd love to see you at a next Sunday.",
     cancelledCta: "See the Sunday Socials",
   },
 } as const;
@@ -246,7 +250,11 @@ export default async function TablePageRoute({ params }: Props) {
           {!page ? (
             <Invalid t={t} locale={locale} />
           ) : page.cancelled ? (
-            <Cancelled t={t} href={tablePageAfterPath(locale, page.city)} first={await isFirstMiss(page.bookingId)} />
+            <Cancelled
+              t={t}
+              href={tablePageAfterPath(locale, page.city)}
+              note={(await wasCancelledSick(page.bookingId)) ? "sick" : (await isFirstMiss(page.bookingId)) ? "first" : null}
+            />
           ) : (
             <TablePageBody page={page} token={decodeURIComponent(token)} locale={locale} t={t} />
           )}
@@ -257,12 +265,13 @@ export default async function TablePageRoute({ params }: Props) {
   );
 }
 
-function Cancelled({ t, href, first }: { t: Copy; href: string; first: boolean }) {
+function Cancelled({ t, href, note }: { t: Copy; href: string; note: "sick" | "first" | null }) {
   return (
     <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-8 text-center sm:px-8">
       <h1 className="font-serif text-2xl text-wine">{t.cancelledTitle}</h1>
-      {first ? <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine">{t.cancelledFirst}</p> : null}
-      <p className="mt-2 text-sm text-wine/70">{t.cancelledBody}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-wine/80">
+        {note === "sick" ? t.cancelledSick : note === "first" ? t.cancelledFirst : t.cancelledBody}
+      </p>
       <Link href={href} className="mt-5 inline-flex rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream">
         {t.cancelledCta}
       </Link>

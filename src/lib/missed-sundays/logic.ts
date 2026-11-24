@@ -8,10 +8,9 @@ import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
  * it up without someone in your place, or not showing up, is a miss. Both
  * weigh the same.
  *
- * - The first miss is let go: a mail that says so. Nothing changes.
- * - From the second: the next seat costs 20 euros instead of the usual
- *   price. Once they have come to a Sunday it is the usual price again;
- *   another miss makes the next seat 20 euros again. Nobody is kept out.
+ * - Every miss gets the same mail: we may choose not to seat them anymore.
+ *   Nothing changes on its own; admin shows who missed in red (24 Nov 2026,
+ *   replaces the higher price for the next seat).
  *
  * Members keep their own rule (terms art. 13, membership/no-show.ts).
  *
@@ -26,12 +25,12 @@ export const MISS_POLICY_START = new Date("2026-11-15T23:00:00Z");
 /** Moving closes this long before the start; a seat given up after that is a miss. */
 export const LATE_CANCEL_HOURS = 7 * 24;
 export const MISS_WINDOW_DAYS = 183;
-/** What the next seat costs after a second miss. */
-export const MISS_SEAT_PRICE_CENTS = 2000;
+/** Cancelled ill: let go when they did not cancel ill in this many days before. */
+export const SICK_WINDOW_DAYS = 92;
 
 export type MissKind = "late" | "no_show";
 
-export type MissOutcome = { kind: "warning" } | { kind: "surcharge" };
+export type MissOutcome = { kind: "first" } | { kind: "repeat" };
 
 /** After moving closed: less than 7 days before the start. */
 export function isLateCancel(at: Date, startsAt: Date): boolean {
@@ -40,12 +39,7 @@ export function isLateCancel(at: Date, startsAt: Date): boolean {
 
 /** What this miss means, given how many earlier ones still count. */
 export function missOutcome(prior: number): MissOutcome {
-  return prior === 0 ? { kind: "warning" } : { kind: "surcharge" };
-}
-
-/** The next seat costs more: two or more misses that count, and no Sunday they came to since the last one. */
-export function nextSeatCostsMore(misses: number, cameSinceLastMiss: boolean): boolean {
-  return misses >= 2 && !cameSinceLastMiss;
+  return prior === 0 ? { kind: "first" } : { kind: "repeat" };
 }
 
 /** The Monday after the Sunday, 11:00 Amsterdam; null once that has passed (send now). */

@@ -21,7 +21,6 @@ import { isEventClosedForBooking } from "@/lib/event-visibility";
 import { MIN_ONBOARDING_AGE, ageFromBirthDate, isAtLeastMinAge } from "@/lib/member-onboarding";
 import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { isEmailFrozen } from "@/lib/customers/freeze";
-import { missSeatPriceCents } from "@/lib/missed-sundays/server";
 import { FROZEN_ERROR_CODE, frozenMessage } from "@/lib/customers/freeze-logic";
 import {
   communicationLocale,
@@ -120,8 +119,6 @@ export async function POST(request: Request) {
     eventId?: string;
     /** The link from "Er is een plek vrij" (seat-offer.ts): one seat on a full Sunday. */
     seatOffer?: string;
-    /** The higher seat price after missed Sundays, shown to the booker and sent back. */
-    acceptPriceCents?: number;
     /** The reserved bar a member picked (Sunday Social). */
     preferredVenueId?: string;
     seats?: number;
@@ -639,28 +636,6 @@ export async function POST(request: Request) {
           eventPriceCents: event.priceCents,
           isJouwTafel,
         });
-    // After a second missed Sunday the next seat costs more (missed-sundays/logic.ts).
-    // The booker sees that price first and sends it back to go on.
-    const missCents =
-      !seatOffer && memberDecision.kind === "non_member" ? ((await missSeatPriceCents(email)) ?? (await missSeatPriceCents(signedInUser?.email))) : null;
-    if (missCents && missCents > perSeatCents) {
-      if (Number(body.acceptPriceCents) !== missCents) {
-        const was = `€${perSeatCents / 100}`;
-        const now = `€${missCents / 100}`;
-        return NextResponse.json(
-          {
-            code: "miss_price",
-            priceCents: missCents,
-            error:
-              locale === "en"
-                ? `This time your seat is ${now} instead of ${was}, because you cancelled late or didn't come more than once. Once you've joined a Sunday, it's ${was} again. Tap once more to continue.`
-                : `Je plek kost deze keer ${now} in plaats van ${was}, omdat je vaker kort van tevoren afzegde of niet kwam. Kom je, dan is het daarna weer ${was}. Tik nog een keer om door te gaan.`,
-          },
-          { status: 409 },
-        );
-      }
-      perSeatCents = missCents;
-    }
     amountCents = seats !== null ? perSeatCents * seats : 0;
   } else {
     const requestedSeats = Math.max(

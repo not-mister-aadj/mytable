@@ -78,7 +78,7 @@ export default async function AdminCustomerProfilePage({ params }: PageProps) {
             email={profile.email}
             rows={declines.map((d) => ({ eventId: d.eventId, city: d.city, startsAt: d.startsAt.toISOString(), declined: d.declined ? { source: d.declined.source } : null }))}
           />
-          <MissedSundaysPanel customerId={profile.id} rows={missed.rows} nextSeatCents={missed.nextSeatCents} />
+          <MissedSundaysPanel customerId={profile.id} rows={missed.rows} />
           <TableHistoryPanel history={history} email={profile.email} />
         </>
       }

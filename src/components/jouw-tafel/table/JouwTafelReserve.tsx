@@ -1,5 +1,6 @@
 "use client";
 
+import { TELL_FRIENDS_COPY } from "@/lib/tafelvrienden/tell-friends-copy";
 import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState, type ReactNode } from "react";
 import { CheckIcon } from "@/components/jouw-tafel/icons";
@@ -115,11 +116,14 @@ export async function startSingleCheckout({
   event,
   seats,
   guest,
+  tellFriends,
 }: {
   locale: Locale;
   event: QuizEvent;
   seats: 1 | 2;
   guest: ReserveGuest;
+  /** "Laat je tafelvrienden weten dat je komt", only when it was shown. */
+  tellFriends?: boolean;
 }): Promise<string | null> {
   const t = getTableCopy(locale).reserve;
   try {
@@ -138,6 +142,7 @@ export async function startSingleCheckout({
         // and tables are matched by hand afterwards.
         tableLanguagePreference: checkoutTableLanguage(guest.answers.language),
         dietaryNotes: dietaryNotes(guest.answers) || undefined,
+        ...(typeof tellFriends === "boolean" ? { tellFriends } : {}),
         utm: getStoredUtm(),
         meta: { ...getMetaBrowserCookies(), eventSourceUrl: getMetaEventSourceUrl() },
       }),
@@ -209,14 +214,18 @@ export function JouwTafelReserve({
   event,
   guest,
   tableHref,
+  askTellFriends = false,
 }: {
   locale: Locale;
   event: QuizEvent;
   guest: ReserveGuest;
   tableHref: string;
+  /** They have a mutual like: offer to tell them, on by default. */
+  askTellFriends?: boolean;
 }) {
   const t = getTableCopy(locale).reserve;
   const [seats, setSeats] = useState<1 | 2>(() => (maxSeats(event) < 2 ? 1 : defaultSeats(guest.answers)));
+  const [tellFriends, setTellFriends] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -229,7 +238,7 @@ export function JouwTafelReserve({
     trackTableEvent(PostHogEvents.reserveCheckoutClicked, { event_slug: event.slug, option: "single", seats, locale });
     setBusy(true);
     setError(null);
-    const failed = await startSingleCheckout({ locale, event, seats, guest });
+    const failed = await startSingleCheckout({ locale, event, seats, guest, ...(askTellFriends ? { tellFriends } : {}) });
     if (failed) {
       setError(failed);
       setBusy(false);
@@ -248,6 +257,21 @@ export function JouwTafelReserve({
         <PriceRow label={t.seatOption(seats)} amount={t.perSeat(euros(JOUW_TAFEL_SEAT_PRICE_CENTS))} />
         <PriceRow label={t.total} amount={euros(singleTotalCents(seats))} strong />
       </section>
+      {askTellFriends ? (
+        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-wine/10 bg-white px-4 py-3 text-sm leading-snug text-wine/75">
+          <input
+            id="tell-friends"
+            type="checkbox"
+            checked={tellFriends}
+            onChange={(e) => setTellFriends(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-burgundy"
+          />
+          <span>
+            <span className="font-semibold text-wine">{TELL_FRIENDS_COPY[locale === "en" ? "en" : "nl"].lead}</span>{" "}
+            {TELL_FRIENDS_COPY[locale === "en" ? "en" : "nl"].note}
+          </span>
+        </label>
+      ) : null}
       <Guarantees locale={locale} />
     </ReserveFrame>
   );

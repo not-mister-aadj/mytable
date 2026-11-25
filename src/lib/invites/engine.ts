@@ -119,14 +119,22 @@ const MATCH_DELAY_MS = 60 * 60 * 1000;
 /** No match mail for a Sunday this close. */
 const MATCH_MIN_LEAD_MS = 2 * DAY;
 
-/** Mutual likes of `email` with a paid, active booking for this Sunday. */
-async function bookedMatches(email: string, eventId: string, mutual: Map<string, Set<string>>): Promise<number> {
+/**
+ * Mutual likes of `email` with a paid, active booking for this Sunday, and
+ * the first names of the ones who ticked "Laat je tafelvrienden weten dat je
+ * komt" at booking (the others stay unnamed).
+ */
+export async function bookedMatches(email: string, eventId: string, mutual: Map<string, Set<string>>): Promise<{ count: number; names: string[] }> {
   const mine = mutual.get(email);
-  if (!mine || mine.size === 0) return 0;
+  if (!mine || mine.size === 0) return { count: 0, names: [] };
   const rows = (await getDb().execute(sql`
-    select distinct lower(trim(email)) as email from bookings
-    where event_id = ${eventId}::uuid and payment_status = 'paid' and lifecycle_status = 'active' and cancelled_late_at is null`)) as unknown as Array<{ email: string }>;
-  return rows.filter((r) => mine.has(r.email)).length;
+    select lower(trim(b.email)) as email, bool_or(coalesce(b.tell_friends, false)) as tell,
+      max(coalesce(nullif(trim(c.first_name), ''), split_part(trim(b.customer_name), ' ', 1))) as first_name
+    from bookings b left join customers c on c.email_normalized = lower(trim(b.email))
+    where b.event_id = ${eventId}::uuid and b.payment_status = 'paid' and b.lifecycle_status = 'active' and b.cancelled_late_at is null
+    group by 1`)) as unknown as Array<{ email: string; tell: boolean; first_name: string | null }>;
+  const booked = rows.filter((r) => mine.has(r.email));
+  return { count: booked.length, names: booked.filter((r) => r.tell && r.first_name?.trim()).map((r) => r.first_name!.trim()) };
 }
 
 /**
@@ -601,15 +609,16 @@ export function composeSend(
   person: InvitePerson,
   events: InviteEvent[],
   booked: Set<string> = new Set(),
-  /** "Bekende gezichten": how many mutual likes are booked on that Sunday now. */
+  /** "Bekende gezichten": how many mutual likes are booked on that Sunday now, and who may be named. */
   matchCount = 0,
+  matchNames: string[] = [],
 ): { subject: string; body: string; eventIds?: string[] } | null {
   const locale: InviteLocale = send.locale === "en" ? "en" : "nl";
   const cities = followedCities(person).length > 0 ? followedCities(person) : person.cities;
   if (send.kind === "match") {
     const event = events.find((e) => e.id === send.eventIds[0]);
     if (!event || !event.open || matchCount < 1) return null;
-    return matchMail({ name: person.name, cities, event: mailEvent(event, send, 1, locale), count: matchCount, manageUrl: manageUrl(person), locale });
+    return matchMail({ name: person.name, cities, event: mailEvent(event, send, 1, locale), count: matchCount, names: matchNames, manageUrl: manageUrl(person), locale });
   }
   if (send.kind === "checkin") {
     return checkinMail({ name: person.name, cities, stayUrl: linkUrl(send, 0), manageUrl: manageUrl(person), locale });
@@ -1071,13 +1080,14 @@ async function sendRound(now: Date, settings: InviteSettings, dryRun: boolean): 
       await skip("geboekt, kan niet, vol of te dichtbij");
       continue;
     }
-    const matchCount = send.kind === "match" ? await bookedMatches(send.emailNormalized, send.eventIds[0]!, mutual) : 0;
+    const matches = send.kind === "match" ? await bookedMatches(send.emailNormalized, send.eventIds[0]!, mutual) : { count: 0, names: [] };
+    const matchCount = matches.count;
     if (send.kind === "match" && matchCount === 0) {
       await skip("bekende gezichten niet meer geboekt");
       continue;
     }
     const current = send.kind === "invite" ? { ...send, eventIds: send.eventIds.map((id) => (valid.includes(id) ? id : "")) } : send;
-    const composed = composeSend(current, person, events, booked, matchCount);
+    const composed = composeSend(current, person, events, booked, matchCount, matches.names);
     if (send.kind === "nudge" && !composed) {
       await skip("geboekt, vol of te dichtbij");
       continue;

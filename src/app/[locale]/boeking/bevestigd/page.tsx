@@ -23,6 +23,10 @@ import { tryFulfillMembershipSession } from "@/lib/membership/fulfill";
 import { isSharedTableType } from "@/lib/event-concepts";
 import { getMembershipOffer, isOfferMembershipOf, type MembershipOffer } from "@/lib/membership/offer";
 import { notFound } from "next/navigation";
+import { and, eq } from "drizzle-orm";
+import { getDb } from "@/db/index";
+import { bookings } from "@/db/schema";
+import { hasTableFriend } from "@/lib/tafelvrienden/server";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 
@@ -57,10 +61,14 @@ export default async function BookingConfirmedPage({
   // shows them instead of an empty form.
   let savedIntro: SundayTableIntro | null = null;
   let introReusable = false;
+  // Answered for this booking already: no "Meet your table" step.
+  let introAnswered = false;
   // The membership offer comes before the confirmation, once per booking.
   let offer: MembershipOffer | null = null;
   // Back from Stripe after saying yes to it.
   let memberWelcome = false;
+  // Has a mutual like and the card did not ask (not signed in).
+  let askTellFriends = false;
 
   if (sessionId) {
     await tryFulfillCheckoutSessionSafe(sessionId, {
@@ -79,6 +87,13 @@ export default async function BookingConfirmedPage({
         const introBooking = await findSundayTableIntroBooking({ checkoutSessionId: sessionId });
         savedIntro = introBooking?.intro ?? null;
         introReusable = introBooking?.reusable ?? false;
+        introAnswered = Boolean(introBooking?.answeredAt);
+        const [own] = await getDb()
+          .select({ email: bookings.email, tellFriends: bookings.tellFriends })
+          .from(bookings)
+          .where(and(eq(bookings.stripeCheckoutSessionId, sessionId), eq(bookings.paymentStatus, "paid")))
+          .limit(1);
+        askTellFriends = Boolean(own && own.tellFriends === null && (await hasTableFriend(own.email).catch(() => false)));
       }
     } catch (err) {
       console.error("[confirmation page] failed to load booking status", err);
@@ -129,6 +144,8 @@ export default async function BookingConfirmedPage({
         footer={<Footer dict={dict.footer} locale={locale} />}
         offer={offer}
         memberWelcome={memberWelcome}
+        askTellFriends={askTellFriends}
+        introAnswered={introAnswered}
       />
     </>
   );

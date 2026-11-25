@@ -208,15 +208,10 @@ export async function loadMutualMatches(): Promise<Map<string, Set<string>>> {
   return mutualMatches(likes as unknown as Pick[], reports as unknown as Pick[]);
 }
 
-/**
- * For one person: per upcoming Sunday, how many of their mutual likes have a
- * seat there. Counts only, never who (the same rule as the "bekende
- * gezichten" mail), and nobody with an open report between them. One query
- * that starts from this person's own bookings, so it stays quick.
- */
-export async function loadBookedMatchCounts(email: string): Promise<Record<string, number>> {
-  const me = key(email);
-  const rows = (await getDb().execute(sql`
+/** The CTEs for one person's mutual likes: mine (their bookings), i_like,
+ * likes_me and reported (open reports either way). */
+function matchCtes(me: string) {
+  return sql`
     with mine as (
       select id from bookings where lower(trim(email)) = ${me}
     ),
@@ -248,7 +243,19 @@ export async function loadBookedMatchCounts(email: string): Promise<Record<strin
       cross join lateral jsonb_array_elements_text(r.about) a(id)
       join mine on mine.id::text = a.id
       where r.withdrawn_at is null
-    )
+    )`;
+}
+
+/**
+ * For one person: per upcoming Sunday, how many of their mutual likes have a
+ * seat there. Counts only, never who (the same rule as the "bekende
+ * gezichten" mail), and nobody with an open report between them. One query
+ * that starts from this person's own bookings, so it stays quick.
+ */
+export async function loadBookedMatchCounts(email: string): Promise<Record<string, number>> {
+  const me = key(email);
+  const rows = (await getDb().execute(sql`
+    ${matchCtes(me)}
     select b.event_id, count(distinct lower(trim(b.email)))::int as n
     from bookings b
     join events e on e.id = b.event_id
@@ -261,4 +268,17 @@ export async function loadBookedMatchCounts(email: string): Promise<Record<strin
   const out: Record<string, number> = {};
   for (const row of rows) out[row.event_id] = Number(row.n);
   return out;
+}
+
+/** Has at least one mutual like (no open report between them): the booking asks "Laat je tafelvrienden weten dat je komt". */
+export async function hasTableFriend(email: string | null | undefined): Promise<boolean> {
+  if (!email?.trim()) return false;
+  const me = key(email);
+  // One person's own likes only, so it stays quick however many there are.
+  const rows = (await getDb().execute(sql`
+    ${matchCtes(me)}
+    select 1 from (select email from i_like intersect select email from likes_me) m
+    where m.email <> ${me} and m.email not in (select email from reported)
+    limit 1`)) as unknown as unknown[];
+  return rows.length > 0;
 }

@@ -49,3 +49,18 @@ test("match mail names nobody, counts, and promises the same venue (not the same
   assert.match(one.body, /1 person you had a good time with is coming/);
   for (const t of [two.body, one.body]) assert.ok(!t.includes("\u2014"));
 });
+
+test("match mail names who ticked 'tell my table friends', the rest stays unnamed", () => {
+  const event = { city: "Amsterdam", startsAt: "2026-12-13T13:00:00Z", priceCents: 1000, scarcity: null, url: "https://x/i/abc" };
+  const one = matchMail({ name: "Ellen", cities: ["Amsterdam"], event, count: 1, names: ["Karin"], manageUrl: "https://x/m", locale: "nl" });
+  assert.equal(one.subject, "Karin komt ook op zondag 13 december");
+  assert.match(one.body, /Karin komt naar de Sunday Social in Amsterdam op zondag 13 december\./);
+  const two = matchMail({ name: "Ellen", cities: ["Amsterdam"], event, count: 2, names: ["Karin", "Inge"], manageUrl: "https://x/m", locale: "nl" });
+  assert.equal(two.subject, "Karin en Inge komen ook op zondag 13 december");
+  const mixed = matchMail({ name: "Ellen", cities: ["Amsterdam"], event, count: 2, names: ["Karin"], manageUrl: "https://x/m", locale: "nl" });
+  assert.equal(mixed.subject, "Karin en 1 andere bekende komen ook op zondag 13 december");
+  const en = matchMail({ name: "Ellen", cities: ["Amsterdam"], event, count: 1, names: ["Karin"], manageUrl: "https://x/m", locale: "en" });
+  assert.match(en.subject, /^Karin is coming too on Sunday 13 December$/);
+  const none = matchMail({ name: "Ellen", cities: ["Amsterdam"], event, count: 1, names: [], manageUrl: "https://x/m", locale: "nl" });
+  assert.equal(none.subject, "Bekende gezichten op zondag 13 december in Amsterdam");
+});

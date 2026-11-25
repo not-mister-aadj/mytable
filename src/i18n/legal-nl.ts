@@ -623,6 +623,10 @@ export const privacyNl: LegalDocumentContent = {
         },
         {
           type: "p",
+          text: "Tafelvrienden: heb jij na een zondag aangegeven iemand terug te willen zien, en die persoon jou ook, dan kunnen wij die persoon laten weten dat je naar een volgende zondag komt, met alleen je voornaam. Dat doen we als het vakje \"Laat je tafelvrienden weten dat je komt\" bij het boeken aan staat; je kunt het uitzetten.",
+        },
+        {
+          type: "p",
           text: "Sommige verwerkers kunnen persoonsgegevens buiten de Europese Economische Ruimte verwerken. In dat geval baseren wij de doorgifte op een passend mechanisme, zoals het EU-VS Data Privacy Framework of standaardcontractbepalingen van de Europese Commissie.",
         },
       ],

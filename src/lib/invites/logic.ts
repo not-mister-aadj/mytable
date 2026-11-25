@@ -586,6 +586,8 @@ export function matchMail(input: {
   cities: string[];
   event: MailEvent;
   count: number;
+  /** First names of the ones who ticked "Laat je tafelvrienden weten dat je komt" (at most `count`). */
+  names?: string[];
   manageUrl: string;
   locale: InviteLocale;
 }): { subject: string; body: string } {
@@ -593,14 +595,29 @@ export function matchMail(input: {
   const en = locale === "en";
   const hi = input.name ? (en ? `Hi ${input.name},` : `Hoi ${input.name},`) : en ? "Hi," : "Hoi,";
   const date = sundayDate(event.startsAt, locale);
-  const who = en
+  const names = (input.names ?? []).filter((n) => n.trim()).slice(0, count);
+  const others = count - names.length;
+  // Named: "Karin komt ook", "Karin en Inge komen ook", "Karin en 1 andere bekende komen ook".
+  const named =
+    names.length === 0
+      ? null
+      : en
+        ? `${joinList([...names, ...(others > 0 ? [others === 1 ? "1 other familiar face" : `${others} other familiar faces`] : [])], locale)} ${names.length + others === 1 ? "is" : "are"} coming`
+        : `${joinList([...names, ...(others > 0 ? [others === 1 ? "1 andere bekende" : `${others} andere bekenden`] : [])], locale)} ${names.length + others === 1 ? "komt" : "komen"}`;
+  const who = named ?? (en
     ? count === 1
       ? "1 person you had a good time with is coming"
       : `${count} people you had a good time with are coming`
     : count === 1
       ? "1 persoon met wie je het gezellig had komt"
-      : `${count} mensen met wie je het gezellig had komen`;
-  const subject = en ? `Familiar faces on ${date} in ${event.city}` : `Bekende gezichten op ${date} in ${event.city}`;
+      : `${count} mensen met wie je het gezellig had komen`);
+  const subject = named
+    ? en
+      ? `${named} too on ${date}`
+      : `${named} ook op ${date}`
+    : en
+      ? `Familiar faces on ${date} in ${event.city}`
+      : `Bekende gezichten op ${date} in ${event.city}`;
   const body = [
     hi,
     "",

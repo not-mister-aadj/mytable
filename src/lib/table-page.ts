@@ -96,7 +96,7 @@ export type TablePage = {
   started: boolean;
   /** They cancelled on this page ("Kun je toch niet?"). */
   cancelled: boolean;
-  /** What "Kun je toch niet?" offers: moving (until 7 days before, once), a
+  /** What "Kun je toch niet?" offers: moving (until 7 days before, as often as they like), a
    * fixed seat (hand it over, or tell us), or a member's own cancel. */
   seat: "movable" | "fixed" | "member";
   /** The Sunday is today, tomorrow or later (Amsterdam). */

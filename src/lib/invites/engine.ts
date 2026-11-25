@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { and, eq, inArray, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { inviteClicks, inviteRuns, inviteSends, inviteSubscribers } from "@/db/schema";
+import { notDeletedBefore } from "@/lib/auth/deleted-accounts";
 import { getSiteUrl } from "@/lib/admin-url";
 import { amsterdamDistrict, cleanDistricts, isAmsterdam, outsideDistricts } from "@/lib/jouw-tafel/districts";
 import { getEmailFrom, getResendClient, withMailMeta } from "@/lib/email/resend";
@@ -281,6 +282,7 @@ export async function loadPeople(options: { dryRun?: boolean } = {}): Promise<In
         coalesce(g.state->'answers'->>'companion' = 'alone', false)
       from jouw_tafel_guests g where g.email is not null
     ) s where email is not null and city is not null
+      and ${notDeletedBefore(sql`s.email`, sql`s.created_at`)}
     order by created_at
   `)) as unknown as Array<{
     email: string;

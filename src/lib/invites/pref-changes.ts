@@ -32,7 +32,7 @@ export function unsubscribedAfter(before: Record<string, CityPref>, after: Recor
  */
 export async function recordPrefChange(input: {
   email: string;
-  source: "page" | "one_click";
+  source: "page" | "one_click" | "settings";
   before: Record<string, CityPref>;
   after: Record<string, CityPref>;
   followed: string[];

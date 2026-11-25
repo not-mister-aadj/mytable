@@ -71,11 +71,16 @@ export default async function BookingConfirmedPage({
   let askTellFriends = false;
 
   if (sessionId) {
-    await tryFulfillCheckoutSessionSafe(sessionId, {
+    const fulfilment = await tryFulfillCheckoutSessionSafe(sessionId, {
       deferEmail: true,
       deferSideEffects: true,
     });
-    void ensureConfirmationEmailForCheckoutSession(sessionId);
+    // Fulfilment sends the confirmation itself (also for a paid booking that
+    // has none yet). A second send next to it would be a second mail, so this
+    // one is only for when fulfilment could not run.
+    if (fulfilment !== "fulfilled" && fulfilment !== "already_paid") {
+      void ensureConfirmationEmailForCheckoutSession(sessionId);
+    }
 
     try {
       confirmation = await getBookingConfirmationStatus(

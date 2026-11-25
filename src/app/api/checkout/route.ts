@@ -118,6 +118,8 @@ export async function POST(request: Request) {
   let body: {
     eventId?: string;
     /** The link from "Er is een plek vrij" (seat-offer.ts): one seat on a full Sunday. */
+    /** "Laat je tafelvrienden weten dat je komt", when it was shown. */
+    tellFriends?: boolean;
     seatOffer?: string;
     /** The reserved bar a member picked (Sunday Social). */
     preferredVenueId?: string;
@@ -704,6 +706,8 @@ export async function POST(request: Request) {
       affiliateCode: body.affiliateCode?.trim().toUpperCase() || null,
       referralCode: body.referralCode?.trim().toUpperCase() || null,
       fromSundayTable: body.fromSundayTable === true,
+      // Only sent when the checkbox was shown (they have a mutual like).
+      tellFriends: typeof body.tellFriends === "boolean" ? body.tellFriends : null,
     })
     .returning();
 

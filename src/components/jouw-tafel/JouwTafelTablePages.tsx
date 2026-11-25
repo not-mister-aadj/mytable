@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hasTableFriend } from "@/lib/tafelvrienden/server";
 import { notFound, redirect } from "next/navigation";
 import { NO_INDEX } from "@/components/jouw-tafel/JouwTafelPage";
 import { earlyChip } from "@/lib/membership/early-label";
@@ -155,10 +156,11 @@ export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; s
   if (booked[event.id]) redirect(jouwTafelTablePath(locale, slug));
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const { answers } = sanitizeQuizState(meta[QUIZ_METADATA_KEY]);
-  const [{ membership, access }, proof] = await Promise.all([
+  const [{ membership, access }, proof, askTellFriends] = await Promise.all([
     reserveAccess(user.id, event, now),
     // The real number only (no dev override): shown from SIGNUP_COUNT_MIN up.
     getWaitlistProof(null),
+    hasTableFriend(user.email).catch(() => false),
   ]);
   // Membership not offered: a plain seat (choose 1 or 2, pay). Existing
   // members keep their own view (seat included, blocked, past due).
@@ -169,6 +171,7 @@ export async function JouwTafelReservePage({ locale, slug }: { locale: Locale; s
         event={event}
         guest={{ email: user.email, answers }}
         tableHref={jouwTafelTablePath(locale, slug)}
+        askTellFriends={askTellFriends}
       />
     );
   }

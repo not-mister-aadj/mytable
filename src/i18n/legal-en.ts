@@ -623,6 +623,10 @@ export const privacyEn: LegalDocumentContent = {
         },
         {
           type: "p",
+          text: "Table friends: if after a Sunday you said you'd like to see someone again, and they said the same about you, we may let them know you're coming to a next Sunday, with only your first name. We do this when the box \"Let your table friends know you're coming\" is ticked at booking; you can untick it.",
+        },
+        {
+          type: "p",
           text: "Some processors may process personal data outside the European Economic Area. Where that applies, we rely on an appropriate transfer mechanism such as the EU-US Data Privacy Framework or the European Commission's standard contractual clauses.",
         },
       ],

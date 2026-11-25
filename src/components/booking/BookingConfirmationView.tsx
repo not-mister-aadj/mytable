@@ -8,6 +8,7 @@ import { bookingOutcomeNl } from "@/i18n/booking-outcome-nl";
 import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
 import { BookingOutcomeTracker } from "@/components/booking/BookingOutcomeTracker";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
+import { IntroStep, TellFriendsStep } from "@/components/booking/TellFriendsStep";
 import { MembershipOfferScreen } from "@/components/booking/MembershipOfferScreen";
 import { MemberWelcomeCard } from "@/components/booking/MemberWelcomeCard";
 import type { MembershipOffer } from "@/lib/membership/offer";
@@ -18,6 +19,8 @@ import type { SundayTableIntro } from "@/lib/sunday-table-intro";
 
 const POLL_MS = 1000;
 const POLL_MAX = 45;
+
+type Step = "friends" | "intro";
 
 type Props = {
   sessionId: string | null;
@@ -34,6 +37,10 @@ type Props = {
   offer?: MembershipOffer | null;
   /** They just became a member through that offer. */
   memberWelcome?: boolean;
+  /** A mutual like, and the card did not ask (not signed in): ask here. */
+  /** "Meet your table" was answered for this booking: no step for it. */
+  introAnswered?: boolean;
+  askTellFriends?: boolean;
 };
 
 /** "Zondag 8 november · 14:00" -> "zondag 8 november". */
@@ -53,11 +60,15 @@ export function BookingConfirmationView({
   footer = null,
   offer = null,
   memberWelcome = false,
+  askTellFriends = false,
+  introAnswered = false,
 }: Props) {
   const dict = locale === "en" ? bookingOutcomeEn : bookingOutcomeNl;
   const [summary, setSummary] = useState(initialSummary);
   const [timedOut, setTimedOut] = useState(false);
   const [offerOpen, setOfferOpen] = useState(Boolean(offer));
+  // The steps between paying and the confirmation, each once.
+  const [passed, setPassed] = useState<Step[]>([]);
 
   useEffect(() => {
     if (!sessionId || summary) return;
@@ -102,6 +113,39 @@ export function BookingConfirmationView({
 
   const showPending = Boolean(sessionId && !summary);
 
+  // 1. tafelvrienden (when asked), 2. Meet your table (when not answered yet), 3. the confirmation.
+  const shared = isSharedTableType(summary?.experienceType);
+  const flow: Step[] = [...(askTellFriends ? (["friends"] as const) : []), ...(shared && !introAnswered ? (["intro"] as const) : [])];
+  const current = flow.find((s) => !passed.includes(s));
+  if (current && sessionId && summary) {
+    const step = { n: flow.indexOf(current) + 1, of: flow.length + 1 };
+    const next = () => {
+      setPassed((p) => [...p, current]);
+      window.scrollTo({ top: 0 });
+    };
+    return (
+      <>
+        <BookingOutcomeTracker variant="success" locale={locale} summary={summary} />
+        {current === "friends" ? (
+          <TellFriendsStep locale={locale} sessionId={sessionId} sunday={sundayOf(summary.dateTime, locale)} step={step} onDone={next} />
+        ) : (
+          <IntroStep
+            locale={locale}
+            sessionId={sessionId}
+            sunday={sundayOf(summary.dateTime, locale)}
+            step={step}
+            city={summary.city}
+            bookingCode={summary.reservationCode}
+            seats={summary.seats}
+            initial={savedIntro}
+            reusable={introReusable}
+            onDone={next}
+          />
+        )}
+      </>
+    );
+  }
+
   if (offer && offerOpen && sessionId && summary) {
     return (
       <>
@@ -143,7 +187,8 @@ export function BookingConfirmationView({
           <>
             {memberWelcome ? <MemberWelcomeCard locale={locale} /> : null}
             {sessionId && summary ? <AccountAfterBooking locale={locale} sessionId={sessionId} /> : null}
-            {sessionId && summary && isSharedTableType(summary.experienceType) ? (
+            {/* Answered before this visit: the answers stay to look at and change. */}
+            {sessionId && summary && shared && !flow.includes("intro") ? (
               <SundayTableIntroForm
                 locale={locale}
                 city={summary.city}

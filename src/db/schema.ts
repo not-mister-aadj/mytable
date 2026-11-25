@@ -253,6 +253,8 @@ export const bookings = pgTable("bookings", {
   affiliateCode: text("affiliate_code"),
   referralCode: text("referral_code"),
   fromSundayTable: boolean("from_sunday_table").notNull().default(false),
+  /** "Laat je tafelvrienden weten dat je komt" at booking: their mutual matches get a mail with this first name (drizzle/0075). */
+  tellFriends: boolean("tell_friends"),
   lifecycleStatus: bookingLifecycleStatusEnum("lifecycle_status")
     .notNull()
     .default("active"),

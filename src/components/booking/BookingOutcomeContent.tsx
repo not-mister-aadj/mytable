@@ -139,7 +139,7 @@ export function BookingOutcomeContent({
           <section className="-mt-10 relative z-10 pb-12 sm:-mt-12 sm:pb-16">
             <div className="overflow-hidden rounded-3xl border border-border-subtle bg-beige shadow-[0_24px_60px_rgba(43,13,18,0.08)]">
               <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]">
-                <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[280px]">
+                <div className="relative aspect-[16/7] md:aspect-auto md:min-h-[280px]">
                   <PositionedImage
                     src={summary.imageUrl}
                     alt={summary.eventName}
@@ -148,15 +148,15 @@ export function BookingOutcomeContent({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-wine/25 via-transparent to-transparent md:bg-gradient-to-r" />
                 </div>
-                <div className="p-6 sm:p-8">
+                <div className="p-5 sm:p-8">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">
                     {dict.summary.title}
                   </p>
                   <h2 className="mt-2 font-serif text-2xl font-medium text-wine sm:text-3xl">
                     {summary.eventName}
                   </h2>
-                  <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-                    <SummaryItem label={dict.summary.date} value={summary.dateTime} />
+                  <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:mt-6 sm:gap-4">
+                    <SummaryItem label={dict.summary.date} value={summary.dateTime} className="col-span-2" />
                     <SummaryItem label={dict.summary.city} value={summary.city} />
                     {summary.seats != null ? (
                       <SummaryItem
@@ -182,7 +182,6 @@ export function BookingOutcomeContent({
                       <SummaryItem
                         label={dict.summary.code}
                         value={summary.reservationCode}
-                        className="sm:col-span-2"
                         mono
                       />
                     ) : null}

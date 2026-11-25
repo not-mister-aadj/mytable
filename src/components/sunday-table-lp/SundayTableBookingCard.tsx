@@ -1,5 +1,6 @@
 "use client";
 
+import { TELL_FRIENDS_COPY } from "@/lib/tafelvrienden/tell-friends-copy";
 import { useEffect, useState } from "react";
 import { jouwTafelKiesPath, jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
@@ -224,6 +225,9 @@ export function SundayTableBookingCard({
   const [step, setStep] = useState<1 | 2>(1);
   /** The typed address is a member's, but nobody is signed in as them. */
   const [needsLogin, setNeedsLogin] = useState(false);
+  /** The signed-in (or quiz) address that has a mutual like; the checkbox shows only while that address is the one typed. */
+  const [friendEmail, setFriendEmail] = useState<string | null>(null);
+  const [tellFriends, setTellFriends] = useState(true);
   /** Back to this Sunday after logging in. */
   const logInHref = () =>
     `${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.pathname)}`;
@@ -232,8 +236,9 @@ export function SundayTableBookingCard({
     let cancelled = false;
     fetch("/api/jouw-tafel/guest/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null } | null) => {
+      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null; hasTableFriend?: boolean } | null) => {
         if (cancelled) return;
+        if (me?.hasTableFriend && me.email) setFriendEmail(me.email.trim().toLowerCase());
         if (!me?.known) {
           setSignedOut(Boolean(me));
           return;
@@ -278,6 +283,7 @@ export function SundayTableBookingCard({
 
   const [englishNotified, setEnglishNotified] = useState(false);
 
+  const askTellFriends = Boolean(friendEmail) && email.trim().toLowerCase() === friendEmail;
   const soldOut = spotsLeft <= 0;
   const maxSeats = Math.min(2, spotsLeft);
   const guestFree = Boolean(member?.freeGuest);
@@ -395,6 +401,7 @@ export function SundayTableBookingCard({
           returnPath: window.location.pathname,
           utm: getStoredUtm(),
           ...(member && venueId ? { preferredVenueId: venueId } : {}),
+          ...(askTellFriends ? { tellFriends } : {}),
         }),
       });
       const data = await res.json();
@@ -751,6 +758,21 @@ export function SundayTableBookingCard({
 
       {errorBlock}
 
+      {askTellFriends && !englishOnlyWaiting && !needsLogin ? (
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gold/40 bg-white/60 px-4 py-3 text-left text-sm leading-snug text-wine/80">
+          <input
+            id="tell-friends"
+            type="checkbox"
+            checked={tellFriends}
+            onChange={(e) => setTellFriends(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-burgundy"
+          />
+          <span>
+            <span className="font-semibold text-wine">{TELL_FRIENDS_COPY[locale === "en" ? "en" : "nl"].lead}</span>{" "}
+            {TELL_FRIENDS_COPY[locale === "en" ? "en" : "nl"].note}
+          </span>
+        </label>
+      ) : null}
       {englishOnlyWaiting || needsLogin ? null : (
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gold/40 bg-white/60 px-4 py-3 text-left text-sm leading-snug text-wine/80">
           <input type="checkbox" required className="mt-0.5 h-4 w-4 shrink-0 accent-burgundy" />

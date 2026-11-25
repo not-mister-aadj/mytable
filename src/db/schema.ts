@@ -255,6 +255,8 @@ export const bookings = pgTable("bookings", {
   fromSundayTable: boolean("from_sunday_table").notNull().default(false),
   /** "Laat je tafelvrienden weten dat je komt" at booking: their mutual matches get a mail with this first name (drizzle/0075). */
   tellFriends: boolean("tell_friends"),
+  /** Questions a venue asks before the Sunday: diet, staying for live music (drizzle/0076). */
+  venueAnswers: jsonb("venue_answers"),
   lifecycleStatus: bookingLifecycleStatusEnum("lifecycle_status")
     .notNull()
     .default("active"),

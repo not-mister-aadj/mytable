@@ -3,6 +3,7 @@
 import { confirmAttendance } from "@/lib/attendance";
 import { cancelLate } from "@/lib/late-cancel";
 import { isCancelReason } from "@/lib/cancel-reasons";
+import { saveVenueAnswers, type VenueAnswers } from "@/lib/venue-questions";
 import { longDate } from "@/lib/admin/sunday-mails";
 import { handOverSeat } from "@/lib/seat-handover";
 import { moveSeat } from "@/lib/seat-move";
@@ -58,4 +59,12 @@ export async function handOverSeatAction(token: string, to: { name: string; emai
   if (!bookingId) return { ok: false, error: "closed" };
   const result = await handOverSeat(bookingId, { name: String(to?.name ?? ""), email: String(to?.email ?? "") });
   return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+/** "Twee vragen" from the venue (diet, live music): for the booking in the link. */
+export async function saveVenueAnswersAction(token: string, patch: VenueAnswers): Promise<{ ok: boolean; answers?: VenueAnswers }> {
+  const bookingId = await verifyTablePageToken(token);
+  if (!bookingId) return { ok: false };
+  const answers = await saveVenueAnswers(bookingId, patch);
+  return answers ? { ok: true, answers } : { ok: false };
 }

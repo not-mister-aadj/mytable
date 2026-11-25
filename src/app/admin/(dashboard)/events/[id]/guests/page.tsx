@@ -1,4 +1,5 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { LIVE_MUSIC, summarizeVenueAnswers, type VenueAnswersSummary } from "@/lib/venue-questions";
 import { DISLIKED_REASONS, LIKED_REASONS, onlyKnown } from "@/lib/feedback-reasons";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -151,7 +152,10 @@ async function GuestsTab({ eventId, event }: { eventId: string; event: typeof ev
   // Sequential, see historyFor.
   const ticketsData = await timed("tickets", () => getEventTicketsData(eventId));
   const history = await timed("history", () => historyFor(eventId, event.startsAt));
+  const answers = await timed("venue answers", () => venueAnswersFor(eventId));
   return (
+    <>
+    {answers ? <VenueAnswersPanel summary={answers.summary} music={answers.music} /> : null}
     <EventGuestsView
       event={{
         id: event.id,
@@ -166,6 +170,52 @@ async function GuestsTab({ eventId, event }: { eventId: string; event: typeof ev
       transferTargets={ticketsData.transferTargets}
       history={history}
     />
+    </>
+  );
+}
+
+/** The venue's questions (diet, live music) for this Sunday, when there is something to show. */
+async function venueAnswersFor(eventId: string) {
+  const rows = await getDb()
+    .select({ name: bookings.customerName, email: bookings.email, answers: bookings.venueAnswers, dietaryNotes: bookings.dietaryNotes })
+    .from(bookings)
+    .where(and(eq(bookings.eventId, eventId), eq(bookings.paymentStatus, "paid"), eq(bookings.lifecycleStatus, "active"), isNull(bookings.cancelledLateAt)));
+  const music = LIVE_MUSIC[eventId]?.from ?? null;
+  const summary = summarizeVenueAnswers(rows.map((r) => ({ name: r.name?.trim() || r.email, answers: r.answers, dietaryNotes: r.dietaryNotes })));
+  return music || summary.answered > 0 || summary.diets.length > 0 ? { summary, music } : null;
+}
+
+function VenueAnswersPanel({ summary, music }: { summary: VenueAnswersSummary; music: string | null }) {
+  const names = (list: string[]) => (list.length ? list.join(", ") : "-");
+  return (
+    <section className="rounded-xl border border-border-subtle bg-beige/60 p-5 text-sm">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-wine/45">Vragen van de zaak</h2>
+      <p className="mt-2 text-wine">
+        {summary.answered} van {summary.total} geantwoord
+      </p>
+      <p className="mt-2 font-medium text-wine">Dieet</p>
+      {summary.diets.length ? (
+        <ul className="mt-1 space-y-0.5 text-wine/80">
+          {summary.diets.map((d) => (
+            <li key={d.name + d.notes}>
+              {d.name}: {d.notes}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-1 text-wine/60">-</p>
+      )}
+      {music ? (
+        <>
+          <p className="mt-3 font-medium text-wine">Live muziek vanaf {music}</p>
+          <ul className="mt-1 space-y-0.5 text-wine/80">
+            <li>Ja ({summary.liveMusic.yes.length}): {names(summary.liveMusic.yes)}</li>
+            <li>Misschien ({summary.liveMusic.maybe.length}): {names(summary.liveMusic.maybe)}</li>
+            <li>Nee ({summary.liveMusic.no.length}): {names(summary.liveMusic.no)}</li>
+          </ul>
+        </>
+      ) : null}
+    </section>
   );
 }
 

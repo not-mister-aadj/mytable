@@ -462,7 +462,7 @@ export const invitePrefChanges = pgTable("invite_pref_changes", {
   id: uuid("id").primaryKey().defaultRandom(),
   emailNormalized: text("email_normalized").notNull(),
   changedAt: timestamp("changed_at", { withTimezone: true }).notNull().defaultNow(),
-  source: text("source").$type<"page" | "one_click" | "backfill">().notNull(),
+  source: text("source").$type<"page" | "one_click" | "settings" | "backfill">().notNull(),
   changes: jsonb("changes").$type<Array<{ city: string; from: "all" | "less" | "none"; to: "all" | "less" | "none" }>>().notNull().default([]),
   unsubscribed: boolean("unsubscribed").notNull().default(false),
   lastSendId: uuid("last_send_id").references(() => inviteSends.id, { onDelete: "set null" }),
@@ -484,6 +484,12 @@ export const inviteRuns = pgTable("invite_runs", {
 
 /** "Kan niet" (drizzle/0072): this person can't come to this Sunday, so no
  * invite, reminder or "bekende gezichten" mail mentions it again. */
+/** Accounts that were deleted: a sha256 of the email and when (drizzle/0077). */
+export const deletedAccounts = pgTable("deleted_accounts", {
+  emailHash: text("email_hash").primaryKey(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const inviteDeclines = pgTable("invite_declines", {
   id: uuid("id").primaryKey().defaultRandom(),
   emailNormalized: text("email_normalized").notNull(),

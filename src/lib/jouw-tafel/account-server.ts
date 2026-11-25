@@ -4,11 +4,19 @@ import {
   bookings,
   customerActivities,
   customers,
+  deletedAccounts,
   eventNotifySignups,
   events,
+  inviteDeclines,
+  invitePrefChanges,
+  inviteSends,
+  inviteSubscribers,
+  jouwTafelGuests,
   sundayTableSignups,
   waitlistSignups,
 } from "@/db/schema";
+import { emailHash } from "@/lib/auth/deleted-accounts";
+import { invitesOffFor, setInvitesOn } from "@/lib/invites/mail-switch";
 import { reservationCode } from "@/lib/booking-display";
 import { normalizeEmail } from "@/lib/customers/normalize";
 import { upsertCustomerFromEmail } from "@/lib/customers/upsert";
@@ -129,7 +137,9 @@ export async function getTableMailsOn(email: string): Promise<boolean> {
     .from(customers)
     .where(eq(customers.emailNormalized, normalizeEmail(email)))
     .limit(1);
-  return !hasUnsubscribedTag(customer?.tags);
+  if (hasUnsubscribedTag(customer?.tags)) return false;
+  // Also off after the unsubscribe link in an invite (every city on "none").
+  return !(await invitesOffFor(email));
 }
 
 export async function setTableMailsOn(input: {
@@ -148,6 +158,8 @@ export async function setTableMailsOn(input: {
   const others = (row?.tags ?? []).filter((t) => !isUnsubscribedTag(t));
   const tags = input.on ? others : [...others, CAMPAIGN_UNSUBSCRIBED_TAG];
   await db.update(customers).set({ tags, updatedAt: new Date() }).where(eq(customers.id, id));
+  // The automatic invites read the city settings, not this tag.
+  await setInvitesOn(input.email, input.on);
 }
 
 function isUnsubscribedTag(tag: unknown): boolean {
@@ -178,9 +190,14 @@ export async function unsubscribedEmails(): Promise<Set<string>> {
  *   rows: deleted;
  * - the customer profile (CRM: name, tags, notes, stats) and its activity
  *   log: deleted;
+ * - quiz answers kept as a guest, invite city settings, settings changes,
+ *   "kan niet" answers and planned invites: deleted;
  * - bookings (order and invoice data, kept for the fiscal retention period)
  *   and Sunday Table attendance rows: kept, but unlinked from the deleted
- *   customer.
+ *   customer;
+ * - a sha256 of the email and the moment go into deleted_accounts, so the
+ *   nightly account job and the invites don't pick them up again from the
+ *   bookings we keep (see deletedBefore).
  * The auth user and its quiz answers are deleted by the caller.
  */
 export async function deleteMemberData(email: string): Promise<void> {
@@ -190,6 +207,18 @@ export async function deleteMemberData(email: string): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.delete(waitlistSignups).where(sql`lower(${waitlistSignups.email}) = ${normalized}`);
     await tx.delete(eventNotifySignups).where(sql`lower(${eventNotifySignups.email}) = ${normalized}`);
+    await tx.delete(jouwTafelGuests).where(sql`lower(${jouwTafelGuests.email}) = ${normalized}`);
+    await tx.delete(inviteSubscribers).where(eq(inviteSubscribers.emailNormalized, normalized));
+    await tx.delete(invitePrefChanges).where(eq(invitePrefChanges.emailNormalized, normalized));
+    await tx.delete(inviteDeclines).where(eq(inviteDeclines.emailNormalized, normalized));
+    await tx
+      .update(inviteSends)
+      .set({ status: "skipped", skipReason: "account verwijderd" })
+      .where(and(eq(inviteSends.emailNormalized, normalized), eq(inviteSends.status, "queued")));
+    await tx
+      .insert(deletedAccounts)
+      .values({ emailHash: emailHash(normalized) })
+      .onConflictDoUpdate({ target: deletedAccounts.emailHash, set: { deletedAt: new Date() } });
     const found = await tx
       .select({ id: customers.id })
       .from(customers)

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
+import { notDeletedBefore } from "@/lib/auth/deleted-accounts";
 import { ensureAuthUserForEmail, type SilentSource } from "@/lib/auth/ensure-auth-user-for-email";
 import { isTestAddress } from "@/lib/invites/logic";
 
@@ -22,6 +23,7 @@ async function missingAccounts(limit: number): Promise<Missing[]> {
       from jouw_tafel_guests where email is not null
     ) s
     where not exists (select 1 from auth.users u where lower(u.email) = s.email)
+      and ${notDeletedBefore(sql`s.email`, sql`s.created_at`)}
     order by email, created_at
     limit ${limit}
   `)) as unknown as Missing[];

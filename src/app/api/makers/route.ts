@@ -48,9 +48,9 @@ const NOTICE_FROM = "MyTable <hallo@tafels.mytable.club>";
 async function sendNotice(input: MakerInput): Promise<void> {
   const resend = getResendClient();
   if (!resend) return;
-  let link = "https://dashboard.mytable.club/makers";
+  let link = "https://dashboard.mytable.club/creators";
   try {
-    link = adminUrl("/makers");
+    link = adminUrl("/creators");
   } catch {
     // keep the fallback
   }

@@ -29,7 +29,7 @@ const NAV: NavDef[] = [
       { label: "Wachtlijstantwoorden", path: "/customers/antwoorden" },
       { label: "Mails", path: "/emails", matchAlso: ["/email-preview"] },
       { label: "Ambassadors", path: "/ambassadors" },
-      { label: "Makers", path: "/makers" },
+      { label: "Creators", path: "/creators" },
     ],
   },
   {

@@ -1,4 +1,4 @@
-// /makers copy, Dutch and English. Reached only from the footer (noindex).
+// /creators copy, Dutch and English. Reached only from the footer (noindex).
 
 type Item = { title: string; body: string };
 
@@ -68,30 +68,30 @@ export type MakerCopy = {
 };
 
 const nl: MakerCopy = {
-  metaTitle: "Makers · MyTable",
-  metaDescription: "Voor wie de mooiste tafels vastlegt. Bouw je portfolio en doe ervaring op in een leuk team van makers.",
-  eyebrow: "MyTable Makers",
+  metaTitle: "Creators · MyTable",
+  metaDescription: "Maak content voor de mooiste tafels van je stad. Bouw je portfolio en doe ervaring op in een leuk team van creators.",
+  eyebrow: "MyTable Creators",
   title: "Maak content voor de mooiste tafels van je stad.",
   intro:
-    "Fotografeer of film eten, wijn, mooie plekken en momenten, of juist een community met een verhaal. Alles kan, zolang het bij MyTable past. Je bouwt je portfolio in een leuk team van makers. En aan iedereen die via jouw link boekt, verdien je twee jaar lang mee.",
+    "Fotografeer of film eten, wijn, mooie plekken en momenten, of juist een community met een verhaal. Alles kan, zolang het bij MyTable past. Je bouwt je portfolio in een leuk team van creators. En aan iedereen die via jouw affiliate link boekt, verdien je twee jaar lang mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
-  heroMeta: "Eerst online kennismaken · daarna je eigen link",
-  badge: "Makers gezocht",
+  heroMeta: "Eerst online kennismaken · daarna je eigen affiliate link",
+  badge: "Creators gezocht",
   quickFacts: ["Een leuk team", "Bouw je portfolio", "2 jaar meeverdienen"],
   communityEyebrow: "Wat je krijgt",
   stepsEyebrow: "Zo werkt het",
   waysEyebrow: "Hoe je wilt werken",
   faqEyebrow: "Vragen",
-  giftTitle: "Een reden om jouw link te gebruiken",
-  giftIntro: "Wie via jouw link boekt, kiest een cadeau. Zo deel je iets waar je volgers zelf ook wat aan hebben.",
+  giftTitle: "Een reden om jouw affiliate link te gebruiken",
+  giftIntro: "Wie via jouw affiliate link boekt, kiest een cadeau. Zo deel je iets waar je volgers zelf ook wat aan hebben.",
   gifts: [
     { tag: "Optie 1", title: "Neem gratis iemand mee", body: "Twee plekken voor de prijs van één. Samen aanschuiven is makkelijker dan alleen." },
     { tag: "Optie 2", title: "De tweede keer half geld", body: "Kom de eerste keer alleen en betaal de tweede keer de helft voor je plek." },
   ],
   calc: {
     title: "Twee jaar meeverdienen",
-    lead: "Boekt iemand via jouw link? Dan verdien je twee jaar lang mee aan elke plek die diegene boekt.",
+    lead: "Boekt iemand via jouw affiliate link? Dan verdien je twee jaar lang mee aan elke plek die diegene boekt.",
     label: "Mensen per maand via jou",
     perMonth: (n) => (n === 1 ? "1 persoon" : `${n} mensen`),
     people: (n) => `${n} mensen in een jaar`,
@@ -101,11 +101,11 @@ const nl: MakerCopy = {
     note: "Een schatting: iedereen komt 4 keer in twee jaar en 1 op de 8 wordt club member.",
   },
   communityTitle: "Een team dat samen beter wordt",
-  communityIntro: "Meer dan een link: je maakt deel uit van een groep makers.",
+  communityIntro: "Meer dan een affiliate link: je maakt deel uit van een groep creators.",
   community: [
     {
       title: "Een leuk team",
-      body: "Makers die net als jij van eten, wijn en goede plekken houden. Je staat er niet alleen voor.",
+      body: "Creators die net als jij van eten, wijn en goede plekken houden. Je staat er niet alleen voor.",
     },
     {
       title: "Bouw je portfolio",
@@ -113,17 +113,17 @@ const nl: MakerCopy = {
     },
     {
       title: "Elke twee weken samen",
-      body: "Een korte online call met alle makers. We delen wat werkt, wat niet, en leren van elkaar.",
+      body: "Een korte online call met alle creators. We delen wat werkt, wat niet, en leren van elkaar.",
     },
     {
-      title: "Maker van de maand",
-      body: "Elke maand winnen de makers met de beste post en de meeste boekingen een leuke prijs.",
+      title: "Creator van de maand",
+      body: "Elke maand winnen de creators met de beste post en de meeste boekingen een leuke prijs.",
     },
   ],
   stepsTitle: "In drie stappen aan de slag",
   steps: [
     { title: "Maak kennis", body: "Eerst een kort online gesprek. Je zit nergens aan vast." },
-    { title: "Krijg je link", body: "Klikt het, dan krijg je je eigen link. Die werkt op elk kanaal." },
+    { title: "Krijg je affiliate link", body: "Klikt het, dan krijg je je eigen affiliate link. Die werkt op elk kanaal." },
     { title: "Maak, deel en leer", body: "Je maakt content, schuift aan bij de calls en deelt je link. Wie via jou boekt, levert je ook nog wat op." },
   ],
   waysTitle: "Jij kiest waar en hoe je post",
@@ -138,7 +138,7 @@ const nl: MakerCopy = {
   faq: [
     { q: "Welke social media tellen?", a: "Allemaal. Instagram, TikTok, Facebook, LinkedIn, YouTube of je eigen blog. Je link werkt overal." },
     {
-      q: "Waar zet ik mijn link?",
+      q: "Waar zet ik mijn affiliate link?",
       a: "Op Instagram en TikTok in je bio of in een story met een linksticker. Op Facebook en LinkedIn gewoon in je post.",
     },
     {
@@ -188,30 +188,30 @@ const nl: MakerCopy = {
 };
 
 const en: MakerCopy = {
-  metaTitle: "Makers · MyTable",
-  metaDescription: "For those who capture the best tables. Build your portfolio and gain experience in a fun team of makers.",
-  eyebrow: "MyTable Makers",
+  metaTitle: "Creators · MyTable",
+  metaDescription: "Create content for the best tables in your city. Build your portfolio and gain experience in a fun team of creators.",
+  eyebrow: "MyTable Creators",
   title: "Create content for the best tables in your city.",
   intro:
-    "Shoot food, wine, beautiful places and moments, or a community with a story. Anything goes, as long as it fits MyTable. You build your portfolio in a fun team of makers. And you earn on everyone who books through your link, for two years.",
+    "Shoot food, wine, beautiful places and moments, or a community with a story. Anything goes, as long as it fits MyTable. You build your portfolio in a fun team of creators. And you earn on everyone who books through your affiliate link, for two years.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
-  heroMeta: "First a short online call · then your own link",
-  badge: "Makers wanted",
+  heroMeta: "First a short online call · then your own affiliate link",
+  badge: "Creators wanted",
   quickFacts: ["A fun team", "Build your portfolio", "Earn for 2 years"],
   communityEyebrow: "What you get",
   stepsEyebrow: "How it works",
   waysEyebrow: "How you want to work",
   faqEyebrow: "Questions",
-  giftTitle: "A reason to use your link",
-  giftIntro: "Whoever books through your link picks a gift. So you share something your audience gets something out of too.",
+  giftTitle: "A reason to use your affiliate link",
+  giftIntro: "Whoever books through your affiliate link picks a gift. So you share something your audience gets something out of too.",
   gifts: [
     { tag: "Option 1", title: "Bring someone along free", body: "Two seats for the price of one. Joining together is easier than alone." },
     { tag: "Option 2", title: "Half price the second time", body: "Come alone the first time and pay half for your seat the second time." },
   ],
   calc: {
     title: "Two years of earning",
-    lead: "Someone books through your link? Then you earn on every seat they book, for two years.",
+    lead: "Someone books through your affiliate link? Then you earn on every seat they book, for two years.",
     label: "People per month through you",
     perMonth: (n) => (n === 1 ? "1 person" : `${n} people`),
     people: (n) => `${n} people in a year`,
@@ -221,11 +221,11 @@ const en: MakerCopy = {
     note: "An estimate: everyone comes 4 times in two years and 1 in 8 becomes a club member.",
   },
   communityTitle: "A team that gets better together",
-  communityIntro: "More than a link: you become part of a group of makers.",
+  communityIntro: "More than an affiliate link: you become part of a group of creators.",
   community: [
     {
       title: "A fun team",
-      body: "Makers who love food, wine and good places as much as you do. You're never on your own.",
+      body: "Creators who love food, wine and good places as much as you do. You're never on your own.",
     },
     {
       title: "Build your portfolio",
@@ -233,17 +233,17 @@ const en: MakerCopy = {
     },
     {
       title: "Together every two weeks",
-      body: "A short online call with all makers. We share what works, what doesn't, and learn from each other.",
+      body: "A short online call with all creators. We share what works, what doesn't, and learn from each other.",
     },
     {
-      title: "Maker of the month",
-      body: "Every month, the makers with the best post and the most bookings win a nice prize.",
+      title: "Creator of the month",
+      body: "Every month, the creators with the best post and the most bookings win a nice prize.",
     },
   ],
   stepsTitle: "Get started in three steps",
   steps: [
     { title: "Meet us", body: "First a short online call. No strings attached." },
-    { title: "Get your link", body: "If it clicks, you get your own link. It works on any channel." },
+    { title: "Get your affiliate link", body: "If it clicks, you get your own affiliate link. It works on any channel." },
     { title: "Make, share and learn", body: "You make content, join the calls and share your link. Whoever books through you earns you something too." },
   ],
   waysTitle: "You choose where and how you post",
@@ -258,7 +258,7 @@ const en: MakerCopy = {
   faq: [
     { q: "Which social media count?", a: "All of them. Instagram, TikTok, Facebook, LinkedIn, YouTube or your own blog. Your link works everywhere." },
     {
-      q: "Where do I put my link?",
+      q: "Where do I put my affiliate link?",
       a: "On Instagram and TikTok in your bio or in a story with a link sticker. On Facebook and LinkedIn simply in your post.",
     },
     {

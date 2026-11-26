@@ -58,7 +58,7 @@ export default async function AdminMakersPage() {
   return (
     <div className="space-y-10">
       <header className="flex items-end justify-between gap-4">
-        <h1 className="font-serif text-3xl text-burgundy">Makers</h1>
+        <h1 className="font-serif text-3xl text-burgundy">Creators</h1>
       </header>
 
       <section className="space-y-3">
@@ -138,7 +138,7 @@ export default async function AdminMakersPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-wine/55">Makers · {approved.length}</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-wine/55">Creators · {approved.length}</h2>
         {approved.length === 0 ? (
           <p className="text-wine/55">-</p>
         ) : (

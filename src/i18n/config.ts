@@ -190,9 +190,9 @@ export function ambassadorsApplyPath(locale: Locale): string {
   return locale === "en" ? "/en/ambassadors/apply" : "/ambassadors/aanmelden";
 }
 
-/** Makers: people who photograph food and places share MyTable through their own link. */
+/** Creators: people who photograph food and places share MyTable through their own affiliate link. */
 export function makersPath(locale: Locale): string {
-  return locale === "en" ? "/en/makers" : "/makers";
+  return locale === "en" ? "/en/creators" : "/creators";
 }
 
 /** Venue-facing "what's in it for you" page for the Mixer format. */

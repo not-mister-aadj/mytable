@@ -32,7 +32,7 @@ export function makerNoticeMail(input: MakerInput, adminLink: string): PlainMail
     .map(([l, v]) => `<tr><td style="${cell};color:#7a5a60">${escapeHtml(l)}</td><td style="${cell}">${escapeHtml(v).replace(/\n/g, "<br>")}</td></tr>`)
     .join("")}</table>`;
   return {
-    subject: `Maker wil kennismaken: ${input.name} (${input.city})`,
+    subject: `Creator wil kennismaken: ${input.name} (${input.city})`,
     text,
     html: wrap(`${table}<p style="margin:0"><a href="${escapeHtml(adminLink)}" style="color:#5a0f1b">Goedkeuren in admin</a></p>`),
   };
@@ -45,7 +45,7 @@ export function makerWelcomeMail(input: { name: string; locale: string; link: st
   const lines = en
     ? [
         `Hi ${first},`,
-        "Welcome as a MyTable maker. This is your own link:",
+        "Welcome as a MyTable creator. This is your own affiliate link:",
         input.link,
         "Anyone new who books through it brings someone along free the first time. You earn €7 for every paid seat, and €7 for every paid month of a club membership, for two years after their first booking.",
         "Share it wherever you post. On Instagram and TikTok put it in your bio or in a story with a link sticker, on Facebook and LinkedIn simply in your post. On Instagram we like to post as a collab: invite us, or we invite you. Often the venue joins too.",
@@ -54,9 +54,9 @@ export function makerWelcomeMail(input: { name: string; locale: string; link: st
       ]
     : [
         `Hoi ${first},`,
-        "Welkom als maker bij MyTable. Dit is je eigen link:",
+        "Welkom als creator bij MyTable. Dit is je eigen affiliate link:",
         input.link,
-        "Wie nieuw is en via jouw link boekt, neemt de eerste keer gratis iemand mee. Jij krijgt €7 per betaalde plek, en €7 per betaalde maand van een club membership, twee jaar lang na hun eerste boeking.",
+        "Wie nieuw is en via jouw affiliate link boekt, neemt de eerste keer gratis iemand mee. Jij krijgt €7 per betaalde plek, en €7 per betaalde maand van een club membership, twee jaar lang na hun eerste boeking.",
         "Deel hem waar je maar post. Op Instagram en TikTok zet je hem in je bio of in een story met een linksticker, op Facebook en LinkedIn gewoon in je post. Op Instagram posten we graag als collab: nodig ons uit, of wij nodigen jou uit. Vaak doet de plek zelf ook mee.",
         "Vragen of een idee voor een post? Antwoord gewoon op deze mail.",
         "Groetjes,\nTeam MyTable",
@@ -66,5 +66,5 @@ export function makerWelcomeMail(input: { name: string; locale: string; link: st
       .map((l) => (l === input.link ? `<p style="margin:0 0 16px"><a href="${escapeHtml(l)}" style="color:#5a0f1b;font-weight:600">${escapeHtml(l)}</a></p>` : para(l)))
       .join(""),
   );
-  return { subject: en ? "Your MyTable link" : "Je eigen MyTable-link", text: lines.join("\n\n"), html };
+  return { subject: en ? "Your MyTable affiliate link" : "Je MyTable affiliate link", text: lines.join("\n\n"), html };
 }

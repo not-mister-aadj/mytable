@@ -41,7 +41,7 @@ export async function approveMakerAction(formData: FormData): Promise<void> {
       }
     }
   }
-  revalidatePath(adminPath("/makers"));
+  revalidatePath(adminPath("/creators"));
 }
 
 export async function rejectMakerAction(formData: FormData): Promise<void> {
@@ -50,7 +50,7 @@ export async function rejectMakerAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   await getDb().update(makers).set({ status: "rejected" }).where(eq(makers.id, id));
-  revalidatePath(adminPath("/makers"));
+  revalidatePath(adminPath("/creators"));
 }
 
 /** Marks what a maker earned so far as paid out: Sundays that took place, and membership months. */
@@ -71,5 +71,5 @@ export async function markMakerPaidOutAction(formData: FormData): Promise<void> 
         sql`(${makerCommissions.bookingId} is null or exists (select 1 from bookings b where b.id = ${makerCommissions.bookingId} and b.payment_status = 'paid'))`,
       ),
     );
-  revalidatePath(adminPath("/makers"));
+  revalidatePath(adminPath("/creators"));
 }

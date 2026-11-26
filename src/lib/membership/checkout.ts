@@ -12,7 +12,7 @@ import { MEMBERSHIP_OFFER_CREDIT_CENTS, formatPlanEuros, getMembershipPlan, type
 import { membershipOfferCouponId, planPriceIds } from "@/lib/membership/stripe";
 import { FREE_GUEST_EVENT } from "@/lib/membership/member-checkout";
 import { planPriceLine } from "@/lib/membership/mail-copy";
-import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
+import { checkoutExpiresAt, getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { isJouwTafelType, isSharedTableType } from "@/lib/event-concepts";
 import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 import { communicationLocale } from "@/lib/booking-table-language";
@@ -181,6 +181,7 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      expires_at: checkoutExpiresAt(),
       ...(existingCustomer ? { customer: existingCustomer } : { customer_email: email }),
       client_reference_id: input.user.id,
       locale: en ? "en" : "nl",

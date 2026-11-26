@@ -8,7 +8,7 @@ import { getSiteUrl } from "@/lib/env";
 import { confirmMemberBooking } from "@/lib/membership/bookings";
 import { freeGuestAvailable, memberBookingAmountCents } from "@/lib/membership/logic";
 import { MEMBER_MAX_UPCOMING_BOOKINGS, guestSeatCents, isMembershipPlanId } from "@/lib/membership/plans";
-import { getCheckoutPaymentMethodTypes, getStripe } from "@/lib/stripe";
+import { checkoutExpiresAt, getCheckoutPaymentMethodTypes, getStripe } from "@/lib/stripe";
 import { jouwTafelSettingsPath, jouwTafelKiesPath } from "@/i18n/config";
 
 /** booking_events type: this booking's guest came along for free. */
@@ -163,6 +163,7 @@ export async function bookAsMember(input: {
   try {
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
+      expires_at: checkoutExpiresAt(),
       customer_email: input.email,
       locale: en ? "en" : "nl",
       payment_method_types: getCheckoutPaymentMethodTypes("EUR"),

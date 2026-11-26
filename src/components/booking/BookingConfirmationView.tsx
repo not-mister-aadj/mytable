@@ -2,7 +2,7 @@
 
 import { AccountAfterBooking } from "@/components/booking/AccountAfterBooking";
 import { useEffect, useState } from "react";
-import type { Locale } from "@/i18n/config";
+import { jouwTafelKiesPath, type Locale } from "@/i18n/config";
 import { bookingOutcomeEn } from "@/i18n/booking-outcome-en";
 import { bookingOutcomeNl } from "@/i18n/booking-outcome-nl";
 import { BookingOutcomeContent } from "@/components/booking/BookingOutcomeContent";
@@ -26,6 +26,8 @@ type Props = {
   sessionId: string | null;
   locale: Locale;
   initialSummary: BookingOutcomeSummary | null;
+  /** Paid while the Sunday filled up: refunded, nothing booked. */
+  initialFull?: "refunded" | "member" | null;
   /** "Meet your table" answers already saved for this booking, if any. */
   savedIntro?: SundayTableIntro | null;
   /** Answered before: the intro form first offers to keep those answers. */
@@ -54,6 +56,7 @@ export function BookingConfirmationView({
   sessionId,
   locale,
   initialSummary,
+  initialFull = null,
   savedIntro = null,
   introReusable = false,
   header = null,
@@ -66,12 +69,13 @@ export function BookingConfirmationView({
   const dict = locale === "en" ? bookingOutcomeEn : bookingOutcomeNl;
   const [summary, setSummary] = useState(initialSummary);
   const [timedOut, setTimedOut] = useState(false);
+  const [full, setFull] = useState(initialFull);
   const [offerOpen, setOfferOpen] = useState(Boolean(offer));
   // The steps between paying and the confirmation, each once.
   const [passed, setPassed] = useState<Step[]>([]);
 
   useEffect(() => {
-    if (!sessionId || summary) return;
+    if (!sessionId || summary || full) return;
 
     let cancelled = false;
 
@@ -85,7 +89,12 @@ export function BookingConfirmationView({
           const body = (await res.json()) as {
             summary?: BookingOutcomeSummary | null;
             pending?: boolean;
+            full?: "refunded" | "member";
           };
+          if (body.full) {
+            setFull(body.full);
+            return;
+          }
           if (body.summary) {
             setSummary(body.summary);
             setTimedOut(false);
@@ -109,7 +118,7 @@ export function BookingConfirmationView({
     return () => {
       cancelled = true;
     };
-  }, [sessionId, locale, summary]);
+  }, [sessionId, locale, summary, full]);
 
   const showPending = Boolean(sessionId && !summary);
 
@@ -165,6 +174,34 @@ export function BookingConfirmationView({
             window.scrollTo({ top: 0 });
           }}
         />
+      </>
+    );
+  }
+
+  if (full) {
+    const en = locale === "en";
+    return (
+      <>
+        {header}
+        <main className="mx-auto max-w-lg px-5 py-16 text-center text-wine">
+          <h1 className="font-serif text-[2rem] leading-tight text-burgundy">{en ? "This Sunday just filled up" : "Deze zondag was net vol"}</h1>
+          <p className="mt-4 text-[1rem] leading-relaxed text-wine/75">
+            {full === "member"
+              ? en
+                ? "Welcome as a club member. While you joined, the last seat for this Sunday went to someone else. Your club membership is active: pick another Sunday."
+                : "Welkom als club member. Terwijl je lid werd, ging de laatste plek voor deze zondag net naar iemand anders. Je club membership loopt: kies een andere zondag."
+              : en
+                ? "While you were paying, the last seat went to someone else. We sent your money straight back; it is in your account within a few days. You also got a mail about it."
+                : "Terwijl je betaalde, ging de laatste plek net naar iemand anders. Je geld hebben we meteen teruggestort; binnen een paar dagen staat het weer op je rekening. Je kreeg er ook een mail over."}
+          </p>
+          <a
+            href={jouwTafelKiesPath(locale)}
+            className="mt-8 inline-flex rounded-full bg-burgundy px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-burgundy/90"
+          >
+            {en ? "Pick another Sunday" : "Kies een andere zondag"}
+          </a>
+        </main>
+        {footer}
       </>
     );
   }

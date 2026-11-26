@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Event } from "@/db/schema";
-import { bookings, events } from "@/db/schema";
+import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { formatDateTime } from "@/lib/event-display";
 import { reservationCode } from "@/lib/booking-display";
@@ -209,6 +209,8 @@ export type BookingConfirmationStatus = {
   summary: BookingOutcomeSummary | null;
   /** iDEAL/Bancontact: customer returned but bank payment still settling */
   pending: boolean;
+  /** Paid while the last seat went to someone else: refunded (stripe/full-sunday.ts). */
+  full?: "refunded" | "member";
 };
 
 export async function getBookingConfirmationStatus(
@@ -247,6 +249,17 @@ export async function getBookingConfirmationStatus(
     return { summary: null, pending: false };
   }
 
+  if (row.booking.paymentStatus === "refunded") {
+    const [fullSunday] = await db
+      .select({ id: bookingEvents.id })
+      .from(bookingEvents)
+      .where(and(eq(bookingEvents.bookingId, row.booking.id), eq(bookingEvents.type, "sunday_full_refunded")))
+      .limit(1);
+    if (fullSunday) return { summary: null, pending: false, full: "refunded" };
+  }
+  if (row.booking.paymentStatus === "failed" && session.metadata?.kind === "membership") {
+    return { summary: null, pending: false, full: "member" };
+  }
   const settled = isCheckoutPaymentSettled(session, row.booking.paymentStatus);
   const pending =
     !settled &&

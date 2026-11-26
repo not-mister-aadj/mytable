@@ -19,7 +19,7 @@ import { revalidateEventPaths } from "@/lib/revalidate-agenda";
 import { isCheckoutPaymentSettled } from "@/lib/stripe/checkout-session";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { ensureAuthUserForEmail } from "@/lib/auth/ensure-auth-user-for-email";
-import { captureCriticalError } from "@/lib/sentry/critical";
+import { captureCriticalError, captureCriticalMessage } from "@/lib/sentry/critical";
 
 export type FulfillCheckoutOptions = {
   /** Skip blocking on Resend — confirmation page renders first, API poll sends email. */
@@ -190,7 +190,13 @@ export type FulfillCheckoutResult =
   | "already_paid"
   | "not_paid"
   | "missing_metadata"
-  | "booking_not_found";
+  | "booking_not_found"
+  /** Paid while the last seat went to someone else: refunded (full-sunday.ts). */
+  | "sunday_full";
+
+class AlreadyFulfilled extends Error {}
+class AlreadyRefunded extends Error {}
+class SundayFull extends Error {}
 
 /** Mark booking paid, send confirmation email, then CRM/analytics — idempotent. */
 export async function fulfillPaidCheckoutSession(
@@ -256,68 +262,55 @@ export async function fulfillPaidCheckoutSession(
     await claimSeatOffer(seatOfferId, bookingId).catch((error) => console.error("[fulfill] claiming the seat offer failed:", error));
   }
 
-  const updated = await db.transaction(async (tx) => {
-    const [ev] = await tx
-      .update(events)
-      .set({
-        spotsSold: sql`${events.spotsSold} + ${existing.seats}`,
-        updatedAt: new Date(),
-      })
-      .where(
-        sql`${events.id} = ${eventId} AND ${events.spotsSold} + ${existing.seats} <= ${events.capacity}`,
-      )
-      .returning();
-
-    if (!ev) {
-      throw new Error("Capacity exceeded");
-    }
-
-    const [booking] = await tx
-      .update(bookings)
-      .set({
-        paymentStatus: "paid",
-        stripePaymentIntentId:
-          typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : session.payment_intent?.id ?? null,
-        stripeCheckoutSessionId: session.id,
-      })
-      .where(
-        and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "pending")),
-      )
-      .returning();
-
-    if (!booking) {
-      const [paidBooking] = await tx
-        .select()
-        .from(bookings)
-        .where(
-          and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "paid")),
-        )
-        .limit(1);
-
-      if (paidBooking) {
-        const [paidEvent] = await tx
-          .select()
-          .from(events)
-          .where(eq(events.id, eventId))
-          .limit(1);
-        if (paidEvent) {
-          return { booking: paidBooking, ev: paidEvent };
-        }
+  const paymentIntentId =
+    typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
+  let updated: { booking: Booking; ev: Event };
+  try {
+    updated = await db.transaction(async (tx) => {
+      // The booking first. A second fulfilment at the same moment (the
+      // webhook next to the return page) waits on this row, then finds it
+      // paid and changes nothing: no second seat counted, no second mail.
+      const [booking] = await tx
+        .update(bookings)
+        .set({ paymentStatus: "paid", stripePaymentIntentId: paymentIntentId, stripeCheckoutSessionId: session.id })
+        .where(and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "pending")))
+        .returning();
+      if (!booking) {
+        const [now] = await tx.select({ status: bookings.paymentStatus }).from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+        if (now?.status === "paid") throw new AlreadyFulfilled();
+        if (now?.status === "refunded") throw new AlreadyRefunded();
+        throw new Error("Booking already processed");
       }
 
-      throw new Error("Booking already processed");
-    }
+      const [ev] = await tx
+        .update(events)
+        .set({ spotsSold: sql`${events.spotsSold} + ${existing.seats}`, updatedAt: new Date() })
+        .where(sql`${events.id} = ${eventId} AND ${events.spotsSold} + ${existing.seats} <= ${events.capacity}`)
+        .returning();
+      if (!ev) throw new SundayFull();
 
-    await tx.insert(bookingEvents).values({
-      bookingId,
-      type: "payment_succeeded",
-      payload: { sessionId: session.id },
+      await tx.insert(bookingEvents).values({ bookingId, type: "payment_succeeded", payload: { sessionId: session.id } });
+      return { booking, ev };
     });
-
-    return { booking, ev };
-  });
+  } catch (error) {
+    if (error instanceof AlreadyFulfilled) return "already_paid";
+    if (error instanceof AlreadyRefunded) return "sunday_full";
+    if (error instanceof SundayFull) {
+      // Paid for the last seat while someone else took it: money back.
+      const [ev] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+      if (ev) {
+        const { refundFullSunday } = await import("@/lib/stripe/full-sunday");
+        await refundFullSunday({ booking: existing, event: ev, paymentIntentId, sessionId: session.id });
+      }
+      captureCriticalMessage("Paid for a full Sunday: refunded", {
+        flow: "payment",
+        step: "booking_fulfill",
+        tags: { session_id: session.id, booking_id: bookingId },
+      });
+      return "sunday_full";
+    }
+    throw error;
+  }
 
   revalidateEventPaths(updated.ev);
 

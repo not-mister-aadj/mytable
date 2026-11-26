@@ -100,7 +100,38 @@ export async function sendBookingConfirmationEmail(
   return { ok: true, id: data?.id ?? "unknown" };
 }
 
+/**
+ * The confirmation for a paid booking, once. The send is claimed first
+ * (confirmation_email_sent_at set where it was empty), so the webhook and the
+ * return page arriving together send one mail, not two. A failed send gives
+ * the claim back.
+ */
 export async function sendBookingConfirmationForPaidBooking(
+  booking: Booking,
+  event: Event,
+  options?: { force?: boolean },
+): Promise<EmailSendResult> {
+  if (booking.paymentStatus !== "paid") {
+    return { ok: false, error: "Booking is not paid" };
+  }
+  if (options?.force) return sendConfirmationNow(booking, event, options);
+  const db = getDb();
+  const [claimed] = await db
+    .update(bookings)
+    .set({ confirmationEmailSentAt: new Date() })
+    .where(and(eq(bookings.id, booking.id), isNull(bookings.confirmationEmailSentAt)))
+    .returning({ id: bookings.id });
+  if (!claimed) return { ok: true, id: "already-sent" };
+  const result = await sendConfirmationNow({ ...booking, confirmationEmailSentAt: null }, event, options).catch(
+    (error: unknown): EmailSendResult => ({ ok: false, error: error instanceof Error ? error.message : String(error) }),
+  );
+  if (!result.ok) {
+    await db.update(bookings).set({ confirmationEmailSentAt: null }).where(eq(bookings.id, booking.id));
+  }
+  return result;
+}
+
+async function sendConfirmationNow(
   booking: Booking,
   event: Event,
   options?: { force?: boolean },

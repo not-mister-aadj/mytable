@@ -103,10 +103,20 @@ export async function fulfillMembershipCheckout(session: Stripe.Checkout.Session
           .where(and(eq(memberships.id, membership.id), isNull(memberships.freeGuestUsedFor)));
       }
     } else if (confirmed.error === "capacity") {
-      await getDb().update(bookings).set({ paymentStatus: "failed" }).where(eq(bookings.id, bookingId));
-      await getDb()
-        .insert(bookingEvents)
-        .values({ bookingId, type: "member_booking_failed", payload: { reason: "capacity", sessionId: session.id } });
+      // Once: only the call that moves it out of "pending" goes on.
+      const [failed] = await getDb()
+        .update(bookings)
+        .set({ paymentStatus: "failed" })
+        .where(and(eq(bookings.id, bookingId), eq(bookings.paymentStatus, "pending")))
+        .returning({ id: bookings.id });
+      if (failed) {
+        await getDb()
+          .insert(bookingEvents)
+          .values({ bookingId, type: "member_booking_failed", payload: { reason: "capacity", sessionId: session.id } });
+        // The membership stays; they hear the Sunday was full and pick another.
+        const { tellMemberSundayWasFull } = await import("@/lib/stripe/full-sunday");
+        await tellMemberSundayWasFull({ bookingId });
+      }
       captureCriticalMessage("Membership started but the chosen table was full", {
         flow: "payment",
         step: "membership_table_booking",

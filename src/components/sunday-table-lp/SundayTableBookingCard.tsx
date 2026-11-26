@@ -131,7 +131,35 @@ const STEP_COPY = {
     detailsKnown: (name: string, born: string) => `${name} · born ${born}`,
   },
 } as const;
-type Stage = "email" | "code" | "ticket" | "details";
+type Stage = "email" | "code" | "details";
+
+/** "Elke zondag" as an offer just above the buy button, once they decided to come. */
+const UPSELL_COPY = {
+  nl: {
+    title: "Voor hetzelfde bedrag elke zondag?",
+    lead: (price: string) => `Word club member voor ${price} per maand:`,
+    items: [
+      "Je plek bij elke Sunday Social inbegrepen, in alle steden",
+      "Kies zelf je bar uit onze reserveringen",
+      "Boek 48 uur eerder dan iedereen",
+      "Eens per 3 maanden een gast gratis mee",
+      "Maandelijks opzegbaar",
+    ],
+    yes: "Ja, maak er Elke zondag van",
+  },
+  en: {
+    title: "Every Sunday for the same price?",
+    lead: (price: string) => `Become a club member for ${price} per month:`,
+    items: [
+      "Your seat at every Sunday Social included, in every city",
+      "Pick your own bar from our reservations",
+      "Book 48 hours before everyone else",
+      "A guest free once every 3 months",
+      "Cancel monthly",
+    ],
+    yes: "Yes, make it Every Sunday",
+  },
+} as const;
 const MONTHLY_CENTS = getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents;
 
 
@@ -271,6 +299,7 @@ export function SundayTableBookingCard({
    * at the ticket; a member goes straight to the details. */
   const [stage, setStage] = useState<Stage>("email");
   const stepCopy = STEP_COPY[locale === "en" ? "en" : "nl"];
+  const upsellCopy = UPSELL_COPY[locale === "en" ? "en" : "nl"];
   /** What step 1 found: a member's address, or one with an account. */
   const [lookupKind, setLookupKind] = useState<"member" | "known" | null>(null);
   const [codeSent, setCodeSent] = useState(false);
@@ -313,7 +342,7 @@ export function SundayTableBookingCard({
             });
         } else {
           setFromQuiz(true);
-          setStage((current) => (current === "email" || current === "code" ? (MEMBERSHIP_AT_BOOKING ? "ticket" : "details") : current));
+          setStage((current) => (current === "email" || current === "code" ? "details" : current));
         }
         if (me.email) setEmail((current) => current || me.email!);
         if (me.name) setName((current) => current || me.name!);
@@ -356,10 +385,8 @@ export function SundayTableBookingCard({
   // The choice is only for someone who is not a member yet.
   const offersPlan = MEMBERSHIP_AT_BOOKING && !member;
   const monthly = offersPlan && ticketPlan === "monthly";
-  const twoSteps = offersPlan;
-  const showDetails = stage === "details";
-  // Step numbers: the email, the ticket (when there is a choice), then the details.
-  const stepsTotal = twoSteps ? 3 : 2;
+  // Two steps: the email, then the details and pay ("Elke zondag" is an offer there).
+  const stepsTotal = 2;
   const stepLabel = (n: number) => <p className="text-xs font-medium text-wine/50">{stepCopy.step(n, stepsTotal)}</p>;
   const total = member
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
@@ -413,17 +440,6 @@ export function SundayTableBookingCard({
     }
   }
 
-  function goToDetails() {
-    if (!ticketPlan) {
-      setError(planCopy.missing);
-      return;
-    }
-    setError(null);
-    trackSundaySocialTicketChosen({ plan: ticketPlan, seats, city: cityName, locale });
-    trackSundaySocialBookingStep({ step: "details", city: cityName, locale });
-    setStage("details");
-  }
-
   /** Step 1: what kind of address is it. Nothing about the person comes back. */
   async function submitEmail() {
     if (validateAuthEmail(email)) {
@@ -450,7 +466,7 @@ export function SundayTableBookingCard({
     }
     trackSundaySocialBookingStep({ step: "email", city: cityName, locale, kind });
     if (kind === "new") {
-      setStage(twoSteps ? "ticket" : "details");
+      setStage("details");
       return;
     }
     setLookupKind(kind);
@@ -505,10 +521,6 @@ export function SundayTableBookingCard({
       else await sendLoginCode();
       return;
     }
-    if (!showDetails) {
-      goToDetails();
-      return;
-    }
     if (englishOnlyWaiting) {
       if (!englishNotified) await notifyEnglish();
       return;
@@ -529,6 +541,7 @@ export function SundayTableBookingCard({
       setError(memberCopy.pickVenue);
       return;
     }
+    if (ticketPlan) trackSundaySocialTicketChosen({ plan: ticketPlan, seats, city: cityName, locale });
     setLoading(true);
     setError(null);
     try {
@@ -733,7 +746,7 @@ export function SundayTableBookingCard({
               type="button"
               onClick={() => {
                 setError(null);
-                setStage(twoSteps ? "ticket" : "details");
+                setStage("details");
               }}
               className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4"
             >
@@ -755,94 +768,13 @@ export function SundayTableBookingCard({
     );
   }
 
-  // Step 2: which ticket, and how many.
-  if (!showDetails) {
-    return (
-      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        {stepLabel(2)}
-        {fromQuiz ? (
-          <a
-            href={jouwTafelKiesPath(locale)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
-          >
-            <span aria-hidden>&larr;</span>
-            {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
-          </a>
-        ) : null}
-        {/* What €10 gets you, in one line before the choice: what people wonder before they tap. The full list stays under the button. */}
-        {included?.summary && !englishOnlyWaiting && !member ? <p className="text-sm leading-snug text-wine/75">{included.summary}</p> : null}
-        <div>
-          <span className="block text-sm font-medium text-wine">{planCopy.label}</span>
-          <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {(
-              [
-                ["single", planCopy.singleTitle, euroLabel(pricePerSeatEuros), null, planCopy.singleShort],
-                ["monthly", planCopy.monthlyTitle, euroLabel(MONTHLY_CENTS / 100), planCopy.perMonth, planCopy.monthlyShort],
-              ] as const
-            ).map(([value, title, price, unit, short]) => {
-              const chosen = ticketPlan === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={chosen}
-                  onClick={() => {
-                    setTicketPlan(value);
-                    setError(null);
-                  }}
-                  className={`flex flex-col items-center rounded-2xl border px-3 py-3.5 text-center transition ${
-                    chosen ? "border-burgundy bg-burgundy/[0.06] ring-1 ring-burgundy" : "border-wine/15 bg-white hover:border-wine/30"
-                  }`}
-                >
-                  <span className="text-sm font-semibold text-wine">{title}</span>
-                  <span className="mt-1 font-serif text-2xl leading-none text-wine">
-                    {price}
-                    {unit ? <span className="ml-1 font-sans text-xs font-medium text-wine/60">{unit}</span> : null}
-                  </span>
-                  <span className="mt-1.5 text-xs leading-snug text-wine/60">{short}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {seatsPicker}
-        {errorBlock}
-        <Button type="submit" className={`${submitClass} ${ticketPlan ? "" : "opacity-60"}`}>
-          {`${planCopy.next}${ticketPlan ? ` · ${euroLabel(total)}${monthly ? `/${planCopy.perMonthShort}` : ""}${monthly && seats === 2 ? ` · ${planCopy.guestFree}` : ""}` : ""}`}
-        </Button>
-        {includedBox}
-        {guaranteesLine}
-      </form>
-    );
-  }
-
-  // Step 3: their details (a member starts here) and pay.
+  // Step 2: their details (a member starts here), the offer, and pay.
   const detailsKnown = signedIn && !editDetails && Boolean(name.trim() && birthDate && agePreference);
   const bornLabel = birthDate ? birthDate.split("-").reverse().join("-") : "";
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-3">
       {member ? null : stepLabel(stepsTotal)}
-      {twoSteps && ticketPlan ? (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-wine/10 bg-white/70 px-3.5 py-2.5 text-sm text-wine">
-          <span className="font-semibold">
-            {ticketPlan === "monthly"
-              ? `${planCopy.monthlyTitle} · ${euroLabel(MONTHLY_CENTS / 100)} ${planCopy.perMonth}`
-              : `${planCopy.singleTitle} · ${euroLabel(pricePerSeatEuros)}`}
-            <span className="font-normal text-wine/60"> · {seats === 2 ? seatTwoLabel : seatOneLabel}</span>
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              setStage("ticket");
-              setError(null);
-            }}
-            className="shrink-0 font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
-          >
-            {planCopy.back}
-          </button>
-        </div>
-      ) : null}
-      {!twoSteps && fromQuiz ? (
+      {fromQuiz ? (
         <a
           href={jouwTafelKiesPath(locale)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
@@ -917,6 +849,7 @@ export function SundayTableBookingCard({
           </button>
         )}
       </div>
+      {englishOnlyWaiting ? null : seatsPicker}
       {detailsKnown ? (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-wine/10 bg-white/70 px-3.5 py-2.5 text-sm text-wine">
           <span className="min-w-0">
@@ -1011,10 +944,38 @@ export function SundayTableBookingCard({
         </div>
       ) : null}
 
-      {!twoSteps && !englishOnlyWaiting ? seatsPicker : null}
 
       {errorBlock}
 
+      {offersPlan && !englishOnlyWaiting && !needsLogin ? (
+        <div className={`rounded-2xl border px-4 py-3.5 transition ${monthly ? "border-burgundy bg-burgundy/[0.05]" : "border-gold/50 bg-gold/10"}`}>
+          <p className="font-serif text-lg leading-snug text-wine">{upsellCopy.title}</p>
+          <p className="mt-1 text-sm text-wine/75">{upsellCopy.lead(euroLabel(MONTHLY_CENTS / 100))}</p>
+          <ul className="mt-2 space-y-1">
+            {upsellCopy.items.map((item) => (
+              <li key={item} className="flex gap-2 text-sm leading-snug text-wine/75">
+                <span aria-hidden className="shrink-0 text-emerald-700">
+                  ✓
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-wine/15 bg-white px-3.5 py-2.5 text-sm font-semibold text-wine">
+            <input
+              id="every-sunday"
+              type="checkbox"
+              checked={monthly}
+              onChange={(e) => {
+                setTicketPlan(e.target.checked ? "monthly" : "single");
+                setError(null);
+              }}
+              className="h-4 w-4 shrink-0 accent-burgundy"
+            />
+            {upsellCopy.yes}
+          </label>
+        </div>
+      ) : null}
       {askTellFriends && !englishOnlyWaiting && !needsLogin ? (
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gold/40 bg-white/60 px-4 py-3 text-left text-sm leading-snug text-wine/80">
           <input
@@ -1048,14 +1009,14 @@ export function SundayTableBookingCard({
               : member
                 ? `${memberCopy.reserve} · ${total > 0 ? euroLabel(total) : memberCopy.free}`
                 : monthly
-                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
+                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}/${planCopy.perMonthShort}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
                   : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
       )}
       {monthly && !englishOnlyWaiting ? (
         <p className="text-center text-xs leading-snug text-wine/60">{planCopy.monthlyNote}</p>
       ) : null}
-      {twoSteps ? null : includedBox}
+      {includedBox}
       {guaranteesLine}
     </form>
   );

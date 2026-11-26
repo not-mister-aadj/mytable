@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { getDb } from "@/db/index";
+import { bookings } from "@/db/schema";
 import { getQuizPerson } from "@/lib/jouw-tafel/guest-server";
 import { QUIZ_METADATA_KEY, sanitizeQuizState } from "@/lib/jouw-tafel/quiz-logic";
 import { getRunningMembershipForUser, membershipSnapshot } from "@/lib/membership/data";
@@ -35,16 +38,38 @@ export async function GET() {
         }
       : null;
   const email = person.kind === "user" ? person.user.email : person.guest.email;
+  // Booked before without the quiz: their last booking fills the card.
+  const last =
+    email && (!answers.name || !answers.birthDate)
+      ? (
+          await getDb()
+            .select({
+              name: bookings.customerName,
+              birthDate: bookings.birthDate,
+              agePreference: bookings.agePreference,
+              language: bookings.tableLanguagePreference,
+            })
+            .from(bookings)
+            .where(and(sql`lower(trim(${bookings.email})) = ${email.trim().toLowerCase()}`, eq(bookings.paymentStatus, "paid")))
+            .orderBy(desc(bookings.createdAt))
+            .limit(1)
+            .catch(() => [])
+        )[0]
+      : undefined;
+  const lastName = last?.name?.trim() || null;
   return NextResponse.json({
     member,
     known: true,
     email,
     // A mutual like: the card asks "Laat je tafelvrienden weten dat je komt".
     hasTableFriend: await hasTableFriend(email).catch(() => false),
-    name: answers.name ?? null,
-    birthDate: answers.birthDate ?? null,
+    name: answers.name ?? lastName,
+    birthDate: answers.birthDate ?? last?.birthDate ?? null,
     // What they already said about their table, so the card does not ask again.
-    ageMatters: answers.ageMatters ?? null,
-    language: answers.language ?? null,
+    ageMatters:
+      answers.ageMatters ?? (last?.agePreference === "similar" ? "yes" : last?.agePreference === "any" ? "no" : null),
+    language:
+      answers.language ??
+      (last?.language === "prefer_dutch" ? "dutch" : last?.language === "prefer_english" ? "english" : last?.language === "both_fine" ? "both" : null),
   });
 }

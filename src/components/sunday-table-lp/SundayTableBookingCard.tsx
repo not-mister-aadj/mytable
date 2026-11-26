@@ -401,6 +401,7 @@ export function SundayTableBookingCard({
         // Their quiz answers stand in for the two choices on the card.
         if (me.ageMatters) setAgePreference((current) => current ?? (me.ageMatters === "yes" ? "similar" : "any"));
         if (me.language === "dutch") setTableLanguagePreference("prefer_dutch");
+        if (me.language === "english") setTableLanguagePreference("prefer_english");
         // From "Kies je zondag" the ticket for this Sunday is ticked already
         // (see the effect above). The choice stays in view, "Elke zondag" and
         // a second seat next to it: one tap on "Verder" and their details
@@ -704,9 +705,11 @@ export function SundayTableBookingCard({
     </div>
   );
 
+  // A member's seat costs nothing: no payment line (the first one) then.
+  const shownGuarantees = member && (seats === 1 || member.freeGuest) ? guarantees.slice(1) : guarantees;
   const guaranteesLine = englishOnlyWaiting ? null : (
     <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-wine/50">
-      {guarantees.map((item) => (
+      {shownGuarantees.map((item) => (
         <span key={item} className="inline-flex items-center gap-1">
           <span aria-hidden className="text-wine/40">
             ✓

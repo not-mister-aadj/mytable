@@ -136,36 +136,71 @@ type Stage = "email" | "code" | "details" | "offer";
 /** "Elke zondag" as an offer just above the buy button, once they decided to come. */
 const UPSELL_COPY = {
   nl: {
-    title: "Voor hetzelfde bedrag elke zondag?",
-    lead: "Word club member. Je eerste maand kost hetzelfde als dit ticket.",
-    items: [
-      "Ga zo vaak als je wilt: elke Sunday Social in alle 5 steden zit erbij",
-      "Voorrang op de wachtlijst: is een zondag vol, dan ga jij voor en zetten we waar het kan een extra tafel neer",
-      "Kies zelf je bar uit onze reserveringen",
-      "Gezelligheidsgarantie: vond je niemand aan tafel gezellig, dan is je volgende maand gratis",
-      "Maandelijks opzegbaar",
+    badge: "Zelfde prijs als je ticket",
+    title: "Maak er elke zondag van",
+    lead: (price: string) => `Word club member voor ${price} per maand.`,
+    benefits: [
+      { icon: "repeat", title: "Zo vaak als je wilt", body: "Elke Sunday Social in alle 5 steden zit erbij." },
+      { icon: "priority", title: "Voorrang bij volle zondagen", body: "Jij gaat voor, en waar het kan zetten we een extra tafel neer." },
+      { icon: "pin", title: "Kies zelf je bar", body: "Uit de zaken die we die zondag reserveren." },
     ],
-    yes: "Ja, maak er Elke zondag van",
+    guaranteeTitle: "Gezelligheidsgarantie",
+    guaranteeBody: "Vond je niemand aan tafel gezellig? Dan is je volgende maand gratis.",
+    cancel: "Maandelijks opzegbaar",
     yesButton: (price: string) => `Ja, elke zondag · ${price}/maand`,
     noButton: (price: string) => `Nee, alleen deze zondag · ${price}`,
     back: "Terug",
   },
   en: {
-    title: "Every Sunday for the same price?",
-    lead: "Become a club member. Your first month costs the same as this ticket.",
-    items: [
-      "Go as often as you like: every Sunday Social in all 5 cities is included",
-      "Priority on the waitlist: when a Sunday is full you go first, and where we can we add an extra table",
-      "Pick your own bar from our reservations",
-      "Good-company guarantee: didn't click with anyone at your table? Your next month is free",
-      "Cancel monthly",
+    badge: "Same price as your ticket",
+    title: "Make it every Sunday",
+    lead: (price: string) => `Become a club member for ${price} per month.`,
+    benefits: [
+      { icon: "repeat", title: "As often as you like", body: "Every Sunday Social in all 5 cities is included." },
+      { icon: "priority", title: "Priority on full Sundays", body: "You go first, and where we can we add an extra table." },
+      { icon: "pin", title: "Pick your own bar", body: "From the places we reserve that Sunday." },
     ],
-    yes: "Yes, make it Every Sunday",
+    guaranteeTitle: "Good-company guarantee",
+    guaranteeBody: "Didn't click with anyone at your table? Your next month is free.",
+    cancel: "Cancel monthly",
     yesButton: (price: string) => `Yes, every Sunday · ${price}/month`,
     noButton: (price: string) => `No, just this Sunday · ${price}`,
     back: "Back",
   },
 } as const;
+
+/** Small line icons for the offer. */
+function OfferIcon({ name }: { name: "repeat" | "priority" | "pin" | "shield" }) {
+  const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (name === "repeat")
+    return (
+      <svg {...common}>
+        <path d="M17 2l4 4-4 4" />
+        <path d="M3 11V9a3 3 0 0 1 3-3h15" />
+        <path d="M7 22l-4-4 4-4" />
+        <path d="M21 13v2a3 3 0 0 1-3 3H3" />
+      </svg>
+    );
+  if (name === "priority")
+    return (
+      <svg {...common}>
+        <path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" />
+      </svg>
+    );
+  if (name === "pin")
+    return (
+      <svg {...common}>
+        <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </svg>
+    );
+  return (
+    <svg {...common}>
+      <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
 const MONTHLY_CENTS = getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents;
 
 
@@ -802,43 +837,62 @@ export function SundayTableBookingCard({
   if (stage === "offer") {
     const price = euroLabel(MONTHLY_CENTS / 100);
     return (
-      <div className="mt-6 space-y-3">
-        {stepLabel(3)}
-        <p className="font-serif text-2xl leading-snug text-wine">{upsellCopy.title}</p>
-        <p className="text-sm text-wine/75">{upsellCopy.lead}</p>
-        <ul className="space-y-1.5">
-          {upsellCopy.items.map((item) => (
-            <li key={item} className="flex gap-2 text-sm leading-snug text-wine/80">
-              <span aria-hidden className="shrink-0 text-emerald-700">
-                ✓
-              </span>
-              {item}
-            </li>
-          ))}
-        </ul>
-        {errorBlock}
-        <Button type="button" onClick={() => void checkout("monthly")} className={submitClass}>
-          {loading && ticketPlan === "monthly" ? "…" : `${upsellCopy.yesButton(price)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`}
-        </Button>
-        <button
-          type="button"
-          onClick={() => void checkout("single")}
-          className="w-full text-center text-sm text-wine/65 underline decoration-wine/30 underline-offset-4 transition hover:text-wine"
-        >
-          {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
-        </button>
-        <p className="text-center text-sm">
+      <div className="mt-2 space-y-4" data-booking-stage="offer">
+        <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={() => {
               setError(null);
               setStage("details");
             }}
-            className="text-wine/60 underline underline-offset-4"
+            className="inline-flex items-center gap-1 text-sm text-wine/60 hover:text-wine"
           >
+            <span aria-hidden>&larr;</span>
             {upsellCopy.back}
           </button>
-        </p>
+          <span className="text-xs font-medium text-wine/50">{stepCopy.step(3, stepsTotal)}</span>
+        </div>
+        <div>
+          <span className="inline-flex rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine">{upsellCopy.badge}</span>
+          <p className="mt-3 font-serif text-[1.75rem] leading-tight text-wine">{upsellCopy.title}</p>
+          <p className="mt-1 text-sm text-wine/70">{upsellCopy.lead(price)}</p>
+        </div>
+        <ul className="space-y-3">
+          {upsellCopy.benefits.map((b) => (
+            <li key={b.title} className="flex gap-3">
+              <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-burgundy/[0.07] text-burgundy">
+                <OfferIcon name={b.icon} />
+              </span>
+              <span className="min-w-0 text-sm leading-snug">
+                <span className="block font-semibold text-wine">{b.title}</span>
+                <span className="block text-wine/65">{b.body}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {errorBlock}
+        <div>
+          <Button type="button" onClick={() => void checkout("monthly")} className={submitClass}>
+            {loading && ticketPlan === "monthly" ? "…" : `${upsellCopy.yesButton(price)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`}
+          </Button>
+          <p className="mt-1.5 text-center text-xs text-wine/55">{upsellCopy.cancel}</p>
+        </div>
+        <div className="flex gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3">
+          <span aria-hidden className="shrink-0 text-burgundy">
+            <OfferIcon name="shield" />
+          </span>
+          <span className="text-sm leading-snug">
+            <span className="block font-semibold text-wine">{upsellCopy.guaranteeTitle}</span>
+            <span className="block text-wine/70">{upsellCopy.guaranteeBody}</span>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => void checkout("single")}
+          className="w-full text-center text-sm text-wine/60 underline decoration-wine/25 underline-offset-4 transition hover:text-wine"
+        >
+          {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
+        </button>
       </div>
     );
   }

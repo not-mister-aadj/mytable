@@ -438,7 +438,8 @@ export function SundayTableEventReveal({
           >
             {/* Kept compact so the buy button still fits on a laptop screen
                 while sticky; very short screens scroll inside the panel. */}
-            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-6 py-5 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 sm:py-6 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto">
+            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-6 py-5 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 sm:py-6 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto [&:has([data-booking-stage=offer])_.booking-summary]:hidden">
+              <div className="booking-summary">
               <p className="font-serif text-3xl text-wine">
                 {comingSoon ? (
                   locale === "en" ? "Coming soon" : "Binnenkort"
@@ -464,6 +465,7 @@ export function SundayTableEventReveal({
                   </dd>
                 </div>
               </dl>
+              </div>
 
               {comingSoon ? (
                 <SundayTableNotifyMeForm

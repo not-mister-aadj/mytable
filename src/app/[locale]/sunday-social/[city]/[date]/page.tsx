@@ -38,6 +38,7 @@ import { seatUrgency } from "@/lib/event-display";
 import { getSundayTableMotivationStats } from "@/lib/sunday-table-motivation-stats";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
+import { feedbackProofLabel, getFeedbackProof } from "@/lib/feedback-proof";
 import { events } from "@/db/schema";
 
 export const revalidate = 60;
@@ -460,7 +461,6 @@ export default async function SundayTableEventPage({ params }: Props) {
           "Our tips from the menu",
         ],
         note: "Your ticket is your seat at the table. What you drink and eat, you order yourself from the menu.",
-        summary: `For €${pricePerSeatEuros}: a seat at a table of 4 to 6, at a place we picked, with our tips from the menu. Your drinks you order yourself.`,
       }
     : {
         title: `Wat je krijgt voor €${pricePerSeatEuros}`,
@@ -471,7 +471,6 @@ export default async function SundayTableEventPage({ params }: Props) {
           "Onze tips van de kaart",
         ],
         note: "Je ticket is je plek aan tafel. Wat je drinkt en eet, bestel je zelf van de kaart.",
-        summary: `Voor €${pricePerSeatEuros}: een plek aan tafel met 4 tot 6 mensen, in een zaak die wij uitkiezen, met onze tips van de kaart. Je drankjes bestel je zelf.`,
       };
 
   const copy =
@@ -682,6 +681,8 @@ export default async function SundayTableEventPage({ params }: Props) {
       <main className="bg-cream">
         <SundayTableEventReveal
           locale={locale}
+          proofLabel={feedbackProofLabel(await getFeedbackProof(), locale === "en" ? "en" : "nl")}
+          quickFacts={locale === "en" ? ["Table of 4 to 6", "A place we pick", "Our wine tips"] : ["Tafel van 4 tot 6", "Een zaak die wij kiezen", "Onze wijntips"]}
           dateLabel={capitalizedDate}
           timeLabel={timeLabel}
           venuePending={venuePending}

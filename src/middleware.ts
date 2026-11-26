@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { MAKER_COOKIE, MAKER_COOKIE_MAX_AGE_SECONDS, sanitizeMakerCode } from "@/lib/makers/shared";
 import { NextResponse } from "next/server";
 import { defaultLocale, type Locale } from "./i18n/config";
 import {
@@ -145,6 +146,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  return withMakerCookie(request, localeResponse(request, pathname));
+}
+
+function localeResponse(request: NextRequest, pathname: string): NextResponse {
   const explicit = resolveLocale(pathname);
 
   if (explicit === "en") {
@@ -170,6 +175,20 @@ export async function middleware(request: NextRequest) {
   const rewriteUrl = request.nextUrl.clone();
   rewriteUrl.pathname = `/${defaultLocale}${pathname}`;
   return NextResponse.rewrite(rewriteUrl);
+}
+
+/** A maker's link (?via=CODE): the code is kept for 30 days, readable by the
+ * booking card; the checkout checks that it belongs to an approved maker. */
+function withMakerCookie(request: NextRequest, response: NextResponse): NextResponse {
+  const code = sanitizeMakerCode(request.nextUrl.searchParams.get("via"));
+  if (!code) return response;
+  response.cookies.set(MAKER_COOKIE, code, {
+    path: "/",
+    maxAge: MAKER_COOKIE_MAX_AGE_SECONDS,
+    sameSite: "lax",
+    secure: request.nextUrl.protocol === "https:",
+  });
+  return response;
 }
 
 export const config = {

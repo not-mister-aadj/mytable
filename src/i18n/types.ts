@@ -455,6 +455,7 @@ export interface Dictionary {
       howItWorks: string;
       forVenues: string;
       ambassadors: string;
+      makers: string;
       faq: string;
       blog: string;
       instagram: string;

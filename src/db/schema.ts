@@ -887,6 +887,55 @@ export const affiliateCommissions = pgTable(
 );
 
 
+/** Makers (drizzle/0078): applications from /makers; approved ones get a code for ?via=CODE. */
+export const makers = pgTable("makers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  instagram: text("instagram"),
+  tiktok: text("tiktok"),
+  city: text("city").notNull(),
+  /** "self" (they post), "us" (we post their images) or "either". */
+  workStyle: text("work_style").notNull().default("either"),
+  portfolioUrl: text("portfolio_url"),
+  note: text("note"),
+  locale: text("locale").notNull().default("nl"),
+  /** "new", "approved" or "rejected". */
+  status: text("status").notNull().default("new"),
+  code: text("code").unique(),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** A new customer who came through a maker's link: the first link wins. */
+export const makerReferrals = pgTable("maker_referrals", {
+  emailNormalized: text("email_normalized").primaryKey(),
+  makerId: uuid("maker_id")
+    .notNull()
+    .references(() => makers.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  firstPaidAt: timestamp("first_paid_at", { withTimezone: true }),
+});
+
+/** What a maker earned: one row per paid booking or paid membership invoice. */
+export const makerCommissions = pgTable("maker_commissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  makerId: uuid("maker_id")
+    .notNull()
+    .references(() => makers.id),
+  emailNormalized: text("email_normalized").notNull(),
+  bookingId: uuid("booking_id")
+    .unique()
+    .references(() => bookings.id),
+  stripeInvoiceId: text("stripe_invoice_id").unique(),
+  seats: integer("seats").notNull().default(1),
+  amountCents: integer("amount_cents").notNull(),
+  eventStartsAt: timestamp("event_starts_at", { withTimezone: true }),
+  paidOutAt: timestamp("paid_out_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+
 /** Cold-outreach prospect: a wine bar or restaurant we want as a partner. */
 export const outreachProspects = pgTable(
   "outreach_prospects",

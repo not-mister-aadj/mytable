@@ -33,5 +33,16 @@ export async function recordMembershipPayment(invoice: Stripe.Invoice): Promise<
       periodEnd: seconds(line?.period?.end),
     })
     .onConflictDoNothing();
+  try {
+    const { recordMakerCommissionForInvoice } = await import("@/lib/makers/server");
+    await recordMakerCommissionForInvoice({
+      invoiceId: invoice.id,
+      email: invoice.customer_email,
+      amountPaid: invoice.amount_paid,
+      paidAt: seconds(invoice.status_transitions?.paid_at) ?? undefined,
+    });
+  } catch (error) {
+    console.error("[membership payments] maker commission failed", error);
+  }
   return true;
 }

@@ -210,12 +210,12 @@ const MEMBER_COPY = {
 /** Through a maker's link: someone new brings a friend free the first time. */
 const MAKER_COPY = {
   nl: {
-    one: (name: string) => `Via ${name} neem je de eerste keer gratis iemand mee.`,
+    one: (name: string) => `Via ${name}: neem nu gratis iemand mee, of kom alleen en betaal de tweede keer de halve prijs.`,
     two: (name: string) => `Via ${name}: je tweede plek is gratis bij je eerste boeking.`,
     second: (name: string) => `Via ${name}: je tweede keer is voor de halve prijs.`,
   },
   en: {
-    one: (name: string) => `Through ${name}, you bring someone along free the first time.`,
+    one: (name: string) => `Through ${name}: bring someone along free now, or come alone and pay half the second time.`,
     two: (name: string) => `Through ${name}: your second seat is free on your first booking.`,
     second: (name: string) => `Through ${name}: your second time is half price.`,
   },

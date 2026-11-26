@@ -75,7 +75,8 @@ export async function referralAtCheckout(input: {
 
 /**
  * Their second visit through a maker: one seat at half price. For someone
- * a maker brought in, who has paid for exactly one booking so far.
+ * a maker brought in, who has paid for exactly one booking so far and did
+ * not take the free friend then: they get one of the two, their choice.
  */
 export async function secondVisitOffer(rawEmail: string, now = new Date()): Promise<{ makerId: string; makerName: string } | null> {
   if (!isDbConfigured() || !rawEmail) return null;
@@ -92,6 +93,11 @@ export async function secondVisitOffer(rawEmail: string, now = new Date()): Prom
     sql`select count(*)::int as n from bookings where lower(email) = ${email} and payment_status = 'paid'`,
   )) as unknown as { n: number }[];
   if (n !== 1) return null;
+  const [took] = (await db.execute(
+    sql`select 1 as x from booking_events e join bookings b on b.id = e.booking_id
+        where lower(b.email) = ${email} and b.payment_status = 'paid' and e.type = ${MAKER_FREE_SEAT_EVENT} limit 1`,
+  )) as unknown as { x: number }[];
+  if (took) return null;
   return { makerId: row.referral.makerId, makerName: row.name.trim().split(/\s+/)[0] ?? row.name };
 }
 

@@ -144,6 +144,13 @@ async function runPostPaymentSideEffects(
     } catch (err) {
       console.error("[stripe fulfill] affiliate commission failed", err);
     }
+
+    try {
+      const { recordMakerCommissionForBooking } = await import("@/lib/makers/server");
+      await recordMakerCommissionForBooking(updated.booking.id);
+    } catch (err) {
+      console.error("[stripe fulfill] maker commission failed", err);
+    }
   };
 
   if (options?.deferSideEffects) {

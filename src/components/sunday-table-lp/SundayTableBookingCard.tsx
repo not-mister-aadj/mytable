@@ -3,6 +3,7 @@
 import { OfferIcon } from "@/components/sunday-table-lp/OfferIcon";
 import { TELL_FRIENDS_COPY } from "@/lib/tafelvrienden/tell-friends-copy";
 import { useEffect, useRef, useState } from "react";
+import { readMakerCodeFromDocument } from "@/lib/makers/shared";
 import { jouwTafelKiesPath, jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
 import {
@@ -206,6 +207,20 @@ const MEMBER_COPY = {
   },
 } as const;
 
+/** Through a maker's link: someone new brings a friend free the first time. */
+const MAKER_COPY = {
+  nl: {
+    one: (name: string) => `Via ${name}: neem nu gratis iemand mee, of kom alleen en betaal de tweede keer de halve prijs.`,
+    two: (name: string) => `Via ${name}: je tweede plek is gratis bij je eerste boeking.`,
+    second: (name: string) => `Via ${name}: je tweede keer is voor de halve prijs.`,
+  },
+  en: {
+    one: (name: string) => `Through ${name}: bring someone along free now, or come alone and pay half the second time.`,
+    two: (name: string) => `Through ${name}: your second seat is free on your first booking.`,
+    second: (name: string) => `Through ${name}: your second time is half price.`,
+  },
+} as const;
+
 /** What the card knows about a signed-in member (from /api/jouw-tafel/guest/me). */
 export type CardMember = { guestCents: number; freeGuest: boolean; endsAt: string | null };
 
@@ -333,6 +348,24 @@ export function SundayTableBookingCard({
   /** The typed address is a member's, but nobody is signed in as them. */
   const [needsLogin, setNeedsLogin] = useState(false);
   /** The signed-in (or quiz) address that has a mutual like; the checkbox shows only while that address is the one typed. */
+  /** First name of the maker whose link brought them here, if any. */
+  const [makerName, setMakerName] = useState<string | null>(null);
+  /** Came through a maker and booked once: this time one seat is half price. */
+  const [makerSecond, setMakerSecond] = useState<string | null>(null);
+  useEffect(() => {
+    const code = readMakerCodeFromDocument();
+    if (!code) return;
+    let cancelled = false;
+    fetch(`/api/makers/via?code=${encodeURIComponent(code)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { name?: string } | null) => {
+        if (!cancelled && data?.name) setMakerName(data.name);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [friendEmail, setFriendEmail] = useState<string | null>(null);
   const [tellFriends, setTellFriends] = useState(true);
   /** Back to this Sunday after logging in. */
@@ -343,8 +376,9 @@ export function SundayTableBookingCard({
   function loadMe(isCancelled: () => boolean = () => false): Promise<void> {
     return fetch("/api/jouw-tafel/guest/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null; hasTableFriend?: boolean } | null) => {
+      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null; hasTableFriend?: boolean; makerSecondVisit?: string | null } | null) => {
         if (isCancelled()) return;
+        setMakerSecond(me?.makerSecondVisit ?? null);
         if (me?.hasTableFriend && me.email) setFriendEmail(me.email.trim().toLowerCase());
         if (!me?.known) {
           return;
@@ -414,11 +448,17 @@ export function SundayTableBookingCard({
   // "Elke zondag" offer on its own screen before paying (so each is measured).
   const stepsTotal = offersPlan ? 3 : 2;
   const stepLabel = (n: number) => <p className="text-xs font-medium text-wine/50">{stepCopy.step(n, stepsTotal)}</p>;
+  // Checked again at checkout: only for someone who never paid before.
+  const halfSecond = Boolean(makerSecond) && !member;
+  const makerFriendFree = !halfSecond && Boolean(makerName) && !member && seats === 2;
+  const singleTotal = halfSecond
+    ? pricePerSeatEuros * seats - pricePerSeatEuros / 2
+    : pricePerSeatEuros * (makerFriendFree ? seats - 1 : seats);
   const total = member
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
       ? MONTHLY_CENTS / 100
-      : pricePerSeatEuros * seats;
+      : singleTotal;
   const euroLabel = (value: number) =>
     Number.isInteger(value) ? `€${value}` : `€${value.toFixed(2).replace(".", locale === "en" ? "." : ",")}`;
   // Most tables are Dutch-speaking: there "English" stays selectable, but it
@@ -662,6 +702,13 @@ export function SundayTableBookingCard({
           {guestFree ? memberCopy.guestFree : memberCopy.guestPaid(euroLabel(memberGuestEuros))}
         </p>
       ) : null}
+      {halfSecond && !monthly ? (
+        <p className="mt-2 text-sm text-wine/70">{MAKER_COPY[locale === "en" ? "en" : "nl"].second(makerSecond!)}</p>
+      ) : makerName && !member && !monthly ? (
+        <p className="mt-2 text-sm text-wine/70">
+          {MAKER_COPY[locale === "en" ? "en" : "nl"][seats === 2 ? "two" : "one"](makerName)}
+        </p>
+      ) : null}
     </div>
   );
 
@@ -865,7 +912,7 @@ export function SundayTableBookingCard({
             onClick={() => void checkout("single")}
             className="mt-3 w-full rounded-full border border-burgundy px-6 py-3 text-sm font-semibold text-burgundy transition hover:bg-burgundy/5"
           >
-            {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
+            {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(singleTotal))}
           </button>
         </div>
         <div className="flex gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3">
@@ -1096,7 +1143,7 @@ export function SundayTableBookingCard({
                   ? stepCopy.next
                   : monthly
                   ? `${planCopy.monthlyCta} · ${euroLabel(total)}/${planCopy.perMonthShort}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
-                  : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
+                  : `${seats > 1 ? ctaLabelPlural : ctaLabel} · ${euroLabel(total)}`}
         </Button>
       )}
       {monthly && !englishOnlyWaiting ? (

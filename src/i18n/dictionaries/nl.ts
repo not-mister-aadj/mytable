@@ -327,6 +327,7 @@ export const nl: Dictionary = {
       howItWorks: "Zo werkt het",
       forVenues: "Voor locaties",
       ambassadors: "Word ambassador",
+      makers: "Voor creators",
       faq: "FAQ",
       blog: "Blog",
       instagram: "Instagram",

@@ -1,6 +1,9 @@
 import { claimSeatOffer, holdSeatOffer, loadSeatOffer, seatOfferRoom } from "@/lib/seat-offer";
 import { NextResponse } from "next/server";
 import { readAttribution } from "@/lib/analytics/attribution-server";
+import { cookies } from "next/headers";
+import { MAKER_FREE_SEAT_EVENT, MAKER_HALF_SEAT_EVENT, referralAtCheckout, secondVisitOffer } from "@/lib/makers/server";
+import { MAKER_COOKIE } from "@/lib/makers/shared";
 import { eq } from "drizzle-orm";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
@@ -100,6 +103,18 @@ function cleanAttribution(
     if (typeof value === "string" && value.trim()) out[key] = value.trim().slice(0, 100);
   }
   return out;
+}
+
+/** A maker's link in the cookie: the new customer is theirs (first link wins).
+ * Never blocks a checkout. */
+async function makerReferralFor(email: string) {
+  try {
+    const code = (await cookies()).get(MAKER_COOKIE)?.value;
+    return code ? await referralAtCheckout({ email, code }) : null;
+  } catch (error) {
+    console.error("[checkout] maker referral failed", error);
+    return null;
+  }
 }
 
 export async function POST(request: Request) {
@@ -561,6 +576,8 @@ export async function POST(request: Request) {
         : []),
       { type: "checkout_choice", payload: { plan: "monthly" } },
     ];
+    // Through a maker's link: the membership months count for them.
+    await makerReferralFor(email);
     try {
       const signedInIsBooker = signedInUser?.email?.trim().toLowerCase() === email;
       const userId = signedInIsBooker && signedInUser ? signedInUser.id : await accountIdForEmail(email);
@@ -674,6 +691,15 @@ export async function POST(request: Request) {
   if (spotsLeft < seats) {
     return NextResponse.json({ error: "Niet genoeg plekken over." }, { status: 409 });
   }
+  // Through a maker's link, someone new brings a friend free the first time.
+  const makerReferral = isSundayTable && !seatOffer ? await makerReferralFor(email) : null;
+  const makerFreeSeat = Boolean(makerReferral?.freeSeat) && seats === 2;
+  if (makerFreeSeat) amountCents = perSeatCents * (seats - 1);
+  // Their second visit after coming through a maker: one seat at half price.
+  const makerSecond =
+    isSundayTable && !seatOffer && !makerFreeSeat ? await secondVisitOffer(email).catch(() => null) : null;
+  const halfSeatCents = makerSecond ? Math.round(perSeatCents / 2) : 0;
+  if (makerSecond) amountCents = perSeatCents * seats - (perSeatCents - halfSeatCents);
   // Theirs while they pay: the next one from the waitlist hears it is taken.
   if (seatOffer && !(await holdSeatOffer(seatOffer.releaseId, email))) {
     return NextResponse.json(
@@ -713,6 +739,21 @@ export async function POST(request: Request) {
     .returning();
 
   await onBookingCreated({ booking, event });
+
+  if (makerFreeSeat) {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: MAKER_FREE_SEAT_EVENT,
+      payload: { makerId: makerReferral!.makerId, freeCents: perSeatCents },
+    });
+  }
+  if (makerSecond) {
+    await db.insert(bookingEvents).values({
+      bookingId: booking.id,
+      type: MAKER_HALF_SEAT_EVENT,
+      payload: { makerId: makerSecond.makerId, halfCents: halfSeatCents },
+    });
+  }
 
   await db.insert(bookingEvents).values({
     bookingId: booking.id,
@@ -819,17 +860,39 @@ export async function POST(request: Request) {
       locale: locale === "nl" ? "nl" : "en",
       payment_method_types: getCheckoutPaymentMethodTypes(event.currency),
       line_items: [
-        {
-          quantity: seats,
-          price_data: {
-            currency: event.currency.toLowerCase(),
-            unit_amount: perSeatCents,
-            product_data: {
-              name: productName,
-              description: `${event.city} · MyTable`,
-            },
-          },
-        },
+        ...(makerSecond
+          ? [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: event.currency.toLowerCase(),
+                  unit_amount: halfSeatCents,
+                  product_data: {
+                    name: `${productName} · ${locale === "en" ? "your second time, half price" : "je tweede keer, halve prijs"}`,
+                    description: `${event.city} · MyTable`,
+                  },
+                },
+              },
+            ]
+          : []),
+        ...((makerSecond ? seats - 1 : makerFreeSeat ? seats - 1 : seats) > 0
+          ? [
+              {
+                quantity: makerSecond ? seats - 1 : makerFreeSeat ? seats - 1 : seats,
+                price_data: {
+                  currency: event.currency.toLowerCase(),
+                  unit_amount: perSeatCents,
+                  product_data: {
+                    // Two seats for the price of one: said in the name Stripe shows.
+                    name: makerFreeSeat
+                      ? `${productName} · ${locale === "en" ? "2 seats, 1 free" : "2 plekken, 1 gratis"}`
+                      : productName,
+                    description: `${event.city} · MyTable`,
+                  },
+                },
+              },
+            ]
+          : []),
       ],
       metadata: {
         booking_id: booking.id,

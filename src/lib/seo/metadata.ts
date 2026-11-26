@@ -15,6 +15,7 @@ import {
   termsPath,
   voorZakenPath,
   ambassadorsPath,
+  makersPath,
   wineTastingLpCityPath,
   wineTastingLpPath,
   wineWalkLpCityPath,
@@ -43,7 +44,8 @@ export type SeoPathKind =
   | "privacy"
   | "terms"
   | "voorZaken"
-  | "ambassadors";
+  | "ambassadors"
+  | "makers";
 
 function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
   switch (kind) {
@@ -94,6 +96,8 @@ function pathFor(kind: SeoPathKind, locale: Locale, slug?: string): string {
       return voorZakenPath(locale);
     case "ambassadors":
       return ambassadorsPath(locale);
+    case "makers":
+      return makersPath(locale);
   }
 }
 

@@ -6,16 +6,17 @@ import { makerCopy } from "@/lib/makers/copy";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 
-function SectionTitle({ children, intro }: { children: React.ReactNode; intro?: string }) {
+function Eyebrow({ children, light }: { children: React.ReactNode; light?: boolean }) {
   return (
-    <div>
-      <h2 className="font-serif text-[1.7rem] leading-tight text-wine">{children}</h2>
-      {intro ? <p className="mt-2 leading-relaxed text-wine/60">{intro}</p> : null}
-    </div>
+    <div className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${light ? "text-cream/70" : "text-burgundy/80"}`}>{children}</div>
   );
 }
 
-/** /makers: for people who photograph food and places. Only linked from the footer. */
+function H2({ children }: { children: React.ReactNode }) {
+  return <h2 className="font-serif text-[2rem] leading-[1.1] tracking-tight text-wine text-balance sm:text-[2.6rem]">{children}</h2>;
+}
+
+/** /makers: for people who capture food, places and community. Only linked from the footer. */
 export function MakersView({
   locale,
   headerDict,
@@ -30,92 +31,171 @@ export function MakersView({
     <div className="overflow-x-clip bg-white">
       <Header dict={headerDict} locale={locale} />
 
-      <div className="mx-auto max-w-2xl px-5 pb-20 pt-[7.25rem] sm:px-8 sm:pt-36">
-        <header>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-burgundy/80">{t.eyebrow}</div>
-          <h1 className="mt-3 font-serif text-[2.2rem] font-medium leading-[1.1] tracking-tight text-wine text-pretty sm:text-5xl">
-            {t.title}
-          </h1>
-          <p className="mt-4 text-[1.05rem] leading-relaxed text-wine/70 text-pretty">{t.intro}</p>
-          <div className="mt-7">
-            <a
-              href="#aanmelden"
-              className="cta-lift inline-flex min-h-12 items-center rounded-full bg-burgundy px-7 text-[0.98rem] font-semibold text-white transition hover:bg-burgundy/90"
-            >
-              {t.cta}
-            </a>
+      {/* Hero: the image carries the page, the words sit on it. */}
+      <section className="px-3 pt-[5.5rem] sm:px-5 sm:pt-24">
+        <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem]">
+          <Image
+            src="/girls-only/phone-moment.jpg"
+            alt=""
+            fill
+            sizes="(min-width: 1152px) 72rem, 100vw"
+            className="object-cover"
+            priority
+          />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#1c0609]/95 via-[#1c0609]/55 to-[#1c0609]/10" />
+          <div className="relative flex min-h-[34rem] flex-col justify-end px-6 pb-10 pt-40 sm:min-h-[38rem] sm:px-12 sm:pb-14">
+            <Eyebrow light>{t.eyebrow}</Eyebrow>
+            <h1 className="mt-4 max-w-3xl font-serif text-[2.6rem] font-medium leading-[1.02] tracking-tight text-cream text-balance sm:text-[4.2rem]">
+              {t.title}
+            </h1>
+            <p className="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-cream/80 text-pretty sm:text-[1.15rem]">{t.intro}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <a
+                href="#kennismaken"
+                className="cta-lift inline-flex min-h-12 items-center rounded-full bg-cream px-7 text-[0.98rem] font-semibold text-wine transition hover:bg-white"
+              >
+                {t.cta}
+              </a>
+              <a href="#zo-werkt-het" className="text-[0.95rem] font-semibold text-cream/85 underline-offset-4 hover:underline">
+                {t.ctaSecondary}
+              </a>
+            </div>
           </div>
-          <div className="relative mt-8 aspect-[16/8] w-full overflow-hidden rounded-xl">
-            <Image
-              src="/girls-only/phone-moment.jpg"
-              alt=""
-              fill
-              sizes="(min-width: 640px) 42rem, 100vw"
-              className="object-cover"
-              priority
-            />
+        </div>
+      </section>
+
+      {/* The offer in three numbers. */}
+      <section className="mx-auto max-w-6xl px-5 sm:px-8">
+        <dl className="grid divide-y divide-wine/10 border-b border-wine/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {t.stats.map((s) => (
+            <div key={s.value} className="py-7 sm:px-8 sm:py-10 sm:first:pl-0">
+              <dt className="font-serif text-[2.6rem] leading-none tracking-tight text-burgundy sm:text-[3.2rem]">{s.value}</dt>
+              <dd className="mt-2 text-[0.95rem] leading-snug text-wine/65">{s.label}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="flex flex-wrap items-center gap-2 py-6">
+          <span className="mr-1 text-[0.85rem] text-wine/50">{t.forWhoTitle}</span>
+          {t.forWho.map((w) => (
+            <span key={w} className="rounded-full border border-wine/12 px-3.5 py-1.5 text-[0.85rem] text-wine/75">
+              {w}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* What the people who book through a maker get. */}
+      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
+        <div className="max-w-2xl">
+          <H2>{t.giftTitle}</H2>
+          <p className="mt-3 text-[1.05rem] leading-relaxed text-wine/60">{t.giftIntro}</p>
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          {t.gifts.map((g) => (
+            <div key={g.tag} className="rounded-[1.5rem] bg-beige/60 px-7 py-8 sm:px-9 sm:py-10">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy/80">{g.tag}</div>
+              <div className="mt-4 font-serif text-[1.9rem] leading-tight text-wine">{g.title}</div>
+              <p className="mt-3 max-w-sm leading-relaxed text-wine/65">{g.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* A worked example of what a maker earns. */}
+      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
+        <div className="grid overflow-hidden rounded-[1.75rem] bg-wine text-cream sm:grid-cols-[1.1fr_1fr]">
+          <div className="px-7 py-10 sm:px-12 sm:py-14">
+            <Eyebrow light>{t.exampleTitle}</Eyebrow>
+            <p className="mt-4 max-w-md font-serif text-[1.7rem] leading-snug text-cream text-balance sm:text-[2rem]">{t.exampleLabel}</p>
+            <dl className="mt-8 max-w-md divide-y divide-cream/15 border-y border-cream/15">
+              {t.exampleLines.map(([label, value]) => (
+                <div key={label} className="flex items-baseline justify-between py-3 text-[0.98rem]">
+                  <dt className="text-cream/70">{label}</dt>
+                  <dd className="font-semibold">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-        </header>
+          <div className="flex flex-col justify-end border-t border-cream/10 bg-[#3a0d14] px-7 py-10 sm:border-l sm:border-t-0 sm:px-12 sm:py-14">
+            <div className="text-[0.9rem] text-cream/60">{t.exampleTotalLabel}</div>
+            <div className="mt-2 font-serif text-[5rem] leading-none tracking-tight sm:text-[6.5rem]">{t.exampleTotal}</div>
+            <div className="mt-3 text-[0.9rem] text-cream/60">{t.exampleNote}</div>
+          </div>
+        </div>
+      </section>
 
-        <section className="mt-16">
-          <SectionTitle>{t.stepsTitle}</SectionTitle>
-          <ol className="mt-6 grid gap-3 sm:grid-cols-3">
-            {t.steps.map((s, i) => (
-              <li key={s.title} className="rounded-xl border border-wine/10 px-4 py-4">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-burgundy text-sm font-semibold text-white">{i + 1}</div>
-                <div className="mt-3 font-serif text-lg text-wine">{s.title}</div>
-                <p className="mt-1 text-[0.92rem] leading-snug text-wine/65">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+      {/* Steps. */}
+      <section id="zo-werkt-het" className="mx-auto mt-16 max-w-6xl scroll-mt-28 px-5 sm:mt-24 sm:px-8">
+        <H2>{t.stepsTitle}</H2>
+        <ol className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
+          {t.steps.map((s, i) => (
+            <li key={s.title} className="border-t border-wine/15 pt-6">
+              <div className="font-serif text-[2.4rem] leading-none text-burgundy/35">{String(i + 1).padStart(2, "0")}</div>
+              <div className="mt-4 font-serif text-[1.45rem] text-wine">{s.title}</div>
+              <p className="mt-2 leading-relaxed text-wine/65">{s.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-        <section className="mt-16">
-          <SectionTitle intro={t.waysIntro}>{t.waysTitle}</SectionTitle>
-          <div className="mt-6 divide-y divide-wine/10 border-y border-wine/10">
+      {/* How they work with us. */}
+      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
+        <div className="grid gap-10 sm:grid-cols-[1fr_1.4fr] sm:gap-16">
+          <div>
+            <H2>{t.waysTitle}</H2>
+            <p className="mt-4 leading-relaxed text-wine/60">{t.waysIntro}</p>
+          </div>
+          <div className="divide-y divide-wine/10 border-y border-wine/10">
             {t.ways.map((w) => (
-              <div key={w.title} className="flex flex-col gap-1 py-4 sm:flex-row sm:gap-4">
-                <div className="shrink-0 font-serif text-lg text-burgundy sm:w-40">{w.title}</div>
-                <p className="leading-relaxed text-wine/70">{w.body}</p>
+              <div key={w.title} className="py-6">
+                <div className="font-serif text-[1.35rem] text-wine">{w.title}</div>
+                <p className="mt-1.5 leading-relaxed text-wine/65">{w.body}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mt-16">
-          <SectionTitle>{t.getTitle}</SectionTitle>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {t.get.map((g) => (
-              <div key={g.title} className="rounded-xl border border-wine/10 bg-beige/50 px-5 py-4">
-                <div className="font-serif text-[1.15rem] text-wine">{g.title}</div>
-                <p className="mt-1 text-[0.93rem] leading-snug text-wine/65">{g.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-16">
-          <SectionTitle>{t.faqTitle}</SectionTitle>
-          <div className="mt-4 divide-y divide-wine/10 border-y border-wine/10">
+      {/* Questions. */}
+      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
+        <div className="grid gap-10 sm:grid-cols-[1fr_1.4fr] sm:gap-16">
+          <H2>{t.faqTitle}</H2>
+          <div className="divide-y divide-wine/10 border-y border-wine/10">
             {t.faq.map((f) => (
-              <details key={f.q} className="group py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-wine">
+              <details key={f.q} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[1.02rem] font-semibold text-wine">
                   {f.q}
-                  <span aria-hidden className="text-xl leading-none text-wine/40 transition group-open:rotate-45">
+                  <span aria-hidden className="text-2xl font-light leading-none text-wine/40 transition group-open:rotate-45">
                     +
                   </span>
                 </summary>
-                <p className="mt-2 leading-relaxed text-wine/70">{f.a}</p>
+                <p className="mt-3 max-w-xl leading-relaxed text-wine/70">{f.a}</p>
               </details>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="aanmelden" className="mt-16 scroll-mt-28">
-          <SectionTitle intro={t.form.intro}>{t.form.title}</SectionTitle>
+      {/* First a short call. */}
+      <section id="kennismaken" className="mx-auto mt-16 max-w-6xl scroll-mt-24 px-5 pb-24 sm:mt-24 sm:px-8">
+        <div className="grid gap-10 rounded-[1.75rem] bg-beige/60 px-6 py-10 sm:grid-cols-[1fr_1.4fr] sm:gap-16 sm:px-12 sm:py-14">
+          <div>
+            <H2>{t.meetTitle}</H2>
+            <p className="mt-4 leading-relaxed text-wine/65">{t.meetIntro}</p>
+            <ul className="mt-6 space-y-2.5">
+              {t.meetPoints.map((p) => (
+                <li key={p} className="flex gap-3 text-wine/75">
+                  <svg viewBox="0 0 20 20" aria-hidden className="mt-1 h-4 w-4 shrink-0 text-burgundy" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {p}
+                </li>
+              ))}
+            </ul>
+          </div>
           <MakerForm locale={locale} />
-        </section>
-      </div>
+        </div>
+      </section>
 
       <Footer dict={footerDict} locale={locale} />
     </div>

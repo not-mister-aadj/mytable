@@ -2,10 +2,12 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
 import { bookingEvents, bookings, events, makerCommissions, makerReferrals, makers, membershipPayments } from "@/db/schema";
 import { normalizeEmail } from "@/lib/customers/normalize";
-import { MAKER_COMMISSION_CENTS, commissionSeats, referralCounts, sanitizeMakerCode } from "@/lib/makers/shared";
+import { MAKER_COMMISSION_CENTS, commissionCents, commissionSeats, referralCounts, sanitizeMakerCode } from "@/lib/makers/shared";
 
 /** Booking event on a booking whose second seat was free through a maker's link. */
 export const MAKER_FREE_SEAT_EVENT = "maker_free_seat";
+/** Booking event on someone's second visit through a maker: one seat at half price. */
+export const MAKER_HALF_SEAT_EVENT = "maker_half_seat";
 
 export type ApprovedMaker = { id: string; name: string; email: string; code: string };
 
@@ -71,6 +73,28 @@ export async function referralAtCheckout(input: {
   return { makerId: maker.id, freeSeat: true };
 }
 
+/**
+ * Their second visit through a maker: one seat at half price. For someone
+ * a maker brought in, who has paid for exactly one booking so far.
+ */
+export async function secondVisitOffer(rawEmail: string, now = new Date()): Promise<{ makerId: string; makerName: string } | null> {
+  if (!isDbConfigured() || !rawEmail) return null;
+  const email = normalizeEmail(rawEmail);
+  const db = getDb();
+  const [row] = await db
+    .select({ referral: makerReferrals, name: makers.name })
+    .from(makerReferrals)
+    .innerJoin(makers, eq(makers.id, makerReferrals.makerId))
+    .where(eq(makerReferrals.emailNormalized, email))
+    .limit(1);
+  if (!row || !row.referral.firstPaidAt || !referralCounts(row.referral, now)) return null;
+  const [{ n }] = (await db.execute(
+    sql`select count(*)::int as n from bookings where lower(email) = ${email} and payment_status = 'paid'`,
+  )) as unknown as { n: number }[];
+  if (n !== 1) return null;
+  return { makerId: row.referral.makerId, makerName: row.name.trim().split(/\s+/)[0] ?? row.name };
+}
+
 /** The referral that still counts for this address, if any. */
 async function countingReferral(email: string, now: Date) {
   const [referral] = await getDb().select().from(makerReferrals).where(eq(makerReferrals.emailNormalized, email)).limit(1);
@@ -99,12 +123,13 @@ export async function recordMakerCommissionForBooking(bookingId: string, now = n
   const referral = await countingReferral(email, now);
   if (!referral) return false;
 
-  const [free] = await db
-    .select({ id: bookingEvents.id })
+  const marks = await db
+    .select({ type: bookingEvents.type })
     .from(bookingEvents)
-    .where(and(eq(bookingEvents.bookingId, bookingId), eq(bookingEvents.type, MAKER_FREE_SEAT_EVENT)))
-    .limit(1);
-  const seats = commissionSeats(row.booking.seats, Boolean(free), row.booking.amountCents);
+    .where(and(eq(bookingEvents.bookingId, bookingId), sql`${bookingEvents.type} in (${MAKER_FREE_SEAT_EVENT}, ${MAKER_HALF_SEAT_EVENT})`));
+  const freeSeat = marks.some((m) => m.type === MAKER_FREE_SEAT_EVENT);
+  const halfSeat = marks.some((m) => m.type === MAKER_HALF_SEAT_EVENT);
+  const seats = commissionSeats(row.booking.seats, freeSeat, row.booking.amountCents);
   if (seats <= 0) return false;
 
   await db
@@ -114,7 +139,7 @@ export async function recordMakerCommissionForBooking(bookingId: string, now = n
       emailNormalized: email,
       bookingId,
       seats,
-      amountCents: seats * MAKER_COMMISSION_CENTS,
+      amountCents: commissionCents({ seats: row.booking.seats, freeSeat, halfSeat, amountCents: row.booking.amountCents }),
       eventStartsAt: row.startsAt,
     })
     .onConflictDoNothing();

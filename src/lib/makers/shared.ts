@@ -9,6 +9,8 @@ export const MAKER_COOKIE = "mt_via";
 export const MAKER_COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 /** What a maker earns per paid seat and per paid membership month. */
 export const MAKER_COMMISSION_CENTS = 700;
+/** What a maker earns on the half-price seat of someone's second visit. */
+export const MAKER_HALF_SEAT_COMMISSION_CENTS = 350;
 /** How long a customer counts for the maker who brought them. */
 export const MAKER_REFERRAL_YEARS = 2;
 /** An unpaid referral (a checkout that was never finished) lapses after this. */
@@ -63,4 +65,11 @@ export function referralCounts(
 export function commissionSeats(seats: number, freeSeat: boolean, amountCents: number): number {
   if (amountCents <= 0) return 0;
   return Math.max(0, seats - (freeSeat ? 1 : 0));
+}
+
+/** What a maker earns on a booking: €7 per paid seat, €3,50 for a half-price seat. */
+export function commissionCents(input: { seats: number; freeSeat: boolean; halfSeat: boolean; amountCents: number }): number {
+  const paid = commissionSeats(input.seats, input.freeSeat, input.amountCents);
+  if (paid <= 0) return 0;
+  return input.halfSeat ? MAKER_HALF_SEAT_COMMISSION_CENTS + (paid - 1) * MAKER_COMMISSION_CENTS : paid * MAKER_COMMISSION_CENTS;
 }

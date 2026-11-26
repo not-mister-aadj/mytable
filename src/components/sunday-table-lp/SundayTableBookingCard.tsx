@@ -212,10 +212,12 @@ const MAKER_COPY = {
   nl: {
     one: (name: string) => `Via ${name} neem je de eerste keer gratis iemand mee.`,
     two: (name: string) => `Via ${name}: je tweede plek is gratis bij je eerste boeking.`,
+    second: (name: string) => `Via ${name}: je tweede keer is voor de halve prijs.`,
   },
   en: {
     one: (name: string) => `Through ${name}, you bring someone along free the first time.`,
     two: (name: string) => `Through ${name}: your second seat is free on your first booking.`,
+    second: (name: string) => `Through ${name}: your second time is half price.`,
   },
 } as const;
 
@@ -348,6 +350,8 @@ export function SundayTableBookingCard({
   /** The signed-in (or quiz) address that has a mutual like; the checkbox shows only while that address is the one typed. */
   /** First name of the maker whose link brought them here, if any. */
   const [makerName, setMakerName] = useState<string | null>(null);
+  /** Came through a maker and booked once: this time one seat is half price. */
+  const [makerSecond, setMakerSecond] = useState<string | null>(null);
   useEffect(() => {
     const code = readMakerCodeFromDocument();
     if (!code) return;
@@ -372,8 +376,9 @@ export function SundayTableBookingCard({
   function loadMe(isCancelled: () => boolean = () => false): Promise<void> {
     return fetch("/api/jouw-tafel/guest/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null; hasTableFriend?: boolean } | null) => {
+      .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null; hasTableFriend?: boolean; makerSecondVisit?: string | null } | null) => {
         if (isCancelled()) return;
+        setMakerSecond(me?.makerSecondVisit ?? null);
         if (me?.hasTableFriend && me.email) setFriendEmail(me.email.trim().toLowerCase());
         if (!me?.known) {
           return;
@@ -444,8 +449,11 @@ export function SundayTableBookingCard({
   const stepsTotal = offersPlan ? 3 : 2;
   const stepLabel = (n: number) => <p className="text-xs font-medium text-wine/50">{stepCopy.step(n, stepsTotal)}</p>;
   // Checked again at checkout: only for someone who never paid before.
-  const makerFriendFree = Boolean(makerName) && !member && seats === 2;
-  const singleTotal = pricePerSeatEuros * (makerFriendFree ? seats - 1 : seats);
+  const halfSecond = Boolean(makerSecond) && !member;
+  const makerFriendFree = !halfSecond && Boolean(makerName) && !member && seats === 2;
+  const singleTotal = halfSecond
+    ? pricePerSeatEuros * seats - pricePerSeatEuros / 2
+    : pricePerSeatEuros * (makerFriendFree ? seats - 1 : seats);
   const total = member
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
@@ -694,7 +702,9 @@ export function SundayTableBookingCard({
           {guestFree ? memberCopy.guestFree : memberCopy.guestPaid(euroLabel(memberGuestEuros))}
         </p>
       ) : null}
-      {makerName && !member && !monthly ? (
+      {halfSecond && !monthly ? (
+        <p className="mt-2 text-sm text-wine/70">{MAKER_COPY[locale === "en" ? "en" : "nl"].second(makerSecond!)}</p>
+      ) : makerName && !member && !monthly ? (
         <p className="mt-2 text-sm text-wine/70">
           {MAKER_COPY[locale === "en" ? "en" : "nl"][seats === 2 ? "two" : "one"](makerName)}
         </p>
@@ -1133,7 +1143,7 @@ export function SundayTableBookingCard({
                   ? stepCopy.next
                   : monthly
                   ? `${planCopy.monthlyCta} · ${euroLabel(total)}/${planCopy.perMonthShort}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
-                  : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
+                  : `${seats > 1 ? ctaLabelPlural : ctaLabel} · ${euroLabel(total)}`}
         </Button>
       )}
       {monthly && !englishOnlyWaiting ? (

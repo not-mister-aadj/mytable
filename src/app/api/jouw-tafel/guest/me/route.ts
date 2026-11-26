@@ -8,6 +8,7 @@ import { getRunningMembershipForUser, membershipSnapshot } from "@/lib/membershi
 import { freeGuestAvailable, isActiveMember } from "@/lib/membership/logic";
 import { guestSeatCents, isMembershipPlanId } from "@/lib/membership/plans";
 import { hasTableFriend } from "@/lib/tafelvrienden/server";
+import { secondVisitOffer } from "@/lib/makers/server";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,8 @@ export async function GET() {
     email,
     // A mutual like: the card asks "Laat je tafelvrienden weten dat je komt".
     hasTableFriend: await hasTableFriend(email).catch(() => false),
+    // Came through a maker and booked once: their second time is half price.
+    makerSecondVisit: email && !member ? ((await secondVisitOffer(email).catch(() => null))?.makerName ?? null) : null,
     name: answers.name ?? lastName,
     birthDate: answers.birthDate ?? last?.birthDate ?? null,
     // What they already said about their table, so the card does not ask again.

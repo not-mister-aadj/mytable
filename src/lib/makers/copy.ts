@@ -9,18 +9,30 @@ export type MakerCopy = {
   title: string;
   intro: string;
   cta: string;
+  ctaSecondary: string;
+  stats: { value: string; label: string }[];
+  forWhoTitle: string;
+  forWho: string[];
+  giftTitle: string;
+  giftIntro: string;
+  gifts: (Item & { tag: string })[];
+  exampleTitle: string;
+  exampleLabel: string;
+  exampleLines: [string, string][];
+  exampleTotalLabel: string;
+  exampleTotal: string;
+  exampleNote: string;
   stepsTitle: string;
   steps: Item[];
   waysTitle: string;
   waysIntro: string;
   ways: Item[];
-  getTitle: string;
-  get: Item[];
   faqTitle: string;
   faq: { q: string; a: string }[];
+  meetTitle: string;
+  meetIntro: string;
+  meetPoints: string[];
   form: {
-    title: string;
-    intro: string;
     name: string;
     email: string;
     city: string;
@@ -45,64 +57,73 @@ export type MakerCopy = {
 
 const nl: MakerCopy = {
   metaTitle: "Makers · MyTable",
-  metaDescription: "Maak je graag foto's en video's van eten en de mooiste plekken? Deel Sunday Social en verdien mee.",
-  eyebrow: "Makers",
-  title: "Jij vindt de mooiste plekken. Deel ze, en verdien mee.",
+  metaDescription: "Voor wie de mooiste tafels vastlegt. Deel Sunday Social met je eigen link en verdien mee, twee jaar lang.",
+  eyebrow: "MyTable Makers",
+  title: "Voor wie de mooiste tafels vastlegt.",
   intro:
-    "Maak je graag foto's en video's van eten, wijn, de leukste plekken van je stad en een community met een verhaal? Werk met ons samen en verdien aan iedereen die via jou aanschuift. Instagram, TikTok, Facebook, LinkedIn: alle social media telt.",
+    "Foto's en video's van eten, wijn, mooie plekken en een community met een verhaal. Deel Sunday Social met je eigen link en verdien mee, twee jaar lang.",
   cta: "Plan een kennismaking",
+  ctaSecondary: "Zo werkt het",
+  stats: [
+    { value: "€7", label: "per betaalde plek" },
+    { value: "2 jaar", label: "verdien je mee aan wie via jou komt" },
+    { value: "Elk kanaal", label: "Instagram, TikTok, Facebook, LinkedIn" },
+  ],
+  forWhoTitle: "Voor",
+  forWho: ["Foodfotografen", "Wijnliefhebbers", "Stadsgidsen", "Bloggers", "Communitybouwers"],
+  giftTitle: "Een reden om jouw link te gebruiken",
+  giftIntro: "Wie via jou boekt, krijgt er iets voor terug. Twee keer.",
+  gifts: [
+    { tag: "Eerste keer", title: "Neem gratis iemand mee", body: "Twee plekken voor de prijs van één. Samen aanschuiven is makkelijker dan alleen." },
+    { tag: "Tweede keer", title: "Voor de halve prijs", body: "Wie terugkomt, betaalt de tweede keer de helft voor zijn plek." },
+  ],
+  exampleTitle: "Een voorbeeld",
+  exampleLabel: "Tien mensen boeken via jou en komen elk drie keer.",
+  exampleLines: [
+    ["Eerste keer", "€7"],
+    ["Tweede keer, halve prijs", "€3,50"],
+    ["Derde keer", "€7"],
+  ],
+  exampleTotalLabel: "Voor jou, samen",
+  exampleTotal: "€175",
+  exampleNote: "€17,50 per persoon, keer tien.",
   stepsTitle: "Zo werkt het",
   steps: [
-    { title: "Maak kennis", body: "Eerst een kort online gesprek. Je zit nergens aan vast. Klikt het, dan krijg je je eigen link." },
-    { title: "Deel Sunday Social", body: "Waar je ook post: zelf, met ons als collab, of samen met de plek." },
-    {
-      title: "Verdien mee",
-      body: "Wie via jouw link boekt, neemt de eerste keer gratis iemand mee. Jij verdient mee, twee jaar lang.",
-    },
+    { title: "Maak kennis", body: "Eerst een kort online gesprek. Je zit nergens aan vast." },
+    { title: "Krijg je link", body: "Klikt het, dan krijg je je eigen link. Die werkt op elk kanaal." },
+    { title: "Deel en verdien", body: "Wie via jouw link boekt, telt twee jaar lang voor jou. Eens per maand betalen we uit." },
   ],
   waysTitle: "Hoe je wilt werken",
   waysIntro:
-    "Je kiest zelf waar en hoe je post. Op Instagram doen we het het liefst als collab: dan verschijnt de post bij allebei, en vaak ook bij de plek zelf. Zo zien meer mensen jouw link.",
+    "Je kiest zelf waar en hoe je post. Op Instagram doen we het het liefst als collab: dan verschijnt de post bij allebei, en vaak ook bij de plek zelf.",
   ways: [
     { title: "Jij post", body: "Je maakt en plaatst je eigen content en nodigt ons uit als collaborator." },
     { title: "Wij posten", body: "Je stuurt ons je beelden, wij plaatsen ze en nodigen jou uit." },
-    {
-      title: "De plek doet mee",
-      body: "Bij een post over een plek vragen we de plek ook als collab. Zo komt hij bij hun volgers terecht, met jouw link erbij.",
-    },
-  ],
-  getTitle: "Wat je krijgt",
-  get: [
-    { title: "€7 per plek", body: "Voor iedere betaalde plek via jouw link." },
-    {
-      title: "Twee jaar lang",
-      body: "Boekt iemand via jou, dan verdien je ook aan alles wat diegene de twee jaar daarna boekt. Ook €7 per maand van een club membership.",
-    },
-    {
-      title: "Een cadeau voor wie via jou boekt",
-      body: "Wie nieuw is en via jouw link boekt, neemt de eerste keer gratis iemand mee.",
-    },
+    { title: "De plek doet mee", body: "Bij een post over een plek vragen we de plek ook als collab. Zo bereik je ook hun volgers." },
   ],
   faqTitle: "Vragen",
   faq: [
-    {
-      q: "Welke social media tellen?",
-      a: "Allemaal. Instagram, TikTok, Facebook, LinkedIn, YouTube of je eigen blog. Je link werkt overal.",
-    },
+    { q: "Welke social media tellen?", a: "Allemaal. Instagram, TikTok, Facebook, LinkedIn, YouTube of je eigen blog. Je link werkt overal." },
     {
       q: "Waar zet ik mijn link?",
       a: "Op Instagram en TikTok in je bio of in een story met een linksticker. Op Facebook en LinkedIn gewoon in je post.",
     },
+    {
+      q: "Wanneer telt iemand voor mij?",
+      a: "Als diegene binnen 30 dagen na een klik op je link boekt en nog niet eerder bij ons betaalde. Daarna telt alles wat diegene twee jaar lang boekt, ook een club membership: €7 per maand.",
+    },
+    { q: "Wat telt niet?", a: "Je eigen boekingen, de gratis plek en plekken die we terugbetalen." },
     { q: "Wanneer krijg ik betaald?", a: "Eens per maand, voor de zondagen die al geweest zijn." },
-    { q: "Moet ik veel volgers hebben?", a: "Nee. We kijken naar je beelden." },
+    { q: "Moet ik veel volgers hebben?", a: "Nee. We kijken naar je beelden en je verhaal." },
     {
       q: "Wat is Sunday Social?",
       a: "Een zondagmiddag aan tafel met nieuwe mensen, in een wijnbar of restaurant dat wij uitkiezen. Een plek kost €10.",
     },
   ],
+  meetTitle: "Eerst kennismaken",
+  meetIntro: "Laat weten wie je bent. We mailen je voor een kort online gesprek.",
+  meetPoints: ["Wie je bent en wat je maakt", "Welke plekken je mooi vindt", "Hoe je het liefst werkt"],
   form: {
-    title: "Plan een online kennismaking",
-    intro: "Laat weten wie je bent, dan mailen we je voor een kort online gesprek. Je zit nergens aan vast.",
     name: "Naam",
     email: "E-mailadres",
     city: "Stad",
@@ -135,64 +156,73 @@ const nl: MakerCopy = {
 
 const en: MakerCopy = {
   metaTitle: "Makers · MyTable",
-  metaDescription: "Love taking photos and videos of food and the best places? Share Sunday Social and earn with us.",
-  eyebrow: "Makers",
-  title: "You find the best places. Share them, and earn with us.",
+  metaDescription: "For those who capture the best tables. Share Sunday Social with your own link and earn with us, for two years.",
+  eyebrow: "MyTable Makers",
+  title: "For those who capture the best tables.",
   intro:
-    "Love taking photos and videos of food, wine, the best spots in your city and a community with a story? Work with us and earn on everyone who joins a table through you. Instagram, TikTok, Facebook, LinkedIn: all social media counts.",
+    "Photos and videos of food, wine, beautiful places and a community with a story. Share Sunday Social with your own link and earn with us, for two years.",
   cta: "Plan a quick call",
+  ctaSecondary: "How it works",
+  stats: [
+    { value: "€7", label: "per paid seat" },
+    { value: "2 years", label: "you earn on everyone who comes through you" },
+    { value: "Any channel", label: "Instagram, TikTok, Facebook, LinkedIn" },
+  ],
+  forWhoTitle: "For",
+  forWho: ["Food photographers", "Wine lovers", "City guides", "Bloggers", "Community builders"],
+  giftTitle: "A reason to use your link",
+  giftIntro: "Whoever books through you gets something back. Twice.",
+  gifts: [
+    { tag: "First time", title: "Bring someone along free", body: "Two seats for the price of one. Joining together is easier than alone." },
+    { tag: "Second time", title: "Half price", body: "Whoever comes back pays half for their seat the second time." },
+  ],
+  exampleTitle: "An example",
+  exampleLabel: "Ten people book through you and each come three times.",
+  exampleLines: [
+    ["First time", "€7"],
+    ["Second time, half price", "€3.50"],
+    ["Third time", "€7"],
+  ],
+  exampleTotalLabel: "For you, in total",
+  exampleTotal: "€175",
+  exampleNote: "€17.50 per person, times ten.",
   stepsTitle: "How it works",
   steps: [
-    { title: "Meet us", body: "First a short online call. No strings attached. If it clicks, you get your own link." },
-    { title: "Share Sunday Social", body: "Wherever you post: on your own, with us as a collab, or together with the venue." },
-    {
-      title: "Earn with us",
-      body: "Anyone who books through your link brings someone along free the first time. You earn, for two years.",
-    },
+    { title: "Meet us", body: "First a short online call. No strings attached." },
+    { title: "Get your link", body: "If it clicks, you get your own link. It works on any channel." },
+    { title: "Share and earn", body: "Whoever books through your link counts for you for two years. We pay out once a month." },
   ],
   waysTitle: "How you want to work",
   waysIntro:
-    "You choose where and how you post. On Instagram we like to post as a collab: the post shows up for both of us, and often for the venue too. More people see your link.",
+    "You choose where and how you post. On Instagram we like to post as a collab: the post shows up for both of us, and often for the venue too.",
   ways: [
     { title: "You post", body: "You make and post your own content and invite us as a collaborator." },
     { title: "We post", body: "You send us your images, we post them and invite you." },
-    {
-      title: "The venue joins",
-      body: "For a post about a venue we ask the venue to join the collab too. It reaches their followers, with your link.",
-    },
-  ],
-  getTitle: "What you get",
-  get: [
-    { title: "€7 per seat", body: "For every paid seat through your link." },
-    {
-      title: "For two years",
-      body: "When someone books through you, you also earn on everything they book in the two years after. Also €7 per month of a club membership.",
-    },
-    {
-      title: "A gift for whoever books through you",
-      body: "Anyone new who books through your link brings someone along free the first time.",
-    },
+    { title: "The venue joins", body: "For a post about a venue we ask the venue to join the collab too. You reach their followers as well." },
   ],
   faqTitle: "Questions",
   faq: [
-    {
-      q: "Which social media count?",
-      a: "All of them. Instagram, TikTok, Facebook, LinkedIn, YouTube or your own blog. Your link works everywhere.",
-    },
+    { q: "Which social media count?", a: "All of them. Instagram, TikTok, Facebook, LinkedIn, YouTube or your own blog. Your link works everywhere." },
     {
       q: "Where do I put my link?",
       a: "On Instagram and TikTok in your bio or in a story with a link sticker. On Facebook and LinkedIn simply in your post.",
     },
+    {
+      q: "When does someone count for me?",
+      a: "When they book within 30 days of clicking your link and never paid with us before. After that, everything they book for two years counts, a club membership too: €7 per month.",
+    },
+    { q: "What doesn't count?", a: "Your own bookings, the free seat and seats we refund." },
     { q: "When do I get paid?", a: "Once a month, for the Sundays that have taken place." },
-    { q: "Do I need a lot of followers?", a: "No. We look at your images." },
+    { q: "Do I need a lot of followers?", a: "No. We look at your images and your story." },
     {
       q: "What is Sunday Social?",
       a: "A Sunday afternoon at a table with new people, in a wine bar or restaurant we pick. A seat costs €10.",
     },
   ],
+  meetTitle: "First, let's meet",
+  meetIntro: "Tell us who you are. We will email you to plan a short online call.",
+  meetPoints: ["Who you are and what you make", "Which places you love", "How you like to work"],
   form: {
-    title: "Plan a quick online call",
-    intro: "Tell us who you are and we will email you to plan a short online call. No strings attached.",
     name: "Name",
     email: "Email",
     city: "City",

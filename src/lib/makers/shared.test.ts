@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { commissionSeats, makerCodeFromName, referralCounts, sanitizeMakerCode } from "./shared";
+import { commissionCents, commissionSeats, makerCodeFromName, referralCounts, sanitizeMakerCode } from "./shared";
 
 test("maker code: letters and digits, upper case", () => {
   assert.equal(sanitizeMakerCode(" sanne "), "SANNE");
@@ -34,4 +34,12 @@ test("the free friend never earns a commission", () => {
   assert.equal(commissionSeats(2, true, 1000), 1);
   assert.equal(commissionSeats(2, false, 2000), 2);
   assert.equal(commissionSeats(1, false, 0), 0);
+});
+
+test("commission: €7 per paid seat, €3,50 for the half-price seat", () => {
+  assert.equal(commissionCents({ seats: 2, freeSeat: true, halfSeat: false, amountCents: 1000 }), 700);
+  assert.equal(commissionCents({ seats: 1, freeSeat: false, halfSeat: true, amountCents: 500 }), 350);
+  assert.equal(commissionCents({ seats: 2, freeSeat: false, halfSeat: true, amountCents: 1500 }), 1050);
+  assert.equal(commissionCents({ seats: 2, freeSeat: false, halfSeat: false, amountCents: 2000 }), 1400);
+  assert.equal(commissionCents({ seats: 1, freeSeat: false, halfSeat: false, amountCents: 0 }), 0);
 });

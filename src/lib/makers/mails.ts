@@ -32,7 +32,7 @@ export function makerNoticeMail(input: MakerInput, adminLink: string): PlainMail
     .map(([l, v]) => `<tr><td style="${cell};color:#7a5a60">${escapeHtml(l)}</td><td style="${cell}">${escapeHtml(v).replace(/\n/g, "<br>")}</td></tr>`)
     .join("")}</table>`;
   return {
-    subject: `Nieuwe maker: ${input.name} (${input.city})`,
+    subject: `Maker wil kennismaken: ${input.name} (${input.city})`,
     text,
     html: wrap(`${table}<p style="margin:0"><a href="${escapeHtml(adminLink)}" style="color:#5a0f1b">Goedkeuren in admin</a></p>`),
   };

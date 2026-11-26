@@ -50,10 +50,10 @@ const nl: MakerCopy = {
   title: "Jij vindt de mooiste plekken. Deel ze, en verdien mee.",
   intro:
     "Maak je graag foto's en video's van eten, wijn, de leukste plekken van je stad en een community met een verhaal? Werk met ons samen en verdien aan iedereen die via jou aanschuift. Instagram, TikTok, Facebook, LinkedIn: alle social media telt.",
-  cta: "Meld je aan",
+  cta: "Plan een kennismaking",
   stepsTitle: "Zo werkt het",
   steps: [
-    { title: "Meld je aan", body: "We kijken naar je werk en sturen je je eigen link." },
+    { title: "Maak kennis", body: "Eerst een kort online gesprek. Je zit nergens aan vast. Klikt het, dan krijg je je eigen link." },
     { title: "Deel Sunday Social", body: "Waar je ook post: zelf, met ons als collab, of samen met de plek." },
     {
       title: "Verdien mee",
@@ -101,8 +101,8 @@ const nl: MakerCopy = {
     },
   ],
   form: {
-    title: "Meld je aan",
-    intro: "We kijken naar je werk en mailen je binnen een paar dagen.",
+    title: "Plan een online kennismaking",
+    intro: "Laat weten wie je bent, dan mailen we je voor een kort online gesprek. Je zit nergens aan vast.",
     name: "Naam",
     email: "E-mailadres",
     city: "Stad",
@@ -117,10 +117,10 @@ const nl: MakerCopy = {
     note: "Nog iets wat we moeten weten?",
     optional: "optioneel",
     privacy: ["Ik ga akkoord met de ", "privacyverklaring", "."],
-    submit: "Verstuur",
+    submit: "Plan een kennismaking",
     sending: "Versturen…",
     doneTitle: "Dank je.",
-    doneBody: "We kijken naar je werk en mailen je binnen een paar dagen.",
+    doneBody: "We mailen je binnen een paar dagen om een moment te plannen.",
     errors: {
       name: "Vul je naam in.",
       email: "Vul een geldig e-mailadres in.",
@@ -140,10 +140,10 @@ const en: MakerCopy = {
   title: "You find the best places. Share them, and earn with us.",
   intro:
     "Love taking photos and videos of food, wine, the best spots in your city and a community with a story? Work with us and earn on everyone who joins a table through you. Instagram, TikTok, Facebook, LinkedIn: all social media counts.",
-  cta: "Apply",
+  cta: "Plan a quick call",
   stepsTitle: "How it works",
   steps: [
-    { title: "Apply", body: "We look at your work and send you your own link." },
+    { title: "Meet us", body: "First a short online call. No strings attached. If it clicks, you get your own link." },
     { title: "Share Sunday Social", body: "Wherever you post: on your own, with us as a collab, or together with the venue." },
     {
       title: "Earn with us",
@@ -191,8 +191,8 @@ const en: MakerCopy = {
     },
   ],
   form: {
-    title: "Apply",
-    intro: "We look at your work and email you within a few days.",
+    title: "Plan a quick online call",
+    intro: "Tell us who you are and we will email you to plan a short online call. No strings attached.",
     name: "Name",
     email: "Email",
     city: "City",
@@ -207,10 +207,10 @@ const en: MakerCopy = {
     note: "Anything else we should know?",
     optional: "optional",
     privacy: ["I agree to the ", "privacy statement", "."],
-    submit: "Send",
+    submit: "Plan a call",
     sending: "Sending…",
     doneTitle: "Thank you.",
-    doneBody: "We look at your work and email you within a few days.",
+    doneBody: "We will email you within a few days to plan a moment.",
     errors: {
       name: "Fill in your name.",
       email: "Fill in a valid email address.",

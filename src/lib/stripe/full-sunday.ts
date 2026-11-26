@@ -20,7 +20,9 @@ export async function refundFullSunday(input: { booking: Booking; event: Event; 
   const db = getDb();
   const [claimed] = await db
     .update(bookings)
-    .set({ paymentStatus: "refunded" })
+    // The payment stays linked, so Stripe's charge.refunded that follows is
+    // recognised as handled (refunds-disputes.ts) instead of mailed to us.
+    .set({ paymentStatus: "refunded", stripePaymentIntentId: input.paymentIntentId, stripeCheckoutSessionId: input.sessionId })
     .where(and(eq(bookings.id, booking.id), eq(bookings.paymentStatus, "pending")))
     .returning({ id: bookings.id });
   if (!claimed) return false;

@@ -78,8 +78,8 @@ const nl: MakerCopy = {
   ],
   forWhoTitle: "Voor",
   forWho: ["Foodfotografen", "Wijnliefhebbers", "Stadsgidsen", "Bloggers", "Communitybouwers"],
-  giftTitle: "Een cadeau voor wie via jou boekt",
-  giftIntro: "Wie via jou boekt, kiest een cadeau.",
+  giftTitle: "Een reden om jouw link te gebruiken",
+  giftIntro: "Wie via jouw link boekt, kiest een cadeau. Zo deel je iets waar je volgers zelf ook wat aan hebben.",
   gifts: [
     { tag: "Optie 1", title: "Neem gratis iemand mee", body: "Twee plekken voor de prijs van één. Samen aanschuiven is makkelijker dan alleen." },
     { tag: "Optie 2", title: "De tweede keer half geld", body: "Kom de eerste keer alleen en betaal de tweede keer de helft voor je plek." },
@@ -197,8 +197,8 @@ const en: MakerCopy = {
   ],
   forWhoTitle: "For",
   forWho: ["Food photographers", "Wine lovers", "City guides", "Bloggers", "Community builders"],
-  giftTitle: "A gift for whoever books through you",
-  giftIntro: "Whoever books through you picks a gift.",
+  giftTitle: "A reason to use your link",
+  giftIntro: "Whoever books through your link picks a gift. So you share something your audience gets something out of too.",
   gifts: [
     { tag: "Option 1", title: "Bring someone along free", body: "Two seats for the price of one. Joining together is easier than alone." },
     { tag: "Option 2", title: "Half price the second time", body: "Come alone the first time and pay half for your seat the second time." },

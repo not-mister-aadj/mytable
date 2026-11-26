@@ -137,12 +137,11 @@ type Stage = "email" | "code" | "details" | "offer";
 const UPSELL_COPY = {
   nl: {
     title: "Voor hetzelfde bedrag elke zondag?",
-    lead: (price: string) => `Word club member voor ${price} per maand:`,
+    lead: "Word club member. Je eerste maand kost hetzelfde als dit ticket.",
     items: [
-      "Je plek bij elke Sunday Social inbegrepen, in alle steden",
+      "Ga zo vaak als je wilt: elke Sunday Social in alle 5 steden zit erbij",
       "Kies zelf je bar uit onze reserveringen",
-      "Boek 48 uur eerder dan iedereen",
-      "Eens per 3 maanden een gast gratis mee",
+      "Eens per 3 maanden neem je een vriend gratis mee",
       "Maandelijks opzegbaar",
     ],
     yes: "Ja, maak er Elke zondag van",
@@ -152,12 +151,11 @@ const UPSELL_COPY = {
   },
   en: {
     title: "Every Sunday for the same price?",
-    lead: (price: string) => `Become a club member for ${price} per month:`,
+    lead: "Become a club member. Your first month costs the same as this ticket.",
     items: [
-      "Your seat at every Sunday Social included, in every city",
+      "Go as often as you like: every Sunday Social in all 5 cities is included",
       "Pick your own bar from our reservations",
-      "Book 48 hours before everyone else",
-      "A guest free once every 3 months",
+      "Once every 3 months you bring a friend for free",
       "Cancel monthly",
     ],
     yes: "Yes, make it Every Sunday",
@@ -805,7 +803,7 @@ export function SundayTableBookingCard({
       <div className="mt-6 space-y-3">
         {stepLabel(3)}
         <p className="font-serif text-2xl leading-snug text-wine">{upsellCopy.title}</p>
-        <p className="text-sm text-wine/75">{upsellCopy.lead(price)}</p>
+        <p className="text-sm text-wine/75">{upsellCopy.lead}</p>
         <ul className="space-y-1.5">
           {upsellCopy.items.map((item) => (
             <li key={item} className="flex gap-2 text-sm leading-snug text-wine/80">

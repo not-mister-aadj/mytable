@@ -79,7 +79,7 @@ const nl: MakerCopy = {
       body: "Boekt iemand via jou, dan verdien je ook aan alles wat diegene de twee jaar daarna boekt. Ook €7 per maand van een club membership.",
     },
     {
-      title: "Een cadeau voor je volgers",
+      title: "Een cadeau voor wie via jou boekt",
       body: "Wie nieuw is en via jouw link boekt, neemt de eerste keer gratis iemand mee.",
     },
   ],
@@ -169,7 +169,7 @@ const en: MakerCopy = {
       body: "When someone books through you, you also earn on everything they book in the two years after. Also €7 per month of a club membership.",
     },
     {
-      title: "A gift for your followers",
+      title: "A gift for whoever books through you",
       body: "Anyone new who books through your link brings someone along free the first time.",
     },
   ],

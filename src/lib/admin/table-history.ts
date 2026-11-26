@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { JOUW_TAFEL_TYPE, SUNDAY_SOCIAL_TYPE } from "@/lib/event-concepts";
-import { LATE_CANCEL_HOURS } from "@/lib/missed-sundays/logic";
+import { MISS_CANCEL_FROM_SQL } from "@/lib/missed-sundays/logic";
 
 /**
  * Who sat where, what they thought, who they want to see again and who they
@@ -95,7 +95,7 @@ export async function loadTableHistory(): Promise<TableHistory> {
     where b.miss_waived_at is null
       and e.experience_type in (${SUNDAY_SOCIAL_TYPE}, ${JOUW_TAFEL_TYPE})
       and (b.no_show_at is not null
-        or (b.membership_id is null and b.cancelled_late_at > e.starts_at - make_interval(hours => ${LATE_CANCEL_HOURS})))`);
+        or (b.membership_id is null and b.cancelled_late_at >= ${sql.raw(MISS_CANCEL_FROM_SQL)})))`);
 
   const people: TableHistory = new Map();
   const person = (email: string, name: string | null) => {

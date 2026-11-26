@@ -102,6 +102,10 @@ export type TablePage = {
   seat: "movable" | "fixed" | "member";
   /** A "geef mijn plek door" link is out and nobody took it yet. */
   shareLinkOpen: boolean;
+  /** What this seat cost them (0 for a member's own seat): "je €10 krijg je niet terug". */
+  paidCents: number;
+  /** A member's own seat: no money on the line when they cancel. */
+  memberSeat: boolean;
   /** The Sunday is today, tomorrow or later (Amsterdam). */
   day: "today" | "tomorrow" | "later";
   venue: { name: string; address: string | null; transit: string | null } | null;
@@ -244,6 +248,8 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
         : "movable"
       : "fixed",
     shareLinkOpen: Boolean(await openLinkId(booking.id)),
+    paidCents: booking.amountCents,
+    memberSeat: Boolean(booking.membershipId),
     day:
       dayKey(event.startsAt) === dayKey(new Date(now))
         ? "today"

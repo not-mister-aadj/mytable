@@ -31,6 +31,25 @@ test("liked mail: no names, no count, no booking button, two variants", () => {
   }
 });
 
+test("liked mail with a next Sunday: book button, tafelvriend elsewhere as a link, question as a link", () => {
+  const next = { city: "Rotterdam", startsAt: new Date("2027-01-24T13:00:00Z"), friends: [], url: "https://www.mytable.club/auth/in?t=a" };
+  const friend = { city: "Den Haag", startsAt: new Date("2027-01-31T13:00:00Z"), friends: ["Karin"], url: "https://www.mytable.club/auth/in?t=b" };
+  const m = likedMail({ locale: "nl", firstName: "Sophie", venueName: "Juni", pickedSomeone: false, url, next, friend });
+  assert.match(m.text, /Zin om ze weer te zien\? De volgende Sunday Social in Rotterdam is op zondag 24 januari\./);
+  assert.match(m.text, /Karin komt op zondag 31 januari in Den Haag\.\nReserveer zondag 31 januari: https:\/\/www\.mytable\.club\/auth\/in\?t=b/);
+  assert.match(m.text, /Laat weten met wie het gezellig was: https:\/\/www\.mytable\.club\/jouw-tafel/);
+  assert.match(m.html, />Reserveer je plek</);
+  assert.match(m.html, /href="https:\/\/www\.mytable\.club\/auth\/in\?t=a"/);
+  assert.ok(!m.text.includes("\u2014"));
+
+  const same = likedMail({ locale: "nl", firstName: "Sophie", venueName: "Juni", pickedSomeone: true, url, next: { ...next, friends: ["Karin", "Inge"] }, member: true });
+  assert.match(same.text, /op zondag 24 januari\. Karin en Inge komen ook\./);
+  assert.match(same.html, />Boek je plek</);
+
+  const onlyFriend = likedMail({ locale: "en", firstName: "", venueName: "Juni", pickedSomeone: false, url, friend });
+  assert.match(onlyFriend.text, /Fancy seeing them again\? Karin is coming on Sunday 31 January in Den Haag\./);
+});
+
 test("location mail: 'Aanstaande zondag' in the week itself, 'Volgende week zondag' before", async () => {
   const { locationThisWeek } = await import("./sunday-mails");
   const sunday = new Date("2026-11-15T13:00:00Z");

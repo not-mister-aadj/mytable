@@ -19,6 +19,8 @@ import { bookingIcsAttachment } from "@/lib/booking-calendar";
 import { reservationCode } from "@/lib/booking-display";
 import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
 import { jouwTafelSettingsPath } from "@/i18n/config";
+import { sundaySocialDatePath } from "@/lib/sunday-social-cities";
+import { nextSundaysFor, type NextSunday } from "@/lib/tafelvrienden/next-sundays";
 
 /** The mails sent from a Sunday's page in admin: the location a week
  * before, on Saturday the group with a link to the table page, and on
@@ -448,6 +450,15 @@ async function composeSundayMail(
     };
   }
   if (kind === "liked") {
+    const { next, friend } = await nextSundaysFor({ email: guest.email, city: ctx.city, member: guest.member }).catch((error: unknown) => {
+      console.error("[liked mail] next Sundays failed:", error);
+      return { next: null, friend: null };
+    });
+    // Signs them in, with "Alleen deze zondag" chosen: the booking card is filled in.
+    const sundayUrl = async (s: NextSunday | null) => {
+      const path = s ? sundaySocialDatePath(locale, s) : null;
+      return s && path ? { ...s, url: await mailLoginUrl(guest.email, `${path}?ticket=deze-zondag`, SITE) } : null;
+    };
     return {
       subject: nl ? "Ze vonden je gezellig zondag" : "They enjoyed your company on Sunday",
       ...likedMail({
@@ -457,6 +468,10 @@ async function composeSundayMail(
         pickedSomeone: guest.pickedSomeone,
         // Signs them in: most guests never logged in and do not know they have an account.
         url: await mailLoginUrl(guest.email, `${jouwTafelSettingsPath(locale)}?tab=vrienden`, SITE),
+        city: ctx.city,
+        member: guest.member,
+        next: await sundayUrl(next),
+        friend: await sundayUrl(friend),
       }),
       from: PLAIN_FROM,
     };
@@ -637,52 +652,98 @@ export function feedbackMail(p: { locale: "nl" | "en"; firstName: string; venueN
   return facesMail(feedbackText(p), p.url, p.locale);
 }
 
+/** "Karin", "Karin en Inge", "Karin, Inge en Sam". */
+function joinNames(names: string[], nl: boolean): string {
+  const and = nl ? "en" : "and";
+  return names.length <= 1 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} ${and} ${names[names.length - 1]}`;
+}
+
+type LikedSunday = { city: string; startsAt: Date; friends: string[]; url: string };
+
 /**
  * Wednesday 19:00, for who a tablemate picked: their table enjoyed them. No
- * names, no count, no booking button. Ends with "Cheers, MyTable".
+ * names of who picked them and no count. With a Sunday to book (see
+ * nextSundaysFor) the button is "Reserveer je plek" for the next one in
+ * their city, a Sunday elsewhere where a tafelvriend comes is a link under
+ * it, and the tafelvrienden question becomes a link; without one it is the
+ * mail as before, with that question as the button. Ends "Cheers, MyTable".
  */
-export function likedMail(p: { locale: "nl" | "en"; firstName: string; venueName: string; pickedSomeone: boolean; url: string }): { text: string; html: string } {
+export function likedMail(p: {
+  locale: "nl" | "en";
+  firstName: string;
+  venueName: string;
+  pickedSomeone: boolean;
+  url: string;
+  city?: string;
+  member?: boolean;
+  next?: LikedSunday | null;
+  friend?: LikedSunday | null;
+}): { text: string; html: string } {
   const nl = p.locale === "nl";
   const hi = nl ? `Hoi${p.firstName ? ` ${p.firstName}` : ""},` : `Hi${p.firstName ? ` ${p.firstName}` : ""},`;
   const opening = nl
     ? `Zondag in ${p.venueName} heb je indruk gemaakt. Aan je tafel gaven ze aan dat ze je gezellig vonden en je vaker aan tafel willen hebben.`
     : `On Sunday at ${p.venueName} you made an impression. People at your table said they enjoyed your company and would love to have you at the table more often.`;
-  const lines = p.pickedSomeone
+  const pickLine = p.pickedSomeone
     ? nl
-      ? [
-          "Jij liet ook al weten met wie je het gezellig had. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen.",
-          "",
-          p.url,
-        ]
-      : [
-          "You already told us who you enjoyed the afternoon with. If it's mutual, we'll make sure you run into each other more often.",
-          "",
-          p.url,
-        ]
+      ? "Jij liet ook al weten met wie je het gezellig had. Komt het van twee kanten, dan zorgen we dat jullie elkaar vaker tegenkomen."
+      : "You already told us who you enjoyed the afternoon with. If it's mutual, we'll make sure you run into each other more often."
     : nl
-      ? [
-          "Met wie had jij het gezellig? Laat het ons weten. Dan zorgen we dat je op een volgende zondag vaker bekende gezichten tegenkomt.",
-          "",
-          p.url,
-          "",
-          "Kan tot zondag 18:00.",
-        ]
-      : [
-          "Who did you enjoy the afternoon with? Let us know. Then you'll run into more familiar faces on a next Sunday.",
-          "",
-          p.url,
-          "",
-          "You can do this until Sunday 18:00.",
-        ];
-  const text = [hi, "", opening, "", ...lines, "", "Cheers,", "MyTable"].join("\n");
-  const label = p.pickedSomeone
+      ? "Met wie had jij het gezellig? Laat het ons weten. Dan zorgen we dat je op een volgende zondag vaker bekende gezichten tegenkomt."
+      : "Who did you enjoy the afternoon with? Let us know. Then you'll run into more familiar faces on a next Sunday.";
+  const pickLabel = p.pickedSomeone
     ? nl
       ? "Bekijk met wie je het gezellig had"
       : "See who you enjoyed the afternoon with"
     : nl
       ? "Laat weten met wie het gezellig was"
       : "Let us know who you enjoyed";
-  return buttonMail(text, p.url, label);
+  const until = p.pickedSomeone ? [] : ["", nl ? "Kan tot zondag 18:00." : "You can do this until Sunday 18:00."];
+
+  const main = p.next ?? p.friend ?? null;
+  if (!main) {
+    const text = [hi, "", opening, "", pickLine, "", p.url, ...until, "", "Cheers,", "MyTable"].join("\n");
+    return buttonMail(text, p.url, pickLabel);
+  }
+  const day = (s: LikedSunday) => longDate(s.startsAt, p.locale);
+  const comes = (s: LikedSunday) => (s.friends.length === 1 ? (nl ? "komt" : "is coming") : nl ? "komen" : "are coming");
+  const sundayLine = p.next
+    ? (nl
+        ? `Zin om ze weer te zien? De volgende Sunday Social in ${p.next.city} is op ${day(p.next)}.`
+        : `Fancy seeing them again? The next Sunday Social in ${p.next.city} is on ${day(p.next)}.`) +
+      (p.next.friends.length > 0 ? ` ${joinNames(p.next.friends, nl)} ${comes(p.next)} ${nl ? "ook" : "too"}.` : "")
+    : nl
+      ? `Zin om ze weer te zien? ${joinNames(main.friends, nl)} ${comes(main)} op ${day(main)} in ${main.city}.`
+      : `Fancy seeing them again? ${joinNames(main.friends, nl)} ${comes(main)} on ${day(main)} in ${main.city}.`;
+  const friendLines =
+    p.next && p.friend
+      ? [
+          "",
+          nl
+            ? `${joinNames(p.friend.friends, nl)} ${comes(p.friend)} op ${day(p.friend)} in ${p.friend.city}.`
+            : `${joinNames(p.friend.friends, nl)} ${comes(p.friend)} on ${day(p.friend)} in ${p.friend.city}.`,
+          `${nl ? `Reserveer ${day(p.friend)}` : `Book ${day(p.friend)}`}: ${p.friend.url}`,
+        ]
+      : [];
+  const text = [
+    hi,
+    "",
+    opening,
+    "",
+    sundayLine,
+    "",
+    main.url,
+    ...friendLines,
+    "",
+    pickLine,
+    `${pickLabel}: ${p.url}`,
+    ...until,
+    "",
+    "Cheers,",
+    "MyTable",
+  ].join("\n");
+  const label = p.member ? (nl ? "Boek je plek" : "Book your seat") : nl ? "Reserveer je plek" : "Book your seat";
+  return buttonMail(text, main.url, label);
 }
 
 /** "zondag 13 december" / "Sunday 13 December". */

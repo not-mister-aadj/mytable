@@ -76,9 +76,9 @@ export function MakersView({
       <Header dict={headerDict} locale={locale} />
 
       <section className="pb-28 pt-24 sm:pt-32 lg:pb-20">
-        <div className="mx-auto grid max-w-lg gap-8 px-5 sm:px-6 lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12 lg:gap-y-0">
+        <div className="mx-auto grid max-w-lg gap-8 px-5 sm:px-6 lg:max-w-3xl">
           {/* What it is, then the photo and three facts. */}
-          <div id="maker-hero" className="min-w-0 lg:col-start-1 lg:row-start-1">
+          <div id="maker-hero" className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{t.eyebrow}</p>
             <h1 className="mt-2 font-serif text-[2rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
               {t.title}
@@ -105,9 +105,9 @@ export function MakersView({
             <p className="mt-6 text-[0.98rem] leading-relaxed text-wine/70">{t.intro}</p>
           </div>
 
-          {/* The form as a panel, like the booking panel: beside the page on desktop. */}
-          <div id="kennismaken" className="order-last min-w-0 scroll-mt-24 lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-5 py-6 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto">
+          {/* The form as a panel, at the bottom of the page. */}
+          <div id="kennismaken" className="order-last mt-2 min-w-0 scroll-mt-24">
+            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-5 py-6 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-8 sm:py-8">
               <p className="font-serif text-2xl text-wine">{t.meetTitle}</p>
               <p className="mt-1.5 text-sm leading-relaxed text-wine/65">{t.meetIntro}</p>
               <ul className="mt-3 space-y-1.5">
@@ -127,8 +127,8 @@ export function MakersView({
           </div>
 
           {/* The rest of the story. */}
-          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-            <div className="mt-2 border-t border-wine/10 pt-10 lg:mt-14">
+          <div className="min-w-0">
+            <div className="mt-2 border-t border-wine/10 pt-10">
               <SectionHead eyebrow={t.communityEyebrow} title={t.communityTitle} intro={t.communityIntro} />
               <ul className={`mt-6 divide-y divide-wine/10 px-5 sm:px-7 ${card}`}>
                 {t.community.map((c, i) => (

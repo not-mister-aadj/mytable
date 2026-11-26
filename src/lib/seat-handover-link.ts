@@ -168,10 +168,29 @@ export async function claimHandOverLink(token: string, input: { name: string; em
   return { ok: true, email, newAccount: account.created, bookingId: result.bookingId };
 }
 
-/** Friday 10:00 before the Sunday (Amsterdam): the reminder for a link nobody took. */
-export function reminderAt(startsAt: Date): Date {
+const REMIND_AFTER_MS = 2 * 86_400_000;
+
+function amsterdamHour(d: Date): number {
+  return Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Amsterdam", hour: "2-digit", hourCycle: "h23" }).format(d));
+}
+
+/**
+ * When the giver of a link nobody took hears it: two days after sharing it,
+ * at the latest Friday 10:00 before the Sunday (Amsterdam), never at night
+ * (21:00 to 08:00 waits for 08:00). A link shared from Friday 10:00 on gets
+ * no reminder: null.
+ */
+export function reminderAt(startsAt: Date, sharedAt: Date): Date | null {
   const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
-  return amsterdamDateTime(y, m, d - 2, 10, 0);
+  const friday = amsterdamDateTime(y, m, d - 2, 10, 0);
+  if (sharedAt.getTime() >= friday.getTime()) return null;
+  let due = new Date(Math.min(sharedAt.getTime() + REMIND_AFTER_MS, friday.getTime()));
+  const hour = amsterdamHour(due);
+  if (hour < 8 || hour >= 21) {
+    const [dy, dm, dd] = amsterdamDateIso(due).split("-").map(Number) as [number, number, number];
+    due = amsterdamDateTime(dy, dm, hour < 8 ? dd : dd + 1, 8, 0);
+  }
+  return new Date(Math.min(due.getTime(), friday.getTime()));
 }
 
 /** "Nog niemand heeft je plek overgenomen": come anyway (nothing to do), or cancel so the waitlist gets the seat. */
@@ -212,9 +231,9 @@ export function handOverReminderMail(p: { locale: "nl" | "en"; firstName: string
 }
 
 /**
- * Hourly (feedback-mails cron): from Friday 10:00, the giver of a link that
- * is still open hears that nobody took it. Once per link (a reminded link
- * stays reminded), never after the start.
+ * Hourly (feedback-mails cron): the giver of a link that is still open hears
+ * that nobody took it, at reminderAt. Once per link (a reminded link stays
+ * reminded), never after the start.
  */
 export async function sendHandOverReminders(now: Date = new Date()): Promise<{ sent: number }> {
   const db = getDb();
@@ -225,13 +244,13 @@ export async function sendHandOverReminders(now: Date = new Date()): Promise<{ s
     join events e on e.id = b.event_id
     where be.type in ('handover_link', 'handover_link_revoked', 'handover_link_used', 'handover_link_reminded')
       and e.starts_at > ${now.toISOString()}::timestamptz
-      and e.starts_at < ${new Date(now.getTime() + 3 * 86_400_000).toISOString()}::timestamptz
+      and e.starts_at < ${new Date(now.getTime() + 8 * 86_400_000).toISOString()}::timestamptz
     order by be.booking_id, be.created_at desc`)) as unknown as Array<{ booking_id: string; link_id: string | null }>;
   let sent = 0;
   for (const r of rows) {
     // Only a link whose last event is the link itself: not revoked, used, or reminded.
     const [last] = await db
-      .select({ type: bookingEvents.type })
+      .select({ type: bookingEvents.type, at: bookingEvents.createdAt })
       .from(bookingEvents)
       .where(and(eq(bookingEvents.bookingId, r.booking_id), inArray(bookingEvents.type, [...LINK_TYPES, "handover_link_reminded"])))
       .orderBy(desc(bookingEvents.createdAt))
@@ -239,7 +258,8 @@ export async function sendHandOverReminders(now: Date = new Date()): Promise<{ s
     if (last?.type !== "handover_link") continue;
     const row = await load(r.booking_id);
     if (!row || !canShareSeat(row.booking, row.event, now.getTime())) continue;
-    if (now.getTime() < reminderAt(row.event.startsAt).getTime()) continue;
+    const due = reminderAt(row.event.startsAt, last.at);
+    if (!due || now.getTime() < due.getTime()) continue;
     const locale = row.booking.locale === "en" ? "en" : "nl";
     const mail = handOverReminderMail({
       locale,

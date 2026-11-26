@@ -22,13 +22,27 @@ test("a seat can be shared only when fixed, paid, active, not a member's, before
   assert.equal(canShareSeat({ ...booking, cancelledLateAt: new Date() }, event, threeDaysBefore), false);
 });
 
-test("reminder for an open link: Friday 10:00 before the Sunday, Amsterdam time", async () => {
+test("reminder: two days after sharing, at the latest Friday 10:00, never at night (Amsterdam)", async () => {
   const { reminderAt, handOverReminderMail } = await import("./seat-handover-link");
-  assert.equal(reminderAt(new Date("2026-11-29T13:00:00Z")).toISOString(), "2026-11-27T09:00:00.000Z");
-  assert.equal(reminderAt(new Date("2027-06-13T12:00:00Z")).toISOString(), "2027-06-11T08:00:00.000Z"); // summer time
-  const m = handOverReminderMail({ locale: "nl", firstName: "Sophie", startsAt: new Date("2026-11-29T13:00:00Z"), tableUrl: "https://www.mytable.club/aan-tafel/x" });
+  const sunday = new Date("2026-11-29T13:00:00Z");
+  const at = (shared: string) => reminderAt(sunday, new Date(shared))?.toISOString() ?? null;
+  // Shared Monday 15:00 -> Wednesday 15:00
+  assert.equal(at("2026-11-23T14:00:00Z"), "2026-11-25T14:00:00.000Z");
+  // Shared Wednesday 18:00 -> would be Friday 18:00 -> capped at Friday 10:00
+  assert.equal(at("2026-11-25T17:00:00Z"), "2026-11-27T09:00:00.000Z");
+  // Shared Monday 23:30 -> Wednesday 23:30 is night -> Thursday 08:00
+  assert.equal(at("2026-11-23T22:30:00Z"), "2026-11-26T07:00:00.000Z");
+  // Shared Tuesday 05:00 -> Thursday 05:00 is night -> Thursday 08:00
+  assert.equal(at("2026-11-24T04:00:00Z"), "2026-11-26T07:00:00.000Z");
+  // Shared from Friday 10:00 on: no reminder
+  assert.equal(at("2026-11-27T09:00:00Z"), null);
+  assert.equal(at("2026-11-28T12:00:00Z"), null);
+  // Summer time: Friday 10:00 is 08:00 UTC
+  assert.equal(reminderAt(new Date("2027-06-13T12:00:00Z"), new Date("2027-06-10T12:00:00Z"))?.toISOString(), "2027-06-11T08:00:00.000Z");
+
+  const m = handOverReminderMail({ locale: "nl", firstName: "Sophie", startsAt: sunday, tableUrl: "https://www.mytable.club/aan-tafel/x" });
   assert.equal(m.subject, "Nog niemand heeft je plek overgenomen");
   assert.match(m.text, /^Hoi Sophie,\n\nJe link voor zondag 29 november staat nog open/);
   assert.match(m.html, />Naar je tafelpagina</);
-  assert.ok(!m.text.includes("—"));
+  assert.ok(!m.text.includes("\u2014"));
 });

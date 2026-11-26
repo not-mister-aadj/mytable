@@ -1,18 +1,18 @@
 import { SundayTableWaitlistWelcomeEmail } from "@/emails/SundayTableWaitlistWelcomeEmail";
-import { jouwTafelLogInPath, sundayTableLpCityPath, sundayTableLpPath, type Locale } from "@/i18n/config";
+import { jouwTafelKiesPath, jouwTafelLogInPath, type Locale } from "@/i18n/config";
 import { ensureAuthUserForEmail } from "@/lib/auth/ensure-auth-user-for-email";
 import { mailLoginUrl } from "@/lib/auth/mail-login";
 import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { sundayTableWaitlistWelcomeSubject } from "@/lib/email/subjects";
-import { sundaySocialSlugFromCity } from "@/lib/sunday-social-cities";
 import { getSiteUrl } from "@/lib/env";
 
 /**
  * "Welkom bij Sunday Social": fired once, when the waitlist questions are
- * done. The button signs them in and opens their city's page, which lists
- * every open Sunday with the booking card filled in (several cities: the
- * overview). The silent account is made here if it isn't there yet; without
- * one the button goes to the log-in screen, with that page kept for after.
+ * done. The button signs them in and opens "Kies je zondag", their account's
+ * page with the tables in their cities (their waitlist answers move into the
+ * account on the way, so the quiz only asks what they skipped). The silent
+ * account is made here if it isn't there yet; without one the button goes
+ * to the log-in screen, with "Kies je zondag" kept for after.
  */
 export async function sendSundayTableWaitlistWelcomeEmail(input: {
   to: string;
@@ -22,8 +22,7 @@ export async function sendSundayTableWaitlistWelcomeEmail(input: {
   cities: string[];
   gender?: "female" | "male" | "other" | "unspecified";
 }): Promise<boolean> {
-  const slug = input.cities.length === 1 ? sundaySocialSlugFromCity(input.cities[0]!) : null;
-  const tables = slug ? sundayTableLpCityPath(input.locale, slug) : sundayTableLpPath(input.locale);
+  const tables = jouwTafelKiesPath(input.locale);
   const account = await ensureAuthUserForEmail({
     email: input.to,
     name: input.firstName ?? null,

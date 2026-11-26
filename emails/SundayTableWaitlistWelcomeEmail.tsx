@@ -7,8 +7,8 @@ export type SundayTableWaitlistWelcomeEmailProps = {
   firstName?: string;
   /** Every city this signup joined the waitlist for, not just one. */
   cities: string[];
-  /** Signs them in and opens their city's page with every open Sunday. When
-   * no account could be made it goes to the log-in screen instead. */
+  /** Signs them in and opens "Kies je zondag" with the tables in their
+   * cities. When no account could be made it goes to the log-in screen. */
   tablesUrl: string;
   /** Not used by this mail any more (it offered a WhatsApp group once);
    * kept so callers need no change. */
@@ -61,11 +61,11 @@ export function SundayTableWaitlistWelcomeEmail({
       </p>
       <p style={{ ...text, margin: "0 0 20px" }}>
         {nl
-          ? `Wil je niet wachten op je uitnodiging? Je kunt altijd inloggen en alle tafels in ${cityLabel} bekijken.`
-          : `Don't want to wait for your invitation? You can always log in and see every table in ${cityLabel}.`}
+          ? "Wil je niet wachten op je uitnodiging? Je kunt altijd inloggen in je account en zelf een tafel kiezen."
+          : "Don't want to wait for your invitation? You can always log in to your account and pick a table yourself."}
       </p>
       <div style={{ margin: "0 0 24px" }}>
-        <Button href={tablesUrl}>{nl ? "Bekijk alle tafels" : "See all tables"}</Button>
+        <Button href={tablesUrl}>{nl ? "Bekijk je tafels" : "See your tables"}</Button>
       </div>
       <p style={{ ...text, margin: "0 0 4px" }}>{nl ? "Tot aan tafel," : "See you at the table,"}</p>
       <p style={{ ...text, margin: 0 }}>{nl ? "Het MyTable team" : "The MyTable team"}</p>

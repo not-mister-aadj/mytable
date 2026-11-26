@@ -140,6 +140,7 @@ const UPSELL_COPY = {
     lead: "Word club member. Je eerste maand kost hetzelfde als dit ticket.",
     items: [
       "Ga zo vaak als je wilt: elke Sunday Social in alle 5 steden zit erbij",
+      "Voorrang op de wachtlijst: is een zondag vol, dan ga jij voor en zetten we waar het kan een extra tafel neer",
       "Kies zelf je bar uit onze reserveringen",
       "Maandelijks opzegbaar",
     ],
@@ -153,6 +154,7 @@ const UPSELL_COPY = {
     lead: "Become a club member. Your first month costs the same as this ticket.",
     items: [
       "Go as often as you like: every Sunday Social in all 5 cities is included",
+      "Priority on the waitlist: when a Sunday is full you go first, and where we can we add an extra table",
       "Pick your own bar from our reservations",
       "Cancel monthly",
     ],
@@ -819,7 +821,7 @@ export function SundayTableBookingCard({
         <button
           type="button"
           onClick={() => void checkout("single")}
-          className="w-full rounded-full border border-burgundy px-6 py-3 text-sm font-semibold text-burgundy transition hover:bg-burgundy/5"
+          className="w-full text-center text-sm text-wine/65 underline decoration-wine/30 underline-offset-4 transition hover:text-wine"
         >
           {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
         </button>

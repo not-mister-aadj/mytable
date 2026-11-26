@@ -478,6 +478,23 @@ export function SundayTableEventReveal({
                   successLabel={comingSoonSuccessLabel}
                   errorLabel={comingSoonErrorLabel}
                 />
+              ) : soldOut ? (
+                // Full: the waitlist. A seat that comes free is offered to it
+                // (seat-offer.ts); a member on it is mailed to us at once.
+                <SundayTableNotifyMeForm
+                  eventId={eventId}
+                  locale={locale}
+                  title={locale === "en" ? "This Sunday is full" : "Deze zondag is vol"}
+                  body={
+                    locale === "en"
+                      ? "Join the waitlist. If a seat comes free, we'll mail you. Club members go first."
+                      : "Zet je op de wachtlijst. Komt er een plek vrij, dan mailen we je. Club members gaan voor."
+                  }
+                  emailLabel={comingSoonEmailLabel}
+                  submitLabel={locale === "en" ? "Join the waitlist" : "Zet me op de wachtlijst"}
+                  successLabel={locale === "en" ? "You're on the waitlist. We'll mail you when a seat comes free." : "Je staat op de wachtlijst. We mailen je als er een plek vrijkomt."}
+                  errorLabel={comingSoonErrorLabel}
+                />
               ) : (
                 <SundayTableBookingCard
                   eventId={eventId}

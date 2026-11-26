@@ -141,7 +141,6 @@ const UPSELL_COPY = {
     items: [
       "Ga zo vaak als je wilt: elke Sunday Social in alle 5 steden zit erbij",
       "Kies zelf je bar uit onze reserveringen",
-      "Eens per 3 maanden neem je een vriend gratis mee",
       "Maandelijks opzegbaar",
     ],
     yes: "Ja, maak er Elke zondag van",
@@ -155,7 +154,6 @@ const UPSELL_COPY = {
     items: [
       "Go as often as you like: every Sunday Social in all 5 cities is included",
       "Pick your own bar from our reservations",
-      "Once every 3 months you bring a friend for free",
       "Cancel monthly",
     ],
     yes: "Yes, make it Every Sunday",

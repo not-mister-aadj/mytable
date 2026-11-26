@@ -72,7 +72,7 @@ const nl: MakerCopy = {
   eyebrow: "MyTable Makers",
   title: "Maak content voor de mooiste tafels van je stad.",
   intro:
-    "Fotografeer en film eten, wijn, mooie plekken en een community met een verhaal. Je bouwt je portfolio in een leuk team van makers, en je verdient mee.",
+    "Fotografeer of film eten, wijn, mooie plekken en momenten, of juist een community met een verhaal. Alles kan, zolang het bij MyTable past. Je bouwt je portfolio in een leuk team van makers, en je verdient mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
   heroMeta: "Eerst online kennismaken · daarna je eigen link",
@@ -191,7 +191,7 @@ const en: MakerCopy = {
   eyebrow: "MyTable Makers",
   title: "Create content for the best tables in your city.",
   intro:
-    "Shoot food, wine, beautiful places and a community with a story. You build your portfolio in a fun team of makers, and you earn with us.",
+    "Shoot food, wine, beautiful places and moments, or a community with a story. Anything goes, as long as it fits MyTable. You build your portfolio in a fun team of makers, and you earn with us.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
   heroMeta: "First a short online call · then your own link",

@@ -98,6 +98,7 @@ export const sampleSundayTableWaitlistWelcomeProps: SundayTableWaitlistWelcomeEm
     locale: "nl",
     firstName: "Sophie",
     cities: ["Rotterdam", "Utrecht"],
+    tablesUrl: "https://www.mytable.club/jouw-tafel/inloggen?naar=%2Fjouw-tafel%2Fstart%3Fstap%3Dkies",
   };
 
 export const sampleSundayTableWaitlistInviteProps: SundayTableWaitlistInviteEmailProps =

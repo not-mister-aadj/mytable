@@ -37,7 +37,7 @@ const RULES: Array<[RegExp, string]> = [
   [/^(Zondag|Sunday) \d{1,2} [a-z]+, /i, "Uitnodiging"],
   [/(inlogcode|login code|sign-in code|Je code voor MyTable)/i, "Inlogcode"],
   [/^(tafels? reserveren|Reservering zondag)/i, "Venue"],
-  [/(Je staat op de lijst|You're on the list)/i, "Wachtlijst"],
+  [/(Je staat op de lijst|You're on the list|Welkom bij Sunday Social|Welcome to Sunday Social)/i, "Wachtlijst"],
   [/(Welkom aan tafel|Welcome to the table)/i, "Welkom"],
   [/(Welkom bij MyTable|Welcome to MyTable)/i, "Welkom"],
   [/(Welkom als (club member|lid)|you are a (club )?member)/i, "Lid geworden"],

@@ -108,6 +108,10 @@ const nl: MakerCopy = {
       body: "Creators die net als jij van eten, wijn en goede plekken houden. Je staat er niet alleen voor.",
     },
     {
+      title: "Gratis aan tafel",
+      body: "Als creator schuif je gratis aan bij de Sunday Socials. Zo maak je je content waar het gebeurt.",
+    },
+    {
       title: "Bouw je portfolio",
       body: "Je maakt echte content voor een merk dat groeit, op de mooiste plekken van je stad. Goed voor je portfolio en je cv.",
     },
@@ -226,6 +230,10 @@ const en: MakerCopy = {
     {
       title: "A fun team",
       body: "Creators who love food, wine and good places as much as you do. You're never on your own.",
+    },
+    {
+      title: "Join the table for free",
+      body: "As a creator you join the Sunday Socials for free. So you make your content where it happens.",
     },
     {
       title: "Build your portfolio",

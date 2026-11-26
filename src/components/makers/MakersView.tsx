@@ -28,9 +28,14 @@ const FACT_ICONS = [
   </svg>,
 ];
 
-/** Team, portfolio, calls, prize: for "Wat je krijgt". */
+/** Team, glass, portfolio, calls, prize: for "Wat je krijgt". */
 const COMMUNITY_ICONS = [
   FACT_ICONS[0],
+  <svg key="glass" {...icon} aria-hidden>
+    <path d="M7 3h10l-1 7a4 4 0 0 1-8 0z" />
+    <path d="M12 14v6" />
+    <path d="M8 21h8" />
+  </svg>,
   FACT_ICONS[1],
   <svg key="call" {...icon} aria-hidden>
     <rect x="3" y="6" width="13" height="12" rx="2" />

@@ -110,7 +110,7 @@ interface SundayTableEventRevealProps {
   daySteps: DaySteps;
   /** "Wat je krijgt voor €10", under the buy button. */
   included: { title: string; items: string[]; note: string; summary?: string };
-  /** "25 van 28 gasten vonden het top of goed", above the title; null leaves it out. */
+  /** "89% van de gasten vond het top of goed", above the title; null leaves it out. */
   proofLabel?: string | null;
   /** Three short facts with an icon under the photo (table, place, tips). */
   quickFacts?: string[];

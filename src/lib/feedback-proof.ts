@@ -5,7 +5,7 @@ import { getDb, isDbConfigured } from "@/db/index";
 const MIN_ANSWERS = 10;
 
 /**
- * "25 van 28 gasten vonden het top of goed": from the feedback guests filled
+ * "89% van de gasten vond het top of goed": from the feedback guests filled
  * in after a Sunday Social (mood great or good, out of all finished
  * answers). Real numbers only; null when there are too few or the database
  * is not there.
@@ -29,7 +29,6 @@ export async function getFeedbackProof(): Promise<{ good: number; total: number 
 
 export function feedbackProofLabel(proof: { good: number; total: number } | null, locale: "nl" | "en"): string | null {
   if (!proof) return null;
-  return locale === "en"
-    ? `${proof.good} of ${proof.total} guests rated it great or good`
-    : `${proof.good} van ${proof.total} gasten vonden het top of goed`;
+  const pct = Math.round((proof.good / proof.total) * 100);
+  return locale === "en" ? `${pct}% of guests rated it great or good` : `${pct}% van de gasten vond het top of goed`;
 }

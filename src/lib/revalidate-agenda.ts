@@ -1,9 +1,11 @@
 import { revalidatePath, revalidateTag } from "next/cache";
+import { after } from "next/server";
 import { PUBLISHED_EVENTS_CACHE_TAG } from "@/lib/experiences";
 import type { Event } from "@/db/schema";
 import { sundayTableLocationPath } from "@/i18n/config";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { sundaySocialSlugFromCity } from "@/lib/sunday-social-tables";
+import { runOutsideRender } from "@/lib/run-outside-render";
 
 /** Sunday Social's reveal page (/sunday-social/[city]/[date]) shows a live
  * "spots left" chip, but isn't covered by the generic /agenda paths below,
@@ -22,8 +24,19 @@ function sundayTablePaths(event: Pick<Event, "experienceType" | "city" | "starts
 }
 
 /** Pass the full event row (not just its slug) whenever it's on hand, so
- * Sunday Social editions also revalidate their own reveal page. */
+ * Sunday Social editions also revalidate their own reveal page.
+ *
+ * Safe to call while a page renders (the confirmation page fulfils a payment
+ * when the browser is back before the Stripe webhook): Next.js refuses a
+ * revalidation during a render, so there it runs after the response. In a
+ * route handler or a server action it runs at once, as before. */
 export function revalidateEventPaths(
+  event: string | Pick<Event, "slug" | "experienceType" | "city" | "startsAt">,
+) {
+  runOutsideRender(() => revalidateEventPathsNow(event), after);
+}
+
+function revalidateEventPathsNow(
   event: string | Pick<Event, "slug" | "experienceType" | "city" | "startsAt">,
 ) {
   const slug = typeof event === "string" ? event : event.slug;

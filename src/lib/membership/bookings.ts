@@ -64,13 +64,7 @@ export async function confirmMemberBooking(input: {
   });
 
   if (result.ok && !result.alreadyConfirmed) {
-    // Not allowed while a page renders (the confirmation page fulfils as a
-    // fallback): the seat is taken either way, so the mail still goes out.
-    try {
-      revalidateEventPaths(result.event);
-    } catch (error) {
-      console.warn("[membership] revalidate skipped", error);
-    }
+    revalidateEventPaths(result.event);
     await deliverBookingConfirmationEmail(result.booking, result.event, "member");
     try {
       await onPaymentCompleted({ booking: result.booking, event: result.event });

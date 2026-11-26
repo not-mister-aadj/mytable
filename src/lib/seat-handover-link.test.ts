@@ -21,3 +21,14 @@ test("a seat can be shared only when fixed, paid, active, not a member's, before
   assert.equal(canShareSeat({ ...booking, membershipId: "m" }, event, threeDaysBefore), false);
   assert.equal(canShareSeat({ ...booking, cancelledLateAt: new Date() }, event, threeDaysBefore), false);
 });
+
+test("reminder for an open link: Friday 10:00 before the Sunday, Amsterdam time", async () => {
+  const { reminderAt, handOverReminderMail } = await import("./seat-handover-link");
+  assert.equal(reminderAt(new Date("2026-11-29T13:00:00Z")).toISOString(), "2026-11-27T09:00:00.000Z");
+  assert.equal(reminderAt(new Date("2027-06-13T12:00:00Z")).toISOString(), "2027-06-11T08:00:00.000Z"); // summer time
+  const m = handOverReminderMail({ locale: "nl", firstName: "Sophie", startsAt: new Date("2026-11-29T13:00:00Z"), tableUrl: "https://www.mytable.club/aan-tafel/x" });
+  assert.equal(m.subject, "Nog niemand heeft je plek overgenomen");
+  assert.match(m.text, /^Hoi Sophie,\n\nJe link voor zondag 29 november staat nog open/);
+  assert.match(m.html, />Naar je tafelpagina</);
+  assert.ok(!m.text.includes("—"));
+});

@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db/index";
 import { bookingEvents, bookings, events } from "@/db/schema";
 import { ensureAuthUserForEmail } from "@/lib/auth/ensure-auth-user-for-email";
@@ -8,6 +8,9 @@ import { tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import { canReschedule } from "@/lib/jouw-tafel/reschedule-logic";
 import { handOverSeat } from "@/lib/seat-handover";
 import { getTokenSecrets } from "@/lib/sunday-table-intro";
+import { buttonMail, longDate, sendSundayMail } from "@/lib/admin/sunday-mails";
+import { tablePageUrl } from "@/lib/table-page";
+import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
 
 /**
  * "Geef mijn plek door" as a link: the guest shares it (WhatsApp, copy), and
@@ -22,6 +25,7 @@ import { getTokenSecrets } from "@/lib/sunday-table-intro";
 const PURPOSE = "seat-handover-link";
 const SITE = "https://www.mytable.club";
 const LINK_TYPES = ["handover_link", "handover_link_revoked", "handover_link_used"] as const;
+const FROM = "MyTable <hallo@tafels.mytable.club>";
 
 type Booking = typeof bookings.$inferSelect;
 type Event = typeof events.$inferSelect;
@@ -162,4 +166,94 @@ export async function claimHandOverLink(token: string, input: { name: string; em
   const email = input.email.trim().toLowerCase();
   const account = await ensureAuthUserForEmail({ email, name: input.name, source: "handover", city: offer.city, locale: offer.locale }).catch(() => ({ created: false }));
   return { ok: true, email, newAccount: account.created, bookingId: result.bookingId };
+}
+
+/** Friday 10:00 before the Sunday (Amsterdam): the reminder for a link nobody took. */
+export function reminderAt(startsAt: Date): Date {
+  const [y, m, d] = amsterdamDateIso(startsAt).split("-").map(Number) as [number, number, number];
+  return amsterdamDateTime(y, m, d - 2, 10, 0);
+}
+
+/** "Nog niemand heeft je plek overgenomen": come anyway (nothing to do), or cancel so the waitlist gets the seat. */
+export function handOverReminderMail(p: { locale: "nl" | "en"; firstName: string; startsAt: Date; tableUrl: string }): { subject: string; text: string; html: string } {
+  const nl = p.locale === "nl";
+  const day = longDate(p.startsAt, p.locale);
+  const text = (
+    nl
+      ? [
+          `Hoi${p.firstName ? ` ${p.firstName}` : ""},`,
+          "",
+          `Je link voor ${day} staat nog open, maar nog niemand heeft je plek overgenomen.`,
+          "",
+          "Kom je toch? Dan hoef je niets te doen. Kun je echt niet? Meld je dan af op je tafelpagina. Dan bieden we je plek aan iemand van de wachtlijst aan en blijft je tafel compleet. Je link opnieuw delen kan daar ook.",
+          "",
+          p.tableUrl,
+          "",
+          "Groetjes,",
+          "MyTable",
+        ]
+      : [
+          `Hi${p.firstName ? ` ${p.firstName}` : ""},`,
+          "",
+          `Your link for ${day} is still open, but nobody has taken your seat yet.`,
+          "",
+          "Coming after all? Then there's nothing to do. Really can't make it? Cancel on your table page. We'll then offer your seat to someone on the waitlist and your table stays complete. You can share your link again there too.",
+          "",
+          p.tableUrl,
+          "",
+          "Best,",
+          "MyTable",
+        ]
+  ).join("\n");
+  return {
+    subject: nl ? "Nog niemand heeft je plek overgenomen" : "Nobody has taken your seat yet",
+    ...buttonMail(text, p.tableUrl, nl ? "Naar je tafelpagina" : "To your table page"),
+  };
+}
+
+/**
+ * Hourly (feedback-mails cron): from Friday 10:00, the giver of a link that
+ * is still open hears that nobody took it. Once per link (a reminded link
+ * stays reminded), never after the start.
+ */
+export async function sendHandOverReminders(now: Date = new Date()): Promise<{ sent: number }> {
+  const db = getDb();
+  const rows = (await db.execute(sql`
+    select distinct on (be.booking_id) be.booking_id, be.payload->>'linkId' as link_id
+    from booking_events be
+    join bookings b on b.id = be.booking_id
+    join events e on e.id = b.event_id
+    where be.type in ('handover_link', 'handover_link_revoked', 'handover_link_used', 'handover_link_reminded')
+      and e.starts_at > ${now.toISOString()}::timestamptz
+      and e.starts_at < ${new Date(now.getTime() + 3 * 86_400_000).toISOString()}::timestamptz
+    order by be.booking_id, be.created_at desc`)) as unknown as Array<{ booking_id: string; link_id: string | null }>;
+  let sent = 0;
+  for (const r of rows) {
+    // Only a link whose last event is the link itself: not revoked, used, or reminded.
+    const [last] = await db
+      .select({ type: bookingEvents.type })
+      .from(bookingEvents)
+      .where(and(eq(bookingEvents.bookingId, r.booking_id), inArray(bookingEvents.type, [...LINK_TYPES, "handover_link_reminded"])))
+      .orderBy(desc(bookingEvents.createdAt))
+      .limit(1);
+    if (last?.type !== "handover_link") continue;
+    const row = await load(r.booking_id);
+    if (!row || !canShareSeat(row.booking, row.event, now.getTime())) continue;
+    if (now.getTime() < reminderAt(row.event.startsAt).getTime()) continue;
+    const locale = row.booking.locale === "en" ? "en" : "nl";
+    const mail = handOverReminderMail({
+      locale,
+      firstName: row.booking.customerName?.trim().split(/\s+/)[0] ?? "",
+      startsAt: row.event.startsAt,
+      tableUrl: await tablePageUrl(row.booking.id, locale),
+    });
+    const id = await sendSundayMail(row.booking.email, { ...mail, from: FROM }).catch((error) => {
+      console.error("[handover reminder] mail failed", error);
+      return null;
+    });
+    if (!id) continue;
+    await db.insert(bookingEvents).values({ bookingId: row.booking.id, type: "handover_link_reminded", payload: { linkId: r.link_id } });
+    sent += 1;
+  }
+  return { sent };
 }

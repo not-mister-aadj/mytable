@@ -4,8 +4,10 @@ import { Footer } from "@/components/Footer";
 import { MakerCalculator } from "@/components/makers/MakerCalculator";
 import { MakerForm } from "@/components/makers/MakerForm";
 import { MakerStickyCta } from "@/components/makers/MakerStickyCta";
+import { SundayTableSectionNav } from "@/components/sunday-table-lp/SundayTableSectionNav";
 import { makerCopy } from "@/lib/makers/copy";
-import type { Locale } from "@/i18n/config";
+import { absoluteUrl } from "@/lib/seo/site";
+import { makersPath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 
 const icon = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -76,9 +78,24 @@ export function MakersView({
       <Header dict={headerDict} locale={locale} />
 
       <section className="pb-28 pt-24 sm:pt-32 lg:pb-20">
-        <div className="mx-auto grid max-w-lg gap-8 px-5 sm:px-6 lg:max-w-3xl">
+        <SundayTableSectionNav
+          singleColumn
+          locale={locale}
+          shareUrl={absoluteUrl(makersPath(locale))}
+          shareLabel={t.nav.share}
+          copiedLabel={t.nav.copied}
+          items={[
+            { id: "maker-hero", label: t.nav.overview },
+            { id: "wat-je-krijgt", label: t.nav.get },
+            { id: "zo-werkt-het", label: t.nav.how },
+            { id: "verdienen", label: t.nav.earn },
+            { id: "kennismaken", label: t.nav.meet },
+            { id: "vragen", label: t.nav.faq },
+          ]}
+        />
+        <div className="mx-auto max-w-lg px-5 sm:px-6 lg:max-w-3xl">
           {/* What it is, then the photo and three facts. */}
-          <div id="maker-hero" className="min-w-0">
+          <div id="maker-hero" className="min-w-0 scroll-mt-40">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{t.eyebrow}</p>
             <h1 className="mt-2 font-serif text-[2rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
               {t.title}
@@ -105,30 +122,9 @@ export function MakersView({
             <p className="mt-6 text-[0.98rem] leading-relaxed text-wine/70">{t.intro}</p>
           </div>
 
-          {/* The form as a panel, at the bottom of the page. */}
-          <div id="kennismaken" className="order-last mt-2 min-w-0 scroll-mt-24">
-            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-5 py-6 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-8 sm:py-8">
-              <p className="font-serif text-2xl text-wine">{t.meetTitle}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-wine/65">{t.meetIntro}</p>
-              <ul className="mt-3 space-y-1.5">
-                {t.meetPoints.map((p) => (
-                  <li key={p} className="flex gap-2.5 text-sm text-wine/75">
-                    <span aria-hidden className="text-emerald-700">
-                      ✓
-                    </span>
-                    {p}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5">
-                <MakerForm locale={locale} />
-              </div>
-            </div>
-          </div>
-
           {/* The rest of the story. */}
           <div className="min-w-0">
-            <div className="mt-2 border-t border-wine/10 pt-10">
+            <div id="wat-je-krijgt" className="mt-10 scroll-mt-40 border-t border-wine/10 pt-10">
               <SectionHead eyebrow={t.communityEyebrow} title={t.communityTitle} intro={t.communityIntro} />
               <ul className={`mt-6 divide-y divide-wine/10 px-5 sm:px-7 ${card}`}>
                 {t.community.map((c, i) => (
@@ -145,7 +141,7 @@ export function MakersView({
               </ul>
             </div>
 
-            <div id="zo-werkt-het" className="mt-10 scroll-mt-24 border-t border-wine/10 pt-10">
+            <div id="zo-werkt-het" className="mt-10 scroll-mt-40 border-t border-wine/10 pt-10">
               <SectionHead eyebrow={t.stepsEyebrow} title={t.stepsTitle} />
               <ol className="mt-6 space-y-5">
                 {t.steps.map((s, i) => (
@@ -172,7 +168,7 @@ export function MakersView({
               </div>
             </div>
 
-            <div className="mt-10 border-t border-wine/10 pt-10">
+            <div id="verdienen" className="mt-10 scroll-mt-40 border-t border-wine/10 pt-10">
               <MakerCalculator locale={locale} />
               <p className="mt-8 font-serif text-xl font-medium tracking-tight text-wine sm:text-2xl">{t.giftTitle}</p>
               <p className="mt-1.5 text-sm leading-relaxed text-wine/60">{t.giftIntro}</p>
@@ -187,24 +183,46 @@ export function MakersView({
               </div>
             </div>
 
-            <div className="mt-10 border-t border-wine/10 pt-10">
-              <SectionHead eyebrow={t.faqEyebrow} title={t.faqTitle} />
-              <div className={`mt-6 divide-y divide-wine/10 px-6 sm:px-8 ${card}`}>
-                {t.faq.map((f) => (
-                  <details key={f.q} className="group py-5">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-serif text-lg font-medium tracking-tight text-wine [&::-webkit-details-marker]:hidden">
-                      {f.q}
-                      <span
-                        aria-hidden
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-wine/8 text-base leading-none text-wine/60 transition-transform duration-200 group-open:rotate-45"
-                      >
-                        +
-                      </span>
-                    </summary>
-                    <p className="mt-2 text-sm leading-relaxed text-wine/60">{f.a}</p>
-                  </details>
+          </div>
+
+          {/* The form as a panel, at the bottom of the page. */}
+          <div id="kennismaken" className="mt-10 min-w-0 scroll-mt-40">
+            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-5 py-6 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-8 sm:py-8">
+              <p className="font-serif text-2xl text-wine">{t.meetTitle}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-wine/65">{t.meetIntro}</p>
+              <ul className="mt-3 space-y-1.5">
+                {t.meetPoints.map((p) => (
+                  <li key={p} className="flex gap-2.5 text-sm text-wine/75">
+                    <span aria-hidden className="text-emerald-700">
+                      ✓
+                    </span>
+                    {p}
+                  </li>
                 ))}
+              </ul>
+              <div className="mt-5">
+                <MakerForm locale={locale} />
               </div>
+            </div>
+          </div>
+
+          <div id="vragen" className="mt-12 scroll-mt-40 border-t border-wine/10 pt-10">
+            <SectionHead eyebrow={t.faqEyebrow} title={t.faqTitle} />
+            <div className={`mt-6 divide-y divide-wine/10 px-6 sm:px-8 ${card}`}>
+              {t.faq.map((f) => (
+                <details key={f.q} className="group py-5">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-serif text-lg font-medium tracking-tight text-wine [&::-webkit-details-marker]:hidden">
+                    {f.q}
+                    <span
+                      aria-hidden
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-wine/8 text-base leading-none text-wine/60 transition-transform duration-200 group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-wine/60">{f.a}</p>
+                </details>
+              ))}
             </div>
           </div>
         </div>

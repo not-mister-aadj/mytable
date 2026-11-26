@@ -11,6 +11,7 @@ export type MakerCopy = {
   cta: string;
   ctaSecondary: string;
   heroMeta: string;
+  nav: { overview: string; get: string; how: string; earn: string; meet: string; faq: string; share: string; copied: string };
   badge: string;
   quickFacts: string[];
   communityEyebrow: string;
@@ -76,6 +77,7 @@ const nl: MakerCopy = {
     "Fotografeer of film eten, wijn, mooie plekken en momenten, of juist een community met een verhaal. Alles kan, zolang het bij MyTable past. Je bouwt je portfolio in een leuk team van creators. En aan iedereen die via jouw affiliate link boekt, verdien je twee jaar lang mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
+  nav: { overview: "Overzicht", get: "Wat je krijgt", how: "Zo werkt het", earn: "Verdienen", meet: "Kennismaken", faq: "Vragen", share: "Delen", copied: "Gekopieerd" },
   heroMeta: "Eerst online kennismaken · daarna je eigen affiliate link",
   badge: "Creators gezocht",
   quickFacts: ["Een leuk team", "Bouw je portfolio", "2 jaar meeverdienen"],
@@ -200,6 +202,7 @@ const en: MakerCopy = {
     "Shoot food, wine, beautiful places and moments, or a community with a story. Anything goes, as long as it fits MyTable. You build your portfolio in a fun team of creators. And you earn on everyone who books through your affiliate link, for two years.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
+  nav: { overview: "Overview", get: "What you get", how: "How it works", earn: "Earnings", meet: "Meet us", faq: "Questions", share: "Share", copied: "Copied" },
   heroMeta: "First a short online call · then your own affiliate link",
   badge: "Creators wanted",
   quickFacts: ["A fun team", "Build your portfolio", "Earn for 2 years"],

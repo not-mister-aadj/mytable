@@ -109,16 +109,16 @@ export function MakersView({
             <p className="mt-4 max-w-md font-serif text-[1.7rem] leading-snug text-cream text-balance sm:text-[2rem]">{t.exampleLabel}</p>
             <dl className="mt-8 max-w-md divide-y divide-cream/15 border-y border-cream/15">
               {t.exampleLines.map(([label, value]) => (
-                <div key={label} className="flex items-baseline justify-between py-3 text-[0.98rem]">
+                <div key={label} className="flex items-baseline justify-between gap-4 py-3 text-[0.98rem]">
                   <dt className="text-cream/70">{label}</dt>
-                  <dd className="font-semibold">{value}</dd>
+                  <dd className="shrink-0 font-semibold">{value}</dd>
                 </div>
               ))}
             </dl>
           </div>
           <div className="flex flex-col justify-end border-t border-cream/10 bg-[#3a0d14] px-7 py-10 sm:border-l sm:border-t-0 sm:px-12 sm:py-14">
             <div className="text-[0.9rem] text-cream/60">{t.exampleTotalLabel}</div>
-            <div className="mt-2 font-serif text-[5rem] leading-none tracking-tight sm:text-[6.5rem]">{t.exampleTotal}</div>
+            <div className="mt-2 font-serif text-[4.2rem] leading-none tracking-tight sm:text-[5.5rem]">{t.exampleTotal}</div>
             <div className="mt-3 text-[0.9rem] text-cream/60">{t.exampleNote}</div>
           </div>
         </div>

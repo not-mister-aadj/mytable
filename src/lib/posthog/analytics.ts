@@ -325,6 +325,15 @@ export function trackSundaySocialTicketChosen(props: {
   capture(PostHogEvents.sundaySocialTicketChosen, props);
 }
 
+export function trackSundaySocialBookingStep(props: {
+  step: "email" | "code_sent" | "code_verified" | "details";
+  city: string;
+  locale: string;
+  kind?: "member" | "known" | "new";
+}): void {
+  capture(PostHogEvents.sundaySocialBookingStep, props);
+}
+
 export function trackScrollDepthReached(props: {
   depth_percent: number;
   page_path: string;

@@ -63,7 +63,8 @@ export async function handOverSeat(bookingId: string, to: { name: string; email:
           locale: old.locale,
           tableLanguagePreference: old.tableLanguagePreference,
           birthDate: to.birthDate ?? null,
-          membershipId: old.membershipId,
+          // The friend's own seat: not part of the giver's membership.
+          membershipId: null,
           groupId: old.groupId,
           lifecycleStatus: "active",
           transferredFromBookingId: old.id,

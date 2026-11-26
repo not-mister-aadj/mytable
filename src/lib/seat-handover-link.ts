@@ -18,8 +18,8 @@ import { amsterdamDateIso, amsterdamDateTime } from "@/lib/sunday-wine-table";
  * the guest's until then. One open link per booking: sharing again gives the
  * same link; "Link intrekken" or the seat being taken closes it. Kept as
  * booking_events (handover_link / handover_link_revoked / handover_link_used),
- * no table of its own. Only for a fixed seat (less than 7 days before), not
- * a member's, until the afternoon starts.
+ * no table of its own. Only for a fixed seat (less than 7 days before; a
+ * member's too), until the afternoon starts.
  */
 
 const PURPOSE = "seat-handover-link";
@@ -37,7 +37,6 @@ export function canShareSeat(booking: Booking, event: Event, now: number): boole
     booking.lifecycleStatus === "active" &&
     !booking.cancelledLateAt &&
     !booking.noShowAt &&
-    !booking.membershipId &&
     !canReschedule(event.startsAt, now) &&
     event.startsAt.getTime() > now
   );

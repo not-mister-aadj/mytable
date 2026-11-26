@@ -23,17 +23,17 @@ import {
 } from "@/lib/membership/plans";
 
 /** Right above the buy button: the promise the booker ticks. A seat from a
- * membership follows the membership's own rule (cancel until 48 hours before). */
+ * membership follows the membership's own rule (cancel until 7 days before). */
 const COMMIT_COPY = {
   nl: {
     lead: "Ik kom.",
     seat: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan verzet ik uiterlijk 7 dagen vooraf.",
-    member: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan meld ik me uiterlijk 48 uur vooraf af.",
+    member: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan meld ik me uiterlijk 7 dagen vooraf af.",
   },
   en: {
     lead: "I'll be there.",
     seat: "My table is made around me. If I can't make it after all, I move my seat at least 7 days before.",
-    member: "My table is made around me. If I can't make it after all, I cancel at least 48 hours before.",
+    member: "My table is made around me. If I can't make it after all, I cancel at least 7 days before.",
   },
 } as const;
 

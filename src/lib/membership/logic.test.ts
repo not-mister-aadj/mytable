@@ -198,13 +198,13 @@ test("booking decision for members", () => {
 
 // ---------------------------------------------------------------- cancel seat
 
-test("members cancel their own seat until 48 hours before the start", () => {
-  const starts = new Date(NOW + 72 * HOUR);
+test("members cancel their own seat until 7 days before the start", () => {
+  const starts = new Date(NOW + 10 * 24 * HOUR);
   assert.equal(canMemberCancelSeat(starts, NOW), true);
-  assert.equal(canMemberCancelSeat(starts, NOW + 24 * HOUR), true); // exactly 48h before
-  assert.equal(canMemberCancelSeat(starts, NOW + 24 * HOUR + 1), false);
-  assert.equal(canMemberCancelSeat(starts, NOW + 30 * HOUR), false);
-  assert.equal(canMemberCancelSeat(starts, NOW + 80 * HOUR), false);
+  assert.equal(canMemberCancelSeat(starts, NOW + 3 * 24 * HOUR), true); // exactly 7 days before
+  assert.equal(canMemberCancelSeat(starts, NOW + 3 * 24 * HOUR + 1), false);
+  assert.equal(canMemberCancelSeat(starts, NOW + 8 * 24 * HOUR), false);
+  assert.equal(canMemberCancelSeat(starts, NOW + 11 * 24 * HOUR), false);
 });
 
 // ---------------------------------------------------------------- no-shows

@@ -312,7 +312,7 @@ export const termsEn: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "13.5 Cancelling your seat. As a club member you can cancel your seat free of charge in your settings up to 48 hours before the start, so someone else can join. If you booked a guest, you cancel both seats. What you paid for your guest's seat is not refunded. After that, cancelling is no longer possible. Article 6 (exchanging) does not apply to seats included in your club membership.",
+          text: "13.5 Cancelling your seat. As a club member you can cancel your seat free of charge in your settings up to 7 days before the start, so someone else can join. If you booked a guest, you cancel both seats. What you paid for your guest's seat is not refunded. After that, cancelling is no longer possible; you can pass your seat on to someone else via your table page. Article 6 (exchanging) does not apply to seats included in your club membership.",
         },
         {
           type: "p",

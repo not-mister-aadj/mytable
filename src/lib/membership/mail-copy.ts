@@ -4,7 +4,7 @@
 
 import type { MembershipEmailProps } from "@/emails/MembershipEmail";
 import { MEMBER_MAX_UPCOMING_BOOKINGS, formatPlanEuros, getMembershipPlan, guestSeatCents, type MembershipPlanId } from "@/lib/membership/plans";
-import { MEMBER_SEAT_CANCEL_HOURS } from "@/lib/membership/logic";
+import { MEMBER_SEAT_CANCEL_DAYS } from "@/lib/membership/logic";
 
 type Locale = "nl" | "en";
 const AMSTERDAM = "Europe/Amsterdam";
@@ -218,8 +218,8 @@ export function noShowWarningMail(input: {
       greeting: greeting(l, input.firstName),
       headline: en ? "We missed you" : "We hebben je gemist",
       body: en
-        ? `You were not at the table on ${day}. That can happen. If you cannot make it, cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before. Then someone else can join.`
-        : `Je was er ${day} niet bij. Dat kan gebeuren. Kun je een keer niet, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen. Dan kan iemand anders aanschuiven.`,
+        ? `You were not at the table on ${day}. That can happen. If you cannot make it, cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_DAYS} days before, or pass it on to someone else after that. Then someone else can join.`
+        : `Je was er ${day} niet bij. Dat kan gebeuren. Kun je een keer niet, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_DAYS} dagen van tevoren af in je instellingen, of geef hem daarna door aan iemand anders. Dan kan iemand anders aanschuiven.`,
       warmLine: en
         ? "If it happens again without cancelling, you cannot book for a month. Your club membership continues as usual."
         : "Gebeurt het nog een keer zonder afzeggen, dan kun je een maand niet boeken. Je club membership loopt dan gewoon door.",
@@ -255,8 +255,8 @@ export function noShowBlockedMail(input: {
         : `Je was er ${day} niet bij, en het was niet de eerste keer. Daarom kun je een maand geen tafel boeken. Vanaf ${until} kun je weer boeken.`,
       warmLine: en ? "Your club membership continues as usual." : "Je club membership loopt gewoon door.",
       note: en
-        ? `Cannot make it next time? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before.`
-        : `Kun je een volgende keer niet? Zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen.`,
+        ? `Cannot make it next time? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_DAYS} days before, or pass it on after that.`
+        : `Kun je een volgende keer niet? Zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_DAYS} dagen van tevoren af in je instellingen, of geef hem daarna door.`,
     },
   };
 }

@@ -312,7 +312,7 @@ export const termsNl: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "13.5 Je plek afzeggen. Als club member kun je je plek tot 48 uur voor de start kosteloos afzeggen in je instellingen, zodat iemand anders kan aanschuiven. Heb je een gast meegeboekt, dan zeg je beide plekken af. Wat je voor de plek van je gast hebt betaald, krijg je niet terug. Daarna is afzeggen niet meer mogelijk. Artikel 6 (ruilen) geldt niet voor plekken die bij je club membership zijn inbegrepen.",
+          text: "13.5 Je plek afzeggen. Als club member kun je je plek tot 7 dagen voor de start kosteloos afzeggen in je instellingen, zodat iemand anders kan aanschuiven. Heb je een gast meegeboekt, dan zeg je beide plekken af. Wat je voor de plek van je gast hebt betaald, krijg je niet terug. Daarna is afzeggen niet meer mogelijk; je kunt je plek dan wel doorgeven aan iemand anders, via je tafelpagina. Artikel 6 (ruilen) geldt niet voor plekken die bij je club membership zijn inbegrepen.",
         },
         {
           type: "p",

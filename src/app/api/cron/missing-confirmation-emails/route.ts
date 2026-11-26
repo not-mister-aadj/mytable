@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendMissingBookingConfirmationEmails } from "@/lib/email/send-missing-confirmation-emails";
+import { syncPendingCheckoutsFromStripe } from "@/lib/stripe/sync-pending-checkouts";
 import { isDbConfigured } from "@/db/index";
 import { isEmailConfigured } from "@/lib/email/resend";
 
@@ -18,6 +19,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
 
+  // Paid in Stripe but not fulfilled (webhook missed, guest never came
+  // back): every hour, not only when someone opens the admin.
+  const synced = await syncPendingCheckoutsFromStripe().catch((error) => {
+    console.error("[cron] pending checkout sync failed", error);
+    return [];
+  });
   const results = await sendMissingBookingConfirmationEmails();
   const sent = results.filter((r) => r.ok).length;
   const failed = results.filter((r) => !r.ok).length;
@@ -29,6 +36,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({
+    synced: synced.length,
     processed: results.length,
     sent,
     failed,

@@ -4,6 +4,9 @@ import { bookingEvents, bookings, events, memberships, type Booking, type Event 
 import { onBookingCancelled, onPaymentCompleted } from "@/lib/customers/hooks";
 import { deliverBookingConfirmationEmail } from "@/lib/email/deliver-booking-confirmation";
 import { revalidateEventPaths } from "@/lib/revalidate-agenda";
+import { captureServerEvent } from "@/lib/posthog/server";
+import { PostHogEvents } from "@/lib/posthog/events";
+import { hashEmail } from "@/lib/posthog/properties";
 import { canMemberCancelSeat } from "@/lib/membership/logic";
 
 // Member bookings: the member's own seat is included (amount 0), a guest
@@ -66,6 +69,22 @@ export async function confirmMemberBooking(input: {
   if (result.ok && !result.alreadyConfirmed) {
     revalidateEventPaths(result.event);
     await deliverBookingConfirmationEmail(result.booking, result.event, "member");
+    // In the same booking funnel as a paid seat, marked as a member's.
+    void captureServerEvent(result.booking.email, PostHogEvents.bookingPaid, {
+      booking_id: result.booking.id,
+      event_id: result.event.id,
+      event_slug: result.event.slug,
+      event_type: result.event.experienceType,
+      city: result.event.city,
+      seats: result.booking.seats,
+      total_paid: result.booking.amountCents / 100,
+      amount_cents: result.booking.amountCents,
+      member_seat: true,
+      context: input.context,
+      customer_email_hash: hashEmail(result.booking.email),
+      language: result.booking.locale,
+      locale: result.booking.locale,
+    });
     try {
       await onPaymentCompleted({ booking: result.booking, event: result.event });
     } catch (error) {

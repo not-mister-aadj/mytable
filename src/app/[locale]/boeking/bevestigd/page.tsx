@@ -55,6 +55,7 @@ export default async function BookingConfirmedPage({
   let confirmation: {
     summary: BookingOutcomeSummary | null;
     pending: boolean;
+    full?: "refunded" | "member";
   } = { summary: null, pending: false };
   let purchase: ConfirmationPurchaseData | null = null;
   // Answers already saved for this booking, so coming back to this page
@@ -143,6 +144,7 @@ export default async function BookingConfirmedPage({
         sessionId={sessionId ?? null}
         locale={locale as Locale}
         initialSummary={confirmation.summary}
+        initialFull={confirmation.full ?? null}
         savedIntro={savedIntro}
         introReusable={introReusable}
         header={<Header dict={dict.header} locale={locale} />}

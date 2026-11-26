@@ -75,6 +75,8 @@ export async function getConfirmationPurchase(
     .limit(1);
 
   if (!row) return null;
+  // Refunded (the Sunday filled up while paying) or failed: no purchase to report.
+  if (row.booking.paymentStatus === "refunded" || row.booking.paymentStatus === "failed") return null;
 
   const settled = isCheckoutPaymentSettled(session, row.booking.paymentStatus);
 

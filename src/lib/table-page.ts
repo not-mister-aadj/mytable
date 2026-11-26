@@ -236,11 +236,13 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
     closed: now >= tablePageClosesAt(event.startsAt).getTime(),
     started: now >= event.startsAt.getTime(),
     cancelled: Boolean(booking.cancelledLateAt),
-    seat: booking.membershipId
-      ? "member"
-      : canReschedule(event.startsAt, now)
-        ? "movable"
-        : "fixed",
+    // A member cancels in their settings until 7 days before; after that
+    // the seat is fixed for them too: hand it over, or tell us.
+    seat: canReschedule(event.startsAt, now)
+      ? booking.membershipId
+        ? "member"
+        : "movable"
+      : "fixed",
     shareLinkOpen: Boolean(await openLinkId(booking.id)),
     day:
       dayKey(event.startsAt) === dayKey(new Date(now))

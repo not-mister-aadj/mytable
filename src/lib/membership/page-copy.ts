@@ -4,7 +4,7 @@
 // drinks are paid at the table, no invented numbers.
 
 import type { FaqItem } from "@/lib/jouw-tafel/copy";
-import { MEMBER_SEAT_CANCEL_HOURS } from "@/lib/membership/logic";
+import { MEMBER_SEAT_CANCEL_DAYS } from "@/lib/membership/logic";
 import {
   MEMBERSHIP_PLANS,
   formatPlanEuros,
@@ -182,7 +182,7 @@ const nl: MembershipPageCopy = {
       },
       {
         q: "Wat als ik een maand niet kan?",
-        a: `Dan sla je die maand gewoon over. Heb je al een zondag geboekt, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_HOURS} uur van tevoren af in je instellingen. Dan kan iemand anders aanschuiven. Had je een gast meegeboekt, dan vervalt die plek ook en krijg je wat je ervoor betaalde niet terug.`,
+        a: `Dan sla je die maand gewoon over. Heb je al een zondag geboekt, zeg je plek dan uiterlijk ${MEMBER_SEAT_CANCEL_DAYS} dagen van tevoren af in je instellingen. Dan kan iemand anders aanschuiven. Daarna geef je je plek door aan iemand anders, via je tafelpagina. Had je een gast meegeboekt, dan vervalt die plek ook en krijg je wat je ervoor betaalde niet terug.`,
       },
       {
         q: "Kan ik iemand meenemen?",
@@ -290,7 +290,7 @@ const en: MembershipPageCopy = {
       },
       {
         q: "What if I cannot make it for a month?",
-        a: `Then you simply skip that month. Already booked a Sunday? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_HOURS} hours before. Then someone else can join. If you booked a guest, that seat is cancelled too and what you paid for it is not refunded.`,
+        a: `Then you simply skip that month. Already booked a Sunday? Cancel your seat in your settings up to ${MEMBER_SEAT_CANCEL_DAYS} days before. Then someone else can join. After that you pass your seat on to someone else, via your table page. If you booked a guest, that seat is cancelled too and what you paid for it is not refunded.`,
       },
       {
         q: "Can I bring someone?",
@@ -451,10 +451,11 @@ export type MembershipSettingsCopy = {
   bookedToast: string;
   deleteMember: string;
   /** "Word lid" from the settings page: the "Elke zondag" plan. */
-  joinPlanValue: (price: string) => string;
+  joinRowValue: (price: string) => string;
   joinTitle: string;
-  joinBody: string;
   joinPrice: (price: string) => string;
+  joinBenefits: { icon: "repeat" | "priority" | "pin"; title: string; body: string }[];
+  joinGuarantee: string;
   joinCta: string;
   joinBusy: string;
   joinFailed: string;
@@ -462,7 +463,7 @@ export type MembershipSettingsCopy = {
 };
 
 export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCopy {
-  const h = MEMBER_SEAT_CANCEL_HOURS;
+  const d = MEMBER_SEAT_CANCEL_DAYS;
   if (locale === "en") {
     return {
       group: "Club membership",
@@ -495,17 +496,22 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
         withGuest ? "Yes, cancel both seats" : "Yes, cancel my seat",
       cancelSeatKeep: "Keep my seat",
       cancelSeatTitle: "Cancel your seat?",
-      cancelSeatRule: `You can cancel up to ${h} hours before the start. Your seat then goes to someone else.`,
+      cancelSeatRule: `You can cancel up to ${d} days before the start. Your seat then goes to someone else.`,
       cancelSeatGuestNote: "Your guest's seat is cancelled too. What you paid for it is not refunded.",
-      cancelSeatTooLate: `Cancelling is possible up to ${h} hours before the start.`,
+      cancelSeatTooLate: `Cancelling is possible up to ${d} days before the start. After that you pass your seat on to someone else, via your table page.`,
       cancelSeatDone: "Your seat is cancelled.",
       cancelSeatFailed: "That did not work. Please try again.",
       bookedToast: "Your seat is booked.",
       deleteMember: "Your club membership ends straight away and nothing is charged after that.",
-      joinPlanValue: (price) => `Every Sunday · ${price} per month`,
-      joinTitle: "Every Sunday",
-      joinBody: "Every Sunday Social in every city. You book them yourself here in your account. Cancel monthly.",
-      joinPrice: (price) => `${price} per month`,
+      joinRowValue: (price) => `Every Sunday for ${price} per month`,
+      joinTitle: "Make it every Sunday",
+      joinPrice: (price) => `${price} per month · cancel monthly`,
+      joinBenefits: [
+        { icon: "repeat", title: "As often as you like", body: "Every Sunday Social in all 5 cities is included." },
+        { icon: "priority", title: "Priority on full Sundays", body: "You go first, and where we can we add an extra table." },
+        { icon: "pin", title: "Pick your own bar", body: "From the places we reserve that Sunday." },
+      ],
+      joinGuarantee: "Didn't click with anyone at your table? Your next month is free.",
       joinCta: "Become a club member",
       joinBusy: "Opening",
       joinFailed: "That did not work. Please try again.",
@@ -543,17 +549,22 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
       withGuest ? "Ja, zeg beide plekken af" : "Ja, zeg mijn plek af",
     cancelSeatKeep: "Plek houden",
     cancelSeatTitle: "Plek afzeggen?",
-    cancelSeatRule: `Afzeggen kan tot ${h} uur voor de start. Je plek gaat dan naar iemand anders.`,
+    cancelSeatRule: `Afzeggen kan tot ${d} dagen voor de start. Je plek gaat dan naar iemand anders.`,
     cancelSeatGuestNote: "De plek van je gast vervalt ook. Wat je voor die plek hebt betaald, krijg je niet terug.",
-    cancelSeatTooLate: `Afzeggen kan tot ${h} uur voor de start.`,
+    cancelSeatTooLate: `Afzeggen kan tot ${d} dagen voor de start. Daarna geef je je plek door aan iemand anders, via je tafelpagina.`,
     cancelSeatDone: "Je plek is afgezegd.",
     cancelSeatFailed: "Dat lukte niet. Probeer het nog een keer.",
     bookedToast: "Je plek staat vast.",
     deleteMember: "Je club membership stopt dan meteen en we schrijven daarna niets meer af.",
-    joinPlanValue: (price) => `Elke zondag · ${price} per maand`,
-    joinTitle: "Elke zondag",
-    joinBody: "Elke Sunday Social in alle steden. Die boek je zelf hier in je account. Maandelijks opzegbaar.",
-    joinPrice: (price) => `${price} per maand`,
+    joinRowValue: (price) => `Elke zondag voor ${price} per maand`,
+    joinTitle: "Maak er elke zondag van",
+    joinPrice: (price) => `${price} per maand · maandelijks opzegbaar`,
+    joinBenefits: [
+      { icon: "repeat", title: "Zo vaak als je wilt", body: "Elke Sunday Social in alle 5 steden zit erbij." },
+      { icon: "priority", title: "Voorrang bij volle zondagen", body: "Jij gaat voor, en waar het kan zetten we een extra tafel neer." },
+      { icon: "pin", title: "Kies zelf je bar", body: "Uit de zaken die we die zondag reserveren." },
+    ],
+    joinGuarantee: "Vond je niemand aan tafel gezellig? Dan is je volgende maand gratis.",
     joinCta: "Club member worden",
     joinBusy: "Openen",
     joinFailed: "Dat lukte niet. Probeer het nog een keer.",

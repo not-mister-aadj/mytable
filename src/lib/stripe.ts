@@ -51,3 +51,10 @@ export function getSubscriptionCheckoutPaymentMethodTypes(
     ? [...EUR_SUBSCRIPTION_PAYMENT_METHODS]
     : ["card"];
 }
+
+/** Checkout stays open 31 minutes (Stripe's least is 30): a seat is only
+ * counted once paid, so a long-open Checkout could pay for a Sunday that
+ * filled up meanwhile (stripe/full-sunday.ts). */
+export function checkoutExpiresAt(now: number = Date.now()): number {
+  return Math.floor(now / 1000) + 31 * 60;
+}

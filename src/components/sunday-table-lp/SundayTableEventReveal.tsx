@@ -109,7 +109,11 @@ interface SundayTableEventRevealProps {
   /** What the afternoon itself looks like, in three steps. */
   daySteps: DaySteps;
   /** "Wat je krijgt voor €10", under the buy button. */
-  included: { title: string; items: string[]; note: string };
+  included: { title: string; items: string[]; note: string; summary?: string };
+  /** "89% van de gasten vond het top of goed", above the title; null leaves it out. */
+  proofLabel?: string | null;
+  /** Three short facts with an icon under the photo (table, place, tips). */
+  quickFacts?: string[];
   /** Labels for the sticky tab bar. */
   sectionNavLabels: {
     overview: string;
@@ -122,6 +126,25 @@ interface SundayTableEventRevealProps {
     copied: string;
   };
 }
+
+/** Table, place, glass: for the three facts under the photo. */
+const QUICK_FACT_ICONS = [
+  <svg key="table" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="9" cy="8" r="3" />
+    <circle cx="17" cy="9" r="2.5" />
+    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+    <path d="M15 14.5c2.8.3 5 2.6 5 5.5" />
+  </svg>,
+  <svg key="place" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>,
+  <svg key="glass" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 3h10l-1 7a4 4 0 0 1-8 0z" />
+    <path d="M12 14v6" />
+    <path d="M8 21h8" />
+  </svg>,
+];
 
 export function SundayTableEventReveal({
   locale,
@@ -184,6 +207,8 @@ export function SundayTableEventReveal({
   highlights,
   daySteps,
   included,
+  proofLabel = null,
+  quickFacts = [],
   sectionNavLabels,
 }: SundayTableEventRevealProps) {
   // Members book before the table opens for everyone: once their moment is
@@ -284,7 +309,36 @@ export function SundayTableEventReveal({
             mobile it falls in right after the intro. */}
         <div className="mx-auto grid max-w-lg gap-8 px-5 sm:px-6 lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12 lg:gap-y-0">
           <div className="min-w-0 lg:col-start-1 lg:row-start-1">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] shadow-[0_24px_60px_rgba(43,13,18,0.18)]">
+            {/* What it is, before the photo: proof, then the title. */}
+            {proofLabel ? (
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-wine/70">
+                <span aria-hidden className="text-gold">
+                  ★★★★★
+                </span>
+                {proofLabel}
+              </p>
+            ) : null}
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{eyebrow}</p>
+            <h1 className="mt-2 font-serif text-[2rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
+              {venuePending.heading}
+            </h1>
+            <p className="mt-2 text-base font-medium text-wine/90 sm:text-xl">
+              {locale === "en" ? `Starts ${timeLabel} · 2 to 3 hours` : `Aanvang ${timeLabel} · 2 tot 3 uur`}
+            </p>
+            {tags.length > 0 ? (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center rounded-full border border-wine/15 bg-beige/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine/80"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <div className="h-4" />
+            <div className="relative aspect-[16/10] overflow-hidden sm:aspect-[4/3] rounded-[1.75rem] shadow-[0_24px_60px_rgba(43,13,18,0.18)]">
               {heroImages.map((image, index) => (
                 <Image
                   key={image.src}
@@ -357,46 +411,24 @@ export function SundayTableEventReveal({
                 </div>
               ) : null}
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <p className="truncate text-xs text-wine/45">{activeImage?.alt}</p>
             </div>
 
-            <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
-              {eyebrow}
-            </p>
-            <h1 className="mt-3 font-serif text-[2.1rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
-              {venuePending.heading}
-            </h1>
-            {tags.length > 0 ? (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center rounded-full border border-wine/15 bg-beige/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine/80"
-                  >
-                    {tag}
-                  </span>
-                ))}
+            {quickFacts.length > 0 && !comingSoon ? (
+              <div className="mt-4">
+                <ul className="grid grid-cols-3 gap-2 text-center">
+                  {quickFacts.map((fact, index) => (
+                    <li key={fact} className="flex flex-col items-center gap-1.5 text-xs leading-snug text-wine/75">
+                      <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy/[0.07] text-burgundy">
+                        {QUICK_FACT_ICONS[index % QUICK_FACT_ICONS.length]}
+                      </span>
+                      {fact}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : null}
-            <p className="mt-3 text-lg font-medium text-wine/90 sm:text-xl">
-              {dateLabel} · {timeLabel}
-            </p>
-            {introLead ? (
-              <p className="mt-5 max-w-xl font-serif text-xl text-wine sm:text-2xl">
-                {introLead}
-              </p>
-            ) : null}
-            <p className={`${introLead ? "mt-2" : "mt-4"} max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg`}>
-              {intro}
-            </p>
-            <SundayTablePartnerSelection selection={partnerSelection} />
-
-            {/* On phones these come before the booking form, so people know
-                what it is before they are asked to pay; on desktop the form
-                stays in view on the right while they read. */}
-            <SundayTableHighlights highlights={highlights} />
-            <SundayTableDaySteps daySteps={daySteps} />
           </div>
 
           <div
@@ -406,7 +438,8 @@ export function SundayTableEventReveal({
           >
             {/* Kept compact so the buy button still fits on a laptop screen
                 while sticky; very short screens scroll inside the panel. */}
-            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-6 py-5 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 sm:py-6 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto">
+            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-6 py-5 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 sm:py-6 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto [&:has([data-booking-stage=offer])_.booking-summary]:hidden">
+              <div className="booking-summary">
               <p className="font-serif text-3xl text-wine">
                 {comingSoon ? (
                   locale === "en" ? "Coming soon" : "Binnenkort"
@@ -432,6 +465,7 @@ export function SundayTableEventReveal({
                   </dd>
                 </div>
               </dl>
+              </div>
 
               {comingSoon ? (
                 <SundayTableNotifyMeForm
@@ -442,6 +476,23 @@ export function SundayTableEventReveal({
                   emailLabel={comingSoonEmailLabel}
                   submitLabel={comingSoonSubmitLabel}
                   successLabel={comingSoonSuccessLabel}
+                  errorLabel={comingSoonErrorLabel}
+                />
+              ) : soldOut ? (
+                // Full: the waitlist. A seat that comes free is offered to it
+                // (seat-offer.ts); a member on it is mailed to us at once.
+                <SundayTableNotifyMeForm
+                  eventId={eventId}
+                  locale={locale}
+                  title={locale === "en" ? "This Sunday is full" : "Deze zondag is vol"}
+                  body={
+                    locale === "en"
+                      ? "Join the waitlist. If a seat comes free, we'll mail you. Club members go first."
+                      : "Zet je op de wachtlijst. Komt er een plek vrij, dan mailen we je. Club members gaan voor."
+                  }
+                  emailLabel={comingSoonEmailLabel}
+                  submitLabel={locale === "en" ? "Join the waitlist" : "Zet me op de wachtlijst"}
+                  successLabel={locale === "en" ? "You're on the waitlist. We'll mail you when a seat comes free." : "Je staat op de wachtlijst. We mailen je als er een plek vrijkomt."}
                   errorLabel={comingSoonErrorLabel}
                 />
               ) : (
@@ -474,7 +525,21 @@ export function SundayTableEventReveal({
           </div>
 
           <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-            <div id="ervaringen" className="border-t border-wine/10 pt-10 lg:mt-14">
+            {/* The story comes after the booking card on phones (buy first, read after); on desktop
+                the card stays in view on the right while they read. */}
+            {introLead ? (
+              <p className="max-w-xl font-serif text-xl text-wine sm:text-2xl lg:mt-10">
+                {introLead}
+              </p>
+            ) : null}
+            <p className={`${introLead ? "mt-2" : "lg:mt-10"} max-w-xl text-base leading-relaxed text-wine/70 sm:text-lg`}>
+              {intro}
+            </p>
+            <SundayTablePartnerSelection selection={partnerSelection} />
+            <SundayTableHighlights highlights={highlights} />
+            <SundayTableDaySteps daySteps={daySteps} />
+
+            <div id="ervaringen" className="mt-10 border-t border-wine/10 pt-10 lg:mt-14">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">
                 {statsEyebrow}
               </p>

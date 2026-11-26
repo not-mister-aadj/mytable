@@ -1,10 +1,10 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull } from "drizzle-orm";
 import { bookings } from "@/db/schema";
 import { getDb, isDbConfigured } from "@/db/index";
 import { reconcileAllEventSpotsSold } from "@/lib/reconcile-spots-sold";
 import { isStripeConfigured } from "@/lib/stripe";
 import {
-  tryFulfillCheckoutSession,
+  tryFulfillCheckoutSessionSafe,
   type FulfillCheckoutResult,
 } from "@/lib/stripe/fulfill-checkout";
 import { sendMissingBookingConfirmationEmails } from "@/lib/email/send-missing-confirmation-emails";
@@ -42,15 +42,20 @@ export async function syncPendingCheckoutsFromStripe(): Promise<PendingCheckoutS
       and(
         eq(bookings.paymentStatus, "pending"),
         isNotNull(bookings.stripeCheckoutSessionId),
+        // Checkout closes after 31 minutes; a bank payment settles within a
+        // day or two. Older pending rows were simply never paid.
+        gt(bookings.createdAt, new Date(Date.now() - 3 * 24 * 3600 * 1000)),
       ),
     )
+    .orderBy(desc(bookings.createdAt))
     .limit(MAX_PENDING_PER_RUN);
 
   const results: PendingCheckoutSyncResult[] = [];
 
   for (const row of pending) {
     const sessionId = row.stripeCheckoutSessionId!;
-    const outcome = await tryFulfillCheckoutSession(sessionId);
+    // One row that fails (or a full Sunday) does not stop the others.
+    const outcome = await tryFulfillCheckoutSessionSafe(sessionId);
     results.push({
       bookingId: row.id,
       email: row.email,

@@ -8,7 +8,7 @@ import { getSiteUrl } from "@/lib/env";
 import { confirmMemberBooking } from "@/lib/membership/bookings";
 import { freeGuestAvailable, memberBookingAmountCents } from "@/lib/membership/logic";
 import { MEMBER_MAX_UPCOMING_BOOKINGS, guestSeatCents, isMembershipPlanId } from "@/lib/membership/plans";
-import { getCheckoutPaymentMethodTypes, getStripe } from "@/lib/stripe";
+import { checkoutExpiresAt, getCheckoutPaymentMethodTypes, getStripe } from "@/lib/stripe";
 import { jouwTafelSettingsPath, jouwTafelKiesPath } from "@/i18n/config";
 
 /** booking_events type: this booking's guest came along for free. */
@@ -76,6 +76,8 @@ export async function bookAsMember(input: {
   agePreference?: string | null;
   /** The reserved bar the member picked (Sunday Social). */
   preferredVenueId?: string | null;
+  /** The page they booked on: stopping in Stripe brings them back there. */
+  returnPath?: string | null;
 }): Promise<MemberBookingResult> {
   const { event, membership } = input;
   if (!isMembershipPlanId(membership.plan)) return { kind: "error", status: 500, code: "checkout_failed" };
@@ -163,6 +165,7 @@ export async function bookAsMember(input: {
   try {
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
+      expires_at: checkoutExpiresAt(),
       customer_email: input.email,
       locale: en ? "en" : "nl",
       payment_method_types: getCheckoutPaymentMethodTypes("EUR"),
@@ -186,7 +189,12 @@ export async function bookAsMember(input: {
         from_sunday_table: "0",
       },
       success_url: `${site}${jouwTafelSettingsPath(input.locale)}?geboekt=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${site}${jouwTafelKiesPath(input.locale)}`,
+      // Stopped paying for the guest: back to the Sunday, where one seat
+      // (their own, free) is a tap away.
+      cancel_url:
+        input.returnPath && input.returnPath.startsWith("/") && !input.returnPath.startsWith("//")
+          ? `${site}${input.returnPath}#boeken`
+          : `${site}${jouwTafelKiesPath(input.locale)}`,
     });
     await db.update(bookings).set({ stripeCheckoutSessionId: session.id }).where(eq(bookings.id, booking.id));
     if (!session.url) return { kind: "error", status: 500, code: "checkout_failed" };

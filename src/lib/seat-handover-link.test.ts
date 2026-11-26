@@ -11,14 +11,14 @@ test("18 or older on the day of the Sunday", () => {
   assert.equal(adultOn("2030-01-01", sunday), false);
 });
 
-test("a seat can be shared only when fixed, paid, active, not a member's, before the start", () => {
+test("a seat can be shared only when fixed, paid, active, before the start (a member's too)", () => {
   const event = { startsAt: new Date("2026-11-29T13:00:00Z") } as Parameters<typeof canShareSeat>[1];
   const booking = { paymentStatus: "paid", lifecycleStatus: "active", cancelledLateAt: null, noShowAt: null, membershipId: null } as unknown as Parameters<typeof canShareSeat>[0];
   const threeDaysBefore = Date.parse("2026-11-26T10:00:00Z");
   assert.equal(canShareSeat(booking, event, threeDaysBefore), true);
   assert.equal(canShareSeat(booking, event, Date.parse("2026-11-15T10:00:00Z")), false); // still movable
   assert.equal(canShareSeat(booking, event, Date.parse("2026-11-29T13:30:00Z")), false); // started
-  assert.equal(canShareSeat({ ...booking, membershipId: "m" }, event, threeDaysBefore), false);
+  assert.equal(canShareSeat({ ...booking, membershipId: "m" }, event, threeDaysBefore), true);
   assert.equal(canShareSeat({ ...booking, cancelledLateAt: new Date() }, event, threeDaysBefore), false);
 });
 

@@ -317,12 +317,22 @@ export function trackSundayTableEnglishRequested(props: {
 }
 
 export function trackSundaySocialTicketChosen(props: {
-  plan: "single" | "monthly";
+  /** "member": a club member's own seat (with or without a guest). */
+  plan: "single" | "monthly" | "member";
   seats: number;
   city: string;
   locale: string;
 }): void {
   capture(PostHogEvents.sundaySocialTicketChosen, props);
+}
+
+export function trackSundaySocialBookingStep(props: {
+  step: "email" | "code_sent" | "code_verified" | "details" | "offer";
+  city: string;
+  locale: string;
+  kind?: "member" | "known" | "new";
+}): void {
+  capture(PostHogEvents.sundaySocialBookingStep, props);
 }
 
 export function trackScrollDepthReached(props: {

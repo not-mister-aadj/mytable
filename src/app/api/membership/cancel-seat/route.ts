@@ -8,7 +8,7 @@ import { PostHogEvents } from "@/lib/posthog/events";
 
 /**
  * POST /api/membership/cancel-seat: a member cancels their own booking,
- * until 48 hours before the start (see MEMBER_SEAT_CANCEL_HOURS). Body
+ * until 7 days before the start (see MEMBER_SEAT_CANCEL_DAYS). Body
  * { bookingId }. Only for the signed-in person's own booking. No refund,
  * also not for a paid guest seat.
  */

@@ -1,7 +1,8 @@
 "use client";
 
+import { OfferIcon } from "@/components/sunday-table-lp/OfferIcon";
 import { TELL_FRIENDS_COPY } from "@/lib/tafelvrienden/tell-friends-copy";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { jouwTafelKiesPath, jouwTafelLogInPath, jouwTafelSettingsPath, type Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/Button";
 import {
@@ -10,7 +11,11 @@ import {
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
 import { getStoredUtm } from "@/lib/analytics/utm";
-import { trackSundaySocialTicketChosen, trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+import { trackMembershipEvent, trackSundaySocialBookingStep, trackSundaySocialTicketChosen, trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+import { PostHogEvents } from "@/lib/posthog/events";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
+import { AUTH_CODE_LENGTH, classifyVerifyCodeError, normalizeAuthEmail, sanitizeAuthCode, validateAuthEmail } from "@/lib/jouw-tafel/auth-logic";
 import { isAtLeastMinAge, latestLegalBirthDate } from "@/lib/member-onboarding";
 import type { ReservedVenue } from "@/lib/partner-venues";
 import {
@@ -20,17 +25,17 @@ import {
 } from "@/lib/membership/plans";
 
 /** Right above the buy button: the promise the booker ticks. A seat from a
- * membership follows the membership's own rule (cancel until 48 hours before). */
+ * membership follows the membership's own rule (cancel until 7 days before). */
 const COMMIT_COPY = {
   nl: {
     lead: "Ik kom.",
     seat: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan verzet ik uiterlijk 7 dagen vooraf.",
-    member: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan meld ik me uiterlijk 48 uur vooraf af.",
+    member: "Mijn tafel wordt op mij ingedeeld. Kan ik toch niet, dan meld ik me uiterlijk 7 dagen vooraf af.",
   },
   en: {
     lead: "I'll be there.",
     seat: "My table is made around me. If I can't make it after all, I move my seat at least 7 days before.",
-    member: "My table is made around me. If I can't make it after all, I cancel at least 48 hours before.",
+    member: "My table is made around me. If I can't make it after all, I cancel at least 7 days before.",
   },
 } as const;
 
@@ -61,8 +66,8 @@ const PLAN_COPY = {
     missing: "Kies of je alleen deze zondag of elke zondag wilt.",
     monthlyCta: "Word club member en reserveer",
     guestFree: "gast gratis",
-    singleShort: "eenmalig",
-    monthlyShort: "alle steden, maandelijks opzegbaar",
+    singleShort: "alleen deze datum",
+    monthlyShort: "elke maand een plek, in alle steden",
     next: "Verder",
     back: "Wijzig",
     monthlyNote: "Volgende zondagen boek je zelf in je account. Maandelijks opzegbaar.",
@@ -78,14 +83,94 @@ const PLAN_COPY = {
     missing: "Choose just this Sunday or every Sunday.",
     monthlyCta: "Become a club member and reserve",
     guestFree: "guest free",
-    singleShort: "one time",
-    monthlyShort: "every city, cancel monthly",
+    singleShort: "just this date",
+    monthlyShort: "a seat every month, in every city",
     next: "Continue",
     back: "Change",
     monthlyNote: "You book next Sundays yourself in your account. Cancel monthly.",
   },
 } as const;
 type TicketPlan = "single" | "monthly";
+
+/** Step 1 (the email) and the login code for an address we know. */
+const STEP_COPY = {
+  nl: {
+    step: (n: number, of: number) => `Stap ${n} van ${of}`,
+    emailTitle: "Waar mogen we je bevestiging naartoe sturen?",
+    next: "Verder",
+    invalidEmail: "Vul een geldig e-mailadres in.",
+    knownTitle: "Welkom terug!",
+    knownBody: (email: string) => `We sturen een code naar ${email}. Daarmee vullen we je gegevens voor je in.`,
+    memberTitle: "Je bent club member",
+    memberBody: (email: string) => `We sturen een code naar ${email}. Daarmee reserveer je je plek met je club membership.`,
+    sendCode: "Stuur code",
+    skip: "Liever zelf invullen",
+    codeLabel: (email: string) => `Vul de code in die we naar ${email} stuurden`,
+    resend: "Stuur opnieuw",
+    otherEmail: "Ander e-mailadres",
+    codeWrong: "Die code klopt niet of is verlopen.",
+    codeFailed: "Dat lukte niet. Probeer het zo nog eens.",
+    change: "Wijzig",
+    detailsKnown: (name: string, born: string) => `${name} · geboren ${born}`,
+  },
+  en: {
+    step: (n: number, of: number) => `Step ${n} of ${of}`,
+    emailTitle: "Where should we send your confirmation?",
+    next: "Continue",
+    invalidEmail: "Fill in a valid email address.",
+    knownTitle: "Welcome back!",
+    knownBody: (email: string) => `We'll send a code to ${email}. With it we fill in your details for you.`,
+    memberTitle: "You're a club member",
+    memberBody: (email: string) => `We'll send a code to ${email}. With it you reserve your seat with your club membership.`,
+    sendCode: "Send code",
+    skip: "Rather fill it in myself",
+    codeLabel: (email: string) => `Fill in the code we sent to ${email}`,
+    resend: "Send again",
+    otherEmail: "Other email address",
+    codeWrong: "That code is wrong or has expired.",
+    codeFailed: "That didn't work. Please try again in a moment.",
+    change: "Change",
+    detailsKnown: (name: string, born: string) => `${name} · born ${born}`,
+  },
+} as const;
+type Stage = "email" | "code" | "details" | "offer";
+
+/** "Elke zondag" as an offer just above the buy button, once they decided to come. */
+const UPSELL_COPY = {
+  nl: {
+    badge: "Zelfde prijs als je ticket",
+    title: "Maak er elke zondag van",
+    lead: (price: string) => `Word club member voor ${price} per maand.`,
+    benefits: [
+      { icon: "repeat", title: "Zo vaak als je wilt", body: "Elke Sunday Social in alle 5 steden zit erbij." },
+      { icon: "priority", title: "Voorrang bij volle zondagen", body: "Jij gaat voor, en waar het kan zetten we een extra tafel neer." },
+      { icon: "pin", title: "Kies zelf je bar", body: "Uit de zaken die we die zondag reserveren." },
+    ],
+    guaranteeTitle: "Member gezelligheidsgarantie",
+    guaranteeBody: "Vond je niemand aan tafel gezellig? Dan is je volgende maand gratis.",
+    cancel: "Maandelijks opzegbaar",
+    yesButton: (price: string) => `Ja, elke zondag · ${price}/maand`,
+    noButton: (price: string) => `Nee, alleen deze zondag · ${price}`,
+    back: "Terug",
+  },
+  en: {
+    badge: "Same price as your ticket",
+    title: "Make it every Sunday",
+    lead: (price: string) => `Become a club member for ${price} per month.`,
+    benefits: [
+      { icon: "repeat", title: "As often as you like", body: "Every Sunday Social in all 5 cities is included." },
+      { icon: "priority", title: "Priority on full Sundays", body: "You go first, and where we can we add an extra table." },
+      { icon: "pin", title: "Pick your own bar", body: "From the places we reserve that Sunday." },
+    ],
+    guaranteeTitle: "Member good-company guarantee",
+    guaranteeBody: "Didn't click with anyone at your table? Your next month is free.",
+    cancel: "Cancel monthly",
+    yesButton: (price: string) => `Yes, every Sunday · ${price}/month`,
+    noButton: (price: string) => `No, just this Sunday · ${price}`,
+    back: "Back",
+  },
+} as const;
+
 const MONTHLY_CENTS = getMembershipPlan(MEMBERSHIP_AT_BOOKING_PLAN).monthlyCents;
 
 
@@ -158,7 +243,7 @@ interface SundayTableBookingCardProps {
   soldOutLabel: string;
   guarantees: string[];
   /** "Wat je krijgt voor €10", shown under the buy button. */
-  included?: { title: string; items: string[]; note: string } | null;
+  included?: { title: string; items: string[]; note: string; summary?: string } | null;
   genericErrorLabel: string;
   /** When this Sunday starts (ISO): a membership that ends before it does
    * not cover the seat. */
@@ -203,14 +288,16 @@ export function SundayTableBookingCard({
   const [fromQuiz, setFromQuiz] = useState(false);
   /** A signed-in member: own seat included, the guest free or at the member price. */
   const [member, setMember] = useState<CardMember | null>(null);
-  /** Nobody is signed in: a member can log in from here. */
-  const [signedOut, setSignedOut] = useState(false);
+  /** Still a member, but it ends before this Sunday: a single seat, no "Elke zondag" (they have it). */
+  const [memberEnding, setMemberEnding] = useState(false);
   /** For a member: the bars we reserved this Sunday, and the one they pick. */
   const [reserved, setReserved] = useState<ReservedVenue[] | null>(null);
   const [venueId, setVenueId] = useState<string | null>(null);
   const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
   const planCopy = PLAN_COPY[locale === "en" ? "en" : "nl"];
-  const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>(null);
+  // "Alleen deze zondag" is chosen from the start: "Verder" works at once,
+  // and "Elke zondag" is one tap away.
+  const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>("single");
   // From the feedback page: "?ticket=elke-zondag" or "?ticket=deze-zondag"
   // comes with that ticket already chosen, "&plekken=2" with a +1.
   useEffect(() => {
@@ -220,9 +307,29 @@ export function SundayTableBookingCard({
     if (plan) queueMicrotask(() => setTicketPlan(plan));
     if (params.get("plekken") === "2" && spotsLeft >= 2) queueMicrotask(() => setSeats(2));
   }, [spotsLeft]);
-  /** Two steps for someone who is not a member: 1. which ticket and how
-   * many, 2. their details. A member goes straight to 2. */
-  const [step, setStep] = useState<1 | 2>(1);
+  /** The steps: 1. the email (an address we know gets a login code), 2. which
+   * ticket and how many, 3. their details and pay. Someone signed in starts
+   * at the ticket; a member goes straight to the details. */
+  const [stage, setStage] = useState<Stage>("email");
+  const stepCopy = STEP_COPY[locale === "en" ? "en" : "nl"];
+  const upsellCopy = UPSELL_COPY[locale === "en" ? "en" : "nl"];
+  /** What step 1 found: a member's address, or one with an account. */
+  const [lookupKind, setLookupKind] = useState<"member" | "known" | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
+  const [code, setCode] = useState("");
+  /** Signed in (from the start, or with the code): their details are shown in one line. */
+  const [signedIn, setSignedIn] = useState(false);
+  const [editDetails, setEditDetails] = useState(false);
+  // Each new step starts at the top of the card, not halfway down the page.
+  const firstStage = useRef(true);
+  useEffect(() => {
+    if (firstStage.current) {
+      firstStage.current = false;
+      return;
+    }
+    const card = document.getElementById("boeken");
+    if (card && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [stage]);
   /** The typed address is a member's, but nobody is signed in as them. */
   const [needsLogin, setNeedsLogin] = useState(false);
   /** The signed-in (or quiz) address that has a mutual like; the checkbox shows only while that address is the one typed. */
@@ -232,36 +339,42 @@ export function SundayTableBookingCard({
   const logInHref = () =>
     `${jouwTafelLogInPath(locale)}?naar=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.pathname)}`;
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/jouw-tafel/guest/me")
+  /** Who is signed in on this device (or came through the quiz): fills in the card. */
+  function loadMe(isCancelled: () => boolean = () => false): Promise<void> {
+    return fetch("/api/jouw-tafel/guest/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((me: { known?: boolean; member?: CardMember | null; email?: string; name?: string | null; birthDate?: string | null; ageMatters?: "yes" | "no" | null; language?: "dutch" | "english" | "both" | null; hasTableFriend?: boolean } | null) => {
-        if (cancelled) return;
+        if (isCancelled()) return;
         if (me?.hasTableFriend && me.email) setFriendEmail(me.email.trim().toLowerCase());
         if (!me?.known) {
-          setSignedOut(Boolean(me));
           return;
         }
+        setSignedIn(true);
         // A membership that ends before this Sunday does not cover it.
         const covers = !me.member?.endsAt || !startsAt || Date.parse(startsAt) <= Date.parse(me.member.endsAt);
+        if (me.member && !covers) setMemberEnding(true);
         if (me.member && covers) {
           setMember(me.member);
+          setStage((current) => (current === "email" || current === "code" ? "details" : current));
           fetch(`/api/sunday-social/reserved?eventId=${encodeURIComponent(eventId)}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data: { venues?: ReservedVenue[] | null } | null) => {
-              if (!cancelled && Array.isArray(data?.venues)) setReserved(data.venues);
+              if (!isCancelled() && Array.isArray(data?.venues)) setReserved(data.venues);
             })
             .catch(() => {
               /* no pick: we choose the bar */
             });
-        } else setFromQuiz(true);
+        } else {
+          setFromQuiz(true);
+          setStage((current) => (current === "email" || current === "code" ? "details" : current));
+        }
         if (me.email) setEmail((current) => current || me.email!);
         if (me.name) setName((current) => current || me.name!);
         if (me.birthDate) setBirthDate((current) => current || me.birthDate!);
         // Their quiz answers stand in for the two choices on the card.
         if (me.ageMatters) setAgePreference((current) => current ?? (me.ageMatters === "yes" ? "similar" : "any"));
         if (me.language === "dutch") setTableLanguagePreference("prefer_dutch");
+        if (me.language === "english") setTableLanguagePreference("prefer_english");
         // From "Kies je zondag" the ticket for this Sunday is ticked already
         // (see the effect above). The choice stays in view, "Elke zondag" and
         // a second seat next to it: one tap on "Verder" and their details
@@ -274,9 +387,15 @@ export function SundayTableBookingCard({
       .catch(() => {
         /* the card simply stays empty */
       });
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadMe(() => cancelled);
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startsAt, eventId]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -289,10 +408,12 @@ export function SundayTableBookingCard({
   const guestFree = Boolean(member?.freeGuest);
   const memberGuestEuros = member ? member.guestCents / 100 : 0;
   // The choice is only for someone who is not a member yet.
-  const offersPlan = MEMBERSHIP_AT_BOOKING && !member;
+  const offersPlan = MEMBERSHIP_AT_BOOKING && !member && !memberEnding;
   const monthly = offersPlan && ticketPlan === "monthly";
-  const twoSteps = offersPlan;
-  const showDetails = !twoSteps || step === 2;
+  // The email, the details, and for someone who is not a member yet the
+  // "Elke zondag" offer on its own screen before paying (so each is measured).
+  const stepsTotal = offersPlan ? 3 : 2;
+  const stepLabel = (n: number) => <p className="text-xs font-medium text-wine/50">{stepCopy.step(n, stepsTotal)}</p>;
   const total = member
     ? seats === 2 && !guestFree ? memberGuestEuros : 0
     : monthly
@@ -305,6 +426,8 @@ export function SundayTableBookingCard({
   const englishOpen = isEnglishOpenForSundayTable(eventId);
   const englishOnlyWaiting =
     !englishOpen && tableLanguagePreference === "prefer_english";
+
+  const offerStep = offersPlan && !englishOnlyWaiting;
 
   function selectLanguage(value: TableLanguagePreference) {
     setTableLanguagePreference(value);
@@ -345,21 +468,85 @@ export function SundayTableBookingCard({
     }
   }
 
-  function goToDetails() {
-    if (!ticketPlan) {
-      setError(planCopy.missing);
+  /** Step 1: what kind of address is it. Nothing about the person comes back. */
+  async function submitEmail() {
+    if (validateAuthEmail(email)) {
+      setError(stepCopy.invalidEmail);
       return;
     }
+    const target = normalizeAuthEmail(email);
+    setEmail(target);
+    setLoading(true);
     setError(null);
-    trackSundaySocialTicketChosen({ plan: ticketPlan, seats, city: cityName, locale });
-    setStep(2);
+    let kind: "member" | "known" | "new" = "new";
+    try {
+      const res = await fetch("/api/booking/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: target, startsAt }),
+      });
+      const data = (await res.json().catch(() => null)) as { kind?: "member" | "known" | "new" } | null;
+      if (data?.kind) kind = data.kind;
+    } catch {
+      /* unknown: they simply fill it in */
+    } finally {
+      setLoading(false);
+    }
+    trackSundaySocialBookingStep({ step: "email", city: cityName, locale, kind });
+    if (kind === "new") {
+      setStage("details");
+      return;
+    }
+    setLookupKind(kind);
+    setCodeSent(false);
+    setCode("");
+    setStage("code");
+  }
+
+  async function sendLoginCode() {
+    setLoading(true);
+    setError(null);
+    const supabase = createSupabaseBrowserClient();
+    const { error: sendError } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    setLoading(false);
+    if (sendError) {
+      setError(stepCopy.codeFailed);
+      return;
+    }
+    trackSundaySocialBookingStep({ step: "code_sent", city: cityName, locale });
+    setCodeSent(true);
+  }
+
+  async function verifyLoginCode(token: string) {
+    if (token.length !== AUTH_CODE_LENGTH || loading) return;
+    setLoading(true);
+    setError(null);
+    const supabase = createSupabaseBrowserClient();
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+    if (verifyError || !data.user) {
+      const reason = verifyError
+        ? classifyVerifyCodeError({ code: (verifyError as { code?: string }).code, status: verifyError.status, message: verifyError.message })
+        : "other";
+      setError(reason === "wrong_or_expired" ? stepCopy.codeWrong : stepCopy.codeFailed);
+      setLoading(false);
+      return;
+    }
+    trackSundaySocialBookingStep({ step: "code_verified", city: cityName, locale });
+    await Promise.race([syncMemberCustomerClient(locale), new Promise((resolve) => window.setTimeout(resolve, 2500))]);
+    await loadMe();
+    setLoading(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (soldOut || loading) return;
-    if (!showDetails) {
-      goToDetails();
+    if (stage === "email") {
+      await submitEmail();
+      return;
+    }
+    if (stage === "code") {
+      if (codeSent) await verifyLoginCode(code);
+      else await sendLoginCode();
       return;
     }
     if (englishOnlyWaiting) {
@@ -374,13 +561,29 @@ export function SundayTableBookingCard({
       setError(ageCopy.missing);
       return;
     }
-    if (offersPlan && !ticketPlan) {
-      setError(planCopy.missing);
-      return;
-    }
     if (member && reserved && reserved.length > 0 && !venueId) {
       setError(memberCopy.pickVenue);
       return;
+    }
+    if (offerStep && stage === "details") {
+      setError(null);
+      trackSundaySocialBookingStep({ step: "offer", city: cityName, locale });
+      setStage("offer");
+      return;
+    }
+    await checkout(offersPlan ? ticketPlan ?? "single" : null);
+  }
+
+  /** To Stripe (or, for a member's included seat, booked at once). */
+  async function checkout(plan: TicketPlan | null) {
+    if (loading) return;
+    if (plan) {
+      setTicketPlan(plan);
+      trackSundaySocialTicketChosen({ plan, seats, city: cityName, locale });
+      // The same funnel as joining from settings or the membership page.
+      if (plan === "monthly") trackMembershipEvent(PostHogEvents.membershipCheckoutStarted, { plan: "1m", source: "booking", locale, city: cityName });
+    } else if (member) {
+      trackSundaySocialTicketChosen({ plan: "member", seats, city: cityName, locale });
     }
     setLoading(true);
     setError(null);
@@ -397,7 +600,7 @@ export function SundayTableBookingCard({
           tableLanguagePreference,
           birthDate,
           agePreference,
-          ...(offersPlan && ticketPlan ? { plan: ticketPlan } : {}),
+          ...(offersPlan && plan ? { plan } : {}),
           returnPath: window.location.pathname,
           utm: getStoredUtm(),
           ...(member && venueId ? { preferredVenueId: venueId } : {}),
@@ -479,9 +682,11 @@ export function SundayTableBookingCard({
     </div>
   );
 
+  // A member's seat costs nothing: no payment line (the first one) then.
+  const shownGuarantees = member && (seats === 1 || member.freeGuest) ? guarantees.slice(1) : guarantees;
   const guaranteesLine = englishOnlyWaiting ? null : (
     <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-wine/50">
-      {guarantees.map((item) => (
+      {shownGuarantees.map((item) => (
         <span key={item} className="inline-flex items-center gap-1">
           <span aria-hidden className="text-wine/40">
             ✓
@@ -510,98 +715,179 @@ export function SundayTableBookingCard({
   const submitClass =
     "w-full justify-center bg-burgundy px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.1em] text-cream hover:bg-wine";
 
-  // Step 1: which ticket, and how many.
-  if (!showDetails) {
+  // Step 1: the email.
+  if (stage === "email") {
     return (
-      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        {fromQuiz ? (
-          <a
-            href={jouwTafelKiesPath(locale)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
-          >
-            <span aria-hidden>&larr;</span>
-            {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
-          </a>
-        ) : null}
-        <div>
-          <span className="block text-sm font-medium text-wine">{planCopy.label}</span>
-          <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {(
-              [
-                ["single", planCopy.singleTitle, euroLabel(pricePerSeatEuros), null, planCopy.singleShort],
-                ["monthly", planCopy.monthlyTitle, euroLabel(MONTHLY_CENTS / 100), planCopy.perMonth, planCopy.monthlyShort],
-              ] as const
-            ).map(([value, title, price, unit, short]) => {
-              const chosen = ticketPlan === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={chosen}
-                  onClick={() => {
-                    setTicketPlan(value);
-                    setError(null);
-                  }}
-                  className={`flex flex-col items-center rounded-2xl border px-3 py-3.5 text-center transition ${
-                    chosen ? "border-burgundy bg-burgundy/[0.06] ring-1 ring-burgundy" : "border-wine/15 bg-white hover:border-wine/30"
-                  }`}
-                >
-                  <span className="text-sm font-semibold text-wine">{title}</span>
-                  <span className="mt-1 font-serif text-2xl leading-none text-wine">
-                    {price}
-                    {unit ? <span className="ml-1 font-sans text-xs font-medium text-wine/60">{unit}</span> : null}
-                  </span>
-                  <span className="mt-1.5 text-xs leading-snug text-wine/60">{short}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {seatsPicker}
-        {errorBlock}
-        <Button type="submit" className={`${submitClass} ${ticketPlan ? "" : "opacity-60"}`}>
-          {`${planCopy.next}${ticketPlan ? ` · ${euroLabel(total)}${monthly ? `/${planCopy.perMonthShort}` : ""}${monthly && seats === 2 ? ` · ${planCopy.guestFree}` : ""}` : ""}`}
+      <form onSubmit={handleSubmit} className="mt-6 space-y-3" noValidate>
+        {stepLabel(1)}
+        <label className="block text-sm font-medium text-wine">
+          {stepCopy.emailTitle}
+          <input
+            id="booking-email"
+            type="email"
+            required
+            autoComplete="email"
+            inputMode="email"
+            placeholder={emailLabel}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError(null);
+            }}
+            className={inputClass}
+          />
+        </label>
+        {error ? <p className="text-sm text-red-800">{error}</p> : null}
+        <Button type="submit" className={submitClass}>
+          {loading ? "…" : stepCopy.next}
         </Button>
-        {signedOut ? (
-          <p className="text-center text-sm">
-            <a
-              href={logInHref()}
-              className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
-            >
-              {memberCopy.login}
-            </a>
-          </p>
-        ) : null}
-        {includedBox}
         {guaranteesLine}
       </form>
     );
   }
 
-  // Step 2: their details (a member starts here).
-  return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-      {twoSteps && ticketPlan ? (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-wine/10 bg-white/70 px-3.5 py-2.5 text-sm text-wine">
-          <span className="font-semibold">
-            {ticketPlan === "monthly"
-              ? `${planCopy.monthlyTitle} · ${euroLabel(MONTHLY_CENTS / 100)} ${planCopy.perMonth}`
-              : `${planCopy.singleTitle} · ${euroLabel(pricePerSeatEuros)}`}
-            <span className="font-normal text-wine/60"> · {seats === 2 ? seatTwoLabel : seatOneLabel}</span>
-          </span>
+  // An address we know: a login code fills in the card (a member logs in to book with the membership).
+  if (stage === "code") {
+    const isMember = lookupKind === "member";
+    return (
+      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+        {stepLabel(1)}
+        <p className="font-serif text-2xl text-wine">{isMember ? stepCopy.memberTitle : stepCopy.knownTitle}</p>
+        {codeSent ? (
+          <label className="block text-sm font-medium text-wine">
+            {stepCopy.codeLabel(email)}
+            <input
+              id="booking-code"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+              maxLength={AUTH_CODE_LENGTH}
+              value={code}
+              onChange={(e) => {
+                const next = sanitizeAuthCode(e.target.value);
+                setCode(next);
+                setError(null);
+                if (next.length === AUTH_CODE_LENGTH) void verifyLoginCode(next);
+              }}
+              className={`${inputClass} text-center text-2xl tracking-[0.4em]`}
+            />
+          </label>
+        ) : (
+          <p className="text-sm leading-relaxed text-wine/70">{isMember ? stepCopy.memberBody(email) : stepCopy.knownBody(email)}</p>
+        )}
+        {error ? <p className="text-sm text-red-800">{error}</p> : null}
+        <Button type="submit" className={submitClass}>
+          {loading ? "…" : codeSent ? stepCopy.next : stepCopy.sendCode}
+        </Button>
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
+          {codeSent ? (
+            <button type="button" onClick={() => void sendLoginCode()} className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4">
+              {stepCopy.resend}
+            </button>
+          ) : null}
+          {!isMember ? (
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setStage("details");
+              }}
+              className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4"
+            >
+              {stepCopy.skip}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {
-              setStep(1);
               setError(null);
+              setStage("email");
             }}
-            className="shrink-0 font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+            className="text-wine/60 underline underline-offset-4"
           >
-            {planCopy.back}
+            {stepCopy.otherEmail}
           </button>
         </div>
-      ) : null}
-      {!twoSteps && fromQuiz ? (
+      </form>
+    );
+  }
+
+  // Step 3: "Elke zondag" for the same price, then pay.
+  if (stage === "offer") {
+    const price = euroLabel(MONTHLY_CENTS / 100);
+    return (
+      <div className="mt-2 space-y-4" data-booking-stage="offer">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setStage("details");
+            }}
+            className="inline-flex items-center gap-1 text-sm text-wine/60 hover:text-wine"
+          >
+            <span aria-hidden>&larr;</span>
+            {upsellCopy.back}
+          </button>
+          <span className="text-xs font-medium text-wine/50">{stepCopy.step(3, stepsTotal)}</span>
+        </div>
+        <div>
+          {/* Only true while a seat costs what a month costs. */}
+          {Math.round(pricePerSeatEuros * 100) === MONTHLY_CENTS ? (
+            <span className="inline-flex rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine">{upsellCopy.badge}</span>
+          ) : null}
+          <p className="mt-3 font-serif text-[1.75rem] leading-tight text-wine">{upsellCopy.title}</p>
+          <p className="mt-1 text-sm text-wine/70">{upsellCopy.lead(price)}</p>
+        </div>
+        <ul className="space-y-3">
+          {upsellCopy.benefits.map((b) => (
+            <li key={b.title} className="flex gap-3">
+              <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-burgundy/[0.07] text-burgundy">
+                <OfferIcon name={b.icon} />
+              </span>
+              <span className="min-w-0 text-sm leading-snug">
+                <span className="block font-semibold text-wine">{b.title}</span>
+                <span className="block text-wine/65">{b.body}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {errorBlock}
+        <div>
+          <Button type="button" onClick={() => void checkout("monthly")} className={submitClass}>
+            {loading && ticketPlan === "monthly" ? "…" : `${upsellCopy.yesButton(price)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`}
+          </Button>
+          <p className="mt-1.5 text-center text-xs text-wine/55">{upsellCopy.cancel}</p>
+          {/* Both choices in plain sight: no is a full button too. */}
+          <button
+            type="button"
+            onClick={() => void checkout("single")}
+            className="mt-3 w-full rounded-full border border-burgundy px-6 py-3 text-sm font-semibold text-burgundy transition hover:bg-burgundy/5"
+          >
+            {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
+          </button>
+        </div>
+        <div className="flex gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3">
+          <span aria-hidden className="shrink-0 text-burgundy">
+            <OfferIcon name="shield" />
+          </span>
+          <span className="text-sm leading-snug">
+            <span className="block font-semibold text-wine">{upsellCopy.guaranteeTitle}</span>
+            <span className="block text-wine/70">{upsellCopy.guaranteeBody}</span>
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: their details (a member starts here), then on to the offer or pay.
+  const detailsKnown = signedIn && !editDetails && Boolean(name.trim() && birthDate && agePreference);
+  const bornLabel = birthDate ? birthDate.split("-").reverse().join("-") : "";
+  return (
+    <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+      {member ? null : stepLabel(2)}
+      {fromQuiz ? (
         <a
           href={jouwTafelKiesPath(locale)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
@@ -660,23 +946,39 @@ export function SundayTableBookingCard({
           )}
         </fieldset>
       ) : null}
-      <label className="block text-sm font-medium text-wine">
-        {emailLabel}
-        <input
-          type="email"
-          required
-          value={email}
-          readOnly={Boolean(member)}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (needsLogin) {
-              setNeedsLogin(false);
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-wine/10 bg-white/70 px-3.5 py-2.5 text-sm text-wine">
+        <span className="min-w-0 truncate">{email}</span>
+        {member ? null : (
+          <button
+            type="button"
+            onClick={() => {
               setError(null);
-            }
-          }}
-          className={inputClass}
-        />
-      </label>
+              setNeedsLogin(false);
+              setStage("email");
+            }}
+            className="shrink-0 font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+          >
+            {stepCopy.change}
+          </button>
+        )}
+      </div>
+      {englishOnlyWaiting ? null : seatsPicker}
+      {detailsKnown ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-wine/10 bg-white/70 px-3.5 py-2.5 text-sm text-wine">
+          <span className="min-w-0">
+            {stepCopy.detailsKnown(name.trim(), bornLabel)}
+            <span className="block text-xs text-wine/60">{agePreference ? ageCopy[agePreference] : ""}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setEditDetails(true)}
+            className="shrink-0 font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
+          >
+            {stepCopy.change}
+          </button>
+        </div>
+      ) : (
+        <>
       <label className="block text-sm font-medium text-wine">
         {nameLabel}
         <input
@@ -728,7 +1030,8 @@ export function SundayTableBookingCard({
           </div>
         </div>
       )}
-
+        </>
+      )}
       <div>
         <span className="block text-sm font-medium text-wine">{languageLabel}</span>
         <div className="mt-1.5 grid grid-cols-3 gap-2">
@@ -754,7 +1057,6 @@ export function SundayTableBookingCard({
         </div>
       ) : null}
 
-      {!twoSteps && !englishOnlyWaiting ? seatsPicker : null}
 
       {errorBlock}
 
@@ -790,25 +1092,17 @@ export function SundayTableBookingCard({
               ? englishComingSoon.cta
               : member
                 ? `${memberCopy.reserve} · ${total > 0 ? euroLabel(total) : memberCopy.free}`
-                : monthly
-                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
+                : offerStep
+                  ? stepCopy.next
+                  : monthly
+                  ? `${planCopy.monthlyCta} · ${euroLabel(total)}/${planCopy.perMonthShort}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`
                   : `${seats > 1 ? ctaLabelPlural : ctaLabel} · €${total}`}
         </Button>
       )}
       {monthly && !englishOnlyWaiting ? (
         <p className="text-center text-xs leading-snug text-wine/60">{planCopy.monthlyNote}</p>
       ) : null}
-      {!twoSteps && signedOut && !member ? (
-        <p className="text-center text-sm">
-          <a
-            href={logInHref()}
-            className="font-medium text-burgundy underline decoration-burgundy/30 underline-offset-4 hover:decoration-burgundy"
-          >
-            {memberCopy.login}
-          </a>
-        </p>
-      ) : null}
-      {twoSteps ? null : includedBox}
+      {includedBox}
       {guaranteesLine}
     </form>
   );

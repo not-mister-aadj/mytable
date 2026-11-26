@@ -11,8 +11,10 @@ const DAY_MS = 24 * HOUR_MS;
 export const EARLY_ACCESS_HOURS = 48;
 
 /** A member can cancel their own (included) seat until this long before
- * the start. Founder's decision: 48 hours. */
-export const MEMBER_SEAT_CANCEL_HOURS = 48;
+ * the start. Founder's decision (26 Nov 2026): 7 days, the same as a single
+ * seat; after that they pass the seat on (the table page's hand-over). */
+export const MEMBER_SEAT_CANCEL_DAYS = 7;
+export const MEMBER_SEAT_CANCEL_HOURS = MEMBER_SEAT_CANCEL_DAYS * 24;
 
 /** The reminder before the first period ends goes out this many days ahead. */
 export const REMINDER_DAYS_BEFORE = 7;

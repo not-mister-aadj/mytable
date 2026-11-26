@@ -44,7 +44,7 @@ import {
   ensurePriorityListSignup,
   PRIORITY_LIST_OPT_IN_EVENT,
 } from "@/lib/priority-list-enrollment";
-import { getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
+import { checkoutExpiresAt, getStripe, getCheckoutPaymentMethodTypes, isStripeConfigured } from "@/lib/stripe";
 import { captureCriticalError } from "@/lib/sentry/critical";
 import type { Locale } from "@/i18n/config";
 import { getMemberUser } from "@/lib/member-auth";
@@ -503,6 +503,7 @@ export async function POST(request: Request) {
         tableLanguagePreference,
         birthDate: birthDateSent ? String(body.birthDate).trim() : null,
         agePreference,
+        returnPath: typeof body.returnPath === "string" ? body.returnPath : null,
       });
       if (result.kind === "booked") {
         return NextResponse.json({ booked: true, bookingId: result.bookingId, code: result.code });
@@ -813,6 +814,7 @@ export async function POST(request: Request) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      expires_at: checkoutExpiresAt(),
       customer_email: email,
       locale: locale === "nl" ? "nl" : "en",
       payment_method_types: getCheckoutPaymentMethodTypes(event.currency),

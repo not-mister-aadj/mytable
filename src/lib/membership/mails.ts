@@ -15,6 +15,7 @@ import { sendSimpleEmail } from "@/lib/email/send-simple-email";
 import { isMembershipPlanId } from "@/lib/membership/plans";
 import {
   cancelledMail,
+  guaranteeMail,
   noShowBlockedMail,
   noShowWarningMail,
   openForEveryoneMail,
@@ -80,6 +81,12 @@ export async function sendMembershipCancelledEmail(m: Membership, until: Date): 
   const r = await recipient(m);
   const mail = cancelledMail({ locale: r.locale, firstName: r.firstName, until, links: await memberLinks(r.locale, m.email) });
   return send(m.email, mail, r.customerId, "Lidmaatschap: opzegging bevestigd");
+}
+
+export async function sendMemberGuaranteeEmail(m: Membership, sunday: Date): Promise<boolean> {
+  const r = await recipient(m);
+  const mail = guaranteeMail({ locale: r.locale, firstName: r.firstName, sunday, links: await memberLinks(r.locale, m.email) });
+  return send(m.email, mail, r.customerId, "Lidmaatschap: gezelligheidsgarantie (maand gratis)");
 }
 
 export async function sendNoShowWarningEmail(m: Membership, sunday: Date): Promise<boolean> {

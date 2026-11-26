@@ -12,7 +12,7 @@ import { MEMBERSHIP_OFFER_CREDIT_CENTS, formatPlanEuros, getMembershipPlan, type
 import { membershipOfferCouponId, planPriceIds } from "@/lib/membership/stripe";
 import { FREE_GUEST_EVENT } from "@/lib/membership/member-checkout";
 import { planPriceLine } from "@/lib/membership/mail-copy";
-import { getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
+import { checkoutExpiresAt, getStripe, getSubscriptionCheckoutPaymentMethodTypes } from "@/lib/stripe";
 import { isJouwTafelType, isSharedTableType } from "@/lib/event-concepts";
 import { bookingOpensOverride, isClosedEmpty, jouwTafelBookingWindow } from "@/lib/jouw-tafel/logic";
 import { communicationLocale } from "@/lib/booking-table-language";
@@ -178,9 +178,19 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
   const fromBooking = input.source === "booking" && pendingBookingId;
   const settingsPage = `${site}${jouwTafelSettingsPath(input.locale)}`;
   const back = input.returnPath && input.returnPath.startsWith("/") && !input.returnPath.startsWith("//") ? input.returnPath : null;
+  // Joining with a Sunday: say which one is in it, so nobody wonders.
+  const seatDay = event && pendingBookingId
+    ? new Intl.DateTimeFormat(en ? "en-GB" : "nl-NL", { timeZone: "Europe/Amsterdam", weekday: "long", day: "numeric", month: "long" }).format(event.startsAt)
+    : null;
+  const seatLine = seatDay && event
+    ? en
+      ? `Your seat on ${seatDay} in ${event.city} is included. `
+      : `Je plek op ${seatDay} in ${event.city} zit erbij. `
+    : "";
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      expires_at: checkoutExpiresAt(),
       ...(existingCustomer ? { customer: existingCustomer } : { customer_email: email }),
       client_reference_id: input.user.id,
       locale: en ? "en" : "nl",
@@ -196,8 +206,8 @@ export async function createMembershipCheckout(input: MembershipCheckoutInput): 
         // price, so the plan's own words go right above the pay button.
         submit: {
           message: en
-            ? `${priceLine}. Your club membership starts right after payment. Terms: ${site}${termsPath("en")}`
-            : `${priceLine}. Je club membership start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
+            ? `${seatLine}${priceLine}. Your club membership starts right after payment. Terms: ${site}${termsPath("en")}`
+            : `${seatLine}${priceLine}. Je club membership start direct na betaling. Voorwaarden: ${site}${termsPath("nl")}`,
         },
       },
       success_url: fromBooking

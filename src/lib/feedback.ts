@@ -384,4 +384,24 @@ export async function completeFeedback(bookingId: string, input: Partial<Feedbac
     .update(bookingFeedback)
     .set({ completedAt: sql`coalesce(${bookingFeedback.completedAt}, now())` })
     .where(eq(bookingFeedback.bookingId, bookingId));
+  await memberGuarantee(bookingId).catch((error) => console.error("[feedback] member guarantee failed", error));
+}
+
+/** A member who found nobody gezellig gets next month free (membership/guarantee.ts). */
+async function memberGuarantee(bookingId: string): Promise<void> {
+  const [{ grantGuaranteeIfDue }, { getMembershipById }, { sendMemberGuaranteeEmail }] = await Promise.all([
+    import("@/lib/membership/guarantee"),
+    import("@/lib/membership/data"),
+    import("@/lib/membership/mails"),
+  ]);
+  const result = await grantGuaranteeIfDue(bookingId);
+  if (!result.granted) return;
+  const [row] = await getDb()
+    .select({ startsAt: events.startsAt })
+    .from(bookings)
+    .innerJoin(events, eq(events.id, bookings.eventId))
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+  const membership = await getMembershipById(result.membershipId);
+  if (membership && row) await sendMemberGuaranteeEmail(membership, row.startsAt);
 }

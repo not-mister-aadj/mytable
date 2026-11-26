@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db/index";
-import { eventNotifySignups } from "@/db/schema";
+import { eventNotifySignups, events } from "@/db/schema";
 import { ensureAccountInBackground } from "@/lib/auth/ensure-auth-user-for-email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,6 +20,12 @@ export async function addEventNotifySignup(input: {
   if (!isDbConfigured()) return;
   const db = getDb();
   const birthDate = input.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(input.birthDate) ? input.birthDate : null;
+  const email = input.email.trim().toLowerCase();
+  const [already] = await db
+    .select({ id: eventNotifySignups.id })
+    .from(eventNotifySignups)
+    .where(and(eq(eventNotifySignups.eventId, input.eventId), eq(eventNotifySignups.email, email)))
+    .limit(1);
   await db
     .insert(eventNotifySignups)
     .values({
@@ -33,6 +39,47 @@ export async function addEventNotifySignup(input: {
       set: { birthDate: sql`coalesce(excluded.birth_date, ${eventNotifySignups.birthDate})` },
     });
   ensureAccountInBackground({ email: input.email, source: "notify", locale: input.locale });
+  if (!already) await tellUsAboutWaitingMember(input.eventId, email).catch((error) => console.error("[notify] member mail failed", error));
+}
+
+/**
+ * "Voorrang op de wachtlijst": a club member joined a Sunday's waitlist, so we
+ * hear it at once and can add a table where possible. Only for a membership
+ * that covers that Sunday.
+ */
+async function tellUsAboutWaitingMember(eventId: string, email: string): Promise<void> {
+  // Loaded here: these modules reach back into this one.
+  const [{ getRunningMembershipByEmail, membershipSnapshot }, { memberBookingDecision }, { firstNameForEmail }, { sendSundayMail }, { getEmailReplyTo }] = await Promise.all([
+    import("@/lib/membership/data"),
+    import("@/lib/membership/logic"),
+    import("@/lib/invites/cities"),
+    import("@/lib/admin/sunday-mails"),
+    import("@/lib/email/resend"),
+  ]);
+  const [event] = await getDb().select().from(events).where(eq(events.id, eventId)).limit(1);
+  if (!event) return;
+  const covers = async (address: string) => {
+    const snapshot = membershipSnapshot(await getRunningMembershipByEmail(address).catch(() => null));
+    return Boolean(snapshot && memberBookingDecision(snapshot, event.startsAt).kind !== "non_member");
+  };
+  if (!(await covers(email))) return;
+  const waiting = await getDb()
+    .select({ email: eventNotifySignups.email })
+    .from(eventNotifySignups)
+    .where(and(eq(eventNotifySignups.eventId, eventId), isNull(eventNotifySignups.notifiedAt)));
+  let members = 0;
+  for (const w of waiting) if (await covers(w.email)) members += 1;
+  const name = (await firstNameForEmail(email).catch(() => null)) ?? email;
+  const date = new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", weekday: "short", day: "numeric", month: "short" }).format(event.startsAt);
+  await sendSundayMail(getEmailReplyTo(), {
+    subject: `[member wachtlijst] ${name} · ${event.city} ${date}`,
+    text: [
+      `${name} (${email}) is club member en staat op de wachtlijst voor ${event.city}, ${date}.`,
+      "",
+      `Op de wachtlijst: ${waiting.length}, waarvan ${members} member${members === 1 ? "" : "s"}.`,
+      `Plekken: ${event.spotsSold} van ${event.capacity} verkocht.`,
+    ].join("\n"),
+  });
 }
 
 /** The birth date we already hold for this address (quiz, or a booking), or null: then the waitlist asks for it. */

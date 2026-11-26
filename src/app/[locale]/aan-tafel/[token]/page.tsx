@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { longDate } from "@/lib/admin/sunday-mails";
 import { CancelLate, SeatFixed, EditOwnIntro, PlusOneEditor, TableIntroGate, TableShareGate } from "@/components/table-page/TablePageGates";
 import { isValidLocale, sundayTableLpPath, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -100,6 +101,16 @@ const COPY = {
       email: "E-mailadres",
       handOverDone: "Je plek is doorgegeven aan {name}.",
       handOverDoneBody: "Je tafel blijft compleet.",
+      shareTitle: "Geef je plek aan een vriend",
+      shareBody: "Stuur deze link door. Wie hem als eerste opent en bevestigt, neemt jouw plek over. Hij is al betaald. Tot die tijd blijft de plek van jou.",
+      shareMessage: "Hoi! Ik kan {day} niet naar Sunday Social in {city}. Wil jij mijn plek? Hij is al betaald: {url}",
+      shareWhatsApp: "Deel via WhatsApp",
+      shareCopy: "Kopieer link",
+      shareCopied: "Gekopieerd",
+      shareByHand: "Liever zelf naam en e-mail invullen",
+      linkOpen: "Je link staat open. Nog niemand heeft je plek overgenomen.",
+      linkShareAgain: "Deel je link opnieuw",
+      linkRevoke: "Link intrekken",
       messageTitle: "Wat is er?",
       messageBody: "Laat ons weten wat er is. Daarmee geef je je plek op; die gaat naar iemand op de wachtlijst.",
       reasons: { sick: "Ik ben ziek", work: "Werk kwam ertussen", private: "Familie of privé", plans: "Ik had iets anders gepland", other: "Anders" },
@@ -198,6 +209,16 @@ const COPY = {
       email: "Email address",
       handOverDone: "Your seat has been passed on to {name}.",
       handOverDoneBody: "Your table stays complete.",
+      shareTitle: "Give your seat to a friend",
+      shareBody: "Send this link on. Whoever opens it first and confirms takes over your seat. It's already paid for. Until then the seat stays yours.",
+      shareMessage: "Hi! I can't make it to Sunday Social in {city} on {day}. Would you like my seat? It's already paid for: {url}",
+      shareWhatsApp: "Share on WhatsApp",
+      shareCopy: "Copy link",
+      shareCopied: "Copied",
+      shareByHand: "Rather fill in their name and email yourself",
+      linkOpen: "Your link is out. Nobody has taken your seat yet.",
+      linkShareAgain: "Share your link again",
+      linkRevoke: "Withdraw link",
       messageTitle: "What's up?",
       messageBody: "Let us know what's going on. With this you give up your seat; it goes to someone on the waitlist.",
       reasons: { sick: "I'm ill", work: "Work came up", private: "Family or personal", plans: "I had something else planned", other: "Something else" },
@@ -410,7 +431,11 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           </Link>
         </p>
       ) : (
-        <SeatFixed token={token} copy={t.fixed} />
+        <SeatFixed
+          token={token}
+          linkOpen={page.shareLinkOpen}
+          copy={{ ...t.fixed, shareMessage: t.fixed.shareMessage.replace("{day}", longDate(page.startsAt, locale === "en" ? "en" : "nl")).replace("{city}", page.city) }}
+        />
       )}
     </>
   );

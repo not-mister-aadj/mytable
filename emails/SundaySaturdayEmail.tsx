@@ -26,6 +26,8 @@ export type SundaySaturdayEmailProps = {
   firstTime?: boolean;
   /** The venue is closed at this time and opens just for us. */
   opensForUs?: boolean;
+  /** A member's seat: no "geef je plek door" line (members cancel in their settings). */
+  member?: boolean;
 };
 
 export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
@@ -97,6 +99,11 @@ export function SundaySaturdayEmail(p: SundaySaturdayEmailProps) {
           : nl
             ? "Je tafel is ingedeeld en rekent op je."
             : "Your table is made and counts on you."}
+        {p.member
+          ? ""
+          : nl
+            ? " Kun je toch niet? Geef je plek dan door aan een vriend, via je tafelpagina."
+            : " Can't make it after all? Pass your seat on to a friend, via your table page."}
       </Text>
 
       <Text style={{ ...emailType.body, margin: "8px 0 0" }}>

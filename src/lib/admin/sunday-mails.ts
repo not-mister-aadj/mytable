@@ -553,6 +553,7 @@ async function composeSundayMail(
       time: time(ctx.startsAt),
       tableUrl,
       firstTime: guest.firstTime,
+      member: guest.member,
       opensForUs: OPENS_FOR_US.has(venue.name),
     }),
   };

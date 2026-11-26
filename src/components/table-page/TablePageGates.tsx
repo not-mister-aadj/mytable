@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { cancelLateAction, handOverSeatAction, savePlusOneAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
+import { cancelLateAction, handOverSeatAction, revokeSeatLinkAction, savePlusOneAction, shareSeatLinkAction, shareTableIntroAction } from "@/app/[locale]/aan-tafel/[token]/actions";
 import { CANCEL_REASONS, type CancelReason } from "@/lib/cancel-reasons";
 import { SundayTableIntroForm } from "@/components/booking/SundayTableIntroForm";
 import type { Locale } from "@/i18n/config";
@@ -298,6 +298,17 @@ type SeatFixedCopy = {
   email: string;
   handOverDone: string;
   handOverDoneBody: string;
+  shareTitle: string;
+  shareBody: string;
+  /** The WhatsApp text, with {url} for the link. */
+  shareMessage: string;
+  shareWhatsApp: string;
+  shareCopy: string;
+  shareCopied: string;
+  shareByHand: string;
+  linkOpen: string;
+  linkShareAgain: string;
+  linkRevoke: string;
   messageTitle: string;
   reasons: Record<CancelReason, string>;
   messageBody: string;
@@ -315,9 +326,11 @@ const ghost = "rounded-full border border-burgundy px-5 py-2.5 text-sm font-semi
  * table is made around them, so the first choice is someone in their place;
  * else they tell us what happened, and give up the seat.
  */
-export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy }) {
+export function SeatFixed({ token, copy, linkOpen = false }: { token: string; copy: SeatFixedCopy; linkOpen?: boolean }) {
   const router = useRouter();
-  const [view, setView] = useState<"closed" | "main" | "handOver" | "message" | "handedOver">("closed");
+  const [view, setView] = useState<"closed" | "main" | "share" | "handOver" | "message" | "handedOver">("closed");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [reason, setReason] = useState("");
@@ -327,6 +340,26 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
   const go = (next: typeof view) => {
     setError(null);
     setView(next);
+  };
+  /** "Geef mijn plek door": the link to share (the open one again, else a new one). */
+  const openShare = () => {
+    go("share");
+    setCopied(false);
+    start(async () => {
+      const result = await shareSeatLinkAction(token);
+      if (result.ok && result.url) setShareUrl(result.url);
+      else setError(copy.errors.closed);
+      router.refresh();
+    });
+  };
+  const copyLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+    } catch {
+      window.prompt(copy.shareCopy, shareUrl);
+    }
   };
 
   if (view === "handedOver") {
@@ -339,6 +372,29 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
   }
   return (
     <>
+      {linkOpen ? (
+        <div className="rounded-2xl border border-gold/30 bg-cream px-5 py-4">
+          <p className="text-sm text-wine">{copy.linkOpen}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button type="button" onClick={openShare} className={ghost}>
+              {copy.linkShareAgain}
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                start(async () => {
+                  await revokeSeatLinkAction(token);
+                  router.refresh();
+                })
+              }
+              className="text-sm text-wine/60 underline underline-offset-4 hover:text-wine"
+            >
+              {copy.linkRevoke}
+            </button>
+          </div>
+        </div>
+      ) : null}
       <p className="px-1">
         <button type="button" onClick={() => go("main")} className="text-xs text-wine/50 underline underline-offset-4 hover:text-burgundy">
           {copy.open}
@@ -358,7 +414,7 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
                 <p className="font-serif text-2xl text-wine">{copy.title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.body}</p>
                 <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button type="button" onClick={() => go("handOver")} className={solid}>
+                  <button type="button" onClick={openShare} className={solid}>
                     {copy.handOver}
                   </button>
                   <button type="button" onClick={() => go("message")} className={ghost}>
@@ -368,6 +424,34 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
                 <button type="button" onClick={() => go("closed")} className="mt-4 text-sm text-wine/60 hover:text-wine">
                   {copy.keep}
                 </button>
+              </>
+            ) : view === "share" ? (
+              <>
+                <p className="font-serif text-2xl text-wine">{copy.shareTitle}</p>
+                <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.shareBody}</p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <a
+                    href={shareUrl ? `https://wa.me/?text=${encodeURIComponent(copy.shareMessage.replace("{url}", shareUrl))}` : undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-disabled={!shareUrl}
+                    className={`${solid} ${shareUrl ? "" : "pointer-events-none opacity-60"}`}
+                  >
+                    {copy.shareWhatsApp}
+                  </a>
+                  <button type="button" disabled={!shareUrl} onClick={copyLink} className={ghost}>
+                    {copied ? copy.shareCopied : copy.shareCopy}
+                  </button>
+                </div>
+                {shareUrl ? <p className="mt-3 break-all rounded-xl bg-white px-3 py-2 text-xs text-wine/60">{shareUrl}</p> : null}
+                <div className="mt-4 flex flex-wrap items-center gap-4">
+                  <button type="button" onClick={() => go("handOver")} className="text-sm text-wine/60 underline underline-offset-4 hover:text-wine">
+                    {copy.shareByHand}
+                  </button>
+                  <button type="button" onClick={() => go("closed")} className="text-sm text-wine/60 hover:text-wine">
+                    {copy.keep}
+                  </button>
+                </div>
               </>
             ) : view === "handOver" ? (
               <form
@@ -395,7 +479,7 @@ export function SeatFixed({ token, copy }: { token: string; copy: SeatFixedCopy 
                   <button type="submit" disabled={pending} className={solid}>
                     {copy.handOver}
                   </button>
-                  <button type="button" disabled={pending} onClick={() => go("main")} className="text-sm text-wine/60 hover:text-wine">
+                  <button type="button" disabled={pending} onClick={() => go("share")} className="text-sm text-wine/60 hover:text-wine">
                     {copy.back}
                   </button>
                 </div>

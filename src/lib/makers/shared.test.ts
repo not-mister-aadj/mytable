@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { commissionCents, commissionSeats, makerCodeFromName, referralCounts, sanitizeMakerCode } from "./shared";
+import { commissionCents, makerEstimate, commissionSeats, makerCodeFromName, referralCounts, sanitizeMakerCode } from "./shared";
 
 test("maker code: letters and digits, upper case", () => {
   assert.equal(sanitizeMakerCode(" sanne "), "SANNE");
@@ -42,4 +42,9 @@ test("commission: €7 per paid seat, €3,50 for the half-price seat", () => {
   assert.equal(commissionCents({ seats: 2, freeSeat: false, halfSeat: true, amountCents: 1500 }), 1050);
   assert.equal(commissionCents({ seats: 2, freeSeat: false, halfSeat: false, amountCents: 2000 }), 1400);
   assert.equal(commissionCents({ seats: 1, freeSeat: false, halfSeat: false, amountCents: 0 }), 0);
+});
+
+test("estimate: 5 a month is 60 people, 240 seats, 8 members, €2.352", () => {
+  assert.deepEqual(makerEstimate(5), { people: 60, seats: 240, members: 8, totalCents: 235_200 });
+  assert.equal(makerEstimate(0).totalCents, 0);
 });

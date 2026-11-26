@@ -73,3 +73,14 @@ export function commissionCents(input: { seats: number; freeSeat: boolean; halfS
   if (paid <= 0) return 0;
   return input.halfSeat ? MAKER_HALF_SEAT_COMMISSION_CENTS + (paid - 1) * MAKER_COMMISSION_CENTS : paid * MAKER_COMMISSION_CENTS;
 }
+
+/**
+ * The estimate on /makers: `perMonth` new people for a year, each coming
+ * 4 times in two years, and 1 in 8 a club member for 12 months.
+ */
+export function makerEstimate(perMonth: number): { people: number; seats: number; members: number; totalCents: number } {
+  const people = Math.max(0, Math.round(perMonth)) * 12;
+  const seats = people * 4;
+  const members = Math.round(people / 8);
+  return { people, seats, members, totalCents: (seats + members * 12) * MAKER_COMMISSION_CENTS };
+}

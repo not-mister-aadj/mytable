@@ -16,12 +16,19 @@ export type MakerCopy = {
   giftTitle: string;
   giftIntro: string;
   gifts: (Item & { tag: string })[];
-  exampleTitle: string;
-  exampleLabel: string;
-  exampleLines: [string, string][];
-  exampleTotalLabel: string;
-  exampleTotal: string;
-  exampleNote: string;
+  calc: {
+    title: string;
+    label: string;
+    perMonth: (n: number) => string;
+    people: (n: number) => string;
+    seats: (n: number) => string;
+    members: (n: number) => string;
+    totalLabel: string;
+    note: string;
+  };
+  communityTitle: string;
+  communityIntro: string;
+  community: Item[];
   stepsTitle: string;
   steps: Item[];
   waysTitle: string;
@@ -57,40 +64,61 @@ export type MakerCopy = {
 
 const nl: MakerCopy = {
   metaTitle: "Makers · MyTable",
-  metaDescription: "Voor wie de mooiste tafels vastlegt. Deel Sunday Social met je eigen link en verdien mee, twee jaar lang.",
+  metaDescription: "Voor wie de mooiste tafels vastlegt. Bouw je portfolio en doe ervaring op in een leuk team van makers.",
   eyebrow: "MyTable Makers",
   title: "Voor wie de mooiste tafels vastlegt.",
   intro:
-    "Foto's en video's van eten, wijn, mooie plekken en een community met een verhaal. Deel Sunday Social met je eigen link en verdien mee, twee jaar lang.",
+    "Foto's en video's van eten, wijn, mooie plekken en een community met een verhaal. Bouw je portfolio, doe ervaring op in een leuk team van makers en word steeds beter. En je verdient mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
   stats: [
-    { value: "€7", label: "per betaalde plek" },
-    { value: "2 jaar", label: "verdien je mee aan wie via jou komt" },
-    { value: "Elk kanaal", label: "Instagram, TikTok, Facebook, LinkedIn" },
+    { value: "Een team", label: "van makers die samen beter worden" },
+    { value: "Portfolio", label: "echte content voor een merk dat groeit" },
+    { value: "+ €7", label: "extra per plek via jouw link" },
   ],
   forWhoTitle: "Voor",
   forWho: ["Foodfotografen", "Wijnliefhebbers", "Stadsgidsen", "Bloggers", "Communitybouwers"],
-  giftTitle: "Een reden om jouw link te gebruiken",
+  giftTitle: "Een cadeau voor wie via jou boekt",
   giftIntro: "Wie via jou boekt, kiest een cadeau.",
   gifts: [
     { tag: "Optie 1", title: "Neem gratis iemand mee", body: "Twee plekken voor de prijs van één. Samen aanschuiven is makkelijker dan alleen." },
     { tag: "Optie 2", title: "De tweede keer half geld", body: "Kom de eerste keer alleen en betaal de tweede keer de helft voor je plek." },
   ],
-  exampleTitle: "Een voorbeeld",
-  exampleLabel: "Je deelt je link een paar keer per maand. In een jaar boeken 40 mensen via jou.",
-  exampleLines: [
-    ["Ze komen elk 4 keer in twee jaar: 160 plekken × €7", "€1.120"],
-    ["5 van hen worden club member, 12 maanden × €7", "€420"],
+  calc: {
+    title: "En je verdient mee",
+    label: "Mensen per maand via jou",
+    perMonth: (n) => (n === 1 ? "1 persoon" : `${n} mensen`),
+    people: (n) => `${n} mensen in een jaar`,
+    seats: (n) => `${n} plekken × €7`,
+    members: (n) => `${n} club members × 12 maanden × €7`,
+    totalLabel: "Voor jou, in twee jaar",
+    note: "Een schatting: iedereen komt 4 keer in twee jaar en 1 op de 8 wordt club member.",
+  },
+  communityTitle: "Wat je krijgt",
+  communityIntro: "Je wordt onderdeel van een groep makers die samen beter wordt.",
+  community: [
+    {
+      title: "Een leuk team",
+      body: "Makers die net als jij van eten, wijn en goede plekken houden. Je staat er niet alleen voor.",
+    },
+    {
+      title: "Bouw je portfolio",
+      body: "Je maakt echte content voor een merk dat groeit, op de mooiste plekken van je stad. Goed voor je portfolio en je cv.",
+    },
+    {
+      title: "Elke twee weken samen",
+      body: "Een korte online call met alle makers. We delen wat werkt, wat niet, en leren van elkaar.",
+    },
+    {
+      title: "Maker van de maand",
+      body: "Elke maand winnen de makers met de beste post en de meeste boekingen een leuke prijs.",
+    },
   ],
-  exampleTotalLabel: "Voor jou, in twee jaar",
-  exampleTotal: "€1.540",
-  exampleNote: "Kiezen ze de halve prijs, dan krijg je voor die plek €3,50.",
   stepsTitle: "Zo werkt het",
   steps: [
     { title: "Maak kennis", body: "Eerst een kort online gesprek. Je zit nergens aan vast." },
     { title: "Krijg je link", body: "Klikt het, dan krijg je je eigen link. Die werkt op elk kanaal." },
-    { title: "Deel en verdien", body: "Wie via jouw link boekt, telt twee jaar lang voor jou. Eens per maand betalen we uit." },
+    { title: "Maak, deel en leer", body: "Je maakt content, schuift aan bij de calls en deelt je link. Wie via jou boekt, levert je ook nog wat op." },
   ],
   waysTitle: "Hoe je wilt werken",
   waysIntro:
@@ -155,40 +183,61 @@ const nl: MakerCopy = {
 
 const en: MakerCopy = {
   metaTitle: "Makers · MyTable",
-  metaDescription: "For those who capture the best tables. Share Sunday Social with your own link and earn with us, for two years.",
+  metaDescription: "For those who capture the best tables. Build your portfolio and gain experience in a fun team of makers.",
   eyebrow: "MyTable Makers",
   title: "For those who capture the best tables.",
   intro:
-    "Photos and videos of food, wine, beautiful places and a community with a story. Share Sunday Social with your own link and earn with us, for two years.",
+    "Photos and videos of food, wine, beautiful places and a community with a story. Build your portfolio, gain experience in a fun team of makers and keep getting better. And you earn with us.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
   stats: [
-    { value: "€7", label: "per paid seat" },
-    { value: "2 years", label: "you earn on everyone who comes through you" },
-    { value: "Any channel", label: "Instagram, TikTok, Facebook, LinkedIn" },
+    { value: "A team", label: "of makers who get better together" },
+    { value: "Portfolio", label: "real content for a growing brand" },
+    { value: "+ €7", label: "extra per seat through your link" },
   ],
   forWhoTitle: "For",
   forWho: ["Food photographers", "Wine lovers", "City guides", "Bloggers", "Community builders"],
-  giftTitle: "A reason to use your link",
+  giftTitle: "A gift for whoever books through you",
   giftIntro: "Whoever books through you picks a gift.",
   gifts: [
     { tag: "Option 1", title: "Bring someone along free", body: "Two seats for the price of one. Joining together is easier than alone." },
     { tag: "Option 2", title: "Half price the second time", body: "Come alone the first time and pay half for your seat the second time." },
   ],
-  exampleTitle: "An example",
-  exampleLabel: "You share your link a few times a month. In a year, 40 people book through you.",
-  exampleLines: [
-    ["They each come 4 times in two years: 160 seats × €7", "€1,120"],
-    ["5 of them become club members, 12 months × €7", "€420"],
+  calc: {
+    title: "And you earn with us",
+    label: "People per month through you",
+    perMonth: (n) => (n === 1 ? "1 person" : `${n} people`),
+    people: (n) => `${n} people in a year`,
+    seats: (n) => `${n} seats × €7`,
+    members: (n) => `${n} club members × 12 months × €7`,
+    totalLabel: "For you, in two years",
+    note: "An estimate: everyone comes 4 times in two years and 1 in 8 becomes a club member.",
+  },
+  communityTitle: "What you get",
+  communityIntro: "You join a group of makers who get better together.",
+  community: [
+    {
+      title: "A fun team",
+      body: "Makers who love food, wine and good places as much as you do. You're never on your own.",
+    },
+    {
+      title: "Build your portfolio",
+      body: "You make real content for a growing brand, in the best places of your city. Good for your portfolio and your CV.",
+    },
+    {
+      title: "Together every two weeks",
+      body: "A short online call with all makers. We share what works, what doesn't, and learn from each other.",
+    },
+    {
+      title: "Maker of the month",
+      body: "Every month, the makers with the best post and the most bookings win a nice prize.",
+    },
   ],
-  exampleTotalLabel: "For you, in two years",
-  exampleTotal: "€1,540",
-  exampleNote: "If they pick half price, you get €3.50 for that seat.",
   stepsTitle: "How it works",
   steps: [
     { title: "Meet us", body: "First a short online call. No strings attached." },
     { title: "Get your link", body: "If it clicks, you get your own link. It works on any channel." },
-    { title: "Share and earn", body: "Whoever books through your link counts for you for two years. We pay out once a month." },
+    { title: "Make, share and learn", body: "You make content, join the calls and share your link. Whoever books through you earns you something too." },
   ],
   waysTitle: "How you want to work",
   waysIntro:

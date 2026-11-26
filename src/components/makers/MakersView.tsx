@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MakerCalculator } from "@/components/makers/MakerCalculator";
 import { MakerForm } from "@/components/makers/MakerForm";
 import { makerCopy } from "@/lib/makers/copy";
 import type { Locale } from "@/i18n/config";
@@ -84,43 +85,19 @@ export function MakersView({
         </div>
       </section>
 
-      {/* What the people who book through a maker get. */}
+      {/* What makers get: the team, the portfolio, the calls, the prizes. */}
       <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
         <div className="max-w-2xl">
-          <H2>{t.giftTitle}</H2>
-          <p className="mt-3 text-[1.05rem] leading-relaxed text-wine/60">{t.giftIntro}</p>
+          <H2>{t.communityTitle}</H2>
+          <p className="mt-3 text-[1.05rem] leading-relaxed text-wine/60">{t.communityIntro}</p>
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {t.gifts.map((g) => (
-            <div key={g.tag} className="rounded-[1.5rem] bg-beige/60 px-7 py-8 sm:px-9 sm:py-10">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy/80">{g.tag}</div>
-              <div className="mt-4 font-serif text-[1.9rem] leading-tight text-wine">{g.title}</div>
-              <p className="mt-3 max-w-sm leading-relaxed text-wine/65">{g.body}</p>
+          {t.community.map((c) => (
+            <div key={c.title} className="rounded-[1.5rem] bg-beige/60 px-7 py-8 sm:px-9 sm:py-10">
+              <div className="font-serif text-[1.9rem] leading-tight text-wine">{c.title}</div>
+              <p className="mt-3 max-w-sm leading-relaxed text-wine/65">{c.body}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* A worked example of what a maker earns. */}
-      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
-        <div className="grid overflow-hidden rounded-[1.75rem] bg-wine text-cream sm:grid-cols-[1.1fr_1fr]">
-          <div className="px-7 py-10 sm:px-12 sm:py-14">
-            <Eyebrow light>{t.exampleTitle}</Eyebrow>
-            <p className="mt-4 max-w-md font-serif text-[1.7rem] leading-snug text-cream text-balance sm:text-[2rem]">{t.exampleLabel}</p>
-            <dl className="mt-8 max-w-md divide-y divide-cream/15 border-y border-cream/15">
-              {t.exampleLines.map(([label, value]) => (
-                <div key={label} className="flex items-baseline justify-between gap-4 py-3 text-[0.98rem]">
-                  <dt className="text-cream/70">{label}</dt>
-                  <dd className="shrink-0 font-semibold">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-          <div className="flex flex-col justify-end border-t border-cream/10 bg-[#3a0d14] px-7 py-10 sm:border-l sm:border-t-0 sm:px-12 sm:py-14">
-            <div className="text-[0.9rem] text-cream/60">{t.exampleTotalLabel}</div>
-            <div className="mt-2 font-serif text-[4.2rem] leading-none tracking-tight sm:text-[5.5rem]">{t.exampleTotal}</div>
-            <div className="mt-3 text-[0.9rem] text-cream/60">{t.exampleNote}</div>
-          </div>
         </div>
       </section>
 
@@ -153,6 +130,24 @@ export function MakersView({
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* The extra: what a maker earns, and what their bookers get. */}
+      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
+        <MakerCalculator locale={locale} />
+        <div className="mt-12 max-w-2xl">
+          <h3 className="font-serif text-[1.7rem] leading-tight text-wine">{t.giftTitle}</h3>
+          <p className="mt-2 leading-relaxed text-wine/60">{t.giftIntro}</p>
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {t.gifts.map((g) => (
+            <div key={g.tag} className="rounded-[1.5rem] border border-wine/10 px-7 py-7 sm:px-9">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy/80">{g.tag}</div>
+              <div className="mt-3 font-serif text-[1.5rem] leading-tight text-wine">{g.title}</div>
+              <p className="mt-2 max-w-sm leading-relaxed text-wine/65">{g.body}</p>
+            </div>
+          ))}
         </div>
       </section>
 

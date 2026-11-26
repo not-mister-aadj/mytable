@@ -103,6 +103,7 @@ export function SundayTableSectionNav({
   shareLabel,
   copiedLabel,
   locale,
+  singleColumn = false,
 }: {
   /** The first item is the top of the page ("Overzicht"). */
   items: SectionNavItem[];
@@ -113,6 +114,8 @@ export function SundayTableSectionNav({
   shareLabel: string;
   copiedLabel: string;
   locale: Locale;
+  /** A page with one narrow column (max-w-3xl) instead of the date page's two. */
+  singleColumn?: boolean;
 }) {
   const headerHeight = useSiteHeaderHeight();
   const [active, setActive] = useState(items[0]?.id ?? "");
@@ -201,7 +204,13 @@ export function SundayTableSectionNav({
     >
       {/* Same columns as the page below, so on desktop the bar only covers
           the left column and the booking panel on the right stays visible. */}
-      <div className="mx-auto grid lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12 lg:px-6">
+      <div
+        className={
+          singleColumn
+            ? "mx-auto grid lg:max-w-3xl lg:px-6"
+            : "mx-auto grid lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12 lg:px-6"
+        }
+      >
         <nav
           data-section-nav
           aria-label={locale === "en" ? "Page sections" : "Onderdelen van de pagina"}

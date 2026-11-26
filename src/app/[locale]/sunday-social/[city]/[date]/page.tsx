@@ -460,6 +460,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           "Our tips from the menu",
         ],
         note: "Your ticket is your seat at the table. What you drink and eat, you order yourself from the menu.",
+        summary: `For €${pricePerSeatEuros}: a seat at a table of 4 to 6, at a place we picked, with our tips from the menu. Your drinks you order yourself.`,
       }
     : {
         title: `Wat je krijgt voor €${pricePerSeatEuros}`,
@@ -470,6 +471,7 @@ export default async function SundayTableEventPage({ params }: Props) {
           "Onze tips van de kaart",
         ],
         note: "Je ticket is je plek aan tafel. Wat je drinkt en eet, bestel je zelf van de kaart.",
+        summary: `Voor €${pricePerSeatEuros}: een plek aan tafel met 4 tot 6 mensen, in een zaak die wij uitkiezen, met onze tips van de kaart. Je drankjes bestel je zelf.`,
       };
 
   const copy =

@@ -61,8 +61,8 @@ const PLAN_COPY = {
     missing: "Kies of je alleen deze zondag of elke zondag wilt.",
     monthlyCta: "Word club member en reserveer",
     guestFree: "gast gratis",
-    singleShort: "eenmalig",
-    monthlyShort: "alle steden, maandelijks opzegbaar",
+    singleShort: "alleen deze datum",
+    monthlyShort: "elke maand een plek, in alle steden",
     next: "Verder",
     back: "Wijzig",
     monthlyNote: "Volgende zondagen boek je zelf in je account. Maandelijks opzegbaar.",
@@ -78,8 +78,8 @@ const PLAN_COPY = {
     missing: "Choose just this Sunday or every Sunday.",
     monthlyCta: "Become a club member and reserve",
     guestFree: "guest free",
-    singleShort: "one time",
-    monthlyShort: "every city, cancel monthly",
+    singleShort: "just this date",
+    monthlyShort: "a seat every month, in every city",
     next: "Continue",
     back: "Change",
     monthlyNote: "You book next Sundays yourself in your account. Cancel monthly.",
@@ -158,7 +158,7 @@ interface SundayTableBookingCardProps {
   soldOutLabel: string;
   guarantees: string[];
   /** "Wat je krijgt voor €10", shown under the buy button. */
-  included?: { title: string; items: string[]; note: string } | null;
+  included?: { title: string; items: string[]; note: string; summary?: string } | null;
   genericErrorLabel: string;
   /** When this Sunday starts (ISO): a membership that ends before it does
    * not cover the seat. */
@@ -210,7 +210,9 @@ export function SundayTableBookingCard({
   const [venueId, setVenueId] = useState<string | null>(null);
   const memberCopy = MEMBER_COPY[locale === "en" ? "en" : "nl"];
   const planCopy = PLAN_COPY[locale === "en" ? "en" : "nl"];
-  const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>(null);
+  // "Alleen deze zondag" is chosen from the start: "Verder" works at once,
+  // and "Elke zondag" is one tap away.
+  const [ticketPlan, setTicketPlan] = useState<TicketPlan | null>("single");
   // From the feedback page: "?ticket=elke-zondag" or "?ticket=deze-zondag"
   // comes with that ticket already chosen, "&plekken=2" with a +1.
   useEffect(() => {
@@ -523,6 +525,8 @@ export function SundayTableBookingCard({
             {locale === "en" ? "Choose another Sunday" : "Kies een andere zondag"}
           </a>
         ) : null}
+        {/* What €10 gets you, in one line before the choice: what people wonder before they tap. The full list stays under the button. */}
+        {included?.summary && !englishOnlyWaiting && !member ? <p className="text-sm leading-snug text-wine/75">{included.summary}</p> : null}
         <div>
           <span className="block text-sm font-medium text-wine">{planCopy.label}</span>
           <div className="mt-1.5 grid grid-cols-2 gap-2">

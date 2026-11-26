@@ -503,6 +503,7 @@ export async function POST(request: Request) {
         tableLanguagePreference,
         birthDate: birthDateSent ? String(body.birthDate).trim() : null,
         agePreference,
+        returnPath: typeof body.returnPath === "string" ? body.returnPath : null,
       });
       if (result.kind === "booked") {
         return NextResponse.json({ booked: true, bookingId: result.bookingId, code: result.code });

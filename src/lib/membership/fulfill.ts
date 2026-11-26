@@ -135,7 +135,7 @@ export async function fulfillMembershipCheckout(session: Stripe.Checkout.Session
       description: `Lidmaatschap ${membership.plan}`,
       metadata: { membershipId: membership.id, plan: membership.plan, source: session.metadata?.source ?? null },
     }).catch(() => undefined);
-    void captureServerEvent(customerId, PostHogEvents.membershipStarted, {
+    void captureServerEvent(membership.email.trim().toLowerCase(), PostHogEvents.membershipStarted, {
       plan: membership.plan,
       source: session.metadata?.source ?? null,
       with_table: Boolean(bookingId),

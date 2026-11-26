@@ -24,6 +24,11 @@ export async function bookFreeSeatAfterFeedback(bookingId: string, eventId: stri
   if (!source) return { ok: false, error: "not_allowed" };
 
   const result = await db.transaction(async (tx) => {
+    // One free seat per feedback: a double tap or a second tab waits here,
+    // then finds the seat already given.
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"free-seat:" + bookingId}))`);
+    const given = await tx.execute(sql`select 1 from booking_events where type = 'feedback_free_seat' and payload->>'fromBookingId' = ${bookingId} limit 1`);
+    if ((given as unknown as unknown[]).length > 0) return "given" as const;
     const [ev] = await tx
       .update(events)
       .set({ spotsSold: sql`${events.spotsSold} + 1`, updatedAt: new Date() })
@@ -60,6 +65,7 @@ export async function bookFreeSeatAfterFeedback(bookingId: string, eventId: stri
     ]);
     return { booking: booking!, event: ev };
   });
+  if (result === "given") return { ok: false, error: "not_allowed" };
   if (!result) return { ok: false, error: "capacity" };
 
   try {

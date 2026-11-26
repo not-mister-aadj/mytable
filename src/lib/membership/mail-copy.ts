@@ -110,10 +110,10 @@ export function welcomeMail(input: {
         },
         {
           icon: "clock",
-          title: en ? "First to book" : "Als eerste boeken",
+          title: en ? "Priority on full Sundays" : "Voorrang bij volle zondagen",
           description: en
-            ? "As a club member you book 2 days before a table opens for everyone."
-            : "Als club member boek je 2 dagen voordat een tafel voor iedereen opengaat.",
+            ? "Is a Sunday full? Put yourself on the waitlist: a seat that comes free goes to club members first, and where we can we add a table."
+            : "Is een zondag vol? Zet je op de wachtlijst: een plek die vrijkomt gaat eerst naar club members, en waar het kan zetten we een tafel bij.",
         },
         {
           icon: "people",

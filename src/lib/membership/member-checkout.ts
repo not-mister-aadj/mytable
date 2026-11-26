@@ -76,6 +76,8 @@ export async function bookAsMember(input: {
   agePreference?: string | null;
   /** The reserved bar the member picked (Sunday Social). */
   preferredVenueId?: string | null;
+  /** The page they booked on: stopping in Stripe brings them back there. */
+  returnPath?: string | null;
 }): Promise<MemberBookingResult> {
   const { event, membership } = input;
   if (!isMembershipPlanId(membership.plan)) return { kind: "error", status: 500, code: "checkout_failed" };
@@ -187,7 +189,12 @@ export async function bookAsMember(input: {
         from_sunday_table: "0",
       },
       success_url: `${site}${jouwTafelSettingsPath(input.locale)}?geboekt=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${site}${jouwTafelKiesPath(input.locale)}`,
+      // Stopped paying for the guest: back to the Sunday, where one seat
+      // (their own, free) is a tap away.
+      cancel_url:
+        input.returnPath && input.returnPath.startsWith("/") && !input.returnPath.startsWith("//")
+          ? `${site}${input.returnPath}#boeken`
+          : `${site}${jouwTafelKiesPath(input.locale)}`,
     });
     await db.update(bookings).set({ stripeCheckoutSessionId: session.id }).where(eq(bookings.id, booking.id));
     if (!session.url) return { kind: "error", status: 500, code: "checkout_failed" };

@@ -317,7 +317,8 @@ export function trackSundayTableEnglishRequested(props: {
 }
 
 export function trackSundaySocialTicketChosen(props: {
-  plan: "single" | "monthly";
+  /** "member": a club member's own seat (with or without a guest). */
+  plan: "single" | "monthly" | "member";
   seats: number;
   city: string;
   locale: string;

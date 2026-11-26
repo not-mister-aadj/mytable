@@ -111,6 +111,9 @@ export async function POST(request: Request) {
             session_id: session.id,
           },
         });
+        // Stripe tries again (fulfilment is idempotent), instead of the
+        // payment waiting for someone to open the return page.
+        return NextResponse.json({ error: "Fulfilment failed" }, { status: 500 });
       }
     }
   }

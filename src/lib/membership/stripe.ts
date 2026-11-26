@@ -53,20 +53,27 @@ const OFFER_COUPON_ID = "mytable-seat-counts-10";
 
 export async function membershipOfferCouponId(): Promise<string> {
   const stripe = getStripe();
-  try {
-    const existing = await stripe.coupons.retrieve(OFFER_COUPON_ID);
-    if (existing.valid) return existing.id;
-  } catch {
-    // Not there yet: made below.
+  // A coupon that was deleted or ran out cannot be made again under its id:
+  // the next one gets a number.
+  for (let n = 1; n <= 5; n += 1) {
+    const id = n === 1 ? OFFER_COUPON_ID : `${OFFER_COUPON_ID}-${n}`;
+    try {
+      const existing = await stripe.coupons.retrieve(id);
+      if (existing.valid) return existing.id;
+      continue;
+    } catch {
+      // Not there yet: made here.
+    }
+    const created = await stripe.coupons.create({
+      id,
+      amount_off: MEMBERSHIP_OFFER_CREDIT_CENTS,
+      currency: "eur",
+      duration: "once",
+      name: "Je plek van vandaag telt mee",
+    });
+    return created.id;
   }
-  const created = await stripe.coupons.create({
-    id: OFFER_COUPON_ID,
-    amount_off: MEMBERSHIP_OFFER_CREDIT_CENTS,
-    currency: "eur",
-    duration: "once",
-    name: "Je plek van vandaag telt mee",
-  });
-  return created.id;
+  throw new Error("No usable offer coupon");
 }
 
 let portalConfigCache: string | null = null;

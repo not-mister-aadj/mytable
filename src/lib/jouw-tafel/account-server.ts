@@ -42,7 +42,7 @@ export type MemberBooking = {
   isMemberSeat: boolean;
   /** A paid guest seat comes with it (not refunded when cancelled). */
   withPaidGuest: boolean;
-  /** The member can still cancel it (until 48 hours before). */
+  /** The member can still cancel it (until 7 days before). */
   cancellable: boolean;
   /** "Verzetten naar de volgende zondag" for an upcoming Sunday Table seat;
    * null when it does not apply. */

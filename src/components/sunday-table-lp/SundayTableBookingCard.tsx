@@ -11,7 +11,8 @@ import {
   type TableLanguagePreference,
 } from "@/lib/booking-table-language";
 import { getStoredUtm } from "@/lib/analytics/utm";
-import { trackSundaySocialBookingStep, trackSundaySocialTicketChosen, trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+import { trackMembershipEvent, trackSundaySocialBookingStep, trackSundaySocialTicketChosen, trackSundayTableEnglishRequested } from "@/lib/posthog/analytics";
+import { PostHogEvents } from "@/lib/posthog/events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { syncMemberCustomerClient } from "@/features/auth/sync-customer-client";
 import { AUTH_CODE_LENGTH, classifyVerifyCodeError, normalizeAuthEmail, sanitizeAuthCode, validateAuthEmail } from "@/lib/jouw-tafel/auth-logic";
@@ -287,6 +288,8 @@ export function SundayTableBookingCard({
   const [fromQuiz, setFromQuiz] = useState(false);
   /** A signed-in member: own seat included, the guest free or at the member price. */
   const [member, setMember] = useState<CardMember | null>(null);
+  /** Still a member, but it ends before this Sunday: a single seat, no "Elke zondag" (they have it). */
+  const [memberEnding, setMemberEnding] = useState(false);
   /** For a member: the bars we reserved this Sunday, and the one they pick. */
   const [reserved, setReserved] = useState<ReservedVenue[] | null>(null);
   const [venueId, setVenueId] = useState<string | null>(null);
@@ -349,6 +352,7 @@ export function SundayTableBookingCard({
         setSignedIn(true);
         // A membership that ends before this Sunday does not cover it.
         const covers = !me.member?.endsAt || !startsAt || Date.parse(startsAt) <= Date.parse(me.member.endsAt);
+        if (me.member && !covers) setMemberEnding(true);
         if (me.member && covers) {
           setMember(me.member);
           setStage((current) => (current === "email" || current === "code" ? "details" : current));
@@ -404,7 +408,7 @@ export function SundayTableBookingCard({
   const guestFree = Boolean(member?.freeGuest);
   const memberGuestEuros = member ? member.guestCents / 100 : 0;
   // The choice is only for someone who is not a member yet.
-  const offersPlan = MEMBERSHIP_AT_BOOKING && !member;
+  const offersPlan = MEMBERSHIP_AT_BOOKING && !member && !memberEnding;
   const monthly = offersPlan && ticketPlan === "monthly";
   // The email, the details, and for someone who is not a member yet the
   // "Elke zondag" offer on its own screen before paying (so each is measured).
@@ -576,6 +580,10 @@ export function SundayTableBookingCard({
     if (plan) {
       setTicketPlan(plan);
       trackSundaySocialTicketChosen({ plan, seats, city: cityName, locale });
+      // The same funnel as joining from settings or the membership page.
+      if (plan === "monthly") trackMembershipEvent(PostHogEvents.membershipCheckoutStarted, { plan: "1m", source: "booking", locale, city: cityName });
+    } else if (member) {
+      trackSundaySocialTicketChosen({ plan: "member", seats, city: cityName, locale });
     }
     setLoading(true);
     setError(null);
@@ -825,7 +833,10 @@ export function SundayTableBookingCard({
           <span className="text-xs font-medium text-wine/50">{stepCopy.step(3, stepsTotal)}</span>
         </div>
         <div>
-          <span className="inline-flex rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine">{upsellCopy.badge}</span>
+          {/* Only true while a seat costs what a month costs. */}
+          {Math.round(pricePerSeatEuros * 100) === MONTHLY_CENTS ? (
+            <span className="inline-flex rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wine">{upsellCopy.badge}</span>
+          ) : null}
           <p className="mt-3 font-serif text-[1.75rem] leading-tight text-wine">{upsellCopy.title}</p>
           <p className="mt-1 text-sm text-wine/70">{upsellCopy.lead(price)}</p>
         </div>

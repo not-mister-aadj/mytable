@@ -201,6 +201,35 @@ export function cancelledMail(input: {
   };
 }
 
+export function guaranteeMail(input: {
+  locale: Locale;
+  firstName?: string | null;
+  sunday: Date;
+  links: Links;
+}): MembershipMail {
+  const { locale: l } = input;
+  const en = l === "en";
+  const day = mailSunday(input.sunday, l);
+  return {
+    subject: en ? "Your next month is free" : "Je volgende maand is gratis",
+    props: {
+      locale: l,
+      preview: en ? "Our member gezelligheidsgarantie: next month is on us." : "Onze member gezelligheidsgarantie: je volgende maand is van ons.",
+      greeting: greeting(l, input.firstName),
+      headline: en ? "Your next month is on us" : "Je volgende maand is van ons",
+      body: en
+        ? `After ${day} you picked nobody at the table you would like to see again. That is what our member gezelligheidsgarantie is for: your next month is free. We will not charge you for it, and your club membership simply continues.`
+        : `Na ${day} vinkte je niemand aan tafel aan die je graag terugziet. Daar is onze member gezelligheidsgarantie voor: je volgende maand is gratis. Die maand schrijven we niets af, je club membership loopt gewoon door.`,
+      warmLine: en ? "Book your next Sunday as usual." : "Boek je volgende zondag gewoon zoals altijd.",
+      cta: {
+        href: input.links.kies,
+        label: en ? "Choose your Sunday →" : "Kies je zondag →",
+        helperText: en ? "Book your next table here." : "Hier boek je je volgende tafel.",
+      },
+    },
+  };
+}
+
 export function noShowWarningMail(input: {
   locale: Locale;
   firstName?: string | null;

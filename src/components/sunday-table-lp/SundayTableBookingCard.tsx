@@ -876,6 +876,14 @@ export function SundayTableBookingCard({
             {loading && ticketPlan === "monthly" ? "…" : `${upsellCopy.yesButton(price)}${seats === 2 ? ` · ${planCopy.guestFree}` : ""}`}
           </Button>
           <p className="mt-1.5 text-center text-xs text-wine/55">{upsellCopy.cancel}</p>
+          {/* Both choices in plain sight: no is a full button too. */}
+          <button
+            type="button"
+            onClick={() => void checkout("single")}
+            className="mt-3 w-full rounded-full border border-burgundy px-6 py-3 text-sm font-semibold text-burgundy transition hover:bg-burgundy/5"
+          >
+            {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
+          </button>
         </div>
         <div className="flex gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3">
           <span aria-hidden className="shrink-0 text-burgundy">
@@ -886,13 +894,6 @@ export function SundayTableBookingCard({
             <span className="block text-wine/70">{upsellCopy.guaranteeBody}</span>
           </span>
         </div>
-        <button
-          type="button"
-          onClick={() => void checkout("single")}
-          className="w-full text-center text-sm text-wine/60 underline decoration-wine/25 underline-offset-4 transition hover:text-wine"
-        >
-          {loading && ticketPlan === "single" ? "…" : upsellCopy.noButton(euroLabel(pricePerSeatEuros * seats))}
-        </button>
       </div>
     );
   }

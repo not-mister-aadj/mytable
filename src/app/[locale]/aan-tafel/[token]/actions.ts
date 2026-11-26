@@ -8,6 +8,7 @@ import { longDate } from "@/lib/admin/sunday-mails";
 import { handOverSeat } from "@/lib/seat-handover";
 import { moveSeat } from "@/lib/seat-move";
 import { savePlusOneAnswers, shareTablePageIntro, verifyTablePageToken, type PlusOneAnswers } from "@/lib/table-page";
+import { createHandOverLink, revokeHandOverLink } from "@/lib/seat-handover-link";
 
 /** "Deel mijn intro" on the table page: only for the booking in the link. */
 export async function shareTableIntroAction(token: string): Promise<{ ok: boolean }> {
@@ -59,6 +60,22 @@ export async function handOverSeatAction(token: string, to: { name: string; emai
   if (!bookingId) return { ok: false, error: "closed" };
   const result = await handOverSeat(bookingId, { name: String(to?.name ?? ""), email: String(to?.email ?? "") });
   return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+/** "Geef mijn plek door" as a link to share: the open one, else a new one. */
+export async function shareSeatLinkAction(token: string): Promise<{ ok: boolean; url?: string }> {
+  const bookingId = await verifyTablePageToken(token);
+  if (!bookingId) return { ok: false };
+  const url = await createHandOverLink(bookingId);
+  return url ? { ok: true, url } : { ok: false };
+}
+
+/** "Link intrekken": the shared link stops working. */
+export async function revokeSeatLinkAction(token: string): Promise<{ ok: boolean }> {
+  const bookingId = await verifyTablePageToken(token);
+  if (!bookingId) return { ok: false };
+  await revokeHandOverLink(bookingId);
+  return { ok: true };
 }
 
 /** "Twee vragen" from the venue (diet, live music): for the booking in the link. */

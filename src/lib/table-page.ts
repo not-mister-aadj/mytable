@@ -9,6 +9,7 @@ import { tableLanguage } from "@/lib/jouw-tafel/groups-logic";
 import { canReschedule } from "@/lib/jouw-tafel/reschedule-logic";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { venueTransit } from "@/lib/venue-about";
+import { openLinkId } from "@/lib/seat-handover-link";
 import { parseVenuePicks, picksVisible, type VenuePick } from "@/lib/venue-picks";
 
 /**
@@ -99,6 +100,8 @@ export type TablePage = {
   /** What "Kun je toch niet?" offers: moving (until 7 days before, as often as they like), a
    * fixed seat (hand it over, or tell us), or a member's own cancel. */
   seat: "movable" | "fixed" | "member";
+  /** A "geef mijn plek door" link is out and nobody took it yet. */
+  shareLinkOpen: boolean;
   /** The Sunday is today, tomorrow or later (Amsterdam). */
   day: "today" | "tomorrow" | "later";
   venue: { name: string; address: string | null; transit: string | null } | null;
@@ -238,6 +241,7 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
       : canReschedule(event.startsAt, now)
         ? "movable"
         : "fixed",
+    shareLinkOpen: Boolean(await openLinkId(booking.id)),
     day:
       dayKey(event.startsAt) === dayKey(new Date(now))
         ? "today"

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/db/index";
 import { sendDueAutoMails } from "@/lib/admin/auto-feedback";
 import { sendDueSeatOffers } from "@/lib/seat-offer";
+import { sendHandOverReminders } from "@/lib/seat-handover-link";
 
 export const maxDuration = 300;
 
@@ -19,5 +20,10 @@ export async function GET(request: Request) {
     console.error("[cron] seat offers failed:", error);
     return [];
   });
-  return NextResponse.json({ results, seatOffers });
+  // A "geef mijn plek door" link nobody took: the giver hears it on Friday 10:00 (seat-handover-link.ts).
+  const handOverReminders = await sendHandOverReminders().catch((error) => {
+    console.error("[cron] hand-over reminders failed:", error);
+    return { sent: 0 };
+  });
+  return NextResponse.json({ results, seatOffers, handOverReminders });
 }

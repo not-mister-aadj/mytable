@@ -89,7 +89,7 @@ export async function ensureAuthUserForEmail(input: {
   return { userId: null, created: false };
 }
 
-export type SilentSource = "waitlist" | "notify" | "quiz";
+export type SilentSource = "waitlist" | "notify" | "quiz" | "handover";
 
 /**
  * Every signup gets an account in the background, without any mail, so

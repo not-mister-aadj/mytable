@@ -18,9 +18,9 @@ import { tablePageUrl } from "@/lib/table-page";
 
 const FROM = "MyTable <hallo@tafels.mytable.club>";
 
-export type HandOverResult = { ok: true } | { ok: false; error: "closed" | "invalid" | "same" | "already" | "failed" };
+export type HandOverResult = { ok: true; bookingId: string } | { ok: false; error: "closed" | "invalid" | "same" | "already" | "failed" };
 
-export async function handOverSeat(bookingId: string, to: { name: string; email: string }, now: Date = new Date()): Promise<HandOverResult> {
+export async function handOverSeat(bookingId: string, to: { name: string; email: string; birthDate?: string | null }, now: Date = new Date()): Promise<HandOverResult> {
   const name = to.name.trim().replace(/\s+/g, " ").slice(0, 80);
   const email = to.email.trim().toLowerCase();
   if (!name || !isValidEmail(email)) return { ok: false, error: "invalid" };
@@ -62,6 +62,7 @@ export async function handOverSeat(bookingId: string, to: { name: string; email:
           paymentStatus: "paid",
           locale: old.locale,
           tableLanguagePreference: old.tableLanguagePreference,
+          birthDate: to.birthDate ?? null,
           membershipId: old.membershipId,
           groupId: old.groupId,
           lifecycleStatus: "active",
@@ -126,7 +127,26 @@ export async function handOverSeat(bookingId: string, to: { name: string; email:
       "Al geplande zondagmails staan nog niet op de nieuwe gast: plan ze opnieuw.",
     ].join("\n"),
   }).catch((error) => console.error("[seat-handover] telling the owner failed", error));
-  return { ok: true };
+
+  // The guest who gave it: it's taken care of.
+  const giver = handOverDoneMail({ locale, firstName: old.customerName?.trim().split(/\s+/)[0] ?? "", toName: name.split(" ")[0]!, city: event.city, startsAt: event.startsAt });
+  await sendSundayMail(old.email, { ...giver, from: FROM }).catch((error) => console.error("[seat-handover] mail to the giver failed", error));
+  return { ok: true, bookingId: fresh.id };
+}
+
+/** To the guest who handed the seat over: who comes instead. Short, no fault. */
+export function handOverDoneMail(p: { locale: "nl" | "en"; firstName: string; toName: string; city: string; startsAt: Date }): { subject: string; text: string; html: string } {
+  const nl = p.locale === "nl";
+  const day = longDate(p.startsAt, p.locale);
+  const text = (
+    nl
+      ? [`Hoi${p.firstName ? ` ${p.firstName}` : ""},`, "", `${p.toName} neemt je plek over op ${day} in ${p.city}. Fijn dat je het geregeld hebt.`, "", "Tot een volgende keer,", "MyTable"]
+      : [`Hi${p.firstName ? ` ${p.firstName}` : ""},`, "", `${p.toName} is taking your seat on ${day} in ${p.city}. Thanks for sorting it out.`, "", "See you another time,", "MyTable"]
+  ).join("\n");
+  const escape = (l: string) => l.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const paragraphs = text.split("\n\n").map((b) => `<p style="margin:0 0 16px">${b.split("\n").map(escape).join("<br>")}</p>`);
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b0d12;max-width:560px">${paragraphs.join("")}</div>`;
+  return { subject: nl ? `${p.toName} neemt je plek over · ${shortDate(p.startsAt, "nl")}` : `${p.toName} is taking your seat · ${shortDate(p.startsAt, "en")}`, text, html };
 }
 
 /** To the one who comes instead: what it is, where and when, and their table page. */

@@ -451,10 +451,11 @@ export type MembershipSettingsCopy = {
   bookedToast: string;
   deleteMember: string;
   /** "Word lid" from the settings page: the "Elke zondag" plan. */
-  joinPlanValue: (price: string) => string;
+  joinRowValue: (price: string) => string;
   joinTitle: string;
-  joinBody: string;
   joinPrice: (price: string) => string;
+  joinBenefits: { icon: "repeat" | "priority" | "pin"; title: string; body: string }[];
+  joinGuarantee: string;
   joinCta: string;
   joinBusy: string;
   joinFailed: string;
@@ -502,10 +503,15 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
       cancelSeatFailed: "That did not work. Please try again.",
       bookedToast: "Your seat is booked.",
       deleteMember: "Your club membership ends straight away and nothing is charged after that.",
-      joinPlanValue: (price) => `Every Sunday · ${price} per month`,
-      joinTitle: "Every Sunday",
-      joinBody: "Every Sunday Social in every city. You book them yourself here in your account. Cancel monthly.",
-      joinPrice: (price) => `${price} per month`,
+      joinRowValue: (price) => `Every Sunday for ${price} per month`,
+      joinTitle: "Make it every Sunday",
+      joinPrice: (price) => `${price} per month · cancel monthly`,
+      joinBenefits: [
+        { icon: "repeat", title: "As often as you like", body: "Every Sunday Social in all 5 cities is included." },
+        { icon: "priority", title: "Priority on full Sundays", body: "You go first, and where we can we add an extra table." },
+        { icon: "pin", title: "Pick your own bar", body: "From the places we reserve that Sunday." },
+      ],
+      joinGuarantee: "Didn't click with anyone at your table? Your next month is free.",
       joinCta: "Become a club member",
       joinBusy: "Opening",
       joinFailed: "That did not work. Please try again.",
@@ -550,10 +556,15 @@ export function getMembershipSettingsCopy(locale: Locale): MembershipSettingsCop
     cancelSeatFailed: "Dat lukte niet. Probeer het nog een keer.",
     bookedToast: "Je plek staat vast.",
     deleteMember: "Je club membership stopt dan meteen en we schrijven daarna niets meer af.",
-    joinPlanValue: (price) => `Elke zondag · ${price} per maand`,
-    joinTitle: "Elke zondag",
-    joinBody: "Elke Sunday Social in alle steden. Die boek je zelf hier in je account. Maandelijks opzegbaar.",
-    joinPrice: (price) => `${price} per maand`,
+    joinRowValue: (price) => `Elke zondag voor ${price} per maand`,
+    joinTitle: "Maak er elke zondag van",
+    joinPrice: (price) => `${price} per maand · maandelijks opzegbaar`,
+    joinBenefits: [
+      { icon: "repeat", title: "Zo vaak als je wilt", body: "Elke Sunday Social in alle 5 steden zit erbij." },
+      { icon: "priority", title: "Voorrang bij volle zondagen", body: "Jij gaat voor, en waar het kan zetten we een extra tafel neer." },
+      { icon: "pin", title: "Kies zelf je bar", body: "Uit de zaken die we die zondag reserveren." },
+    ],
+    joinGuarantee: "Vond je niemand aan tafel gezellig? Dan is je volgende maand gratis.",
     joinCta: "Club member worden",
     joinBusy: "Openen",
     joinFailed: "Dat lukte niet. Probeer het nog een keer.",

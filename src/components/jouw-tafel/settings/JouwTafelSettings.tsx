@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PhotoCropper } from "@/components/PhotoCropper";
+import { OfferIcon } from "@/components/sunday-table-lp/OfferIcon";
 import { ArrowLeftIcon } from "@/components/jouw-tafel/icons";
 import { TafelvriendenTab } from "@/components/jouw-tafel/settings/TafelvriendenTab";
 import type { Tafelvrienden } from "@/lib/tafelvrienden/server";
@@ -1364,11 +1365,35 @@ function JoinMembership({ locale }: { locale: Locale }) {
 
   return (
     <>
-      <ButtonRow label={ms.join} value={ms.joinPlanValue(price)} onClick={() => setOpen(true)} />
+      {/* One row like the others, with the price on its own line: never cut off. */}
+      <li>
+        <button type="button" onClick={() => setOpen(true)} className={`${rowBase} active:bg-cream/70`}>
+          <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cream text-burgundy">
+            <OfferIcon name="priority" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[0.98rem] font-medium text-wine">{ms.join}</span>
+            <span className="block text-[0.85rem] text-wine/55">{ms.joinRowValue(price)}</span>
+          </span>
+          <ChevronIcon />
+        </button>
+      </li>
       {open ? (
         <BottomSheet labelledBy="jt-settings-join" title={ms.joinTitle} closeLabel={s.close} onClose={() => setOpen(false)} tone="cream">
-          <p className="mt-3 text-[0.95rem] leading-relaxed text-wine/75">{ms.joinBody}</p>
-          <p className="mt-4 font-serif text-[1.6rem] text-burgundy">{ms.joinPrice(price)}</p>
+          <p className="mt-1 text-[0.92rem] text-wine/60">{ms.joinPrice(price)}</p>
+          <ul className="mt-4 space-y-3">
+            {ms.joinBenefits.map((b) => (
+              <li key={b.title} className="flex items-start gap-3">
+                <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-burgundy">
+                  <OfferIcon name={b.icon} />
+                </span>
+                <span className="text-[0.92rem] leading-snug">
+                  <span className="block font-semibold text-wine">{b.title}</span>
+                  <span className="block text-wine/65">{b.body}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
           {error ? (
             <p role="alert" className="mt-3 text-[0.9rem] font-semibold text-red-700">
               {error}
@@ -1377,6 +1402,12 @@ function JoinMembership({ locale }: { locale: Locale }) {
           <button type="button" onClick={() => void start()} disabled={busy} className={`${primaryButton} mt-5`}>
             {busy ? ms.joinBusy : ms.joinCta}
           </button>
+          <p className="mt-3 flex items-center gap-2 text-[0.82rem] text-wine/60">
+            <span aria-hidden className="shrink-0 text-burgundy">
+              <OfferIcon name="shield" />
+            </span>
+            {ms.joinGuarantee}
+          </p>
         </BottomSheet>
       ) : null}
     </>

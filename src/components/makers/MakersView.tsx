@@ -120,6 +120,12 @@ export function MakersView({
               ))}
             </ul>
             <p className="mt-6 text-[0.98rem] leading-relaxed text-wine/70">{t.intro}</p>
+            <a
+              href="#kennismaken"
+              className="cta-lift cta-lift-burgundy mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-burgundy px-7 text-[0.98rem] font-semibold text-cream shadow-[0_10px_26px_rgba(90,15,27,0.25)] hover:bg-wine sm:w-auto"
+            >
+              {t.cta}
+            </a>
           </div>
 
           {/* The rest of the story. */}

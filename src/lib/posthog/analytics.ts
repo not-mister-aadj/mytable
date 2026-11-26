@@ -326,7 +326,7 @@ export function trackSundaySocialTicketChosen(props: {
 }
 
 export function trackSundaySocialBookingStep(props: {
-  step: "email" | "code_sent" | "code_verified" | "details";
+  step: "email" | "code_sent" | "code_verified" | "details" | "offer";
   city: string;
   locale: string;
   kind?: "member" | "known" | "new";

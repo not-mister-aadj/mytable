@@ -72,7 +72,7 @@ export function MakerForm({ locale }: { locale: Locale }) {
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-wine/10 bg-white px-6 py-8" role="status">
+      <div className="rounded-2xl bg-white px-6 py-8" role="status">
         <p className="font-serif text-2xl text-wine">{t.doneTitle}</p>
         <p className="mt-2 leading-relaxed text-wine/70">{t.doneBody}</p>
       </div>
@@ -81,7 +81,7 @@ export function MakerForm({ locale }: { locale: Locale }) {
 
   const [before, linkText, after] = t.privacy;
   return (
-    <form onSubmit={submit} className="space-y-5 rounded-2xl border border-wine/10 bg-white px-5 py-6 sm:px-6">
+    <form onSubmit={submit} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label={t.name}>
           <input name="name" required autoComplete="name" className={input} />

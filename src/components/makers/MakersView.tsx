@@ -8,17 +8,54 @@ import { makerCopy } from "@/lib/makers/copy";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
 
-function Eyebrow({ children, light }: { children: React.ReactNode; light?: boolean }) {
+const icon = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+
+/** Team, camera, euro: for the three facts under the photo. */
+const FACT_ICONS = [
+  <svg key="team" {...icon} aria-hidden>
+    <circle cx="9" cy="8" r="3" />
+    <circle cx="17" cy="9" r="2.5" />
+    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+    <path d="M15 14.5c2.8.3 5 2.6 5 5.5" />
+  </svg>,
+  <svg key="camera" {...icon} aria-hidden>
+    <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </svg>,
+  <svg key="euro" {...icon} aria-hidden>
+    <path d="M17 6.5A7 7 0 1 0 17 17.5" />
+    <path d="M4 10.5h9M4 13.5h9" />
+  </svg>,
+];
+
+/** Team, portfolio, calls, prize: for "Wat je krijgt". */
+const COMMUNITY_ICONS = [
+  FACT_ICONS[0],
+  FACT_ICONS[1],
+  <svg key="call" {...icon} aria-hidden>
+    <rect x="3" y="6" width="13" height="12" rx="2" />
+    <path d="M16 10l5-3v10l-5-3" />
+  </svg>,
+  <svg key="prize" {...icon} aria-hidden>
+    <path d="M8 4h8v5a4 4 0 0 1-8 0z" />
+    <path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4" />
+    <path d="M12 13v4M9 20h6" />
+  </svg>,
+];
+
+function SectionHead({ eyebrow, title, intro }: { eyebrow: string; title: string; intro?: string }) {
   return (
-    <div className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${light ? "text-cream/70" : "text-burgundy/80"}`}>{children}</div>
+    <>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gold">{eyebrow}</p>
+      <h2 className="mt-3 max-w-xl font-serif text-2xl font-medium tracking-tight text-wine sm:text-3xl">{title}</h2>
+      {intro ? <p className="mt-2 max-w-xl text-[0.95rem] leading-relaxed text-wine/60">{intro}</p> : null}
+    </>
   );
 }
 
-function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="font-serif text-[2rem] leading-[1.1] tracking-tight text-wine text-balance sm:text-[2.6rem]">{children}</h2>;
-}
+const card = "rounded-[1.5rem] border border-wine/10 bg-white/70 shadow-[0_20px_50px_rgba(43,13,18,0.06)]";
 
-/** /makers: for people who capture food, places and community. Only linked from the footer. */
+/** /makers, in the style of the Sunday Social date pages. Only linked from the footer. */
 export function MakersView({
   locale,
   headerDict,
@@ -30,174 +67,141 @@ export function MakersView({
 }) {
   const t = makerCopy(locale);
   return (
-    <div className="overflow-x-clip bg-white">
+    <div className="overflow-x-clip bg-cream">
       <Header dict={headerDict} locale={locale} />
 
-      {/* Hero: the image carries the page, the words sit on it. */}
-      <section className="pt-[4.25rem] sm:px-5 sm:pt-24">
-        <div id="maker-hero" className="relative mx-auto max-w-6xl overflow-hidden sm:rounded-[1.75rem]">
-          <Image
-            src="/girls-only/phone-moment.jpg"
-            alt=""
-            fill
-            sizes="(min-width: 1152px) 72rem, 100vw"
-            className="object-cover"
-            priority
-          />
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#1c0609]/95 via-[#1c0609]/55 to-[#1c0609]/10" />
-          <div className="relative flex min-h-[calc(100svh-4.25rem)] max-h-[44rem] flex-col justify-end px-5 pb-9 pt-32 sm:min-h-[38rem] sm:px-12 sm:pb-14">
-            <Eyebrow light>{t.eyebrow}</Eyebrow>
-            <h1 className="mt-4 max-w-3xl font-serif text-[2.6rem] font-medium leading-[1.02] tracking-tight text-cream text-balance sm:text-[4.2rem]">
+      <section className="pb-28 pt-24 sm:pt-32 lg:pb-20">
+        <div className="mx-auto grid max-w-lg gap-8 px-5 sm:px-6 lg:max-w-6xl lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-x-12 lg:gap-y-0">
+          {/* What it is, then the photo and three facts. */}
+          <div id="maker-hero" className="min-w-0 lg:col-start-1 lg:row-start-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{t.eyebrow}</p>
+            <h1 className="mt-2 font-serif text-[2rem] font-medium leading-[1.05] tracking-tight text-wine text-balance sm:text-[2.75rem]">
               {t.title}
             </h1>
-            <p className="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-cream/80 text-pretty sm:text-[1.15rem]">{t.intro}</p>
-            <div className="mt-8 flex flex-col items-stretch gap-y-4 sm:flex-row sm:items-center sm:gap-x-6">
-              <a
-                href="#kennismaken"
-                className="cta-lift inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-cream px-7 text-[0.98rem] font-semibold text-wine transition hover:bg-white"
-              >
-                {t.cta}
-              </a>
-              <a href="#zo-werkt-het" className="text-center text-[0.95rem] font-semibold text-cream/85 underline-offset-4 hover:underline">
-                {t.ctaSecondary}
-              </a>
+            <p className="mt-2 text-base font-medium text-wine/90 sm:text-lg">{t.heroMeta}</p>
+            <div className="h-4" />
+            <div className="relative aspect-[16/10] overflow-hidden rounded-[1.75rem] shadow-[0_24px_60px_rgba(43,13,18,0.18)] sm:aspect-[4/3]">
+              <Image src="/girls-only/phone-moment.jpg" alt="" fill priority sizes="(max-width: 1024px) 100vw, 640px" className="object-cover" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#14060a]/50 to-transparent" />
+              <span className="absolute left-4 top-4 z-10 inline-flex items-center rounded-full bg-gold px-3.5 py-2 text-xs font-semibold uppercase tracking-wide text-wine backdrop-blur-sm">
+                {t.badge}
+              </span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The offer in three numbers. */}
-      <section className="mx-auto max-w-6xl px-5 sm:px-8">
-        <dl className="grid grid-cols-3 divide-x divide-wine/10 border-b border-wine/10">
-          {t.stats.map((s) => (
-            <div key={s.value} className="px-2.5 py-6 first:pl-0 last:pr-0 sm:px-8 sm:py-10">
-              <dt className="font-serif text-[1.35rem] leading-none tracking-tight text-burgundy sm:text-[3.2rem]">{s.value}</dt>
-              <dd className="mt-2 text-[0.78rem] leading-snug text-wine/60 sm:text-[0.95rem]">{s.label}</dd>
-            </div>
-          ))}
-        </dl>
-        <div className="scrollbar-none -mx-5 flex items-center gap-2 overflow-x-auto px-5 py-5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:py-6">
-          <span className="mr-1 shrink-0 text-[0.85rem] text-wine/50">{t.forWhoTitle}</span>
-          {t.forWho.map((w) => (
-            <span key={w} className="shrink-0 rounded-full border border-wine/12 px-3.5 py-1.5 text-[0.85rem] text-wine/75">
-              {w}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* What makers get: the team, the portfolio, the calls, the prizes. */}
-      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
-        <div className="max-w-2xl">
-          <H2>{t.communityTitle}</H2>
-          <p className="mt-3 text-[1.05rem] leading-relaxed text-wine/60">{t.communityIntro}</p>
-        </div>
-        <div className="scrollbar-none -mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:mt-10 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0">
-          {t.community.map((c, i) => (
-            <div
-              key={c.title}
-              className="w-[78%] shrink-0 snap-start scroll-ml-5 rounded-[1.5rem] bg-beige/60 px-6 py-7 sm:w-auto sm:px-9 sm:py-10"
-            >
-              <div className="font-serif text-[0.95rem] text-burgundy/50">{String(i + 1).padStart(2, "0")}</div>
-              <div className="mt-6 font-serif text-[1.6rem] leading-tight text-wine sm:mt-8 sm:text-[1.9rem]">{c.title}</div>
-              <p className="mt-3 max-w-sm leading-relaxed text-wine/65">{c.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Steps. */}
-      <section id="zo-werkt-het" className="mx-auto mt-16 max-w-6xl scroll-mt-28 px-5 sm:mt-24 sm:px-8">
-        <H2>{t.stepsTitle}</H2>
-        <ol className="mt-8 grid sm:mt-10 sm:grid-cols-3 sm:gap-8">
-          {t.steps.map((s, i) => (
-            <li key={s.title} className="flex gap-5 border-t border-wine/15 py-5 sm:block sm:py-0 sm:pt-6">
-              <div className="w-10 shrink-0 font-serif text-[1.6rem] leading-none text-burgundy/35 sm:w-auto sm:text-[2.4rem]">
-                {String(i + 1).padStart(2, "0")}
-              </div>
-              <div>
-                <div className="font-serif text-[1.3rem] leading-tight text-wine sm:mt-4 sm:text-[1.45rem]">{s.title}</div>
-                <p className="mt-1.5 leading-relaxed text-wine/65 sm:mt-2">{s.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* How they work with us. */}
-      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
-        <div className="grid gap-10 sm:grid-cols-[1fr_1.4fr] sm:gap-16">
-          <div>
-            <H2>{t.waysTitle}</H2>
-            <p className="mt-4 leading-relaxed text-wine/60">{t.waysIntro}</p>
-          </div>
-          <div className="divide-y divide-wine/10 border-y border-wine/10">
-            {t.ways.map((w) => (
-              <div key={w.title} className="py-6">
-                <div className="font-serif text-[1.35rem] text-wine">{w.title}</div>
-                <p className="mt-1.5 leading-relaxed text-wine/65">{w.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* The extra: what a maker earns, and what their bookers get. */}
-      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
-        <MakerCalculator locale={locale} />
-        <div className="mt-12 max-w-2xl">
-          <h3 className="font-serif text-[1.7rem] leading-tight text-wine">{t.giftTitle}</h3>
-          <p className="mt-2 leading-relaxed text-wine/60">{t.giftIntro}</p>
-        </div>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
-          {t.gifts.map((g) => (
-            <div key={g.tag} className="rounded-[1.5rem] border border-wine/10 px-6 py-6 sm:px-9 sm:py-7">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy/80">{g.tag}</div>
-              <div className="mt-3 font-serif text-[1.5rem] leading-tight text-wine">{g.title}</div>
-              <p className="mt-2 max-w-sm leading-relaxed text-wine/65">{g.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Questions. */}
-      <section className="mx-auto mt-16 max-w-6xl px-5 sm:mt-24 sm:px-8">
-        <div className="grid gap-10 sm:grid-cols-[1fr_1.4fr] sm:gap-16">
-          <H2>{t.faqTitle}</H2>
-          <div className="divide-y divide-wine/10 border-y border-wine/10">
-            {t.faq.map((f) => (
-              <details key={f.q} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[1.02rem] font-semibold text-wine">
-                  {f.q}
-                  <span aria-hidden className="text-2xl font-light leading-none text-wine/40 transition group-open:rotate-45">
-                    +
+            <ul className="mt-4 grid grid-cols-3 gap-2 text-center">
+              {t.quickFacts.map((fact, i) => (
+                <li key={fact} className="flex flex-col items-center gap-1.5 text-xs leading-snug text-wine/75">
+                  <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy/[0.07] text-burgundy">
+                    {FACT_ICONS[i % FACT_ICONS.length]}
                   </span>
-                </summary>
-                <p className="mt-3 max-w-xl leading-relaxed text-wine/70">{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* First a short call. */}
-      <section id="kennismaken" className="mx-auto mt-16 max-w-6xl scroll-mt-24 px-5 pb-24 sm:mt-24 sm:px-8">
-        <div className="grid gap-10 rounded-[1.75rem] bg-beige/60 px-6 py-10 sm:grid-cols-[1fr_1.4fr] sm:gap-16 sm:px-12 sm:py-14">
-          <div>
-            <H2>{t.meetTitle}</H2>
-            <p className="mt-4 leading-relaxed text-wine/65">{t.meetIntro}</p>
-            <ul className="mt-6 space-y-2.5">
-              {t.meetPoints.map((p) => (
-                <li key={p} className="flex gap-3 text-wine/75">
-                  <svg viewBox="0 0 20 20" aria-hidden className="mt-1 h-4 w-4 shrink-0 text-burgundy" fill="none" stroke="currentColor" strokeWidth={2}>
-                    <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {p}
+                  {fact}
                 </li>
               ))}
             </ul>
+            <p className="mt-6 text-[0.98rem] leading-relaxed text-wine/70">{t.intro}</p>
           </div>
-          <MakerForm locale={locale} />
+
+          {/* The form as a panel, like the booking panel: beside the page on desktop. */}
+          <div id="kennismaken" className="order-last min-w-0 scroll-mt-24 lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            <div className="rounded-[1.75rem] border border-wine/10 bg-beige/60 px-5 py-6 shadow-[0_20px_50px_rgba(43,13,18,0.08)] sm:px-7 lg:sticky lg:top-24 lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto">
+              <p className="font-serif text-2xl text-wine">{t.meetTitle}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-wine/65">{t.meetIntro}</p>
+              <ul className="mt-3 space-y-1.5">
+                {t.meetPoints.map((p) => (
+                  <li key={p} className="flex gap-2.5 text-sm text-wine/75">
+                    <span aria-hidden className="text-emerald-700">
+                      ✓
+                    </span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5">
+                <MakerForm locale={locale} />
+              </div>
+            </div>
+          </div>
+
+          {/* The rest of the story. */}
+          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+            <div className="mt-2 border-t border-wine/10 pt-10 lg:mt-14">
+              <SectionHead eyebrow={t.communityEyebrow} title={t.communityTitle} intro={t.communityIntro} />
+              <ul className={`mt-6 divide-y divide-wine/10 px-5 sm:px-7 ${card}`}>
+                {t.community.map((c, i) => (
+                  <li key={c.title} className="flex gap-4 py-5">
+                    <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-burgundy/[0.07] text-burgundy">
+                      {COMMUNITY_ICONS[i % COMMUNITY_ICONS.length]}
+                    </span>
+                    <div>
+                      <p className="font-serif text-lg font-medium tracking-tight text-wine">{c.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-wine/60">{c.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div id="zo-werkt-het" className="mt-10 scroll-mt-24 border-t border-wine/10 pt-10">
+              <SectionHead eyebrow={t.stepsEyebrow} title={t.stepsTitle} />
+              <ol className="mt-6 space-y-5">
+                {t.steps.map((s, i) => (
+                  <li key={s.title} className="flex gap-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-burgundy text-sm font-semibold text-cream">{i + 1}</span>
+                    <div className="pt-1">
+                      <p className="font-serif text-lg font-medium tracking-tight text-wine">{s.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-wine/60">{s.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="mt-10 border-t border-wine/10 pt-10">
+              <SectionHead eyebrow={t.waysEyebrow} title={t.waysTitle} intro={t.waysIntro} />
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                {t.ways.map((w) => (
+                  <div key={w.title} className={`px-5 py-5 ${card}`}>
+                    <p className="font-serif text-lg font-medium tracking-tight text-wine">{w.title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-wine/60">{w.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-10 border-t border-wine/10 pt-10">
+              <MakerCalculator locale={locale} />
+              <p className="mt-8 font-serif text-xl font-medium tracking-tight text-wine sm:text-2xl">{t.giftTitle}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-wine/60">{t.giftIntro}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {t.gifts.map((g) => (
+                  <div key={g.tag} className={`px-5 py-5 ${card}`}>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{g.tag}</p>
+                    <p className="mt-2 font-serif text-lg font-medium tracking-tight text-wine">{g.title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-wine/60">{g.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-10 border-t border-wine/10 pt-10">
+              <SectionHead eyebrow={t.faqEyebrow} title={t.faqTitle} />
+              <div className={`mt-6 divide-y divide-wine/10 px-6 sm:px-8 ${card}`}>
+                {t.faq.map((f) => (
+                  <details key={f.q} className="group py-5">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-serif text-lg font-medium tracking-tight text-wine [&::-webkit-details-marker]:hidden">
+                      {f.q}
+                      <span
+                        aria-hidden
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-wine/8 text-base leading-none text-wine/60 transition-transform duration-200 group-open:rotate-45"
+                      >
+                        +
+                      </span>
+                    </summary>
+                    <p className="mt-2 text-sm leading-relaxed text-wine/60">{f.a}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

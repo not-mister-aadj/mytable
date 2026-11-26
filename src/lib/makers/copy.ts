@@ -10,9 +10,13 @@ export type MakerCopy = {
   intro: string;
   cta: string;
   ctaSecondary: string;
-  stats: { value: string; label: string }[];
-  forWhoTitle: string;
-  forWho: string[];
+  heroMeta: string;
+  badge: string;
+  quickFacts: string[];
+  communityEyebrow: string;
+  stepsEyebrow: string;
+  waysEyebrow: string;
+  faqEyebrow: string;
   giftTitle: string;
   giftIntro: string;
   gifts: (Item & { tag: string })[];
@@ -71,13 +75,13 @@ const nl: MakerCopy = {
     "Fotografeer en film eten, wijn, mooie plekken en een community met een verhaal. Je bouwt je portfolio in een leuk team van makers, en je verdient mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
-  stats: [
-    { value: "Een team", label: "van makers die samen beter worden" },
-    { value: "Portfolio", label: "echte content voor een merk dat groeit" },
-    { value: "+ €7", label: "extra per plek via jouw link" },
-  ],
-  forWhoTitle: "Voor",
-  forWho: ["Foodfotografen", "Wijnliefhebbers", "Stadsgidsen", "Bloggers", "Communitybouwers"],
+  heroMeta: "Eerst online kennismaken · daarna je eigen link",
+  badge: "Makers gezocht",
+  quickFacts: ["Een leuk team", "Bouw je portfolio", "+ €7 per plek"],
+  communityEyebrow: "Wat je krijgt",
+  stepsEyebrow: "Zo werkt het",
+  waysEyebrow: "Hoe je wilt werken",
+  faqEyebrow: "Vragen",
   giftTitle: "Een reden om jouw link te gebruiken",
   giftIntro: "Wie via jouw link boekt, kiest een cadeau. Zo deel je iets waar je volgers zelf ook wat aan hebben.",
   gifts: [
@@ -94,8 +98,8 @@ const nl: MakerCopy = {
     totalLabel: "Voor jou, in twee jaar",
     note: "Een schatting: iedereen komt 4 keer in twee jaar en 1 op de 8 wordt club member.",
   },
-  communityTitle: "Wat je krijgt",
-  communityIntro: "Je wordt onderdeel van een groep makers die samen beter wordt.",
+  communityTitle: "Een team dat samen beter wordt",
+  communityIntro: "Meer dan een link: je maakt deel uit van een groep makers.",
   community: [
     {
       title: "Een leuk team",
@@ -114,21 +118,21 @@ const nl: MakerCopy = {
       body: "Elke maand winnen de makers met de beste post en de meeste boekingen een leuke prijs.",
     },
   ],
-  stepsTitle: "Zo werkt het",
+  stepsTitle: "In drie stappen aan de slag",
   steps: [
     { title: "Maak kennis", body: "Eerst een kort online gesprek. Je zit nergens aan vast." },
     { title: "Krijg je link", body: "Klikt het, dan krijg je je eigen link. Die werkt op elk kanaal." },
     { title: "Maak, deel en leer", body: "Je maakt content, schuift aan bij de calls en deelt je link. Wie via jou boekt, levert je ook nog wat op." },
   ],
-  waysTitle: "Hoe je wilt werken",
+  waysTitle: "Jij kiest waar en hoe je post",
   waysIntro:
-    "Je kiest zelf waar en hoe je post. Op Instagram doen we het het liefst als collab: dan verschijnt de post bij allebei, en vaak ook bij de plek zelf.",
+    "Op Instagram doen we het het liefst als collab: dan verschijnt de post bij allebei, en vaak ook bij de plek zelf.",
   ways: [
     { title: "Jij post", body: "Je maakt en plaatst je eigen content en nodigt ons uit als collaborator." },
     { title: "Wij posten", body: "Je stuurt ons je beelden, wij plaatsen ze en nodigen jou uit." },
     { title: "De plek doet mee", body: "Bij een post over een plek vragen we de plek ook als collab. Zo bereik je ook hun volgers." },
   ],
-  faqTitle: "Vragen",
+  faqTitle: "Goed om te weten",
   faq: [
     { q: "Welke social media tellen?", a: "Allemaal. Instagram, TikTok, Facebook, LinkedIn, YouTube of je eigen blog. Je link werkt overal." },
     {
@@ -190,13 +194,13 @@ const en: MakerCopy = {
     "Shoot food, wine, beautiful places and a community with a story. You build your portfolio in a fun team of makers, and you earn with us.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
-  stats: [
-    { value: "A team", label: "of makers who get better together" },
-    { value: "Portfolio", label: "real content for a growing brand" },
-    { value: "+ €7", label: "extra per seat through your link" },
-  ],
-  forWhoTitle: "For",
-  forWho: ["Food photographers", "Wine lovers", "City guides", "Bloggers", "Community builders"],
+  heroMeta: "First a short online call · then your own link",
+  badge: "Makers wanted",
+  quickFacts: ["A fun team", "Build your portfolio", "+ €7 per seat"],
+  communityEyebrow: "What you get",
+  stepsEyebrow: "How it works",
+  waysEyebrow: "How you want to work",
+  faqEyebrow: "Questions",
   giftTitle: "A reason to use your link",
   giftIntro: "Whoever books through your link picks a gift. So you share something your audience gets something out of too.",
   gifts: [
@@ -213,8 +217,8 @@ const en: MakerCopy = {
     totalLabel: "For you, in two years",
     note: "An estimate: everyone comes 4 times in two years and 1 in 8 becomes a club member.",
   },
-  communityTitle: "What you get",
-  communityIntro: "You join a group of makers who get better together.",
+  communityTitle: "A team that gets better together",
+  communityIntro: "More than a link: you become part of a group of makers.",
   community: [
     {
       title: "A fun team",
@@ -233,21 +237,21 @@ const en: MakerCopy = {
       body: "Every month, the makers with the best post and the most bookings win a nice prize.",
     },
   ],
-  stepsTitle: "How it works",
+  stepsTitle: "Get started in three steps",
   steps: [
     { title: "Meet us", body: "First a short online call. No strings attached." },
     { title: "Get your link", body: "If it clicks, you get your own link. It works on any channel." },
     { title: "Make, share and learn", body: "You make content, join the calls and share your link. Whoever books through you earns you something too." },
   ],
-  waysTitle: "How you want to work",
+  waysTitle: "You choose where and how you post",
   waysIntro:
-    "You choose where and how you post. On Instagram we like to post as a collab: the post shows up for both of us, and often for the venue too.",
+    "On Instagram we like to post as a collab: the post shows up for both of us, and often for the venue too.",
   ways: [
     { title: "You post", body: "You make and post your own content and invite us as a collaborator." },
     { title: "We post", body: "You send us your images, we post them and invite you." },
     { title: "The venue joins", body: "For a post about a venue we ask the venue to join the collab too. You reach their followers as well." },
   ],
-  faqTitle: "Questions",
+  faqTitle: "Good to know",
   faq: [
     { q: "Which social media count?", a: "All of them. Instagram, TikTok, Facebook, LinkedIn, YouTube or your own blog. Your link works everywhere." },
     {

@@ -20,8 +20,9 @@ export function MakerCalculator({ locale }: { locale: Locale }) {
   return (
     <div className="grid overflow-hidden rounded-[1.75rem] bg-wine text-cream sm:grid-cols-[1.1fr_1fr]">
       <div className="px-7 py-10 sm:px-12 sm:py-14">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cream/70">{t.title}</div>
-        <label htmlFor="maker-per-month" className="mt-5 block text-[0.95rem] text-cream/75">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">{t.title}</div>
+        <p className="mt-3 max-w-md font-serif text-[1.35rem] leading-snug text-cream sm:text-[1.6rem]">{t.lead}</p>
+        <label htmlFor="maker-per-month" className="mt-6 block text-[0.95rem] text-cream/75">
           {t.label}
         </label>
         <div className="mt-1 font-serif text-[2.2rem] leading-tight">{t.perMonth(perMonth)}</div>

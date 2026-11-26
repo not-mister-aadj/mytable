@@ -22,6 +22,7 @@ export type MakerCopy = {
   gifts: (Item & { tag: string })[];
   calc: {
     title: string;
+    lead: string;
     label: string;
     perMonth: (n: number) => string;
     people: (n: number) => string;
@@ -72,7 +73,7 @@ const nl: MakerCopy = {
   eyebrow: "MyTable Makers",
   title: "Maak content voor de mooiste tafels van je stad.",
   intro:
-    "Fotografeer of film eten, wijn, mooie plekken en momenten, of juist een community met een verhaal. Alles kan, zolang het bij MyTable past. Je bouwt je portfolio in een leuk team van makers, en je verdient mee.",
+    "Fotografeer of film eten, wijn, mooie plekken en momenten, of juist een community met een verhaal. Alles kan, zolang het bij MyTable past. Je bouwt je portfolio in een leuk team van makers. En aan iedereen die via jouw link boekt, verdien je twee jaar lang mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
   heroMeta: "Eerst online kennismaken · daarna je eigen link",
@@ -89,7 +90,8 @@ const nl: MakerCopy = {
     { tag: "Optie 2", title: "De tweede keer half geld", body: "Kom de eerste keer alleen en betaal de tweede keer de helft voor je plek." },
   ],
   calc: {
-    title: "En je verdient mee",
+    title: "Twee jaar meeverdienen",
+    lead: "Boekt iemand via jouw link? Dan verdien je twee jaar lang mee aan elke plek die diegene boekt.",
     label: "Mensen per maand via jou",
     perMonth: (n) => (n === 1 ? "1 persoon" : `${n} mensen`),
     people: (n) => `${n} mensen in een jaar`,
@@ -191,7 +193,7 @@ const en: MakerCopy = {
   eyebrow: "MyTable Makers",
   title: "Create content for the best tables in your city.",
   intro:
-    "Shoot food, wine, beautiful places and moments, or a community with a story. Anything goes, as long as it fits MyTable. You build your portfolio in a fun team of makers, and you earn with us.",
+    "Shoot food, wine, beautiful places and moments, or a community with a story. Anything goes, as long as it fits MyTable. You build your portfolio in a fun team of makers. And you earn on everyone who books through your link, for two years.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
   heroMeta: "First a short online call · then your own link",
@@ -208,7 +210,8 @@ const en: MakerCopy = {
     { tag: "Option 2", title: "Half price the second time", body: "Come alone the first time and pay half for your seat the second time." },
   ],
   calc: {
-    title: "And you earn with us",
+    title: "Two years of earning",
+    lead: "Someone books through your link? Then you earn on every seat they book, for two years.",
     label: "People per month through you",
     perMonth: (n) => (n === 1 ? "1 person" : `${n} people`),
     people: (n) => `${n} people in a year`,

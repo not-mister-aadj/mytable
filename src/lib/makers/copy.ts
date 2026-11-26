@@ -66,9 +66,9 @@ const nl: MakerCopy = {
   metaTitle: "Makers · MyTable",
   metaDescription: "Voor wie de mooiste tafels vastlegt. Bouw je portfolio en doe ervaring op in een leuk team van makers.",
   eyebrow: "MyTable Makers",
-  title: "Voor wie de mooiste tafels vastlegt.",
+  title: "Maak content voor de mooiste tafels van je stad.",
   intro:
-    "Foto's en video's van eten, wijn, mooie plekken en een community met een verhaal. Bouw je portfolio, doe ervaring op in een leuk team van makers en word steeds beter. En je verdient mee.",
+    "Fotografeer en film eten, wijn, mooie plekken en een community met een verhaal. Je bouwt je portfolio in een leuk team van makers, en je verdient mee.",
   cta: "Plan een kennismaking",
   ctaSecondary: "Zo werkt het",
   stats: [
@@ -185,9 +185,9 @@ const en: MakerCopy = {
   metaTitle: "Makers · MyTable",
   metaDescription: "For those who capture the best tables. Build your portfolio and gain experience in a fun team of makers.",
   eyebrow: "MyTable Makers",
-  title: "For those who capture the best tables.",
+  title: "Create content for the best tables in your city.",
   intro:
-    "Photos and videos of food, wine, beautiful places and a community with a story. Build your portfolio, gain experience in a fun team of makers and keep getting better. And you earn with us.",
+    "Shoot food, wine, beautiful places and a community with a story. You build your portfolio in a fun team of makers, and you earn with us.",
   cta: "Plan a quick call",
   ctaSecondary: "How it works",
   stats: [

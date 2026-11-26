@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MakerCalculator } from "@/components/makers/MakerCalculator";
 import { MakerForm } from "@/components/makers/MakerForm";
+import { MakerStickyCta } from "@/components/makers/MakerStickyCta";
 import { makerCopy } from "@/lib/makers/copy";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/types";
@@ -33,8 +34,8 @@ export function MakersView({
       <Header dict={headerDict} locale={locale} />
 
       {/* Hero: the image carries the page, the words sit on it. */}
-      <section className="px-3 pt-[5.5rem] sm:px-5 sm:pt-24">
-        <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem]">
+      <section className="pt-[4.25rem] sm:px-5 sm:pt-24">
+        <div id="maker-hero" className="relative mx-auto max-w-6xl overflow-hidden sm:rounded-[1.75rem]">
           <Image
             src="/girls-only/phone-moment.jpg"
             alt=""
@@ -44,20 +45,20 @@ export function MakersView({
             priority
           />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#1c0609]/95 via-[#1c0609]/55 to-[#1c0609]/10" />
-          <div className="relative flex min-h-[34rem] flex-col justify-end px-6 pb-10 pt-40 sm:min-h-[38rem] sm:px-12 sm:pb-14">
+          <div className="relative flex min-h-[calc(100svh-4.25rem)] max-h-[44rem] flex-col justify-end px-5 pb-9 pt-32 sm:min-h-[38rem] sm:px-12 sm:pb-14">
             <Eyebrow light>{t.eyebrow}</Eyebrow>
             <h1 className="mt-4 max-w-3xl font-serif text-[2.6rem] font-medium leading-[1.02] tracking-tight text-cream text-balance sm:text-[4.2rem]">
               {t.title}
             </h1>
             <p className="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-cream/80 text-pretty sm:text-[1.15rem]">{t.intro}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="mt-8 flex flex-col items-stretch gap-y-4 sm:flex-row sm:items-center sm:gap-x-6">
               <a
                 href="#kennismaken"
-                className="cta-lift inline-flex min-h-12 items-center rounded-full bg-cream px-7 text-[0.98rem] font-semibold text-wine transition hover:bg-white"
+                className="cta-lift inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-cream px-7 text-[0.98rem] font-semibold text-wine transition hover:bg-white"
               >
                 {t.cta}
               </a>
-              <a href="#zo-werkt-het" className="text-[0.95rem] font-semibold text-cream/85 underline-offset-4 hover:underline">
+              <a href="#zo-werkt-het" className="text-center text-[0.95rem] font-semibold text-cream/85 underline-offset-4 hover:underline">
                 {t.ctaSecondary}
               </a>
             </div>
@@ -67,18 +68,18 @@ export function MakersView({
 
       {/* The offer in three numbers. */}
       <section className="mx-auto max-w-6xl px-5 sm:px-8">
-        <dl className="grid divide-y divide-wine/10 border-b border-wine/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <dl className="grid grid-cols-3 divide-x divide-wine/10 border-b border-wine/10">
           {t.stats.map((s) => (
-            <div key={s.value} className="py-7 sm:px-8 sm:py-10 sm:first:pl-0">
-              <dt className="font-serif text-[2.6rem] leading-none tracking-tight text-burgundy sm:text-[3.2rem]">{s.value}</dt>
-              <dd className="mt-2 text-[0.95rem] leading-snug text-wine/65">{s.label}</dd>
+            <div key={s.value} className="px-2.5 py-6 first:pl-0 last:pr-0 sm:px-8 sm:py-10">
+              <dt className="font-serif text-[1.35rem] leading-none tracking-tight text-burgundy sm:text-[3.2rem]">{s.value}</dt>
+              <dd className="mt-2 text-[0.78rem] leading-snug text-wine/60 sm:text-[0.95rem]">{s.label}</dd>
             </div>
           ))}
         </dl>
-        <div className="flex flex-wrap items-center gap-2 py-6">
-          <span className="mr-1 text-[0.85rem] text-wine/50">{t.forWhoTitle}</span>
+        <div className="scrollbar-none -mx-5 flex items-center gap-2 overflow-x-auto px-5 py-5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:py-6">
+          <span className="mr-1 shrink-0 text-[0.85rem] text-wine/50">{t.forWhoTitle}</span>
           {t.forWho.map((w) => (
-            <span key={w} className="rounded-full border border-wine/12 px-3.5 py-1.5 text-[0.85rem] text-wine/75">
+            <span key={w} className="shrink-0 rounded-full border border-wine/12 px-3.5 py-1.5 text-[0.85rem] text-wine/75">
               {w}
             </span>
           ))}
@@ -91,10 +92,14 @@ export function MakersView({
           <H2>{t.communityTitle}</H2>
           <p className="mt-3 text-[1.05rem] leading-relaxed text-wine/60">{t.communityIntro}</p>
         </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {t.community.map((c) => (
-            <div key={c.title} className="rounded-[1.5rem] bg-beige/60 px-7 py-8 sm:px-9 sm:py-10">
-              <div className="font-serif text-[1.9rem] leading-tight text-wine">{c.title}</div>
+        <div className="scrollbar-none -mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:mt-10 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0">
+          {t.community.map((c, i) => (
+            <div
+              key={c.title}
+              className="w-[78%] shrink-0 snap-start scroll-ml-5 rounded-[1.5rem] bg-beige/60 px-6 py-7 sm:w-auto sm:px-9 sm:py-10"
+            >
+              <div className="font-serif text-[0.95rem] text-burgundy/50">{String(i + 1).padStart(2, "0")}</div>
+              <div className="mt-6 font-serif text-[1.6rem] leading-tight text-wine sm:mt-8 sm:text-[1.9rem]">{c.title}</div>
               <p className="mt-3 max-w-sm leading-relaxed text-wine/65">{c.body}</p>
             </div>
           ))}
@@ -104,12 +109,16 @@ export function MakersView({
       {/* Steps. */}
       <section id="zo-werkt-het" className="mx-auto mt-16 max-w-6xl scroll-mt-28 px-5 sm:mt-24 sm:px-8">
         <H2>{t.stepsTitle}</H2>
-        <ol className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
+        <ol className="mt-8 grid sm:mt-10 sm:grid-cols-3 sm:gap-8">
           {t.steps.map((s, i) => (
-            <li key={s.title} className="border-t border-wine/15 pt-6">
-              <div className="font-serif text-[2.4rem] leading-none text-burgundy/35">{String(i + 1).padStart(2, "0")}</div>
-              <div className="mt-4 font-serif text-[1.45rem] text-wine">{s.title}</div>
-              <p className="mt-2 leading-relaxed text-wine/65">{s.body}</p>
+            <li key={s.title} className="flex gap-5 border-t border-wine/15 py-5 sm:block sm:py-0 sm:pt-6">
+              <div className="w-10 shrink-0 font-serif text-[1.6rem] leading-none text-burgundy/35 sm:w-auto sm:text-[2.4rem]">
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div>
+                <div className="font-serif text-[1.3rem] leading-tight text-wine sm:mt-4 sm:text-[1.45rem]">{s.title}</div>
+                <p className="mt-1.5 leading-relaxed text-wine/65 sm:mt-2">{s.body}</p>
+              </div>
             </li>
           ))}
         </ol>
@@ -140,9 +149,9 @@ export function MakersView({
           <h3 className="font-serif text-[1.7rem] leading-tight text-wine">{t.giftTitle}</h3>
           <p className="mt-2 leading-relaxed text-wine/60">{t.giftIntro}</p>
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
           {t.gifts.map((g) => (
-            <div key={g.tag} className="rounded-[1.5rem] border border-wine/10 px-7 py-7 sm:px-9">
+            <div key={g.tag} className="rounded-[1.5rem] border border-wine/10 px-6 py-6 sm:px-9 sm:py-7">
               <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy/80">{g.tag}</div>
               <div className="mt-3 font-serif text-[1.5rem] leading-tight text-wine">{g.title}</div>
               <p className="mt-2 max-w-sm leading-relaxed text-wine/65">{g.body}</p>
@@ -192,6 +201,7 @@ export function MakersView({
         </div>
       </section>
 
+      <MakerStickyCta label={t.cta} />
       <Footer dict={footerDict} locale={locale} />
     </div>
   );

@@ -42,7 +42,7 @@ export default async function Home({ params }: Props) {
 
   const dict = getDictionary(locale);
   const labels = getBrandLandingLabels(locale);
-  const soldOut = await loadSoldOutSundays();
+  const soldOut = await loadSoldOutSundays(locale);
 
   return (
     <>

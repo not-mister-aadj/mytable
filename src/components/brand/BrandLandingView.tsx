@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Suspense, useState } from "react";
 import type { Locale } from "@/i18n/config";
@@ -34,6 +35,9 @@ export type BrandLandingLabels = {
   /** The Sundays that are full, then how you get in. */
   soldOutEyebrow: string;
   soldOutWord: string;
+  /** A Sunday that still has seats: "Nog 1 plek" / "Nog {n} plekken". */
+  seatsLeftOne: string;
+  seatsLeftMany: string;
   /** Closing row of the list: where the next tables go. */
   soldOutNext: string;
   /** The headline over both blocks. */
@@ -175,10 +179,33 @@ export function BrandLandingView({
               <ul className="mt-6 overflow-hidden rounded-[1.75rem] border border-wine/10 bg-white/80 shadow-[0_18px_44px_rgba(43,13,18,0.10)]">
                 {soldOut.map((sunday, index) => {
                   const date = new Date(sunday.startsAt);
+                  const rowClass = `flex items-center gap-4 px-5 py-4 sm:px-6 ${index > 0 ? "border-t border-wine/8" : ""}`;
+                  if (sunday.href) {
+                    // Still seats: the whole row goes to that Sunday's page.
+                    return (
+                      <li key={`${sunday.city}-${sunday.startsAt}`}>
+                        <Link href={sunday.href} className={`${rowClass} transition hover:bg-gold/10`}>
+                          <span className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-cream text-wine">
+                            <span className="font-serif text-2xl leading-none lining-nums">{dayOf.format(date)}</span>
+                            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-wine/50">
+                              {monthOf.format(date).replace(".", "")}
+                            </span>
+                          </span>
+                          <span className="min-w-0 flex-1 font-serif text-[1.35rem] leading-tight tracking-tight text-wine">
+                            {sunday.city}
+                          </span>
+                          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-burgundy px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white sm:px-3 sm:tracking-[0.18em]">
+                            {sunday.spotsLeft === 1 ? labels.seatsLeftOne : labels.seatsLeftMany.replace("{n}", String(sunday.spotsLeft))}
+                            <span aria-hidden className="hidden sm:inline">→</span>
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  }
                   return (
                     <li
                       key={`${sunday.city}-${sunday.startsAt}`}
-                      className={`flex items-center gap-4 px-5 py-4 sm:px-6 ${index > 0 ? "border-t border-wine/8" : ""}`}
+                      className={rowClass}
                     >
                       <span className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-cream text-wine">
                         <span className="font-serif text-2xl leading-none lining-nums">{dayOf.format(date)}</span>

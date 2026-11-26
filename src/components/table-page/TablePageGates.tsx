@@ -289,7 +289,11 @@ type SeatFixedCopy = {
   title: string;
   body: string;
   handOver: string;
+  /** Under "Geef mijn plek door": what it means. */
+  handOverHint: string;
   message: string;
+  /** Under "Zeg af": what it means (with the price, or for a member without). */
+  messageHint: string;
   keep: string;
   back: string;
   handOverTitle: string;
@@ -320,6 +324,7 @@ type SeatFixedCopy = {
 const seatField = "mt-1 w-full rounded-xl border border-gold/40 bg-white px-3 py-2.5 text-sm text-wine outline-none focus:border-burgundy";
 const solid = "rounded-full bg-burgundy px-5 py-2.5 text-sm font-semibold text-cream transition hover:bg-burgundy/90 disabled:opacity-60";
 const ghost = "rounded-full border border-burgundy px-5 py-2.5 text-sm font-semibold text-burgundy transition hover:bg-burgundy/5 disabled:opacity-60";
+const choice = "w-full rounded-2xl border border-burgundy/40 bg-white px-4 py-3 text-left text-sm transition hover:border-burgundy hover:bg-burgundy/5";
 
 /**
  * "Kun je toch niet?" once the seat is fixed (less than 7 days before): the
@@ -413,12 +418,15 @@ export function SeatFixed({ token, copy, linkOpen = false }: { token: string; co
               <>
                 <p className="font-serif text-2xl text-wine">{copy.title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.body}</p>
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button type="button" onClick={openShare} className={solid}>
-                    {copy.handOver}
+                {/* Two equal choices, each with what it means. */}
+                <div className="mt-5 grid gap-3">
+                  <button type="button" onClick={openShare} className={choice}>
+                    <span className="block font-semibold text-burgundy">{copy.handOver}</span>
+                    <span className="mt-0.5 block text-xs leading-snug text-wine/65">{copy.handOverHint}</span>
                   </button>
-                  <button type="button" onClick={() => go("message")} className={ghost}>
-                    {copy.message}
+                  <button type="button" onClick={() => go("message")} className={choice}>
+                    <span className="block font-semibold text-burgundy">{copy.message}</span>
+                    <span className="mt-0.5 block text-xs leading-snug text-wine/65">{copy.messageHint}</span>
                   </button>
                 </div>
                 <button type="button" onClick={() => go("closed")} className="mt-4 text-sm text-wine/60 hover:text-wine">

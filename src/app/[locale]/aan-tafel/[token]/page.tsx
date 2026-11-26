@@ -90,9 +90,12 @@ const COPY = {
     fixed: {
       open: "Kun je toch niet?",
       title: "Je plek ligt vast.",
-      body: "Je tafel is op jou ingedeeld. Kun je echt niet? Laat dan iemand in jouw plaats komen, zodat de tafel compleet blijft.",
+      body: "Gratis verzetten kon tot 7 dagen voor de zondag. Kun je toch niet? Kies wat je wilt doen.",
       handOver: "Geef mijn plek door",
-      message: "Meld me toch af",
+      handOverHint: "Iemand anders neemt je plek over. Jij hoeft niets te doen.",
+      message: "Zeg af",
+      messageHint: "Je plek gaat naar de wachtlijst. Je {price} krijg je niet terug.",
+      messageHintMember: "Je plek gaat naar iemand op de wachtlijst.",
       keep: "Laat maar",
       back: "Terug",
       handOverTitle: "Wie komt er in jouw plaats?",
@@ -112,7 +115,7 @@ const COPY = {
       linkShareAgain: "Deel je link opnieuw",
       linkRevoke: "Link intrekken",
       messageTitle: "Wat is er?",
-      messageBody: "Laat ons weten wat er is. Daarmee geef je je plek op; die gaat naar iemand op de wachtlijst.",
+      messageBody: "Gratis verzetten kon tot 7 dagen vooraf. Laat ons weten wat er is. Je plek gaat naar iemand op de wachtlijst.",
       reasons: { sick: "Ik ben ziek", work: "Werk kwam ertussen", private: "Familie of privé", plans: "Ik had iets anders gepland", other: "Anders" },
       messagePlaceholder: "Wat is er gebeurd?",
       send: "Verstuur en geef mijn plek op",
@@ -198,9 +201,12 @@ const COPY = {
     fixed: {
       open: "Can't make it after all?",
       title: "Your seat is fixed.",
-      body: "Your table is made around you. Really can't come? Then let someone come in your place, so the table stays complete.",
+      body: "Moving for free was possible until 7 days before the Sunday. Can't make it after all? Choose what you want to do.",
       handOver: "Pass on my seat",
-      message: "Cancel anyway",
+      handOverHint: "Someone else takes your seat. You don't need to do anything.",
+      message: "Cancel",
+      messageHint: "Your seat goes to the waitlist. Your {price} is not refunded.",
+      messageHintMember: "Your seat goes to someone on the waitlist.",
       keep: "Never mind",
       back: "Back",
       handOverTitle: "Who is coming in your place?",
@@ -220,7 +226,7 @@ const COPY = {
       linkShareAgain: "Share your link again",
       linkRevoke: "Withdraw link",
       messageTitle: "What's up?",
-      messageBody: "Let us know what's going on. With this you give up your seat; it goes to someone on the waitlist.",
+      messageBody: "Moving for free was possible until 7 days before. Let us know what's going on. Your seat goes to someone on the waitlist.",
       reasons: { sick: "I'm ill", work: "Work came up", private: "Family or personal", plans: "I had something else planned", other: "Something else" },
       messagePlaceholder: "What happened?",
       send: "Send and give up my seat",
@@ -434,7 +440,15 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
         <SeatFixed
           token={token}
           linkOpen={page.shareLinkOpen}
-          copy={{ ...t.fixed, shareMessage: t.fixed.shareMessage.replace("{day}", longDate(page.startsAt, locale === "en" ? "en" : "nl")).replace("{city}", page.city) }}
+          copy={{
+            ...t.fixed,
+            shareMessage: t.fixed.shareMessage.replace("{day}", longDate(page.startsAt, locale === "en" ? "en" : "nl")).replace("{city}", page.city),
+            // A member's own seat, or a free one: no money to lose by cancelling.
+            messageHint:
+              page.memberSeat || page.paidCents <= 0
+                ? t.fixed.messageHintMember
+                : t.fixed.messageHint.replace("{price}", `€${(page.paidCents / 100).toFixed(2).replace(/[.,]00$/, "").replace(".", ",")}`),
+          }}
         />
       )}
     </>

@@ -14,9 +14,10 @@ test("a complete form passes, email lower case, style defaults to either", () =>
   }
 });
 
-test("instagram or tiktok is needed", () => {
+test("at least one social is needed, any platform", () => {
   assert.deepEqual(parseMakerForm({ ...base, instagram: "" }), { ok: false, error: "handle" });
   assert.equal(parseMakerForm({ ...base, instagram: "", tiktok: "@sanne" }).ok, true);
+  assert.equal(parseMakerForm({ ...base, instagram: "", otherSocials: "linkedin.com/in/sanne" }).ok, true);
 });
 
 test("missing fields are named", () => {

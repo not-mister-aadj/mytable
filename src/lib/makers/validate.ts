@@ -5,6 +5,7 @@ export type MakerInput = {
   email: string;
   instagram: string | null;
   tiktok: string | null;
+  otherSocials: string | null;
   city: string;
   workStyle: MakerWorkStyle;
   portfolioUrl: string | null;
@@ -34,7 +35,8 @@ export function parseMakerForm(raw: Record<string, unknown>): { ok: true; input:
   if (!city) return { ok: false, error: "city" };
   const instagram = handle(raw.instagram);
   const tiktok = handle(raw.tiktok);
-  if (!instagram && !tiktok) return { ok: false, error: "handle" };
+  const otherSocials = handle(raw.otherSocials);
+  if (!instagram && !tiktok && !otherSocials) return { ok: false, error: "handle" };
   if (raw.privacy !== true) return { ok: false, error: "privacy" };
   const style = typeof raw.workStyle === "string" && (MAKER_WORK_STYLES as readonly string[]).includes(raw.workStyle)
     ? (raw.workStyle as MakerWorkStyle)
@@ -47,6 +49,7 @@ export function parseMakerForm(raw: Record<string, unknown>): { ok: true; input:
       email,
       instagram,
       tiktok,
+      otherSocials,
       city,
       workStyle: style,
       portfolioUrl: portfolio,

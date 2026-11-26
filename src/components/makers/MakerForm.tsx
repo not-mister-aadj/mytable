@@ -48,6 +48,7 @@ export function MakerForm({ locale }: { locale: Locale }) {
           city: get("city"),
           instagram: get("instagram"),
           tiktok: get("tiktok"),
+          otherSocials: get("otherSocials"),
           portfolioUrl: get("portfolioUrl"),
           workStyle: get("workStyle"),
           note: get("note"),
@@ -100,6 +101,11 @@ export function MakerForm({ locale }: { locale: Locale }) {
         <Field label={t.tiktok}>
           <input name="tiktok" placeholder="@" className={input} />
         </Field>
+        <div className="sm:col-span-2">
+          <Field label={t.otherSocials}>
+            <input name="otherSocials" placeholder={t.otherPlaceholder} className={input} />
+          </Field>
+        </div>
       </div>
       <p className="-mt-2 text-[0.82rem] text-wine/50">{t.handleHelp}</p>
 

@@ -894,6 +894,8 @@ export const makers = pgTable("makers", {
   email: text("email").notNull(),
   instagram: text("instagram"),
   tiktok: text("tiktok"),
+  /** Facebook, LinkedIn, YouTube, a blog: as typed. */
+  otherSocials: text("other_socials"),
   city: text("city").notNull(),
   /** "self" (they post), "us" (we post their images) or "either". */
   workStyle: text("work_style").notNull().default("either"),

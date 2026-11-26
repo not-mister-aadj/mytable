@@ -26,6 +26,8 @@ export type MakerCopy = {
     city: string;
     instagram: string;
     tiktok: string;
+    otherSocials: string;
+    otherPlaceholder: string;
     handleHelp: string;
     portfolio: string;
     workStyle: string;
@@ -47,12 +49,12 @@ const nl: MakerCopy = {
   eyebrow: "Makers",
   title: "Jij vindt de mooiste plekken. Deel ze, en verdien mee.",
   intro:
-    "Maak je graag foto's en video's van eten, wijn en de leukste plekken van je stad? Werk met ons samen en verdien aan iedereen die via jou aanschuift.",
+    "Maak je graag foto's en video's van eten, wijn, de leukste plekken van je stad en een community met een verhaal? Werk met ons samen en verdien aan iedereen die via jou aanschuift. Instagram, TikTok, Facebook, LinkedIn: alle social media telt.",
   cta: "Meld je aan",
   stepsTitle: "Zo werkt het",
   steps: [
     { title: "Meld je aan", body: "We kijken naar je werk en sturen je je eigen link." },
-    { title: "Deel Sunday Social", body: "Zelf, met ons als collab, of samen met de plek." },
+    { title: "Deel Sunday Social", body: "Waar je ook post: zelf, met ons als collab, of samen met de plek." },
     {
       title: "Verdien mee",
       body: "Wie via jouw link boekt, neemt de eerste keer gratis iemand mee. Jij verdient mee, twee jaar lang.",
@@ -60,7 +62,7 @@ const nl: MakerCopy = {
   ],
   waysTitle: "Hoe je wilt werken",
   waysIntro:
-    "Je kiest zelf hoe je post. Op Instagram doen we het het liefst als collab: dan verschijnt de post bij allebei, en vaak ook bij de plek zelf. Zo zien meer mensen jouw link.",
+    "Je kiest zelf waar en hoe je post. Op Instagram doen we het het liefst als collab: dan verschijnt de post bij allebei, en vaak ook bij de plek zelf. Zo zien meer mensen jouw link.",
   ways: [
     { title: "Jij post", body: "Je maakt en plaatst je eigen content en nodigt ons uit als collaborator." },
     { title: "Wij posten", body: "Je stuurt ons je beelden, wij plaatsen ze en nodigen jou uit." },
@@ -84,8 +86,12 @@ const nl: MakerCopy = {
   faqTitle: "Vragen",
   faq: [
     {
+      q: "Welke social media tellen?",
+      a: "Allemaal. Instagram, TikTok, Facebook, LinkedIn, YouTube of je eigen blog. Je link werkt overal.",
+    },
+    {
       q: "Waar zet ik mijn link?",
-      a: "In je bio of in een story met een linksticker. In de tekst onder een post kun je niet klikken.",
+      a: "Op Instagram en TikTok in je bio of in een story met een linksticker. Op Facebook en LinkedIn gewoon in je post.",
     },
     { q: "Wanneer krijg ik betaald?", a: "Eens per maand, voor de zondagen die al geweest zijn." },
     { q: "Moet ik veel volgers hebben?", a: "Nee. We kijken naar je beelden." },
@@ -102,7 +108,9 @@ const nl: MakerCopy = {
     city: "Stad",
     instagram: "Instagram",
     tiktok: "TikTok",
-    handleHelp: "Instagram, TikTok of allebei.",
+    otherSocials: "Facebook, LinkedIn of anders",
+    otherPlaceholder: "Link of naam",
+    handleHelp: "Vul in waar je post. Eén is genoeg.",
     portfolio: "Link naar je werk",
     workStyle: "Hoe wil je werken?",
     styles: { self: "Ik post zelf", us: "Jullie posten", either: "Maakt me niet uit" },
@@ -117,7 +125,7 @@ const nl: MakerCopy = {
       name: "Vul je naam in.",
       email: "Vul een geldig e-mailadres in.",
       city: "Vul je stad in.",
-      handle: "Vul je Instagram of TikTok in.",
+      handle: "Vul in waar je post.",
       privacy: "Ga akkoord met de privacyverklaring.",
       tooMany: "Even te vaak geprobeerd. Probeer het zo nog eens.",
       generic: "Dat lukte niet. Probeer het nog een keer.",
@@ -131,12 +139,12 @@ const en: MakerCopy = {
   eyebrow: "Makers",
   title: "You find the best places. Share them, and earn with us.",
   intro:
-    "Love taking photos and videos of food, wine and the best spots in your city? Work with us and earn on everyone who joins a table through you.",
+    "Love taking photos and videos of food, wine, the best spots in your city and a community with a story? Work with us and earn on everyone who joins a table through you. Instagram, TikTok, Facebook, LinkedIn: all social media counts.",
   cta: "Apply",
   stepsTitle: "How it works",
   steps: [
     { title: "Apply", body: "We look at your work and send you your own link." },
-    { title: "Share Sunday Social", body: "On your own, with us as a collab, or together with the venue." },
+    { title: "Share Sunday Social", body: "Wherever you post: on your own, with us as a collab, or together with the venue." },
     {
       title: "Earn with us",
       body: "Anyone who books through your link brings someone along free the first time. You earn, for two years.",
@@ -144,7 +152,7 @@ const en: MakerCopy = {
   ],
   waysTitle: "How you want to work",
   waysIntro:
-    "You choose how you post. On Instagram we like to post as a collab: the post shows up for both of us, and often for the venue too. More people see your link.",
+    "You choose where and how you post. On Instagram we like to post as a collab: the post shows up for both of us, and often for the venue too. More people see your link.",
   ways: [
     { title: "You post", body: "You make and post your own content and invite us as a collaborator." },
     { title: "We post", body: "You send us your images, we post them and invite you." },
@@ -168,8 +176,12 @@ const en: MakerCopy = {
   faqTitle: "Questions",
   faq: [
     {
+      q: "Which social media count?",
+      a: "All of them. Instagram, TikTok, Facebook, LinkedIn, YouTube or your own blog. Your link works everywhere.",
+    },
+    {
       q: "Where do I put my link?",
-      a: "In your bio or in a story with a link sticker. Links in a post caption can't be clicked.",
+      a: "On Instagram and TikTok in your bio or in a story with a link sticker. On Facebook and LinkedIn simply in your post.",
     },
     { q: "When do I get paid?", a: "Once a month, for the Sundays that have taken place." },
     { q: "Do I need a lot of followers?", a: "No. We look at your images." },
@@ -186,7 +198,9 @@ const en: MakerCopy = {
     city: "City",
     instagram: "Instagram",
     tiktok: "TikTok",
-    handleHelp: "Instagram, TikTok or both.",
+    otherSocials: "Facebook, LinkedIn or other",
+    otherPlaceholder: "Link or name",
+    handleHelp: "Fill in where you post. One is enough.",
     portfolio: "Link to your work",
     workStyle: "How do you want to work?",
     styles: { self: "I post myself", us: "You post", either: "Either is fine" },
@@ -201,7 +215,7 @@ const en: MakerCopy = {
       name: "Fill in your name.",
       email: "Fill in a valid email address.",
       city: "Fill in your city.",
-      handle: "Fill in your Instagram or TikTok.",
+      handle: "Fill in where you post.",
       privacy: "Please agree to the privacy statement.",
       tooMany: "Too many tries. Try again in a moment.",
       generic: "That didn't work. Please try again.",

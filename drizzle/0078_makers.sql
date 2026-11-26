@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS makers (
   email text NOT NULL,
   instagram text,
   tiktok text,
+  other_socials text,
   city text NOT NULL,
   work_style text NOT NULL DEFAULT 'either',
   portfolio_url text,

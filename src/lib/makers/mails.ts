@@ -21,6 +21,7 @@ export function makerNoticeMail(input: MakerInput, adminLink: string): PlainMail
     ["Stad", input.city],
     ["Instagram", input.instagram ?? "-"],
     ["TikTok", input.tiktok ?? "-"],
+    ["Andere socials", input.otherSocials ?? "-"],
     ["Werk", input.portfolioUrl ?? "-"],
     ["Hoe", STYLE_LABEL[input.workStyle]],
   ];
@@ -47,7 +48,7 @@ export function makerWelcomeMail(input: { name: string; locale: string; link: st
         "Welcome as a MyTable maker. This is your own link:",
         input.link,
         "Anyone new who books through it brings someone along free the first time. You earn €7 for every paid seat, and €7 for every paid month of a club membership, for two years after their first booking.",
-        "Put the link in your bio or in a story with a link sticker. On Instagram we like to post as a collab: invite us, or we invite you. Often the venue joins too.",
+        "Share it wherever you post. On Instagram and TikTok put it in your bio or in a story with a link sticker, on Facebook and LinkedIn simply in your post. On Instagram we like to post as a collab: invite us, or we invite you. Often the venue joins too.",
         "Questions or an idea for a post? Just reply to this mail.",
         "Cheers,\nTeam MyTable",
       ]
@@ -56,7 +57,7 @@ export function makerWelcomeMail(input: { name: string; locale: string; link: st
         "Welkom als maker bij MyTable. Dit is je eigen link:",
         input.link,
         "Wie nieuw is en via jouw link boekt, neemt de eerste keer gratis iemand mee. Jij krijgt €7 per betaalde plek, en €7 per betaalde maand van een club membership, twee jaar lang na hun eerste boeking.",
-        "Zet de link in je bio of in een story met een linksticker. Op Instagram posten we graag als collab: nodig ons uit, of wij nodigen jou uit. Vaak doet de plek zelf ook mee.",
+        "Deel hem waar je maar post. Op Instagram en TikTok zet je hem in je bio of in een story met een linksticker, op Facebook en LinkedIn gewoon in je post. Op Instagram posten we graag als collab: nodig ons uit, of wij nodigen jou uit. Vaak doet de plek zelf ook mee.",
         "Vragen of een idee voor een post? Antwoord gewoon op deze mail.",
         "Groetjes,\nTeam MyTable",
       ];

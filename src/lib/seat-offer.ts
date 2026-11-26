@@ -28,6 +28,8 @@ const PURPOSE = "seat-offer";
 const FROM = "MyTable <hallo@tafels.mytable.club>";
 /** While someone is on Stripe's page, the seat is theirs for this long. */
 const HOLD_MS = 35 * 60 * 1000;
+/** Club members get a freed seat to themselves this long, before the rest of the waitlist. */
+const MEMBERS_FIRST_MS = 30 * 60 * 1000;
 
 type Release = typeof seatReleases.$inferSelect;
 type EventRow = typeof events.$inferSelect;
@@ -277,28 +279,43 @@ export async function sendDueSeatOffers(now: Date = new Date()): Promise<SeatOff
     .where(and(isNull(seatReleases.offeredAt), isNull(seatReleases.claimedBookingId), sql`${seatReleases.offerAt} <= ${now.toISOString()}::timestamptz`));
   const results: SeatOfferResult[] = [];
   for (const { release, event } of due) {
-    // One round per seat: claimed here, so a second run cannot mail again.
-    const [mine] = await db
-      .update(seatReleases)
-      .set({ offeredAt: now })
-      .where(and(eq(seatReleases.id, release.id), isNull(seatReleases.offeredAt)))
-      .returning({ id: seatReleases.id });
-    if (!mine) continue;
     if (!offerStillOpen(event.startsAt, now) || event.workflowStatus !== "published") {
+      await db.update(seatReleases).set({ offeredAt: now }).where(and(eq(seatReleases.id, release.id), isNull(seatReleases.offeredAt)));
       results.push({ releaseId: release.id, sent: 0, fit: 0 });
       continue;
     }
     const people = await fittingPeople(release, event);
+    const member = new Map<string, boolean>();
+    for (const person of people) member.set(person.email, await memberSeatIncluded(person.email, event.startsAt));
+    const already = new Set(release.offeredTo);
+    const members = people.filter((p) => member.get(p.email) && !already.has(p.email));
+    // Club members go first: with members and others on the waitlist, the
+    // members get the seat alone for half an hour; then everyone else.
+    const membersFirst = release.offeredTo.length === 0 && members.length > 0 && members.length < people.length;
+    const round = membersFirst ? members : people.filter((p) => !already.has(p.email));
+    // Claimed here, so a second run cannot mail the same round again.
+    const [mine] = membersFirst
+      ? await db
+          .update(seatReleases)
+          .set({ offerAt: new Date(now.getTime() + MEMBERS_FIRST_MS), offeredTo: members.map((p) => p.email) })
+          .where(and(eq(seatReleases.id, release.id), isNull(seatReleases.offeredAt), sql`${seatReleases.offeredTo} = '[]'::jsonb`))
+          .returning({ id: seatReleases.id })
+      : await db
+          .update(seatReleases)
+          .set({ offeredAt: now })
+          .where(and(eq(seatReleases.id, release.id), isNull(seatReleases.offeredAt)))
+          .returning({ id: seatReleases.id });
+    if (!mine) continue;
     const sentTo: string[] = [];
     const place = await placeOf(event);
-    for (const person of people) {
+    for (const person of round) {
       const token = await signSeatOfferToken(release.id, person.email, event.startsAt);
       const url = `${getSiteUrl().replace(/\/$/, "")}${seatOfferPath(person.locale, token)}`;
-      const mail = seatOfferMail({ member: await memberSeatIncluded(person.email, event.startsAt), locale: person.locale, firstName: person.firstName, city: event.city, place, startsAt: event.startsAt, url, now, fullPriceCents: resolveSeatPriceCents({ eventPriceCents: event.priceCents, isJouwTafel: isJouwTafelType(event.experienceType) }) });
+      const mail = seatOfferMail({ member: member.get(person.email) ?? false, locale: person.locale, firstName: person.firstName, city: event.city, place, startsAt: event.startsAt, url, now, fullPriceCents: resolveSeatPriceCents({ eventPriceCents: event.priceCents, isJouwTafel: isJouwTafelType(event.experienceType) }) });
       const id = await sendSundayMail(person.email, { ...mail, from: FROM }).catch(() => null);
       if (id) sentTo.push(person.email);
     }
-    await db.update(seatReleases).set({ offeredTo: sentTo }).where(eq(seatReleases.id, release.id));
+    if (!membersFirst) await db.update(seatReleases).set({ offeredTo: [...already, ...sentTo] }).where(eq(seatReleases.id, release.id));
     results.push({ releaseId: release.id, sent: sentTo.length, fit: people.length });
   }
   return results;

@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export type EnsureAuthUserResult = {
   userId: string | null;
   created: boolean;
+  /** An account exists for this email now: just made, or there already. */
+  exists?: boolean;
 };
 
 function normalizeEmail(email: string): string {
@@ -69,11 +71,11 @@ export async function ensureAuthUserForEmail(input: {
   });
 
   if (!error && data.user?.id) {
-    return { userId: data.user.id, created: true };
+    return { userId: data.user.id, created: true, exists: true };
   }
 
   if (error && isAlreadyRegisteredError(error.message)) {
-    return { userId: null, created: false };
+    return { userId: null, created: false, exists: true };
   }
 
   if (error) {

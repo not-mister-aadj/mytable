@@ -1,4 +1,3 @@
-import { joinCityNames } from "@/lib/email/format-cities";
 
 /** Unique subject per booking so Gmail/Apple Mail do not thread separate reservations. */
 export function bookingConfirmationSubject(
@@ -93,11 +92,9 @@ export function sundayTableWaitlistWelcomeSubject(
   cities: string[],
   locale: "nl" | "en" = "nl",
 ): string {
-  const cityLabel = joinCityNames(cities, locale);
-  if (locale === "en") {
-    return `You're on the list for ${cityLabel}`;
-  }
-  return `Je staat op de lijst voor ${cityLabel}`;
+  void cities;
+  if (locale === "en") return "Welcome to Sunday Social, here's how it works";
+  return "Welkom bij Sunday Social, zo werkt het";
 }
 
 export function sundayTableWaitlistInviteSubject(

@@ -208,6 +208,8 @@ type SundaySocialPageData = {
     spotsSold: number;
     priceCents: number;
     imageUrl: string | null;
+    /** A ladies-only table: shown as a tag. */
+    femaleOnly?: boolean;
   };
   comingSoon: boolean;
   /** False while no wine bar is linked yet: the page says when it follows
@@ -319,9 +321,10 @@ export default async function SundayTableEventPage({ params }: Props) {
   const ageBracketLabel = ageBracket
     ? `${ageBracket} ${locale === "en" ? "yrs" : "jaar"}`
     : null;
-  const mixedLabel = locale === "en" ? "Mixed" : "Gemengd";
-  const allAgesLabel = locale === "en" ? "All ages" : "Alle leeftijden";
-  const tags = [ageBracketLabel ?? allAgesLabel, mixedLabel].filter(
+  // Only what sets this Sunday apart: an age group or ladies only. "Alle
+  // leeftijden" and "Gemengd" were on nearly every Sunday and raised more
+  // questions than they answered.
+  const tags = [ageBracketLabel, ticketEvent.femaleOnly ? "Ladies only" : null].filter(
     (tag): tag is string => Boolean(tag),
   );
   const motivationStats = await getSundayTableMotivationStats();
@@ -682,7 +685,7 @@ export default async function SundayTableEventPage({ params }: Props) {
         <SundayTableEventReveal
           locale={locale}
           proofLabel={feedbackProofLabel(await getFeedbackProof(), locale === "en" ? "en" : "nl")}
-          quickFacts={locale === "en" ? ["Table of 4 to 6", "A place we pick", "Our wine tips"] : ["Tafel van 4 tot 6", "Een zaak die wij kiezen", "Onze wijntips"]}
+          quickFacts={locale === "en" ? ["Table of 4 to 6, around your age", "A place we pick", "Our wine tips"] : ["Tafel van 4 tot 6, rond jouw leeftijd", "Een zaak die wij kiezen", "Onze wijntips"]}
           dateLabel={capitalizedDate}
           timeLabel={timeLabel}
           venuePending={venuePending}

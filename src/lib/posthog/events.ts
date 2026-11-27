@@ -27,6 +27,8 @@ export const PostHogEvents = {
   sundaySocialTicketChosen: "sunday_social_ticket_chosen",
   /** A step of the booking card: email given (with what kind of address), code sent, code verified, details reached. */
   sundaySocialBookingStep: "sunday_social_booking_step",
+  /** The table game on the table page: started, reached the questions, finished. */
+  tableGame: "table_game",
   scrollDepthReached: "scroll_depth_reached",
   onboardingStepViewed: "onboarding_step_viewed",
   onboardingStepCompleted: "onboarding_step_completed",

@@ -12,6 +12,8 @@ import { reservationCode } from "@/lib/booking-display";
 import { signSundayTableIntroToken, type IntroWine } from "@/lib/sunday-table-intro";
 import { loadTablePage, tablePageAfterPath, verifyTablePageToken, type TableMate, type TablePage } from "@/lib/table-page";
 import { pickTags, type PickKind, type VenuePick } from "@/lib/venue-picks";
+import { TableGame } from "@/components/table-page/TableGame";
+import { buildTableGame } from "@/lib/table-game";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +66,26 @@ const COPY = {
       note: "Je tafelgenoten zien dan ook jouw antwoorden.",
       button: "Deel mijn intro",
       error: "Dat lukte niet. Probeer het opnieuw.",
+    },
+    game: {
+      label: "Aan tafel",
+      soonTitle: "Om {time} opent jullie tafelspel",
+      soonBody: "Twee korte rondes voor het eerste glas. Iedereen speelt mee op zijn eigen telefoon.",
+      title: "Jullie tafelspel",
+      lead: "Iedereen ziet dezelfde kaarten. Wie de kaart heeft, leest hem voor. Geen punten, geen haast.",
+      start: "Begin",
+      roundGuess: "Ronde 1 · Raad wie",
+      roundQuestions: "Ronde {n} · Vragenkaarten",
+      guessHint: "Iedereen raadt wie dit zei. Daarna laat je het zien.",
+      yours: "Deze is van jou. Laat de anderen raden.",
+      reveal: "Laat zien",
+      revealed: "Het was {name}. Vertel er eens iets over!",
+      next: "Volgende",
+      previous: "Vorige",
+      card: "Kaart {n} van {total}",
+      doneTitle: "Dat waren ze",
+      doneBody: "Vanaf hier gaat het vanzelf. Proost!",
+      again: "Nog een keer",
     },
     picksLabel: "Onze aanraders",
     picksTitle: (venue: string) => `Wat wij zouden bestellen bij ${venue}`,
@@ -175,6 +197,26 @@ const COPY = {
       note: "Your tablemates will see your answers too.",
       button: "Share my intro",
       error: "That didn't work. Please try again.",
+    },
+    game: {
+      label: "At the table",
+      soonTitle: "Your table game opens at {time}",
+      soonBody: "Two short rounds for the first glass. Everyone plays along on their own phone.",
+      title: "Your table game",
+      lead: "Everyone sees the same cards. Whoever has the card reads it out. No points, no rush.",
+      start: "Start",
+      roundGuess: "Round 1 · Guess who",
+      roundQuestions: "Round {n} · Question cards",
+      guessHint: "Everyone guesses who said this. Then reveal it.",
+      yours: "This one is yours. Let the others guess.",
+      reveal: "Reveal",
+      revealed: "It was {name}. Tell us a bit more!",
+      next: "Next",
+      previous: "Back",
+      card: "Card {n} of {total}",
+      doneTitle: "That's all of them",
+      doneBody: "From here it goes by itself. Cheers!",
+      again: "Play again",
     },
     picksLabel: "Our picks",
     picksTitle: (venue: string) => `What we'd order at ${venue}`,
@@ -424,6 +466,23 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           )}
         </section>
       )}
+
+      {/* The table game: on the day, once they are seated and shared their answers. */}
+      {page.day === "today" && page.groupNumber !== null && page.me.shared && !page.closed ? (
+        <TableGame
+          game={buildTableGame({
+            mates: page.mates,
+            locale: locale === "en" ? "en" : "nl",
+            city: page.city,
+            seed: `${page.groupNumber}|${page.startsAt.toISOString()}|${page.city}`,
+          })}
+          copy={t.game}
+          startsAt={page.startsAt.toISOString()}
+          timeLabel={hm(page.startsAt)}
+          myBookingId={page.bookingId}
+          city={page.city}
+        />
+      ) : null}
 
       <Picks page={page} venueName={venueName} t={t} />
 

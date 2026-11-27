@@ -8,7 +8,16 @@ import { longDate } from "@/lib/admin/sunday-mails";
 import { handOverSeat } from "@/lib/seat-handover";
 import { moveSeat } from "@/lib/seat-move";
 import { savePlusOneAnswers, shareTablePageIntro, verifyTablePageToken, type PlusOneAnswers } from "@/lib/table-page";
+import { setFeedbackPhoto } from "@/lib/feedback";
 import { createHandOverLink, revokeHandOverLink } from "@/lib/seat-handover-link";
+
+/** The profile photo, set from the top of the table page on the day. */
+export async function uploadTablePhotoAction(token: string, form: FormData): Promise<{ ok: true; url: string } | { ok: false }> {
+  const bookingId = await verifyTablePageToken(token);
+  const file = form.get("photo");
+  if (!bookingId || !(file instanceof File) || file.size === 0) return { ok: false };
+  return setFeedbackPhoto(bookingId, file);
+}
 
 /** "Deel mijn intro" on the table page: only for the booking in the link. */
 export async function shareTableIntroAction(token: string): Promise<{ ok: boolean }> {

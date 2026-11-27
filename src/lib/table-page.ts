@@ -10,6 +10,7 @@ import { canReschedule } from "@/lib/jouw-tafel/reschedule-logic";
 import { amsterdamDateIso } from "@/lib/sunday-wine-table";
 import { venueTransit } from "@/lib/venue-about";
 import { openLinkId } from "@/lib/seat-handover-link";
+import { getProfilePhoto } from "@/lib/profile-photo";
 import { parseVenuePicks, picksVisible, type VenuePick } from "@/lib/venue-picks";
 
 /**
@@ -114,6 +115,8 @@ export type TablePage = {
   language: "nl" | "en";
   me: {
     firstName: string;
+    /** Their profile photo (the one in settings and the feedback form). */
+    photoUrl: string | null;
     plusOneName: string | null;
     answered: boolean;
     shared: boolean;
@@ -262,6 +265,7 @@ export async function loadTablePage(bookingId: string, now = Date.now()): Promis
     language: tableLanguage(tableRows.map((b) => b.tableLanguagePreference)).language,
     me: {
       firstName: firstName(booking.customerName),
+      photoUrl: await getProfilePhoto(booking.email).catch(() => null),
       plusOneName: booking.seats >= 2 ? booking.introPlusOneName?.trim() || null : null,
       answered: answered(booking),
       shared: answered(booking) && booking.introShareConsent,

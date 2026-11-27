@@ -14,6 +14,7 @@ import { loadTablePage, tablePageAfterPath, verifyTablePageToken, type TableMate
 import { pickTags, type PickKind, type VenuePick } from "@/lib/venue-picks";
 import { TableGame } from "@/components/table-page/TableGame";
 import { TablePageTabs } from "@/components/table-page/TablePageTabs";
+import { TableHello } from "@/components/table-page/TableHello";
 import { buildTableGame } from "@/lib/table-game";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +70,13 @@ const COPY = {
       error: "Dat lukte niet. Probeer het opnieuw.",
     },
     tabs: { table: "Tafel", game: "Spel", picks: "Aanraders", aria: "Onderdelen van je tafelpagina" },
+    hello: {
+      title: "Hallo {name}",
+      add: "Voeg een profielfoto toe",
+      change: "Wijzig foto",
+      note: "Je tafelgenoten zien je foto alleen in het feedbackformulier achteraf. Zo voegen ze je makkelijker toe als tafelvriend.",
+      failed: "Uploaden lukte niet. Probeer het nog eens.",
+    },
     game: {
       label: "Aan tafel",
       soonTitle: "Om {time} liggen hier jullie tafelkaarten klaar",
@@ -212,6 +220,13 @@ const COPY = {
       error: "That didn't work. Please try again.",
     },
     tabs: { table: "Table", game: "Game", picks: "Picks", aria: "Parts of your table page" },
+    hello: {
+      title: "Hi {name}",
+      add: "Add a profile photo",
+      change: "Change photo",
+      note: "Your tablemates only see your photo in the feedback form afterwards. That makes it easier for them to add you as a table friend.",
+      failed: "Upload didn't work. Please try again.",
+    },
     game: {
       label: "At the table",
       soonTitle: "At {time} your table cards are ready here",
@@ -561,6 +576,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
         hasGame={gameOn}
         table={
           <>
+            <TableHello token={token} locale={locale === "en" ? "en" : "nl"} name={page.me.firstName} photoUrl={page.me.photoUrl} labels={t.hello} />
             {heroBlock}
             {tableBlock}
             {tailBlock}

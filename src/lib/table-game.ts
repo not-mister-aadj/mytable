@@ -113,22 +113,22 @@ function shuffle<T>(items: T[], random: () => number): T[] {
   return out;
 }
 
-export const MAX_GUESSES = 4;
-export const QUESTIONS_PER_GROUP = 2;
-
 /**
- * The game for one table. `seed` is the same for everyone at the table (the
- * Sunday and the group); the mates may come in any order.
+ * The cards for one phone. Whoever holds the phone plays: they choose to
+ * point (guess whose answer this is) or to answer a question, then pass the
+ * turn on. So phones need not match: each draws its own order (`seed`), and
+ * never shows its owner their own answers.
  */
-export function buildTableGame(input: { mates: GameMate[]; locale: GameLocale; city: string; seed: string }): TableGame {
+export function buildTableGame(input: { mates: GameMate[]; locale: GameLocale; city: string; seed: string; myBookingId: string }): TableGame {
   const random = seeded(input.seed);
   const label = prompts(input.locale, input.city);
   const mates = [...input.mates].sort((a, b) => a.bookingId.localeCompare(b.bookingId));
   const names = [...new Set(mates.map((m) => m.firstName.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const mine = (id: string) => id === input.myBookingId || id === `${input.myBookingId}+1`;
 
   const cards: GuessCard[] = [];
   mates.forEach((m, index) => {
-    if (!m.answers || !m.firstName.trim()) return;
+    if (!m.answers || !m.firstName.trim() || mine(m.bookingId)) return;
     // A different question first for each person, so the cards vary.
     for (let k = 0; k < FIELDS.length; k += 1) {
       const field = FIELDS[(index + k) % FIELDS.length]!;
@@ -139,9 +139,5 @@ export function buildTableGame(input: { mates: GameMate[]; locale: GameLocale; c
       }
     }
   });
-  // Guessing needs at least two answers and three names to choose from.
-  const guesses = cards.length >= 2 && names.length >= 3 ? shuffle(cards, random).slice(0, MAX_GUESSES) : [];
-
-  const questions = QUESTIONS[input.locale].flatMap((group) => shuffle(group, random).slice(0, QUESTIONS_PER_GROUP));
-  return { guesses, names, questions: shuffle(questions, random) };
+  return { guesses: shuffle(cards, random), names, questions: shuffle(QUESTIONS[input.locale].flat(), random) };
 }

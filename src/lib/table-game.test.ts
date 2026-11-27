@@ -9,23 +9,22 @@ const mates: GameMate[] = [
   { bookingId: "d", firstName: "Milan", answers: { askMeAbout: "Jazz" } },
 ];
 
-test("every phone at the table gets the same game, whatever the order of the mates", () => {
-  const one = buildTableGame({ mates, locale: "nl", city: "Rotterdam", seed: "g3|2026-11-29" });
-  const two = buildTableGame({ mates: [...mates].reverse(), locale: "nl", city: "Rotterdam", seed: "g3|2026-11-29" });
-  assert.deepEqual(one, two);
+test("one answer per other person; never your own", () => {
+  const game = buildTableGame({ mates, locale: "nl", city: "Rotterdam", seed: "x", myBookingId: "b" });
+  assert.deepEqual(game.guesses.map((g) => g.name).sort(), ["Lotte", "Milan"]);
+  assert.ok(!game.guesses.some((g) => g.bookingId === "b"));
 });
 
-test("one answer per person, at most four, names to choose from in order", () => {
-  const game = buildTableGame({ mates, locale: "nl", city: "Rotterdam", seed: "x" });
-  assert.equal(game.guesses.length, 3); // Sara gave no answers
-  assert.equal(new Set(game.guesses.map((g) => g.bookingId)).size, 3);
-  assert.deepEqual(game.names, ["Daan", "Lotte", "Milan", "Sara"]);
-  assert.equal(game.questions.length, 8);
-  assert.equal(new Set(game.questions).size, 8);
+test("all twenty questions, each once; the same phone draws the same order", () => {
+  const one = buildTableGame({ mates, locale: "en", city: "Utrecht", seed: "phone-1", myBookingId: "a" });
+  const again = buildTableGame({ mates: [...mates].reverse(), locale: "en", city: "Utrecht", seed: "phone-1", myBookingId: "a" });
+  assert.equal(one.questions.length, 20);
+  assert.equal(new Set(one.questions).size, 20);
+  assert.deepEqual(one, again);
 });
 
-test("too few answers: no guessing round, the questions stay", () => {
-  const game = buildTableGame({ mates: mates.slice(0, 1).concat(mates[2]!), locale: "en", city: "Utrecht", seed: "x" });
+test("nobody shared answers: only questions", () => {
+  const game = buildTableGame({ mates: mates.slice(2, 3), locale: "nl", city: "Utrecht", seed: "x", myBookingId: "z" });
   assert.equal(game.guesses.length, 0);
-  assert.equal(game.questions.length, 8);
+  assert.equal(game.questions.length, 20);
 });

@@ -534,6 +534,7 @@ async function composeSundayMail(
         picks: ctx.picks.map((pick) => pick.name),
         url: tableUrl,
         opensForUs: OPENS_FOR_US.has(venue.name),
+        needsIntro: guest.needsIntro,
       }),
       from: PLAIN_FROM,
     };
@@ -850,6 +851,8 @@ export function morningMail(p: {
   url: string;
   /** The venue is closed at this time and opens just for us. */
   opensForUs?: boolean;
+  /** Their questions are still empty: the game and the picks only show once filled in. */
+  needsIntro?: boolean;
 }): { text: string; html: string } {
   const nl = p.locale === "nl";
   const hi = nl ? `Goedemorgen${p.firstName ? ` ${p.firstName}` : ""},` : `Good morning${p.firstName ? ` ${p.firstName}` : ""},`;
@@ -878,8 +881,16 @@ export function morningMail(p: {
     : null;
   // Sets the expectation: a slow start is normal, not a failed table.
   const ice = nl
-    ? `Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken. Om ${p.time} staat er op je tafelpagina een kort spel klaar dat daarbij helpt.`
-    : `To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass. At ${p.time} a short game opens on your table page to help with that.`;
+    ? `Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken. ${
+        p.needsIntro
+          ? `Vul vóór ${p.time} even de korte vragen in op je tafelpagina. Dan staat er een kort spel klaar dat daarbij helpt, en zie je ook onze aanraders.`
+          : `Om ${p.time} staat er op je tafelpagina een kort spel klaar dat daarbij helpt.`
+      }`
+    : `To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass. ${
+        p.needsIntro
+          ? `Fill in the short questions on your table page before ${p.time}. Then a short game is ready to help with that, and you'll see our picks too.`
+          : `At ${p.time} a short game opens on your table page to help with that.`
+      }`;
   const text = (nl
     ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, ...(opens ? ["", opens] : []), "", where, "", ice, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
     : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, ...(opens ? ["", opens] : []), "", where, "", ice, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]

@@ -13,6 +13,7 @@ import { signSundayTableIntroToken, type IntroWine } from "@/lib/sunday-table-in
 import { loadTablePage, tablePageAfterPath, verifyTablePageToken, type TableMate, type TablePage } from "@/lib/table-page";
 import { pickTags, type PickKind, type VenuePick } from "@/lib/venue-picks";
 import { TableGame } from "@/components/table-page/TableGame";
+import { TablePageTabs } from "@/components/table-page/TablePageTabs";
 import { buildTableGame } from "@/lib/table-game";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,7 @@ const COPY = {
       button: "Deel mijn intro",
       error: "Dat lukte niet. Probeer het opnieuw.",
     },
+    tabs: { table: "Tafel", game: "Spel", picks: "Aanraders", aria: "Onderdelen van je tafelpagina" },
     game: {
       label: "Aan tafel",
       soonTitle: "Om {time} opent jullie tafelspel",
@@ -198,6 +200,7 @@ const COPY = {
       button: "Share my intro",
       error: "That didn't work. Please try again.",
     },
+    tabs: { table: "Table", game: "Game", picks: "Picks", aria: "Parts of your table page" },
     game: {
       label: "At the table",
       soonTitle: "Your table game opens at {time}",
@@ -372,7 +375,10 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${page.venue.name}, ${page.venue.address}`)}`
     : null;
 
-  return (
+  // On the day: three tabs (Tafel, Spel, Aanraders), so not everything shows at once.
+  const tabbed = page.day === "today" && !page.closed;
+  const gameOn = tabbed && page.groupNumber !== null && page.me.shared;
+  const heroBlock = (
     <>
       <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20px_50px_rgba(43,13,18,0.06)] sm:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">Sunday Social {page.city}</p>
@@ -406,7 +412,10 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           </a>
         ) : null}
       </section>
-
+    </>
+  );
+  const tableBlock = (
+    <>
       {!page.me.answered ? (
         <TableIntroGate
           locale={locale}
@@ -435,7 +444,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
             <p className="mt-6 border-t border-wine/10 pt-5 font-serif text-lg text-wine">{t.yourGroup(page.groupNumber)}</p>
             <ul className="mt-3 space-y-3">
               {page.mates.map((m, i) => (
-                <Mate key={m.bookingId} m={m} you={i === 0} t={t} day={page.day}>
+                <Mate key={m.bookingId} m={m} you={i === 0} t={t} day={page.day} collapsed={tabbed}>
                   {i === 0 ? (
                     <EditOwnIntro
                       locale={locale}
@@ -466,9 +475,11 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           )}
         </section>
       )}
-
-      {/* The table game: on the day, once they are seated and shared their answers. */}
-      {page.day === "today" && page.groupNumber !== null && page.me.shared && !page.closed ? (
+    </>
+  );
+  const gameBlock = (
+    <>
+      {gameOn ? (
         <TableGame
           game={buildTableGame({
             mates: page.mates,
@@ -483,9 +494,15 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           city={page.city}
         />
       ) : null}
-
+    </>
+  );
+  const picksBlock = (
+    <>
       <Picks page={page} venueName={venueName} t={t} />
-
+    </>
+  );
+  const tailBlock = (
+    <>
       <p className="px-1 text-xs text-wine/50">{t.footer}</p>
       {page.started ? null : page.seat === "member" ? (
         <CancelLate token={token} copy={t.cancel} />
@@ -512,22 +529,76 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
       )}
     </>
   );
+
+  if (tabbed) {
+    return (
+      <TablePageTabs
+        labels={t.tabs}
+        initialTab={gameOn && page.started ? "game" : "table"}
+        hasGame={gameOn}
+        table={
+          <>
+            {heroBlock}
+            {tableBlock}
+            {tailBlock}
+          </>
+        }
+        game={gameBlock}
+        picks={picksBlock}
+      />
+    );
+  }
+  return (
+    <>
+      {heroBlock}
+      {tableBlock}
+      {gameBlock}
+      {picksBlock}
+      {tailBlock}
+    </>
+  );
 }
 
-function Mate({ m, you, t, day, children }: { m: TableMate; you: boolean; t: Copy; day: TablePage["day"]; children?: React.ReactNode }) {
+function Mate({ m, you, t, day, children, collapsed = false }: { m: TableMate; you: boolean; t: Copy; day: TablePage["day"]; children?: React.ReactNode; collapsed?: boolean }) {
   const a = m.answers;
   const rows: [string, string][] = [];
   if (a?.askMeAbout) rows.push([t.labels.askMeAbout, a.askMeAbout]);
   if (a?.favoriteSpot) rows.push([t.labels.favoriteSpot, a.favoriteSpot]);
   if (a?.intoNow) rows.push([t.labels.intoNow, a.intoNow]);
   if (a?.wine) rows.push([t.labels.wine, t.wine[a.wine]]);
+  const name = (
+    <>
+      {m.firstName || "+1"}
+      {you ? <span className="ml-2 align-middle font-sans text-xs font-medium text-gold">{t.you}</span> : null}
+      {m.withName ? <span className="ml-2 align-middle font-sans text-xs text-wine/50">{t.plusOne(m.withName)}</span> : null}
+    </>
+  );
+  // On the day: only the names, tap one for the introduction (and no spoilers for "Raad wie").
+  if (collapsed) {
+    return (
+      <li className="rounded-2xl border border-wine/10 bg-white/60">
+        <details className="group px-4 py-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between font-serif text-lg text-wine">
+            <span>{name}</span>
+            <span aria-hidden className="text-gold transition group-open:rotate-90">›</span>
+          </summary>
+          {rows.length > 0 ? (
+            <dl className="mt-2 space-y-1 text-sm">
+              {rows.map(([label, value]) => (
+                <Row key={label} label={label} value={value} />
+              ))}
+            </dl>
+          ) : you ? null : (
+            <p className="mt-1 text-sm text-wine/50">{m.withName ? t.pending[day] : t.notFilled}</p>
+          )}
+          {children}
+        </details>
+      </li>
+    );
+  }
   return (
     <li className="rounded-2xl border border-wine/10 bg-white/60 p-4">
-      <p className="font-serif text-lg text-wine">
-        {m.firstName || "+1"}
-        {you ? <span className="ml-2 align-middle font-sans text-xs font-medium text-gold">{t.you}</span> : null}
-        {m.withName ? <span className="ml-2 align-middle font-sans text-xs text-wine/50">{t.plusOne(m.withName)}</span> : null}
-      </p>
+      <p className="font-serif text-lg text-wine">{name}</p>
       {rows.length > 0 ? (
         <dl className="mt-2 space-y-1 text-sm">
           {rows.map(([label, value]) => (

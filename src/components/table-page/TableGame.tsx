@@ -12,8 +12,12 @@ export type TableGameCopy = {
   title: string;
   lead: string;
   start: string;
+  /** Round labels, each with {n}. */
+  roundNames: string;
   roundGuess: string;
   roundQuestions: string;
+  namesTitle: string;
+  namesBody: string;
   guessHint: string;
   yours: string;
   reveal: string;
@@ -28,7 +32,7 @@ export type TableGameCopy = {
   again: string;
 };
 
-type Step = { kind: "intro" } | { kind: "guess"; i: number } | { kind: "question"; i: number } | { kind: "done" };
+type Step = { kind: "intro" } | { kind: "names" } | { kind: "guess"; i: number } | { kind: "question"; i: number } | { kind: "done" };
 
 /**
  * The table game: before the start a teaser, from the start until the page
@@ -53,7 +57,6 @@ export function TableGame({
   const startMs = Date.parse(startsAt);
   const [open, setOpen] = useState(() => Date.now() >= startMs);
   const [step, setStep] = useState<Step>({ kind: "intro" });
-  const [pick, setPick] = useState<string | null>(null);
   const [shown, setShown] = useState(false);
   const tracked = useRef(new Set<string>());
 
@@ -73,14 +76,15 @@ export function TableGame({
   };
 
   const go = (next: Step) => {
-    setPick(null);
     setShown(false);
     setStep(next);
-    if (next.kind === "guess" || (next.kind === "question" && game.guesses.length === 0)) track("started");
+    if (next.kind === "names") track("started");
     if (next.kind === "question") track("questions");
     if (next.kind === "done") track("finished");
   };
-  const firstStep = (): Step => (game.guesses.length > 0 ? { kind: "guess", i: 0 } : { kind: "question", i: 0 });
+  // First a round of names (nobody knows them yet), then guessing by pointing, then the questions.
+  const firstStep = (): Step => ({ kind: "names" });
+  const afterNames = (): Step => (game.guesses.length > 0 ? { kind: "guess", i: 0 } : { kind: "question", i: 0 });
   const afterGuess = (i: number): Step => (i + 1 < game.guesses.length ? { kind: "guess", i: i + 1 } : { kind: "question", i: 0 });
 
   const shell = "rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20px_50px_rgba(43,13,18,0.06)] sm:px-8";
@@ -98,11 +102,18 @@ export function TableGame({
   }
 
   const cardOf = (n: number, total: number) => copy.card.replace("{n}", String(n)).replace("{total}", String(total));
-  const roundTwo = copy.roundQuestions.replace("{n}", game.guesses.length > 0 ? "2" : "1");
+  const roundOf = (label: string, n: number) => label.replace("{n}", String(n));
+  const questionsRound = game.guesses.length > 0 ? 3 : 2;
   return (
     <section className={shell} aria-live="polite">
       <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">
-        {step.kind === "guess" ? copy.roundGuess : step.kind === "question" ? roundTwo : copy.label}
+        {step.kind === "names"
+          ? roundOf(copy.roundNames, 1)
+          : step.kind === "guess"
+            ? roundOf(copy.roundGuess, 2)
+            : step.kind === "question"
+              ? roundOf(copy.roundQuestions, questionsRound)
+              : copy.label}
       </p>
 
       {step.kind === "intro" ? (
@@ -113,6 +124,16 @@ export function TableGame({
             {copy.start}
           </button>
         </>
+      ) : step.kind === "names" ? (
+        <>
+          <h2 className="mt-2 font-serif text-2xl font-medium text-wine">{copy.namesTitle}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-wine/70">{copy.namesBody}</p>
+          <div className="mt-5 flex justify-end">
+            <button type="button" onClick={() => go(afterNames())} className={solid}>
+              {copy.next}
+            </button>
+          </div>
+        </>
       ) : step.kind === "guess" ? (
         (() => {
           const card = game.guesses[step.i]!;
@@ -121,30 +142,8 @@ export function TableGame({
             <>
               <p className="mt-3 text-sm text-wine/60">{card.prompt}</p>
               <p className="mt-2 font-serif text-2xl leading-snug text-burgundy">&ldquo;{card.answer}&rdquo;</p>
-              {mine ? <p className="mt-3 text-sm text-wine/70">{copy.yours}</p> : <p className="mt-3 text-xs text-wine/50">{copy.guessHint}</p>}
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                {game.names.map((name) => {
-                  const right = shown && name === card.name;
-                  const chosen = pick === name;
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      disabled={shown}
-                      onClick={() => setPick(name)}
-                      className={`rounded-full border px-3 py-2 text-sm transition ${
-                        right
-                          ? "border-burgundy bg-burgundy font-semibold text-cream"
-                          : chosen
-                            ? "border-burgundy bg-burgundy/5 font-semibold text-burgundy"
-                            : "border-gold/40 bg-white text-wine hover:border-burgundy/50"
-                      }`}
-                    >
-                      {name}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* No names to tap: everyone points at the person they think it is. */}
+              {mine ? <p className="mt-3 text-sm text-wine/70">{copy.yours}</p> : <p className="mt-3 text-sm text-wine/70">{copy.guessHint}</p>}
               {shown ? <p className="mt-4 font-serif text-lg text-wine">{copy.revealed.replace("{name}", card.name)}</p> : null}
               <div className="mt-5 flex items-center justify-between">
                 <span className="text-xs text-wine/50">{cardOf(step.i + 1, game.guesses.length)}</span>

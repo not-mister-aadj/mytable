@@ -74,7 +74,8 @@ const COPY = {
       title: "Hallo {name}",
       add: "Voeg een profielfoto toe",
       change: "Wijzig foto",
-      note: "Je tafelgenoten zien je foto alleen in het feedbackformulier achteraf. Zo voegen ze je makkelijker toe als tafelvriend.",
+      who: "Wie ziet mijn profielfoto?",
+      note: "Alleen je tafelgenoten, in het feedbackformulier na afloop. En mensen die je als vriend hebben toegevoegd, in hun vriendenlijst.",
       failed: "Uploaden lukte niet. Probeer het nog eens.",
     },
     game: {
@@ -224,7 +225,8 @@ const COPY = {
       title: "Hi {name}",
       add: "Add a profile photo",
       change: "Change photo",
-      note: "Your tablemates only see your photo in the feedback form afterwards. That makes it easier for them to add you as a table friend.",
+      who: "Who sees my profile photo?",
+      note: "Only your tablemates, in the feedback form afterwards. And people who added you as a friend, in their friends list.",
       failed: "Upload didn't work. Please try again.",
     },
     game: {
@@ -574,6 +576,8 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
         labels={t.tabs}
         initialTab={gameOn && page.started ? "game" : "table"}
         hasGame={gameOn}
+        // Only once they filled in their questions.
+        hasPicks={page.me.answered}
         table={
           <>
             <TableHello token={token} locale={locale === "en" ? "en" : "nl"} name={page.me.firstName} photoUrl={page.me.photoUrl} labels={t.hello} />

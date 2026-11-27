@@ -20,7 +20,7 @@ export function TableHello({
   locale: "nl" | "en";
   name: string;
   photoUrl: string | null;
-  labels: { title: string; add: string; change: string; note: string; failed: string };
+  labels: { title: string; add: string; change: string; who: string; note: string; failed: string };
 }) {
   const [photo, setPhoto] = useState<string | null>(photoUrl);
   const [busy, setBusy] = useState(false);
@@ -87,7 +87,17 @@ export function TableHello({
         >
           {photo ? labels.change : labels.add}
         </button>
-        {photo ? null : <p className="mt-1.5 max-w-sm text-[0.8rem] leading-snug text-wine/55">{labels.note}</p>}
+        {photo ? (
+          <details className="mt-1.5 max-w-sm text-[0.8rem] leading-snug">
+            <summary className="cursor-pointer list-none font-medium text-wine/60 [&::-webkit-details-marker]:hidden">{labels.who}</summary>
+            <p className="mt-1 text-wine/55">{labels.note}</p>
+          </details>
+        ) : (
+          <div className="mt-2 max-w-sm text-[0.8rem] leading-snug">
+            <p className="font-semibold text-wine/75">{labels.who}</p>
+            <p className="mt-0.5 text-wine/55">{labels.note}</p>
+          </div>
+        )}
         {failed ? <p className="mt-1.5 text-[0.8rem] text-burgundy">{labels.failed}</p> : null}
       </div>
       <input

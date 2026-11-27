@@ -13,6 +13,7 @@ export function TablePageTabs({
   labels,
   initialTab,
   hasGame,
+  hasPicks,
   table,
   game,
   picks,
@@ -21,13 +22,20 @@ export function TablePageTabs({
   /** From the server: "game" once the afternoon has begun, else "table". */
   initialTab: Tab;
   hasGame: boolean;
+  hasPicks: boolean;
   table: ReactNode;
   game: ReactNode;
   picks: ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>(initialTab);
 
-  const tabs: [Tab, string][] = [["table", labels.table], ...(hasGame ? ([["game", labels.game]] as [Tab, string][]) : []), ["picks", labels.picks]];
+  const tabs: [Tab, string][] = [
+    ["table", labels.table],
+    ...(hasGame ? ([["game", labels.game]] as [Tab, string][]) : []),
+    ...(hasPicks ? ([["picks", labels.picks]] as [Tab, string][]) : []),
+  ];
+  // Only "Tafel" left: no tabs at all.
+  if (tabs.length === 1) return <div className="space-y-5">{table}</div>;
 
   return (
     <>
@@ -59,9 +67,11 @@ export function TablePageTabs({
           {game}
         </div>
       ) : null}
-      <div role="tabpanel" hidden={tab !== "picks"} className="space-y-5">
-        {picks}
-      </div>
+      {hasPicks ? (
+        <div role="tabpanel" hidden={tab !== "picks"} className="space-y-5">
+          {picks}
+        </div>
+      ) : null}
     </>
   );
 }

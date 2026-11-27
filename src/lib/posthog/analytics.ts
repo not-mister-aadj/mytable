@@ -316,6 +316,10 @@ export function trackSundayTableEnglishRequested(props: {
   capture(PostHogEvents.sundayTableEnglishRequested, props);
 }
 
+export function trackTableGame(props: { step: "started" | "questions" | "finished"; city: string; guesses: number }): void {
+  capture(PostHogEvents.tableGame, props);
+}
+
 export function trackSundaySocialTicketChosen(props: {
   /** "member": a club member's own seat (with or without a guest). */
   plan: "single" | "monthly" | "member";

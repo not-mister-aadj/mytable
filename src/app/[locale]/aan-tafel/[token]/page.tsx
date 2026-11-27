@@ -12,6 +12,9 @@ import { reservationCode } from "@/lib/booking-display";
 import { signSundayTableIntroToken, type IntroWine } from "@/lib/sunday-table-intro";
 import { loadTablePage, tablePageAfterPath, verifyTablePageToken, type TableMate, type TablePage } from "@/lib/table-page";
 import { pickTags, type PickKind, type VenuePick } from "@/lib/venue-picks";
+import { TableGame } from "@/components/table-page/TableGame";
+import { TablePageTabs } from "@/components/table-page/TablePageTabs";
+import { buildTableGame } from "@/lib/table-game";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +67,38 @@ const COPY = {
       note: "Je tafelgenoten zien dan ook jouw antwoorden.",
       button: "Deel mijn intro",
       error: "Dat lukte niet. Probeer het opnieuw.",
+    },
+    tabs: { table: "Tafel", game: "Spel", picks: "Aanraders", aria: "Onderdelen van je tafelpagina" },
+    game: {
+      label: "Aan tafel",
+      soonTitle: "Om {time} liggen hier jullie tafelkaarten klaar",
+      soonBody: "Voor de eerste minuten, tot het eerste glas er staat. Iedereen speelt mee op zijn eigen telefoon.",
+      title: "Tot de wijn er is",
+      lead: "De eerste minuten aan tafel zijn soms even onwennig, tot het eerste glas er staat. Daarom liggen hier wat kaarten voor jullie klaar. Om de beurt pak je er een.",
+      start: "Pak de eerste kaart",
+      namesTitle: "Nog niet voorgesteld?",
+      namesBody: "Begin met een kort rondje, zodat je elkaars naam kent: je naam, en wat je het lekkerst lijkt op de kaart.",
+      namesDone: "Leg de kaarten op tafel",
+      turnTitle: "Jouw beurt",
+      turnBody: "Pak een kaart. Daarna geef je de beurt door.",
+      helpLabel: "Spelregels",
+      helpTitle: "Zo speel je",
+      help: [
+        "Om de beurt pak je een kaart van een van de twee stapels.",
+        "Raad wie: op de kaart staat iets wat iemand aan tafel over zichzelf vertelde. Wijs aan wie dat volgens jou is en draai de kaart om. Diegene vertelt er daarna meer over.",
+        "Vraag: jij beantwoordt de vraag. Hebben de anderen ook zin? Dan gaat hij de tafel rond.",
+        "Geef daarna je telefoon of de beurt door. Er is geen winnaar en geen einde: speel zolang het leuk is.",
+      ],
+      deckGuess: "Raad wie",
+      deckQuestion: "Vraag",
+      left: "nog {n}",
+      guessEmpty: "alles geraden",
+      guessHint: "Wijs aan wie dit volgens jou zei.",
+      flip: "Draai om",
+      revealed: "Het was {name}",
+      revealedBody: "Vertel er eens wat meer over!",
+      questionHint: "Wil de rest ook? Ga de tafel rond.",
+      pass: "Geef de beurt door",
     },
     picksLabel: "Onze aanraders",
     picksTitle: (venue: string) => `Wat wij zouden bestellen bij ${venue}`,
@@ -175,6 +210,38 @@ const COPY = {
       note: "Your tablemates will see your answers too.",
       button: "Share my intro",
       error: "That didn't work. Please try again.",
+    },
+    tabs: { table: "Table", game: "Game", picks: "Picks", aria: "Parts of your table page" },
+    game: {
+      label: "At the table",
+      soonTitle: "At {time} your table cards are ready here",
+      soonBody: "For the first few minutes, until the first glass arrives. Everyone plays along on their own phone.",
+      title: "Until the wine arrives",
+      lead: "The first few minutes at the table can feel a little awkward, until the first glass arrives. So we've laid out some cards for you. Take turns drawing one.",
+      start: "Take the first card",
+      namesTitle: "Not introduced yet?",
+      namesBody: "Start with a quick round, so you know each other's names: your name, and what looks best to you on the menu.",
+      namesDone: "Lay the cards on the table",
+      turnTitle: "Your turn",
+      turnBody: "Draw a card. Then pass the turn on.",
+      helpLabel: "Rules",
+      helpTitle: "How to play",
+      help: [
+        "Take turns drawing a card from one of the two decks.",
+        "Guess who: the card shows something someone at the table said about themselves. Point at who you think it is and turn the card over. Then they tell you a bit more.",
+        "Question: you answer it. Do the others feel like it too? Then it goes round the table.",
+        "Then pass your phone or the turn on. There's no winner and no end: play as long as it's fun.",
+      ],
+      deckGuess: "Guess who",
+      deckQuestion: "Question",
+      left: "{n} left",
+      guessEmpty: "all guessed",
+      guessHint: "Point at who you think said this.",
+      flip: "Turn it over",
+      revealed: "It was {name}",
+      revealedBody: "Tell us a bit more!",
+      questionHint: "Want the others to answer too? Go round the table.",
+      pass: "Pass the turn on",
     },
     picksLabel: "Our picks",
     picksTitle: (venue: string) => `What we'd order at ${venue}`,
@@ -330,7 +397,10 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${page.venue.name}, ${page.venue.address}`)}`
     : null;
 
-  return (
+  // On the day: three tabs (Tafel, Spel, Aanraders), so not everything shows at once.
+  const tabbed = page.day === "today" && !page.closed;
+  const gameOn = tabbed && page.groupNumber !== null && page.me.shared;
+  const heroBlock = (
     <>
       <section className="rounded-3xl border border-gold/30 bg-cream px-6 py-7 shadow-[0_20px_50px_rgba(43,13,18,0.06)] sm:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold">Sunday Social {page.city}</p>
@@ -364,7 +434,10 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           </a>
         ) : null}
       </section>
-
+    </>
+  );
+  const tableBlock = (
+    <>
       {!page.me.answered ? (
         <TableIntroGate
           locale={locale}
@@ -393,7 +466,7 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
             <p className="mt-6 border-t border-wine/10 pt-5 font-serif text-lg text-wine">{t.yourGroup(page.groupNumber)}</p>
             <ul className="mt-3 space-y-3">
               {page.mates.map((m, i) => (
-                <Mate key={m.bookingId} m={m} you={i === 0} t={t} day={page.day}>
+                <Mate key={m.bookingId} m={m} you={i === 0} t={t} day={page.day} collapsed={tabbed}>
                   {i === 0 ? (
                     <EditOwnIntro
                       locale={locale}
@@ -424,9 +497,35 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
           )}
         </section>
       )}
-
+    </>
+  );
+  const gameBlock = (
+    <>
+      {gameOn ? (
+        <TableGame
+          game={buildTableGame({
+            mates: page.mates,
+            locale: locale === "en" ? "en" : "nl",
+            city: page.city,
+            // Each phone its own order; the same on every reload.
+            seed: `${page.bookingId}|${page.startsAt.toISOString()}`,
+            myBookingId: page.bookingId,
+          })}
+          copy={t.game}
+          startsAt={page.startsAt.toISOString()}
+          timeLabel={hm(page.startsAt)}
+          city={page.city}
+        />
+      ) : null}
+    </>
+  );
+  const picksBlock = (
+    <>
       <Picks page={page} venueName={venueName} t={t} />
-
+    </>
+  );
+  const tailBlock = (
+    <>
       <p className="px-1 text-xs text-wine/50">{t.footer}</p>
       {page.started ? null : page.seat === "member" ? (
         <CancelLate token={token} copy={t.cancel} />
@@ -453,22 +552,76 @@ async function TablePageBody({ page, token, locale, t }: { page: TablePage; toke
       )}
     </>
   );
+
+  if (tabbed) {
+    return (
+      <TablePageTabs
+        labels={t.tabs}
+        initialTab={gameOn && page.started ? "game" : "table"}
+        hasGame={gameOn}
+        table={
+          <>
+            {heroBlock}
+            {tableBlock}
+            {tailBlock}
+          </>
+        }
+        game={gameBlock}
+        picks={picksBlock}
+      />
+    );
+  }
+  return (
+    <>
+      {heroBlock}
+      {tableBlock}
+      {gameBlock}
+      {picksBlock}
+      {tailBlock}
+    </>
+  );
 }
 
-function Mate({ m, you, t, day, children }: { m: TableMate; you: boolean; t: Copy; day: TablePage["day"]; children?: React.ReactNode }) {
+function Mate({ m, you, t, day, children, collapsed = false }: { m: TableMate; you: boolean; t: Copy; day: TablePage["day"]; children?: React.ReactNode; collapsed?: boolean }) {
   const a = m.answers;
   const rows: [string, string][] = [];
   if (a?.askMeAbout) rows.push([t.labels.askMeAbout, a.askMeAbout]);
   if (a?.favoriteSpot) rows.push([t.labels.favoriteSpot, a.favoriteSpot]);
   if (a?.intoNow) rows.push([t.labels.intoNow, a.intoNow]);
   if (a?.wine) rows.push([t.labels.wine, t.wine[a.wine]]);
+  const name = (
+    <>
+      {m.firstName || "+1"}
+      {you ? <span className="ml-2 align-middle font-sans text-xs font-medium text-gold">{t.you}</span> : null}
+      {m.withName ? <span className="ml-2 align-middle font-sans text-xs text-wine/50">{t.plusOne(m.withName)}</span> : null}
+    </>
+  );
+  // On the day: only the names, tap one for the introduction (and no spoilers for "Raad wie").
+  if (collapsed) {
+    return (
+      <li className="rounded-2xl border border-wine/10 bg-white/60">
+        <details className="group px-4 py-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between font-serif text-lg text-wine">
+            <span>{name}</span>
+            <span aria-hidden className="text-gold transition group-open:rotate-90">›</span>
+          </summary>
+          {rows.length > 0 ? (
+            <dl className="mt-2 space-y-1 text-sm">
+              {rows.map(([label, value]) => (
+                <Row key={label} label={label} value={value} />
+              ))}
+            </dl>
+          ) : you ? null : (
+            <p className="mt-1 text-sm text-wine/50">{m.withName ? t.pending[day] : t.notFilled}</p>
+          )}
+          {children}
+        </details>
+      </li>
+    );
+  }
   return (
     <li className="rounded-2xl border border-wine/10 bg-white/60 p-4">
-      <p className="font-serif text-lg text-wine">
-        {m.firstName || "+1"}
-        {you ? <span className="ml-2 align-middle font-sans text-xs font-medium text-gold">{t.you}</span> : null}
-        {m.withName ? <span className="ml-2 align-middle font-sans text-xs text-wine/50">{t.plusOne(m.withName)}</span> : null}
-      </p>
+      <p className="font-serif text-lg text-wine">{name}</p>
       {rows.length > 0 ? (
         <dl className="mt-2 space-y-1 text-sm">
           {rows.map(([label, value]) => (

@@ -878,8 +878,8 @@ export function morningMail(p: {
     : null;
   // Sets the expectation: a slow start is normal, not a failed table.
   const ice = nl
-    ? "Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken."
-    : "To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass.";
+    ? `Even eerlijk: bijna iedereen vindt de eerste minuten aan tafel met onbekenden een beetje onwennig. Dat hoort erbij, en meestal is het ijs na het eerste glas gebroken. Om ${p.time} staat er op je tafelpagina een kort spel klaar dat daarbij helpt.`
+    : `To be honest: almost everyone finds the first few minutes at a table with strangers a little awkward. That's part of it, and the ice usually breaks after the first glass. At ${p.time} a short game opens on your table page to help with that.`;
   const text = (nl
     ? [hi, "", `Vanmiddag is het zover. Om ${p.time} schuif je aan bij ${p.venueName}.`, ...(opens ? ["", opens] : []), "", where, "", ice, "", taste, "", "Je tafel en onze aanraders:", p.url, "", "Tot vanmiddag!", "Het MyTable-team"]
     : [hi, "", `Today's the day. At ${p.time} you take your seat at ${p.venueName}.`, ...(opens ? ["", opens] : []), "", where, "", ice, "", taste, "", "Your table and our picks:", p.url, "", "See you this afternoon!", "The MyTable team"]

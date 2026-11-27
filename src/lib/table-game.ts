@@ -17,6 +17,14 @@ export type TableGame = { guesses: GuessCard[]; names: string[]; questions: stri
 
 const FIELDS = ["intoNow", "askMeAbout", "favoriteSpot"] as const;
 
+/** Too short, or a filler ("nvt", "geen", "-"): says nothing to guess about. */
+const FILLERS = new Set(["nvt", "n.v.t.", "n.v.t", "geen", "niks", "niets", "nee", "ja", "weet ik niet", "geen idee", "none", "nothing", "no", "yes", "n/a", "idk"]);
+export function isRealAnswer(answer: string): boolean {
+  const clean = answer.trim().toLowerCase();
+  const letters = clean.replace(/[^\p{L}\p{N}]/gu, "");
+  return letters.length >= 3 && !FILLERS.has(clean.replace(/[.!?]+$/, ""));
+}
+
 function prompts(locale: GameLocale, city: string): Record<(typeof FIELDS)[number], string> {
   return locale === "en"
     ? { intoNow: "What are you really into right now?", askMeAbout: "What can people ask you about?", favoriteSpot: `Favourite spot in ${city}?` }
@@ -126,18 +134,24 @@ export function buildTableGame(input: { mates: GameMate[]; locale: GameLocale; c
   const names = [...new Set(mates.map((m) => m.firstName.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const mine = (id: string) => id === input.myBookingId || id === `${input.myBookingId}+1`;
 
+  // Every answer that says something, per person; then dealt round the
+  // table so the same person never comes twice in a row.
+  const perPerson = mates
+    .filter((m) => m.answers && m.firstName.trim() && !mine(m.bookingId))
+    .map((m) =>
+      shuffle(
+        FIELDS.map((field) => m.answers?.[field]?.trim() ?? "")
+          .map((answer, k) => ({ answer, field: FIELDS[k]! }))
+          .filter(({ answer }) => isRealAnswer(answer))
+          .map(({ answer, field }) => ({ bookingId: m.bookingId, name: m.firstName.trim(), prompt: label[field], answer })),
+        random,
+      ),
+    )
+    .filter((cards) => cards.length > 0);
+  const order = shuffle(perPerson, random);
   const cards: GuessCard[] = [];
-  mates.forEach((m, index) => {
-    if (!m.answers || !m.firstName.trim() || mine(m.bookingId)) return;
-    // A different question first for each person, so the cards vary.
-    for (let k = 0; k < FIELDS.length; k += 1) {
-      const field = FIELDS[(index + k) % FIELDS.length]!;
-      const answer = m.answers[field]?.trim();
-      if (answer) {
-        cards.push({ bookingId: m.bookingId, name: m.firstName.trim(), prompt: label[field], answer });
-        return;
-      }
-    }
-  });
-  return { guesses: shuffle(cards, random), names, questions: shuffle(QUESTIONS[input.locale].flat(), random) };
+  for (let round = 0; order.some((c) => c.length > round); round += 1) {
+    for (const person of order) if (person[round]) cards.push(person[round]!);
+  }
+  return { guesses: cards, names, questions: shuffle(QUESTIONS[input.locale].flat(), random) };
 }

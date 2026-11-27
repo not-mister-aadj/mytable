@@ -18,6 +18,9 @@ export type TableGameCopy = {
   namesDone: string;
   turnTitle: string;
   turnBody: string;
+  /** The small (i): how the game works, folded open on tap. */
+  helpLabel: string;
+  help: readonly string[];
   deckGuess: string;
   deckQuestion: string;
   /** With {n}. */
@@ -67,6 +70,7 @@ export function TableGame({
   const [view, setView] = useState<View>({ kind: "intro" });
   const [gi, setGi] = useState(0);
   const [qi, setQi] = useState(0);
+  const [helpOpen, setHelpOpen] = useState(false);
   const tracked = useRef(new Set<string>());
 
   // The teaser turns into the game at the start, without a reload.
@@ -146,8 +150,30 @@ export function TableGame({
           </motion.div>
         ) : view.kind === "table" ? (
           <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <p className="text-center font-serif text-2xl text-wine">{copy.turnTitle}</p>
-            <p className="mt-1 text-center text-sm text-wine/60">{copy.turnBody}</p>
+            <div className="relative">
+              <p className="text-center font-serif text-2xl text-wine">{copy.turnTitle}</p>
+              <p className="mt-1 text-center text-sm text-wine/60">{copy.turnBody}</p>
+              <button
+                type="button"
+                onClick={() => setHelpOpen(!helpOpen)}
+                aria-expanded={helpOpen}
+                aria-label={copy.helpLabel}
+                className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full text-wine/50 transition hover:bg-wine/5 hover:text-wine"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v5" strokeLinecap="round" />
+                  <circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+            </div>
+            {helpOpen ? (
+              <ul className="mt-4 space-y-1.5 rounded-2xl bg-white/70 px-4 py-3 text-left text-xs leading-relaxed text-wine/75">
+                {copy.help.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            ) : null}
             <div className={`mt-6 grid gap-5 ${game.guesses.length > 0 ? "grid-cols-2" : "mx-auto max-w-[170px] grid-cols-1"}`}>
               {game.guesses.length > 0 ? (
                 <Deck

@@ -20,6 +20,8 @@ export type TableGameCopy = {
   turnBody: string;
   /** The small (i): how the game works, folded open on tap. */
   helpLabel: string;
+  helpTitle: string;
+  /** Numbered steps; a step may start with a bold part before ": ". */
   help: readonly string[];
   deckGuess: string;
   deckQuestion: string;
@@ -150,29 +152,47 @@ export function TableGame({
           </motion.div>
         ) : view.kind === "table" ? (
           <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="relative">
-              <p className="text-center font-serif text-2xl text-wine">{copy.turnTitle}</p>
-              <p className="mt-1 text-center text-sm text-wine/60">{copy.turnBody}</p>
+            <div className="text-center">
+              <p className="font-serif text-2xl text-wine">{copy.turnTitle}</p>
+              <p className="mt-1 text-sm text-wine/60">{copy.turnBody}</p>
               <button
                 type="button"
                 onClick={() => setHelpOpen(!helpOpen)}
                 aria-expanded={helpOpen}
-                aria-label={copy.helpLabel}
-                className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full text-wine/50 transition hover:bg-wine/5 hover:text-wine"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-wine/15 bg-white/70 px-3 py-1 text-xs font-semibold text-wine/70 transition hover:border-wine/30 hover:text-wine"
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 11v5" strokeLinecap="round" />
                   <circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none" />
                 </svg>
+                {copy.helpLabel}
               </button>
             </div>
             {helpOpen ? (
-              <ul className="mt-4 space-y-1.5 rounded-2xl bg-white/70 px-4 py-3 text-left text-xs leading-relaxed text-wine/75">
-                {copy.help.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
+              <div className="mt-4 rounded-2xl bg-white/80 px-4 py-4 text-left">
+                <p className="font-serif text-lg text-wine">{copy.helpTitle}</p>
+                <ol className="mt-2 space-y-2 text-[0.82rem] leading-relaxed text-wine/75">
+                  {copy.help.map((line, i) => {
+                    const cut = line.indexOf(": ");
+                    return (
+                      <li key={line} className="flex gap-2.5">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-burgundy text-[0.7rem] font-semibold text-cream">{i + 1}</span>
+                        <span>
+                          {cut > 0 && cut < 14 ? (
+                            <>
+                              <strong className="font-semibold text-wine">{line.slice(0, cut)}:</strong>
+                              {line.slice(cut + 1)}
+                            </>
+                          ) : (
+                            line
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
             ) : null}
             <div className={`mt-6 grid gap-5 ${game.guesses.length > 0 ? "grid-cols-2" : "mx-auto max-w-[170px] grid-cols-1"}`}>
               {game.guesses.length > 0 ? (
